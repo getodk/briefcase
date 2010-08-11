@@ -1,0 +1,6 @@
+glob:bin-test/**
+glob:bin/**
+glob:dist/**
+glob:doc/**
+glob:junit/**
+glob:temp/**

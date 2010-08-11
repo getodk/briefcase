@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="build" name="opendatakit-briefcase">
+	<description>Builds dist directory for the briefcase application</description>
+    <property environment="env"/>
+	<!-- The keystore property file sets:
+	    jarSigner.password 
+	    jarSigner.keystore
+	    jarSigner.signAsAlias
+	    This keeps the specifics of these values out of the build system... 
+	 -->
+	<property file="../../keystore/jarSignerDetails.txt"/>
+    <property name="ECLIPSE_HOME" value="../../Eclipse/eclipse-3.5.2"/>
+    <property name="junit.output.dir" value="junit"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.6"/>
+    <property name="source" value="1.6"/>
+    <path id="JUnit 4.libraryclasspath">
+        <pathelement location="${ECLIPSE_HOME}/plugins/org.junit4_4.5.0.v20090824/junit.jar"/>
+        <pathelement location="${ECLIPSE_HOME}/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar"/>
+    </path>
+    <path id="opendatakit-briefcase.classpath">
+        <pathelement location="bin"/>
+        <pathelement location="lib/kxml2-2.3.0.jar"/>
+        <path refid="JUnit 4.libraryclasspath"/>
+    </path>
+    <path id="opendatakit-briefcase.test-classpath">
+        <pathelement location="bin"/>
+        <pathelement location="bin-test"/>
+        <pathelement location="lib/kxml2-2.3.0.jar"/>
+        <path refid="JUnit 4.libraryclasspath"/>
+    </path>
+	
+    <target name="init">
+        <mkdir dir="bin"/>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="src">
+                <exclude name="**/*.launch"/>
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="test">
+                <exclude name="**/*.launch"/>
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="bin"/>
+        <delete dir="dist"/>
+        <delete dir="temp"/>
+    </target>
+    <target depends="clean" name="cleanall"/>
+    <target depends="junitreport,dist" name="build"/>
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="opendatakit-briefcase.classpath"/>
+        </javac>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin-test" source="${source}" target="${target}">
+            <src path="test"/>
+            <classpath refid="opendatakit-briefcase.classpath"/>
+        </javac>
+    </target>
+	<target depends="build-project" name="dist">
+		<mkdir dir="temp"/>
+		<mkdir dir="dist"/>
+        <copy includeemptydirs="false" todir="dist">
+            <fileset dir="html"/>
+        </copy>
+		<jar jarfile="temp/opendatakit-briefcase.jar" basedir="bin"/>		
+		<signjar destdir="dist" alias="${jarSigner.signAsAlias}" 
+			storepass="${jarSigner.password}" 
+			keystore="${jarSigner.keystore}" >
+			<path>
+				<fileset dir="lib" includes="*.jar" />
+				<fileset dir="temp" includes="*.jar" />
+			</path>
+		</signjar>
+	</target>
+    <target depends="build-project" name="test">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="org.opendatakit.briefcase.CsvDownloadTest" todir="${junit.output.dir}"/>
+            <classpath refid="opendatakit-briefcase.test-classpath"/>
+        </junit>
+    </target>
+    <target name="junitreport" depends="test">
+        <junitreport todir="${junit.output.dir}">
+            <fileset dir="${junit.output.dir}">
+                <include name="TEST-*.xml"/>
+            </fileset>
+            <report format="frames" todir="${junit.output.dir}"/>
+        </junitreport>
+    </target>
+</project>
