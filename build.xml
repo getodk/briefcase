@@ -6,6 +6,7 @@
 	    jarSigner.password 
 	    jarSigner.keystore
 	    jarSigner.signAsAlias
+	    jarSigner.certDir
 	    This keeps the specifics of these values out of the build system... 
 	 -->
 	<property file="../../keystore/jarSignerDetails.txt"/>
@@ -30,7 +31,7 @@
         <path refid="JUnit 4.libraryclasspath"/>
     </path>
 	
-    <target name="init">
+    <target depends="cleanall" name="init">
         <mkdir dir="bin"/>
         <copy includeemptydirs="false" todir="bin">
             <fileset dir="src">
@@ -38,7 +39,11 @@
                 <exclude name="**/*.java"/>
             </fileset>
         </copy>
-        <copy includeemptydirs="false" todir="bin">
+    	<!-- signing the JNLP requires absolute codebase -->
+    	<!-- <mkdir dir="bin/JNLP-INF"/> -->
+    	<!-- <copy file="html/opendatakit-briefcase.jnlp" tofile="bin/JNLP-INF/APPLICATION.JNLP" /> -->
+        <mkdir dir="bin-test"/>
+     	<copy includeemptydirs="false" todir="bin-test">
             <fileset dir="test">
                 <exclude name="**/*.launch"/>
                 <exclude name="**/*.java"/>
@@ -47,12 +52,14 @@
     </target>
     <target name="clean">
         <delete dir="bin"/>
+        <delete dir="bin-test"/>
         <delete dir="dist"/>
         <delete dir="temp"/>
+    	<delete dir="${junit.output.dir}"/>
     </target>
     <target depends="clean" name="cleanall"/>
     <target depends="junitreport,dist" name="build"/>
-    <target depends="init" name="build-project">
+    <target depends="init" name="compile">
         <echo message="${ant.project.name}: ${ant.file}"/>
         <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
             <src path="src"/>
@@ -63,14 +70,19 @@
             <classpath refid="opendatakit-briefcase.classpath"/>
         </javac>
     </target>
-	<target depends="build-project" name="dist">
+	<target depends="compile" name="dist">
 		<mkdir dir="temp"/>
 		<mkdir dir="dist"/>
         <copy includeemptydirs="false" todir="dist">
-            <fileset dir="html"/>
+            <fileset dir="html" excludes="*.jnlp" />
+        </copy>
+		<mkdir dir="dist/briefcase"/>
+        <copy includeemptydirs="false" todir="dist/briefcase">
+            <fileset dir="html" includes="*.jnlp" />
+        	<fileset dir="${jarSigner.certDir}" includes="*.cer" />
         </copy>
 		<jar jarfile="temp/opendatakit-briefcase.jar" basedir="bin"/>		
-		<signjar destdir="dist" alias="${jarSigner.signAsAlias}" 
+		<signjar destdir="dist/briefcase" alias="${jarSigner.signAsAlias}" 
 			storepass="${jarSigner.password}" 
 			keystore="${jarSigner.keystore}" >
 			<path>
@@ -79,7 +91,7 @@
 			</path>
 		</signjar>
 	</target>
-    <target depends="build-project" name="test">
+    <target depends="compile" name="test">
         <mkdir dir="${junit.output.dir}"/>
         <junit fork="yes" printsummary="withOutAndErr">
             <formatter type="xml"/>

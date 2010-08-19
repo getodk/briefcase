@@ -15,30 +15,49 @@
  */
 package org.opendatakit.briefcase;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JApplet;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.border.BevelBorder;
 
 /**
  * Applet to fetch data from Aggregate and store it in csv and binary
@@ -53,9 +72,15 @@ import javax.swing.SwingConstants;
  */
 public class BriefcaseApplet extends JApplet implements ActionListener, CsvDownload.ActionListener {
 
+	/** Briefcase servlet that embeds the applet in a web page ends with /Briefcase */
+	private static final String BRIEFCASE_URL_ELEMENT = "Briefcase";
+
 	/** serialization */
 	private static final long serialVersionUID = 8523973495636927870L;
 
+	/** logger for this applet */
+	private static final Logger log = Logger.getLogger(BriefcaseApplet.class.getName());
+	
 	/** does all the actual work... */
 	private CsvDownload worker = null;
 
@@ -85,9 +110,8 @@ public class BriefcaseApplet extends JApplet implements ActionListener, CsvDownl
 	 * Swing controls for the user interface
 	 */
 	/** status display control */
-	private JLabel statusCtrl;
+	private JTextArea statusCtrl;
 	private JTextField dirPathCtrl;
-	private JTextField serverUrlCtrl;
 	private JTextField odkIdCtrl;
 	private JTextField lastCursorCtrl;
 	private JTextField lastKeyCtrl;
@@ -98,6 +122,7 @@ public class BriefcaseApplet extends JApplet implements ActionListener, CsvDownl
 	private JCheckBox recursiveCtrl;
 	private JButton executeCtrl;
 	
+	private CookieHandler mgr;
 	/**************************************************************
 	 * The user's request values.
 	 */
@@ -146,13 +171,13 @@ public class BriefcaseApplet extends JApplet implements ActionListener, CsvDownl
 				worker.closeAllFilesAndManifest(fetchStatus);
 				// transition from FETCHING to DONE
 				activityState = ActivityState.DONE;
-				// force update of UI...
+				// update UI...
+				statusCtrl.setText(getStatus());
 				EventQueue.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						statusCtrl.setText(getStatus());
 						if ( eFetchFailure != null ) {
-							errorDialog("fetch failed", eFetchFailure.getMessage());
+							errorDialog("error while accessing server", eFetchFailure.getMessage());
 						}
 						toggleEnable(true);
 					}
@@ -198,91 +223,115 @@ public class BriefcaseApplet extends JApplet implements ActionListener, CsvDownl
 		this.currentUrl = currentUrl;
 		this.tries = tries;
 		this.count = count;
-		// force update of UI...
-		EventQueue.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				statusCtrl.setText(getStatus());
-			}
-		});
+		// update UI...
+		statusCtrl.setText(getStatus());
 	}
 
+	private void addUI(Component ui, GridBagConstraints c) {
+		Container p = getContentPane();
+		GridBagLayout gb = (GridBagLayout) p.getLayout();
+		p.add(ui);
+		gb.setConstraints(ui, c);
+	}
 	/**
 	 * Called during the initialization of the applet frame.  
 	 * Lays out the controls.  Sets up the (sole) action 
 	 * listener for the "Retrieve" button.
 	 */
 	public void init() {
+		mgr = CookieHandler.getDefault();
+		if ( mgr == null ) {
+			log.severe("No default CookieManager -- creating our own!");
+			mgr = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
+			CookieHandler.setDefault(mgr);
+		} else {
+			log.info("Found a default CookieManager -- using it!");
+		}
+		
 		Container pane = getContentPane();
 		Font f = pane.getFont();
 		FontMetrics mf = pane.getFontMetrics(f);
-		Font fLarge = f.deriveFont(Font.BOLD, (float) (mf.getHeight() * 2));
+		Font fStatus = f.deriveFont(Font.PLAIN, (float) (mf.getHeight() * 1.5));
+		pane.setLayout(new GridBagLayout());
 
-		BoxLayout vertical = new BoxLayout(pane, BoxLayout.PAGE_AXIS);
-		pane.setLayout(vertical);
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridx = GridBagConstraints.LINE_START;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.anchor = GridBagConstraints.LINE_START;
+		c.insets = new Insets(0,4,0,4);
+		c.weightx = 1.0;
+
+		final int VERT_SPACE = mf.getHeight();
 		JLabel label;
-		label = new JLabel("ODK Briefcase Applet", JLabel.CENTER);
-		label.setFont(fLarge);
-		pane.add(label);
-		label = new JLabel(" ");
-		label.setFont(fLarge);
-		pane.add(label);
-		statusCtrl = new JLabel(getStatus());
-		pane.add(statusCtrl);
-		label = new JLabel(" ");
-		label.setFont(fLarge);
-		pane.add(label);
+		label = new JLabel("<html><font size=\"+2\"><b>ODK Briefcase Applet </b></font><font size=\"3\">Version " + CsvDownload.APP_VERSION + "</font></html>", JLabel.LEFT);
+		addUI(label,c);
+		addUI(Box.createVerticalStrut(2*VERT_SPACE),c);
+		statusCtrl = new JTextArea(4,0);
+		statusCtrl.setText(getStatus());
+		statusCtrl.setEditable(false);
+		statusCtrl.setLineWrap(true);
+		statusCtrl.setWrapStyleWord(false);
+		statusCtrl.setFont(fStatus);
+		statusCtrl.setForeground(Color.BLUE);
+		statusCtrl.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
+		GridBagConstraints cc = (GridBagConstraints) c.clone();
+		cc.fill = GridBagConstraints.BOTH;
+		addUI(statusCtrl,cc);
+		addUI(Box.createVerticalStrut(2*VERT_SPACE),c);
 		label = new JLabel("Directory path in which to store the data:");
-		pane.add(label);
+		addUI(label,c);
 		dirPathCtrl = new JTextField("C:\\dataspace\\");
-		pane.add(dirPathCtrl);
+		addUI(dirPathCtrl,c);
 		recursiveCtrl = new JCheckBox("Download nested repeat groups");
-		pane.add(recursiveCtrl);
+		addUI(recursiveCtrl,c);
 		label = new JLabel("Binary data handling:");
-		pane.add(label);
+		addUI(label,c);
 		binaryButtonGroup = new ButtonGroup();
 		fetchBinaryCtrl = new JRadioButton("Download binary data and replace server URL with the local filename in the csv.");
 		convertBinaryCtrl = new JRadioButton("Replace server URL with the local filename in the csv.");
 		asIsBinaryCtrl = new JRadioButton("Keep server URL unchanged in the csv.", true);// default
 		binaryButtonGroup.add(fetchBinaryCtrl);
-		pane.add(fetchBinaryCtrl);
+		addUI(fetchBinaryCtrl,c);
 		binaryButtonGroup.add(convertBinaryCtrl);
-		pane.add(convertBinaryCtrl);
+		addUI(convertBinaryCtrl,c);
 		binaryButtonGroup.add(asIsBinaryCtrl);
-		pane.add(asIsBinaryCtrl);
-		label = new JLabel(" ");
-		pane.add(label);
-		label = new JLabel(
-				"Aggregate URL (paste it in from a browser address line):");
-		pane.add(label);
-		serverUrlCtrl = new JTextField("http://localhost:8888/forms");
-		pane.add(serverUrlCtrl);
-		label = new JLabel(" ");
-		pane.add(label);
+		addUI(asIsBinaryCtrl,c);
+		addUI(Box.createVerticalStrut(VERT_SPACE),c);
 		label = new JLabel("odkId:");
-		pane.add(label);
+		addUI(label,c);
 		odkIdCtrl = new JTextField("HouseholdSurvey1/HouseholdSurvey");
-		pane.add(odkIdCtrl);
-		label = new JLabel(" ");
-		pane.add(label);
-		pane.add(new JSeparator(SwingConstants.HORIZONTAL));
-		label = new JLabel("Parameters for resumption of a failed download attempt");
-		pane.add(label);
-		label = new JLabel(" ");
-		pane.add(label);
+		addUI(odkIdCtrl,c);
+		addUI(Box.createVerticalStrut(VERT_SPACE),c);
+		addUI(Box.createVerticalGlue(),c);
+		addUI(new JSeparator(SwingConstants.HORIZONTAL),c);
+		addUI(Box.createVerticalStrut(20),c);
+		addUI(Box.createVerticalGlue(),c);
+		label = new JLabel("Parameters for resumption of a failed download attempt:");
+		addUI(label,c);
+		Box b = new Box(BoxLayout.LINE_AXIS);
+		b.setAlignmentX(LEFT_ALIGNMENT);
+		b.add(Box.createHorizontalStrut(3*VERT_SPACE));
+		Box sub = new Box(BoxLayout.PAGE_AXIS);
+		sub.setAlignmentX(LEFT_ALIGNMENT);
+		b.add(sub);
+		sub.add(Box.createVerticalStrut(VERT_SPACE));
 		label = new JLabel("LastCursor-x:");
-		pane.add(label);
+		sub.add(label);
 		lastCursorCtrl = new JTextField("");
-		pane.add(lastCursorCtrl);
+		sub.add(lastCursorCtrl);
 		label = new JLabel("LastKEY-x:");
-		pane.add(label);
+		sub.add(label);
 		lastKeyCtrl = new JTextField("");
-		pane.add(lastKeyCtrl);
+		sub.add(lastKeyCtrl);
+		addUI(b,c);
+		addUI(Box.createVerticalStrut(VERT_SPACE),c);
+		addUI(Box.createVerticalGlue(),c);
+		addUI(new JSeparator(SwingConstants.HORIZONTAL),c);
+		addUI(Box.createVerticalStrut(VERT_SPACE),c);
 		executeCtrl = new JButton("Retrieve");
 		executeCtrl.addActionListener(this);
-		pane.add(executeCtrl);
-		label = new JLabel(" ");
-		pane.add(label);
+		addUI(executeCtrl,c);
+		addUI(Box.createVerticalStrut(VERT_SPACE),c);
 	}
 
 	/**
@@ -294,7 +343,6 @@ public class BriefcaseApplet extends JApplet implements ActionListener, CsvDownl
 	 */
 	public void toggleEnable(boolean isEnabled) {
 		dirPathCtrl.setEditable(isEnabled);
-		serverUrlCtrl.setEditable(isEnabled);
 		odkIdCtrl.setEditable(isEnabled);
 		fetchBinaryCtrl.setEnabled(isEnabled);
 		convertBinaryCtrl.setEnabled(isEnabled);
@@ -320,7 +368,7 @@ public class BriefcaseApplet extends JApplet implements ActionListener, CsvDownl
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == executeCtrl) {
 			boolean workerFired = false;
-			String candidateUrl = serverUrlCtrl.getText();
+			String candidateUrl = this.getDocumentBase().toString();
 			try {
 				/** reset the status outcome variables */
 				fetchStatus = false;
@@ -328,28 +376,43 @@ public class BriefcaseApplet extends JApplet implements ActionListener, CsvDownl
 				activityState = ActivityState.WORKING;
 				toggleEnable(false);
 				
-				// First, verify the url is ok...
-				URL url = new URL(candidateUrl);
-				if (url.getProtocol().compareToIgnoreCase("http") != 0) {
-					errorDialog("bad server url", candidateUrl);
+				URL url = this.getDocumentBase();
+
+				// The document URL always ends with a /briefcase/ element...
+				// strip that off to get the base URL for the server...
+				String path = url.getPath();
+				log.info("path is: " + path);
+				int idx = path.lastIndexOf(BRIEFCASE_URL_ELEMENT);
+				if ( idx == -1 ) {
+					// this will happen if Aggregate's document tree is rearranged somehow...
+					log.severe("failed searching for: " + BRIEFCASE_URL_ELEMENT +
+							 " in full url: " + url.toString());
+					errorDialog("build error", "bad pass-through of server URL: " + url.toString());
 					return;
 				}
-				// figure out the path we are going to be using...
-				String path = url.getPath();
-				while (path.endsWith("/")) {
-					path = path.substring(0, path.length() - 1);
-				}
-				int idx = path.lastIndexOf("/");
-				if (idx != -1) {
-					path = path.substring(0, idx);
-				}
-				if ( path.length() == 0 ) {
-					path = "/";
-				}
-				candidateUrl = "generated";
-				URL serverUrl = new URL(url.getProtocol(), url.getHost(), url
-						.getPort(), path);
+				// everything including slash before 'briefcase/'
+				path = path.substring(0, idx);
+				
+				URL serverUrl = new URL(url.getProtocol(), url.getHost(), url.getPort(), path);
 				candidateUrl = serverUrl.toString();
+				log.info("base Url: " + candidateUrl);
+
+				log.info("trying to figure out cookies");
+				boolean found = false;
+				try {
+					Map<String,List<String>> rh = new HashMap<String,List<String>> ();
+					Map<String,List<String>> cookieStrings = mgr.get(serverUrl.toURI(), rh);
+					List<String> cookies = cookieStrings.get("Cookie");
+					for ( String c : cookies ) {
+						found = true; 
+						log.info("found cookie: " + c );
+					}
+				} catch ( Exception eIgnore) {
+				}
+
+				if ( !found ) {
+					log.severe("no authentication cookie!");
+				}
 				
 				String destDir = dirPathCtrl.getText().trim();
 				if ( destDir.length() == 0 ) {
@@ -390,13 +453,14 @@ public class BriefcaseApplet extends JApplet implements ActionListener, CsvDownl
 				params.put(CsvDownload.CURSOR, lastCursor);
 
 				fullUrl = worker.createCsvFragmentLinkWithProperties(params);
+				
 				// launch worker...
 				workerFired = true;
 				executor.execute(new Handler());
 			} catch (MalformedURLException eIgnore) {
 				errorDialog("bad server url", candidateUrl);
 			} catch (Exception eFail) {
-				errorDialog("bad settings", eFail.getMessage());
+				errorDialog("bad settings", eFail.getClass().getName() + ":" + eFail.getMessage());
 			} finally {
 				toggleEnable(!workerFired);
 				if (!workerFired) {
@@ -413,7 +477,8 @@ public class BriefcaseApplet extends JApplet implements ActionListener, CsvDownl
 	 * @param value
 	 */
 	private void errorDialog(String error, String value) {
-		JOptionPane.showMessageDialog(this, error + " " + value, error,
+		String msgError = error.substring(0,1).toUpperCase() + error.substring(1) + ". " + value;
+		JOptionPane.showMessageDialog(this, msgError, error,
 										JOptionPane.ERROR_MESSAGE);
 	}
 	

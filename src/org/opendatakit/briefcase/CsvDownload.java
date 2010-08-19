@@ -829,7 +829,8 @@ public class CsvDownload {
 			InputStream is = null;
 			int outcome = conn.getResponseCode();
 			String contentType = conn.getContentType();
-			if (contentType.startsWith(TEXT_HTML_CONTENT_TYPE)) {
+			if (((outcome >= 200 && outcome < 300) || (outcome == 401)) && 
+					contentType.startsWith(TEXT_HTML_CONTENT_TYPE)) {
 				InputStreamReader ir = new InputStreamReader(conn.getInputStream());
 				final int MAX_CHARS = 1024;
 				char[] data = new char[MAX_CHARS];
@@ -838,7 +839,29 @@ public class CsvDownload {
 				String str = new String(data, 0, nChar);
 				throw new IllegalStateException(
 						"Html received (" + Integer.toString(outcome) +
-						") - expected Xml.  Are you logged in?  Is odkId correct?\nBody:\n"+ str);
+						") - expected Xml.  Are you logged in?\nBody:\n"+ str);
+			} else if ( outcome != 200 ) {
+				InputStreamReader ir = new InputStreamReader(conn.getErrorStream());
+				final int MAX_CHARS = 1024;
+				char[] data = new char[MAX_CHARS];
+				int nChar = ir.read(data);
+				ir.close();
+				String str = new String(data, 0, nChar);
+				str = str.trim();
+				if ( !str.startsWith("<html")) {
+					str = "<html>\n" + str;
+				}
+				// clip any <meta /> tags out of the returned string.
+				int idxStart = str.indexOf("<meta");
+				while ( idxStart != -1 ) {
+					int idxEnd = str.indexOf('>',idxStart);
+					str = str.substring(0,idxStart) + str.substring(idxEnd+1);
+					idxStart = str.indexOf("<meta");
+				}
+				str = str.replace("\n","");
+				throw new IllegalStateException(
+						"Fetch failed (" + Integer.toString(outcome) +
+						")\nBody:\n"+ str);
 			} else if (!contentType.startsWith(TEXT_XML_CONTENT_TYPE)) {
 				throw new IllegalStateException(
 						"Unexpected non-xml content: " + contentType + " received ("+
@@ -956,7 +979,8 @@ public class CsvDownload {
 	 *         file directory).
 	 * @throws NoSuchAlgorithmException
 	 */
-	private String fetchBinaryUrl(String columnName, String url, boolean doFetch,
+	private String fetchBinaryUrl(String columnName, String url, 
+			boolean doFetch,
 			List<File> binaryFiles) throws NoSuchAlgorithmException {
 
 		String binaryFileName = null;
@@ -1060,7 +1084,7 @@ public class CsvDownload {
 	 * @throws NoSuchAlgorithmException
 	 */
 	private boolean processCsvRow(List<String> tableHeader,
-			List<String> tableContents, String nextCursor,
+			List<String> tableContents, String nextCursor, 
 			BinaryDataTreatment fetchBinaryData, boolean fetchRecursively,
 			String skipBeforeKey)
 			throws IOException, NoSuchAlgorithmException {
