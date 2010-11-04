@@ -1,0 +1,145 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0   http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.odk</groupId>
+	<artifactId>upload-applet</artifactId>
+	<version>0.1-alpha</version>
+	<packaging>jar</packaging>
+	<name>ODK Upload</name>
+	<description>Uploads submissions to ODK Aggregate</description>
+	<organization>
+		<name>Open Data Kit</name>
+		<url>http://code.google.com/p/opendatakit/</url>
+	</organization>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<applet.class>org.opendatakit.aggregate.upload.applet.UploadApplet</applet.class>
+		<panel.class>org.opendatakit.aggregate.upload.ui.SubmissionUploaderPanel</panel.class>
+		<!--  The location of the properties file for the keystore -->
+		<keystore.properties>${project.build.outputDirectory}/jarSignerDetails.txt</keystore.properties>
+	</properties>
+	<dependencies>
+		<!--
+			<dependency> <groupId>org.odk</groupId>
+			<artifactId>aggregate-mysql</artifactId> <version>1.0</version>
+			<type>war</type> <scope>compile</scope> </dependency>
+		-->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.0.3</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+			<version>4.0.3</version>
+			<scope>compile</scope>
+		</dependency>
+		<!-- Test dependencies -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.8.5</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/jnlp</directory>
+				<filtering>true</filtering>
+			</resource>
+			<resource>
+				<directory>src/main/config</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>properties-maven-plugin</artifactId>
+				<version>1.0-alpha-2</version>
+				<executions>
+					<execution>
+						<id>read-keystore-properties</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>read-project-properties</goal>
+						</goals>
+						<configuration>
+							<files>
+								<file>${keystore.properties}</file>
+							</files>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<!--
+					This configures the compiler to compile for java 1.6 (it defaults
+					to something much older)
+				-->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.1</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>${panel.class}</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo.webstart</groupId>
+				<artifactId>webstart-maven-plugin</artifactId>
+				<version>1.0-beta-1</version>
+				<executions>
+					<execution>
+						<id>build-webstart-deployment</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jnlp-inline</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<jnlp>
+						<inputTemplate>target/classes/opendatakit-upload-template.jnlp</inputTemplate>
+						<outputFile>opendatakit-upload.jnlp</outputFile>
+						<mainClass>${applet.class}</mainClass>
+					</jnlp>
+					<sign>
+						<keystore>${jarSigner.keystore}</keystore>
+						<keypass>${jarSigner.password}</keypass>
+						<storepass>${jarSigner.password}</storepass>
+						<alias>${jarSigner.signAsAlias}</alias>
+						<verify>true</verify>
+					</sign>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
+
