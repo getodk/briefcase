@@ -105,12 +105,18 @@ public class TestUtilities {
 			{
 				File submissionFolder = new File(parentDirectory.getAbsolutePath() + File.separator + submissionName);
 				submissionFolder.mkdir();
-				File submissionXMLFile = new File(submissionFolder.getAbsolutePath() + File.separator + submissionXMLName);
-				submissionXMLFile.createNewFile();
+				if (!submissionXMLName.equals(""))
+				{
+					File submissionXMLFile = new File(submissionFolder.getAbsolutePath() + File.separator + submissionXMLName);
+					submissionXMLFile.createNewFile();
+				}
 				for (String otherFileName : otherFileNames)
 				{
-					File otherFile = new File(submissionFolder.getAbsolutePath() + File.separator + otherFileName);
-					otherFile.createNewFile();
+					if (!otherFileName.equals(""))
+					{
+						File otherFile = new File(submissionFolder.getAbsolutePath() + File.separator + otherFileName);
+						otherFile.createNewFile();
+					}
 				}
 			}
 		}
