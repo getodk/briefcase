@@ -91,7 +91,7 @@ public class Submission implements Callable<SubmissionResult>
         	getLogger().severe(Arrays.toString(e.getStackTrace()));
         	getLogger().severe(e.toString());
         	result.setSuccess(false);
-        	result.setFailureReason(e.toString());
+        	result.setFailureReason(e.getMessage());
         	return result;
         }
 //        catch (HttpResponseException e)
