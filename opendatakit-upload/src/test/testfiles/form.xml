@@ -20,7 +20,7 @@
         </translation>
        </itext>
       <instance>
-        <LocationThings xmlns="LocationThings">
+        <LocationThings id="LocationThings">
           <DeviceId/>
           <LocationGeopoint/>
           <LocationPicture/>

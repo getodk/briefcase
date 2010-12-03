@@ -411,8 +411,8 @@ public class SubmissionUploaderPanel extends JPanel implements ActionListener{
 		// Set up HttpClient
 		HttpClient httpClient = HttpClientFactory.getHttpClient(submissionURL, getLogger());
         
-        // Set up ExecutorService
-        ExecutorService es = new ThreadPoolExecutor(0, 2, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+      // Set up ExecutorService
+      ExecutorService es = new ThreadPoolExecutor(0, 2, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
         
         // Submit submissions
 		SubmissionUploader uploader = new SubmissionUploader(httpClient, es); 
@@ -452,12 +452,12 @@ public class SubmissionUploaderPanel extends JPanel implements ActionListener{
 	
 	public String getDriveLocation()
 	{
-		return _manualDriveLocationField.getText();
+		return _manualDriveLocationField.getText().trim();
 	}
 	
 	public void setDriveLocation(String driveLocation)
 	{
-		_manualDriveLocationField.setText(driveLocation);
+		_manualDriveLocationField.setText(driveLocation.trim());
 	}
 
 	public URL getServerURL() throws MalformedURLException

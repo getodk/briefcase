@@ -1,5 +1,5 @@
 <?xml version="1.0"?>      
-<LocationThings xmlns="LocationThings">
+<LocationThings id="LocationThings">
   <DeviceId>12345</DeviceId>
   <LocationGeopoint/>  
   <LocationPicture>img_4</LocationPicture> 
