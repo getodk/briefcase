@@ -42,7 +42,7 @@ public class BaseURLFinderTest {
 	public void testGetBaseURLGivenURLWithExtendedPath()
 	{
 		testSingleGetBaseURL("http://www.google.com/something/else/is/here",
-			"http://www.google.com");
+			"http://www.google.com/something/else/is");
 	}
 	
 	@Test

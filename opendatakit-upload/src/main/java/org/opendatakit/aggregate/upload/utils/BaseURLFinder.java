@@ -17,18 +17,17 @@ package org.opendatakit.aggregate.upload.utils;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class BaseURLFinder {
-
-	private static final Pattern URL_PATTERN = Pattern.compile("(^https?:\\/\\/[^\\/]+).*");
 	
+  private static final char SLASH = '/';
+  
 	/**
 	 * Returns the base url of the given url. 
 	 * http://www.google.com 				--> http://www.google.com
 	 * http://www.google.com/something 		--> http://www.google.com
 	 * https://www.google.com:80/?p=param	--> https://www.google.com:80
+	 * http://www.google.com/something/else --> http://www.google.com/something
 	 * 
 	 * @param url the URL to find the base for
 	 * @return the base URL
@@ -36,13 +35,22 @@ public class BaseURLFinder {
 	 */
 	public static URL getBaseURL(URL url) throws MalformedURLException
 	{
-		String baseURLString = "";
-		Pattern urlPattern = URL_PATTERN; 
-		Matcher m = urlPattern.matcher(url.toString());
-		if (m.matches() && m.groupCount() > 0)
+	   String baseURLString = url.toString();
+		int slashCount = 0;
+	   for (char c : baseURLString.toCharArray())
 		{
-			baseURLString = m.group(1);
+		  if (c == SLASH)
+		  {
+		    slashCount++;
+		  }
 		}
+	   // check if there are more slashes than in http://
+	   if (slashCount > 2)
+	   {
+
+    	   int index = baseURLString.lastIndexOf(SLASH, baseURLString.length() - 1);
+    		baseURLString = baseURLString.substring(0, index);
+	   }
 		return new URL(baseURLString);
 	}
 }

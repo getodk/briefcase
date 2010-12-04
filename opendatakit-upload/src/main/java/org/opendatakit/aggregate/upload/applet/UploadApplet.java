@@ -53,7 +53,7 @@ public class UploadApplet extends JApplet{
         // Get submission URL
         try 
         {
-			URL baseURL = BaseURLFinder.getBaseURL(this.getCodeBase());
+			URL baseURL = BaseURLFinder.getBaseURL(this.getDocumentBase());
 			URL submissionURL = new URL(baseURL.toString() + AGGREGATE_SUBMISSION_SERVLET);
 			_submissionURL = submissionURL;
 		} 
