@@ -200,7 +200,7 @@ public class SubmissionUploaderPanel extends JPanel implements ActionListener{
         
         if (!foundDrives)
         {
-        	_driveLabel = new JLabel("No possible drives were autodetected.");
+        	_driveLabel = new JLabel("No possible drives were detected.");
         	_driveLabel.setOpaque(true);
         	_c.gridx = 0;
         	_c.gridy = 1;
@@ -208,7 +208,7 @@ public class SubmissionUploaderPanel extends JPanel implements ActionListener{
         }
         else
         {        	
-        	_driveLabel = new JLabel("Select location of Android phone: ");
+        	_driveLabel = new JLabel("Select drive: ");
         	_driveLabel.setOpaque(true);
         	_c.gridx = 0;
         	_c.gridy = 1;
@@ -255,7 +255,7 @@ public class SubmissionUploaderPanel extends JPanel implements ActionListener{
         // Components for manual location
         if (!foundDrives)
         {
-	    	_manualDriveLabel = new JLabel("Location of Android phone: ");
+	    	_manualDriveLabel = new JLabel("Path to folder with submission data: ");
 	    	_manualDriveLabel.setOpaque(true);
 	    	_c.gridx = 0;
 	    	_c.gridy = 2;
@@ -263,7 +263,7 @@ public class SubmissionUploaderPanel extends JPanel implements ActionListener{
         }
         else
         {
-        	_manualDriveLabel = new JLabel("Or enter location manually: ");
+        	_manualDriveLabel = new JLabel("Or enter path to folder with submission data: ");
         	_manualDriveLabel.setOpaque(true);
         	_c.gridx = 0;
         	_c.gridy = 2;
@@ -300,7 +300,7 @@ public class SubmissionUploaderPanel extends JPanel implements ActionListener{
 	public void actionPerformed(ActionEvent event) {
 		String actionCommand = event.getActionCommand();
 		Action action = Action.NONE;
-		String driveLocationString = null;
+		String submissionsParentDirString = null;
 		
 		// Change server field to be editable
 		if (actionCommand.equals(COMMAND_CHANGE_SERVER))
@@ -310,7 +310,7 @@ public class SubmissionUploaderPanel extends JPanel implements ActionListener{
 		// Get radio button value
 		else if (_driveButtonActionCommands != null && _driveButtonActionCommands.contains(actionCommand))
 		{
-			driveLocationString = event.getActionCommand();
+			submissionsParentDirString = event.getActionCommand() + _directoryStructureToSearchFor;
 			action = Action.SEND_SUBMISSIONS;
 		}
 		// Refresh drive locations
@@ -321,7 +321,7 @@ public class SubmissionUploaderPanel extends JPanel implements ActionListener{
 		// Get text field
 		else if (actionCommand.equals(COMMAND_SELECT))
 		{
-			driveLocationString = getDriveLocation();
+			submissionsParentDirString = getDriveLocation();
 			action = Action.SEND_SUBMISSIONS;
 		}
 		
@@ -346,7 +346,7 @@ public class SubmissionUploaderPanel extends JPanel implements ActionListener{
 			ArrayList<String> errors = new ArrayList<String>();
 
 			// Add error message on invalid drive
-			if (driveLocationString == null || driveLocationString.equals(""))
+			if (submissionsParentDirString == null || submissionsParentDirString.equals(""))
 			{
 				getLogger().warning("No location entered.");
 				errors.add("No location entered.");
@@ -354,7 +354,7 @@ public class SubmissionUploaderPanel extends JPanel implements ActionListener{
 			// Valid drive, proceed processing
 			else
 			{
-				submissionsParentDir = new File(driveLocationString + _directoryStructureToSearchFor);
+				submissionsParentDir = new File(submissionsParentDirString);
 				if (!submissionsParentDir.exists())
 				{
 					getLogger().warning("Directory does not exist: " + submissionsParentDir);
