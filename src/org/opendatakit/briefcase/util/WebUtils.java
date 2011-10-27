@@ -33,6 +33,7 @@ package org.opendatakit.briefcase.util;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -74,9 +75,22 @@ import org.apache.http.protocol.SyncBasicHttpContext;
  */
 public final class WebUtils {
 
+	private static final String PATTERN_ISO8601 = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 	public static final String OPEN_ROSA_VERSION_HEADER = "X-OpenRosa-Version";
 	public static final String OPEN_ROSA_VERSION = "1.0";
 	private static final String DATE_HEADER = "Date";
+	private static final SimpleDateFormat iso8601 = new SimpleDateFormat(PATTERN_ISO8601);
+
+	/**
+	 * Return the ISO8601 string representation of a date.
+	 * 
+	 * @param d
+	 * @return
+	 */
+	public static final String iso8601Date(Date d) {
+		if ( d == null ) return null;
+		return iso8601.format(d);
+	}
 
 	public static final List<AuthScope> buildAuthScopes(String host) {
 		List<AuthScope> asList = new ArrayList<AuthScope>();

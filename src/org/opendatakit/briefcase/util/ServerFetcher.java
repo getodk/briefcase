@@ -113,7 +113,7 @@ public class ServerFetcher {
   }
 
   public boolean downloadFormAndSubmissionFiles(File briefcaseFormsDir,
-      List<FormStatus> formsToTransfer) {
+      List<FormStatus> formsToTransfer, boolean mustBeWellFormedXmlns) {
 
     boolean allSuccessful = true;
     
@@ -163,6 +163,19 @@ public class ServerFetcher {
           fs.setStatusString("Error parsing form definition: " + e.getMessage(), false);
           EventBus.publish(new FormStatusEvent(fs));
           continue;
+        }
+        
+        // cannot download via the scratch area if the original form definition
+        // is not compatible with Aggregate 1.0.  In this case, the user must 
+        // first download to their local Briefcase, modify their form definition
+        // until it is compatible with Aggregate 1.0, save that modified form 
+        // definition as formName.xml.revised, and then upload or do other additional
+        // processing.
+        if ( mustBeWellFormedXmlns && lfd.isInvalidFormXmlns() ) {
+            allSuccessful = false;
+            fs.setStatusString("Form definition is not compatible with Aggregate 1.0\nDownload to the Briefcase directory and manually manipulate the form definition.", false);
+            EventBus.publish(new FormStatusEvent(fs));
+            continue;
         }
         
         // this will publish events 

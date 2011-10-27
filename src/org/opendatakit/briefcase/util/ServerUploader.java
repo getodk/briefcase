@@ -102,6 +102,12 @@ public class ServerUploader {
         return false;
       }
 
+      if ( !formToTransfer.isSuccessful() ) {
+          formToTransfer.setStatusString("Skipping upload -- download failed", false);
+          EventBus.publish(new FormStatusEvent(formToTransfer));
+          continue;
+      }
+
       String formName = formToTransfer.getFormName();
       File briefcaseFormDefFile = FileSystemUtils.getFormDefinitionFileIfExists(
           briefcaseFormsDir, formName);
@@ -275,7 +281,7 @@ public class ServerUploader {
   }
 
   public static final void testServerUploadConnection(ServerConnectionInfo serverInfo, TerminationFuture terminationFuture) throws TransmissionException {
-    AggregateUtils.testServerConnectionWithHeadRequest(serverInfo, "submission");
+    AggregateUtils.testServerConnectionWithHeadRequest(serverInfo, "upload"); // for form upload...
   }
 
 }

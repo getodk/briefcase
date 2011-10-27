@@ -122,7 +122,7 @@ public class TransferAction {
 
     dlg.setVisible(true);
   }
-
+  
   public static void retrieveAvailableFormsFromServer(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture) {
     RetrieveAvailableFormsFromServer source = new RetrieveAvailableFormsFromServer(originServerInfo, terminationFuture);
     showDialogAndRun(source, terminationFuture);

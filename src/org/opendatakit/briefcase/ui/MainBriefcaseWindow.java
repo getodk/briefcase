@@ -47,7 +47,8 @@ public class MainBriefcaseWindow {
   private JButton btnChoose;
   private TransferPanel transferPanel;
   private TransformPanel transformPanel;
-  private final TerminationFuture terminationFuture = new TerminationFuture();
+  private final TerminationFuture transformTerminationFuture = new TerminationFuture();
+  private final TerminationFuture transferTerminationFuture = new TerminationFuture();
   
   /**
    * Launch the application.
@@ -219,10 +220,10 @@ public class MainBriefcaseWindow {
             .addComponent(tabbedPane, GroupLayout.DEFAULT_SIZE, 446, Short.MAX_VALUE)
             .addContainerGap()));
 
-    transferPanel = new TransferPanel(terminationFuture);
+    transferPanel = new TransferPanel(transferTerminationFuture);
     tabbedPane.addTab("Transfer", null, transferPanel, null);
 
-    transformPanel = new TransformPanel();
+    transformPanel = new TransformPanel(transformTerminationFuture);
     tabbedPane.addTab("Transform", null, transformPanel, null);
     frame.getContentPane().setLayout(groupLayout);
 

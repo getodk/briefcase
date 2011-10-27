@@ -53,7 +53,7 @@ public class TransferFromServer implements ITransferFromSourceAction {
       destinationFolder = FileSystemUtils.getFormsFolder(briefcaseDir);
     }
     
-    return fetcher.downloadFormAndSubmissionFiles(destinationFolder, formsToTransfer);
+    return fetcher.downloadFormAndSubmissionFiles(destinationFolder, formsToTransfer, toScratch);
   }
 
   @Override

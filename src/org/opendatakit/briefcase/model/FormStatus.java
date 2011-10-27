@@ -47,6 +47,7 @@ public class FormStatus {
 
   public void clearStatusHistory() {
     statusHistory.setLength(0);
+    isSuccessful = true;
   }
 
   public void setStatusString(String statusString, boolean isSuccessful) {

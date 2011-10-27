@@ -36,6 +36,12 @@ public class TerminationFuture {
     cancelled = true;
     logger.info("cancel requested: " + event.getReason());
   }
+  
+  @EventSubscriber(eventClass = TransformAbortEvent.class)
+  public void markAsCancelled(TransformAbortEvent event) {
+    cancelled = true;
+    logger.info("cancel requested: " + event.getReason());
+  }
 
   public void reset() {
     cancelled = false;

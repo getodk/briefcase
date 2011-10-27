@@ -18,21 +18,33 @@ package org.opendatakit.briefcase.model;
 
 import java.io.File;
 
+import org.javarosa.core.model.instance.TreeElement;
 import org.opendatakit.briefcase.util.JavaRosaWrapper;
 import org.opendatakit.briefcase.util.JavaRosaWrapper.BadFormDefinition;
 
 public class LocalFormDefinition implements IFormDefinition {
-  File formFile;
-  JavaRosaWrapper formDefn;
+  private final File revisedFormFile;
+  private final JavaRosaWrapper formDefn;
+  private String privateKey = null;
 
   public LocalFormDefinition(File formFile) throws BadFormDefinition {
-    this.formFile = formFile;
     if (!formFile.exists()) {
       throw new BadFormDefinition("Form directory does not contain form");
     }
-    formDefn = new JavaRosaWrapper(formFile);
+    File revised = new File( formFile.getParentFile(), formFile.getName() + ".revised");
+    if ( revised.exists() ) {
+    	revisedFormFile = revised;
+    	formDefn = new JavaRosaWrapper(revisedFormFile);
+    } else {
+    	revisedFormFile = null;
+    	formDefn = new JavaRosaWrapper(formFile);
+    }
   }
 
+  @Override
+  public String toString() {
+	  return getFormName();
+  }
   /*
    * (non-Javadoc)
    * 
@@ -80,9 +92,17 @@ public class LocalFormDefinition implements IFormDefinition {
   }
 
   public File getFormDefinitionFile() {
-    return formDefn.getFormDefinitionFile();
+	if ( revisedFormFile != null ) {
+		return revisedFormFile;
+	} else {
+		return formDefn.getFormDefinitionFile();
+	}
   }
 
+  public boolean isInvalidFormXmlns() {
+	  return formDefn.isInvalidFormXmlns();
+  }
+  
   public String getMD5Hash() {
     return formDefn.getMD5Hash();
   }
@@ -91,6 +111,22 @@ public class LocalFormDefinition implements IFormDefinition {
     return formDefn.getSubmissionKey(uri);
   }
 
+  public boolean isEncryptedForm() {
+	  return formDefn.isEncryptedForm();
+  }
+  
+  public TreeElement getSubmissionElement() {
+	  return formDefn.getSubmissionElement();
+  }
+  
+  public void setPrivateKey(String privateKey) {
+	  this.privateKey = privateKey;
+  }
+  
+  public String getPrivateKey() {
+	  return privateKey;
+  }
+  
   @Override
   public LocationType getFormLocation() {
     return LocationType.LOCAL;

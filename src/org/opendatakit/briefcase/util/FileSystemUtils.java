@@ -72,7 +72,7 @@ public class FileSystemUtils {
   public static final boolean isUnderODKFolder(File pathname) {
     File parent = (pathname == null ? null : pathname.getParentFile());
     while (parent != null) {
-      if (isODKDevice(parent))
+      if (isODKDevice(parent) && pathname.getName().equals("odk"))
         return true;
       parent = parent.getParentFile();
     }

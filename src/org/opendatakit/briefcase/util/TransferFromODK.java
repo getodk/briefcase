@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.util;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.List;
 
@@ -133,7 +134,8 @@ public class TransferFromODK implements ITransferFromSourceAction {
           // protects against someone having "formname" and "formname_2"
           // and us mistaking "formname_2_2009-01-02_15_10_03" as containing
           // instance data for "formname" instead of "formname_2"
-          return afterName.matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}.*");
+          boolean outcome = afterName.matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}.*");
+          return outcome;
         }
       });
 
@@ -142,6 +144,33 @@ public class TransferFromODK implements ITransferFromSourceAction {
         for (File dir : odkFormInstanceDirs) {
   
           File xml = new File(dir, dir.getName() + ".xml");
+          
+          // this is a hack added to support easier generation of large test cases where we 
+          // copy a single instance directory repeatedly.  Normally the xml submission file
+          // has the name of the enclosing directory, but if you copy directories, this won't
+          // be the case.  In this instance, if there is one xml file in the directory,
+          // rename it to match the directory name.
+          if (!xml.exists()) {
+        	  File[] xmlFiles = dir.listFiles(new FilenameFilter() {
+
+				@Override
+				public boolean accept(File dir, String name) {
+					return name.endsWith(".xml");
+				}});
+        	  
+        	  if ( xmlFiles.length == 1 ) {
+        		  try {
+					FileUtils.moveFile(xmlFiles[0], xml);
+				} catch (IOException e) {
+					e.printStackTrace();
+			        allSuccessful = false;
+			        fs.setStatusString("unable to rename form instance xml: " + e.getMessage(), false);
+			        EventBus.publish(new FormStatusEvent(fs));
+			        continue;
+				}
+        	  }
+          }
+          
           if (xml.exists()) {
             // OK, we can copy the directory off...
             // Briefcase instances directory name is arbitrary.
