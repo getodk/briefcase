@@ -136,7 +136,7 @@ public class JavaRosaWrapper {
 	    }
 
 	    protected void parseBind(Element e) {
-	      Vector usedAtts = new Vector();
+	      Vector<String> usedAtts = new Vector<String>();
 
 	      DataBinding binding = processStandardBindAttributes( usedAtts, e);
 

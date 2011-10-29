@@ -153,7 +153,6 @@ public class ServerFetcher {
         File formInstancesDir = FileSystemUtils.getFormInstancesDirectory(briefcaseFormsDir,
             fd.getFormName());
 
-        // TODO: pull down data files...
         LocalFormDefinition lfd;
         try {
           lfd = new LocalFormDefinition(dl);
@@ -292,7 +291,6 @@ public class ServerFetcher {
       }
       websafeCursorString = chunk.websafeCursorString;
 
-      // TODO: download all the uris in the uriList
       for (String uri : chunk.uriList) {
         if ( isCancelled() ) {
           fs.setStatusString("aborting fetching submissions...", true);
@@ -375,8 +373,7 @@ public class ServerFetcher {
         downloadMediaFileIfChanged(instanceDir, m, fs);
       }
       
-      // TODO: detect altered submission? Or just overwrite it?
-      // write submission file
+      // write submission file -- we rely on instanceId being unique...
       File submissionFile = new File(instanceDir, "submission.xml");
       FileWriter fo = new FileWriter(submissionFile);
       fo.write(submissionManifest.submissionXml);

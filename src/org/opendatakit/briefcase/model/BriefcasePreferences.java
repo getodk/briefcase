@@ -20,7 +20,7 @@ import java.util.prefs.Preferences;
 
 public class BriefcasePreferences {
   
-  public static final String VERSION = "v1.0 Alpha";
+  public static final String VERSION = "v1.0 Beta";
 
   public static void setBriefcaseDirectoryProperty(String value) {
     getApplicationPreferences().put(BriefcasePreferences.BRIEFCASE_DIR_PROPERTY, value);

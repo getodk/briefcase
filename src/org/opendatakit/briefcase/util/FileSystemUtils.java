@@ -102,7 +102,7 @@ public class FileSystemUtils {
             File formFile = new File(f, f.getName() + ".xml");
             formsList.add(new LocalFormDefinition(formFile));
           } catch (BadFormDefinition e) {
-            // TODO Auto-generated catch block
+            // TODO report bad form definition?
             e.printStackTrace();
           }
         } else {
@@ -126,7 +126,7 @@ public class FileSystemUtils {
           try {
             formsList.add(new LocalFormDefinition(f));
           } catch (BadFormDefinition e) {
-            // TODO Auto-generated catch block
+            // TODO report bad form definition?
             e.printStackTrace();
           }
         }

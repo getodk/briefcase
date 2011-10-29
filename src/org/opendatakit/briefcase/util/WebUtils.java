@@ -57,6 +57,7 @@ import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
@@ -74,12 +75,48 @@ import org.apache.http.protocol.SyncBasicHttpContext;
  * 
  */
 public final class WebUtils {
-
+	private static final String PATTERN_DATE_TOSTRING = "EEE MMM dd HH:mm:ss zzz yyyy";
 	private static final String PATTERN_ISO8601 = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+	private static final String PATTERN_ISO8601_DATE = "yyyy-MM-ddZ";
+	private static final String PATTERN_ISO8601_TIME = "HH:mm:ss.SSSZ";
+	private static final String PATTERN_YYYY_MM_DD_DATE_ONLY_NO_TIME_DASH = "yyyy-MM-dd";
+	private static final String PATTERN_NO_DATE_TIME_ONLY = "HH:mm:ss.SSS";
+
 	public static final String OPEN_ROSA_VERSION_HEADER = "X-OpenRosa-Version";
 	public static final String OPEN_ROSA_VERSION = "1.0";
 	private static final String DATE_HEADER = "Date";
+	
 	private static final SimpleDateFormat iso8601 = new SimpleDateFormat(PATTERN_ISO8601);
+	private static final SimpleDateFormat dateOnly = new SimpleDateFormat(PATTERN_ISO8601_DATE);
+	private static final SimpleDateFormat timeOnly = new SimpleDateFormat(PATTERN_ISO8601_TIME);
+	/**
+	 * Parse a string into a datetime value.  Tries the common
+	 * Http formats, the iso8601 format (used by Javarosa), the
+	 * default formatting from Date.toString(), and a time-only
+	 * format.
+	 * 
+	 * @param value
+	 * @return
+	 */
+	public static final Date parseDate(String value) {
+		Date d = null;
+		if ( value != null ) {
+			try {
+				// try the common HTTP date formats
+				d = DateUtils.parseDate(value,
+						new String[] { DateUtils.PATTERN_RFC1123,
+									   DateUtils.PATTERN_RFC1036,
+									   DateUtils.PATTERN_ASCTIME,
+									   PATTERN_ISO8601,
+									   PATTERN_DATE_TOSTRING,
+									   PATTERN_NO_DATE_TIME_ONLY,
+									   PATTERN_YYYY_MM_DD_DATE_ONLY_NO_TIME_DASH} );
+			} catch ( DateParseException e) {
+				throw new IllegalArgumentException("Unparsable date: " + value, e);
+			}
+		}
+		return d;
+	}
 
 	/**
 	 * Return the ISO8601 string representation of a date.
@@ -87,9 +124,19 @@ public final class WebUtils {
 	 * @param d
 	 * @return
 	 */
-	public static final String iso8601Date(Date d) {
+	public static final String iso8601DateTime(Date d) {
 		if ( d == null ) return null;
 		return iso8601.format(d);
+	}
+
+	public static final String iso8601DateOnly(Date d) {
+		if ( d == null ) return null;
+		return dateOnly.format(d);
+	}
+	
+	public static final String iso8601TimeOnly(Date d) {
+		if ( d == null ) return null;
+		return timeOnly.format(d);
 	}
 
 	public static final List<AuthScope> buildAuthScopes(String host) {

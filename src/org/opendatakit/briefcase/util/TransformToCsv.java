@@ -135,9 +135,9 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 		osw.append(string);
 	}
 	
-	private String getFullName(TreeElement e ) {
+	private String getFullName(TreeElement e, TreeElement group ) {
 		List<String> names = new ArrayList<String>();
-		while ( e != null && e != lfd.getSubmissionElement() ) {
+		while ( e != null && e != group ) {
 			names.add(e.getName());
 			e = e.getParent();
 		}
@@ -146,7 +146,7 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 		boolean first = true;
 		for ( String s : names ) {
 			if ( !first ) {
-				b.append("/");
+				b.append("-");
 			}
 			first = false;
 			b.append(s);
@@ -185,7 +185,7 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 		return b.toString();
 	}
 
-	private boolean emitSubmissionCsv( OutputStreamWriter osw, Element submissionElement, TreeElement treeElement, boolean first, String uniquePath, File instanceDir ) throws IOException {
+	private boolean emitSubmissionCsv( OutputStreamWriter osw, Element submissionElement, TreeElement primarySet, TreeElement treeElement, boolean first, String uniquePath, File instanceDir ) throws IOException {
 	      // OK -- group with at least one element -- assume no value...
 	      // TreeElement list has the begin and end tags for the nested groups.
 	      // Swallow the end tag by looking to see if the prior and current
@@ -194,7 +194,6 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 	      int trueOrdinal = 1;
 	      for (int i = 0; i < treeElement.getNumChildren(); ++i) {
 	    	  TreeElement current = (TreeElement) treeElement.getChildAt(i);
-	    	  // TODO: make this pay attention to namespace of the tag...
 	    	  if ( (prior != null) && 
 	    		   (prior.getName().equals(current.getName())) ) {
 	    		  // it is the end-group tag... seems to happen with two adjacent repeat groups
@@ -214,18 +213,6 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 	    		         * Decimal question
 	    		         * type. These are numbers with decimals
 	    		         */
-	    		      case org.javarosa.core.model.Constants.DATATYPE_DATE:/**
-	    		         * Date question type.
-	    		         * This has only date component without time.
-	    		         */
-	    		      case org.javarosa.core.model.Constants.DATATYPE_TIME:/**
-	    		         * Time question type.
-	    		         * This has only time element without date
-	    		         */
-	    		      case org.javarosa.core.model.Constants.DATATYPE_DATE_TIME:/**
-	    		         * Date and Time
-	    		         * question type. This has both the date and time components
-	    		         */
 	    		      case org.javarosa.core.model.Constants.DATATYPE_CHOICE:/**
 	    		         * This is a question
 	    		         * with alist of options where not more than one option can be selected at
@@ -240,10 +227,6 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 	    		         * Question with
 	    		         * true and false answers.
 	    		         */
-	    		      case org.javarosa.core.model.Constants.DATATYPE_GEOPOINT:/**
-	    		         * Question with
-	    		         * location answer.
-	    		         */
 	    		      case org.javarosa.core.model.Constants.DATATYPE_BARCODE:/**
 	    		         * Question with
 	    		         * barcode string answer.
@@ -256,6 +239,82 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 	    		    		emitString( osw, first, getSubmissionValue(ec));
 	    		    	}
 	    		    	first = false;
+	    		    	break;
+	    		      case org.javarosa.core.model.Constants.DATATYPE_DATE:/**
+		    		         * Date question type.
+		    		         * This has only date component without time.
+		    		         */
+	    		    	if ( ec == null ) {
+	    		    		emitString( osw, first, null);
+	    		    	} else {
+	    		    		String value = getSubmissionValue(ec);
+	    		    		if ( value == null || value.length() == 0 ) {
+	    		    			emitString( osw, first, null);
+	    		    		} else {
+		    		    		Date date = WebUtils.parseDate(value);
+		    		    		emitString( osw, first, WebUtils.iso8601DateOnly(date));
+	    		    		}
+	    		    	}
+	    		    	first = false;
+	    		    	break;
+	    		      case org.javarosa.core.model.Constants.DATATYPE_TIME:/**
+		    		         * Time question type.
+		    		         * This has only time element without date
+		    		         */
+	    		    	if ( ec == null ) {
+	    		    		emitString( osw, first, null);
+	    		    	} else {
+	    		    		String value = getSubmissionValue(ec);
+	    		    		if ( value == null || value.length() == 0 ) {
+	    		    			emitString( osw, first, null);
+	    		    		} else {
+		    		    		Date date = WebUtils.parseDate(value);
+		    		    		emitString( osw, first, WebUtils.iso8601TimeOnly(date));
+	    		    		}
+	    		    	}
+	    		    	first = false;
+	    		    	break;
+	    		      case org.javarosa.core.model.Constants.DATATYPE_DATE_TIME:/**
+		    		         * Date and Time
+		    		         * question type. This has both the date and time components
+		    		         */
+	    		    	if ( ec == null ) {
+	    		    		emitString( osw, first, null);
+	    		    	} else {
+	    		    		String value = getSubmissionValue(ec);
+	    		    		if ( value == null || value.length() == 0 ) {
+	    		    			emitString( osw, first, null);
+	    		    		} else {
+		    		    		Date date = WebUtils.parseDate(value);
+		    		    		emitString( osw, first, WebUtils.iso8601DateTime(date));
+	    		    		}
+	    		    	}
+	    		    	first = false;
+	    		    	break;
+	    		      case org.javarosa.core.model.Constants.DATATYPE_GEOPOINT:/**
+	    		         * Question with
+	    		         * location answer.
+	    		         */
+	    		    	String compositeValue = (ec == null) ? null : getSubmissionValue(ec);
+	    		    	compositeValue = (compositeValue == null) ? null : compositeValue.trim();
+	    		    	
+	    		    	// emit separate lat, long, alt, acc columns...
+	    		    	if ( compositeValue == null || compositeValue.length() == 0 ) {
+	    		    		for ( int count = 0 ; count < 4 ; ++count ) {
+	    		    			emitString(osw, first, null);
+	    		    			first = false;
+	    		    		}
+	    		    	} else {
+	    		    		String[] values = compositeValue.split(" ");
+	    		    		for ( String value : values ) {
+	    		    			emitString(osw, first, value);
+	    		    			first = false;
+	    		    		}
+	    		    		for ( int count = values.length ; count < 4 ; ++count ) {
+	    		    			emitString(osw, first, null);
+	    		    			first = false;
+	    		    		}
+	    		    	}
 	    		    	break;
 	    		      case org.javarosa.core.model.Constants.DATATYPE_BINARY:/**
 		    		     * Question with
@@ -291,8 +350,7 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 	    		                                                             */
 	    		        if (current.repeatable) {
 	    		      	    // repeatable group...
-	    		        	// TODO: do the right thing here...
-	        		    	emitString(osw, first, uniquePath + "/" + getFullName(current));
+	    		        	emitString(osw, first, uniquePath + "/" + getFullName(current, primarySet));
 		    		    	first = false;
 		    		    	if ( prior != null && current.getName().equals(prior.getName()) ) {
 		    		    		// we are repeating this group...
@@ -301,14 +359,14 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 		    		    		// we are starting a new group...
 		    		    		trueOrdinal = 1;
 		    		    	}
-		    		    	emitRepeatingGroupCsv(ec, current, uniquePath + "/" + getFullName(current), uniquePath + "/" + trueOrdinal, instanceDir);
+		    		    	emitRepeatingGroupCsv(ec, current, uniquePath, uniquePath + "/" + getFullName(current, primarySet), uniquePath + "/" + trueOrdinal, instanceDir);
 	    		        } else if (current.getNumChildren() == 0 && current != lfd.getSubmissionElement()) {
 	    		          // assume fields that don't have children are string fields.
 	    		        	emitString(osw, first, getSubmissionValue(ec));
 	        		    	first = false;
 	    		        } else {
 	    		        	/* one or more children -- this is a non-repeating group */
-	    		        	first = emitSubmissionCsv(osw, ec, current, first, uniquePath, instanceDir);
+	    		        	first = emitSubmissionCsv(osw, ec, primarySet, current, first, uniquePath, instanceDir);
 	    		        }
 	    		        break;
 	    		  }
@@ -318,24 +376,24 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 	      return first;
 	}
 
-	private void emitRepeatingGroupCsv(Element groupElement, TreeElement group, String uniqueGroupPath, String uniquePath, File instanceDir) throws IOException {
+	private void emitRepeatingGroupCsv(Element groupElement, TreeElement group, String uniqueParentPath, String uniqueGroupPath, String uniquePath, File instanceDir) throws IOException {
 		OutputStreamWriter osw = fileMap.get(group);
-    	emitString(osw, true, uniqueGroupPath);
+		boolean first = true;
+		first = emitSubmissionCsv( osw, groupElement, group, group, first, uniquePath, instanceDir);
+		emitString(osw, first, uniqueParentPath);
     	emitString(osw, false, uniquePath);
-		emitSubmissionCsv( osw, groupElement, group, false, uniquePath, instanceDir);
+    	emitString(osw, false, uniqueGroupPath);
 		osw.append("\n");
 	}
 	
-	private boolean emitCsvHeaders(OutputStreamWriter osw, TreeElement treeElement, boolean first) throws IOException {
+	private boolean emitCsvHeaders(OutputStreamWriter osw, TreeElement primarySet, TreeElement treeElement, boolean first) throws IOException {
       // OK -- group with at least one element -- assume no value...
       // TreeElement list has the begin and end tags for the nested groups.
       // Swallow the end tag by looking to see if the prior and current
       // field names are the same.
       TreeElement prior = null;
-      int trueOrdinal = 0;
       for (int i = 0; i < treeElement.getNumChildren(); ++i) {
     	  TreeElement current = (TreeElement) treeElement.getChildAt(i);
-    	  // TODO: make this pay attention to namespace of the tag...
     	  if ( (prior != null) && 
     		   (prior.getName().equals(current.getName())) ) {
     		  // it is the end-group tag... seems to happen with two adjacent repeat groups
@@ -380,10 +438,6 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
     		         * Question with
     		         * true and false answers.
     		         */
-    		      case org.javarosa.core.model.Constants.DATATYPE_GEOPOINT:/**
-    		         * Question with
-    		         * location answer.
-    		         */
     		      case org.javarosa.core.model.Constants.DATATYPE_BARCODE:/**
     		         * Question with
     		         * barcode string answer.
@@ -394,7 +448,17 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
     		         */
     		      default:
     		      case org.javarosa.core.model.Constants.DATATYPE_UNSUPPORTED:
-    		    	emitString(osw, first, getFullName(current));
+    		    	emitString(osw, first, getFullName(current, primarySet));
+    		    	first = false;
+    		    	break;
+    		      case org.javarosa.core.model.Constants.DATATYPE_GEOPOINT:/**
+      		         * Question with
+      		         * location answer.
+      		         */
+    		    	emitString(osw, first, getFullName(current, primarySet) + "-Latitude");
+    		    	emitString(osw, false, getFullName(current, primarySet) + "-Longitude");
+    		    	emitString(osw, false, getFullName(current, primarySet) + "-Altitude");
+    		    	emitString(osw, false, getFullName(current, primarySet) + "-Accuracy");
     		    	first = false;
     		    	break;
     		      case org.javarosa.core.model.Constants.DATATYPE_NULL: /*
@@ -405,16 +469,16 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
     		                                                             */
     		        if (current.repeatable) {
     		      	// repeatable group...
-        		    	emitString(osw, first, getFullName(current));
+        		    	emitString(osw, first, "SET-OF-" + getFullName(current, primarySet));
 	    		    	first = false;
-	    		    	processRepeatingGroupDefinition(current);
+	    		    	processRepeatingGroupDefinition(current, primarySet);
     		        } else if (current.getNumChildren() == 0 && current != lfd.getSubmissionElement()) {
     		          // assume fields that don't have children are string fields.
-        		    	emitString(osw, first, getFullName(current));
+        		    	emitString(osw, first, getFullName(current, primarySet));
         		    	first = false;
     		        } else {
     		        	/* one or more children -- this is a non-repeating group */
-    		        	first = emitCsvHeaders(osw, current, first);
+    		        	first = emitCsvHeaders(osw, primarySet, current, first);
     		        }
     		        break;
     		  }
@@ -425,15 +489,17 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 	}
 	
 
-	private void processRepeatingGroupDefinition(TreeElement group) throws IOException {
-		String formName = lfd.getFormName() + "-" + getFullName(group);
+	private void processRepeatingGroupDefinition(TreeElement group, TreeElement primarySet) throws IOException {
+		String formName = lfd.getFormName() + "-" + getFullName(group, primarySet);
 		File topLevelCsv = new File( outputDir, formName + ".csv");
 		FileOutputStream os = new FileOutputStream(topLevelCsv);
 		OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
 		fileMap.put(group, osw);
-		emitString(osw, true, group.getName() + "-set");
-		emitString(osw, false, "PrimaryKey");
-		emitCsvHeaders( osw, group, false);
+		boolean first = true;
+		first = emitCsvHeaders( osw, group, group, first);
+		emitString(osw, first, "PARENT_KEY");
+		emitString(osw, false, "KEY");
+		emitString(osw, false, "SET-OF-" + group.getName());
 		osw.append("\n");
 	}
 	
@@ -448,8 +514,9 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 			os = new FileOutputStream(topLevelCsv);
 			OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
 			fileMap.put(submission, osw);
-			emitString(osw, true, "PrimaryKey");
-			emitCsvHeaders( osw, submission, false);
+			emitString(osw, true, "SubmissionDate");
+			emitCsvHeaders( osw, submission, submission, false);
+			emitString(osw, false, "KEY");
 			osw.append("\n");
 
 		} catch (FileNotFoundException e) {
@@ -500,6 +567,15 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 		}
         EventBus.publish(new TransformProgressEvent("Processing instance: " + instanceDir.getName()));
 
+        long checksum;
+        try {
+			checksum = FileUtils.checksumCRC32(submission);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+	        EventBus.publish(new TransformProgressEvent("Failed during computing of crc: " + e1.getMessage()));
+	        return false;
+		}
+        
         // parse the xml document...
         Document doc = null;
         try {
@@ -552,10 +628,18 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
         	Element rootElement = doc.getRootElement();
         	String instanceId = rootElement.getAttributeValue(null,"instanceID");
         	if ( instanceId == null || instanceId.length() == 0 ) {
-        		instanceId = "" + WebUtils.iso8601Date(new Date(submission.lastModified())) + "-" + Long.toString(submission.length());
+        		instanceId = Long.toString(checksum);
         	}
-        	emitString( osw, true, instanceId );
-        	emitSubmissionCsv( osw, doc.getRootElement(), lfd.getSubmissionElement(), false, instanceId, instanceDir);
+        	String submissionDate = rootElement.getAttributeValue(null,"submissionDate");
+        	if ( submissionDate == null || submissionDate.length() == 0 ) {
+        		submissionDate = null;
+        	} else {
+        		Date theDate = WebUtils.parseDate(submissionDate);
+        		submissionDate = WebUtils.iso8601DateTime(theDate);
+        	}
+        	emitString( osw, true, submissionDate );
+        	emitSubmissionCsv( osw, doc.getRootElement(), lfd.getSubmissionElement(), lfd.getSubmissionElement(), false, instanceId, instanceDir);
+        	emitString( osw, false, instanceId );
 			osw.append("\n");
         	return true;
        	

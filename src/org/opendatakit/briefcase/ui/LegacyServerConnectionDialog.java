@@ -177,7 +177,6 @@ public class LegacyServerConnectionDialog extends JDialog implements ActionListe
       // do action...
       ServerConnectionInfo info = new ServerConnectionInfo(textUrlField.getText(),
           textAppTokenField.getText());
-      // TODO: check that we can connect to the server...
 
       okButton.setEnabled(false);
       cancelButton.setEnabled(false);

@@ -173,7 +173,6 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
       final ServerConnectionInfo info = new ServerConnectionInfo(textUrlField.getText(),
           textUsernameField.getText(), textPasswordField.getPassword());
 
-      // TODO: check that we can connect to the server...
       okButton.setEnabled(false);
       cancelButton.setEnabled(false);
       String errorString;
