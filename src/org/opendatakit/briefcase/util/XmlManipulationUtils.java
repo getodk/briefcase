@@ -26,6 +26,7 @@ import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -565,7 +566,11 @@ public class XmlManipulationUtils {
       }
       
       if ( name.equals(SUBMISSION_DATE_ATTRIBUTE_NAME) ) {
-        if ( !root.getAttributeValue(i).equals(submissionDate) ) {
+    	Date oldDate = WebUtils.parseDate(submissionDate);
+    	String returnDate = root.getAttributeValue(i);
+    	Date newDate = WebUtils.parseDate(returnDate);
+    	// cross-platform datetime resolution is 1 second.
+    	if ( Math.abs(newDate.getTime() - oldDate.getTime()) > 1000L ) { 
           String msg = "Original submission file's submissionDate does not match that on server! " + submissionFile.getAbsolutePath();
           logger.error(msg);
           throw new MetadataUpdateException(msg);

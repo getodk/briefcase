@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -252,7 +253,8 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 	    		    			emitString( osw, first, null);
 	    		    		} else {
 		    		    		Date date = WebUtils.parseDate(value);
-		    		    		emitString( osw, first, WebUtils.iso8601DateOnly(date));
+		    		    		DateFormat formatter = DateFormat.getDateInstance();
+		    		    		emitString( osw, first, formatter.format(date));
 	    		    		}
 	    		    	}
 	    		    	first = false;
@@ -269,7 +271,8 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 	    		    			emitString( osw, first, null);
 	    		    		} else {
 		    		    		Date date = WebUtils.parseDate(value);
-		    		    		emitString( osw, first, WebUtils.iso8601TimeOnly(date));
+		    		    		DateFormat formatter = DateFormat.getTimeInstance();
+		    		    		emitString( osw, first, formatter.format(date));
 	    		    		}
 	    		    	}
 	    		    	first = false;
@@ -286,7 +289,8 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 	    		    			emitString( osw, first, null);
 	    		    		} else {
 		    		    		Date date = WebUtils.parseDate(value);
-		    		    		emitString( osw, first, WebUtils.iso8601DateTime(date));
+		    		    		DateFormat formatter = DateFormat.getDateTimeInstance();
+		    		    		emitString( osw, first, formatter.format(date));
 	    		    		}
 	    		    	}
 	    		    	first = false;
@@ -635,7 +639,8 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
         		submissionDate = null;
         	} else {
         		Date theDate = WebUtils.parseDate(submissionDate);
-        		submissionDate = WebUtils.iso8601DateTime(theDate);
+        		DateFormat formatter = DateFormat.getDateTimeInstance();
+        		submissionDate = formatter.format(theDate);
         	}
         	emitString( osw, true, submissionDate );
         	emitSubmissionCsv( osw, doc.getRootElement(), lfd.getSubmissionElement(), lfd.getSubmissionElement(), false, instanceId, instanceDir);
