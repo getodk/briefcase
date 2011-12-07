@@ -49,39 +49,38 @@ public class JavaRosaWrapper {
 
 	static Logger log = Logger.getLogger(JavaRosaWrapper.class.getName());
 	private static final String BASE64_RSA_PUBLIC_KEY = "base64RsaPublicKey";
-	private static final String ENCRYPTED_FORM_DEFINITION = "<?xml version=\"1.0\"?>"
-			+ "<h:html xmlns=\"http://www.w3.org/2002/xforms\" xmlns:h=\"http://www.w3.org/1999/xhtml\" xmlns:ev=\"http://www.w3.org/2001/xml-events\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:jr=\"http://openrosa.org/javarosa\">"
-			+ "<h:head>"
-			+ "<h:title>Encrypted Form</h:title>"
-			+ "<model>"
-			+ "<instance>"
-			+ "<data id=\"encrypted\" >"
-			+ "<meta>"
-			+ "<timeStart/>"
-			+ "<timeEnd/>"
-			+ "<instanceID/>"
-			+ "</meta>"
-			+ "<encryptedXmlFile/>"
-			+ "<media>"
-			+ "<file/>"
-			+ "</media>"
-			+ "</data>"
-			+ "</instance>"
-			+ "<bind nodeset=\"/data/meta/timeStart\" type=\"datetime\"/>"
-			+ "<bind nodeset=\"/data/meta/timeEnd\" type=\"datetime\"/>"
-			+ "<bind nodeset=\"/data/meta/instanceID\" type=\"string\"/>"
-			+ "<bind nodeset=\"/data/encryptedXmlFile\" type=\"binary\"/>"
-			+ "<bind nodeset=\"/data/media/file\" type=\"binary\"/>"
-			+ "</model>"
-			+ "</h:head>"
-			+ "<h:body>"
-			+ "<input ref=\"meta/timeStart\"><label>start</label></input>"
-			+ "<input ref=\"meta/timeEnd\"><label>end</label></input>"
-			+ "<input ref=\"meta/instanceID\"><label>InstanceID</label></input>"
-			+ "<upload ref=\"encryptedXmlFile\" mediatype=\"image/*\"><label>submission</label></upload>"
-			+ "<repeat nodeset=\"/data/media\">"
-			+ "<upload ref=\"file\" mediatype=\"image/*\"><label>media file</label></upload>"
-			+ "</repeat>" + "</h:body>" + "</h:html>";
+	private static final String ENCRYPTED_FORM_DEFINITION = "<?xml version=\"1.0\"?>" +
+		  	"<h:html xmlns=\"http://www.w3.org/2002/xforms\" xmlns:h=\"http://www.w3.org/1999/xhtml\" xmlns:ev=\"http://www.w3.org/2001/xml-events\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:jr=\"http://openrosa.org/javarosa\">" +
+		  	"<h:head>" +
+				"<h:title>Encrypted Form</h:title>" +
+				"<model>" +
+					"<instance>" +
+						"<data id=\"encrypted\" >" +
+							"<meta>" +
+								"<instanceID/>" +
+							"</meta>" +
+		               "<base64EncryptedKey/>" +
+							"<encryptedXmlFile/>" +
+							"<media>" +
+								"<file/>" +
+							"</media>" +
+						"</data>" +
+					"</instance>" +
+					"<bind nodeset=\"/data/meta/instanceID\" type=\"string\"/>" +
+		         "<bind nodeset=\"/data/base64EncryptedKey\" type=\"string\"/>" +
+					"<bind nodeset=\"/data/encryptedXmlFile\" type=\"binary\"/>" +
+					"<bind nodeset=\"/data/media/file\" type=\"binary\"/>" +
+				"</model>" +
+			"</h:head>" +
+			"<h:body>" +
+				"<input ref=\"meta/instanceID\"><label>InstanceID</label></input>" +
+		      "<input ref=\"base64EncryptedKey\"><label>Encrypted SymmetricKey</label></input>" +
+				"<upload ref=\"encryptedXmlFile\" mediatype=\"image/*\"><label>submission</label></upload>" +
+				"<repeat nodeset=\"/data/media\">" +
+					"<upload ref=\"file\" mediatype=\"image/*\"><label>media file</label></upload>" +
+				"</repeat>" +
+			"</h:body>" +
+			"</h:html>";
 	  
 	  private static class XFormParserWithBindEnhancementsFactory implements IXFormParserFactory {
 

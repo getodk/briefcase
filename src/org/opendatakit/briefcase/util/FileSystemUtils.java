@@ -19,17 +19,30 @@ package org.opendatakit.briefcase.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.opendatakit.briefcase.model.CryptoException;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.LocalFormDefinition;
 import org.opendatakit.briefcase.util.JavaRosaWrapper.BadFormDefinition;
@@ -39,6 +52,14 @@ public class FileSystemUtils {
 
   static final String FORMS_DIR = "forms";
   static final String SCRATCH_DIR = "scratch";
+
+  // encryption support....
+  static final String RSA_ALGORITHM = "RSA";
+  static final String SYMMETRIC_ALGORITHM = "AES/CFB/NoPadding";
+  static final String UTF_8 = "UTF-8";
+  static final int SYMMETRIC_KEY_LENGTH = 256;
+  static final int IV_BYTE_LENGTH = 16;
+  static final String ENCRYPTED_FILE_EXTENSION = ".enc";
 
   public static final String getMountPoint() {
     return System.getProperty("os.name").startsWith("Win") ? File.separator + ".." : (System
@@ -142,11 +163,11 @@ public class FileSystemUtils {
   public static File getScratchFolder(File briefcaseDir) {
     return new File(briefcaseDir, SCRATCH_DIR);
   }
-  
+
   public static void removeBriefcaseScratch(File scratchDir) throws IOException {
-      if ( scratchDir.exists() ) {
-        FileUtils.deleteDirectory(scratchDir);
-      }
+    if (scratchDir.exists()) {
+      FileUtils.deleteDirectory(scratchDir);
+    }
   }
 
   public static void establishBriefcaseScratch(File scratchDir) throws IOException {
@@ -160,12 +181,12 @@ public class FileSystemUtils {
         throw new IOException("Unable to create briefcase directory");
       }
     }
-    
+
     if (!scratchDir.mkdir()) {
       throw new IOException("Unable to create scratch space");
     }
   }
-  
+
   public static String asFilesystemSafeName(String formName) {
     return formName.replaceAll("[/\\\\:]", "").trim();
   }
@@ -176,8 +197,7 @@ public class FileSystemUtils {
     String rootName = asFilesystemSafeName(formName);
     File formPath = new File(briefcaseFormsDir, rootName);
     if (!formPath.exists() && !formPath.mkdirs()) {
-      throw new FileSystemException("unable to create directory: "
-          + formPath.getAbsolutePath());
+      throw new FileSystemException("unable to create directory: " + formPath.getAbsolutePath());
     }
     return formPath;
   }
@@ -225,8 +245,7 @@ public class FileSystemUtils {
     File formPath = getFormDirectory(briefcaseFormsDir, formName);
     File mediaDir = new File(formPath, rootName + "-media");
     if (!mediaDir.exists() && !mediaDir.mkdirs()) {
-      throw new FileSystemException("unable to create directory: "
-          + mediaDir.getAbsolutePath());
+      throw new FileSystemException("unable to create directory: " + mediaDir.getAbsolutePath());
     }
 
     return mediaDir;
@@ -237,15 +256,14 @@ public class FileSystemUtils {
     File formPath = getFormDirectory(briefcaseFormsDir, formName);
     File instancesDir = new File(formPath, "instances");
     if (!instancesDir.exists() && !instancesDir.mkdirs()) {
-      throw new FileSystemException("unable to create directory: "
-          + instancesDir.getAbsolutePath());
+      throw new FileSystemException("unable to create directory: " + instancesDir.getAbsolutePath());
     }
     return instancesDir;
   }
 
   public static List<File> getFormSubmissionDirectories(File briefcaseFormsDir, String formName) {
     List<File> files = new ArrayList<File>();
-    
+
     File formInstancesDir = null;
     try {
       formInstancesDir = getFormInstancesDirectory(briefcaseFormsDir, formName);
@@ -253,10 +271,10 @@ public class FileSystemUtils {
       e.printStackTrace();
       return files;
     }
-    
+
     File[] briefcaseInstances = formInstancesDir.listFiles();
-    if ( briefcaseInstances != null ) {
-      for ( File briefcaseInstance : briefcaseInstances ) {
+    if (briefcaseInstances != null) {
+      for (File briefcaseInstance : briefcaseInstances) {
         if (!briefcaseInstance.isDirectory() || briefcaseInstance.getName().startsWith(".")) {
           logger.warn("skipping non-directory or dot-file in form instances subdirectory");
           continue;
@@ -264,10 +282,10 @@ public class FileSystemUtils {
         files.add(briefcaseInstance);
       }
     }
-    
+
     return files;
   }
-  
+
   public static boolean hasFormSubmissionDirectory(File formInstancesDir, String instanceID) {
     // create instance directory...
     String instanceDirName = asFilesystemSafeName(instanceID);
@@ -284,7 +302,7 @@ public class FileSystemUtils {
     }
     return null;
   }
-  
+
   public static File assertFormSubmissionDirectory(File formInstancesDir, String instanceID)
       throws FileSystemException {
     // create instance directory...
@@ -293,7 +311,7 @@ public class FileSystemUtils {
     if (instanceDir.exists() && instanceDir.isDirectory()) {
       return instanceDir;
     }
-    
+
     if (!instanceDir.mkdir()) {
       throw new FileSystemException("unable to create instance dir");
     }
@@ -303,7 +321,8 @@ public class FileSystemUtils {
 
   public static final String getMd5Hash(File file) {
     try {
-      // CTS (6/15/2010) : stream file through digest instead of handing it the
+      // CTS (6/15/2010) : stream file through digest instead of handing
+      // it the
       // byte[]
       MessageDigest md = MessageDigest.getInstance("MD5");
       int chunkSize = 256;
@@ -356,4 +375,110 @@ public class FileSystemUtils {
     }
 
   }
+
+  private static final void decryptFile(String base64EncryptedSymmetricKey,
+      PrivateKey rsaPrivateKey, File original, File unencryptedDir) 
+          throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, 
+          InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    InputStream fin = null;
+    OutputStream fout = null;
+    
+    try {
+    SecretKeySpec symmetricKey;
+    // construct the base64-encoded RSA-encrypted symmetric key
+      Cipher pkCipher;
+      pkCipher = Cipher.getInstance(RSA_ALGORITHM);
+      // write AES key
+      pkCipher.init(Cipher.DECRYPT_MODE, rsaPrivateKey);
+      byte[] encryptedSymmetricKey = Base64.decodeBase64(base64EncryptedSymmetricKey);
+      byte[] pkDecryptedKey = pkCipher.doFinal(encryptedSymmetricKey);
+      symmetricKey = new SecretKeySpec(pkDecryptedKey, SYMMETRIC_ALGORITHM);
+
+    String name = original.getName();
+    if (!name.endsWith(ENCRYPTED_FILE_EXTENSION)) {
+      String errMsg = "Unexpected non-" + ENCRYPTED_FILE_EXTENSION + " extension " + name
+          + " -- ignoring file";
+      throw new IllegalArgumentException(errMsg);
+    }
+    name = name.substring(0, name.length() - ENCRYPTED_FILE_EXTENSION.length());
+    File decryptedFile = new File(unencryptedDir, name);
+
+    Cipher c = Cipher.getInstance(SYMMETRIC_ALGORITHM);
+      c.init(Cipher.DECRYPT_MODE, symmetricKey);
+
+      fin = new FileInputStream(original);
+      fin = new CipherInputStream(fin, c);
+
+      fout = new FileOutputStream(decryptedFile);
+      byte[] buffer = new byte[2048];
+      int len = fin.read(buffer);
+      while (len != -1) {
+        fout.write(buffer, 0, len);
+        len = fin.read(buffer);
+      }
+      fout.flush();
+      logger.info("Decrpyted:" + original.getName() + " -> " + decryptedFile.getName());
+    } finally {
+      if ( fin != null ) {
+        try {
+          fin.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+      if ( fout != null ) {
+        try {
+          fout.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+
+  public static void decryptSubmissionFiles(String base64EncryptedSymmetricKey,
+      PrivateKey rsaPrivateKey, File instanceDir, File unencryptedDir) throws FileSystemException, CryptoException {
+    // NOTE: assume the directory containing the instanceXml contains ONLY
+    // files related to this one instance.
+
+    // encrypt files that do not end with ".enc", and do not start with ".";
+    // ignore directories
+    File[] allFiles = instanceDir.listFiles();
+    List<File> filesToProcess = new ArrayList<File>();
+    for (File f : allFiles) {
+      if (!f.getName().endsWith(ENCRYPTED_FILE_EXTENSION))
+        continue; // not encrypted
+      if (f.isDirectory())
+        continue; // don't handle directories
+      if (f.getName().startsWith("."))
+        continue; // MacOSX garbage
+      filesToProcess.add(f);
+    }
+
+    // decrypt here...
+    for (File f : filesToProcess) {
+      try {
+        decryptFile(base64EncryptedSymmetricKey, rsaPrivateKey, f, unencryptedDir);
+      } catch (InvalidKeyException e) {
+        e.printStackTrace();
+        throw new CryptoException("Error decrpyting:" + f.getName() + " Cause: " + e.toString());
+      } catch (NoSuchAlgorithmException e) {
+        e.printStackTrace();
+        throw new CryptoException("Error decrpyting:" + f.getName() + " Cause: " + e.toString());
+      } catch (NoSuchPaddingException e) {
+        e.printStackTrace();
+        throw new CryptoException("Error decrpyting:" + f.getName() + " Cause: " + e.toString());
+      } catch (IllegalBlockSizeException e) {
+        e.printStackTrace();
+        throw new CryptoException("Error decrpyting:" + f.getName() + " Cause: " + e.toString());
+      } catch (BadPaddingException e) {
+        e.printStackTrace();
+        throw new CryptoException("Error decrpyting:" + f.getName() + " Cause: " + e.toString());
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw new FileSystemException("Error decrpyting:" + f.getName() + " Cause: " + e.toString());
+      }
+    }
+  }
+
 }

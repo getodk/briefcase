@@ -37,11 +37,13 @@ import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.bushe.swing.event.EventBus;
 import org.javarosa.core.model.instance.TreeElement;
+import org.javarosa.xform.parse.XFormParser;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
 import org.kxml2.kdom.Node;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.CryptoException;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.LocalFormDefinition;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -562,7 +564,7 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 		}
 		return true;
 	}
-	
+
 	private boolean processInstance(File instanceDir) {
 		File submission = new File(instanceDir, "submission.xml");
 		if ( !submission.exists() || !submission.isFile()) {
@@ -620,10 +622,80 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 	        return false;
         }
 
+        File unEncryptedDir = null;
+        
         if ( lfd.isEncryptedForm() ) {
         	// TODO: parse this Xml and reconstruct the images, etc.
+        	Element rootElement = doc.getRootElement();
+        	Element meta = null;
+        	Element base64Key = null;
+        	Element encryptedXml = null;
+        	Element media = null;
+        	for ( int i = 0 ; i < rootElement.getChildCount() ; ++i ) {
+        		if ( rootElement.getType(i) == Node.ELEMENT ) {
+        			Element child = rootElement.getElement(i);
+        			String name = child.getName();
+        			if ( name.equals("meta") ) {
+        				meta = child;
+        			} else if ( name.equals("base64EncryptedKey") ) {
+        				base64Key = child;
+        			} else if ( name.equals("encryptedXmlFile")) {
+        				encryptedXml = child;
+        			} else if ( name.equals("media")) {
+        				media = child;
+        			}
+        		}
+        	}
+        	if ( meta == null || base64Key == null || encryptedXml == null || media == null ) {
+        		EventBus.publish(new TransformProgressEvent("Failed to parse required elements of encrypted form."));
+        		return false;
+        	}
+        	
+        	String instanceId = rootElement.getAttributeValue(null,"instanceID");
+        	if ( instanceId == null || instanceId.length() == 0 ) {
+        		instanceId = Long.toString(checksum);
+        	}
         	
         	// create a temporary instanceDir and decrypt the files to that location...
+        	unEncryptedDir = new File( instanceDir, "temp");
+
+        	if ( unEncryptedDir.exists() ) {
+        	  // silently delete it...
+        	  try {
+              FileUtils.deleteDirectory(unEncryptedDir);
+            } catch (IOException e) {
+              e.printStackTrace();
+              EventBus.publish(new TransformProgressEvent("Unable to delete stale temp directory: " + unEncryptedDir.getAbsolutePath()));
+              return false;
+            }
+        	}
+        	
+        	String base64EncryptedSymmetricKey = XFormParser.getXMLText(base64Key, true);
+        	
+        	if ( !unEncryptedDir.mkdirs() ) {
+           EventBus.publish(new TransformProgressEvent("Unable to create temp directory: " + unEncryptedDir.getAbsolutePath()));
+           return false;
+        	}
+        	
+        	try {
+            FileSystemUtils.decryptSubmissionFiles(base64EncryptedSymmetricKey,
+                                lfd.getPrivateKey(), instanceDir, unEncryptedDir);
+          } catch (FileSystemException e) {
+            e.printStackTrace();
+            EventBus.publish(new TransformProgressEvent("Unable to decrypt directory: " + instanceDir.getAbsolutePath() + " " + e.toString()));
+            return false;
+          } catch (CryptoException e) {
+            e.printStackTrace();
+            EventBus.publish(new TransformProgressEvent("Unable to decrypt directory: " + instanceDir.getAbsolutePath() + " " + e.toString()));
+            return false;
+          }
+        } else {
+        	Element rootElement = doc.getRootElement();
+        	String instanceId = rootElement.getAttributeValue(null,"instanceID");
+        	if ( instanceId == null || instanceId.length() == 0 ) {
+        		instanceId = Long.toString(checksum);
+        	}
+        	unEncryptedDir = instanceDir;
         }
         
         try {
@@ -655,6 +727,13 @@ static final Logger log = Logger.getLogger(TransformToCsv.class.getName());
 		} finally {
         	if ( lfd.isEncryptedForm() ) {
         		// destroy the temp directory and its contents...
+        		try {
+					FileUtils.deleteDirectory(unEncryptedDir);
+				} catch (IOException e) {
+					e.printStackTrace();
+			        EventBus.publish(new TransformProgressEvent("Unable to remove decrypted files: " + e.getMessage()));
+			        return false;
+				}
         	}
         }
 	}

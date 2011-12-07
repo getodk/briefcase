@@ -16,7 +16,10 @@
 
 package org.opendatakit.briefcase.model;
 
+import java.security.Security;
 import java.util.prefs.Preferences;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class BriefcasePreferences {
   
@@ -37,6 +40,9 @@ public class BriefcasePreferences {
   
   private static synchronized Preferences getApplicationPreferences() {
     if ( applicationPreferences == null ) {
+      // as good a place as any to do one-time initialization...
+      Security.addProvider(new BouncyCastleProvider());
+      // and load the preferences...
       applicationPreferences = Preferences.userNodeForPackage(BriefcasePreferences.class);
     }
     return applicationPreferences;

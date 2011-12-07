@@ -143,8 +143,15 @@ public class TransferFromODK implements ITransferFromSourceAction {
         int instanceCount = 1;
         for (File dir : odkFormInstanceDirs) {
   
-          File xml = new File(dir, dir.getName() + ".xml");
-          
+          // 1.1.8 -- submission is saved as submission.xml.
+          // full instance data is stored as directoryName.xml (as is the convention in 1.1.5, 1.1.7)
+          //
+          File fullXml = new File(dir, dir.getName() + ".xml");
+          File xml = new File(dir, "submission.xml");
+          if ( !xml.exists() && fullXml.exists() ) {
+        	  xml = fullXml; // e.g., 1.1.5, 1.1.7
+          }
+
           // this is a hack added to support easier generation of large test cases where we 
           // copy a single instance directory repeatedly.  Normally the xml submission file
           // has the name of the enclosing directory, but if you copy directories, this won't
@@ -195,17 +202,25 @@ public class TransferFromODK implements ITransferFromSourceAction {
               EventBus.publish(new FormStatusEvent(fs));
               continue;
             }
-            File odkSubmissionFile = new File(scratchInstance, dir.getName() + ".xml");
-            File scratchSubmissionFile = new File(scratchInstance, "submission.xml");
-  
-            try {
-              FileUtils.moveFile(odkSubmissionFile, scratchSubmissionFile);
-            } catch (IOException e) {
-              e.printStackTrace();
-              allSuccessful = false;
-              fs.setStatusString("unable to rename submission file to submission.xml: " + e.getMessage(), false);
-              EventBus.publish(new FormStatusEvent(fs));
-              continue;
+            
+            if ( xml.equals(fullXml) ) {
+            	// need to rename
+	            File odkSubmissionFile = new File(scratchInstance, fullXml.getName());
+	            File scratchSubmissionFile = new File(scratchInstance, "submission.xml");
+	  
+	            try {
+	              FileUtils.moveFile(odkSubmissionFile, scratchSubmissionFile);
+	            } catch (IOException e) {
+	              e.printStackTrace();
+	              allSuccessful = false;
+	              fs.setStatusString("unable to rename submission file to submission.xml: " + e.getMessage(), false);
+	              EventBus.publish(new FormStatusEvent(fs));
+	              continue;
+	            }
+            } else {
+            	// delete the full xml file (keep only the submission.xml)
+            	File odkSubmissionFile = new File(scratchInstance, fullXml.getName());
+            	odkSubmissionFile.delete();
             }
             
             fs.putScratchFromMapping(scratchInstance, dir);

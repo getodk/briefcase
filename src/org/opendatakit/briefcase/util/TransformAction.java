@@ -16,28 +16,38 @@
 
 package org.opendatakit.briefcase.util;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.security.KeyPair;
+import java.security.PrivateKey;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.swing.JOptionPane;
+
+import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.LocalFormDefinition;
 import org.opendatakit.briefcase.model.OutputType;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.TransformAbortEvent;
 import org.opendatakit.briefcase.model.TransformFailedEvent;
+import org.opendatakit.briefcase.model.TransformProgressEvent;
 import org.opendatakit.briefcase.model.TransformSucceededEvent;
-import org.opendatakit.briefcase.ui.PrivateKeyPromptDialog;
+import org.opendatakit.briefcase.ui.PrivateKeyFileChooser;
 import org.opendatakit.briefcase.ui.TransformInProgressDialog;
 
 public class TransformAction {
 
   static final String SCRATCH_DIR = "scratch";
+  static final String UTF_8 = "UTF-8";
 
   private static ExecutorService backgroundExecutorService = Executors.newCachedThreadPool();
 
   private static class TransformFormRunnable implements Runnable {
-	  ITransformFormAction action;
+    ITransformFormAction action;
 
     TransformFormRunnable(ITransformFormAction action) {
       this.action = action;
@@ -47,8 +57,8 @@ public class TransformAction {
     public void run() {
       try {
         boolean allSuccessful = true;
-          allSuccessful = action.doAction();
-        if ( allSuccessful ) {
+        allSuccessful = action.doAction();
+        if (allSuccessful) {
           EventBus.publish(new TransformSucceededEvent(action.getFormDefinition()));
         } else {
           EventBus.publish(new TransformFailedEvent(action.getFormDefinition()));
@@ -61,34 +71,73 @@ public class TransformAction {
 
   }
 
-  private static void showDialogAndRun(ITransformFormAction action, OutputType outputType, TerminationFuture terminationFuture) {
+  private static void showDialogAndRun(ITransformFormAction action, OutputType outputType,
+      TerminationFuture terminationFuture) {
     // create the dialog first so that the background task will always have a
     // listener for its completion events...
-    final TransformInProgressDialog dlg = new TransformInProgressDialog("Transforming form into " + outputType.toString(), terminationFuture);
+    final TransformInProgressDialog dlg = new TransformInProgressDialog("Transforming form into "
+        + outputType.toString(), terminationFuture);
 
     backgroundExecutorService.execute(new TransformFormRunnable(action));
 
     dlg.setVisible(true);
   }
 
-  public static void transform(File outputDir, OutputType outputType, 
-		  LocalFormDefinition lfd, TerminationFuture terminationFuture ) 
-				  throws IOException {
+  public static void transform(File outputDir, OutputType outputType, LocalFormDefinition lfd,
+      TerminationFuture terminationFuture) throws IOException {
 
-	if ( lfd.isEncryptedForm() ) {
-		PrivateKeyPromptDialog dlg = new PrivateKeyPromptDialog("Enter private key for " + lfd.getFormName());
-		dlg.pack();
-		dlg.setVisible(true);
-		lfd.setPrivateKey( dlg.getPrivateKey() );
-	}
-	
-	ITransformFormAction action;
-	if ( outputType == OutputType.CSV ) {
-		action = new TransformToCsv(outputDir, lfd, terminationFuture);
-	} else {
-		throw new IllegalStateException("outputType not recognized");
-	}
-	
+    if (lfd.isEncryptedForm()) {
+
+      boolean success = false;
+      while (!success) {
+        PrivateKeyFileChooser dlg = new PrivateKeyFileChooser(null);
+        dlg.setVisible(true);
+
+        File pemFile = dlg.getSelectedFile();
+        if ( pemFile == null ) {
+          // aborted
+          EventBus.publish(new TransformProgressEvent("User did not choose PEM file containing a valid private key."));
+          EventBus.publish(new TransformFailedEvent(lfd));
+          terminationFuture.markAsCancelled(new TransformAbortEvent("User cancelled action"));
+          return;
+        }
+        
+        try {
+          BufferedReader br = new BufferedReader(new FileReader(pemFile));
+          Object o = new PEMReader(br).readObject();
+          if ( o == null ) {
+            JOptionPane.showMessageDialog(null, 
+                "The supplied file is not in PEM format.",
+                "Invalid RSA Private Key", JOptionPane.ERROR_MESSAGE);
+            continue;
+          }
+          KeyPair kp = (KeyPair) o;
+          PrivateKey privKey = kp.getPrivate();
+          if ( privKey == null ) {
+            JOptionPane.showMessageDialog(null, 
+                "The supplied file does not contain a private key.",
+                "Invalid RSA Private Key", JOptionPane.ERROR_MESSAGE);
+            continue;
+          }
+          lfd.setPrivateKey(privKey);
+          success = true;
+        } catch (IOException e) {
+          e.printStackTrace();
+          JOptionPane.showMessageDialog(null, 
+              "The supplied PEM file could not be parsed.",
+              "Invalid RSA Private Key", JOptionPane.ERROR_MESSAGE);
+          continue;
+        }
+      }
+    }
+
+    ITransformFormAction action;
+    if (outputType == OutputType.CSV) {
+      action = new TransformToCsv(outputDir, lfd, terminationFuture);
+    } else {
+      throw new IllegalStateException("outputType not recognized");
+    }
+
     showDialogAndRun(action, outputType, terminationFuture);
   }
 }

@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.model;
 
 import java.io.File;
+import java.security.PrivateKey;
 
 import org.javarosa.core.model.instance.TreeElement;
 import org.opendatakit.briefcase.util.JavaRosaWrapper;
@@ -25,7 +26,7 @@ import org.opendatakit.briefcase.util.JavaRosaWrapper.BadFormDefinition;
 public class LocalFormDefinition implements IFormDefinition {
   private final File revisedFormFile;
   private final JavaRosaWrapper formDefn;
-  private String privateKey = null;
+  private PrivateKey privateKey = null;
 
   public LocalFormDefinition(File formFile) throws BadFormDefinition {
     if (!formFile.exists()) {
@@ -119,11 +120,11 @@ public class LocalFormDefinition implements IFormDefinition {
 	  return formDefn.getSubmissionElement();
   }
   
-  public void setPrivateKey(String privateKey) {
+  public void setPrivateKey(PrivateKey privateKey) {
 	  this.privateKey = privateKey;
   }
   
-  public String getPrivateKey() {
+  public PrivateKey getPrivateKey() {
 	  return privateKey;
   }
   
