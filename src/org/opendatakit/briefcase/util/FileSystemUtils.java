@@ -38,8 +38,6 @@ import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
@@ -64,10 +62,7 @@ public class FileSystemUtils {
 
   // encryption support....
   static final String ASYMMETRIC_ALGORITHM = "RSA/NONE/OAEPWithSHA256AndMGF1Padding";
-  static final String SYMMETRIC_ALGORITHM = "AES/CFB/PKCS5Padding";
   static final String UTF_8 = "UTF-8";
-  static final int SYMMETRIC_KEY_LENGTH = 256;
-  static final int IV_BYTE_LENGTH = 16;
   static final String ENCRYPTED_FILE_EXTENSION = ".enc";
 
   public static final String getMountPoint() {
@@ -401,7 +396,7 @@ public class FileSystemUtils {
       name = name.substring(0, name.length() - ENCRYPTED_FILE_EXTENSION.length());
       File decryptedFile = new File(unencryptedDir, name);
 
-      Cipher c = cipherFactory.getCipher();
+      Cipher c = cipherFactory.getCipher(name);
 
       fin = new FileInputStream(original);
       fin = new CipherInputStream(fin, c);
@@ -433,45 +428,6 @@ public class FileSystemUtils {
     }
   }
 
-  private static final class CipherFactory {
-    private final SecretKeySpec symmetricKey;
-    private final byte[] ivSeedArray;
-    private int ivCounter = 0;
-
-    CipherFactory(String instanceId, byte[] symmetricKeyBytes) throws CryptoException {
-      
-      symmetricKey = new SecretKeySpec( symmetricKeyBytes, SYMMETRIC_ALGORITHM);
-      // construct the fixed portion of the iv -- the ivSeedArray
-      // this is the md5 hash of the instanceID and the symmetric key
-      try {
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        md.update(instanceId.getBytes("UTF-8"));
-        md.update(symmetricKeyBytes);
-        byte[] messageDigest = md.digest();
-        ivSeedArray = new byte[IV_BYTE_LENGTH];
-        for ( int i = 0 ; i < IV_BYTE_LENGTH ; ++i ) {
-           ivSeedArray[i] = messageDigest[(i % messageDigest.length)];
-        }
-      } catch (NoSuchAlgorithmException e) {
-        e.printStackTrace();
-        throw new CryptoException("Error constructing ivSeedArray Cause: " + e.toString());
-      } catch (UnsupportedEncodingException e) {
-        e.printStackTrace();
-        throw new CryptoException("Error constructing ivSeedArray Cause: " + e.toString());
-      }
-    }
-    
-    public Cipher getCipher() throws InvalidKeyException,
-          InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
-       ++ivSeedArray[ivCounter % ivSeedArray.length];
-       ++ivCounter;
-       IvParameterSpec baseIv = new IvParameterSpec(ivSeedArray);
-       Cipher c = Cipher.getInstance(SYMMETRIC_ALGORITHM);
-       c.init(Cipher.DECRYPT_MODE, symmetricKey, baseIv);
-       return c;
-    }
-  }
-  
   private static void decryptSubmissionFiles(String base64EncryptedSymmetricKey, 
       FormInstanceMetadata fim, List<String> mediaNames,
       String encryptedSubmissionFile, String base64EncryptedElementSignature,
