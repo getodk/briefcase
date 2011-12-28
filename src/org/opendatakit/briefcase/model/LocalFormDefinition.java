@@ -132,4 +132,32 @@ public class LocalFormDefinition implements IFormDefinition {
   public LocationType getFormLocation() {
     return LocationType.LOCAL;
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if ( obj != null && obj instanceof LocalFormDefinition ) {
+      LocalFormDefinition lf = (LocalFormDefinition) obj;
+      
+      String id = getFormId();
+      Integer version = getModelVersion();
+      Integer uiVersion = getUiVersion();
+      
+      return ( id.equals(lf.getFormId()) &&
+               ((version == null) ? (lf.getModelVersion() == null) : version.equals(lf.getModelVersion())) &&
+               ((uiVersion == null) ? (lf.getUiVersion() == null) : uiVersion.equals(lf.getUiVersion())) );
+    }
+    
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    String id = getFormId();
+    Integer version = getModelVersion();
+    Integer uiVersion = getUiVersion();
+    
+    return id.hashCode() 
+        + 3*(version == null ? -123121 : version.hashCode()) 
+        + 5*(uiVersion == null ? -45421 : uiVersion.hashCode());
+  }
 }

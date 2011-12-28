@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
@@ -36,6 +37,8 @@ import org.kxml2.io.KXmlParser;
 import org.kxml2.io.KXmlSerializer;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
+import org.kxml2.kdom.Node;
+import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.MetadataUpdateException;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
@@ -62,19 +65,20 @@ public class XmlManipulationUtils {
   private static final String NAMESPACE_OPENROSA_ORG_XFORMS_XFORMS_LIST = "http://openrosa.org/xforms/xformsList";
 
   private static final String NAMESPACE_OPENDATAKIT_ORG_SUBMISSIONS = "http://opendatakit.org/submissions";
-  
+
   private static final String NAMESPACE_ODK = "http://www.opendatakit.org/xforms";
 
   // NOTE: the only transfered metadata is the instanceID and the submissionDate
-  
-  //private static final String FORM_ID_ATTRIBUTE_NAME = "id";
-  //private static final String MODEL_VERSION_ATTRIBUTE_NAME = "version";
-  //private static final String UI_VERSION_ATTRIBUTE_NAME = "uiVersion";
+
+  // private static final String FORM_ID_ATTRIBUTE_NAME = "id";
+  // private static final String MODEL_VERSION_ATTRIBUTE_NAME = "version";
+  // private static final String UI_VERSION_ATTRIBUTE_NAME = "uiVersion";
   private static final String INSTANCE_ID_ATTRIBUTE_NAME = "instanceID";
   private static final String SUBMISSION_DATE_ATTRIBUTE_NAME = "submissionDate";
-  //private static final String IS_COMPLETE_ATTRIBUTE_NAME = "isComplete";
-  //private static final String MARKED_AS_COMPLETE_DATE_ATTRIBUTE_NAME = "markedAsCompleteDate";
 
+  // private static final String IS_COMPLETE_ATTRIBUTE_NAME = "isComplete";
+  // private static final String MARKED_AS_COMPLETE_DATE_ATTRIBUTE_NAME =
+  // "markedAsCompleteDate";
 
   private static final boolean isXformsListNamespacedElement(Element e) {
     return e.getNamespace().equalsIgnoreCase(NAMESPACE_OPENROSA_ORG_XFORMS_XFORMS_LIST);
@@ -84,8 +88,171 @@ public class XmlManipulationUtils {
     return e.getNamespace().equalsIgnoreCase(NAMESPACE_OPENROSA_ORG_XFORMS_XFORMS_MANIFEST);
   }
 
-  public static final List<RemoteFormDefinition> parseFormListResponse(boolean isOpenRosaResponse, Document formListDoc)
-      throws ParsingException {
+  private static final String OPEN_ROSA_NAMESPACE_PRELIM = "http://openrosa.org/xforms/metadata";
+  private static final String OPEN_ROSA_NAMESPACE = "http://openrosa.org/xforms";
+  private static final String OPEN_ROSA_METADATA_TAG = "meta";
+  private static final String OPEN_ROSA_INSTANCE_ID = "instanceID";
+
+  private static final String UTF_8 = "UTF-8";
+
+  /**
+   * Traverse submission looking for OpenRosa metadata tag (with or without
+   * namespace).
+   * 
+   * @param parent
+   * @return
+   */
+  private static Element findMetaTag(Element parent, String rootUri) {
+    for (int i = 0; i < parent.getChildCount(); ++i) {
+      if (parent.getType(i) == Node.ELEMENT) {
+        Element child = parent.getElement(i);
+        String cnUri = child.getNamespace();
+        String cnName = child.getName();
+        if (cnName.equals(OPEN_ROSA_METADATA_TAG)
+            && (cnUri == null || 
+                cnUri.equals(EMPTY_STRING) || 
+                cnUri.equals(rootUri) ||
+                cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE) || 
+                cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_PRELIM))) {
+          return child;
+        } else {
+          Element descendent = findMetaTag(child, rootUri);
+          if (descendent != null)
+            return descendent;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Find the OpenRosa instanceID defined for this record, if any.
+   * 
+   * @return
+   */
+  public static String getOpenRosaInstanceId(Element root) {
+    String rootUri = root.getNamespace();
+    Element meta = findMetaTag(root, rootUri);
+    if (meta != null) {
+      for (int i = 0; i < meta.getChildCount(); ++i) {
+        if (meta.getType(i) == Node.ELEMENT) {
+          Element child = meta.getElement(i);
+          String cnUri = child.getNamespace();
+          String cnName = child.getName();
+          if (cnName.equals(OPEN_ROSA_INSTANCE_ID)
+              && (cnUri == null || 
+                  cnUri.equals(EMPTY_STRING) || 
+                  cnUri.equals(rootUri) ||
+                  cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE) || 
+                  cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_PRELIM))) {
+            return XFormParser.getXMLText(child, true);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  public static class FormInstanceMetadata {
+    public final String formId;
+    public final Long version;
+    public final Long uiVersion;
+    public final String instanceId; // this may be null
+
+    FormInstanceMetadata(String formId, Long version, Long uiVersion, String instanceId) {
+      this.formId = formId;
+      this.version = version;
+      this.uiVersion = uiVersion;
+      this.instanceId = instanceId;
+    }
+  };
+
+  private static final String FORM_ID_ATTRIBUTE_NAME = "id";
+  private static final String EMPTY_STRING = "";
+  private static final String NAMESPACE_ATTRIBUTE = "xmlns";
+  private static final String MODEL_VERSION_ATTRIBUTE_NAME = "version";
+  private static final String UI_VERSION_ATTRIBUTE_NAME = "uiVersion";
+
+  public static FormInstanceMetadata getFormInstanceMetadata(Element root) throws ParsingException {
+
+    // check for odk id
+    String formId = root.getAttributeValue(null, FORM_ID_ATTRIBUTE_NAME);
+
+    // if odk id is not present use namespace
+    if (formId == null || formId.equalsIgnoreCase(EMPTY_STRING)) {
+      String schema = root.getAttributeValue(null, NAMESPACE_ATTRIBUTE);
+
+      // TODO: move this into FormDefinition?
+      if (schema == null) {
+        throw new ParsingException("Unable to extract form id");
+      }
+
+      formId = schema;
+    }
+
+    String modelVersionString = root.getAttributeValue(null, MODEL_VERSION_ATTRIBUTE_NAME);
+    String uiVersionString = root.getAttributeValue(null, UI_VERSION_ATTRIBUTE_NAME);
+    Long modelVersion = null;
+    Long uiVersion = null;
+    if (modelVersionString != null && modelVersionString.length() > 0) {
+      modelVersion = Long.valueOf(modelVersionString);
+    }
+    if (uiVersionString != null && uiVersionString.length() > 0) {
+      uiVersion = Long.valueOf(uiVersionString);
+    }
+
+    String instanceId = getOpenRosaInstanceId(root);
+    if (instanceId == null) {
+      instanceId = root.getAttributeValue(null, INSTANCE_ID_ATTRIBUTE_NAME);
+    }
+    return new FormInstanceMetadata(formId, modelVersion, uiVersion, instanceId);
+  }
+
+  public static Document parseXml(File submission) throws ParsingException, FileSystemException {
+
+    // parse the xml document...
+    Document doc = null;
+    try {
+      InputStream is = null;
+      InputStreamReader isr = null;
+      try {
+        is = new FileInputStream(submission);
+        isr = new InputStreamReader(is, UTF_8);
+        Document tempDoc = new Document();
+        KXmlParser parser = new KXmlParser();
+        parser.setInput(isr);
+        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+        tempDoc.parse(parser);
+        isr.close();
+        doc = tempDoc;
+      } finally {
+        if (isr != null) {
+          try {
+            isr.close();
+          } catch (Exception e) {
+            // no-op
+          }
+        }
+        if (is != null) {
+          try {
+            is.close();
+          } catch (Exception e) {
+            // no-op
+          }
+        }
+      }
+    } catch (XmlPullParserException e) {
+      throw new ParsingException("Failed during parsing of submission Xml: "
+          + e.toString());
+    } catch (IOException e) {
+      throw new FileSystemException("Failed while reading submission xml: "
+          + e.toString());
+    }
+    return doc;
+  }
+
+  public static final List<RemoteFormDefinition> parseFormListResponse(boolean isOpenRosaResponse,
+      Document formListDoc) throws ParsingException {
     // This gets a list of available forms from the specified server.
     List<RemoteFormDefinition> formList = new ArrayList<RemoteFormDefinition>();
 
@@ -232,20 +399,22 @@ public class XmlManipulationUtils {
             formList.clear();
             throw new ParsingException(BAD_LEGACY_FORMLIST);
           }
-          // Since this is ODK Aggregate 0.9.8 or higher, we know that the formId is 
+          // Since this is ODK Aggregate 0.9.8 or higher, we know that the
+          // formId is
           // given as a parameter of the URL...
           String formId = null;
           try {
             URL url = new URL(downloadUrl);
             String qs = url.getQuery();
-            if ( qs.startsWith(ODK_ID_PARAMETER_EQUALS) ) {
+            if (qs.startsWith(ODK_ID_PARAMETER_EQUALS)) {
               formId = qs.substring(ODK_ID_PARAMETER_EQUALS.length());
             }
           } catch (MalformedURLException e) {
             e.printStackTrace();
           }
-          if ( formId == null ) {
-            throw new ParsingException("Unable to extract formId from download URL of legacy 0.9.8 server");
+          if (formId == null) {
+            throw new ParsingException(
+                "Unable to extract formId from download URL of legacy 0.9.8 server");
           }
           formList.add(new RemoteFormDefinition(formName, formId, null, null, downloadUrl, null));
         }
@@ -254,10 +423,11 @@ public class XmlManipulationUtils {
     return formList;
   }
 
-  public static final List<MediaFile> parseFormManifestResponse( boolean isOpenRosaResponse, Document doc) throws ParsingException {
+  public static final List<MediaFile> parseFormManifestResponse(boolean isOpenRosaResponse,
+      Document doc) throws ParsingException {
 
     List<MediaFile> files = new ArrayList<MediaFile>();
-    
+
     if (!isOpenRosaResponse) {
       logger.error("Manifest reply doesn't report an OpenRosa version -- bad server?");
       throw new ParsingException(BAD_NOT_OPENROSA_MANIFEST);
@@ -331,10 +501,11 @@ public class XmlManipulationUtils {
     return files;
   }
 
-  public static final SubmissionDownloadChunk parseSubmissionDownloadListResponse(Document doc) throws ParsingException {
+  public static final SubmissionDownloadChunk parseSubmissionDownloadListResponse(Document doc)
+      throws ParsingException {
     List<String> uriList = new ArrayList<String>();
     String websafeCursorString = "";
-    
+
     // Attempt parsing
     Element idChunkElement = doc.getRootElement();
     if (!idChunkElement.getName().equals("idChunk")) {
@@ -399,10 +570,11 @@ public class XmlManipulationUtils {
       }
     }
 
-    return new SubmissionDownloadChunk( uriList, websafeCursorString );
+    return new SubmissionDownloadChunk(uriList, websafeCursorString);
   }
 
-  public static final SubmissionManifest parseDownloadSubmissionResponse( Document doc ) throws ParsingException {
+  public static final SubmissionManifest parseDownloadSubmissionResponse(Document doc)
+      throws ParsingException {
 
     // and parse the document...
     List<MediaFile> attachmentList = new ArrayList<MediaFile>();
@@ -488,8 +660,7 @@ public class XmlManipulationUtils {
     if (instanceID == null) {
       throw new ParsingException("instanceID attribute value is null");
     }
-    
-    
+
     // write submission to a string
     StringWriter fo = new StringWriter();
     KXmlSerializer serializer = new KXmlSerializer();
@@ -506,7 +677,7 @@ public class XmlManipulationUtils {
       serializer.flush();
       serializer.endDocument();
       fo.close();
-    } catch ( IOException e ) {
+    } catch (IOException e) {
       e.printStackTrace();
       throw new ParsingException("Unexpected IOException: " + e.getMessage());
     }
@@ -514,16 +685,17 @@ public class XmlManipulationUtils {
     return new SubmissionManifest(instanceID, fo.toString(), attachmentList);
   }
 
-  public static final String updateSubmissionMetadata( File submissionFile, Document doc ) throws MetadataUpdateException {
-    
+  public static final String updateSubmissionMetadata(File submissionFile, Document doc)
+      throws MetadataUpdateException {
+
     Element root = doc.getRootElement();
     Element metadata = root.getElement(NAMESPACE_ODK, "submissionMetadata");
-    
+
     // and get the instanceID and submissionDate from the metadata.
     // we need to put that back into the instance file if not already present
     String instanceID = metadata.getAttributeValue("", INSTANCE_ID_ATTRIBUTE_NAME);
     String submissionDate = metadata.getAttributeValue("", SUBMISSION_DATE_ATTRIBUTE_NAME);
-    
+
     // read the original document...
     Document originalDoc = null;
     try {
@@ -538,40 +710,45 @@ public class XmlManipulationUtils {
       fs.close();
     } catch (IOException e) {
       e.printStackTrace();
-      String msg = "Original submission file could not be opened " + submissionFile.getAbsolutePath();
+      String msg = "Original submission file could not be opened "
+          + submissionFile.getAbsolutePath();
       logger.error(msg);
       throw new MetadataUpdateException(msg);
     } catch (XmlPullParserException e) {
       e.printStackTrace();
-      String msg = "Original submission file could not be parsed as XML file " + submissionFile.getAbsolutePath();
+      String msg = "Original submission file could not be parsed as XML file "
+          + submissionFile.getAbsolutePath();
       logger.error(msg);
       throw new MetadataUpdateException(msg);
     }
 
     // determine whether it has the attributes already added.
-    // if they are already there, they better match the values returned by Aggregate 1.0
+    // if they are already there, they better match the values returned by
+    // Aggregate 1.0
     boolean hasInstanceID = false;
     boolean hasSubmissionDate = false;
     root = originalDoc.getRootElement();
-    for ( int i = 0 ; i < root.getAttributeCount() ; ++i ) {
+    for (int i = 0; i < root.getAttributeCount(); ++i) {
       String name = root.getAttributeName(i);
-      if ( name.equals(INSTANCE_ID_ATTRIBUTE_NAME) ) {
-        if ( !root.getAttributeValue(i).equals(instanceID) ) {
-          String msg = "Original submission file's instanceID does not match that on server! " + submissionFile.getAbsolutePath();
+      if (name.equals(INSTANCE_ID_ATTRIBUTE_NAME)) {
+        if (!root.getAttributeValue(i).equals(instanceID)) {
+          String msg = "Original submission file's instanceID does not match that on server! "
+              + submissionFile.getAbsolutePath();
           logger.error(msg);
           throw new MetadataUpdateException(msg);
         } else {
           hasInstanceID = true;
         }
       }
-      
-      if ( name.equals(SUBMISSION_DATE_ATTRIBUTE_NAME) ) {
-    	Date oldDate = WebUtils.parseDate(submissionDate);
-    	String returnDate = root.getAttributeValue(i);
-    	Date newDate = WebUtils.parseDate(returnDate);
-    	// cross-platform datetime resolution is 1 second.
-    	if ( Math.abs(newDate.getTime() - oldDate.getTime()) > 1000L ) { 
-          String msg = "Original submission file's submissionDate does not match that on server! " + submissionFile.getAbsolutePath();
+
+      if (name.equals(SUBMISSION_DATE_ATTRIBUTE_NAME)) {
+        Date oldDate = WebUtils.parseDate(submissionDate);
+        String returnDate = root.getAttributeValue(i);
+        Date newDate = WebUtils.parseDate(returnDate);
+        // cross-platform datetime resolution is 1 second.
+        if (Math.abs(newDate.getTime() - oldDate.getTime()) > 1000L) {
+          String msg = "Original submission file's submissionDate does not match that on server! "
+              + submissionFile.getAbsolutePath();
           logger.error(msg);
           throw new MetadataUpdateException(msg);
         } else {
@@ -579,65 +756,70 @@ public class XmlManipulationUtils {
         }
       }
     }
-  
-    if ( hasInstanceID && hasSubmissionDate ) {
-      logger.info("submission already has instanceID and submissionDate attributes: " + submissionFile.getAbsolutePath());
+
+    if (hasInstanceID && hasSubmissionDate) {
+      logger.info("submission already has instanceID and submissionDate attributes: "
+          + submissionFile.getAbsolutePath());
       return instanceID;
     }
-    
-    if ( !hasInstanceID ) {
+
+    if (!hasInstanceID) {
       root.setAttribute("", INSTANCE_ID_ATTRIBUTE_NAME, instanceID);
     }
-    if ( !hasSubmissionDate ) {
+    if (!hasSubmissionDate) {
       root.setAttribute("", SUBMISSION_DATE_ATTRIBUTE_NAME, submissionDate);
     }
-    
+
     // and write out the changes...
 
     // write the file out...
-    File revisedFile = new File( submissionFile.getParentFile(), "." + submissionFile.getName());
+    File revisedFile = new File(submissionFile.getParentFile(), "." + submissionFile.getName());
     try {
       FileOutputStream fos = new FileOutputStream(revisedFile, false);
-      
+
       KXmlSerializer serializer = new KXmlSerializer();
       serializer.setOutput(fos, "UTF-8");
       originalDoc.write(serializer);
       serializer.flush();
       fos.close();
-      
+
       // and swap files...
       boolean restoreTemp = false;
-      File temp = new File( submissionFile.getParentFile(), ".back." + submissionFile.getName() );
-      
+      File temp = new File(submissionFile.getParentFile(), ".back." + submissionFile.getName());
+
       try {
-        if ( temp.exists() ) {
-          if ( !temp.delete() ) {
-            String msg = "Unable to remove temporary submission backup file " + temp.getAbsolutePath();
+        if (temp.exists()) {
+          if (!temp.delete()) {
+            String msg = "Unable to remove temporary submission backup file "
+                + temp.getAbsolutePath();
             logger.error(msg);
             throw new MetadataUpdateException(msg);
           }
         }
-        if ( !submissionFile.renameTo(temp) ) {
-          String msg = "Unable to rename submission to temporary submission backup file " + temp.getAbsolutePath();
+        if (!submissionFile.renameTo(temp)) {
+          String msg = "Unable to rename submission to temporary submission backup file "
+              + temp.getAbsolutePath();
           logger.error(msg);
           throw new MetadataUpdateException(msg);
         }
-        
+
         // recovery is possible...
         restoreTemp = true;
-        
-        if ( !revisedFile.renameTo(submissionFile) ) {
-          String msg = "Original submission file could not be updated " + submissionFile.getAbsolutePath();
+
+        if (!revisedFile.renameTo(submissionFile)) {
+          String msg = "Original submission file could not be updated "
+              + submissionFile.getAbsolutePath();
           logger.error(msg);
           throw new MetadataUpdateException(msg);
         }
-        
+
         // we're successful...
         restoreTemp = false;
       } finally {
-        if ( restoreTemp ) {
-          if ( !temp.renameTo(submissionFile) ) {
-            String msg = "Unable to restore submission from temporary submission backup file " + temp.getAbsolutePath();
+        if (restoreTemp) {
+          if (!temp.renameTo(submissionFile)) {
+            String msg = "Unable to restore submission from temporary submission backup file "
+                + temp.getAbsolutePath();
             logger.error(msg);
             throw new MetadataUpdateException(msg);
           }
@@ -650,7 +832,8 @@ public class XmlManipulationUtils {
       throw new MetadataUpdateException(msg);
     } catch (IOException e) {
       e.printStackTrace();
-      String msg = "Temporary submission file could not be written " + revisedFile.getAbsolutePath();
+      String msg = "Temporary submission file could not be written "
+          + revisedFile.getAbsolutePath();
       logger.error(msg);
       throw new MetadataUpdateException(msg);
     }

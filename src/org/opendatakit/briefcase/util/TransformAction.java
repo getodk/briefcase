@@ -32,11 +32,8 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.LocalFormDefinition;
 import org.opendatakit.briefcase.model.OutputType;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransformAbortEvent;
 import org.opendatakit.briefcase.model.TransformFailedEvent;
-import org.opendatakit.briefcase.model.TransformProgressEvent;
 import org.opendatakit.briefcase.model.TransformSucceededEvent;
-import org.opendatakit.briefcase.ui.PrivateKeyFileChooser;
 import org.opendatakit.briefcase.ui.TransformInProgressDialog;
 
 public class TransformAction {
@@ -83,25 +80,13 @@ public class TransformAction {
     dlg.setVisible(true);
   }
 
-  public static void transform(File outputDir, OutputType outputType, LocalFormDefinition lfd,
+  public static void transform(File outputDir, OutputType outputType, LocalFormDefinition lfd, File pemFile,
       TerminationFuture terminationFuture) throws IOException {
 
     if (lfd.isEncryptedForm()) {
 
       boolean success = false;
       while (!success) {
-        PrivateKeyFileChooser dlg = new PrivateKeyFileChooser(null);
-        dlg.setVisible(true);
-
-        File pemFile = dlg.getSelectedFile();
-        if ( pemFile == null ) {
-          // aborted
-          EventBus.publish(new TransformProgressEvent("User did not choose PEM file containing a valid private key."));
-          EventBus.publish(new TransformFailedEvent(lfd));
-          terminationFuture.markAsCancelled(new TransformAbortEvent("User cancelled action"));
-          return;
-        }
-        
         try {
           BufferedReader br = new BufferedReader(new FileReader(pemFile));
           Object o = new PEMReader(br).readObject();

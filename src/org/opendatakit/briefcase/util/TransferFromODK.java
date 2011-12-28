@@ -224,10 +224,8 @@ public class TransferFromODK implements ITransferFromSourceAction {
             }
             
             fs.putScratchFromMapping(scratchInstance, dir);
-            if ((instanceCount - 1) % 100 == 0) {
-              fs.setStatusString(String.format("retrieving (%1$d)", instanceCount), true);
-              EventBus.publish(new FormStatusEvent(fs));
-            }
+            fs.setStatusString(String.format("retrieving (%1$d)", instanceCount), true);
+            EventBus.publish(new FormStatusEvent(fs));
             ++instanceCount;
           }
         }

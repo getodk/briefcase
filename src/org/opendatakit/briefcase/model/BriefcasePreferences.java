@@ -23,7 +23,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class BriefcasePreferences {
   
-  public static final String VERSION = "v1.0 Beta 2.1";
+  public static final String VERSION = "v1.0 Beta 2.2";
 
   public static void setBriefcaseDirectoryProperty(String value) {
     getApplicationPreferences().put(BriefcasePreferences.BRIEFCASE_DIR_PROPERTY, value);

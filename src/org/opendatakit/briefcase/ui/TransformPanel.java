@@ -28,10 +28,12 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 
@@ -41,285 +43,362 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.LocalFormDefinition;
 import org.opendatakit.briefcase.model.OutputType;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.TransferFailedEvent;
+import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.model.TransformFailedEvent;
 import org.opendatakit.briefcase.model.TransformProgressEvent;
 import org.opendatakit.briefcase.model.TransformSucceededEvent;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransformAction;
-import javax.swing.JScrollPane;
-import javax.swing.JEditorPane;
 
 public class TransformPanel extends JPanel {
 
-	/**
+  /**
 	 * 
 	 */
-	private static final long serialVersionUID = 7169316129011796197L;
+  private static final long serialVersionUID = 7169316129011796197L;
 
-	private JTextField txtOutputDirectory;
+  private JTextField txtOutputDirectory;
 
-	private JComboBox comboBoxOutputType;
+  private JComboBox comboBoxOutputType;
 
-	private JComboBox comboBoxForm;
+  private JComboBox comboBoxForm;
 
-	private JButton btnChooseOutputDirectory;
+  private JButton btnChooseOutputDirectory;
 
-	private JButton btnOutput;
+  private JButton btnOutput;
 
-	private TerminationFuture terminationFuture;
-	private JScrollPane scrollPane;
+  private TerminationFuture terminationFuture;
+  private JScrollPane scrollPane;
 
-	private JEditorPane transformStatusList;
+  private JEditorPane transformStatusList;
+  private JTextField pemPrivateKeyFilePath;
 
-	class FolderActionListener implements ActionListener {
+  private JButton btnPemFileChooseButton;
 
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			// briefcase...
-			NonBriefcaseFolderChooser fc = new NonBriefcaseFolderChooser(
-					TransformPanel.this, true);
-			int retVal = fc.showDialog(TransformPanel.this, null);
-			if (retVal == JFileChooser.APPROVE_OPTION) {
-				if (fc.getSelectedFile() != null) {
-					String nonBriefcasePath = fc.getSelectedFile()
-							.getAbsolutePath();
-					txtOutputDirectory.setText(nonBriefcasePath);
-					btnOutput.setEnabled(true);
-					return;
-				}
-			}
-			// otherwise Output button is disabled.
-			btnOutput.setEnabled(false);
-		}
-	}
+  class FolderActionListener implements ActionListener {
 
-	/**
-	 * Handle click-action for the "Transfer" button. Extracts the settings from
-	 * the UI and invokes the relevant TransferAction to actually do the work.
-	 */
-	class TransformActionListener implements ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      // briefcase...
+      NonBriefcaseFolderChooser fc = new NonBriefcaseFolderChooser(TransformPanel.this, true);
+      int retVal = fc.showDialog(TransformPanel.this, null);
+      if (retVal == JFileChooser.APPROVE_OPTION) {
+        if (fc.getSelectedFile() != null) {
+          String nonBriefcasePath = fc.getSelectedFile().getAbsolutePath();
+          txtOutputDirectory.setText(nonBriefcasePath);
+          TransformPanel.this.enableOutput(true);
+          return;
+        }
+      }
+      TransformPanel.this.enableOutput(true); // likely disabled...
+    }
+  }
 
-		@Override
-		public void actionPerformed(ActionEvent e) {
+  class PEMFileActionListener implements ActionListener {
 
-			if (!NonBriefcaseFolderChooser
-					.isValidNonBriefcaseFolder(txtOutputDirectory.getText())) {
-				return;
-			}
-			if (comboBoxOutputType.getSelectedIndex() == -1
-					|| comboBoxForm.getSelectedIndex() == -1) {
-				return;
-			}
+    @Override
+    public void actionPerformed(ActionEvent arg0) {
+      PrivateKeyFileChooser dlg = new PrivateKeyFileChooser(null);
+      int retVal = dlg.showDialog(TransformPanel.this, null);
+      if (retVal == JFileChooser.APPROVE_OPTION ) {
+        if (dlg.getSelectedFile() != null) {
+          String PEMFilePath = dlg.getSelectedFile().getAbsolutePath();
+          pemPrivateKeyFilePath.setText(PEMFilePath);
+          TransformPanel.this.enableOutput(true);
+          return;
+        }
+      }
+      TransformPanel.this.enableOutput(true); // likely disabled...
+    }
+  }
+  
+  class FormSelectionListener implements ActionListener {
 
-			File outputDir = new File(txtOutputDirectory.getText());
-			OutputType outputType = (OutputType) comboBoxOutputType
-					.getSelectedItem();
-			LocalFormDefinition lfd = (LocalFormDefinition) comboBoxForm
-					.getSelectedItem();
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      TransformPanel.this.enableOutput(true);
+    }
+  }
+  /**
+   * Handle click-action for the "Transfer" button. Extracts the settings from
+   * the UI and invokes the relevant TransferAction to actually do the work.
+   */
+  class TransformActionListener implements ActionListener {
 
-			// OK -- launch background task to do the transformation
+    @Override
+    public void actionPerformed(ActionEvent e) {
 
-			try {
-				btnOutput.setEnabled(false);
-				transformStatusList.setText("Starting Transformation...");
-				terminationFuture.reset();
-				TransformAction.transform(outputDir, outputType, lfd,
-						terminationFuture);
-			} catch (IOException ex) {
-				JOptionPane.showMessageDialog(TransformPanel.this,
-						"Briefcase action failed: " + ex.getMessage(),
-						"Briefcase Action Failed", JOptionPane.ERROR_MESSAGE);
-			} finally {
-				btnOutput.setEnabled(true);
-			}
-		}
-	}
+      if (!NonBriefcaseFolderChooser.isValidNonBriefcaseFolder(txtOutputDirectory.getText())) {
+        return;
+      }
+      if (comboBoxOutputType.getSelectedIndex() == -1 || comboBoxForm.getSelectedIndex() == -1) {
+        return;
+      }
 
-	/**
-	 * Create the panel.
-	 */
-	public TransformPanel(TerminationFuture terminationFuture) {
-		super();
-		AnnotationProcessor.process(this);// if not using AOP
-		this.terminationFuture = terminationFuture;
+      File outputDir = new File(txtOutputDirectory.getText());
+      OutputType outputType = (OutputType) comboBoxOutputType.getSelectedItem();
+      LocalFormDefinition lfd = (LocalFormDefinition) comboBoxForm.getSelectedItem();
 
-		JLabel lblForm = new JLabel("Form:");
-		comboBoxForm = new JComboBox();
+      File pemFile = null;
+      if ( lfd.isEncryptedForm() ) {
+        pemFile = new File(pemPrivateKeyFilePath.getText());
+        if ( !pemFile.exists()) {
+          JOptionPane.showMessageDialog(TransformPanel.this,
+              "Briefcase action failed: No PrivateKey file for encrypted form", "Briefcase Action Failed",
+              JOptionPane.ERROR_MESSAGE);
+          return;
+        }
+      }
+      
+      // OK -- launch background task to do the transformation
 
-		List<LocalFormDefinition> forms = FileSystemUtils
-				.getBriefcaseFormList(BriefcasePreferences
-						.getBriefcaseDirectoryProperty());
-		DefaultComboBoxModel formChoices = new DefaultComboBoxModel(
-				forms.toArray());
-		comboBoxForm.setModel(formChoices);
+      try {
+        TransformPanel.this.enableOutput(false);
+        transformStatusList.setText("Starting Transformation...");
+        terminationFuture.reset();
+        TransformAction.transform(outputDir, outputType, lfd, pemFile, terminationFuture);
+      } catch (IOException ex) {
+        JOptionPane.showMessageDialog(TransformPanel.this,
+            "Briefcase action failed: " + ex.getMessage(), "Briefcase Action Failed",
+            JOptionPane.ERROR_MESSAGE);
+      } finally {
+        TransformPanel.this.enableOutput(true);
+      }
+    }
+  }
 
-		JLabel lblOutputType = new JLabel("Output Type:");
-		comboBoxOutputType = new JComboBox(OutputType.values());
+  public void enableOutput(boolean state) {
+    if ( state ) {
 
-		JLabel lblOutputDirectory = new JLabel("Output Directory:");
+      if (comboBoxForm.getSelectedIndex() == -1) {
+        btnPemFileChooseButton.setEnabled(false);
+        btnOutput.setEnabled(false);
+        return;
+      }
+      
+      LocalFormDefinition lfd = (LocalFormDefinition) comboBoxForm.getSelectedItem();
+      if ( lfd == null ) {
+        btnPemFileChooseButton.setEnabled(false);
+        btnOutput.setEnabled(false);
+        return;
+      }
+      
+      if ( lfd.isEncryptedForm() ) {
+        btnPemFileChooseButton.setEnabled(true);
+        File pemFile = new File(pemPrivateKeyFilePath.getText());
+        if ( !pemFile.exists()) {
+          btnOutput.setEnabled(false);
+          return;
+        }
+      } else {
+        btnPemFileChooseButton.setEnabled(false);
+      }
 
-		txtOutputDirectory = new JTextField();
-		txtOutputDirectory.setFocusable(false);
-		txtOutputDirectory.setEditable(false);
-		txtOutputDirectory.setColumns(10);
+      if (comboBoxOutputType.getSelectedIndex() == -1) {
+        btnOutput.setEnabled(false);
+        return;
+      }
+      
+      if (!NonBriefcaseFolderChooser.isValidNonBriefcaseFolder(txtOutputDirectory.getText())) {
+        btnOutput.setEnabled(false);
+        return;
+      }
+      
+      btnOutput.setEnabled(true);
+    } else {
+      btnOutput.setEnabled(false);
+    }
+  }
+  
+  /**
+   * Create the panel.
+   */
+  public TransformPanel(TerminationFuture terminationFuture) {
+    super();
+    AnnotationProcessor.process(this);// if not using AOP
+    this.terminationFuture = terminationFuture;
 
-		btnChooseOutputDirectory = new JButton("Choose...");
-		btnChooseOutputDirectory.addActionListener(new FolderActionListener());
+    JLabel lblForm = new JLabel("Form:");
+    comboBoxForm = new JComboBox();
+    updateComboBox();
+    comboBoxForm.addActionListener(new FormSelectionListener());
 
-		btnOutput = new JButton("Output");
-		btnOutput.addActionListener(new TransformActionListener());
-		btnOutput.setEnabled(false);
+    JLabel lblOutputType = new JLabel("Output Type:");
+    comboBoxOutputType = new JComboBox(OutputType.values());
 
-		scrollPane = new JScrollPane();
+    JLabel lblOutputDirectory = new JLabel("Output Directory:");
 
-		GroupLayout groupLayout = new GroupLayout(this);
-		groupLayout
-				.setHorizontalGroup(groupLayout
-						.createParallelGroup(Alignment.LEADING)
-						.addGroup(
-								Alignment.TRAILING,
-								groupLayout
-										.createSequentialGroup()
-										.addContainerGap()
-										.addGroup(
-												groupLayout
-														.createParallelGroup(
-																Alignment.TRAILING)
-														.addComponent(
-																scrollPane,
-																Alignment.LEADING,
-																GroupLayout.DEFAULT_SIZE,
-																650,
-																Short.MAX_VALUE)
-														.addGroup(
-																groupLayout
-																		.createSequentialGroup()
-																		.addGroup(
-																				groupLayout
-																						.createParallelGroup(
-																								Alignment.LEADING,
-																								false)
-																						.addComponent(
-																								lblForm)
-																						.addComponent(
-																								lblOutputType)
-																						.addComponent(
-																								lblOutputDirectory))
-																		.addPreferredGap(
-																				ComponentPlacement.RELATED)
-																		.addGroup(
-																				groupLayout
-																						.createParallelGroup(
-																								Alignment.TRAILING)
-																						.addComponent(
-																								btnOutput)
-																						.addComponent(
-																								comboBoxForm,
-																								0,
-																								520,
-																								Short.MAX_VALUE)
-																						.addComponent(
-																								comboBoxOutputType,
-																								0,
-																								520,
-																								Short.MAX_VALUE)
-																						.addGroup(
-																								groupLayout
-																										.createSequentialGroup()
-																										.addComponent(
-																												txtOutputDirectory,
-																												GroupLayout.PREFERRED_SIZE,
-																												412,
-																												Short.MAX_VALUE)
-																										.addPreferredGap(
-																												ComponentPlacement.RELATED)
-																										.addComponent(
-																												btnChooseOutputDirectory)))))
-										.addContainerGap()));
-		
-		groupLayout.setVerticalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
-				groupLayout.createSequentialGroup()
-							.addContainerGap()
-							.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-												.addComponent(
-														comboBoxForm,
-														GroupLayout.PREFERRED_SIZE,
-														GroupLayout.DEFAULT_SIZE,
-														GroupLayout.PREFERRED_SIZE)
-												.addComponent(lblForm))
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-												.addComponent(
-														comboBoxOutputType,
-														GroupLayout.PREFERRED_SIZE,
-														GroupLayout.DEFAULT_SIZE,
-														GroupLayout.PREFERRED_SIZE)
-												.addComponent(
-														lblOutputType))
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-												.addComponent(
-														lblOutputDirectory)
-												.addComponent(
-														btnChooseOutputDirectory)
-												.addComponent(
-														txtOutputDirectory,
-														GroupLayout.PREFERRED_SIZE,
-														GroupLayout.DEFAULT_SIZE,
-														GroupLayout.PREFERRED_SIZE))
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(scrollPane,
-												GroupLayout.PREFERRED_SIZE,
-												131, Short.MAX_VALUE)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(btnOutput)
-							.addContainerGap()));
+    txtOutputDirectory = new JTextField();
+    txtOutputDirectory.setFocusable(false);
+    txtOutputDirectory.setEditable(false);
+    txtOutputDirectory.setColumns(10);
 
-		transformStatusList = new JEditorPane("text/plain", "");
-		transformStatusList.setEditable(false);
-		scrollPane.setViewportView(transformStatusList);
-		setLayout(groupLayout);
-	}
+    btnChooseOutputDirectory = new JButton("Choose...");
+    btnChooseOutputDirectory.addActionListener(new FolderActionListener());
 
-	@Override
-	public void setEnabled(boolean enabled) {
-		super.setEnabled(enabled);
-		// update the list of forms...
-		List<LocalFormDefinition> forms = FileSystemUtils
-				.getBriefcaseFormList(BriefcasePreferences
-						.getBriefcaseDirectoryProperty());
-		DefaultComboBoxModel formChoices = new DefaultComboBoxModel(
-				forms.toArray());
-		comboBoxForm.setModel(formChoices);
+    JLabel lblPemPrivateKey = new JLabel("PEM Private Key File:");
 
-		// enable/disable the components...
-		Component[] com = this.getComponents();
-		for (int a = 0; a < com.length; a++) {
-			com[a].setEnabled(enabled);
-		}
+    pemPrivateKeyFilePath = new JTextField();
+    pemPrivateKeyFilePath.setFocusable(false);
+    pemPrivateKeyFilePath.setEditable(false);
+    pemPrivateKeyFilePath.setColumns(10);
 
-		// touch-up with real state...
-		if (!NonBriefcaseFolderChooser
-				.isValidNonBriefcaseFolder(txtOutputDirectory.getText())) {
-			btnOutput.setEnabled(false);
-		}
-	}
+    btnPemFileChooseButton = new JButton("Choose...");
+    btnPemFileChooseButton.addActionListener(new PEMFileActionListener());
 
-	@EventSubscriber(eventClass = TransformProgressEvent.class)
-	public void progress(TransformProgressEvent event) {
-		String text = transformStatusList.getText();
-		transformStatusList.setText(text + "\n" + event.getText());
-	}
+    btnOutput = new JButton("Output");
+    btnOutput.addActionListener(new TransformActionListener());
+    btnOutput.setEnabled(false);
 
-	@EventSubscriber(eventClass = TransformFailedEvent.class)
-	public void failedCompletion(TransformFailedEvent event) {
-		String text = transformStatusList.getText();
-		transformStatusList.setText(text + "\n" + "FAILED!");
-	}
+    scrollPane = new JScrollPane();
 
-	@EventSubscriber(eventClass = TransformSucceededEvent.class)
-	public void successfulCompletion(TransformSucceededEvent event) {
-		String text = transformStatusList.getText();
-		transformStatusList.setText(text + "\n" + "SUCCEEDED!");
-	}
+    GroupLayout groupLayout = new GroupLayout(this);
+    groupLayout.setHorizontalGroup(groupLayout
+        .createSequentialGroup()
+        .addContainerGap()
+        .addGroup(
+            groupLayout
+                .createParallelGroup(Alignment.LEADING)
+                .addGroup(
+                    groupLayout
+                        .createSequentialGroup()
+                        .addGroup(
+                            groupLayout.createParallelGroup(Alignment.LEADING)
+                                .addComponent(lblForm).addComponent(lblOutputType)
+                                .addComponent(lblOutputDirectory).addComponent(lblPemPrivateKey))
+                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addGroup(
+                            groupLayout
+                                .createParallelGroup(Alignment.LEADING)
+                                .addComponent(comboBoxForm, Alignment.TRAILING, 0, 1066,
+                                    Short.MAX_VALUE)
+                                .addComponent(comboBoxOutputType, Alignment.TRAILING, 0, 1066,
+                                    Short.MAX_VALUE)
+                                .addGroup(
+                                    groupLayout.createSequentialGroup()
+                                        .addComponent(txtOutputDirectory)
+                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                        .addComponent(btnChooseOutputDirectory))
+                                .addGroup(
+                                    groupLayout.createSequentialGroup().addComponent(pemPrivateKeyFilePath)
+                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                        .addComponent(btnPemFileChooseButton))))
+                .addComponent(scrollPane)
+                .addGroup(
+                    groupLayout.createParallelGroup(Alignment.TRAILING).addComponent(btnOutput)))
+        .addContainerGap());
+
+    groupLayout.setVerticalGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+        .addGroup(
+            groupLayout
+                .createSequentialGroup()
+                .addContainerGap()
+                .addGroup(
+                    groupLayout
+                        .createParallelGroup(Alignment.BASELINE)
+                        .addComponent(comboBoxForm, GroupLayout.PREFERRED_SIZE,
+                            GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(lblForm))
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addGroup(
+                    groupLayout
+                        .createParallelGroup(Alignment.BASELINE)
+                        .addComponent(comboBoxOutputType, GroupLayout.PREFERRED_SIZE,
+                            GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(lblOutputType))
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addGroup(
+                    groupLayout
+                        .createParallelGroup(Alignment.BASELINE)
+                        .addComponent(lblOutputDirectory)
+                        .addComponent(btnChooseOutputDirectory)
+                        .addComponent(txtOutputDirectory, GroupLayout.PREFERRED_SIZE,
+                            GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addGroup(
+                    groupLayout
+                        .createParallelGroup(Alignment.BASELINE)
+                        .addComponent(lblPemPrivateKey)
+                        .addComponent(pemPrivateKeyFilePath, GroupLayout.PREFERRED_SIZE,
+                            GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnPemFileChooseButton))
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 349, Short.MAX_VALUE)
+                .addPreferredGap(ComponentPlacement.RELATED).addComponent(btnOutput)
+                .addContainerGap()));
+
+    transformStatusList = new JEditorPane("text/plain", "");
+    transformStatusList.setEditable(false);
+    scrollPane.setViewportView(transformStatusList);
+    setLayout(groupLayout);
+  }
+
+  @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+    // update the list of forms...
+    List<LocalFormDefinition> forms = FileSystemUtils.getBriefcaseFormList(BriefcasePreferences
+        .getBriefcaseDirectoryProperty());
+    DefaultComboBoxModel formChoices = new DefaultComboBoxModel(forms.toArray());
+    comboBoxForm.setModel(formChoices);
+
+    // enable/disable the components...
+    Component[] com = this.getComponents();
+    for (int a = 0; a < com.length; a++) {
+      com[a].setEnabled(enabled);
+    }
+
+    // touch-up with real state...
+    enableOutput(true);
+  }
+
+  @EventSubscriber(eventClass = TransformProgressEvent.class)
+  public void progress(TransformProgressEvent event) {
+    String text = transformStatusList.getText();
+    transformStatusList.setText(text + "\n" + event.getText());
+  }
+
+  @EventSubscriber(eventClass = TransformFailedEvent.class)
+  public void failedCompletion(TransformFailedEvent event) {
+    String text = transformStatusList.getText();
+    transformStatusList.setText(text + "\n" + "FAILED!");
+  }
+
+  @EventSubscriber(eventClass = TransformSucceededEvent.class)
+  public void successfulCompletion(TransformSucceededEvent event) {
+    String text = transformStatusList.getText();
+    transformStatusList.setText(text + "\n" + "SUCCEEDED!");
+  }
+
+  private void updateComboBox() {
+    int selIdx = comboBoxForm.getSelectedIndex();
+    LocalFormDefinition lfd = null;
+    if ( selIdx != -1 ) {
+      lfd = (LocalFormDefinition) comboBoxForm.getSelectedItem();
+    }
+    List<LocalFormDefinition> forms = FileSystemUtils.getBriefcaseFormList(BriefcasePreferences
+        .getBriefcaseDirectoryProperty());
+    DefaultComboBoxModel formChoices = new DefaultComboBoxModel(forms.toArray());
+    comboBoxForm.setModel(formChoices);
+    if ( lfd != null ) {
+      for ( int i = 0 ; i < forms.size() ; ++i ) {
+        if ( forms.get(i).equals(lfd) ) {
+          comboBoxForm.setSelectedIndex(i);
+          return;
+        }
+      }
+    }
+    comboBoxForm.setSelectedIndex(-1);
+  }
+  
+  @EventSubscriber(eventClass = TransferFailedEvent.class)
+  public void failedTransferCompletion(TransferFailedEvent event) {
+    updateComboBox();
+  }
+  
+  @EventSubscriber(eventClass = TransferSucceededEvent.class)
+  public void successfulTransferCompletion(TransferSucceededEvent event) {
+    updateComboBox();
+  }
 }

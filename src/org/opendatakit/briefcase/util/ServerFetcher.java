@@ -361,7 +361,7 @@ public class ServerFetcher {
     }
 
     String msg = "Fetched instanceID=" + submissionManifest.instanceID;
-    logger.error(msg);
+    logger.info(msg);
 
     if ( FileSystemUtils.hasFormSubmissionDirectory(formInstancesDir, submissionManifest.instanceID)) {
       // create instance directory...

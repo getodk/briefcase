@@ -23,7 +23,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -36,16 +38,23 @@ import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.javarosa.xform.parse.XFormParser;
+import org.kxml2.kdom.Document;
+import org.kxml2.kdom.Element;
+import org.kxml2.kdom.Node;
 import org.opendatakit.briefcase.model.CryptoException;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.LocalFormDefinition;
+import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.util.JavaRosaWrapper.BadFormDefinition;
+import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
 
 public class FileSystemUtils {
   static final Log logger = LogFactory.getLog(FileSystemUtils.class);
@@ -54,8 +63,8 @@ public class FileSystemUtils {
   static final String SCRATCH_DIR = "scratch";
 
   // encryption support....
-  static final String RSA_ALGORITHM = "RSA";
-  static final String SYMMETRIC_ALGORITHM = "AES/CFB/NoPadding";
+  static final String ASYMMETRIC_ALGORITHM = "RSA/NONE/OAEPWithSHA256AndMGF1Padding";
+  static final String SYMMETRIC_ALGORITHM = "AES/CFB/PKCS5Padding";
   static final String UTF_8 = "UTF-8";
   static final int SYMMETRIC_KEY_LENGTH = 256;
   static final int IV_BYTE_LENGTH = 16;
@@ -376,35 +385,23 @@ public class FileSystemUtils {
 
   }
 
-  private static final void decryptFile(String base64EncryptedSymmetricKey,
-      PrivateKey rsaPrivateKey, File original, File unencryptedDir) 
-          throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, 
-          InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+  private static final void decryptFile(CipherFactory cipherFactory,
+      File original, File unencryptedDir) throws IOException, NoSuchAlgorithmException,
+      NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
     InputStream fin = null;
     OutputStream fout = null;
-    
+
     try {
-    SecretKeySpec symmetricKey;
-    // construct the base64-encoded RSA-encrypted symmetric key
-      Cipher pkCipher;
-      pkCipher = Cipher.getInstance(RSA_ALGORITHM);
-      // write AES key
-      pkCipher.init(Cipher.DECRYPT_MODE, rsaPrivateKey);
-      byte[] encryptedSymmetricKey = Base64.decodeBase64(base64EncryptedSymmetricKey);
-      byte[] pkDecryptedKey = pkCipher.doFinal(encryptedSymmetricKey);
-      symmetricKey = new SecretKeySpec(pkDecryptedKey, SYMMETRIC_ALGORITHM);
+      String name = original.getName();
+      if (!name.endsWith(ENCRYPTED_FILE_EXTENSION)) {
+        String errMsg = "Unexpected non-" + ENCRYPTED_FILE_EXTENSION + " extension " + name
+            + " -- ignoring file";
+        throw new IllegalArgumentException(errMsg);
+      }
+      name = name.substring(0, name.length() - ENCRYPTED_FILE_EXTENSION.length());
+      File decryptedFile = new File(unencryptedDir, name);
 
-    String name = original.getName();
-    if (!name.endsWith(ENCRYPTED_FILE_EXTENSION)) {
-      String errMsg = "Unexpected non-" + ENCRYPTED_FILE_EXTENSION + " extension " + name
-          + " -- ignoring file";
-      throw new IllegalArgumentException(errMsg);
-    }
-    name = name.substring(0, name.length() - ENCRYPTED_FILE_EXTENSION.length());
-    File decryptedFile = new File(unencryptedDir, name);
-
-    Cipher c = Cipher.getInstance(SYMMETRIC_ALGORITHM);
-      c.init(Cipher.DECRYPT_MODE, symmetricKey);
+      Cipher c = cipherFactory.getCipher();
 
       fin = new FileInputStream(original);
       fin = new CipherInputStream(fin, c);
@@ -419,14 +416,14 @@ public class FileSystemUtils {
       fout.flush();
       logger.info("Decrpyted:" + original.getName() + " -> " + decryptedFile.getName());
     } finally {
-      if ( fin != null ) {
+      if (fin != null) {
         try {
           fin.close();
         } catch (IOException e) {
           e.printStackTrace();
         }
       }
-      if ( fout != null ) {
+      if (fout != null) {
         try {
           fout.close();
         } catch (IOException e) {
@@ -436,49 +433,378 @@ public class FileSystemUtils {
     }
   }
 
-  public static void decryptSubmissionFiles(String base64EncryptedSymmetricKey,
-      PrivateKey rsaPrivateKey, File instanceDir, File unencryptedDir) throws FileSystemException, CryptoException {
-    // NOTE: assume the directory containing the instanceXml contains ONLY
-    // files related to this one instance.
+  private static final class CipherFactory {
+    private final SecretKeySpec symmetricKey;
+    private final byte[] ivSeedArray;
+    private int ivCounter = 0;
 
-    // encrypt files that do not end with ".enc", and do not start with ".";
-    // ignore directories
+    CipherFactory(String instanceId, byte[] symmetricKeyBytes) throws CryptoException {
+      
+      symmetricKey = new SecretKeySpec( symmetricKeyBytes, SYMMETRIC_ALGORITHM);
+      // construct the fixed portion of the iv -- the ivSeedArray
+      // this is the md5 hash of the instanceID and the symmetric key
+      try {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        md.update(instanceId.getBytes("UTF-8"));
+        md.update(symmetricKeyBytes);
+        byte[] messageDigest = md.digest();
+        ivSeedArray = new byte[IV_BYTE_LENGTH];
+        for ( int i = 0 ; i < IV_BYTE_LENGTH ; ++i ) {
+           ivSeedArray[i] = messageDigest[(i % messageDigest.length)];
+        }
+      } catch (NoSuchAlgorithmException e) {
+        e.printStackTrace();
+        throw new CryptoException("Error constructing ivSeedArray Cause: " + e.toString());
+      } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+        throw new CryptoException("Error constructing ivSeedArray Cause: " + e.toString());
+      }
+    }
+    
+    public Cipher getCipher() throws InvalidKeyException,
+          InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
+       ++ivSeedArray[ivCounter % ivSeedArray.length];
+       ++ivCounter;
+       IvParameterSpec baseIv = new IvParameterSpec(ivSeedArray);
+       Cipher c = Cipher.getInstance(SYMMETRIC_ALGORITHM);
+       c.init(Cipher.DECRYPT_MODE, symmetricKey, baseIv);
+       return c;
+    }
+  }
+  
+  private static void decryptSubmissionFiles(String base64EncryptedSymmetricKey, 
+      FormInstanceMetadata fim, List<String> mediaNames,
+      String encryptedSubmissionFile, String base64EncryptedElementSignature,
+      PrivateKey rsaPrivateKey, File instanceDir, File unencryptedDir) throws FileSystemException,
+      CryptoException, ParsingException {
+
+    CipherFactory cipherFactory;
+    try {
+      // construct the base64-encoded RSA-encrypted symmetric key
+      Cipher pkCipher;
+      pkCipher = Cipher.getInstance(ASYMMETRIC_ALGORITHM);
+      // write AES key
+      pkCipher.init(Cipher.DECRYPT_MODE, rsaPrivateKey);
+      byte[] encryptedSymmetricKey = Base64.decodeBase64(base64EncryptedSymmetricKey);
+      byte[] decryptedKey = pkCipher.doFinal(encryptedSymmetricKey);
+      cipherFactory = new CipherFactory(fim.instanceId, decryptedKey);
+    } catch (NoSuchAlgorithmException e) {
+      e.printStackTrace();
+      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
+    } catch (NoSuchPaddingException e) {
+      e.printStackTrace();
+      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
+    } catch (InvalidKeyException e) {
+      e.printStackTrace();
+      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
+    } catch (IllegalBlockSizeException e) {
+      e.printStackTrace();
+      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
+    } catch (BadPaddingException e) {
+      e.printStackTrace();
+      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
+    }
+
+    byte[] elementDigest;
+    try {
+      // construct the base64-encoded RSA-encrypted symmetric key
+      Cipher pkCipher;
+      pkCipher = Cipher.getInstance(ASYMMETRIC_ALGORITHM);
+      // extract digest
+      pkCipher.init(Cipher.DECRYPT_MODE, rsaPrivateKey);
+      byte[] encryptedElementSignature = Base64.decodeBase64(base64EncryptedElementSignature);
+      elementDigest = pkCipher.doFinal(encryptedElementSignature);
+    } catch (NoSuchAlgorithmException e) {
+      e.printStackTrace();
+      throw new CryptoException("Error decrypting base64EncryptedElementSignature Cause: "
+          + e.toString());
+    } catch (NoSuchPaddingException e) {
+      e.printStackTrace();
+      throw new CryptoException("Error decrypting base64EncryptedElementSignature Cause: "
+          + e.toString());
+    } catch (InvalidKeyException e) {
+      e.printStackTrace();
+      throw new CryptoException("Error decrypting base64EncryptedElementSignature Cause: "
+          + e.toString());
+    } catch (IllegalBlockSizeException e) {
+      e.printStackTrace();
+      throw new CryptoException("Error decrypting base64EncryptedElementSignature Cause: "
+          + e.toString());
+    } catch (BadPaddingException e) {
+      e.printStackTrace();
+      throw new CryptoException("Error decrypting base64EncryptedElementSignature Cause: "
+          + e.toString());
+    }
+
+    // NOTE: will decrypt only the files in the media list, plus the encryptedSubmissionFile
+
     File[] allFiles = instanceDir.listFiles();
     List<File> filesToProcess = new ArrayList<File>();
     for (File f : allFiles) {
-      if (!f.getName().endsWith(ENCRYPTED_FILE_EXTENSION))
-        continue; // not encrypted
-      if (f.isDirectory())
-        continue; // don't handle directories
-      if (f.getName().startsWith("."))
-        continue; // MacOSX garbage
-      filesToProcess.add(f);
-    }
-
-    // decrypt here...
-    for (File f : filesToProcess) {
-      try {
-        decryptFile(base64EncryptedSymmetricKey, rsaPrivateKey, f, unencryptedDir);
-      } catch (InvalidKeyException e) {
-        e.printStackTrace();
-        throw new CryptoException("Error decrpyting:" + f.getName() + " Cause: " + e.toString());
-      } catch (NoSuchAlgorithmException e) {
-        e.printStackTrace();
-        throw new CryptoException("Error decrpyting:" + f.getName() + " Cause: " + e.toString());
-      } catch (NoSuchPaddingException e) {
-        e.printStackTrace();
-        throw new CryptoException("Error decrpyting:" + f.getName() + " Cause: " + e.toString());
-      } catch (IllegalBlockSizeException e) {
-        e.printStackTrace();
-        throw new CryptoException("Error decrpyting:" + f.getName() + " Cause: " + e.toString());
-      } catch (BadPaddingException e) {
-        e.printStackTrace();
-        throw new CryptoException("Error decrpyting:" + f.getName() + " Cause: " + e.toString());
-      } catch (IOException e) {
-        e.printStackTrace();
-        throw new FileSystemException("Error decrpyting:" + f.getName() + " Cause: " + e.toString());
+      if ( mediaNames.contains(f.getName()) ) {
+        filesToProcess.add(f);
+      } else if ( encryptedSubmissionFile.equals(f.getName()) ) {
+        filesToProcess.add(f);
       }
     }
-  }
+    
+    // should have all media files plus one submission.xml.enc file
+    if ( filesToProcess.size() != mediaNames.size() + 1 ) {
+      // figure out what we're missing...
+      List<String> missing = new ArrayList<String>();
+      for ( String name : mediaNames ) {
+        File f = new File(instanceDir, name);
+        if ( !filesToProcess.contains(f)) {
+          missing.add(name);
+        }
+      }
+      StringBuilder b = new StringBuilder();
+      for ( String name : missing ) {
+        b.append(" ").append(name);
+      }
+      if ( !filesToProcess.contains(new File(instanceDir, encryptedSubmissionFile)) ) {
+        b.append(" ").append(encryptedSubmissionFile);
+      }
+      throw new FileSystemException("Error decrypting: " + instanceDir.getName() + " Missing files:" + b.toString());
+    }
 
+    // decrypt the media files IN ORDER.
+    for (String mediaName : mediaNames) {
+      File f = new File(instanceDir, mediaName);
+      try {
+        decryptFile(cipherFactory, f, unencryptedDir);
+      } catch (InvalidKeyException e) {
+        e.printStackTrace();
+        throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
+      } catch (NoSuchAlgorithmException e) {
+        e.printStackTrace();
+        throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
+      } catch (InvalidAlgorithmParameterException e) {
+        e.printStackTrace();
+        throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
+      } catch (NoSuchPaddingException e) {
+        e.printStackTrace();
+        throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw new FileSystemException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
+      }
+    }
+
+    // decrypt the submission file
+    File f = new File(instanceDir, encryptedSubmissionFile);
+    try {
+      decryptFile(cipherFactory, f, unencryptedDir);
+    } catch (InvalidKeyException e) {
+      e.printStackTrace();
+      throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
+    } catch (NoSuchAlgorithmException e) {
+      e.printStackTrace();
+      throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
+    } catch (InvalidAlgorithmParameterException e) {
+      e.printStackTrace();
+      throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
+    } catch (NoSuchPaddingException e) {
+      e.printStackTrace();
+      throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
+    } catch (IOException e) {
+      e.printStackTrace();
+      throw new FileSystemException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
+    }
+    
+    // get the FIM for the decrypted submission file
+    File submissionFile = new File( unencryptedDir, 
+        encryptedSubmissionFile.substring(0, encryptedSubmissionFile.lastIndexOf(".enc")));
+    
+    FormInstanceMetadata submissionFim;
+    try {
+      Document subDoc = XmlManipulationUtils.parseXml(submissionFile);
+      submissionFim = XmlManipulationUtils.getFormInstanceMetadata(subDoc.getRootElement());
+    } catch (ParsingException e) {
+      e.printStackTrace();
+      throw new FileSystemException("Error decrypting: " + submissionFile.getName() + " Cause: " + e.toString());
+    } catch (FileSystemException e) {
+      e.printStackTrace();
+      throw new FileSystemException("Error decrypting: " + submissionFile.getName() + " Cause: " + e.getMessage());
+    }
+    
+    boolean same = submissionFim.formId.equals(fim.formId) &&
+        ((submissionFim.version == null) 
+            ? (fim.version == null) : submissionFim.version.equals(fim.version)) &&
+        ((submissionFim.uiVersion == null) 
+            ? (fim.uiVersion == null) : submissionFim.uiVersion.equals(fim.uiVersion));
+        
+    if ( !same ) {
+      throw new FileSystemException("Error decrypting:" + unencryptedDir.getName() 
+          + " Cause: form instance metadata differs from that in manifest");
+    }
+
+    // Construct the element signature string
+    StringBuilder b = new StringBuilder();
+    appendElementSignatureSource(b, fim.formId);
+    if ( fim.version != null ) {
+      appendElementSignatureSource(b, fim.version.toString());
+    }
+    if ( fim.uiVersion != null ) {
+      appendElementSignatureSource(b, fim.uiVersion.toString());
+    }
+    appendElementSignatureSource(b, base64EncryptedSymmetricKey);
+
+    appendElementSignatureSource(b, fim.instanceId);
+    
+    for ( String encFilename : mediaNames ) {
+      File decryptedFile = new File( unencryptedDir,
+          encFilename.substring(0, encFilename.lastIndexOf(".enc")));
+      String md5 = FileSystemUtils.getMd5Hash(decryptedFile);
+      appendElementSignatureSource(b, decryptedFile.getName() + "::" + md5 );
+    }
+
+    String md5 = FileSystemUtils.getMd5Hash(submissionFile);
+    appendElementSignatureSource(b, submissionFile.getName() + "::" + md5);
+    
+    // compute the digest of the element signature string
+    byte[] messageDigest;
+    try {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        md.update(b.toString().getBytes("UTF-8"));
+        messageDigest = md.digest();
+    } catch (NoSuchAlgorithmException e) {
+        e.printStackTrace();
+        throw new CryptoException("Error computing xml signature Cause: " + e.toString());
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+      throw new CryptoException("Error computing xml signature Cause: " + e.toString());
+    }
+    
+    same = true;
+    for ( int i = 0 ; i < messageDigest.length ; ++i ) {
+      if ( messageDigest[i] != elementDigest[i] ) {
+        same = false;
+        break;
+      }
+    }
+    if ( !same ) {
+      throw new CryptoException("Xml signature does not match!");
+    }
+  }
+  
+  private static void appendElementSignatureSource(StringBuilder b, String value) {
+    b.append(value).append("\n");
+  }
+  
+  public static Document decryptAndValidateSubmission(Document doc, 
+      PrivateKey rsaPrivateKey, File instanceDir, File unEncryptedDir) 
+          throws ParsingException, FileSystemException, CryptoException {
+
+    Element rootElement = doc.getRootElement();
+
+    String base64EncryptedSymmetricKey;
+    String instanceIdMetadata = null;
+    List<String> mediaNames = new ArrayList<String>();
+    String encryptedSubmissionFile;
+    String base64EncryptedElementSignature;
+
+    {
+      Element base64Key = null;
+      Element base64Signature = null;
+      Element encryptedXml = null;
+      for (int i = 0; i < rootElement.getChildCount(); ++i) {
+        if (rootElement.getType(i) == Node.ELEMENT) {
+          Element child = rootElement.getElement(i);
+          String name = child.getName();
+          if (name.equals("base64EncryptedKey")) {
+            base64Key = child;
+          } else if (name.equals("base64EncryptedElementSignature")) {
+            base64Signature = child;
+          } else if (name.equals("encryptedXmlFile")) {
+            encryptedXml = child;
+          } else if (name.equals("media")) {
+            Element media = child;
+            for (int j = 0; j < media.getChildCount(); ++j) {
+              if (media.getType(j) == Node.ELEMENT) {
+                Element mediaChild = media.getElement(j);
+                String mediaFileElementName = mediaChild.getName();
+                if (mediaFileElementName.equals("file")) {
+                  String mediaName = XFormParser.getXMLText(mediaChild, true);
+                  if (mediaName == null || mediaName.length() == 0) {
+                    throw new ParsingException("Empty filename within media file element of encrypted form.");
+                  }
+                  mediaNames.add(mediaName);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // verify base64Key
+      if (base64Key == null) {
+        throw new ParsingException("Missing base64EncryptedKey element in encrypted form.");
+      }
+      base64EncryptedSymmetricKey = XFormParser.getXMLText(base64Key, true);
+
+      // get instanceID out of OpenRosa meta block
+      instanceIdMetadata = XmlManipulationUtils.getOpenRosaInstanceId(rootElement);
+      if (instanceIdMetadata == null) {
+        throw new ParsingException("Missing instanceID within meta block of encrypted form.");
+      }
+
+      // get submission filename
+      if (encryptedXml == null) {
+        throw new ParsingException("Missing encryptedXmlFile element in encrypted form.");
+      }
+      encryptedSubmissionFile = XFormParser.getXMLText(encryptedXml, true);
+      if (base64Signature == null) {
+        throw new ParsingException("Missing base64EncryptedElementSignature element in encrypted form.");
+      }
+      base64EncryptedElementSignature = XFormParser.getXMLText(base64Signature, true);
+    }
+
+    if (instanceIdMetadata == null || base64EncryptedSymmetricKey == null
+        || base64EncryptedElementSignature == null || encryptedSubmissionFile == null) {
+      throw new ParsingException("Missing one or more required elements of encrypted form.");
+    }
+
+    FormInstanceMetadata fim;
+    try {
+      fim = XmlManipulationUtils.getFormInstanceMetadata(rootElement);
+    } catch (ParsingException e) {
+      e.printStackTrace();
+      throw new ParsingException(
+          "Unable to extract form instance medatadata from submission manifest. Cause: " + e.toString());
+    }
+
+    if (!instanceIdMetadata.equals(fim.instanceId)) {
+      throw new ParsingException("InstanceID within metadata does not match that on top level element.");
+    }
+
+    FileSystemUtils.decryptSubmissionFiles(base64EncryptedSymmetricKey, fim,
+          mediaNames, encryptedSubmissionFile,
+          base64EncryptedElementSignature, rsaPrivateKey, instanceDir, unEncryptedDir);
+
+    // and change doc to be the decrypted submission document
+    File decryptedSubmission = new File(unEncryptedDir, "submission.xml");
+    doc = XmlManipulationUtils.parseXml(decryptedSubmission);
+    if (doc == null) {
+      return null;
+    }
+
+    // verify that the metadata matches between the manifest and the submission
+    rootElement = doc.getRootElement();
+    FormInstanceMetadata sim = XmlManipulationUtils.getFormInstanceMetadata(rootElement);
+    if ( !fim.formId.equals(sim.formId) ||
+         ((fim.version == null) 
+             ? (sim.version != null) : !fim.version.equals(sim.version)) ||
+         ((fim.uiVersion == null) 
+             ? (sim.uiVersion != null) : !fim.uiVersion.equals(sim.uiVersion)) ) {
+      throw new ParsingException(
+          "FormId, version or uiVersion in decrypted submission does not match that in manifest!");
+    }
+    if ( !fim.instanceId.equals(sim.instanceId) ) {
+      throw new ParsingException(
+          "InstanceId in decrypted submission does not match that in manifest!");
+    }
+    
+    return doc;
+  }
 }
