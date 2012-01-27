@@ -25,6 +25,7 @@ import java.io.File;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -67,6 +68,9 @@ public class MainBriefcaseWindow implements WindowListener {
 
           MainBriefcaseWindow window = new MainBriefcaseWindow();
           window.frame.setTitle(BRIEFCASE_VERSION);
+          ImageIcon icon = new ImageIcon(
+              MainBriefcaseWindow.class.getClassLoader().getResource("odk_logo.png"));
+          window.frame.setIconImage(icon.getImage());
           window.frame.setVisible(true);
         } catch (Exception e) {
           e.printStackTrace();

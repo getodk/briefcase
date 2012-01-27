@@ -23,6 +23,7 @@ import java.io.File;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -83,6 +84,9 @@ public class MainFormUploaderWindow {
 
           MainFormUploaderWindow window = new MainFormUploaderWindow();
           window.frame.setTitle(FORM_UPLOADER_VERSION);
+          ImageIcon icon = new ImageIcon(
+              MainFormUploaderWindow.class.getClassLoader().getResource("odk_logo.png"));
+          window.frame.setIconImage(icon.getImage());
           window.frame.setVisible(true);
         } catch (Exception e) {
           e.printStackTrace();

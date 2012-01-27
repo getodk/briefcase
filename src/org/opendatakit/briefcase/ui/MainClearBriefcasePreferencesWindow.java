@@ -17,7 +17,10 @@
 package org.opendatakit.briefcase.ui;
 
 import java.awt.EventQueue;
+import java.awt.Image;
+import java.awt.Toolkit;
 
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
@@ -36,12 +39,15 @@ public class MainClearBriefcasePreferencesWindow {
         try {
           // Set System L&F
           UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+          Image myImage = Toolkit.getDefaultToolkit().getImage(
+              MainClearBriefcasePreferencesWindow.class.getClassLoader().getResource("odk_logo.png"));
           Object[] options = {"Purge",
               "Cancel"};
           int outcome = JOptionPane.showOptionDialog(null,
               "Clear all Briefcase preferences.                                            ",
               CLEAR_PREFERENCES_VERSION, 
-              JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
+              JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, 
+              new ImageIcon(myImage), options, options[1]);
           if ( outcome == 0 ) {
             BriefcasePreferences.setBriefcaseDirectoryProperty(null);
           }
