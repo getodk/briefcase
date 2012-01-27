@@ -29,14 +29,13 @@ import javax.swing.JOptionPane;
 
 import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
+import org.opendatakit.briefcase.model.ExportFailedEvent;
+import org.opendatakit.briefcase.model.ExportSucceededEvent;
+import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.model.LocalFormDefinition;
-import org.opendatakit.briefcase.model.OutputType;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransformFailedEvent;
-import org.opendatakit.briefcase.model.TransformSucceededEvent;
-import org.opendatakit.briefcase.ui.TransformInProgressDialog;
 
-public class TransformAction {
+public class ExportAction {
 
   static final String SCRATCH_DIR = "scratch";
   static final String UTF_8 = "UTF-8";
@@ -56,31 +55,24 @@ public class TransformAction {
         boolean allSuccessful = true;
         allSuccessful = action.doAction();
         if (allSuccessful) {
-          EventBus.publish(new TransformSucceededEvent(action.getFormDefinition()));
+          EventBus.publish(new ExportSucceededEvent(action.getFormDefinition()));
         } else {
-          EventBus.publish(new TransformFailedEvent(action.getFormDefinition()));
+          EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
         }
       } catch (Exception e) {
         e.printStackTrace();
-        EventBus.publish(new TransformFailedEvent(action.getFormDefinition()));
+        EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
       }
     }
 
   }
 
-  private static void showDialogAndRun(ITransformFormAction action, OutputType outputType,
-      TerminationFuture terminationFuture) {
-    // create the dialog first so that the background task will always have a
-    // listener for its completion events...
-    final TransformInProgressDialog dlg = new TransformInProgressDialog("Transforming form into "
-        + outputType.toString(), terminationFuture);
-
+  private static void backgroundRun(ITransformFormAction action) {
     backgroundExecutorService.execute(new TransformFormRunnable(action));
-
-    dlg.setVisible(true);
   }
 
-  public static void transform(File outputDir, OutputType outputType, LocalFormDefinition lfd, File pemFile,
+  public static void export(
+      File outputDir, ExportType outputType, LocalFormDefinition lfd, File pemFile,
       TerminationFuture terminationFuture) throws IOException {
 
     if (lfd.isEncryptedForm()) {
@@ -117,12 +109,12 @@ public class TransformAction {
     }
 
     ITransformFormAction action;
-    if (outputType == OutputType.CSV) {
-      action = new TransformToCsv(outputDir, lfd, terminationFuture);
+    if (outputType == ExportType.CSV) {
+      action = new ExportToCsv(outputDir, lfd, terminationFuture);
     } else {
       throw new IllegalStateException("outputType not recognized");
     }
 
-    showDialogAndRun(action, outputType, terminationFuture);
+    backgroundRun(action);
   }
 }

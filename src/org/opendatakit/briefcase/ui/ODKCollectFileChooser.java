@@ -38,22 +38,37 @@ final class ODKCollectFileChooser extends JFileChooser {
   @Override
   public void approveSelection() {
     File f = this.getSelectedFile();
-    if (!FileSystemUtils.isValidODKFolder(f)) {
-      JOptionPane.showMessageDialog(this.parentWindow,
-          "Not an ODK Collect device (did not find an " + File.separator + "odk" + File.separator
-              + "forms  and/or an " + File.separator + "odk" + File.separator
-              + "instances directory)", "Invalid ODK Directory", JOptionPane.ERROR_MESSAGE);
-    } else if (FileSystemUtils.isUnderODKFolder(f) || FileSystemUtils.isUnderBriefcaseFolder(f)) {
+    if ( f == null || !f.exists() ) {
       JOptionPane.showMessageDialog(parentWindow,
-          "Directory appears to be nested within an enclosing Briefcase or ODK Device directory",
-          "Invalid Briefcase Directory", JOptionPane.ERROR_MESSAGE);
+          MessageStrings.DIR_NOT_EXIST,
+          MessageStrings.INVALID_ODK_DIRECTORY, JOptionPane.ERROR_MESSAGE);
+      return;
+    }
+    File parent = f.getParentFile();
+    if ( !f.isDirectory() ) {
+      JOptionPane.showMessageDialog(parentWindow,
+          MessageStrings.DIR_NOT_DIRECTORY,
+          MessageStrings.INVALID_ODK_DIRECTORY, JOptionPane.ERROR_MESSAGE);
+    } else if (FileSystemUtils.isUnderBriefcaseFolder(f)) {
+      JOptionPane.showMessageDialog(parentWindow,
+          MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
+          MessageStrings.INVALID_ODK_DIRECTORY, JOptionPane.ERROR_MESSAGE);
+    } else if (FileSystemUtils.isUnderODKFolder(parent)) {
+      JOptionPane.showMessageDialog(parentWindow,
+          MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY,
+          MessageStrings.INVALID_ODK_DIRECTORY, JOptionPane.ERROR_MESSAGE);
+    } else if (!FileSystemUtils.isODKInstancesParentFolder(f)) {
+      JOptionPane.showMessageDialog(this.parentWindow,
+          MessageStrings.DIR_NOT_ODK_COLLECT_DIRECTORY, 
+          MessageStrings.INVALID_ODK_DIRECTORY, JOptionPane.ERROR_MESSAGE);
     } else {
       super.approveSelection();
     }
   }
 
-  ODKCollectFileChooser(Container parentWindow) {
-    super(FileSystemUtils.getMountPoint());
+  ODKCollectFileChooser(Container parentWindow, String startingPath) {
+    super(startingPath != null && startingPath.trim().length() != 0 
+        ? startingPath : FileSystemUtils.getMountPoint());
     this.parentWindow = parentWindow;
     setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
   }

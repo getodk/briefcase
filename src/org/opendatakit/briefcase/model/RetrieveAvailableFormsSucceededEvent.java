@@ -27,12 +27,18 @@ import java.util.List;
  * 
  */
 public class RetrieveAvailableFormsSucceededEvent {
+  private FormStatus.TransferType transferType;
   private List<FormStatus> formsToTransfer;
 
-  public RetrieveAvailableFormsSucceededEvent(List<FormStatus> formsToTransfer) {
+  public RetrieveAvailableFormsSucceededEvent(FormStatus.TransferType transferType, List<FormStatus> formsToTransfer) {
+    this.transferType = transferType;
     this.formsToTransfer = formsToTransfer;
   }
 
+  public FormStatus.TransferType getTransferType() {
+    return transferType;
+  }
+  
   public List<FormStatus> getFormsToTransfer() {
     return formsToTransfer;
   }

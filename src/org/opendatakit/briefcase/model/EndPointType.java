@@ -18,7 +18,7 @@ package org.opendatakit.briefcase.model;
 
 public enum EndPointType {
 
-  AGGREGATE_0_9_X_CHOICE, AGGREGATE_1_0_CHOICE, BRIEFCASE_CHOICE, OTHER_LOCAL_BRIEFCASE_CHOICE, MOUNTED_ODK_COLLECT_DEVICE_CHOICE;
+  AGGREGATE_0_9_X_CHOICE, AGGREGATE_1_0_CHOICE, MOUNTED_ODK_COLLECT_DEVICE_CHOICE, CUSTOM_ODK_COLLECT_DIRECTORY;
 
   public String toString() {
     switch (this) {
@@ -26,12 +26,10 @@ public enum EndPointType {
       return "Aggregate 0.9.x";
     case AGGREGATE_1_0_CHOICE:
       return "Aggregate 1.0";
-    case BRIEFCASE_CHOICE:
-      return "This Briefcase Directory";
-    case OTHER_LOCAL_BRIEFCASE_CHOICE:
-      return "Other Local Briefcase Directory";
     case MOUNTED_ODK_COLLECT_DEVICE_CHOICE:
-      return "Mounted ODK Collect Device Directory";
+      return "Mounted Android SD Card";
+    case CUSTOM_ODK_COLLECT_DIRECTORY:
+      return "Custom Path to ODK Directory";
     }
     throw new IllegalStateException("Unhandled EndPointType value");
   }

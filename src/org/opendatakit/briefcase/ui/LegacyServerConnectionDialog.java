@@ -20,6 +20,7 @@ import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -68,8 +69,8 @@ public class LegacyServerConnectionDialog extends JDialog implements ActionListe
   /**
    * Create the dialog.
    */
-  public LegacyServerConnectionDialog(ServerConnectionInfo oldInfo, boolean asTarget) {
-    super(null, "Aggregate v0.9.8 Server Connection", ModalityType.DOCUMENT_MODAL);
+  public LegacyServerConnectionDialog(Window app, ServerConnectionInfo oldInfo, boolean asTarget) {
+    super(app, "Aggregate v0.9.8 Server Connection", ModalityType.DOCUMENT_MODAL);
     serverInfo = oldInfo;
     this.asTarget = asTarget;
     setBounds(100, 100, 523, 287);

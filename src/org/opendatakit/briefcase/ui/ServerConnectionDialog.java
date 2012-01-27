@@ -19,6 +19,7 @@ package org.opendatakit.briefcase.ui;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -68,8 +69,8 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
   /**
    * Create the dialog.
    */
-  public ServerConnectionDialog(ServerConnectionInfo oldInfo, boolean asTarget) {
-    super(null, "Aggregate v1.0 Server Connection", ModalityType.DOCUMENT_MODAL);
+  public ServerConnectionDialog(Window app, ServerConnectionInfo oldInfo, boolean asTarget) {
+    super(app, "Aggregate v1.0 Server Connection", ModalityType.DOCUMENT_MODAL);
     serverInfo = oldInfo;
     this.asTarget = asTarget;
     setBounds(100, 100, 450, 222);

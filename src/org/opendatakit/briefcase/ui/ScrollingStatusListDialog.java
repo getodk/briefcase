@@ -53,6 +53,12 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
         "Detailed Transfer Status for " + formName, statusHtml);
     dialog.setVisible(true);
   }
+  
+  public static void showExportDialog(Frame frame, String formName, String dirName, String statusHtml) {
+    ScrollingStatusListDialog dialog = new ScrollingStatusListDialog(frame, "Export Directory: " + dirName,
+        "Export Details for " + formName, statusHtml);
+    dialog.setVisible(true);
+  }
 
   private ScrollingStatusListDialog(Frame frame, String labelText, String title, String statusHtml) {
     super(frame, title, true);

@@ -16,13 +16,14 @@
 
 package org.opendatakit.briefcase.model;
 
+public class ExportAbortEvent {
+  private final String reason;
 
-public class TransformSucceededEvent {
+  public ExportAbortEvent(String reason) {
+    this.reason = reason;
+  }
 
-  @SuppressWarnings("unused")
-  private LocalFormDefinition form;
-
-  public TransformSucceededEvent(LocalFormDefinition form) {
-    this.form = form;
+  public String getReason() {
+    return reason;
   }
 }

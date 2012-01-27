@@ -21,6 +21,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -112,9 +113,7 @@ public class ServerFetcher {
     return terminationFuture.isCancelled();
   }
 
-  public boolean downloadFormAndSubmissionFiles(File briefcaseFormsDir,
-      List<FormStatus> formsToTransfer, boolean mustBeWellFormedXmlns) {
-
+  public boolean downloadFormAndSubmissionFiles(List<FormStatus> formsToTransfer) {
     boolean allSuccessful = true;
     
     // boolean error = false;
@@ -134,11 +133,11 @@ public class ServerFetcher {
       EventBus.publish(new FormStatusEvent(fs));
       try {
 
-        File dl = FileSystemUtils.getFormDefinitionFile(briefcaseFormsDir, fd.getFormName());
+        File dl = FileSystemUtils.getFormDefinitionFile(fd.getFormName());
         AggregateUtils.commonDownloadFile(serverInfo, dl, fd.getDownloadUrl());
 
         if (fd.getManifestUrl() != null) {
-          File mediaDir = FileSystemUtils.getMediaDirectory(briefcaseFormsDir, fd.getFormName());
+          File mediaDir = FileSystemUtils.getMediaDirectory(fd.getFormName());
           String error = downloadManifestAndMediaFiles(mediaDir, fs);
           if (error != null) {
             allSuccessful = false;
@@ -150,35 +149,46 @@ public class ServerFetcher {
         fs.setStatusString("preparing to retrieve instance data", true);
         EventBus.publish(new FormStatusEvent(fs));
 
-        File formInstancesDir = FileSystemUtils.getFormInstancesDirectory(briefcaseFormsDir,
-            fd.getFormName());
-
-        LocalFormDefinition lfd;
+        boolean successful = false;
+        DatabaseUtils formDatabase = null;
         try {
-          lfd = new LocalFormDefinition(dl);
-        } catch (BadFormDefinition e) {
-          e.printStackTrace();
-          allSuccessful = false;
-          fs.setStatusString("Error parsing form definition: " + e.getMessage(), false);
-          EventBus.publish(new FormStatusEvent(fs));
-          continue;
-        }
-        
-        // cannot download via the scratch area if the original form definition
-        // is not compatible with Aggregate 1.0.  In this case, the user must 
-        // first download to their local Briefcase, modify their form definition
-        // until it is compatible with Aggregate 1.0, save that modified form 
-        // definition as formName.xml.revised, and then upload or do other additional
-        // processing.
-        if ( mustBeWellFormedXmlns && lfd.isInvalidFormXmlns() ) {
+          formDatabase = new DatabaseUtils(FileSystemUtils.getFormDatabase(fs.getFormName()));
+  
+          File formInstancesDir = FileSystemUtils.getFormInstancesDirectory(fd.getFormName());
+  
+          LocalFormDefinition lfd;
+          try {
+            lfd = new LocalFormDefinition(dl);
+          } catch (BadFormDefinition e) {
+            e.printStackTrace();
             allSuccessful = false;
-            fs.setStatusString("Form definition is not compatible with Aggregate 1.0\nDownload to the Briefcase directory and manually manipulate the form definition.", false);
+            fs.setStatusString("Error parsing form definition: " + e.getMessage(), false);
             EventBus.publish(new FormStatusEvent(fs));
             continue;
+          }
+          
+          // this will publish events 
+          successful = downloadAllSubmissionsForForm(formInstancesDir, formDatabase, lfd, fs);
+        } catch ( FileSystemException e ) {
+          e.printStackTrace();
+          allSuccessful = false;
+          fs.setStatusString("unable to open form database: " + e.getMessage(), false);
+          EventBus.publish(new FormStatusEvent(fs));
+          continue;
+        } finally {
+          if ( formDatabase != null ) {
+            try {
+              formDatabase.close();
+            } catch ( SQLException e) {
+              e.printStackTrace();
+              allSuccessful = false;
+              fs.setStatusString("unable to close form database: " + e.getMessage(), false);
+              EventBus.publish(new FormStatusEvent(fs));
+              continue;
+            }
+          }
         }
-        
-        // this will publish events 
-        boolean successful = downloadAllSubmissionsForForm(formInstancesDir, lfd, fs);
+
         allSuccessful = allSuccessful && successful; 
 
         // on success, we haven't actually set a success event (because we don't know we're done)
@@ -242,7 +252,7 @@ public class ServerFetcher {
     }
   };
 
-  private boolean downloadAllSubmissionsForForm(File formInstancesDir, LocalFormDefinition lfd,
+  private boolean downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, LocalFormDefinition lfd,
       FormStatus fs) {
     boolean allSuccessful = true;
     
@@ -302,7 +312,7 @@ public class ServerFetcher {
           fs.setStatusString("fetching instance " + count++ + " ...", true);
           EventBus.publish(new FormStatusEvent(fs));
           
-          downloadSubmission(formInstancesDir, lfd, fs, uri);
+          downloadSubmission(formInstancesDir, formDatabase, lfd, fs, uri);
         } catch (Exception e) {
           e.printStackTrace();
           allSuccessful = false;
@@ -312,7 +322,7 @@ public class ServerFetcher {
         }
       }
     }
-    return allSuccessful;
+    return allSuccessful;  
   }
 
   public static class SubmissionManifest {
@@ -327,8 +337,14 @@ public class ServerFetcher {
     }
   }
 
-  private void downloadSubmission(File formInstancesDir, LocalFormDefinition lfd, FormStatus fs,
+  private void downloadSubmission(File formInstancesDir, DatabaseUtils formDatabase, LocalFormDefinition lfd, FormStatus fs,
       String uri) throws Exception {
+    
+    if ( formDatabase.hasRecordedInstance(uri) != null ) {
+      logger.info("already present - skipping fetch: " + uri );
+      return;
+    }
+    
     String formId = lfd.getSubmissionKey(uri);
     
     if ( isCancelled() ) {
@@ -379,6 +395,15 @@ public class ServerFetcher {
       fo.write(submissionManifest.submissionXml);
       fo.close();
       
+      // if we get here and it was a legacy server (0.9.x), we don't
+      // actually know whether the submission was complete.  Otherwise,
+      // if we get here, we know that this is a completed submission
+      // (because it was in /view/submissionList) and that we safely
+      // copied it into the storage area (because we didn't get any
+      // exceptions).
+      if ( serverInfo.isOpenRosaServer() ) {
+        formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
+      }
     } else {
       // create instance directory...
       File instanceDir = FileSystemUtils.assertFormSubmissionDirectory(formInstancesDir,
@@ -394,7 +419,18 @@ public class ServerFetcher {
       FileWriter fo = new FileWriter(submissionFile);
       fo.write(submissionManifest.submissionXml);
       fo.close();
+
+      // if we get here and it was a legacy server (0.9.x), we don't
+      // actually know whether the submission was complete.  Otherwise,
+      // if we get here, we know that this is a completed submission
+      // (because it was in /view/submissionList) and that we safely
+      // copied it into the storage area (because we didn't get any
+      // exceptions).
+      if ( serverInfo.isOpenRosaServer() ) {
+        formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
+      }
     }
+    
   }
 
   public static class MediaFile {

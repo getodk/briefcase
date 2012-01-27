@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.util;
 
+import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -24,7 +25,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsSucceededEvent;
@@ -36,18 +36,14 @@ import org.opendatakit.briefcase.ui.TransferInProgressDialog;
 
 public class TransferAction {
 
-  static final String SCRATCH_DIR = "scratch";
-
   private static ExecutorService backgroundExecutorService = Executors.newCachedThreadPool();
 
-  private static class TransferRunnable implements Runnable {
-    ITransferFromSourceAction src;
+  private static class UploadTransferRunnable implements Runnable {
     ITransferToDestAction dest;
     private List<FormStatus> formsToTransfer;
 
-    TransferRunnable(ITransferFromSourceAction src, ITransferToDestAction dest,
+    UploadTransferRunnable(ITransferToDestAction dest,
         List<FormStatus> formsToTransfer) {
-      this.src = src;
       this.dest = dest;
       this.formsToTransfer = formsToTransfer;
     }
@@ -55,19 +51,8 @@ public class TransferAction {
     @Override
     public void run() {
       boolean srcIsDeletable = false;
-      if (src != null) {
-        srcIsDeletable = src.isSourceDeletable();
-      }
       try {
-        boolean allSuccessful = true;
-        if (src != null) {
-          allSuccessful = allSuccessful & // do not short-circuit! 
-            src.doAction();
-        }
-        if (dest != null) {
-          allSuccessful = allSuccessful & // do not short-circuit!
-            dest.doAction();
-        }
+        boolean allSuccessful = dest.doAction();
         
         if ( allSuccessful ) {
           EventBus.publish(new TransferSucceededEvent(srcIsDeletable, formsToTransfer));
@@ -82,15 +67,41 @@ public class TransferAction {
 
   }
 
-  private static void showDialogAndRun(ITransferFromSourceAction src, ITransferToDestAction dest,
-      TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) {
-    // create the dialog first so that the background task will always have a
-    // listener for its completion events...
-    final TransferInProgressDialog dlg = new TransferInProgressDialog("Transfer in Progress...", terminationFuture);
+  private static void backgroundRun(ITransferToDestAction src, List<FormStatus> formsToTransfer) {
+    backgroundExecutorService.execute(new UploadTransferRunnable(src, formsToTransfer));
+  }
 
-    backgroundExecutorService.execute(new TransferRunnable(src, dest, formsToTransfer));
+  private static class GatherTransferRunnable implements Runnable {
+    ITransferFromSourceAction src;
+    private List<FormStatus> formsToTransfer;
 
-    dlg.setVisible(true);
+    GatherTransferRunnable(ITransferFromSourceAction src,
+        List<FormStatus> formsToTransfer) {
+      this.src = src;
+      this.formsToTransfer = formsToTransfer;
+    }
+
+    @Override
+    public void run() {
+      boolean srcIsDeletable = src.isSourceDeletable();
+      try {
+        boolean allSuccessful = src.doAction();
+        
+        if ( allSuccessful ) {
+          EventBus.publish(new TransferSucceededEvent(srcIsDeletable, formsToTransfer));
+        } else {
+          EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+        EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
+      }
+    }
+
+  }
+
+  private static void backgroundRun(ITransferFromSourceAction src, List<FormStatus> formsToTransfer) {
+    backgroundExecutorService.execute(new GatherTransferRunnable(src, formsToTransfer));
   }
 
   private static class RetrieveAvailableFormsRunnable implements Runnable {
@@ -104,92 +115,67 @@ public class TransferAction {
     public void run() {
       try {
         src.doAction();
-        EventBus.publish(new RetrieveAvailableFormsSucceededEvent(src.getAvailableForms()));
+        EventBus.publish(new RetrieveAvailableFormsSucceededEvent(src.getTransferType(), src.getAvailableForms()));
       } catch (Exception e) {
         e.printStackTrace();
-        EventBus.publish(new RetrieveAvailableFormsFailedEvent(e));
+        EventBus.publish(new RetrieveAvailableFormsFailedEvent(src.getTransferType(), e));
       }
     }
 
   }
 
-  private static void showDialogAndRun(RetrieveAvailableFormsFromServer src, TerminationFuture terminationFuture) {
+  private static void showDialogAndRun(Window topLevel, RetrieveAvailableFormsFromServer src, TerminationFuture terminationFuture) {
     // create the dialog first so that the background task will always have a
     // listener for its completion events...
-    final TransferInProgressDialog dlg = new TransferInProgressDialog("Fetching Available Forms...", terminationFuture);
+    final TransferInProgressDialog dlg = new TransferInProgressDialog(topLevel, src.getTransferType(), terminationFuture);
 
     backgroundExecutorService.execute(new RetrieveAvailableFormsRunnable(src));
 
     dlg.setVisible(true);
   }
   
-  public static void retrieveAvailableFormsFromServer(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture) {
-    RetrieveAvailableFormsFromServer source = new RetrieveAvailableFormsFromServer(originServerInfo, terminationFuture);
-    showDialogAndRun(source, terminationFuture);
+  public static void retrieveAvailableFormsFromServer(Window topLevel, 
+        FormStatus.TransferType transferType, ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture) {
+    RetrieveAvailableFormsFromServer source = new RetrieveAvailableFormsFromServer(transferType, originServerInfo, terminationFuture);
+    showDialogAndRun(topLevel, source, terminationFuture);
   }
   
-  public static void uploadForm(ServerConnectionInfo destinationServerInfo, 
+  public static void uploadForm(Window topLevel, ServerConnectionInfo destinationServerInfo, 
       TerminationFuture terminationFuture, File formDefn, FormStatus status) {
     UploadToServer dest = new UploadToServer( destinationServerInfo, terminationFuture, formDefn, status);
-    showDialogAndRun( null, dest, terminationFuture, Collections.singletonList(status));
+    backgroundRun(dest, Collections.singletonList(status));
   }
 
-  public static void transferServerViaToServer(ServerConnectionInfo originServerInfo,
-      ServerConnectionInfo destinationServerInfo, TerminationFuture terminationFuture, 
-      List<FormStatus> formsToTransfer) throws IOException {
-
-    File briefcaseDir = new File(BriefcasePreferences.getBriefcaseDirectoryProperty());
-    TransferFromServer source = new TransferFromServer(originServerInfo, terminationFuture, 
-        briefcaseDir,
-        formsToTransfer, true);
-    TransferToServer dest = new TransferToServer(destinationServerInfo, 
-        terminationFuture, briefcaseDir,
-        formsToTransfer, true);
-    showDialogAndRun(source, dest, terminationFuture, formsToTransfer);
-  }
-
-  public static void transferServerViaToBriefcase(ServerConnectionInfo originServerInfo,
+  public static void transferServerToBriefcase(ServerConnectionInfo originServerInfo,
       TerminationFuture terminationFuture,
       List<FormStatus> formsToTransfer)
       throws IOException {
 
-    File briefcaseDir = new File(BriefcasePreferences.getBriefcaseDirectoryProperty());
     TransferFromServer source = new TransferFromServer(originServerInfo, terminationFuture,
-        briefcaseDir,
-        formsToTransfer, false);
-    showDialogAndRun(source, null, terminationFuture, formsToTransfer);
+        formsToTransfer);
+    backgroundRun(source, formsToTransfer);
   }
 
-  public static void transferODKViaToServer(File odkSrcDir,
+  /**
+   * @param odkSrcDir -- NOTE: this ends with /odk in the typical case.
+   * @param terminationFuture
+   * @param formsToTransfer
+   * @throws IOException
+   */
+  public static void transferODKToBriefcase(File odkSrcDir, TerminationFuture terminationFuture,
+      List<FormStatus> formsToTransfer) throws IOException {
+
+    TransferFromODK source = new TransferFromODK(odkSrcDir, terminationFuture, formsToTransfer);
+    backgroundRun(source, formsToTransfer);
+  }
+
+  public static void transferBriefcaseToServer(
       ServerConnectionInfo destinationServerInfo,
       TerminationFuture terminationFuture,
       List<FormStatus> formsToTransfer) throws IOException {
 
-    File briefcaseDir = new File(BriefcasePreferences.getBriefcaseDirectoryProperty());
-    TransferFromODK source = new TransferFromODK(odkSrcDir, briefcaseDir, formsToTransfer, true);
     TransferToServer dest = new TransferToServer(destinationServerInfo, 
-        terminationFuture, briefcaseDir,
-        formsToTransfer, true);
-    showDialogAndRun(source, dest, terminationFuture, formsToTransfer);
-  }
-
-  public static void transferODKViaToBriefcase(TerminationFuture terminationFuture, File odkSrcDir,
-      List<FormStatus> formsToTransfer) throws IOException {
-
-    File briefcaseDir = new File(BriefcasePreferences.getBriefcaseDirectoryProperty());
-    TransferFromODK source = new TransferFromODK(odkSrcDir, briefcaseDir, formsToTransfer, false);
-    showDialogAndRun(source, null, terminationFuture, formsToTransfer);
-  }
-
-  public static void transferBriefcaseViaToServer(
-      ServerConnectionInfo destinationServerInfo,
-      TerminationFuture terminationFuture,
-      List<FormStatus> formsToTransfer) throws IOException {
-
-    File briefcaseDir = new File(BriefcasePreferences.getBriefcaseDirectoryProperty());
-    TransferToServer dest = new TransferToServer(destinationServerInfo, 
-        terminationFuture, briefcaseDir,
-        formsToTransfer, false);
-    showDialogAndRun(null, dest, terminationFuture, formsToTransfer);
+        terminationFuture, formsToTransfer);
+    backgroundRun(dest, formsToTransfer);
   }
 }

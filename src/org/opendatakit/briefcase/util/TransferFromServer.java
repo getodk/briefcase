@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.util;
 
-import java.io.File;
 import java.util.List;
 
 import org.opendatakit.briefcase.model.FormStatus;
@@ -27,33 +26,21 @@ public class TransferFromServer implements ITransferFromSourceAction {
 
   final ServerConnectionInfo originServerInfo;
   final TerminationFuture terminationFuture;
-  final File briefcaseDir;
   final List<FormStatus> formsToTransfer;
-  boolean toScratch;
 
   public TransferFromServer(ServerConnectionInfo originServerInfo, 
-      TerminationFuture terminationFuture,
-      File briefcaseDir,
-      List<FormStatus> formsToTransfer, boolean toScratch) {
+      TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) {
     this.originServerInfo = originServerInfo;
     this.terminationFuture = terminationFuture;
-    this.briefcaseDir = briefcaseDir;
     this.formsToTransfer = formsToTransfer;
-    this.toScratch = toScratch;
   }
 
   @Override
   public boolean doAction() {
     
     ServerFetcher fetcher = new ServerFetcher(originServerInfo, terminationFuture);
-    File destinationFolder;
-    if (toScratch) {
-      destinationFolder = FileSystemUtils.getScratchFolder(briefcaseDir);
-    } else {
-      destinationFolder = FileSystemUtils.getFormsFolder(briefcaseDir);
-    }
     
-    return fetcher.downloadFormAndSubmissionFiles(destinationFolder, formsToTransfer, toScratch);
+    return fetcher.downloadFormAndSubmissionFiles(formsToTransfer);
   }
 
   @Override

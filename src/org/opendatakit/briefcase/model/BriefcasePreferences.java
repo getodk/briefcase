@@ -23,15 +23,23 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class BriefcasePreferences {
   
-  public static final String VERSION = "v1.0 Beta 2.2";
+  public static final String VERSION = "v1.0 Production";
 
   public static void setBriefcaseDirectoryProperty(String value) {
-    getApplicationPreferences().put(BriefcasePreferences.BRIEFCASE_DIR_PROPERTY, value);
+    if ( value == null ) {
+      getApplicationPreferences().remove(BRIEFCASE_DIR_PROPERTY);
+    } else {
+      getApplicationPreferences().put(BriefcasePreferences.BRIEFCASE_DIR_PROPERTY, value);
+    }
   }
 
+  public static String getBriefcaseDirectoryIfSet() {
+    return getApplicationPreferences().get(BriefcasePreferences.BRIEFCASE_DIR_PROPERTY,null);
+  }
+  
   public static String getBriefcaseDirectoryProperty() {
     return getApplicationPreferences().get(BriefcasePreferences.BRIEFCASE_DIR_PROPERTY, 
-        System.getProperty("user.home") + System.getProperty("file.separator") + "ODK Briefcase");
+        System.getProperty("user.home"));
   }
 
   private static final String BRIEFCASE_DIR_PROPERTY = "briefcaseDir";

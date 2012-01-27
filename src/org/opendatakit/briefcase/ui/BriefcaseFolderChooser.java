@@ -39,22 +39,24 @@ class BriefcaseFolderChooser extends JFileChooser {
    * 
    * @param f
    * @param parentWindow
-   * @return true if directory is a valid briefcase directory.
+   * @return true if directory contains a valid BriefcaseStorageLocation or could contain one.
    */
-  public static final boolean testAndMessageBadBriefcaseFolder(File f, Container parentWindow) {
-    if ( !f.exists() ) {
+  public static final boolean testAndMessageBadBriefcaseStorageLocationParentFolder(File f, Container parentWindow) {
+    if ( f == null || !f.exists() ) {
+      JOptionPane.showMessageDialog(parentWindow,
+          MessageStrings.DIR_NOT_EXIST,
+          MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION, JOptionPane.ERROR_MESSAGE);
       return true;
     }
-    if (!FileSystemUtils.isValidBriefcaseFolder(f)) {
+    if (FileSystemUtils.isUnderBriefcaseFolder(f)) {
       JOptionPane.showMessageDialog(parentWindow,
-          "Not a Briefcase directory (does not exist, not empty or did not find " + File.separator
-              + "forms and/or " + File.separator + "scratch directories)",
-          "Invalid Briefcase Directory", JOptionPane.ERROR_MESSAGE);
+          MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
+          MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION, JOptionPane.ERROR_MESSAGE);
       return false;
-    } else if (FileSystemUtils.isUnderODKFolder(f) || FileSystemUtils.isUnderBriefcaseFolder(f)) {
+    } else if (FileSystemUtils.isUnderODKFolder(f)) {
       JOptionPane.showMessageDialog(parentWindow,
-          "Directory appears to be nested within an enclosing Briefcase or ODK Device directory",
-          "Invalid Briefcase Directory", JOptionPane.ERROR_MESSAGE);
+          MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY,
+          MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION, JOptionPane.ERROR_MESSAGE);
       return false;
     } else {
       return true;
@@ -64,7 +66,7 @@ class BriefcaseFolderChooser extends JFileChooser {
   @Override
   public void approveSelection() {
     File f = this.getSelectedFile();
-    if (testAndMessageBadBriefcaseFolder(f, parentWindow)) {
+    if (testAndMessageBadBriefcaseStorageLocationParentFolder(f, parentWindow)) {
       super.approveSelection();
     }
   }

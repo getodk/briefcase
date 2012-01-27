@@ -16,15 +16,16 @@
 
 package org.opendatakit.briefcase.model;
 
-public class TransformProgressEvent {
-  private final String text;
-
-  public TransformProgressEvent(String text) {
-    this.text = text;
-  }
-
-  public String getText() {
-    return text;
-  }
-
+public enum ExportType {
+	CSV(".csv and media files"); // CSV output type
+	
+	private String displayString;
+	
+	ExportType(String displayString) {
+		this.displayString = displayString;
+	}
+	
+	public String toString() {
+		return displayString;
+	}
 }

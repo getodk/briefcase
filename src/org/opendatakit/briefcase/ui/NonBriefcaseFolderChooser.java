@@ -39,19 +39,6 @@ class NonBriefcaseFolderChooser extends JFileChooser {
 	 * 
 	 */
   private static final long serialVersionUID = 7687033156145655297L;
-
-  public static final boolean isValidNonBriefcaseFolder( String path ) {
-	  
-	  if ( path == null || path.trim().length() == 0 ) return false;
-	  
-	  File f = new File(path);
-	  if ( !f.exists() ) return false;
-	  if ( FileSystemUtils.isUnderODKFolder(f) 
-			  || FileSystemUtils.isUnderBriefcaseFolder(f)) return false;
-	  if ( !f.isDirectory() ) return false;
-	  
-	  return true;
-  }
   
   /**
    * 
@@ -63,15 +50,20 @@ class NonBriefcaseFolderChooser extends JFileChooser {
     if ( !f.exists() ) {
       return true;
     }
-    if (FileSystemUtils.isUnderODKFolder(f) || FileSystemUtils.isUnderBriefcaseFolder(f)) {
+    if (!f.isDirectory()) {
       JOptionPane.showMessageDialog(parentWindow,
-          "Directory appears to be nested within an enclosing Briefcase or ODK Device directory",
-          "Invalid Directory", JOptionPane.ERROR_MESSAGE);
+          MessageStrings.DIR_NOT_DIRECTORY,
+          MessageStrings.INVALID_DIRECTORY, JOptionPane.ERROR_MESSAGE);
       return false;
-    } else if (!f.isDirectory()) {
-          JOptionPane.showMessageDialog(parentWindow,
-              "Not a directory",
-              "Invalid Directory", JOptionPane.ERROR_MESSAGE);
+    } else if (FileSystemUtils.isUnderBriefcaseFolder(f)) {
+      JOptionPane.showMessageDialog(parentWindow,
+          MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
+          MessageStrings.INVALID_DIRECTORY, JOptionPane.ERROR_MESSAGE);
+      return false;
+    } else if (FileSystemUtils.isUnderODKFolder(f)) {
+      JOptionPane.showMessageDialog(parentWindow,
+          MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY,
+          MessageStrings.INVALID_DIRECTORY, JOptionPane.ERROR_MESSAGE);
       return false;
     } else { 
       return true; // allow directory to already have files and directories...

@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FormStatus {
+  public enum TransferType { GATHER, UPLOAD };
+  private final TransferType transferType;
   private boolean isSelected = false;
   private IFormDefinition form;
   private final Map<File, File> scratchFromMap = new HashMap<File, File>();
@@ -29,10 +31,15 @@ public class FormStatus {
   private final StringBuilder statusHistory = new StringBuilder();
   private boolean isSuccessful = true;
 
-  public FormStatus(IFormDefinition form) {
+  public FormStatus(TransferType transferType, IFormDefinition form) {
+    this.transferType = transferType;
     this.form = form;
   }
 
+  public TransferType getTransferType() {
+    return transferType;
+  }
+  
   public boolean isSelected() {
     return isSelected;
   }

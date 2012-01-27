@@ -16,15 +16,12 @@
 
 package org.opendatakit.briefcase.model;
 
-public class TransferProgressEvent {
-  private final String text;
 
-  public TransferProgressEvent(String text) {
-    this.text = text;
+public class ExportFailedEvent {
+  @SuppressWarnings("unused")
+  private LocalFormDefinition form;
+
+  public ExportFailedEvent(LocalFormDefinition form) {
+    this.form = form;
   }
-
-  public String getText() {
-    return text;
-  }
-
 }

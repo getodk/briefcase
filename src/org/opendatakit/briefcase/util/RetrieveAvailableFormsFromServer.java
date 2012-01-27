@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatus.TransferType;
 import org.opendatakit.briefcase.model.IFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
@@ -29,11 +30,13 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 
 public class RetrieveAvailableFormsFromServer {
+  final TransferType transferType;
   final ServerConnectionInfo originServerInfo;
   final TerminationFuture terminationFuture;
   List<FormStatus> formStatuses = new ArrayList<FormStatus>();
 
-  public RetrieveAvailableFormsFromServer(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture) {
+  public RetrieveAvailableFormsFromServer(FormStatus.TransferType transferType, ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture) {
+    this.transferType = transferType;
     this.originServerInfo = originServerInfo;
     this.terminationFuture = terminationFuture;
   }
@@ -42,10 +45,14 @@ public class RetrieveAvailableFormsFromServer {
     List<RemoteFormDefinition> formDefs = Collections.emptyList();
     formDefs = ServerFetcher.retrieveAvailableFormsFromServer(originServerInfo, terminationFuture);
     for (IFormDefinition fd : formDefs) {
-      formStatuses.add(new FormStatus(fd));
+      formStatuses.add(new FormStatus(transferType, fd));
     }
   }
 
+  public TransferType getTransferType() {
+    return transferType;
+  }
+  
   public List<FormStatus> getAvailableForms() {
     return formStatuses;
   }

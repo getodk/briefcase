@@ -52,6 +52,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.MetadataUpdateException;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
+import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 import org.opendatakit.briefcase.util.ServerUploader.SubmissionResponseAction;
@@ -630,7 +631,7 @@ public class AggregateUtils {
 
   public static final boolean uploadFilesToServer(ServerConnectionInfo serverInfo, URI u,
       String distinguishedFileTagName, File file, List<File> files, DocumentDescription description,
-      SubmissionResponseAction action, FormStatus formToTransfer) {
+      SubmissionResponseAction action, TerminationFuture terminationFuture, FormStatus formToTransfer) {
 
     boolean allSuccessful = true;
     formToTransfer.setStatusString("Preparing for upload of " + description.getDocumentDescriptionType() + " with "
@@ -644,6 +645,13 @@ public class AggregateUtils {
       lastJ = j;
       first = false;
 
+      if ( terminationFuture.isCancelled() ) {
+        formToTransfer.setStatusString("Aborting upload of " + description.getDocumentDescriptionType() + " with "
+            + files.size() + " media attachments", true);
+        EventBus.publish(new FormStatusEvent(formToTransfer));
+        return false;
+      }
+      
       HttpPost httppost = WebUtils.createOpenRosaHttpPost(u);
 
       long byteCount = 0L;

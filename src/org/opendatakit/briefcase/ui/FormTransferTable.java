@@ -39,6 +39,7 @@ import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatus.TransferType;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsSucceededEvent;
 
@@ -48,7 +49,6 @@ public class FormTransferTable extends JTable {
 	 * 
 	 */
   private static final long serialVersionUID = 8511088963758308085L;
-
   
   public class JTableButtonRenderer implements TableCellRenderer {     
     @Override public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
@@ -97,6 +97,37 @@ public class FormTransferTable extends JTable {
     public void mouseExited(MouseEvent e) {
     }
   }
+  
+  public static class DetailButton extends JButton implements ActionListener {
+    
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -5106458166776020642L;
+    private static final Log logger = LogFactory.getLog( DetailButton.class);
+    public static final String LABEL = "Details...";
+    
+    final FormStatus status;
+    
+    DetailButton(FormStatus status) {
+      super(LABEL);
+      this.status = status;
+      this.addActionListener(this);
+      logger.info("creating details button");
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      try {
+        final String history = status.getStatusHistory();
+        final String formName = status.getFormName();
+        setEnabled(false);
+        ScrollingStatusListDialog.showDialog(JOptionPane.getFrameForComponent(this), formName, history);
+      } finally {
+        setEnabled(true);
+      }
+    }
+  }
 
   static class FormTransferTableModel extends AbstractTableModel {
     /**
@@ -104,49 +135,26 @@ public class FormTransferTable extends JTable {
 		 */
     private static final long serialVersionUID = 7108326237416622721L;
 
-    public static final int BUTTON_COLUMN = 3; 
-    private static final String[] columnNames = { "Selected", "Form Name", "Transfer Status", "..." };
+    public static final int BUTTON_COLUMN = 3;     
 
     private static final Log logger = LogFactory.getLog( FormTransferTableModel.class);
     
+    final String[] columnNames;
     final JButton btnSelectOrClearAllForms;
+    final TransferType transferType;
     final JButton btnTransfer;
     List<FormStatus> formStatuses = new ArrayList<FormStatus>();
     private Map<FormStatus, DetailButton> buttonMap = new HashMap<FormStatus, DetailButton>();
     
-    public class DetailButton extends JButton implements ActionListener {
-      
-      /**
-       * 
-       */
-      private static final long serialVersionUID = -5106458166776020642L;
-      final FormStatus status;
-      
-      DetailButton(FormStatus status) {
-        super(columnNames[BUTTON_COLUMN]);
-        this.status = status;
-        this.addActionListener(this);
-        logger.info("creating details button");
-      }
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        try {
-          final String history = status.getStatusHistory();
-          final String formName = status.getFormName();
-          setEnabled(false);
-          ScrollingStatusListDialog.showDialog(JOptionPane.getFrameForComponent(this), formName, history);
-        } finally {
-          setEnabled(true);
-        }
-      }
-    }
-    
-    public FormTransferTableModel(JButton btnSelectOrClearAllForms, JButton btnTransfer) {
+    public FormTransferTableModel(JButton btnSelectOrClearAllForms, TransferType transferType, JButton btnTransfer) {
       super();
       AnnotationProcessor.process(this);// if not using AOP
 
+      this.columnNames = new String[]{ "Selected", "Form Name", ((transferType == TransferType.UPLOAD) ?
+          PushTransferPanel.TAB_NAME : PullTransferPanel.TAB_NAME) + " Status", DetailButton.LABEL };
+      
       this.btnSelectOrClearAllForms = btnSelectOrClearAllForms;
+      this.transferType = transferType;
       this.btnTransfer = btnTransfer;
       // initially the transfer button is disabled.
       btnTransfer.setEnabled(false);
@@ -185,6 +193,10 @@ public class FormTransferTable extends JTable {
       }
     }
 
+    public TransferType getTransferType() {
+      return transferType;
+    }
+    
     public void setFormStatusList(List<FormStatus> statuses) {
       formStatuses = statuses;
       updateButtonsAfterStatusChange();
@@ -284,19 +296,21 @@ public class FormTransferTable extends JTable {
     @EventSubscriber(eventClass = FormStatusEvent.class)
     public void fireStatusChange(FormStatusEvent fse) {
       FormStatus fs = fse.getStatus();
-      for (int rowIndex = 0; rowIndex < formStatuses.size(); ++rowIndex) {
-        FormStatus status = formStatuses.get(rowIndex);
-        if (status.equals(fs)) {
-          fireTableRowsUpdated(rowIndex, rowIndex);
-          return;
+      if ( fs.getTransferType() == transferType ) {
+        for (int rowIndex = 0; rowIndex < formStatuses.size(); ++rowIndex) {
+          FormStatus status = formStatuses.get(rowIndex);
+          if (status.equals(fs)) {
+            fireTableRowsUpdated(rowIndex, rowIndex);
+            return;
+          }
         }
       }
     }
 
   }
 
-  public FormTransferTable(JButton btnSelectOrClearAllForms, JButton btnTransfer) {
-    super(new FormTransferTableModel(btnSelectOrClearAllForms, btnTransfer));
+  public FormTransferTable(JButton btnSelectOrClearAllForms, FormStatus.TransferType transferType, JButton btnTransfer) {
+    super(new FormTransferTableModel(btnSelectOrClearAllForms, transferType, btnTransfer));
     AnnotationProcessor.process(this);// if not using AOP
     // set the button column renderer to a custom renderer
     getColumn(getColumnName(FormTransferTableModel.BUTTON_COLUMN)).setCellRenderer(new JTableButtonRenderer());
@@ -311,10 +325,22 @@ public class FormTransferTable extends JTable {
     columns.getColumn(0).setMinWidth(headerWidth);
     columns.getColumn(0).setMaxWidth(headerWidth);
     columns.getColumn(0).setPreferredWidth(headerWidth);
+    
+    // create a detail button (that we'll throw away)
+    // so we can get the needed column and row dimensions.
+    comp = new DetailButton(null);
+    int buttonWidth = comp.getPreferredSize().width;
+    int buttonHeight = comp.getPreferredSize().height;
+    columns.getColumn(FormTransferTableModel.BUTTON_COLUMN).setMinWidth(buttonWidth);
+    columns.getColumn(FormTransferTableModel.BUTTON_COLUMN).setMaxWidth(buttonWidth);
+    columns.getColumn(FormTransferTableModel.BUTTON_COLUMN).setPreferredWidth(buttonWidth);
+    
+    // set the row height to be big enough to include a button and have space above and below it
+    setRowHeight(buttonHeight); // btn used is arbitrary...
 
     // and scale the others to be wider...
-    columns.getColumn(1).setPreferredWidth(10 * headerWidth);
-    columns.getColumn(2).setPreferredWidth(10 * headerWidth);
+    columns.getColumn(1).setPreferredWidth(5 * headerWidth);
+    columns.getColumn(2).setPreferredWidth(5 * headerWidth);
     this.setFillsViewportHeight(true);
   }
 
@@ -325,7 +351,10 @@ public class FormTransferTable extends JTable {
 
   @EventSubscriber(eventClass = RetrieveAvailableFormsSucceededEvent.class)
   public void formsAvailableFromServer(RetrieveAvailableFormsSucceededEvent event) {
-    setFormStatusList(event.getFormsToTransfer());
+    FormTransferTableModel model = (FormTransferTableModel) this.dataModel;
+    if ( event.getTransferType() == model.getTransferType() ) {
+      setFormStatusList(event.getFormsToTransfer());
+    }
   }
 
   public List<FormStatus> getSelectedForms() {

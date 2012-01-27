@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,8 +31,13 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -40,25 +46,27 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.javarosa.xform.parse.XFormParser;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
 import org.kxml2.kdom.Node;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.CryptoException;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.LocalFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
+import org.opendatakit.briefcase.ui.MessageStrings;
 import org.opendatakit.briefcase.util.JavaRosaWrapper.BadFormDefinition;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
 
 public class FileSystemUtils {
   static final Log logger = LogFactory.getLog(FileSystemUtils.class);
 
+  public static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
+  static final String README_TXT = "readme.txt";
   static final String FORMS_DIR = "forms";
-  static final String SCRATCH_DIR = "scratch";
 
   // encryption support....
   static final String ASYMMETRIC_ALGORITHM = "RSA/NONE/OAEPWithSHA256AndMGF1Padding";
@@ -70,39 +78,78 @@ public class FileSystemUtils {
         .getProperty("os.name").startsWith("Mac") ? "/Volumes/" : "/mnt/");
   }
 
+  public static final boolean isBriefcaseStorageLocationParentFolder(File pathname) {
+    if ( !pathname.exists() ) {
+      return false;
+    }
+    File folder = new File(pathname, BRIEFCASE_DIR);
+    if ( !folder.exists() ) {
+      return false;
+    }
+    if ( !folder.isDirectory() ) {
+      return false;
+    }
+    File forms = new File(folder, FORMS_DIR);
+    if ( !forms.exists() ) {
+      return false;
+    }
+    if ( !forms.isDirectory() ) {
+      return false;
+    }
+    return true;
+  }
+
+  public static final void assertBriefcaseStorageLocationParentFolder(File pathname) throws FileSystemException {
+    File folder = new File(pathname, BRIEFCASE_DIR);
+    if ( !folder.exists() ) {
+      if ( !folder.mkdir() ) {
+        throw new FileSystemException("Unable to create " + BRIEFCASE_DIR);
+      }
+    }
+    File forms = new File(folder, FORMS_DIR);
+    if ( !forms.exists() ) {
+      if ( !forms.mkdir() ) {
+        throw new FileSystemException("Unable to create " + FORMS_DIR);
+      }
+    }
+    
+    File f = new File(folder, README_TXT);
+    if ( !f.exists() ) {
+      try {
+        if ( !f.createNewFile() ) {
+          throw new FileSystemException("Unable to create " + README_TXT);
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw new FileSystemException("Unable to create " + README_TXT);
+      }
+    }
+    try {
+      FileWriter fout = new FileWriter(f, false);
+      fout.write(MessageStrings.README_CONTENTS);
+      fout.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+      throw new FileSystemException("Unable to write " + README_TXT);
+    }
+  }
+
   public static final boolean isUnderBriefcaseFolder(File pathname) {
     File parent = (pathname == null ? null : pathname.getParentFile());
+    File current = pathname;
     while (parent != null) {
-      if (isBriefcaseFolder(parent, false))
+      if (isBriefcaseStorageLocationParentFolder(parent) &&
+          current.getName().equals(BRIEFCASE_DIR)) {
         return true;
+      }
+      current = parent;
       parent = parent.getParentFile();
     }
     return false;
   }
 
-  private static final boolean isBriefcaseFolder(File pathname, boolean strict) {
-    String[] contents = pathname.list();
-    int len = (contents == null) ? 0 : contents.length;
-    File foi = FileSystemUtils.getScratchFolder(pathname);
-    File fof = FileSystemUtils.getFormsFolder(pathname);
-    return pathname.exists()
-        && ((len == 0) || ((len == 1) && (foi.exists() || fof.exists())) || (((len == 2) || (!strict && (len == 3)))
-            && foi.exists() && fof.exists()));
-  }
-
-  public static final boolean isValidBriefcaseFolder(File pathname) {
-    return pathname != null && isBriefcaseFolder(pathname, true);
-  }
-
-  public static final boolean isUnderODKFolder(File pathname) {
-    File parent = (pathname == null ? null : pathname.getParentFile());
-    while (parent != null) {
-      if (isODKDevice(parent) && pathname.getName().equals("odk"))
-        return true;
-      parent = parent.getParentFile();
-    }
-    return false;
-  }
+  // Predicates to determine whether the folder is an ODK Device
+  // ODK folder or underneath that folder.
 
   private static final boolean isODKDevice(File pathname) {
     File fo = new File(pathname, "odk");
@@ -110,15 +157,32 @@ public class FileSystemUtils {
     File fof = new File(fo, "forms");
     return fo.exists() && foi.exists() && fof.exists();
   }
+  
+  public static final boolean isUnderODKFolder(File pathname) {
+    File parent = (pathname == null ? null : pathname.getParentFile());
+    File current = pathname;
+    while (parent != null) {
+      if (isODKDevice(parent) && current.getName().equals("odk"))
+        return true;
+      current = parent;
+      parent = parent.getParentFile();
+    }
+    return false;
+  }
 
   public static final boolean isValidODKFolder(File pathname) {
     return pathname != null && isODKDevice(pathname);
   }
 
-  public static final List<LocalFormDefinition> getBriefcaseFormList(String briefcaseDirectory) {
+  public static final boolean isODKInstancesParentFolder(File pathname) {
+    File foi = new File(pathname, "instances");
+    return foi.exists() && foi.isDirectory();
+  }
+  
+
+  public static final List<LocalFormDefinition> getBriefcaseFormList() {
     List<LocalFormDefinition> formsList = new ArrayList<LocalFormDefinition>();
-    File briefcase = new File(briefcaseDirectory);
-    File forms = FileSystemUtils.getFormsFolder(briefcase);
+    File forms = FileSystemUtils.getFormsFolder();
     if (forms.exists()) {
       File[] formDirs = forms.listFiles();
       for (File f : formDirs) {
@@ -139,10 +203,8 @@ public class FileSystemUtils {
     return formsList;
   }
 
-  public static final List<LocalFormDefinition> getODKFormList(String odkDeviceDirectory) {
+  public static final List<LocalFormDefinition> getODKFormList(File odk) {
     List<LocalFormDefinition> formsList = new ArrayList<LocalFormDefinition>();
-    File sdcard = new File(odkDeviceDirectory);
-    File odk = new File(sdcard, "odk");
     File forms = new File(odk, "forms");
     if (forms.exists()) {
       File[] formDirs = forms.listFiles();
@@ -160,56 +222,62 @@ public class FileSystemUtils {
     return formsList;
   }
 
-  public static File getFormsFolder(File briefcaseDir) {
-    return new File(briefcaseDir, FORMS_DIR);
+  public static File getBriefcaseFolder() {
+    return new File(new File(BriefcasePreferences
+        .getBriefcaseDirectoryProperty()), BRIEFCASE_DIR);
   }
 
-  public static File getScratchFolder(File briefcaseDir) {
-    return new File(briefcaseDir, SCRATCH_DIR);
-  }
-
-  public static void removeBriefcaseScratch(File scratchDir) throws IOException {
-    if (scratchDir.exists()) {
-      FileUtils.deleteDirectory(scratchDir);
-    }
-  }
-
-  public static void establishBriefcaseScratch(File scratchDir) throws IOException {
-
-    if (scratchDir.exists()) {
-      return;
-    }
-
-    if (!scratchDir.getParentFile().exists()) {
-      if (!scratchDir.getParentFile().mkdir()) {
-        throw new IOException("Unable to create briefcase directory");
-      }
-    }
-
-    if (!scratchDir.mkdir()) {
-      throw new IOException("Unable to create scratch space");
-    }
+  public static File getFormsFolder() {
+    return new File(getBriefcaseFolder(), FORMS_DIR);
   }
 
   public static String asFilesystemSafeName(String formName) {
     return formName.replaceAll("[/\\\\:]", "").trim();
   }
 
-  public static File getFormDirectory(File briefcaseFormsDir, String formName)
+  public static File getFormDirectory(String formName)
       throws FileSystemException {
     // clean up friendly form name...
     String rootName = asFilesystemSafeName(formName);
-    File formPath = new File(briefcaseFormsDir, rootName);
+    File formPath = new File(getFormsFolder(), rootName);
     if (!formPath.exists() && !formPath.mkdirs()) {
       throw new FileSystemException("unable to create directory: " + formPath.getAbsolutePath());
     }
     return formPath;
   }
 
-  public static File getFormDefinitionFileIfExists(File briefcaseFormsDir, String formName) {
+  public static Connection getFormDatabase(String formName) throws FileSystemException {
+    File formDirectory = getFormDirectory(formName);
+    File db = new File(formDirectory, "info.db");
+    
+    String createFlag = "";
+    if ( !db.exists() ) {
+      createFlag = "?create=true";
+    }
+    String jdbcUrl = "jdbc:smallsql:" + db.getAbsolutePath() + createFlag;
+
+    try {
+      // register driver
+      Class.forName( "smallsql.database.SSDriver" );
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+      throw new FileSystemException("Unable to load SmallSQL driver");
+    }
+    
+    Connection conn;
+    try {
+      conn = DriverManager.getConnection( jdbcUrl );
+    } catch (SQLException e) {
+      e.printStackTrace();
+      throw new FileSystemException("Unable to open JDBC url: " + jdbcUrl);
+    }
+    return conn;
+  }
+  
+  public static File getFormDefinitionFileIfExists(String formName) {
     // clean up friendly form name...
     String rootName = asFilesystemSafeName(formName);
-    File formPath = new File(briefcaseFormsDir, rootName);
+    File formPath = new File(getFormsFolder(), rootName);
     if (!formPath.exists()) {
       return null;
     }
@@ -220,19 +288,19 @@ public class FileSystemUtils {
     return formDefnFile;
   }
 
-  public static File getFormDefinitionFile(File briefcaseFormsDir, String formName)
+  public static File getFormDefinitionFile(String formName)
       throws FileSystemException {
     String rootName = asFilesystemSafeName(formName);
-    File formPath = getFormDirectory(briefcaseFormsDir, formName);
+    File formPath = getFormDirectory(formName);
     File formDefnFile = new File(formPath, rootName + ".xml");
 
     return formDefnFile;
   }
 
-  public static File getMediaDirectoryIfExists(File briefcaseFormsDir, String formName) {
+  public static File getMediaDirectoryIfExists(String formName) {
     // clean up friendly form name...
     String rootName = asFilesystemSafeName(formName);
-    File formPath = new File(briefcaseFormsDir, rootName);
+    File formPath = new File(getFormsFolder(), rootName);
     if (!formPath.exists()) {
       return null;
     }
@@ -243,10 +311,10 @@ public class FileSystemUtils {
     return mediaDir;
   }
 
-  public static File getMediaDirectory(File briefcaseFormsDir, String formName)
+  public static File getMediaDirectory(String formName)
       throws FileSystemException {
     String rootName = asFilesystemSafeName(formName);
-    File formPath = getFormDirectory(briefcaseFormsDir, formName);
+    File formPath = getFormDirectory(formName);
     File mediaDir = new File(formPath, rootName + "-media");
     if (!mediaDir.exists() && !mediaDir.mkdirs()) {
       throw new FileSystemException("unable to create directory: " + mediaDir.getAbsolutePath());
@@ -255,9 +323,9 @@ public class FileSystemUtils {
     return mediaDir;
   }
 
-  public static File getFormInstancesDirectory(File briefcaseFormsDir, String formName)
+  public static File getFormInstancesDirectory(String formName)
       throws FileSystemException {
-    File formPath = getFormDirectory(briefcaseFormsDir, formName);
+    File formPath = getFormDirectory(formName);
     File instancesDir = new File(formPath, "instances");
     if (!instancesDir.exists() && !instancesDir.mkdirs()) {
       throw new FileSystemException("unable to create directory: " + instancesDir.getAbsolutePath());
@@ -265,12 +333,12 @@ public class FileSystemUtils {
     return instancesDir;
   }
 
-  public static List<File> getFormSubmissionDirectories(File briefcaseFormsDir, String formName) {
-    List<File> files = new ArrayList<File>();
+  public static Set<File> getFormSubmissionDirectories(String formName) {
+    Set<File> files = new TreeSet<File>();
 
     File formInstancesDir = null;
     try {
-      formInstancesDir = getFormInstancesDirectory(briefcaseFormsDir, formName);
+      formInstancesDir = getFormInstancesDirectory(formName);
     } catch (FileSystemException e) {
       e.printStackTrace();
       return files;
@@ -428,7 +496,7 @@ public class FileSystemUtils {
     }
   }
 
-  private static void decryptSubmissionFiles(String base64EncryptedSymmetricKey, 
+  private static boolean decryptSubmissionFiles(String base64EncryptedSymmetricKey, 
       FormInstanceMetadata fim, List<String> mediaNames,
       String encryptedSubmissionFile, String base64EncryptedElementSignature,
       PrivateKey rsaPrivateKey, File instanceDir, File unencryptedDir) throws FileSystemException,
@@ -639,16 +707,25 @@ public class FileSystemUtils {
         break;
       }
     }
-    if ( !same ) {
-      throw new CryptoException("Xml signature does not match!");
-    }
+    
+    return same;
   }
   
   private static void appendElementSignatureSource(StringBuilder b, String value) {
     b.append(value).append("\n");
   }
   
-  public static Document decryptAndValidateSubmission(Document doc, 
+  public static class DecryptOutcome {
+    public final Document submission;
+    public final boolean isValidated;
+    
+    DecryptOutcome(Document submission, boolean isValidated) {
+      this.submission = submission;
+      this.isValidated = isValidated;
+    }
+  }
+  
+  public static DecryptOutcome decryptAndValidateSubmission(Document doc, 
       PrivateKey rsaPrivateKey, File instanceDir, File unEncryptedDir) 
           throws ParsingException, FileSystemException, CryptoException {
 
@@ -734,7 +811,7 @@ public class FileSystemUtils {
       throw new ParsingException("InstanceID within metadata does not match that on top level element.");
     }
 
-    FileSystemUtils.decryptSubmissionFiles(base64EncryptedSymmetricKey, fim,
+    boolean isValidated = FileSystemUtils.decryptSubmissionFiles(base64EncryptedSymmetricKey, fim,
           mediaNames, encryptedSubmissionFile,
           base64EncryptedElementSignature, rsaPrivateKey, instanceDir, unEncryptedDir);
 
@@ -761,6 +838,6 @@ public class FileSystemUtils {
           "InstanceId in decrypted submission does not match that in manifest!");
     }
     
-    return doc;
+    return new DecryptOutcome(doc, isValidated);
   }
 }

@@ -16,13 +16,21 @@
 
 package org.opendatakit.briefcase.model;
 
+import org.opendatakit.briefcase.model.FormStatus.TransferType;
+
 public class RetrieveAvailableFormsFailedEvent {
+  private TransferType transferType;
   private Exception e;
 
-  public RetrieveAvailableFormsFailedEvent(Exception e) {
+  public RetrieveAvailableFormsFailedEvent(TransferType transferType, Exception e) {
+    this.transferType = transferType;
     this.e = e;
   }
 
+  public TransferType getTransferType() {
+    return transferType;
+  }
+  
   public String getReason() {
     if (e != null) {
       return "Exception: " + e.getMessage();

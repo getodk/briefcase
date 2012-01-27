@@ -17,6 +17,8 @@
 package org.opendatakit.briefcase.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -36,6 +38,7 @@ import javax.swing.border.EmptyBorder;
 
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.model.FormStatus.TransferType;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsSucceededEvent;
@@ -59,8 +62,9 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
   /**
    * Create the dialog.
    */
-  public TransferInProgressDialog(String label, TerminationFuture terminationFuture) {
-    super(null, "Transfer in progress...", ModalityType.DOCUMENT_MODAL);
+  public TransferInProgressDialog(Window topLevel, TransferType transferType, TerminationFuture terminationFuture) {
+    super(topLevel, ((transferType == TransferType.UPLOAD) ? 
+        PushTransferPanel.TAB_NAME : PullTransferPanel.TAB_NAME) + " in progress...", ModalityType.DOCUMENT_MODAL);
     AnnotationProcessor.process(this);// if not using AOP
     this.terminationFuture = terminationFuture;
 
@@ -69,7 +73,8 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
     contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
     getContentPane().add(contentPanel, BorderLayout.CENTER);
     {
-      lblNewLabel = new JLabel(label);
+      lblNewLabel = new JLabel(((transferType == TransferType.UPLOAD) ? 
+          PushTransferPanel.TAB_NAME : PullTransferPanel.TAB_NAME) + " in progress...");
     }
     cancelButton = new JButton("Cancel");
     cancelButton.setActionCommand("Cancel");
@@ -84,6 +89,7 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
     textAreaStatusDetail.setBackground(UIManager.getColor("Label.background"));
     textAreaStatusDetail.setLineWrap(true);
     textAreaStatusDetail.setWrapStyleWord(true);
+    textAreaStatusDetail.setPreferredSize(new Dimension(300, 105));
     
     GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
     gl_contentPanel.setHorizontalGroup(
@@ -91,11 +97,11 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
         .addGroup(gl_contentPanel.createSequentialGroup()
           .addContainerGap()
           .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-            .addGroup(Alignment.TRAILING, gl_contentPanel.createSequentialGroup()
-              .addComponent(textAreaStatusDetail, GroupLayout.DEFAULT_SIZE, 291, Short.MAX_VALUE)
-              .addGap(18)
-              .addComponent(cancelButton))
-            .addComponent(lblNewLabel))
+              .addComponent(lblNewLabel)
+              .addGroup(Alignment.TRAILING, gl_contentPanel.createSequentialGroup()
+              .addComponent(textAreaStatusDetail, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
+              .addPreferredGap(ComponentPlacement.RELATED)
+              .addComponent(cancelButton)))
           .addContainerGap())
     );
     gl_contentPanel.setVerticalGroup(
@@ -103,11 +109,11 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
         .addGroup(Alignment.TRAILING, gl_contentPanel.createSequentialGroup()
           .addContainerGap()
           .addComponent(lblNewLabel)
-          .addPreferredGap(ComponentPlacement.RELATED, 29, Short.MAX_VALUE)
+          .addPreferredGap(ComponentPlacement.RELATED)
           .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
             .addComponent(cancelButton)
-            .addComponent(textAreaStatusDetail, GroupLayout.PREFERRED_SIZE, 105, GroupLayout.PREFERRED_SIZE))
-          .addGap(26))
+            .addComponent(textAreaStatusDetail, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE))
+          .addContainerGap())
     );
     contentPanel.setLayout(gl_contentPanel);
   }
