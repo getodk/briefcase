@@ -90,7 +90,12 @@ public class MainBriefcaseWindow implements WindowListener {
   }
 
   void setFullUIEnabled(boolean state) {
-    txtBriefcaseDir.setText(BriefcasePreferences.getBriefcaseDirectoryProperty());
+    String path = BriefcasePreferences.getBriefcaseDirectoryIfSet();
+    if ( path != null ) {
+      txtBriefcaseDir.setText(path + File.separator + FileSystemUtils.BRIEFCASE_DIR);
+    } else {
+      txtBriefcaseDir.setText("");
+    }
     if ( state ) {
       exportPanel.updateComboBox();
       uploadPanel.updateFormStatuses();
@@ -110,13 +115,6 @@ public class MainBriefcaseWindow implements WindowListener {
    * Create the application.
    */
   public MainBriefcaseWindow() {
-    initialize();
-  }
-
-  /**
-   * Initialize the contents of the frame.
-   */
-  private void initialize() {
     frame = new JFrame();
     frame.setBounds(100, 100, 680, 595);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -207,6 +205,7 @@ public class MainBriefcaseWindow implements WindowListener {
     ExportPanel.TAB_POSITION = 2;
     
     frame.addWindowListener(this);
+    setFullUIEnabled(false);
   }
   
   public void establishBriefcaseStorageLocation(boolean showDialog) {

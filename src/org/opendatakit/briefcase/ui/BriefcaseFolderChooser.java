@@ -21,10 +21,11 @@ import java.io.File;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileFilter;
 
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
-class BriefcaseFolderChooser extends JFileChooser {
+class BriefcaseFolderChooser extends AbstractFileChooser {
 
   /**
 	 * 
@@ -71,17 +72,28 @@ class BriefcaseFolderChooser extends JFileChooser {
     }
   }
 
-  @SuppressWarnings("unused")
-  private BriefcaseFolderChooser(Container parentWindow) {
+  BriefcaseFolderChooser(Container parentWindow) {
     super();
     this.parentWindow = parentWindow;
+    setDialogTitle("Choose " + MessageStrings.BRIEFCASE_STORAGE_LOCATION);
+    setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    setDialogType(JFileChooser.OPEN_DIALOG); // allow creating file
+    setFileFilter(new FileFilter() {
+      @Override
+      public boolean accept(File f) {
+        return f.isDirectory();
+      }
+
+      @Override
+      public String getDescription() {
+        return "Directories";
+      }});
+    
+    setApproveButtonText("Choose");
   }
 
-  BriefcaseFolderChooser(Container parentWindow, boolean asOpenDialog) {
-    super();
-    this.parentWindow = parentWindow;
-    setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-    setDialogType(JFileChooser.SAVE_DIALOG); // allow creating file
-    setApproveButtonText(asOpenDialog ? "Open" : "Save");
+  @Override
+  public boolean testAndMessageBadFolder(File f, Container parentWindow) {
+    return testAndMessageBadBriefcaseStorageLocationParentFolder(f, parentWindow);
   }
 }

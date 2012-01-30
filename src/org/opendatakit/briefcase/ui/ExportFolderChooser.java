@@ -21,6 +21,7 @@ import java.io.File;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileFilter;
 
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
@@ -29,7 +30,7 @@ import org.opendatakit.briefcase.util.FileSystemUtils;
  * @author mitchellsundt@gmail.com
  *
  */
-class NonBriefcaseFolderChooser extends JFileChooser {
+class ExportFolderChooser extends AbstractFileChooser {
 
   /**
 	 * 
@@ -48,22 +49,21 @@ class NonBriefcaseFolderChooser extends JFileChooser {
    */
   public static final boolean testAndMessageBadNonBriefcaseFolder(File f, Container parentWindow) {
     if ( !f.exists() ) {
-      return true;
-    }
-    if (!f.isDirectory()) {
+      return false;
+    } else if (!f.isDirectory()) {
       JOptionPane.showMessageDialog(parentWindow,
           MessageStrings.DIR_NOT_DIRECTORY,
-          MessageStrings.INVALID_DIRECTORY, JOptionPane.ERROR_MESSAGE);
+          MessageStrings.INVALID_EXPORT_DIRECTORY, JOptionPane.ERROR_MESSAGE);
       return false;
     } else if (FileSystemUtils.isUnderBriefcaseFolder(f)) {
       JOptionPane.showMessageDialog(parentWindow,
           MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
-          MessageStrings.INVALID_DIRECTORY, JOptionPane.ERROR_MESSAGE);
+          MessageStrings.INVALID_EXPORT_DIRECTORY, JOptionPane.ERROR_MESSAGE);
       return false;
     } else if (FileSystemUtils.isUnderODKFolder(f)) {
       JOptionPane.showMessageDialog(parentWindow,
           MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY,
-          MessageStrings.INVALID_DIRECTORY, JOptionPane.ERROR_MESSAGE);
+          MessageStrings.INVALID_EXPORT_DIRECTORY, JOptionPane.ERROR_MESSAGE);
       return false;
     } else { 
       return true; // allow directory to already have files and directories...
@@ -78,17 +78,28 @@ class NonBriefcaseFolderChooser extends JFileChooser {
     }
   }
 
-  @SuppressWarnings("unused")
-  private NonBriefcaseFolderChooser(Container parentWindow) {
+  public ExportFolderChooser(Container parentWindow) {
     super();
     this.parentWindow = parentWindow;
+    setDialogTitle("Choose " + MessageStrings.EXPORT_DIRECTORY);
+    setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    setDialogType(JFileChooser.OPEN_DIALOG); // allow creating file
+    setFileFilter(new FileFilter() {
+      @Override
+      public boolean accept(File f) {
+        return f.isDirectory();
+      }
+
+      @Override
+      public String getDescription() {
+        return "Directories";
+      }});
+    
+    setApproveButtonText("Choose");
   }
 
-  NonBriefcaseFolderChooser(Container parentWindow, boolean asOpenDialog) {
-    super();
-    this.parentWindow = parentWindow;
-    setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-    setDialogType(JFileChooser.SAVE_DIALOG); // allow creating file
-    setApproveButtonText(asOpenDialog ? "Open" : "Save");
+  @Override
+  public boolean testAndMessageBadFolder(File f, Container parentWindow) {
+    return testAndMessageBadNonBriefcaseFolder(f, parentWindow);
   }
 }

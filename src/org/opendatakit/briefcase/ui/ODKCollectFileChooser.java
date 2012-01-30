@@ -21,10 +21,11 @@ import java.io.File;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileFilter;
 
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
-final class ODKCollectFileChooser extends JFileChooser {
+final class ODKCollectFileChooser extends AbstractFileChooser {
 
   /**
 	 * 
@@ -38,11 +39,38 @@ final class ODKCollectFileChooser extends JFileChooser {
   @Override
   public void approveSelection() {
     File f = this.getSelectedFile();
+    if ( testAndMessageBadFolder(f, parentWindow) ) {
+      super.approveSelection();
+    }
+  }
+
+  ODKCollectFileChooser(Container parentWindow) {
+    super();
+    this.parentWindow = parentWindow;
+    setDialogTitle("Choose " + MessageStrings.ODK_DIRECTORY);
+    setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    setDialogType(JFileChooser.OPEN_DIALOG); // allow creating file
+    setFileFilter(new FileFilter() {
+      @Override
+      public boolean accept(File f) {
+        return f.isDirectory();
+      }
+
+      @Override
+      public String getDescription() {
+        return "Directories";
+      }});
+    
+    setApproveButtonText("Choose");
+  }
+
+  @Override
+  public boolean testAndMessageBadFolder(File f, Container parentWindow) {
     if ( f == null || !f.exists() ) {
       JOptionPane.showMessageDialog(parentWindow,
           MessageStrings.DIR_NOT_EXIST,
           MessageStrings.INVALID_ODK_DIRECTORY, JOptionPane.ERROR_MESSAGE);
-      return;
+      return false;
     }
     File parent = f.getParentFile();
     if ( !f.isDirectory() ) {
@@ -62,14 +90,8 @@ final class ODKCollectFileChooser extends JFileChooser {
           MessageStrings.DIR_NOT_ODK_COLLECT_DIRECTORY, 
           MessageStrings.INVALID_ODK_DIRECTORY, JOptionPane.ERROR_MESSAGE);
     } else {
-      super.approveSelection();
+      return true;
     }
-  }
-
-  ODKCollectFileChooser(Container parentWindow, String startingPath) {
-    super(startingPath != null && startingPath.trim().length() != 0 
-        ? startingPath : FileSystemUtils.getMountPoint());
-    this.parentWindow = parentWindow;
-    setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    return false;
   }
 }

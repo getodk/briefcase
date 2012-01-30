@@ -100,8 +100,13 @@ public class MainFormUploaderWindow {
     @Override
     public void actionPerformed(ActionEvent e) {
       // briefcase...
-      FormDefinitionFileChooser fc = new FormDefinitionFileChooser(MainFormUploaderWindow.this.frame);
-      int retVal = fc.showDialog(MainFormUploaderWindow.this.frame, null);
+      WrappedFileChooser fc = new WrappedFileChooser(MainFormUploaderWindow.this.frame,
+          new FormDefinitionFileChooser(MainFormUploaderWindow.this.frame));
+      String path = txtFormDefinitionFile.getText();
+      if ( path != null && path.trim().length() != 0 ) {
+        fc.setSelectedFile(new File(path.trim()));
+      }
+      int retVal = fc.showDialog();
       if (retVal == JFileChooser.APPROVE_OPTION) {
         if (fc.getSelectedFile() != null) {
           String formDefinitionPath = fc.getSelectedFile().getAbsolutePath();

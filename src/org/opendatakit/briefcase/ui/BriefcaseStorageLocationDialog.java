@@ -60,17 +60,17 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
     //lblTheBriefcaseStorage.setBackground(UIManager.getColor("Panel.background"));
     lblTheBriefcaseStorage.setEnabled(true);
     lblTheBriefcaseStorage.setEditable(false);
-    lblTheBriefcaseStorage.setPreferredSize(new Dimension(600,250));
+    lblTheBriefcaseStorage.setPreferredSize(new Dimension(650,250));
       lblTheBriefcaseStorage.setText(MessageStrings.BRIEFCASE_STORAGE_LOCATION_EXPLANATION_HTML);
       
     JLabel lblBriefcaseStorageLocation = new JLabel(MessageStrings.BRIEFCASE_STORAGE_LOCATION);
     
     txtBriefcaseLocation = new JTextField();
-    String directoryPath = BriefcasePreferences.getBriefcaseDirectoryProperty();
+    String directoryPath = BriefcasePreferences.getBriefcaseDirectoryIfSet();
     if ( directoryPath == null || directoryPath.length() == 0) {
       txtBriefcaseLocation.setColumns(10);
     } else {
-      txtBriefcaseLocation.setText(directoryPath);
+      txtBriefcaseLocation.setText(directoryPath + File.separator + FileSystemUtils.BRIEFCASE_DIR);
     }
     txtBriefcaseLocation.setEditable(false);
     
@@ -89,7 +89,8 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
                 MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION, JOptionPane.ERROR_MESSAGE);
             return;
           }
-          File parentFolder = new File(txtBriefcaseLocation.getText());
+          File folder = new File(txtBriefcaseLocation.getText());
+          File parentFolder = folder.getParentFile();
           FileSystemUtils.assertBriefcaseStorageLocationParentFolder(parentFolder);
           BriefcasePreferences.setBriefcaseDirectoryProperty(parentFolder.getAbsolutePath());
           BriefcaseStorageLocationDialog.this.setVisible(false);
@@ -152,7 +153,8 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
   
   @Override
   public void actionPerformed(ActionEvent arg0) {
-    BriefcaseFolderChooser fc = new BriefcaseFolderChooser(this.getParent(), true);
+    WrappedFileChooser fc = new WrappedFileChooser(this.getParent(), 
+        new BriefcaseFolderChooser(this.getParent()));
     // figure out the initial directory path...
     String candidateDir = txtBriefcaseLocation.getText();
     File base = null;
@@ -160,23 +162,21 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
       // nothing -- use default
       base = new File(BriefcasePreferences.getBriefcaseDirectoryProperty());
     } else {
-      // start with candidate and move up the tree until we have a valid directory.
-      base = new File(candidateDir);
+      // start with candidate parent and move up the tree until we have a valid directory.
+      base = new File(candidateDir).getParentFile();
       while ( base != null && (!base.exists() || !base.isDirectory()) ) {
         base = base.getParentFile();
       }
-      if ( base == null ) {
-        // completely invalid path -- use default
-        base = new File(BriefcasePreferences.getBriefcaseDirectoryProperty());
-      }
     }
-    fc.setSelectedFile(base);
-    int retVal = fc.showDialog(this, null);
+    if ( base != null ) {
+      fc.setSelectedFile(base);
+    }
+    int retVal = fc.showDialog();
     if (retVal == JFileChooser.APPROVE_OPTION) {
       File parentFolder = fc.getSelectedFile();
       if (parentFolder != null) {
         String briefcasePath = parentFolder.getAbsolutePath();
-        txtBriefcaseLocation.setText(briefcasePath);
+        txtBriefcaseLocation.setText(briefcasePath + File.separator + FileSystemUtils.BRIEFCASE_DIR);
       }
     }
   }

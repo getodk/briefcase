@@ -215,6 +215,7 @@ public class PushTransferPanel extends JPanel {
     btnSelectOrClearAllForms = new JButton("Select all");
 
     lblUploading = new JLabel(UPLOADING_DOT_ETC);
+    lblUploading.setForeground(lblUploading.getBackground());
     btnTransfer = new JButton(TAB_NAME);
     btnCancel = new JButton("Cancel");
     btnCancel.addActionListener(new ActionListener() {

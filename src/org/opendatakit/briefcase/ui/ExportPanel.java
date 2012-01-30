@@ -86,13 +86,17 @@ public class ExportPanel extends JPanel {
 
   private JLabel lblForm;
 
-  class FolderActionListener implements ActionListener {
+  class ExportFolderActionListener implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      // briefcase...
-      NonBriefcaseFolderChooser fc = new NonBriefcaseFolderChooser(ExportPanel.this, true);
-      int retVal = fc.showDialog(ExportPanel.this, null);
+      WrappedFileChooser fc = new WrappedFileChooser(ExportPanel.this, 
+          new ExportFolderChooser(ExportPanel.this));
+      String path = txtExportDirectory.getText();
+      if ( path != null || path.trim().length() != 0 ) {
+        fc.setSelectedFile(new File(path.trim()));
+      }
+      int retVal = fc.showDialog();
       if (retVal == JFileChooser.APPROVE_OPTION) {
         if (fc.getSelectedFile() != null) {
           String nonBriefcasePath = fc.getSelectedFile().getAbsolutePath();
@@ -110,8 +114,13 @@ public class ExportPanel extends JPanel {
 
     @Override
     public void actionPerformed(ActionEvent arg0) {
-      PrivateKeyFileChooser dlg = new PrivateKeyFileChooser(null);
-      int retVal = dlg.showDialog(ExportPanel.this, null);
+      WrappedFileChooser dlg = new WrappedFileChooser(ExportPanel.this, 
+          new PrivateKeyFileChooser(ExportPanel.this));
+      String path = pemPrivateKeyFilePath.getText();
+      if ( path != null && path.trim().length() != 0 ) {
+        dlg.setSelectedFile(new File(path.trim()));
+      }
+      int retVal = dlg.showDialog();
       if (retVal == JFileChooser.APPROVE_OPTION ) {
         if (dlg.getSelectedFile() != null) {
           String PEMFilePath = dlg.getSelectedFile().getAbsolutePath();
@@ -333,7 +342,7 @@ public class ExportPanel extends JPanel {
     txtExportDirectory.setColumns(10);
 
     btnChooseExportDirectory = new JButton("Choose...");
-    btnChooseExportDirectory.addActionListener(new FolderActionListener());
+    btnChooseExportDirectory.addActionListener(new ExportFolderActionListener());
 
     JLabel lblPemPrivateKey = new JLabel("PEM Private Key File:");
 

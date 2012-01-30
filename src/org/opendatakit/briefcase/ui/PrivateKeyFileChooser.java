@@ -17,20 +17,46 @@
 package org.opendatakit.briefcase.ui;
 
 import java.awt.Container;
+import java.io.File;
 
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
-public class PrivateKeyFileChooser extends JFileChooser {
+public class PrivateKeyFileChooser extends AbstractFileChooser {
 
   /**
 	 * 
 	 */
   private static final long serialVersionUID = 7687043156045655207L;
 
+  private Container parentWindow;
+  
   public PrivateKeyFileChooser(Container parentWindow) {
     super();
+    this.parentWindow = parentWindow;
     setFileSelectionMode(JFileChooser.FILES_ONLY);
     setDialogType(JFileChooser.OPEN_DIALOG); // must exist...
+    setDialogTitle("Open Private Key (PEM) file");
     setApproveButtonText("Open");
+  }
+
+  @Override
+  public void approveSelection() {
+    File f = this.getSelectedFile();
+    if (testAndMessageBadFolder(f, parentWindow)) {
+      super.approveSelection();
+    }
+  }
+
+  @Override
+  public boolean testAndMessageBadFolder(File f, Container parentWindow) {
+    if ( f == null || !f.isFile()) {
+      JOptionPane.showMessageDialog(parentWindow,
+          MessageStrings.INVALID_PEM_FILE,
+          MessageStrings.INVALID_PEM_FILE_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
+    } else {
+      return true;
+    }
+    return false;
   }
 }

@@ -22,6 +22,11 @@ public class MessageStrings {
 
   public static final String BRIEFCASE_STORAGE_LOCATION =
       "ODK Briefcase Storage Location";
+  public static final String ODK_DIRECTORY =
+      "ODK Directory";
+  public static final String EXPORT_DIRECTORY =
+      "Export Directory";
+
   public static final String DIR_NOT_EXIST =
       "Directory does not exist";
   public static final String DIR_NOT_DIRECTORY =
@@ -33,22 +38,27 @@ public class MessageStrings {
   public static final String DIR_NOT_ODK_COLLECT_DIRECTORY =
       "Not an ODK Collect directory (did not find both the forms and instances child directories)";
   public static final String INVALID_ODK_DIRECTORY =
-      "Invalid ODK Directory";
+      "Invalid " + ODK_DIRECTORY;
   public static final String INVALID_BRIEFCASE_STORAGE_LOCATION =
       "Invalid " + BRIEFCASE_STORAGE_LOCATION;
   public static final String INVALID_EXPORT_DIRECTORY =
-      "Invalid Export Directory";
+      "Invalid " + EXPORT_DIRECTORY;
   public static final String INVALID_DIRECTORY =
-      "Invlid Directory";
+      "Invalid Directory";
+  public static final String INVALID_PEM_FILE =
+      "Invalid Private Key (PEM) File";
   
+  public static final String INVALID_PEM_FILE_DIALOG_TITLE =
+      "Invalid Private Key (PEM) File";
   public static final String BRIEFCASE_STORAGE_LOCATION_DIALOG_TITLE = 
       BRIEFCASE_STORAGE_LOCATION;
   public static final String BRIEFCASE_STORAGE_LOCATION_EXPLANATION_HTML =
       "<body><font face=\"verdana,sans-serif\" size=\"+1\"><p>Please " +
-      "specify an " + BRIEFCASE_STORAGE_LOCATION + ".</p>" +
-      "<p>ODK Briefcase will create a storage area named <em>" +
+      "specify the location of the <em>" + FileSystemUtils.BRIEFCASE_DIR +
+      "</em> area.</p>" +
+      "<p>ODK Briefcase uses a storage area named <em>" +
           FileSystemUtils.BRIEFCASE_DIR + 
-    "</em> underneath the " + BRIEFCASE_STORAGE_LOCATION +
+    "</em> identified by the " + BRIEFCASE_STORAGE_LOCATION +
     ". This storage area holds all " +
     "your form and submission data.</p><p>" +
     "Once created, you can copy and transport this storage area " +

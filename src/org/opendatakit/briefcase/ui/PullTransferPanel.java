@@ -40,8 +40,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SwingUtilities;
 
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
@@ -168,8 +168,13 @@ public class PullTransferPanel extends JPanel {
         }
       } else if (EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.equals(selection)) {
         // odkCollect...
-        ODKCollectFileChooser fc = new ODKCollectFileChooser(PullTransferPanel.this, txtOriginName.getText());
-        int retVal = fc.showOpenDialog(PullTransferPanel.this);
+        WrappedFileChooser fc = new WrappedFileChooser(PullTransferPanel.this, 
+            new ODKCollectFileChooser(PullTransferPanel.this));
+        String filePath = txtOriginName.getText();
+        if ( filePath != null && filePath.trim().length() != 0 ) {
+          fc.setSelectedFile(new File(filePath.trim()));
+        }
+        int retVal = fc.showDialog();
         if (retVal == JFileChooser.APPROVE_OPTION) {
           txtOriginName.setText(fc.getSelectedFile().getAbsolutePath());
           PullTransferPanel.this.updateFormStatuses();
@@ -280,6 +285,7 @@ public class PullTransferPanel extends JPanel {
     btnSelectOrClearAllForms = new JButton("Select all");
 
     lblDownloading = new JLabel(DOWNLOADING_DOT_ETC);
+    lblDownloading.setForeground(lblDownloading.getBackground());
     btnTransfer = new JButton(TAB_NAME);
     btnCancel = new JButton("Cancel");
     btnCancel.addActionListener(new ActionListener() {
@@ -369,6 +375,7 @@ public class PullTransferPanel extends JPanel {
     btnTransfer.addActionListener(new TransferActionListener());
 
     setActiveTransferState(transferStateActive);
+    lblDownloading.setText("                     ");
   }
 
   @Override

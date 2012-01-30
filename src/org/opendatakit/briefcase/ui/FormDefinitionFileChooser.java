@@ -22,7 +22,7 @@ import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
-class FormDefinitionFileChooser extends JFileChooser {
+class FormDefinitionFileChooser extends AbstractFileChooser {
 
   /**
 	 * 
@@ -68,6 +68,12 @@ class FormDefinitionFileChooser extends JFileChooser {
     this.parentWindow = parentWindow;
     setFileSelectionMode(JFileChooser.FILES_ONLY);
     setDialogType(JFileChooser.OPEN_DIALOG); // must exist...
+    setDialogTitle("Open Form Definition File");
     setApproveButtonText("Open");
+  }
+
+  @Override
+  public boolean testAndMessageBadFolder(File f, Container parentWindow) {
+    return testAndMessageBadFormDefinitionFile(f, parentWindow);
   }
 }
