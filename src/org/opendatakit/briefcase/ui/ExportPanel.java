@@ -93,7 +93,7 @@ public class ExportPanel extends JPanel {
       WrappedFileChooser fc = new WrappedFileChooser(ExportPanel.this, 
           new ExportFolderChooser(ExportPanel.this));
       String path = txtExportDirectory.getText();
-      if ( path != null || path.trim().length() != 0 ) {
+      if ( path != null && path.trim().length() != 0 ) {
         fc.setSelectedFile(new File(path.trim()));
       }
       int retVal = fc.showDialog();

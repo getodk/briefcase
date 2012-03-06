@@ -157,6 +157,9 @@ public class ExportToCsv implements ITransformFormAction {
   }
 
   private Element findElement(Element submissionElement, String name) {
+    if ( submissionElement == null ) {
+      return null;
+    }
     int maxChildren = submissionElement.getChildCount();
     for (int i = 0; i < maxChildren; i++) {
       if (submissionElement.getType(i) == Node.ELEMENT) {
@@ -372,24 +375,31 @@ public class ExportToCsv implements ITransformFormAction {
                                                                * otherwise
                                                                * unknown
                                                                */
-          if (ec == null) {
-            emitString(osw, first, null);
-            first = false;
-          } else if (current.repeatable) {
-            // repeatable group...
+          if (current.repeatable) {
             if (prior == null || !current.getName().equals(prior.getName())) {
-              String uniqueGroupPath = uniquePath + "/" + getFullName(current, primarySet);
-              emitString(osw, first, uniqueGroupPath);
-              first = false;
-              // first time processing this repeat group (ignore templates)
-              List<Element> ecl = findElementList(submissionElement, current.getName());
-              emitRepeatingGroupCsv(ecl, current, uniquePath,
-                                                  uniqueGroupPath, instanceDir);
+              // repeatable group...
+              if (ec == null) {
+                emitString(osw, first, null);
+                first = false;
+              } else {
+                String uniqueGroupPath = uniquePath + "/" + getFullName(current, primarySet);
+                emitString(osw, first, uniqueGroupPath);
+                first = false;
+                // first time processing this repeat group (ignore templates)
+                List<Element> ecl = findElementList(submissionElement, current.getName());
+                emitRepeatingGroupCsv(ecl, current, uniquePath,
+                                                    uniqueGroupPath, instanceDir);
+              }
             }
           } else if (current.getNumChildren() == 0 && current != lfd.getSubmissionElement()) {
             // assume fields that don't have children are string fields.
-            emitString(osw, first, getSubmissionValue(ec));
-            first = false;
+            if (ec == null) {
+              emitString(osw, first, null);
+              first = false;
+            } else { 
+              emitString(osw, first, getSubmissionValue(ec));
+              first = false;
+            }
           } else {
             /* one or more children -- this is a non-repeating group */
             first = emitSubmissionCsv(osw, ec, primarySet, current, first, uniquePath, instanceDir);
