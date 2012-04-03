@@ -62,7 +62,7 @@ public class AggregateUtils {
 
   private static final String BRIEFCASE_APP_TOKEN_PARAMETER = "briefcaseAppToken";
 
-  private static final int SERVER_CONNECTION_TIMEOUT = 30000;
+  private static final int SERVER_CONNECTION_TIMEOUT = 60000;
 
   static final Logger log = Logger.getLogger(AggregateUtils.class.getName());
 
@@ -720,8 +720,8 @@ public class AggregateUtils {
 
         // we've added at least one attachment to the request...
         if (j + 1 < files.size()) {
-          if (byteCount + files.get(j + 1).length() > 10000000L) {
-            // the next file would exceed the 10MB threshold...
+          if ((j-lastJ+1) > 100 || byteCount + files.get(j + 1).length() > 10000000L) {
+            // more than 100 attachments or the next file would exceed the 10MB threshold...
             log.info("Extremely long post is being split into multiple posts");
             try {
               StringBody sb = new StringBody("yes", Charset.forName("UTF-8"));

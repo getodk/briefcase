@@ -448,7 +448,7 @@ public class FileSystemUtils {
 
   }
 
-  private static final void decryptFile(CipherFactory cipherFactory,
+  private static final void decryptFile(EncryptionInformation ei,
       File original, File unencryptedDir) throws IOException, NoSuchAlgorithmException,
       NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
     InputStream fin = null;
@@ -464,7 +464,7 @@ public class FileSystemUtils {
       name = name.substring(0, name.length() - ENCRYPTED_FILE_EXTENSION.length());
       File decryptedFile = new File(unencryptedDir, name);
 
-      Cipher c = cipherFactory.getCipher(name);
+      Cipher c = ei.getCipher(name);
 
       fin = new FileInputStream(original);
       fin = new CipherInputStream(fin, c);
@@ -502,32 +502,7 @@ public class FileSystemUtils {
       PrivateKey rsaPrivateKey, File instanceDir, File unencryptedDir) throws FileSystemException,
       CryptoException, ParsingException {
 
-    CipherFactory cipherFactory;
-    try {
-      // construct the base64-encoded RSA-encrypted symmetric key
-      Cipher pkCipher;
-      pkCipher = Cipher.getInstance(ASYMMETRIC_ALGORITHM);
-      // write AES key
-      pkCipher.init(Cipher.DECRYPT_MODE, rsaPrivateKey);
-      byte[] encryptedSymmetricKey = Base64.decodeBase64(base64EncryptedSymmetricKey);
-      byte[] decryptedKey = pkCipher.doFinal(encryptedSymmetricKey);
-      cipherFactory = new CipherFactory(fim.instanceId, decryptedKey);
-    } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
-    } catch (NoSuchPaddingException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
-    } catch (InvalidKeyException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
-    } catch (IllegalBlockSizeException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
-    } catch (BadPaddingException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
-    }
+    EncryptionInformation ei = new EncryptionInformation(base64EncryptedSymmetricKey, fim.instanceId, rsaPrivateKey);
 
     byte[] elementDigest;
     try {
@@ -596,7 +571,7 @@ public class FileSystemUtils {
     for (String mediaName : mediaNames) {
       File f = new File(instanceDir, mediaName);
       try {
-        decryptFile(cipherFactory, f, unencryptedDir);
+        decryptFile(ei, f, unencryptedDir);
       } catch (InvalidKeyException e) {
         e.printStackTrace();
         throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
@@ -618,7 +593,7 @@ public class FileSystemUtils {
     // decrypt the submission file
     File f = new File(instanceDir, encryptedSubmissionFile);
     try {
-      decryptFile(cipherFactory, f, unencryptedDir);
+      decryptFile(ei, f, unencryptedDir);
     } catch (InvalidKeyException e) {
       e.printStackTrace();
       throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());

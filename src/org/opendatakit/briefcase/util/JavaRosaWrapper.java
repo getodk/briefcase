@@ -46,6 +46,7 @@ import org.opendatakit.briefcase.util.JavaRosaWrapper.BadFormDefinition.Reason;
 public class JavaRosaWrapper {
 
 	static Logger log = Logger.getLogger(JavaRosaWrapper.class.getName());
+   private static final String BASE64_ENCRYPTED_FIELD_KEY = "base64EncryptedFieldKey";
 	private static final String BASE64_RSA_PUBLIC_KEY = "base64RsaPublicKey";
 	private static final String NAMESPACE_ODK = "http://www.opendatakit.org/xforms";
    private static final String ENCRYPTED_FORM_DEFINITION = "<?xml version=\"1.0\"?>"
@@ -415,11 +416,15 @@ public class JavaRosaWrapper {
 	 */
 	private final XFormParameters rootElementDefn;
 	private final XFormParameters submissionElementDefn;
-	boolean isEncryptedForm = false;
+	boolean isFileEncryptedForm = false;
+	boolean isFieldEncryptedForm = false;
 	boolean isNotUploadableForm = false;
 	boolean isInvalidFormXmlns = false; // true if legacy 0.9.8 form with improper xmlns form id.
 	private final TreeElement submissionElement;
 	
+	private String base64RsaPublicKey = null;
+	private String base64EncryptedFieldRsaPublicKey = null;
+
 	// if encrypted, the top level element of the encrypted structure...
 	private final TreeElement encryptedSubmissionElement;
 	
@@ -490,6 +495,66 @@ public class JavaRosaWrapper {
 		}
 	}
 
+	/**
+	 * Determine whether or not a field is encrypted.
+	 * Field-level encryption plumbing.
+	 * 
+	 * @param element
+	 * @return
+	 */
+	public final static boolean isEncryptedField(TreeElement element) {
+	  String v = getBindAttribute(element, "encrypted");
+	  return ( v != null && ("true".equalsIgnoreCase(v) || "true()".equalsIgnoreCase(v)));
+	}
+	
+	/**
+	 * Field-level encryption requires an extended Javarosa library that expose
+	 * an "encrypted" bind attribute that identifies the fields that are to be 
+	 * encrypted and a BASE64_RSA_PUBLIC_KEY bind attribute on the 
+	 * BASE64_ENCRYPTED_FIELD_KEY field in the form.
+	 * 
+	 * Requires an experimental custom Javarosa library.
+	 *   
+	 * Not enabled in the main tree.
+	 * 
+	 * @param element
+	 * @param name
+	 * @return
+	 */
+	private final static String getBindAttribute(TreeElement element, String name) {
+	  return null;
+	  // TODO: uncomment this if the experimental library is used...
+	  // return element.getBindAttributeValue(null, name);
+	}
+	
+	/**
+	 * Field-level encryption support.  Forms with 
+	 * field-level encryption must have a meta block
+	 * with a BASE64_ENCRYPTED_FIELD_KEY entry.
+	 */
+	private void extractBase64FieldEncryptionKey() {
+     TreeElement meta = findDepthFirst(submissionElement, "meta");
+     if ( meta != null ) {
+       Vector<TreeElement> v;
+
+       // Save the base64 RSA-Encrypted symmetric encryption key 
+       // we are using for field encryption.
+       // Do not encrypt the form if we can't save this encrypted key...
+       v = meta.getChildrenWithName(BASE64_ENCRYPTED_FIELD_KEY);
+       if ( v.size() == 1 ) {
+         TreeElement ek = v.get(0);
+         base64EncryptedFieldRsaPublicKey = getBindAttribute(ek, BASE64_RSA_PUBLIC_KEY);
+         if (base64EncryptedFieldRsaPublicKey != null &&
+             base64EncryptedFieldRsaPublicKey.trim().length() == 0 ) {
+           base64EncryptedFieldRsaPublicKey = null;
+         }
+         if ( base64EncryptedFieldRsaPublicKey != null ) {
+           isFieldEncryptedForm = true;
+         }
+       }
+     }
+	}
+	
 	/**
 	 * Constructor that parses and xform from the input stream supplied and
 	 * creates the proper ODK Aggregate Form definition in the gae datastore.
@@ -644,20 +709,23 @@ public class JavaRosaWrapper {
 					+ " is not uploadable (submission method is not form-data-post or does not have an http: or https: url. ");
 		}
 
-		String publicKey = null;
+		base64RsaPublicKey = null;
 		if (p != null) {
-			publicKey = p.getAttribute(BASE64_RSA_PUBLIC_KEY);
+		  base64RsaPublicKey = p.getAttribute(BASE64_RSA_PUBLIC_KEY);
+		  if ( base64RsaPublicKey != null && base64RsaPublicKey.trim().length() == 0 ) {
+		    base64RsaPublicKey = null;
+		  }
 		}
 
 		// now see if we are encrypted -- if so, fake the submission element to
 		// be
 		// the parsing of the ENCRYPTED_FORM_DEFINITION
-		if (publicKey == null || publicKey.length() == 0) {
+		if (base64RsaPublicKey == null) {
 			// not encrypted...
 			submissionElement = trueSubmissionElement;
 			encryptedSubmissionElement = null;
 		} else {
-			isEncryptedForm = true;
+			isFileEncryptedForm = true;
 			submissionElement = trueSubmissionElement;
 			
 			// encrypted -- use the encrypted form template (above) to define
@@ -677,7 +745,31 @@ public class JavaRosaWrapper {
 			}
 			encryptedSubmissionElement = dataModel.getRoot();
 		}
+		
+		extractBase64FieldEncryptionKey();
 	}
+   
+   /**
+    * Traverse the submission looking for the first matching tag in depth-first order.
+    * 
+    * @param parent
+    * @param name
+    * @return
+    */
+   private TreeElement findDepthFirst(TreeElement parent, String name) {
+       int len = parent.getNumChildren();
+       for ( int i = 0; i < len ; ++i ) {
+           TreeElement e = parent.getChildAt(i);
+           if ( name.equals(e.getName()) ) {
+               return e;
+           } else if ( e.getNumChildren() != 0 ) {
+               TreeElement v = findDepthFirst(e, name);
+               if ( v != null ) return v;
+           }
+       }
+       return null;
+   }
+
 
 	public XFormParameters getRootElementDefn() {
 		return rootElementDefn;
@@ -691,7 +783,7 @@ public class JavaRosaWrapper {
 		return submissionElementDefn.formId +
 		"[@version=" + submissionElementDefn.modelVersion +
 		" and @uiVersion=" + submissionElementDefn.uiVersion +
-		"]/" + ( isEncryptedForm() ? "data" : submissionElement.getName()) + 
+		"]/" + ( isFileEncryptedForm() ? "data" : submissionElement.getName()) + 
 		"[@key=" + uri + "]";
 	}
 
@@ -699,10 +791,22 @@ public class JavaRosaWrapper {
 		return submissionElement;
 	}
 	
-	public boolean isEncryptedForm() {
-		return isEncryptedForm;
+	public boolean isFieldEncryptedForm() {
+		return isFieldEncryptedForm;
 	}
 
+	public boolean isFileEncryptedForm() {
+	  return isFileEncryptedForm;
+	}
+	
+	public String getBase64RsaPublicKey() {
+	  return base64RsaPublicKey;
+	}
+	
+	public String getBase64EncryptedFieldRsaPublicKey() {
+	  return base64EncryptedFieldRsaPublicKey;
+	}
+	
 	public boolean isNotUploadableForm() {
 		return isNotUploadableForm;
 	}

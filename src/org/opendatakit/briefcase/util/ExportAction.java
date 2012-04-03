@@ -75,7 +75,7 @@ public class ExportAction {
       File outputDir, ExportType outputType, LocalFormDefinition lfd, File pemFile,
       TerminationFuture terminationFuture) throws IOException {
 
-    if (lfd.isEncryptedForm()) {
+    if (lfd.isFileEncryptedForm() || lfd.isFieldEncryptedForm()) {
 
       boolean success = false;
       while (!success) {

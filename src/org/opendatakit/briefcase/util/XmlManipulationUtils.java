@@ -92,7 +92,8 @@ public class XmlManipulationUtils {
   private static final String OPEN_ROSA_NAMESPACE = "http://openrosa.org/xforms";
   private static final String OPEN_ROSA_METADATA_TAG = "meta";
   private static final String OPEN_ROSA_INSTANCE_ID = "instanceID";
-
+  private static final String BASE64_ENCRYPTED_FIELD_KEY = "base64EncryptedFieldKey";
+  
   private static final String UTF_8 = "UTF-8";
 
   /**
@@ -153,17 +154,47 @@ public class XmlManipulationUtils {
     return null;
   }
 
+  /**
+   * Encrypted field-level encryption key. 
+   * 
+   * @param root
+   * @return
+   */
+  public static String getBase64EncryptedFieldKey(Element root) {
+    String rootUri = root.getNamespace();
+    Element meta = findMetaTag(root, rootUri);
+    if (meta != null) {
+      for (int i = 0; i < meta.getChildCount(); ++i) {
+        if (meta.getType(i) == Node.ELEMENT) {
+          Element child = meta.getElement(i);
+          String cnUri = child.getNamespace();
+          String cnName = child.getName();
+          if (cnName.equals(BASE64_ENCRYPTED_FIELD_KEY)
+              && (cnUri == null || 
+                  cnUri.equals(EMPTY_STRING) || 
+                  cnUri.equals(rootUri) ||
+                  cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE))) {
+            return XFormParser.getXMLText(child, true);
+          }
+        }
+      }
+    }
+    return null;
+  }
+  
   public static class FormInstanceMetadata {
     public final String formId;
     public final Long version;
     public final Long uiVersion;
     public final String instanceId; // this may be null
+    public final String base64EncryptedFieldKey; // this may be null
 
-    FormInstanceMetadata(String formId, Long version, Long uiVersion, String instanceId) {
+    FormInstanceMetadata(String formId, Long version, Long uiVersion, String instanceId, String base64EncryptedFieldKey) {
       this.formId = formId;
       this.version = version;
       this.uiVersion = uiVersion;
       this.instanceId = instanceId;
+      this.base64EncryptedFieldKey = base64EncryptedFieldKey;
     }
   };
 
@@ -205,7 +236,8 @@ public class XmlManipulationUtils {
     if (instanceId == null) {
       instanceId = root.getAttributeValue(null, INSTANCE_ID_ATTRIBUTE_NAME);
     }
-    return new FormInstanceMetadata(formId, modelVersion, uiVersion, instanceId);
+    String base64EncryptedFieldKey = getBase64EncryptedFieldKey(root);
+    return new FormInstanceMetadata(formId, modelVersion, uiVersion, instanceId, base64EncryptedFieldKey);
   }
 
   public static Document parseXml(File submission) throws ParsingException, FileSystemException {

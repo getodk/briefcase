@@ -16,12 +16,17 @@
 
 package org.opendatakit.briefcase.util;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +36,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.NoSuchPaddingException;
+
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.bushe.swing.event.EventBus;
 import org.javarosa.core.model.instance.TreeElement;
@@ -186,7 +196,7 @@ public class ExportToCsv implements ITransformFormAction {
     return ecl;
   }
 
-  private String getSubmissionValue(Element element) {
+  private String getSubmissionValue(EncryptionInformation ei, TreeElement model, Element element) {
     // could not find element, return null
     if (element == null) {
       return null;
@@ -200,10 +210,61 @@ public class ExportToCsv implements ITransformFormAction {
         b.append(element.getText(i));
       }
     }
-    return b.toString();
+    String rawElement = b.toString();
+
+    // Field-level encryption support -- experimental
+    if ( JavaRosaWrapper.isEncryptedField(model) ) {
+
+      InputStreamReader isr = null;
+      try {
+        Cipher c = ei.getCipher("field:" + model.getName(), model.getName());
+  
+        isr = new InputStreamReader(new CipherInputStream(
+                  new ByteArrayInputStream(Base64.decodeBase64(rawElement)), c),"UTF-8");
+        
+        b.setLength(0);
+        int ch;
+        while ( (ch = isr.read()) != -1 ) {
+          char theChar = (char) ch;
+          b.append(theChar);
+        }
+        return b.toString();
+        
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+        log.severe(" element name: " + model.getName() + " exception: " + e.toString());
+      } catch (InvalidKeyException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+        log.severe(" element name: " + model.getName() + " exception: " + e.toString());
+      } catch (InvalidAlgorithmParameterException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+        log.severe(" element name: " + model.getName() + " exception: " + e.toString());
+      } catch (NoSuchAlgorithmException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+        log.severe(" element name: " + model.getName() + " exception: " + e.toString());
+      } catch (NoSuchPaddingException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+        log.severe(" element name: " + model.getName() + " exception: " + e.toString());
+      } finally {
+        if (isr != null) {
+          try {
+            isr.close();
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }
+    return rawElement;
   }
 
-  private boolean emitSubmissionCsv(OutputStreamWriter osw, Element submissionElement,
+  private boolean emitSubmissionCsv(OutputStreamWriter osw, EncryptionInformation ei,
+      Element submissionElement,
       TreeElement primarySet, TreeElement treeElement, boolean first, String uniquePath,
       File instanceDir) throws IOException {
     // OK -- group with at least one element -- assume no value...
@@ -257,7 +318,7 @@ public class ExportToCsv implements ITransformFormAction {
           if (ec == null) {
             emitString(osw, first, null);
           } else {
-            emitString(osw, first, getSubmissionValue(ec));
+            emitString(osw, first, getSubmissionValue(ei,current,ec));
           }
           first = false;
           break;
@@ -268,7 +329,7 @@ public class ExportToCsv implements ITransformFormAction {
           if (ec == null) {
             emitString(osw, first, null);
           } else {
-            String value = getSubmissionValue(ec);
+            String value = getSubmissionValue(ei,current,ec);
             if (value == null || value.length() == 0) {
               emitString(osw, first, null);
             } else {
@@ -286,7 +347,7 @@ public class ExportToCsv implements ITransformFormAction {
           if (ec == null) {
             emitString(osw, first, null);
           } else {
-            String value = getSubmissionValue(ec);
+            String value = getSubmissionValue(ei,current,ec);
             if (value == null || value.length() == 0) {
               emitString(osw, first, null);
             } else {
@@ -305,7 +366,7 @@ public class ExportToCsv implements ITransformFormAction {
           if (ec == null) {
             emitString(osw, first, null);
           } else {
-            String value = getSubmissionValue(ec);
+            String value = getSubmissionValue(ei,current,ec);
             if (value == null || value.length() == 0) {
               emitString(osw, first, null);
             } else {
@@ -320,7 +381,7 @@ public class ExportToCsv implements ITransformFormAction {
           /**
            * Question with location answer.
            */
-          String compositeValue = (ec == null) ? null : getSubmissionValue(ec);
+          String compositeValue = (ec == null) ? null : getSubmissionValue(ei,current,ec);
           compositeValue = (compositeValue == null) ? null : compositeValue.trim();
 
           // emit separate lat, long, alt, acc columns...
@@ -345,7 +406,7 @@ public class ExportToCsv implements ITransformFormAction {
           /**
            * Question with external binary answer.
            */
-          String binaryFilename = getSubmissionValue(ec);
+          String binaryFilename = getSubmissionValue(ei,current,ec);
           if (binaryFilename == null || binaryFilename.length() == 0) {
             emitString(osw, first, null);
             first = false;
@@ -387,7 +448,7 @@ public class ExportToCsv implements ITransformFormAction {
                 first = false;
                 // first time processing this repeat group (ignore templates)
                 List<Element> ecl = findElementList(submissionElement, current.getName());
-                emitRepeatingGroupCsv(ecl, current, uniquePath,
+                emitRepeatingGroupCsv(ei, ecl, current, uniquePath,
                                                     uniqueGroupPath, instanceDir);
               }
             }
@@ -397,12 +458,12 @@ public class ExportToCsv implements ITransformFormAction {
               emitString(osw, first, null);
               first = false;
             } else { 
-              emitString(osw, first, getSubmissionValue(ec));
+              emitString(osw, first, getSubmissionValue(ei,current,ec));
               first = false;
             }
           } else {
             /* one or more children -- this is a non-repeating group */
-            first = emitSubmissionCsv(osw, ec, primarySet, current, first, uniquePath, instanceDir);
+            first = emitSubmissionCsv(osw, ei, ec, primarySet, current, first, uniquePath, instanceDir);
           }
           break;
         }
@@ -412,7 +473,7 @@ public class ExportToCsv implements ITransformFormAction {
     return first;
   }
 
-  private void emitRepeatingGroupCsv(List<Element> groupElementList, TreeElement group,
+  private void emitRepeatingGroupCsv(EncryptionInformation ei, List<Element> groupElementList, TreeElement group,
       String uniqueParentPath, String uniqueGroupPath, File instanceDir)
       throws IOException {
     OutputStreamWriter osw = fileMap.get(group);
@@ -420,7 +481,7 @@ public class ExportToCsv implements ITransformFormAction {
     for ( Element groupElement : groupElementList ) {
       String uniqueGroupInstancePath = uniqueGroupPath + "[" + trueOrdinal + "]";
       boolean first = true;
-      first = emitSubmissionCsv(osw, groupElement, group, group, first, uniqueGroupInstancePath, instanceDir);
+      first = emitSubmissionCsv(osw, ei, groupElement, group, group, first, uniqueGroupInstancePath, instanceDir);
       emitString(osw, first, uniqueParentPath);
       emitString(osw, false, uniqueGroupInstancePath);
       emitString(osw, false, uniqueGroupPath);
@@ -563,7 +624,7 @@ public class ExportToCsv implements ITransformFormAction {
       emitString(osw, true, "SubmissionDate");
       emitCsvHeaders(osw, submission, submission, false);
       emitString(osw, false, "KEY");
-      if ( lfd.isEncryptedForm() ) {
+      if ( lfd.isFileEncryptedForm() ) {
         emitString(osw, false, "isValidated");
       }
       osw.append("\n");
@@ -626,7 +687,7 @@ public class ExportToCsv implements ITransformFormAction {
     // is the same as the instance directory.
     
     File unEncryptedDir;
-    if (lfd.isEncryptedForm()) {
+    if (lfd.isFileEncryptedForm()) {
       // create or clean-up the temp directory that will hold the unencrypted
       // files.
       unEncryptedDir = new File(instanceDir, "temp");
@@ -687,7 +748,7 @@ public class ExportToCsv implements ITransformFormAction {
     // failure.
     try {
 
-      if (lfd.isEncryptedForm()) {
+      if (lfd.isFileEncryptedForm()) {
         // Decrypt the form and all its media files into the 
         // unEncryptedDir and validate the contents of all 
         // those files.
@@ -717,11 +778,13 @@ public class ExportToCsv implements ITransformFormAction {
       }
 
       String instanceId = null;
+      String base64EncryptedFieldKey = null;
       // find an instanceId to use...
       try {
         FormInstanceMetadata sim = XmlManipulationUtils.getFormInstanceMetadata(doc
             .getRootElement());
         instanceId = sim.instanceId;
+        base64EncryptedFieldKey = sim.base64EncryptedFieldKey;
       } catch (ParsingException e) {
         e.printStackTrace();
         EventBus.publish(new ExportProgressEvent("Could not extract metadata from submission: "
@@ -751,15 +814,27 @@ public class ExportToCsv implements ITransformFormAction {
         return false;
       }
 
+      EncryptionInformation ei = null;
+      if ( base64EncryptedFieldKey != null ) {
+        try {
+          ei = new EncryptionInformation(base64EncryptedFieldKey, instanceId, lfd.getPrivateKey());
+        } catch (CryptoException e) {
+          e.printStackTrace();
+          EventBus.publish(new ExportProgressEvent("Error establishing field decryption for submission "
+              + instanceDir.getName() + " Cause: " + e.toString()));
+          return false;
+        }
+      }
+
       // emit the csv record...
       try {
         OutputStreamWriter osw = fileMap.get(lfd.getSubmissionElement());
 
         emitString(osw, true, submissionDate);
-        emitSubmissionCsv(osw, doc.getRootElement(), lfd.getSubmissionElement(),
+        emitSubmissionCsv(osw, ei, doc.getRootElement(), lfd.getSubmissionElement(),
             lfd.getSubmissionElement(), false, instanceId, unEncryptedDir);
         emitString(osw, false, instanceId);
-        if ( lfd.isEncryptedForm() ) {
+        if ( lfd.isFileEncryptedForm() ) {
           emitString(osw, false, Boolean.toString(isValidated));
         }
         osw.append("\n");
@@ -771,7 +846,7 @@ public class ExportToCsv implements ITransformFormAction {
         return false;
       }
     } finally {
-      if (lfd.isEncryptedForm()) {
+      if (lfd.isFileEncryptedForm()) {
         // destroy the temp directory and its contents...
         try {
           FileUtils.deleteDirectory(unEncryptedDir);

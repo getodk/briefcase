@@ -112,8 +112,12 @@ public class LocalFormDefinition implements IFormDefinition {
     return formDefn.getSubmissionKey(uri);
   }
 
-  public boolean isEncryptedForm() {
-	  return formDefn.isEncryptedForm();
+  public boolean isFieldEncryptedForm() {
+	  return formDefn.isFieldEncryptedForm();
+  }
+  
+  public boolean isFileEncryptedForm() {
+    return formDefn.isFileEncryptedForm();
   }
   
   public TreeElement getSubmissionElement() {

@@ -237,7 +237,7 @@ public class ExportPanel extends JPanel {
       LocalFormDefinition lfd = (LocalFormDefinition) comboBoxForm.getSelectedItem();
 
       File pemFile = null;
-      if ( lfd.isEncryptedForm() ) {
+      if ( lfd.isFileEncryptedForm() || lfd.isFieldEncryptedForm() ) {
         pemFile = new File(pemPrivateKeyFilePath.getText());
         if ( !pemFile.exists()) {
           JOptionPane.showMessageDialog(ExportPanel.this,
@@ -278,7 +278,7 @@ public class ExportPanel extends JPanel {
         return;
       }
       
-      if ( lfd.isEncryptedForm() ) {
+      if ( lfd.isFileEncryptedForm() || lfd.isFieldEncryptedForm() ) {
         btnPemFileChooseButton.setEnabled(true);
         File pemFile = new File(pemPrivateKeyFilePath.getText());
         if ( !pemFile.exists()) {
