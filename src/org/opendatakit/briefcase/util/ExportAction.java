@@ -88,8 +88,15 @@ public class ExportAction {
                 "Invalid RSA Private Key", JOptionPane.ERROR_MESSAGE);
             continue;
           }
-          KeyPair kp = (KeyPair) o;
-          PrivateKey privKey = kp.getPrivate();
+          PrivateKey privKey;
+          if ( o instanceof KeyPair ) {
+            KeyPair kp = (KeyPair) o;
+            privKey = kp.getPrivate();
+          } else if ( o instanceof PrivateKey ) {
+            privKey = (PrivateKey) o;
+          } else {
+            privKey = null;
+          }
           if ( privKey == null ) {
             JOptionPane.showMessageDialog(null, 
                 "The supplied file does not contain a private key.",
