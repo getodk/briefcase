@@ -30,6 +30,4 @@ public interface IFormDefinition {
 
   public abstract Integer getModelVersion();
 
-  public abstract Integer getUiVersion();
-
 }

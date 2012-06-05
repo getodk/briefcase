@@ -58,7 +58,6 @@ import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.LocalFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.ui.MessageStrings;
-import org.opendatakit.briefcase.util.JavaRosaWrapper.BadFormDefinition;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
 
 public class FileSystemUtils {
@@ -627,11 +626,7 @@ public class FileSystemUtils {
       throw new FileSystemException("Error decrypting: " + submissionFile.getName() + " Cause: " + e.getMessage());
     }
     
-    boolean same = submissionFim.formId.equals(fim.formId) &&
-        ((submissionFim.version == null) 
-            ? (fim.version == null) : submissionFim.version.equals(fim.version)) &&
-        ((submissionFim.uiVersion == null) 
-            ? (fim.uiVersion == null) : submissionFim.uiVersion.equals(fim.uiVersion));
+    boolean same = submissionFim.xparam.formId.equals(fim.xparam.formId);
         
     if ( !same ) {
       throw new FileSystemException("Error decrypting:" + unencryptedDir.getName() 
@@ -640,12 +635,9 @@ public class FileSystemUtils {
 
     // Construct the element signature string
     StringBuilder b = new StringBuilder();
-    appendElementSignatureSource(b, fim.formId);
-    if ( fim.version != null ) {
-      appendElementSignatureSource(b, fim.version.toString());
-    }
-    if ( fim.uiVersion != null ) {
-      appendElementSignatureSource(b, fim.uiVersion.toString());
+    appendElementSignatureSource(b, fim.xparam.formId);
+    if ( fim.xparam.modelVersion != null ) {
+      appendElementSignatureSource(b, Long.toString(fim.xparam.modelVersion));
     }
     appendElementSignatureSource(b, base64EncryptedSymmetricKey);
 
@@ -800,13 +792,9 @@ public class FileSystemUtils {
     // verify that the metadata matches between the manifest and the submission
     rootElement = doc.getRootElement();
     FormInstanceMetadata sim = XmlManipulationUtils.getFormInstanceMetadata(rootElement);
-    if ( !fim.formId.equals(sim.formId) ||
-         ((fim.version == null) 
-             ? (sim.version != null) : !fim.version.equals(sim.version)) ||
-         ((fim.uiVersion == null) 
-             ? (sim.uiVersion != null) : !fim.uiVersion.equals(sim.uiVersion)) ) {
+    if ( !fim.xparam.equals(sim.xparam) ) {
       throw new ParsingException(
-          "FormId, version or uiVersion in decrypted submission does not match that in manifest!");
+          "FormId or version in decrypted submission does not match that in manifest!");
     }
     if ( !fim.instanceId.equals(sim.instanceId) ) {
       throw new ParsingException(

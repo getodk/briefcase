@@ -213,7 +213,7 @@ public class ExportToCsv implements ITransformFormAction {
     String rawElement = b.toString();
 
     // Field-level encryption support -- experimental
-    if ( JavaRosaWrapper.isEncryptedField(model) ) {
+    if ( JavaRosaParserWrapper.isEncryptedField(model) ) {
 
       InputStreamReader isr = null;
       try {

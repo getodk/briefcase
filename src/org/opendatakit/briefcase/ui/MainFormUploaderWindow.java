@@ -44,7 +44,7 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
-import org.opendatakit.briefcase.util.JavaRosaWrapper.BadFormDefinition;
+import org.opendatakit.briefcase.util.BadFormDefinition;
 import org.opendatakit.briefcase.util.TransferAction;
 
 public class MainFormUploaderWindow {

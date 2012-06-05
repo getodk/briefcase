@@ -38,6 +38,7 @@ import org.kxml2.io.KXmlSerializer;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
 import org.kxml2.kdom.Node;
+import org.opendatakit.aggregate.form.XFormParameters;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.MetadataUpdateException;
 import org.opendatakit.briefcase.model.ParsingException;
@@ -183,16 +184,12 @@ public class XmlManipulationUtils {
   }
   
   public static class FormInstanceMetadata {
-    public final String formId;
-    public final Long version;
-    public final Long uiVersion;
+    public final XFormParameters xparam;
     public final String instanceId; // this may be null
     public final String base64EncryptedFieldKey; // this may be null
 
-    FormInstanceMetadata(String formId, Long version, Long uiVersion, String instanceId, String base64EncryptedFieldKey) {
-      this.formId = formId;
-      this.version = version;
-      this.uiVersion = uiVersion;
+    FormInstanceMetadata(XFormParameters xparam, String instanceId, String base64EncryptedFieldKey) {
+      this.xparam = xparam;
       this.instanceId = instanceId;
       this.base64EncryptedFieldKey = base64EncryptedFieldKey;
     }
@@ -202,7 +199,6 @@ public class XmlManipulationUtils {
   private static final String EMPTY_STRING = "";
   private static final String NAMESPACE_ATTRIBUTE = "xmlns";
   private static final String MODEL_VERSION_ATTRIBUTE_NAME = "version";
-  private static final String UI_VERSION_ATTRIBUTE_NAME = "uiVersion";
 
   public static FormInstanceMetadata getFormInstanceMetadata(Element root) throws ParsingException {
 
@@ -222,22 +218,13 @@ public class XmlManipulationUtils {
     }
 
     String modelVersionString = root.getAttributeValue(null, MODEL_VERSION_ATTRIBUTE_NAME);
-    String uiVersionString = root.getAttributeValue(null, UI_VERSION_ATTRIBUTE_NAME);
-    Long modelVersion = null;
-    Long uiVersion = null;
-    if (modelVersionString != null && modelVersionString.length() > 0) {
-      modelVersion = Long.valueOf(modelVersionString);
-    }
-    if (uiVersionString != null && uiVersionString.length() > 0) {
-      uiVersion = Long.valueOf(uiVersionString);
-    }
 
     String instanceId = getOpenRosaInstanceId(root);
     if (instanceId == null) {
       instanceId = root.getAttributeValue(null, INSTANCE_ID_ATTRIBUTE_NAME);
     }
     String base64EncryptedFieldKey = getBase64EncryptedFieldKey(root);
-    return new FormInstanceMetadata(formId, modelVersion, uiVersion, instanceId, base64EncryptedFieldKey);
+    return new FormInstanceMetadata(new XFormParameters(formId, modelVersionString), instanceId, base64EncryptedFieldKey);
   }
 
   public static Document parseXml(File submission) throws ParsingException, FileSystemException {
@@ -321,6 +308,7 @@ public class XmlManipulationUtils {
         // this is something we know how to interpret
         String formId = null;
         String formName = null;
+        String version = null;
         String majorMinorVersion = null;
         String description = null;
         String downloadUrl = null;
@@ -347,6 +335,11 @@ public class XmlManipulationUtils {
             formName = XFormParser.getXMLText(child, true);
             if (formName != null && formName.length() == 0) {
               formName = null;
+            }
+          } else if (tag.equals("version")) {
+            version = XFormParser.getXMLText(child, true);
+            if (version != null && version.length() == 0) {
+               version = null;
             }
           } else if (tag.equals("majorMinorVersion")) {
             majorMinorVersion = XFormParser.getXMLText(child, true);
@@ -376,31 +369,31 @@ public class XmlManipulationUtils {
           formList.clear();
           throw new ParsingException(BAD_OPENROSA_FORMLIST);
         }
-        Integer modelVersion = null;
-        Integer uiVersion = null;
-        try {
-          if (majorMinorVersion == null || majorMinorVersion.length() == 0) {
-            modelVersion = null;
-            uiVersion = null;
+        String versionString = null;
+        if (version != null && version.length() != 0 ) {
+          versionString = version;
+        } else if ( majorMinorVersion != null && majorMinorVersion.length() != 0) {
+          int idx = majorMinorVersion.indexOf(".");
+          if (idx == -1) {
+            versionString = majorMinorVersion;
           } else {
-            int idx = majorMinorVersion.indexOf(".");
-            if (idx == -1) {
-              modelVersion = Integer.parseInt(majorMinorVersion);
-              uiVersion = null;
-            } else {
-              modelVersion = Integer.parseInt(majorMinorVersion.substring(0, idx));
-              uiVersion = (idx == majorMinorVersion.length() - 1) ? null : Integer
-                  .parseInt(majorMinorVersion.substring(idx + 1));
-            }
+            versionString = majorMinorVersion.substring(0,idx);
+          }
+        }
+
+        Integer modelVersion = null;
+        try {
+          if (versionString != null ) {
+            modelVersion = Integer.parseInt(versionString);
           }
         } catch (Exception e) {
           e.printStackTrace();
           logger.error("Parsing OpenRosa reply -- Forms list entry " + Integer.toString(i)
-              + " has an invalid majorMinorVersion: " + majorMinorVersion);
+              + " has an invalid version string: " + versionString);
           formList.clear();
           throw new ParsingException(BAD_OPENROSA_FORMLIST);
         }
-        formList.add(new RemoteFormDefinition(formName, formId, modelVersion, uiVersion,
+        formList.add(new RemoteFormDefinition(formName, formId, modelVersion, versionString,
             downloadUrl, manifestUrl));
       }
     } else {

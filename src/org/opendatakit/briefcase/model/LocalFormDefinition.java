@@ -16,29 +16,65 @@
 
 package org.opendatakit.briefcase.model;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.security.PrivateKey;
 
 import org.javarosa.core.model.instance.TreeElement;
-import org.opendatakit.briefcase.util.JavaRosaWrapper;
-import org.opendatakit.briefcase.util.JavaRosaWrapper.BadFormDefinition;
+import org.opendatakit.aggregate.exception.ODKIncompleteSubmissionData;
+import org.opendatakit.briefcase.util.BadFormDefinition;
+import org.opendatakit.briefcase.util.JavaRosaParserWrapper;
 
 public class LocalFormDefinition implements IFormDefinition {
   private final File revisedFormFile;
-  private final JavaRosaWrapper formDefn;
+  private final JavaRosaParserWrapper formDefn;
   private PrivateKey privateKey = null;
 
+  private static final String readFile(File formDefinitionFile) throws BadFormDefinition {
+    StringBuilder xmlBuilder = new StringBuilder();
+    BufferedReader rdr = null;
+    try {
+       rdr = new BufferedReader(new FileReader(formDefinitionFile));
+       String line = rdr.readLine();
+       while (line != null) {
+          xmlBuilder.append(line);
+          line = rdr.readLine();
+       }
+    } catch (FileNotFoundException e) {
+      throw new BadFormDefinition("Form not found");
+    } catch (IOException e) {
+      throw new BadFormDefinition("Unable to read form");
+    } finally {
+       if (rdr != null) {
+          try {
+             rdr.close();
+          } catch (IOException e) {
+             e.printStackTrace();
+          }
+       }
+    }
+    String inputXml = xmlBuilder.toString();
+    return inputXml;
+  }
+  
   public LocalFormDefinition(File formFile) throws BadFormDefinition {
     if (!formFile.exists()) {
       throw new BadFormDefinition("Form directory does not contain form");
     }
     File revised = new File( formFile.getParentFile(), formFile.getName() + ".revised");
-    if ( revised.exists() ) {
-    	revisedFormFile = revised;
-    	formDefn = new JavaRosaWrapper(revisedFormFile);
-    } else {
-    	revisedFormFile = null;
-    	formDefn = new JavaRosaWrapper(formFile);
+    try {
+      if ( revised.exists() ) {
+      	revisedFormFile = revised;
+        formDefn = new JavaRosaParserWrapper(revisedFormFile, readFile(revisedFormFile));
+      } else {
+      	revisedFormFile = null;
+        formDefn = new JavaRosaParserWrapper(formFile, readFile(formFile));
+      }
+    } catch (ODKIncompleteSubmissionData e) {
+      throw new BadFormDefinition(e, e.getReason());
     }
   }
 
@@ -79,19 +115,6 @@ public class LocalFormDefinition implements IFormDefinition {
     return l.intValue();
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.opendatakit.briefcase.model.IFormDefinition#getUiVersion()
-   */
-  @Override
-  public Integer getUiVersion() {
-    Long l = formDefn.getSubmissionElementDefn().uiVersion;
-    if (l == null)
-      return null;
-    return l.intValue();
-  }
-
   public File getFormDefinitionFile() {
 	if ( revisedFormFile != null ) {
 		return revisedFormFile;
@@ -102,10 +125,6 @@ public class LocalFormDefinition implements IFormDefinition {
 
   public boolean isInvalidFormXmlns() {
 	  return formDefn.isInvalidFormXmlns();
-  }
-  
-  public String getMD5Hash() {
-    return formDefn.getMD5Hash();
   }
 
   public String getSubmissionKey(String uri) {
@@ -144,11 +163,9 @@ public class LocalFormDefinition implements IFormDefinition {
       
       String id = getFormId();
       Integer version = getModelVersion();
-      Integer uiVersion = getUiVersion();
       
       return ( id.equals(lf.getFormId()) &&
-               ((version == null) ? (lf.getModelVersion() == null) : version.equals(lf.getModelVersion())) &&
-               ((uiVersion == null) ? (lf.getUiVersion() == null) : uiVersion.equals(lf.getUiVersion())) );
+               ((version == null) ? (lf.getModelVersion() == null) : version.equals(lf.getModelVersion())) );
     }
     
     return false;
@@ -158,10 +175,8 @@ public class LocalFormDefinition implements IFormDefinition {
   public int hashCode() {
     String id = getFormId();
     Integer version = getModelVersion();
-    Integer uiVersion = getUiVersion();
     
     return id.hashCode() 
-        + 3*(version == null ? -123121 : version.hashCode()) 
-        + 5*(uiVersion == null ? -45421 : uiVersion.hashCode());
+        + 3*(version == null ? -123121 : version.hashCode());
   }
 }

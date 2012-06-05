@@ -42,7 +42,6 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
-import org.opendatakit.briefcase.util.JavaRosaWrapper.BadFormDefinition;
 
 public class ServerFetcher {
 

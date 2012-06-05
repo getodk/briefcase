@@ -21,16 +21,16 @@ public class RemoteFormDefinition implements IFormDefinition {
   final String formName;
   final String formId;
   final Integer modelVersion;
-  final Integer uiVersion;
+  final String versionString;
   final String downloadUrl;
   final String manifestUrl;
 
   public RemoteFormDefinition(String formName, String formId, Integer modelVersion,
-      Integer uiVersion, String downloadUrl, String manifestUrl) {
+      String versionString, String downloadUrl, String manifestUrl) {
     this.formName = formName;
     this.formId = formId;
     this.modelVersion = modelVersion;
-    this.uiVersion = uiVersion;
+    this.versionString = versionString;
     this.downloadUrl = downloadUrl;
     this.manifestUrl = manifestUrl;
   }
@@ -53,11 +53,6 @@ public class RemoteFormDefinition implements IFormDefinition {
   @Override
   public Integer getModelVersion() {
     return modelVersion;
-  }
-
-  @Override
-  public Integer getUiVersion() {
-    return uiVersion;
   }
 
   public String getDownloadUrl() {
