@@ -20,9 +20,9 @@ package org.opendatakit.briefcase.model;
 public class ExportSucceededEvent {
 
   @SuppressWarnings("unused")
-  private LocalFormDefinition form;
+  private BriefcaseFormDefinition form;
 
-  public ExportSucceededEvent(LocalFormDefinition form) {
+  public ExportSucceededEvent(BriefcaseFormDefinition form) {
     this.form = form;
   }
 }

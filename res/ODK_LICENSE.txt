@@ -30,6 +30,7 @@ http://apache.org/		/Apache 2.0/
 	httpcore-4.1.2.jar
 	httpmime-4.1.2.jar
 https://bitbucket.org/javarosa/javarosa/wiki/Home		/Apache 2.0/
+Special build using this fork of the project: https://bitbucket.org/m.sundt/javarosa
 	javarosa-libraries.jar
 http://kxml.sourceforge.net/kxml2/		/BSD license/
 	kxml2-2.3.0.jar

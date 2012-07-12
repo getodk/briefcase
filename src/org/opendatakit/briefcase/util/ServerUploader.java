@@ -33,6 +33,7 @@ import org.opendatakit.briefcase.model.DocumentDescription;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.MetadataUpdateException;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
@@ -174,6 +175,7 @@ public class ServerUploader {
     
     for (FormStatus formToTransfer : formsToTransfer) {
 
+      BriefcaseFormDefinition briefcaseLfd = (BriefcaseFormDefinition) formToTransfer.getFormDefinition();
       boolean thisFormSuccessful = true;
       
       if ( isCancelled() ) {
@@ -188,14 +190,13 @@ public class ServerUploader {
           continue;
       }
 
-      String formName = formToTransfer.getFormName();
-      File briefcaseFormDefFile = FileSystemUtils.getFormDefinitionFileIfExists(formName);
+      File briefcaseFormDefFile = FileSystemUtils.getFormDefinitionFileIfExists(briefcaseLfd.getFormDirectory());
       if (briefcaseFormDefFile == null) {
         formToTransfer.setStatusString("Form does not exist", true);
         EventBus.publish(new FormStatusEvent(formToTransfer));
         continue;
       }
-      File briefcaseFormMediaDir = FileSystemUtils.getMediaDirectoryIfExists(formName);
+      File briefcaseFormMediaDir = FileSystemUtils.getMediaDirectoryIfExists(briefcaseLfd.getFormDirectory());
 
       boolean outcome;
       outcome = uploadForm(formToTransfer, briefcaseFormDefFile, briefcaseFormMediaDir);
@@ -208,10 +209,10 @@ public class ServerUploader {
         continue;
       }
       
-      Set<File> briefcaseInstances = FileSystemUtils.getFormSubmissionDirectories(formName);
+      Set<File> briefcaseInstances = FileSystemUtils.getFormSubmissionDirectories(briefcaseLfd.getFormDirectory());
       DatabaseUtils formDatabase = null;
       try {
-        formDatabase = new DatabaseUtils(FileSystemUtils.getFormDatabase(formName));
+        formDatabase = new DatabaseUtils(FileSystemUtils.getFormDatabase(briefcaseLfd.getFormDirectory()));
         
         // make sure all the local instances are in the database...
         formDatabase.updateInstanceLists(briefcaseInstances);

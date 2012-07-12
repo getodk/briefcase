@@ -43,10 +43,11 @@ import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportType;
-import org.opendatakit.briefcase.model.LocalFormDefinition;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
 import org.opendatakit.briefcase.util.ExportAction;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
@@ -161,7 +162,7 @@ public class ExportPanel extends JPanel {
 
     public void setContext() {
       formName = 
-          ((LocalFormDefinition) comboBoxForm.getSelectedItem()).getFormName();
+          ((BriefcaseFormDefinition) comboBoxForm.getSelectedItem()).getFormName();
       type = (ExportType) comboBoxExportType.getSelectedItem();
       File outputDir = new File(txtExportDirectory.getText());
       dirName = outputDir.getAbsolutePath();
@@ -234,7 +235,7 @@ public class ExportPanel extends JPanel {
       }
 
       ExportType exportType = (ExportType) comboBoxExportType.getSelectedItem();
-      LocalFormDefinition lfd = (LocalFormDefinition) comboBoxForm.getSelectedItem();
+      BriefcaseFormDefinition lfd = (BriefcaseFormDefinition) comboBoxForm.getSelectedItem();
 
       File pemFile = null;
       if ( lfd.isFileEncryptedForm() || lfd.isFieldEncryptedForm() ) {
@@ -271,7 +272,7 @@ public class ExportPanel extends JPanel {
         return;
       }
       
-      LocalFormDefinition lfd = (LocalFormDefinition) comboBoxForm.getSelectedItem();
+      BriefcaseFormDefinition lfd = (BriefcaseFormDefinition) comboBoxForm.getSelectedItem();
       if ( lfd == null ) {
         btnPemFileChooseButton.setEnabled(false);
         btnExport.setEnabled(false);
@@ -463,7 +464,7 @@ public class ExportPanel extends JPanel {
   public void setEnabled(boolean enabled) {
     super.setEnabled(enabled);
     // update the list of forms...
-    List<LocalFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
+    List<BriefcaseFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
     DefaultComboBoxModel formChoices = new DefaultComboBoxModel(forms.toArray());
     comboBoxForm.setModel(formChoices);
 
@@ -563,11 +564,11 @@ public class ExportPanel extends JPanel {
 
   public void updateComboBox() {
     int selIdx = comboBoxForm.getSelectedIndex();
-    LocalFormDefinition lfd = null;
+    BriefcaseFormDefinition lfd = null;
     if ( selIdx != -1 ) {
-      lfd = (LocalFormDefinition) comboBoxForm.getSelectedItem();
+      lfd = (BriefcaseFormDefinition) comboBoxForm.getSelectedItem();
     }
-    List<LocalFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
+    List<BriefcaseFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
     DefaultComboBoxModel formChoices = new DefaultComboBoxModel(forms.toArray());
     comboBoxForm.setModel(formChoices);
     if ( lfd != null ) {
@@ -590,4 +591,10 @@ public class ExportPanel extends JPanel {
   public void successfulTransferCompletion(TransferSucceededEvent event) {
     updateComboBox();
   }
+  
+  @EventSubscriber(eventClass = UpdatedBriefcaseFormDefinitionEvent.class)
+  public void briefcaseFormListChanges(UpdatedBriefcaseFormDefinitionEvent event) {
+    updateComboBox();
+  }
+
 }

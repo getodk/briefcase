@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 University of Washington.
+ * Copyright (C) 2012 University of Washington.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,25 +14,12 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.util;
+package org.opendatakit.briefcase.model;
 
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-
-/**
- * Interface for actions that export different file formats.
- * These all work only on forms within the Briefcase storage area.
- *
- * E.g., CSV exports.
- * 
- * @author mitchellsundt@gmail.com
- *
- */
-interface ITransformFormAction {
-  /**
-   * 
-   * @return true if successful, false if there were one or more problems
-   */
-  boolean doAction();
+public class UpdatedBriefcaseFormDefinitionEvent {
+  public final BriefcaseFormDefinition definition;
   
-  BriefcaseFormDefinition getFormDefinition();
+  UpdatedBriefcaseFormDefinitionEvent(BriefcaseFormDefinition definition) {
+    this.definition = definition;
+  }
 }

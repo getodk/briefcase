@@ -55,7 +55,8 @@ import org.kxml2.kdom.Node;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.CryptoException;
 import org.opendatakit.briefcase.model.FileSystemException;
-import org.opendatakit.briefcase.model.LocalFormDefinition;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.ui.MessageStrings;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
@@ -179,8 +180,8 @@ public class FileSystemUtils {
   }
   
 
-  public static final List<LocalFormDefinition> getBriefcaseFormList() {
-    List<LocalFormDefinition> formsList = new ArrayList<LocalFormDefinition>();
+  public static final List<BriefcaseFormDefinition> getBriefcaseFormList() {
+    List<BriefcaseFormDefinition> formsList = new ArrayList<BriefcaseFormDefinition>();
     File forms = FileSystemUtils.getFormsFolder();
     if (forms.exists()) {
       File[] formDirs = forms.listFiles();
@@ -188,7 +189,7 @@ public class FileSystemUtils {
         if (f.isDirectory()) {
           try {
             File formFile = new File(f, f.getName() + ".xml");
-            formsList.add(new LocalFormDefinition(formFile));
+            formsList.add(new BriefcaseFormDefinition(f, formFile));
           } catch (BadFormDefinition e) {
             // TODO report bad form definition?
             e.printStackTrace();
@@ -202,15 +203,15 @@ public class FileSystemUtils {
     return formsList;
   }
 
-  public static final List<LocalFormDefinition> getODKFormList(File odk) {
-    List<LocalFormDefinition> formsList = new ArrayList<LocalFormDefinition>();
+  public static final List<OdkCollectFormDefinition> getODKFormList(File odk) {
+    List<OdkCollectFormDefinition> formsList = new ArrayList<OdkCollectFormDefinition>();
     File forms = new File(odk, "forms");
     if (forms.exists()) {
       File[] formDirs = forms.listFiles();
       for (File f : formDirs) {
         if (f.isFile() && f.getName().endsWith(".xml")) {
           try {
-            formsList.add(new LocalFormDefinition(f));
+            formsList.add(new OdkCollectFormDefinition(f));
           } catch (BadFormDefinition e) {
             // TODO report bad form definition?
             e.printStackTrace();
@@ -245,8 +246,7 @@ public class FileSystemUtils {
     return formPath;
   }
 
-  public static Connection getFormDatabase(String formName) throws FileSystemException {
-    File formDirectory = getFormDirectory(formName);
+  public static Connection getFormDatabase(File formDirectory) throws FileSystemException {
     File db = new File(formDirectory, "info.db");
     
     String createFlag = "";
@@ -273,71 +273,72 @@ public class FileSystemUtils {
     return conn;
   }
   
-  public static File getFormDefinitionFileIfExists(String formName) {
-    // clean up friendly form name...
-    String rootName = asFilesystemSafeName(formName);
-    File formPath = new File(getFormsFolder(), rootName);
-    if (!formPath.exists()) {
+  public static File getFormDefinitionFileIfExists(File formDirectory) {
+    if (!formDirectory.exists()) {
       return null;
     }
-    File formDefnFile = new File(formPath, rootName + ".xml");
+    File formDefnFile = new File(formDirectory, formDirectory.getName() + ".xml");
     if (!formDefnFile.exists()) {
       return null;
     }
     return formDefnFile;
   }
 
-  public static File getFormDefinitionFile(String formName)
+  public static File getTempFormDefinitionFile()
       throws FileSystemException {
-    String rootName = asFilesystemSafeName(formName);
-    File formPath = getFormDirectory(formName);
-    File formDefnFile = new File(formPath, rootName + ".xml");
+    File briefcase = getBriefcaseFolder();
+    File tempDefnFile;
+    try {
+      tempDefnFile = File.createTempFile("tempDefn", ".xml", briefcase);
+    } catch (IOException e) {
+      e.printStackTrace();
+      return null;
+    }
+    return tempDefnFile;
+  }
+  
+  public static File getFormDefinitionFile(File formDirectory)
+      throws FileSystemException {
+    File formDefnFile = new File(formDirectory, formDirectory.getName() + ".xml");
 
     return formDefnFile;
   }
 
-  public static File getMediaDirectoryIfExists(String formName) {
-    // clean up friendly form name...
-    String rootName = asFilesystemSafeName(formName);
-    File formPath = new File(getFormsFolder(), rootName);
-    if (!formPath.exists()) {
+  public static File getMediaDirectoryIfExists(File formDirectory) {
+    if (!formDirectory.exists()) {
       return null;
     }
-    File mediaDir = new File(formPath, rootName + "-media");
+    File mediaDir = new File(formDirectory, formDirectory.getName() + "-media");
     if (!mediaDir.exists()) {
       return null;
     }
     return mediaDir;
   }
 
-  public static File getMediaDirectory(String formName)
+  public static File getMediaDirectory(File formDirectory)
       throws FileSystemException {
-    String rootName = asFilesystemSafeName(formName);
-    File formPath = getFormDirectory(formName);
-    File mediaDir = new File(formPath, rootName + "-media");
+    File mediaDir = new File(formDirectory, formDirectory.getName() + "-media");
     if (!mediaDir.exists() && !mediaDir.mkdirs()) {
       throw new FileSystemException("unable to create directory: " + mediaDir.getAbsolutePath());
     }
 
     return mediaDir;
   }
-
-  public static File getFormInstancesDirectory(String formName)
-      throws FileSystemException {
-    File formPath = getFormDirectory(formName);
-    File instancesDir = new File(formPath, "instances");
+  
+  public static File getFormInstancesDirectory(File formDirectory) throws FileSystemException {
+    File instancesDir = new File(formDirectory, "instances");
     if (!instancesDir.exists() && !instancesDir.mkdirs()) {
       throw new FileSystemException("unable to create directory: " + instancesDir.getAbsolutePath());
     }
     return instancesDir;
   }
-
-  public static Set<File> getFormSubmissionDirectories(String formName) {
+  
+  public static Set<File> getFormSubmissionDirectories(File formDirectory) {
     Set<File> files = new TreeSet<File>();
 
     File formInstancesDir = null;
     try {
-      formInstancesDir = getFormInstancesDirectory(formName);
+      formInstancesDir = getFormInstancesDirectory(formDirectory);
     } catch (FileSystemException e) {
       e.printStackTrace();
       return files;

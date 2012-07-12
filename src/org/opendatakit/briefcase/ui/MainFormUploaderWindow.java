@@ -38,7 +38,7 @@ import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.LocalFormDefinition;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
@@ -111,7 +111,8 @@ public class MainFormUploaderWindow {
         if (fc.getSelectedFile() != null) {
           String formDefinitionPath = fc.getSelectedFile().getAbsolutePath();
           try {
-            LocalFormDefinition lfd = new LocalFormDefinition(new File(formDefinitionPath));
+            File formFile = new File(formDefinitionPath);
+            BriefcaseFormDefinition lfd = new BriefcaseFormDefinition(formFile.getParentFile(), new File(formDefinitionPath));
             fs = new FormStatus(FormStatus.TransferType.UPLOAD, lfd);
             txtFormDefinitionFile.setText(formDefinitionPath);
             setUploadFormEnabled(true);

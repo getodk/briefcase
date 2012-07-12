@@ -130,7 +130,7 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
   
   @EventSubscriber(eventClass = FormStatusEvent.class)
   public void updateDetailedStatus(FormStatusEvent fse) {
-    textAreaStatusDetail.setText(fse.getStatus().getStatusString());
+    textAreaStatusDetail.setText(fse.getStatusString());
   }
   
   @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)

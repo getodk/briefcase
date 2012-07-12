@@ -42,13 +42,14 @@ import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.EndPointType;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.LocalFormDefinition;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferAction;
 
@@ -323,8 +324,8 @@ public class PushTransferPanel extends JPanel {
   public void updateFormStatuses() {
     List<FormStatus> statuses = new ArrayList<FormStatus>();
 
-    List<LocalFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
-    for (LocalFormDefinition f : forms) {
+    List<BriefcaseFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
+    for (BriefcaseFormDefinition f : forms) {
       statuses.add(new FormStatus(FormStatus.TransferType.UPLOAD, f));
     }
     formTransferTable.setFormStatusList(statuses);
@@ -405,4 +406,8 @@ public class PushTransferPanel extends JPanel {
         JOptionPane.ERROR_MESSAGE);
   }
 
+  @EventSubscriber(eventClass = UpdatedBriefcaseFormDefinitionEvent.class)
+  public void briefcaseFormListChanges(UpdatedBriefcaseFormDefinitionEvent event) {
+    updateFormStatuses();
+  }
 }

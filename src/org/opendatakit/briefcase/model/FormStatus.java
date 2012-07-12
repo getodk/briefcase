@@ -16,17 +16,12 @@
 
 package org.opendatakit.briefcase.model;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 public class FormStatus {
   public enum TransferType { GATHER, UPLOAD };
   private final TransferType transferType;
   private boolean isSelected = false;
   private IFormDefinition form;
-  private final Map<File, File> scratchFromMap = new HashMap<File, File>();
-  private final Map<File, File> scratchToMap = new HashMap<File, File>();
   private String statusString = "";
   private final StringBuilder statusHistory = new StringBuilder();
   private boolean isSuccessful = true;
@@ -79,30 +74,5 @@ public class FormStatus {
 
   public IFormDefinition getFormDefinition() {
     return form;
-  }
-
-  public void clearInstanceMap() {
-    scratchFromMap.clear();
-    scratchToMap.clear();
-  }
-
-  public void putScratchFromMapping(File source, File dest) {
-    scratchFromMap.put(source, dest);
-  }
-
-  public void putScratchToMapping(File source, File dest) {
-    scratchToMap.put(source, dest);
-  }
-
-  public Map<File, File> getFromToMapping() {
-    Map<File, File> fromToMap = new HashMap<File, File>();
-    for (File scratch : scratchFromMap.keySet()) {
-      File from = scratchFromMap.get(scratch);
-      File to = scratchToMap.get(scratch);
-      if (to != null) {
-        fromToMap.put(from, to);
-      }
-    }
-    return fromToMap;
   }
 }

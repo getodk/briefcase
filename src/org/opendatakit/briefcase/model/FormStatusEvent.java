@@ -18,12 +18,18 @@ package org.opendatakit.briefcase.model;
 
 public class FormStatusEvent {
   private final FormStatus status;
+  private final String statusString;
 
   public FormStatusEvent(FormStatus status) {
     this.status = status;
+    this.statusString = status.getStatusString();
   }
 
   public FormStatus getStatus() {
     return status;
+  }
+  
+  public String getStatusString() {
+    return statusString;
   }
 }

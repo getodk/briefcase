@@ -35,7 +35,7 @@ import org.opendatakit.briefcase.model.DocumentDescription;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.LocalFormDefinition;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
@@ -132,32 +132,34 @@ public class ServerFetcher {
       EventBus.publish(new FormStatusEvent(fs));
       try {
 
-        File dl = FileSystemUtils.getFormDefinitionFile(fd.getFormName());
-        AggregateUtils.commonDownloadFile(serverInfo, dl, fd.getDownloadUrl());
+        File tmpdl = FileSystemUtils.getTempFormDefinitionFile();
+        AggregateUtils.commonDownloadFile(serverInfo, tmpdl, fd.getDownloadUrl());
 
-        if (fd.getManifestUrl() != null) {
-          File mediaDir = FileSystemUtils.getMediaDirectory(fd.getFormName());
-          String error = downloadManifestAndMediaFiles(mediaDir, fs);
-          if (error != null) {
-            allSuccessful = false;
-            fs.setStatusString("Error fetching form definition: " + error, false);
-            EventBus.publish(new FormStatusEvent(fs));
-            continue;
-          }
-        }
-        fs.setStatusString("preparing to retrieve instance data", true);
+        fs.setStatusString("resolving against briefcase form definitions", true);
         EventBus.publish(new FormStatusEvent(fs));
 
         boolean successful = false;
+        BriefcaseFormDefinition briefcaseLfd;
         DatabaseUtils formDatabase = null;
         try {
-          formDatabase = new DatabaseUtils(FileSystemUtils.getFormDatabase(fs.getFormName()));
-  
-          File formInstancesDir = FileSystemUtils.getFormInstancesDirectory(fd.getFormName());
-  
-          LocalFormDefinition lfd;
           try {
-            lfd = new LocalFormDefinition(dl);
+            briefcaseLfd = BriefcaseFormDefinition.resolveAgainstBriefcaseDefn(tmpdl);
+            if ( briefcaseLfd.needsMediaUpdate() ) {
+
+              if (fd.getManifestUrl() != null) {
+                File mediaDir = FileSystemUtils.getMediaDirectory(briefcaseLfd.getFormDirectory());
+                String error = downloadManifestAndMediaFiles(mediaDir, fs);
+                if (error != null) {
+                  allSuccessful = false;
+                  fs.setStatusString("Error fetching form definition: " + error, false);
+                  EventBus.publish(new FormStatusEvent(fs));
+                  continue;
+                }
+              }
+              
+            }
+            formDatabase = new DatabaseUtils(FileSystemUtils.getFormDatabase(briefcaseLfd.getFormDirectory()));
+
           } catch (BadFormDefinition e) {
             e.printStackTrace();
             allSuccessful = false;
@@ -165,9 +167,14 @@ public class ServerFetcher {
             EventBus.publish(new FormStatusEvent(fs));
             continue;
           }
+
+          fs.setStatusString("preparing to retrieve instance data", true);
+          EventBus.publish(new FormStatusEvent(fs));
+          
+          File formInstancesDir = FileSystemUtils.getFormInstancesDirectory(briefcaseLfd.getFormDirectory());
           
           // this will publish events 
-          successful = downloadAllSubmissionsForForm(formInstancesDir, formDatabase, lfd, fs);
+          successful = downloadAllSubmissionsForForm(formInstancesDir, formDatabase, briefcaseLfd, fs);
         } catch ( FileSystemException e ) {
           e.printStackTrace();
           allSuccessful = false;
@@ -251,7 +258,7 @@ public class ServerFetcher {
     }
   };
 
-  private boolean downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, LocalFormDefinition lfd,
+  private boolean downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd,
       FormStatus fs) {
     boolean allSuccessful = true;
     
@@ -275,7 +282,7 @@ public class ServerFetcher {
       Map<String, String> params = new HashMap<String, String>();
       params.put("numEntries", Integer.toString(MAX_ENTRIES));
       params.put("formId", fd.getFormId());
-      params.put("cursor", websafeCursorString);
+      params.put("cursor",websafeCursorString);
       String fullUrl = WebUtils.createLinkWithProperties(baseUrl, params);
       oldWebsafeCursorString = websafeCursorString; // remember what we had...
       AggregateUtils.DocumentFetchResult result;
@@ -336,7 +343,7 @@ public class ServerFetcher {
     }
   }
 
-  private void downloadSubmission(File formInstancesDir, DatabaseUtils formDatabase, LocalFormDefinition lfd, FormStatus fs,
+  private void downloadSubmission(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd, FormStatus fs,
       String uri) throws Exception {
     
     if ( formDatabase.hasRecordedInstance(uri) != null ) {

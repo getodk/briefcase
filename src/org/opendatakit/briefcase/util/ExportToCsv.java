@@ -50,7 +50,7 @@ import org.kxml2.kdom.Node;
 import org.opendatakit.briefcase.model.CryptoException;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.FileSystemException;
-import org.opendatakit.briefcase.model.LocalFormDefinition;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
@@ -63,14 +63,14 @@ public class ExportToCsv implements ITransformFormAction {
 
   File outputDir;
   File outputMediaDir;
-  LocalFormDefinition lfd;
+  BriefcaseFormDefinition briefcaseLfd;
   TerminationFuture terminationFuture;
   Map<TreeElement, OutputStreamWriter> fileMap = new HashMap<TreeElement, OutputStreamWriter>();
 
-  ExportToCsv(File outputDir, LocalFormDefinition lfd, TerminationFuture terminationFuture) {
+  ExportToCsv(File outputDir, BriefcaseFormDefinition lfd, TerminationFuture terminationFuture) {
     this.outputDir = outputDir;
     this.outputMediaDir = new File(outputDir, MEDIA_DIR);
-    this.lfd = lfd;
+    this.briefcaseLfd = lfd;
     this.terminationFuture = terminationFuture;
   }
 
@@ -79,7 +79,7 @@ public class ExportToCsv implements ITransformFormAction {
     boolean allSuccessful = true;
     File instancesDir;
     try {
-      instancesDir = FileSystemUtils.getFormInstancesDirectory(lfd.getFormName());
+      instancesDir = FileSystemUtils.getFormInstancesDirectory(briefcaseLfd.getFormDirectory());
     } catch (FileSystemException e) {
       // emit status change...
       EventBus.publish(new ExportProgressEvent("Unable to access instances directory of form"));
@@ -452,7 +452,7 @@ public class ExportToCsv implements ITransformFormAction {
                                                     uniqueGroupPath, instanceDir);
               }
             }
-          } else if (current.getNumChildren() == 0 && current != lfd.getSubmissionElement()) {
+          } else if (current.getNumChildren() == 0 && current != briefcaseLfd.getSubmissionElement()) {
             // assume fields that don't have children are string fields.
             if (ec == null) {
               emitString(osw, first, null);
@@ -579,7 +579,7 @@ public class ExportToCsv implements ITransformFormAction {
             emitString(osw, first, "SET-OF-" + getFullName(current, primarySet));
             first = false;
             processRepeatingGroupDefinition(current, primarySet);
-          } else if (current.getNumChildren() == 0 && current != lfd.getSubmissionElement()) {
+          } else if (current.getNumChildren() == 0 && current != briefcaseLfd.getSubmissionElement()) {
             // assume fields that don't have children are string fields.
             emitString(osw, first, getFullName(current, primarySet));
             first = false;
@@ -597,7 +597,7 @@ public class ExportToCsv implements ITransformFormAction {
 
   private void processRepeatingGroupDefinition(TreeElement group, TreeElement primarySet)
       throws IOException {
-    String formName = lfd.getFormName() + "-" + getFullName(group, primarySet);
+    String formName = briefcaseLfd.getFormName() + "-" + getFullName(group, primarySet);
     File topLevelCsv = new File(outputDir, formName + ".csv");
     FileOutputStream os = new FileOutputStream(topLevelCsv);
     OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
@@ -612,9 +612,9 @@ public class ExportToCsv implements ITransformFormAction {
 
   private boolean processFormDefinition() {
 
-    TreeElement submission = lfd.getSubmissionElement();
+    TreeElement submission = briefcaseLfd.getSubmissionElement();
 
-    String formName = lfd.getFormName();
+    String formName = briefcaseLfd.getFormName();
     File topLevelCsv = new File(outputDir, formName + ".csv");
     FileOutputStream os;
     try {
@@ -624,7 +624,7 @@ public class ExportToCsv implements ITransformFormAction {
       emitString(osw, true, "SubmissionDate");
       emitCsvHeaders(osw, submission, submission, false);
       emitString(osw, false, "KEY");
-      if ( lfd.isFileEncryptedForm() ) {
+      if ( briefcaseLfd.isFileEncryptedForm() ) {
         emitString(osw, false, "isValidated");
       }
       osw.append("\n");
@@ -687,7 +687,7 @@ public class ExportToCsv implements ITransformFormAction {
     // is the same as the instance directory.
     
     File unEncryptedDir;
-    if (lfd.isFileEncryptedForm()) {
+    if (briefcaseLfd.isFileEncryptedForm()) {
       // create or clean-up the temp directory that will hold the unencrypted
       // files.
       unEncryptedDir = new File(instanceDir, "temp");
@@ -748,14 +748,14 @@ public class ExportToCsv implements ITransformFormAction {
     // failure.
     try {
 
-      if (lfd.isFileEncryptedForm()) {
+      if (briefcaseLfd.isFileEncryptedForm()) {
         // Decrypt the form and all its media files into the 
         // unEncryptedDir and validate the contents of all 
         // those files.
         // NOTE: this changes the value of 'doc'
         try {
           FileSystemUtils.DecryptOutcome outcome =
-            FileSystemUtils.decryptAndValidateSubmission(doc, lfd.getPrivateKey(), 
+            FileSystemUtils.decryptAndValidateSubmission(doc, briefcaseLfd.getPrivateKey(), 
               instanceDir, unEncryptedDir);
           doc = outcome.submission;
           isValidated = outcome.isValidated;
@@ -817,7 +817,7 @@ public class ExportToCsv implements ITransformFormAction {
       EncryptionInformation ei = null;
       if ( base64EncryptedFieldKey != null ) {
         try {
-          ei = new EncryptionInformation(base64EncryptedFieldKey, instanceId, lfd.getPrivateKey());
+          ei = new EncryptionInformation(base64EncryptedFieldKey, instanceId, briefcaseLfd.getPrivateKey());
         } catch (CryptoException e) {
           e.printStackTrace();
           EventBus.publish(new ExportProgressEvent("Error establishing field decryption for submission "
@@ -828,13 +828,13 @@ public class ExportToCsv implements ITransformFormAction {
 
       // emit the csv record...
       try {
-        OutputStreamWriter osw = fileMap.get(lfd.getSubmissionElement());
+        OutputStreamWriter osw = fileMap.get(briefcaseLfd.getSubmissionElement());
 
         emitString(osw, true, submissionDate);
-        emitSubmissionCsv(osw, ei, doc.getRootElement(), lfd.getSubmissionElement(),
-            lfd.getSubmissionElement(), false, instanceId, unEncryptedDir);
+        emitSubmissionCsv(osw, ei, doc.getRootElement(), briefcaseLfd.getSubmissionElement(),
+            briefcaseLfd.getSubmissionElement(), false, instanceId, unEncryptedDir);
         emitString(osw, false, instanceId);
-        if ( lfd.isFileEncryptedForm() ) {
+        if ( briefcaseLfd.isFileEncryptedForm() ) {
           emitString(osw, false, Boolean.toString(isValidated));
         }
         osw.append("\n");
@@ -846,7 +846,7 @@ public class ExportToCsv implements ITransformFormAction {
         return false;
       }
     } finally {
-      if (lfd.isFileEncryptedForm()) {
+      if (briefcaseLfd.isFileEncryptedForm()) {
         // destroy the temp directory and its contents...
         try {
           FileUtils.deleteDirectory(unEncryptedDir);
@@ -861,7 +861,7 @@ public class ExportToCsv implements ITransformFormAction {
   }
 
   @Override
-  public LocalFormDefinition getFormDefinition() {
-    return lfd;
+  public BriefcaseFormDefinition getFormDefinition() {
+    return briefcaseLfd;
   }
 }

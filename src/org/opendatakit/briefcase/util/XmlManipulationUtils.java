@@ -381,10 +381,10 @@ public class XmlManipulationUtils {
           }
         }
 
-        Integer modelVersion = null;
         try {
           if (versionString != null ) {
-            modelVersion = Integer.parseInt(versionString);
+            // verify that  the version string is an integer value...
+            Integer.parseInt(versionString);
           }
         } catch (Exception e) {
           e.printStackTrace();
@@ -393,7 +393,7 @@ public class XmlManipulationUtils {
           formList.clear();
           throw new ParsingException(BAD_OPENROSA_FORMLIST);
         }
-        formList.add(new RemoteFormDefinition(formName, formId, modelVersion, versionString,
+        formList.add(new RemoteFormDefinition(formName, formId, versionString,
             downloadUrl, manifestUrl));
       }
     } else {
@@ -441,7 +441,7 @@ public class XmlManipulationUtils {
             throw new ParsingException(
                 "Unable to extract formId from download URL of legacy 0.9.8 server");
           }
-          formList.add(new RemoteFormDefinition(formName, formId, null, null, downloadUrl, null));
+          formList.add(new RemoteFormDefinition(formName, formId, null, downloadUrl, null));
         }
       }
     }

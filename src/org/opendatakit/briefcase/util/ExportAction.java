@@ -32,7 +32,7 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportType;
-import org.opendatakit.briefcase.model.LocalFormDefinition;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.TerminationFuture;
 
 public class ExportAction {
@@ -72,7 +72,7 @@ public class ExportAction {
   }
 
   public static void export(
-      File outputDir, ExportType outputType, LocalFormDefinition lfd, File pemFile,
+      File outputDir, ExportType outputType, BriefcaseFormDefinition lfd, File pemFile,
       TerminationFuture terminationFuture) throws IOException {
 
     if (lfd.isFileEncryptedForm() || lfd.isFieldEncryptedForm()) {

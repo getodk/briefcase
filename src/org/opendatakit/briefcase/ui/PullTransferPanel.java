@@ -48,7 +48,7 @@ import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.EndPointType;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.LocalFormDefinition;
+import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -403,22 +403,21 @@ public class PullTransferPanel extends JPanel {
         // clear the list of forms first...
         formTransferTable.setFormStatusList(statuses);
         terminationFuture.reset();
-        TransferAction.retrieveAvailableFormsFromServer((Window) getTopLevelAncestor(),
-            FormStatus.TransferType.GATHER, originServerInfo, terminationFuture);
+        TransferAction.retrieveAvailableFormsFromServer((Window) getTopLevelAncestor(), originServerInfo, terminationFuture);
         // list will be communicated back via the
         // RetrieveAvailableFormsSucceededEvent
       } else if (EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.equals(selection)) {
         File odk = new File(txtOriginName.getText());
-        List<LocalFormDefinition> forms = FileSystemUtils.getODKFormList(odk);
-        for (LocalFormDefinition f : forms) {
+        List<OdkCollectFormDefinition> forms = FileSystemUtils.getODKFormList(odk);
+        for (OdkCollectFormDefinition f : forms) {
           statuses.add(new FormStatus(FormStatus.TransferType.GATHER, f));
         }
         formTransferTable.setFormStatusList(statuses);
       } else if (EndPointType.MOUNTED_ODK_COLLECT_DEVICE_CHOICE.equals(selection)) {
         File sdcard = new File(txtOriginName.getText());
         File odk = new File(sdcard, "odk");
-        List<LocalFormDefinition> forms = FileSystemUtils.getODKFormList(odk);
-        for (LocalFormDefinition f : forms) {
+        List<OdkCollectFormDefinition> forms = FileSystemUtils.getODKFormList(odk);
+        for (OdkCollectFormDefinition f : forms) {
           statuses.add(new FormStatus(FormStatus.TransferType.GATHER, f));
         }
         formTransferTable.setFormStatusList(statuses);

@@ -28,7 +28,8 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.LocalFormDefinition;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.TerminationFuture;
 
 public class TransferFromODK implements ITransferFromSourceAction {
@@ -43,51 +44,55 @@ public class TransferFromODK implements ITransferFromSourceAction {
     this.formsToTransfer = formsToTransfer;
   }
 
-  private boolean doRetrieveFormDefinition(FormStatus fs) {
-    fs.setStatusString("retrieving form definition", true);
+  /**
+   * Given the OdkCollectFormDefinition within the FormStatus argument, try to match it up 
+   * with an existing Briefcase storage form definition, or create a new Briefcase storage
+   * form definition for it.
+   * 
+   * @param fs the form transfer status object for an ODK Collect form definition.
+   * @return the Briefcase storage form definition.
+   */
+  private BriefcaseFormDefinition doResolveOdkCollectFormDefinition(FormStatus fs) {
+    fs.setStatusString("resolving against briefcase form definitions", true);
     EventBus.publish(new FormStatusEvent(fs));
 
-    LocalFormDefinition formDef = (LocalFormDefinition) fs.getFormDefinition();
+    OdkCollectFormDefinition formDef = (OdkCollectFormDefinition) fs.getFormDefinition();
     File odkFormDefFile = formDef.getFormDefinitionFile();
 
-    // compose the ODK media directory...
-    final String odkFormName = odkFormDefFile.getName().substring(0,
-        odkFormDefFile.getName().lastIndexOf("."));
-    String odkMediaName = odkFormName + "-media";
-    File odkFormMediaDir = new File(odkFormDefFile.getParentFile(), odkMediaName);
-
-    File destinationFormDefFile;
-    try {
-      destinationFormDefFile = FileSystemUtils.getFormDefinitionFile(fs.getFormName());
-    } catch (FileSystemException e) {
-      e.printStackTrace();
-      fs.setStatusString("unable to create form folder: " + e.getMessage(), false);
-      EventBus.publish(new FormStatusEvent(fs));
-      return false;
-    }
-    File destinationFormMediaDir;
-    try {
-      destinationFormMediaDir = FileSystemUtils.getMediaDirectory(fs.getFormName());
-    } catch (FileSystemException e) {
-      e.printStackTrace();
-      fs.setStatusString("unable to create media folder: " + e.getMessage(), false);
-      EventBus.publish(new FormStatusEvent(fs));
-      return false;
-    }
+    BriefcaseFormDefinition briefcaseLfd;
     
     // copy form definition files from ODK to briefcase (scratch area)
     try {
-      FileUtils.copyFile(odkFormDefFile, destinationFormDefFile);
-      if (odkFormMediaDir.exists()) {
-        FileUtils.copyDirectory(odkFormMediaDir, destinationFormMediaDir);
+      briefcaseLfd = BriefcaseFormDefinition.resolveAgainstBriefcaseDefn(odkFormDefFile, true);
+      if ( briefcaseLfd.needsMediaUpdate() ) {
+        File destinationFormMediaDir;
+        try {
+          destinationFormMediaDir = FileSystemUtils.getMediaDirectory(briefcaseLfd.getFormDirectory());
+        } catch (FileSystemException e) {
+          e.printStackTrace();
+          fs.setStatusString("unable to create media folder: " + e.getMessage(), false);
+          EventBus.publish(new FormStatusEvent(fs));
+          return null;
+        }
+        // compose the ODK media directory...
+        final String odkFormName = odkFormDefFile.getName().substring(0,
+            odkFormDefFile.getName().lastIndexOf("."));
+        String odkMediaName = odkFormName + "-media";
+        File odkFormMediaDir = new File(odkFormDefFile.getParentFile(), odkMediaName);
+
+        if (odkFormMediaDir.exists()) {
+          FileUtils.copyDirectory(odkFormMediaDir, destinationFormMediaDir);
+        }
+        briefcaseLfd.clearMediaUpdate();
       }
-    } catch ( Exception e ) {
-      e.printStackTrace();
-      fs.setStatusString("unable to copy form definition and/or media folder: " + e.getMessage(), false);
-      EventBus.publish(new FormStatusEvent(fs));
-      return false;
-    }
-    return true;
+      } catch ( Exception e ) {
+        e.printStackTrace();
+        fs.setStatusString("unable to copy form definition and/or media folder: " + e.getMessage(), false);
+        EventBus.publish(new FormStatusEvent(fs));
+        return null;
+      }
+    
+    return briefcaseLfd;
   }
   
   @Override
@@ -104,25 +109,26 @@ public class TransferFromODK implements ITransferFromSourceAction {
           return false;
         }
   
-        boolean outcome = doRetrieveFormDefinition(fs);
+        BriefcaseFormDefinition briefcaseLfd = doResolveOdkCollectFormDefinition(fs);
 
-        if ( !outcome ) {
+        if ( briefcaseLfd == null ) {
           allSuccessful = isSuccessful = false;
           continue;
         }
+        
+        OdkCollectFormDefinition odkFormDef = (OdkCollectFormDefinition) fs.getFormDefinition();
+        File odkFormDefFile = odkFormDef.getFormDefinitionFile();
 
-        LocalFormDefinition formDef = (LocalFormDefinition) fs.getFormDefinition();
-        File odkFormDefFile = formDef.getFormDefinitionFile();
         final String odkFormName = odkFormDefFile.getName().substring(0,
             odkFormDefFile.getName().lastIndexOf("."));
 
         DatabaseUtils formDatabase = null;
         try {
-          formDatabase = new DatabaseUtils(FileSystemUtils.getFormDatabase(fs.getFormName()));
+          formDatabase = new DatabaseUtils(FileSystemUtils.getFormDatabase(briefcaseLfd.getFormDirectory()));
   
           File destinationFormInstancesDir;
           try {
-            destinationFormInstancesDir = FileSystemUtils.getFormInstancesDirectory(fs.getFormName());
+            destinationFormInstancesDir = FileSystemUtils.getFormInstancesDirectory(briefcaseLfd.getFormDirectory());
           } catch (FileSystemException e) {
             e.printStackTrace();
             allSuccessful = isSuccessful = false;
@@ -246,7 +252,6 @@ public class TransferFromODK implements ITransferFromSourceAction {
                 	odkSubmissionFile.delete();
                 }
                 
-                fs.putScratchFromMapping(scratchInstance, dir);
                 fs.setStatusString(String.format("retrieving (%1$d)", instanceCount), true);
                 EventBus.publish(new FormStatusEvent(fs));
                 ++instanceCount;

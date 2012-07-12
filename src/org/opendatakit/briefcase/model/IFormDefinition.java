@@ -28,6 +28,6 @@ public interface IFormDefinition {
 
   public abstract String getFormId();
 
-  public abstract Integer getModelVersion();
+  public abstract String getVersionString();
 
 }
