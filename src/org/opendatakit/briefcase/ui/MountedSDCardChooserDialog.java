@@ -38,6 +38,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.List;
 
+import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -143,16 +144,22 @@ public class MountedSDCardChooserDialog extends JDialog implements ActionListene
    }
 
   private void rebuildPanel() {
-    JPanel panel = radioPanel;
-    GroupLayout groupLayout = new GroupLayout(panel);
+    GroupLayout groupLayout = new GroupLayout(radioPanel);
 
     // Get mounted drives that have the needed directory structures...
     List<File> mounts = FindDirectoryStructure.searchMountedDrives();
-    
-    ParallelGroup leftAlignedHorizontals = groupLayout.createParallelGroup(Alignment.LEADING);
-    
-    SequentialGroup verticalGroup = groupLayout.createSequentialGroup();
 
+    // remove everything from the panel
+    radioPanel.removeAll();
+    while ( radioGroup.getButtonCount() != 0 ) {
+      AbstractButton rb = radioGroup.getElements().nextElement();
+      radioGroup.remove(rb);
+    }
+
+    // construct the panel
+    ParallelGroup leftAlignedHorizontals = groupLayout.createParallelGroup(Alignment.LEADING);
+    SequentialGroup verticalGroup = groupLayout.createSequentialGroup();
+    
     int len = 0;
     File oldDevice = odkDevice;
     JRadioButton activeButton = null;
@@ -198,7 +205,7 @@ public class MountedSDCardChooserDialog extends JDialog implements ActionListene
         .addContainerGap()
     );
     groupLayout.setVerticalGroup(verticalGroup);
-    panel.setLayout(groupLayout);
+    radioPanel.setLayout(groupLayout);
     pack();
   }
 
