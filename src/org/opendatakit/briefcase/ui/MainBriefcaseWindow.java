@@ -29,7 +29,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
@@ -254,9 +253,9 @@ public class MainBriefcaseWindow implements WindowListener {
           setFullUIEnabled(true);
         } catch (FileSystemException e1) {
           e1.printStackTrace();
-          JOptionPane.showMessageDialog(frame,
+          ODKOptionPane.showErrorDialog(frame,
               "Unable to create " + FileSystemUtils.BRIEFCASE_DIR,
-              "Failed to Create " + FileSystemUtils.BRIEFCASE_DIR, JOptionPane.ERROR_MESSAGE);
+              "Failed to Create " + FileSystemUtils.BRIEFCASE_DIR);
           // we had a bad path -- disable all but Choose...
           setFullUIEnabled(false);
         }

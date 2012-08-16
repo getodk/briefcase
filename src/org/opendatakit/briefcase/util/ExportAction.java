@@ -25,15 +25,14 @@ import java.security.PrivateKey;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.swing.JOptionPane;
-
 import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportType;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.ui.ODKOptionPane;
 
 public class ExportAction {
 
@@ -83,9 +82,9 @@ public class ExportAction {
           BufferedReader br = new BufferedReader(new FileReader(pemFile));
           Object o = new PEMReader(br).readObject();
           if ( o == null ) {
-            JOptionPane.showMessageDialog(null, 
+            ODKOptionPane.showErrorDialog(null, 
                 "The supplied file is not in PEM format.",
-                "Invalid RSA Private Key", JOptionPane.ERROR_MESSAGE);
+                "Invalid RSA Private Key");
             continue;
           }
           PrivateKey privKey;
@@ -98,18 +97,18 @@ public class ExportAction {
             privKey = null;
           }
           if ( privKey == null ) {
-            JOptionPane.showMessageDialog(null, 
-                "The supplied file does not contain a private key.",
-                "Invalid RSA Private Key", JOptionPane.ERROR_MESSAGE);
+            ODKOptionPane.showErrorDialog(null, 
+                    "The supplied file does not contain a private key.",
+                "Invalid RSA Private Key");
             continue;
           }
           lfd.setPrivateKey(privKey);
           success = true;
         } catch (IOException e) {
           e.printStackTrace();
-          JOptionPane.showMessageDialog(null, 
-              "The supplied PEM file could not be parsed.",
-              "Invalid RSA Private Key", JOptionPane.ERROR_MESSAGE);
+          ODKOptionPane.showErrorDialog(null, 
+                  "The supplied PEM file could not be parsed.",
+              "Invalid RSA Private Key");
           continue;
         }
       }

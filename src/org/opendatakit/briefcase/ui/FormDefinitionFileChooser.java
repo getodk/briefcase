@@ -20,7 +20,6 @@ import java.awt.Container;
 import java.io.File;
 
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 
 class FormDefinitionFileChooser extends AbstractFileChooser {
 
@@ -41,15 +40,15 @@ class FormDefinitionFileChooser extends AbstractFileChooser {
    */
   public static final boolean testAndMessageBadFormDefinitionFile(File f, Container parentWindow) {
     if ( !f.exists() ) {
-      JOptionPane.showMessageDialog(parentWindow,
+      ODKOptionPane.showErrorDialog(parentWindow,
           "Form definition file does not exist",
-          "Invalid Form Definition File", JOptionPane.ERROR_MESSAGE);
+          "Invalid Form Definition File");
       return false;
     }
     if ( !f.getName().endsWith(".xml") ) {
-      JOptionPane.showMessageDialog(parentWindow,
+      ODKOptionPane.showErrorDialog(parentWindow,
           "Form definition file should be an XML file (ending in .xml).",
-          "Invalid Form Definition File", JOptionPane.ERROR_MESSAGE);
+          "Invalid Form Definition File");
       return false;
     }
     return true;

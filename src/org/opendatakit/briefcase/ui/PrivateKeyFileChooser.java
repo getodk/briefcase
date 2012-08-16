@@ -20,7 +20,6 @@ import java.awt.Container;
 import java.io.File;
 
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 
 public class PrivateKeyFileChooser extends AbstractFileChooser {
 
@@ -51,9 +50,9 @@ public class PrivateKeyFileChooser extends AbstractFileChooser {
   @Override
   public boolean testAndMessageBadFolder(File f, Container parentWindow) {
     if ( f == null || !f.isFile()) {
-      JOptionPane.showMessageDialog(parentWindow,
+      ODKOptionPane.showErrorDialog(parentWindow,
           MessageStrings.INVALID_PEM_FILE,
-          MessageStrings.INVALID_PEM_FILE_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
+          MessageStrings.INVALID_PEM_FILE_DIALOG_TITLE);
     } else {
       return true;
     }

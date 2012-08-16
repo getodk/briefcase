@@ -148,9 +148,8 @@ public class MainFormUploaderWindow {
           lblUploading.setText("");
           btnDetails.setEnabled(false);
         } else {
-          JOptionPane.showMessageDialog(MainFormUploaderWindow.this.frame,
-              "Server is not an ODK Aggregate 1.0 server", "Invalid Server URL",
-              JOptionPane.ERROR_MESSAGE);
+          ODKOptionPane.showErrorDialog(MainFormUploaderWindow.this.frame,
+              "Server is not an ODK Aggregate 1.0 server", "Invalid Server URL");
         }
       }
     }

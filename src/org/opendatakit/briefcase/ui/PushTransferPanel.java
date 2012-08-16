@@ -29,7 +29,6 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
@@ -39,10 +38,10 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.EndPointType;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -137,9 +136,8 @@ public class PushTransferPanel extends JPanel {
             destinationServerInfo = d.getServerInfo();
             txtDestinationName.setText(destinationServerInfo.getUrl());
           } else {
-            JOptionPane.showMessageDialog(PushTransferPanel.this,
-                "Server is not an ODK Aggregate 1.0 server", "Invalid Server URL",
-                JOptionPane.ERROR_MESSAGE);
+            ODKOptionPane.showErrorDialog(PushTransferPanel.this,
+                "Server is not an ODK Aggregate 1.0 server", "Invalid Server URL");
           }
         }
       } else {
@@ -178,9 +176,8 @@ public class PushTransferPanel extends JPanel {
           throw new IllegalStateException("unhandled case");
         }
       } catch (IOException ex) {
-        JOptionPane.showMessageDialog(PushTransferPanel.this,
-            "Briefcase action failed: " + ex.getMessage(), "Briefcase Action Failed",
-            JOptionPane.ERROR_MESSAGE);
+        ODKOptionPane.showErrorDialog(PushTransferPanel.this,
+            "Briefcase action failed: " + ex.getMessage(), "Briefcase Action Failed");
         setActiveTransferState(false);
       }
     }
@@ -401,9 +398,8 @@ public class PushTransferPanel extends JPanel {
 
   @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
   public void formsAvailableFromServer(RetrieveAvailableFormsFailedEvent event) {
-    JOptionPane.showMessageDialog(PushTransferPanel.this,
-        "Accessing the server failed with error: " + event.getReason(), "Accessing Server Failed",
-        JOptionPane.ERROR_MESSAGE);
+    ODKOptionPane.showErrorDialog(PushTransferPanel.this,
+        "Accessing the server failed with error: " + event.getReason(), "Accessing Server Failed");
   }
 
   @EventSubscriber(eventClass = UpdatedBriefcaseFormDefinitionEvent.class)

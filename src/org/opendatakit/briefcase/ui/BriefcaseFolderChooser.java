@@ -20,7 +20,6 @@ import java.awt.Container;
 import java.io.File;
 
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
 import org.opendatakit.briefcase.util.FileSystemUtils;
@@ -44,20 +43,20 @@ class BriefcaseFolderChooser extends AbstractFileChooser {
    */
   public static final boolean testAndMessageBadBriefcaseStorageLocationParentFolder(File f, Container parentWindow) {
     if ( f == null || !f.exists() ) {
-      JOptionPane.showMessageDialog(parentWindow,
+      ODKOptionPane.showErrorDialog(parentWindow,
           MessageStrings.DIR_NOT_EXIST,
-          MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION, JOptionPane.ERROR_MESSAGE);
+          MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION);
       return true;
     }
     if (FileSystemUtils.isUnderBriefcaseFolder(f)) {
-      JOptionPane.showMessageDialog(parentWindow,
+      ODKOptionPane.showErrorDialog(parentWindow,
           MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
-          MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION, JOptionPane.ERROR_MESSAGE);
+          MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION);
       return false;
     } else if (FileSystemUtils.isUnderODKFolder(f)) {
-      JOptionPane.showMessageDialog(parentWindow,
+      ODKOptionPane.showErrorDialog(parentWindow,
           MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY,
-          MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION, JOptionPane.ERROR_MESSAGE);
+          MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION);
       return false;
     } else {
       return true;

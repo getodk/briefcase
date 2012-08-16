@@ -29,7 +29,6 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -201,8 +200,7 @@ public class LegacyServerConnectionDialog extends JDialog implements ActionListe
         serverInfo = info;
         this.setVisible(false);
       } else {
-        JOptionPane.showMessageDialog(this, errorString, "Invalid Server URL",
-            JOptionPane.ERROR_MESSAGE);
+        ODKOptionPane.showErrorDialog(this, errorString, "Invalid Server URL");
         okButton.setEnabled(true);
         cancelButton.setEnabled(true);
       }

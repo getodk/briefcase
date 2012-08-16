@@ -34,7 +34,6 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
@@ -232,9 +231,8 @@ public class PullTransferPanel extends JPanel {
           throw new IllegalStateException("unhandled case");
         }
       } catch (IOException ex) {
-        JOptionPane.showMessageDialog(PullTransferPanel.this,
-            "Briefcase action failed: " + ex.getMessage(), "Briefcase Action Failed",
-            JOptionPane.ERROR_MESSAGE);
+        ODKOptionPane.showErrorDialog(PullTransferPanel.this,
+            "Briefcase action failed: " + ex.getMessage(), "Briefcase Action Failed");
         setActiveTransferState(false);
       }
     }
@@ -517,9 +515,8 @@ public class PullTransferPanel extends JPanel {
 
   @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
   public void formsAvailableFromServer(RetrieveAvailableFormsFailedEvent event) {
-    JOptionPane.showMessageDialog(PullTransferPanel.this,
-        "Accessing the server failed with error: " + event.getReason(), "Accessing Server Failed",
-        JOptionPane.ERROR_MESSAGE);
+    ODKOptionPane.showErrorDialog(PullTransferPanel.this,
+        "Accessing the server failed with error: " + event.getReason(), "Accessing Server Failed");
   }
 
 }

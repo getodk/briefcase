@@ -29,7 +29,6 @@ import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.text.html.HTMLEditorKit;
@@ -84,9 +83,9 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
         try {
           String filename = txtBriefcaseLocation.getText();
           if ( filename == null || filename.trim().length() == 0 ) {
-            JOptionPane.showMessageDialog(BriefcaseStorageLocationDialog.this,
+            ODKOptionPane.showErrorDialog(BriefcaseStorageLocationDialog.this,
                 "Please change the " + MessageStrings.BRIEFCASE_STORAGE_LOCATION + ".",
-                MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION, JOptionPane.ERROR_MESSAGE);
+                MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION);
             return;
           }
           File folder = new File(txtBriefcaseLocation.getText());
@@ -96,10 +95,10 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
           BriefcaseStorageLocationDialog.this.setVisible(false);
         } catch (FileSystemException e) {
           e.printStackTrace();
-          JOptionPane.showMessageDialog(BriefcaseStorageLocationDialog.this,
+          ODKOptionPane.showErrorDialog(BriefcaseStorageLocationDialog.this,
               "Unable to create " + FileSystemUtils.BRIEFCASE_DIR + ".  Please change the " +
                   MessageStrings.BRIEFCASE_STORAGE_LOCATION + ".",
-              "Failed to Create " + FileSystemUtils.BRIEFCASE_DIR, JOptionPane.ERROR_MESSAGE);
+              "Failed to Create " + FileSystemUtils.BRIEFCASE_DIR);
         }
       }});
     

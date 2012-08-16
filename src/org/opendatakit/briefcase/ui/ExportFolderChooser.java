@@ -20,7 +20,6 @@ import java.awt.Container;
 import java.io.File;
 
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
 import org.opendatakit.briefcase.util.FileSystemUtils;
@@ -51,19 +50,19 @@ class ExportFolderChooser extends AbstractFileChooser {
     if ( !f.exists() ) {
       return false;
     } else if (!f.isDirectory()) {
-      JOptionPane.showMessageDialog(parentWindow,
+      ODKOptionPane.showErrorDialog(parentWindow,
           MessageStrings.DIR_NOT_DIRECTORY,
-          MessageStrings.INVALID_EXPORT_DIRECTORY, JOptionPane.ERROR_MESSAGE);
+          MessageStrings.INVALID_EXPORT_DIRECTORY);
       return false;
     } else if (FileSystemUtils.isUnderBriefcaseFolder(f)) {
-      JOptionPane.showMessageDialog(parentWindow,
+      ODKOptionPane.showErrorDialog(parentWindow,
           MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
-          MessageStrings.INVALID_EXPORT_DIRECTORY, JOptionPane.ERROR_MESSAGE);
+          MessageStrings.INVALID_EXPORT_DIRECTORY);
       return false;
     } else if (FileSystemUtils.isUnderODKFolder(f)) {
-      JOptionPane.showMessageDialog(parentWindow,
+      ODKOptionPane.showErrorDialog(parentWindow,
           MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY,
-          MessageStrings.INVALID_EXPORT_DIRECTORY, JOptionPane.ERROR_MESSAGE);
+          MessageStrings.INVALID_EXPORT_DIRECTORY);
       return false;
     } else { 
       return true; // allow directory to already have files and directories...

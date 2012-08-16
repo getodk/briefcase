@@ -197,36 +197,33 @@ public class ExportPanel extends JPanel {
       
       String exportDir = txtExportDirectory.getText();
       if ( exportDir == null || exportDir.trim().length() == 0 ) {
-        JOptionPane.showMessageDialog(ExportPanel.this,
+        ODKOptionPane.showErrorDialog(ExportPanel.this,
             TAB_NAME + " directory was not specified.", 
-            MessageStrings.INVALID_EXPORT_DIRECTORY,
-            JOptionPane.ERROR_MESSAGE);
+            MessageStrings.INVALID_EXPORT_DIRECTORY);
         return;
       }
       File exportDirectory = new File(exportDir.trim());
       if ( exportDirectory == null || !exportDirectory.exists() ) {
-        JOptionPane.showMessageDialog(ExportPanel.this,
+        ODKOptionPane.showErrorDialog(ExportPanel.this,
             MessageStrings.DIR_NOT_EXIST,
-            MessageStrings.INVALID_EXPORT_DIRECTORY, JOptionPane.ERROR_MESSAGE);
+            MessageStrings.INVALID_EXPORT_DIRECTORY);
         return;
       }
       if ( !exportDirectory.isDirectory() ) {
-        JOptionPane.showMessageDialog(ExportPanel.this,
+        ODKOptionPane.showErrorDialog(ExportPanel.this,
             MessageStrings.DIR_NOT_DIRECTORY,
-            MessageStrings.INVALID_EXPORT_DIRECTORY, JOptionPane.ERROR_MESSAGE);
+            MessageStrings.INVALID_EXPORT_DIRECTORY);
         return;
       }
       if ( FileSystemUtils.isUnderODKFolder(exportDirectory) ) {
-        JOptionPane.showMessageDialog(ExportPanel.this,
+        ODKOptionPane.showErrorDialog(ExportPanel.this,
             MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY, 
-            MessageStrings.INVALID_EXPORT_DIRECTORY,
-            JOptionPane.ERROR_MESSAGE);
+            MessageStrings.INVALID_EXPORT_DIRECTORY);
         return;
       } else if ( FileSystemUtils.isUnderBriefcaseFolder(exportDirectory)) {
-        JOptionPane.showMessageDialog(ExportPanel.this,
+        ODKOptionPane.showErrorDialog(ExportPanel.this,
             MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
-            MessageStrings.INVALID_EXPORT_DIRECTORY,
-            JOptionPane.ERROR_MESSAGE);
+            MessageStrings.INVALID_EXPORT_DIRECTORY);
         return;
       }
 
@@ -241,10 +238,9 @@ public class ExportPanel extends JPanel {
       if ( lfd.isFileEncryptedForm() || lfd.isFieldEncryptedForm() ) {
         pemFile = new File(pemPrivateKeyFilePath.getText());
         if ( !pemFile.exists()) {
-          JOptionPane.showMessageDialog(ExportPanel.this,
+          ODKOptionPane.showErrorDialog(ExportPanel.this,
               "Briefcase action failed: No PrivateKey file for encrypted form", 
-              MessageStrings.ERROR_DIALOG_TITLE,
-              JOptionPane.ERROR_MESSAGE);
+              MessageStrings.ERROR_DIALOG_TITLE);
           return;
         }
       }
@@ -255,9 +251,8 @@ public class ExportPanel extends JPanel {
         setActiveExportState(true);
         ExportAction.export(exportDirectory, exportType, lfd, pemFile, terminationFuture);
       } catch (IOException ex) {
-        JOptionPane.showMessageDialog(ExportPanel.this,
-            "Briefcase action failed: " + ex.getMessage(), "Briefcase Action Failed",
-            JOptionPane.ERROR_MESSAGE);
+        ODKOptionPane.showErrorDialog(ExportPanel.this,
+            "Briefcase action failed: " + ex.getMessage(), "Briefcase Action Failed");
         setActiveExportState(true);
       }
     }
