@@ -48,6 +48,8 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
 
   private static final String PASSWORD_LABEL = "Password:";
   private static final String USERNAME_LABEL = "Username:";
+  private static final String ODK_AGGREGATE_USERNAME_PASSSWORD_LABEL = "Username cannot be a Google login;";
+  private static final String ODK_AGGREGATE_USERNAME_PASSSWORD_LABEL2 = "it must be an ODK Aggregate username.";
   private static final String URL_LABEL = "URL:";
   private static final String CONNECT = "Connect";
   private static final String CANCEL = "Cancel";
@@ -72,7 +74,7 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
     super(app, "Aggregate v1.0 Server Connection", ModalityType.DOCUMENT_MODAL);
     serverInfo = oldInfo;
     this.asTarget = asTarget;
-    setBounds(100, 100, 450, 222);
+    setBounds(100, 100, 450, 234);
     getContentPane().setLayout(new BorderLayout());
     contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
     getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -90,23 +92,33 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
 
     textPasswordField = new JPasswordField();
     textPasswordField.setColumns(10);
+    
+    JLabel lblOdkAggregateUsernamePassword = new JLabel(ODK_AGGREGATE_USERNAME_PASSSWORD_LABEL);
+    JLabel lblOdkAggregateUsernamePassword2 = new JLabel(ODK_AGGREGATE_USERNAME_PASSSWORD_LABEL2);
+    
     GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
     gl_contentPanel.setHorizontalGroup(gl_contentPanel
         .createSequentialGroup()
         .addContainerGap()
-        .addGroup(
-            gl_contentPanel.createParallelGroup(Alignment.TRAILING).addComponent(lblUrl)
-                .addComponent(lblUsername).addComponent(lblPassword))
-        .addPreferredGap(ComponentPlacement.RELATED)
-        .addGroup(
-            gl_contentPanel
-                .createParallelGroup(Alignment.LEADING)
-                .addComponent(textUrlField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-                    Short.MAX_VALUE)
-                .addComponent(textUsernameField, GroupLayout.PREFERRED_SIZE,
-                    GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(textPasswordField, GroupLayout.PREFERRED_SIZE,
-                    GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)).addContainerGap());
+        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+          .addGroup(
+              gl_contentPanel.createSequentialGroup()
+                  .addGroup(
+                      gl_contentPanel.createParallelGroup(Alignment.TRAILING).addComponent(lblUrl)
+                          .addComponent(lblUsername).addComponent(lblPassword))
+                  .addPreferredGap(ComponentPlacement.RELATED)
+                  .addGroup(
+                      gl_contentPanel
+                          .createParallelGroup(Alignment.LEADING)
+                          .addComponent(textUrlField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                              Short.MAX_VALUE)
+                          .addComponent(textUsernameField, GroupLayout.PREFERRED_SIZE,
+                              GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                          .addComponent(textPasswordField, GroupLayout.PREFERRED_SIZE,
+                              GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+          .addComponent(lblOdkAggregateUsernamePassword)
+          .addComponent(lblOdkAggregateUsernamePassword2))
+        .addContainerGap());
 
     gl_contentPanel.setVerticalGroup(gl_contentPanel
         .createSequentialGroup()
@@ -130,7 +142,12 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
                 .createParallelGroup(Alignment.BASELINE)
                 .addComponent(lblPassword)
                 .addComponent(textPasswordField, GroupLayout.PREFERRED_SIZE,
-                    GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)).addContainerGap());
+                    GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+        .addPreferredGap(ComponentPlacement.UNRELATED)
+        .addComponent(lblOdkAggregateUsernamePassword)
+        .addPreferredGap(ComponentPlacement.RELATED)
+        .addComponent(lblOdkAggregateUsernamePassword2)
+        .addContainerGap());
     contentPanel.setLayout(gl_contentPanel);
     {
       JPanel buttonPane = new JPanel();
