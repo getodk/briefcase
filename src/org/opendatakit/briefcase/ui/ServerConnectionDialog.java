@@ -48,8 +48,8 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
 
   private static final String PASSWORD_LABEL = "Password:";
   private static final String USERNAME_LABEL = "Username:";
-  private static final String ODK_AGGREGATE_USERNAME_PASSSWORD_LABEL = "Username cannot be a Google login;";
-  private static final String ODK_AGGREGATE_USERNAME_PASSSWORD_LABEL2 = "it must be an ODK Aggregate username.";
+  private static final String ODK_AGGREGATE_USERNAME_PASSSWORD_LABEL = "Username cannot be a Google login; it must be an ODK";
+  private static final String ODK_AGGREGATE_USERNAME_PASSSWORD_LABEL2 = "Aggregate username with 'Form Manager' permissions.";
   private static final String URL_LABEL = "URL:";
   private static final String CONNECT = "Connect";
   private static final String CANCEL = "Cancel";
@@ -71,7 +71,7 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
    * Create the dialog.
    */
   public ServerConnectionDialog(Window app, ServerConnectionInfo oldInfo, boolean asTarget) {
-    super(app, "Aggregate v1.0 Server Connection", ModalityType.DOCUMENT_MODAL);
+    super(app, "Aggregate v1.x Server Connection", ModalityType.DOCUMENT_MODAL);
     serverInfo = oldInfo;
     this.asTarget = asTarget;
     setBounds(100, 100, 450, 234);
