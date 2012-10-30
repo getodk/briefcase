@@ -84,6 +84,7 @@ public class BriefcaseFormDefinition implements IFormDefinition {
       throw new BadFormDefinition("Form directory does not contain form");
     }
     // parse the temp file into a form definition...
+    boolean badForm = false;
     JavaRosaParserWrapper newDefn;
     File briefcaseFormDirectory;
     File briefcaseFormFile;
@@ -93,7 +94,16 @@ public class BriefcaseFormDefinition implements IFormDefinition {
       briefcaseFormFile = FileSystemUtils.getFormDefinitionFile(briefcaseFormDirectory);
     } catch (ODKIncompleteSubmissionData e) {
       e.printStackTrace();
-      throw new BadFormDefinition(e, e.getReason());
+      try {
+        badForm = true;
+        newDefn = null;
+        briefcaseFormDirectory = FileSystemUtils.getFormDirectory("_badForm");
+        briefcaseFormFile = FileSystemUtils.getFormDefinitionFile(briefcaseFormDirectory);
+      } catch (FileSystemException ex) {
+        ex.printStackTrace();
+        throw new BadFormDefinition(ex);
+      }
+      // throw new BadFormDefinition(e, e.getReason());
     } catch (FileSystemException e) {
       e.printStackTrace();
       throw new BadFormDefinition(e);
@@ -136,8 +146,14 @@ public class BriefcaseFormDefinition implements IFormDefinition {
         String existingTitle = existingDefn.getFormName();
 
         // compare the two
-        DifferenceResult result = JavaRosaParserWrapper.compareXml(newDefn, existingXml,
+        DifferenceResult result;
+        if ( badForm ) {
+          // newDefn is considered identical to what we have locally...
+          result = DifferenceResult.XFORMS_IDENTICAL;
+        } else {
+          result = JavaRosaParserWrapper.compareXml(newDefn, existingXml,
             existingTitle, true);
+        }
 
         if (result == DifferenceResult.XFORMS_DIFFERENT) {
           if (revised.exists()) {
