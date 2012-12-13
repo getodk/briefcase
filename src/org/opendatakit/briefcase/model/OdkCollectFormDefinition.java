@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -17,6 +17,8 @@
 package org.opendatakit.briefcase.model;
 
 import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -29,7 +31,7 @@ import org.opendatakit.briefcase.util.JavaRosaParserWrapper;
 
 /**
  * Holds the parsed form definition for a form in an ODK Collect directory
- *  
+ *
  * @author mitchellsundt@gmail.com
  *
  */
@@ -40,7 +42,7 @@ public class OdkCollectFormDefinition implements IFormDefinition {
     StringBuilder xmlBuilder = new StringBuilder();
     BufferedReader rdr = null;
     try {
-      rdr = new BufferedReader(new FileReader(formDefinitionFile));
+      rdr = new BufferedReader(new InputStreamReader(new FileInputStream(formDefinitionFile), "UTF-8"));
       String line = rdr.readLine();
       while (line != null) {
         xmlBuilder.append(line);
@@ -81,7 +83,7 @@ public class OdkCollectFormDefinition implements IFormDefinition {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.opendatakit.briefcase.model.IFormDefinition#getFormName()
    */
   @Override
@@ -91,7 +93,7 @@ public class OdkCollectFormDefinition implements IFormDefinition {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.opendatakit.briefcase.model.IFormDefinition#getFormId()
    */
   @Override
@@ -101,7 +103,7 @@ public class OdkCollectFormDefinition implements IFormDefinition {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.opendatakit.briefcase.model.IFormDefinition#getVersionString()
    */
   @Override

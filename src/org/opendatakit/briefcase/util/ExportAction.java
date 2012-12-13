@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -18,8 +18,10 @@ package org.opendatakit.briefcase.util;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.util.concurrent.ExecutorService;
@@ -79,10 +81,10 @@ public class ExportAction {
       boolean success = false;
       while (!success) {
         try {
-          BufferedReader br = new BufferedReader(new FileReader(pemFile));
+          BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(pemFile), "UTF-8"));
           Object o = new PEMReader(br).readObject();
           if ( o == null ) {
-            ODKOptionPane.showErrorDialog(null, 
+            ODKOptionPane.showErrorDialog(null,
                 "The supplied file is not in PEM format.",
                 "Invalid RSA Private Key");
             continue;
@@ -97,7 +99,7 @@ public class ExportAction {
             privKey = null;
           }
           if ( privKey == null ) {
-            ODKOptionPane.showErrorDialog(null, 
+            ODKOptionPane.showErrorDialog(null,
                     "The supplied file does not contain a private key.",
                 "Invalid RSA Private Key");
             continue;
@@ -106,7 +108,7 @@ public class ExportAction {
           success = true;
         } catch (IOException e) {
           e.printStackTrace();
-          ODKOptionPane.showErrorDialog(null, 
+          ODKOptionPane.showErrorDialog(null,
                   "The supplied PEM file could not be parsed.",
               "Invalid RSA Private Key");
           continue;

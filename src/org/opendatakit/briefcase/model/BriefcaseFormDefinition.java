@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -18,9 +18,11 @@ package org.opendatakit.briefcase.model;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.security.PrivateKey;
 
 import org.apache.commons.io.FileUtils;
@@ -43,7 +45,7 @@ public class BriefcaseFormDefinition implements IFormDefinition {
     StringBuilder xmlBuilder = new StringBuilder();
     BufferedReader rdr = null;
     try {
-      rdr = new BufferedReader(new FileReader(formDefinitionFile));
+      rdr = new BufferedReader(new InputStreamReader(new FileInputStream(formDefinitionFile), "UTF-8"));
       String line = rdr.readLine();
       while (line != null) {
         xmlBuilder.append(line);
@@ -69,17 +71,17 @@ public class BriefcaseFormDefinition implements IFormDefinition {
   public boolean needsMediaUpdate() {
     return needsMediaUpdate;
   }
-  
+
   public void clearMediaUpdate() {
     needsMediaUpdate = false;
   }
-  
+
   public static final BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile) throws BadFormDefinition {
     return resolveAgainstBriefcaseDefn(tmpFormFile, false);
   }
-  
+
   public static final BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile, boolean copyFile) throws BadFormDefinition {
-    
+
     if (!tmpFormFile.exists()) {
       throw new BadFormDefinition("Form directory does not contain form");
     }
@@ -121,7 +123,7 @@ public class BriefcaseFormDefinition implements IFormDefinition {
         revisedXml = readFile(revised);
         revisedDefn = new JavaRosaParserWrapper(revised, revisedXml);
       }
-      
+
       if (!briefcaseFormFile.exists()) {
         // the tmpFormFile is the first time we saw this form.
         // Rename it to formFile and parse it.
@@ -232,7 +234,7 @@ public class BriefcaseFormDefinition implements IFormDefinition {
     } else {
       defn = new BriefcaseFormDefinition(briefcaseFormDirectory, existingDefn, null, needsMediaUpdate);
     }
-    
+
     if ( !isIdentical && needsMediaUpdate ) {
       EventBus.publish(new UpdatedBriefcaseFormDefinitionEvent(defn));
     }
@@ -245,7 +247,7 @@ public class BriefcaseFormDefinition implements IFormDefinition {
     this.revisedFormFile = revisedFormFile;
     this.formFolder = briefcaseFormDirectory;
   }
-  
+
   public BriefcaseFormDefinition(File briefcaseFormDirectory, File formFile) throws BadFormDefinition {
     formFolder = briefcaseFormDirectory;
     needsMediaUpdate = false;
@@ -274,10 +276,10 @@ public class BriefcaseFormDefinition implements IFormDefinition {
   public File getFormDirectory() {
     return formFolder;
   }
-  
+
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.opendatakit.briefcase.model.IFormDefinition#getFormName()
    */
   @Override
@@ -287,7 +289,7 @@ public class BriefcaseFormDefinition implements IFormDefinition {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.opendatakit.briefcase.model.IFormDefinition#getFormId()
    */
   @Override
@@ -297,7 +299,7 @@ public class BriefcaseFormDefinition implements IFormDefinition {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.opendatakit.briefcase.model.IFormDefinition#getVersionString()
    */
   @Override
