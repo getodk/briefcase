@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -20,10 +20,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
@@ -52,10 +52,10 @@ import org.javarosa.xform.parse.XFormParser;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
 import org.kxml2.kdom.Node;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.CryptoException;
 import org.opendatakit.briefcase.model.FileSystemException;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.ui.MessageStrings;
@@ -112,7 +112,7 @@ public class FileSystemUtils {
         throw new FileSystemException("Unable to create " + FORMS_DIR);
       }
     }
-    
+
     File f = new File(folder, README_TXT);
     if ( !f.exists() ) {
       try {
@@ -125,7 +125,7 @@ public class FileSystemUtils {
       }
     }
     try {
-      FileWriter fout = new FileWriter(f, false);
+      OutputStreamWriter fout = new OutputStreamWriter(new FileOutputStream(f,false), "UTF-8");
       fout.write(MessageStrings.README_CONTENTS);
       fout.close();
     } catch (IOException e) {
@@ -157,7 +157,7 @@ public class FileSystemUtils {
     File fof = new File(fo, "forms");
     return fo.exists() && foi.exists() && fof.exists();
   }
-  
+
   public static final boolean isUnderODKFolder(File pathname) {
     File parent = (pathname == null ? null : pathname.getParentFile());
     File current = pathname;
@@ -178,7 +178,7 @@ public class FileSystemUtils {
     File foi = new File(pathname, "instances");
     return foi.exists() && foi.isDirectory();
   }
-  
+
 
   public static final List<BriefcaseFormDefinition> getBriefcaseFormList() {
     List<BriefcaseFormDefinition> formsList = new ArrayList<BriefcaseFormDefinition>();
@@ -248,7 +248,7 @@ public class FileSystemUtils {
 
   public static Connection getFormDatabase(File formDirectory) throws FileSystemException {
     File db = new File(formDirectory, "info.db");
-    
+
     String createFlag = "";
     if ( !db.exists() ) {
       createFlag = "?create=true";
@@ -262,7 +262,7 @@ public class FileSystemUtils {
       e.printStackTrace();
       throw new FileSystemException("Unable to load SmallSQL driver");
     }
-    
+
     Connection conn;
     try {
       conn = DriverManager.getConnection( jdbcUrl );
@@ -272,7 +272,7 @@ public class FileSystemUtils {
     }
     return conn;
   }
-  
+
   public static File getFormDefinitionFileIfExists(File formDirectory) {
     if (!formDirectory.exists()) {
       return null;
@@ -296,7 +296,7 @@ public class FileSystemUtils {
     }
     return tempDefnFile;
   }
-  
+
   public static File getFormDefinitionFile(File formDirectory)
       throws FileSystemException {
     File formDefnFile = new File(formDirectory, formDirectory.getName() + ".xml");
@@ -324,7 +324,7 @@ public class FileSystemUtils {
 
     return mediaDir;
   }
-  
+
   public static File getFormInstancesDirectory(File formDirectory) throws FileSystemException {
     File instancesDir = new File(formDirectory, "instances");
     if (!instancesDir.exists() && !instancesDir.mkdirs()) {
@@ -332,7 +332,7 @@ public class FileSystemUtils {
     }
     return instancesDir;
   }
-  
+
   public static Set<File> getFormSubmissionDirectories(File formDirectory) {
     Set<File> files = new TreeSet<File>();
 
@@ -496,7 +496,7 @@ public class FileSystemUtils {
     }
   }
 
-  private static boolean decryptSubmissionFiles(String base64EncryptedSymmetricKey, 
+  private static boolean decryptSubmissionFiles(String base64EncryptedSymmetricKey,
       FormInstanceMetadata fim, List<String> mediaNames,
       String encryptedSubmissionFile, String base64EncryptedElementSignature,
       PrivateKey rsaPrivateKey, File instanceDir, File unencryptedDir) throws FileSystemException,
@@ -546,7 +546,7 @@ public class FileSystemUtils {
         filesToProcess.add(f);
       }
     }
-    
+
     // should have all media files plus one submission.xml.enc file
     if ( filesToProcess.size() != mediaNames.size() + 1 ) {
       // figure out what we're missing...
@@ -610,11 +610,11 @@ public class FileSystemUtils {
       e.printStackTrace();
       throw new FileSystemException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
     }
-    
+
     // get the FIM for the decrypted submission file
-    File submissionFile = new File( unencryptedDir, 
+    File submissionFile = new File( unencryptedDir,
         encryptedSubmissionFile.substring(0, encryptedSubmissionFile.lastIndexOf(".enc")));
-    
+
     FormInstanceMetadata submissionFim;
     try {
       Document subDoc = XmlManipulationUtils.parseXml(submissionFile);
@@ -626,11 +626,11 @@ public class FileSystemUtils {
       e.printStackTrace();
       throw new FileSystemException("Error decrypting: " + submissionFile.getName() + " Cause: " + e.getMessage());
     }
-    
+
     boolean same = submissionFim.xparam.formId.equals(fim.xparam.formId);
-        
+
     if ( !same ) {
-      throw new FileSystemException("Error decrypting:" + unencryptedDir.getName() 
+      throw new FileSystemException("Error decrypting:" + unencryptedDir.getName()
           + " Cause: form instance metadata differs from that in manifest");
     }
 
@@ -643,7 +643,7 @@ public class FileSystemUtils {
     appendElementSignatureSource(b, base64EncryptedSymmetricKey);
 
     appendElementSignatureSource(b, fim.instanceId);
-    
+
     for ( String encFilename : mediaNames ) {
       File decryptedFile = new File( unencryptedDir,
           encFilename.substring(0, encFilename.lastIndexOf(".enc")));
@@ -653,7 +653,7 @@ public class FileSystemUtils {
 
     String md5 = FileSystemUtils.getMd5Hash(submissionFile);
     appendElementSignatureSource(b, submissionFile.getName() + "::" + md5);
-    
+
     // compute the digest of the element signature string
     byte[] messageDigest;
     try {
@@ -667,7 +667,7 @@ public class FileSystemUtils {
       e.printStackTrace();
       throw new CryptoException("Error computing xml signature Cause: " + e.toString());
     }
-    
+
     same = true;
     for ( int i = 0 ; i < messageDigest.length ; ++i ) {
       if ( messageDigest[i] != elementDigest[i] ) {
@@ -675,26 +675,26 @@ public class FileSystemUtils {
         break;
       }
     }
-    
+
     return same;
   }
-  
+
   private static void appendElementSignatureSource(StringBuilder b, String value) {
     b.append(value).append("\n");
   }
-  
+
   public static class DecryptOutcome {
     public final Document submission;
     public final boolean isValidated;
-    
+
     DecryptOutcome(Document submission, boolean isValidated) {
       this.submission = submission;
       this.isValidated = isValidated;
     }
   }
-  
-  public static DecryptOutcome decryptAndValidateSubmission(Document doc, 
-      PrivateKey rsaPrivateKey, File instanceDir, File unEncryptedDir) 
+
+  public static DecryptOutcome decryptAndValidateSubmission(Document doc,
+      PrivateKey rsaPrivateKey, File instanceDir, File unEncryptedDir)
           throws ParsingException, FileSystemException, CryptoException {
 
     Element rootElement = doc.getRootElement();
@@ -801,7 +801,7 @@ public class FileSystemUtils {
       throw new ParsingException(
           "InstanceId in decrypted submission does not match that in manifest!");
     }
-    
+
     return new DecryptOutcome(doc, isValidated);
   }
 }

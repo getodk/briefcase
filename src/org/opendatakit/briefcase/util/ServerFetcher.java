@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -17,8 +17,9 @@
 package org.opendatakit.briefcase.util;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
@@ -31,11 +32,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.DocumentDescription;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
@@ -58,7 +59,7 @@ public class ServerFetcher {
   public static class FormListException extends Exception {
 
     /**
-		 * 
+		 *
 		 */
     private static final long serialVersionUID = -2443850446028219296L;
 
@@ -70,7 +71,7 @@ public class ServerFetcher {
   public static class SubmissionListException extends Exception {
 
     /**
-		 * 
+		 *
 		 */
     private static final long serialVersionUID = 8707375089373674335L;
 
@@ -82,7 +83,7 @@ public class ServerFetcher {
   public static class SubmissionDownloadException extends Exception {
 
     /**
-		 * 
+		 *
 		 */
     private static final long serialVersionUID = 8717375089373674335L;
 
@@ -93,7 +94,7 @@ public class ServerFetcher {
 
   public static class DownloadException extends Exception {
     /**
-		 * 
+		 *
 		 */
     private static final long serialVersionUID = 3142210034175698950L;
 
@@ -107,14 +108,14 @@ public class ServerFetcher {
     this.serverInfo = serverInfo;
     this.terminationFuture = future;
   }
-  
+
   public boolean isCancelled() {
     return terminationFuture.isCancelled();
   }
 
   public boolean downloadFormAndSubmissionFiles(List<FormStatus> formsToTransfer) {
     boolean allSuccessful = true;
-    
+
     // boolean error = false;
     int total = formsToTransfer.size();
 
@@ -126,7 +127,7 @@ public class ServerFetcher {
         EventBus.publish(new FormStatusEvent(fs));
         return false;
       }
-      
+
       RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
       fs.setStatusString("Fetching form definition", true);
       EventBus.publish(new FormStatusEvent(fs));
@@ -156,7 +157,7 @@ public class ServerFetcher {
                   continue;
                 }
               }
-              
+
             }
             formDatabase = new DatabaseUtils(FileSystemUtils.getFormDatabase(briefcaseLfd.getFormDirectory()));
 
@@ -170,10 +171,10 @@ public class ServerFetcher {
 
           fs.setStatusString("preparing to retrieve instance data", true);
           EventBus.publish(new FormStatusEvent(fs));
-          
+
           File formInstancesDir = FileSystemUtils.getFormInstancesDirectory(briefcaseLfd.getFormDirectory());
-          
-          // this will publish events 
+
+          // this will publish events
           successful = downloadAllSubmissionsForForm(formInstancesDir, formDatabase, briefcaseLfd, fs);
         } catch ( FileSystemException e ) {
           e.printStackTrace();
@@ -195,7 +196,7 @@ public class ServerFetcher {
           }
         }
 
-        allSuccessful = allSuccessful && successful; 
+        allSuccessful = allSuccessful && successful;
 
         // on success, we haven't actually set a success event (because we don't know we're done)
         if ( successful ) {
@@ -205,7 +206,7 @@ public class ServerFetcher {
           fs.setStatusString("FAILED.", true);
           EventBus.publish(new FormStatusEvent(fs));
         }
-        
+
       } catch (SocketTimeoutException se) {
         se.printStackTrace();
         allSuccessful = false;
@@ -261,7 +262,7 @@ public class ServerFetcher {
   private boolean downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd,
       FormStatus fs) {
     boolean allSuccessful = true;
-    
+
     RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
 
     int count = 1;
@@ -313,11 +314,11 @@ public class ServerFetcher {
           EventBus.publish(new FormStatusEvent(fs));
           return false;
         }
-        
+
         try {
           fs.setStatusString("fetching instance " + count++ + " ...", true);
           EventBus.publish(new FormStatusEvent(fs));
-          
+
           downloadSubmission(formInstancesDir, formDatabase, lfd, fs, uri);
         } catch (Exception e) {
           e.printStackTrace();
@@ -328,7 +329,7 @@ public class ServerFetcher {
         }
       }
     }
-    return allSuccessful;  
+    return allSuccessful;
   }
 
   public static class SubmissionManifest {
@@ -345,14 +346,14 @@ public class ServerFetcher {
 
   private void downloadSubmission(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd, FormStatus fs,
       String uri) throws Exception {
-    
+
     if ( formDatabase.hasRecordedInstance(uri) != null ) {
       logger.info("already present - skipping fetch: " + uri );
       return;
     }
-    
+
     String formId = lfd.getSubmissionKey(uri);
-    
+
     if ( isCancelled() ) {
       fs.setStatusString("aborting fetch of submission...", true);
       EventBus.publish(new FormStatusEvent(fs));
@@ -366,7 +367,7 @@ public class ServerFetcher {
     String fullUrl = WebUtils.createLinkWithProperties(baseUrl, params);
     AggregateUtils.DocumentFetchResult result;
     try {
-      DocumentDescription submissionDescription = new DocumentDescription("Fetch of a submission failed.  Detailed error: ", 
+      DocumentDescription submissionDescription = new DocumentDescription("Fetch of a submission failed.  Detailed error: ",
           "Fetch of a submission failed.", "submission", terminationFuture);
       result = AggregateUtils.getXmlDocument(fullUrl, serverInfo, false,
           submissionDescription, null);
@@ -389,18 +390,18 @@ public class ServerFetcher {
       // create instance directory...
       File instanceDir = FileSystemUtils.assertFormSubmissionDirectory(formInstancesDir,
           submissionManifest.instanceID);
-  
+
       // fetch attachments
       for (MediaFile m : submissionManifest.attachmentList) {
         downloadMediaFileIfChanged(instanceDir, m, fs);
       }
-      
+
       // write submission file -- we rely on instanceId being unique...
       File submissionFile = new File(instanceDir, "submission.xml");
-      FileWriter fo = new FileWriter(submissionFile);
+      OutputStreamWriter fo = new OutputStreamWriter(new FileOutputStream(submissionFile), "UTF-8");
       fo.write(submissionManifest.submissionXml);
       fo.close();
-      
+
       // if we get here and it was a legacy server (0.9.x), we don't
       // actually know whether the submission was complete.  Otherwise,
       // if we get here, we know that this is a completed submission
@@ -414,15 +415,15 @@ public class ServerFetcher {
       // create instance directory...
       File instanceDir = FileSystemUtils.assertFormSubmissionDirectory(formInstancesDir,
           submissionManifest.instanceID);
-  
+
       // fetch attachments
       for (MediaFile m : submissionManifest.attachmentList) {
         downloadMediaFileIfChanged(instanceDir, m, fs);
       }
-  
+
       // write submission file
       File submissionFile = new File(instanceDir, "submission.xml");
-      FileWriter fo = new FileWriter(submissionFile);
+      OutputStreamWriter fo = new OutputStreamWriter(new FileOutputStream(submissionFile), "UTF-8");
       fo.write(submissionManifest.submissionXml);
       fo.close();
 
@@ -436,7 +437,7 @@ public class ServerFetcher {
         formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
       }
     }
-    
+
   }
 
   public static class MediaFile {
@@ -461,7 +462,7 @@ public class ServerFetcher {
     List<MediaFile> files = new ArrayList<MediaFile>();
     AggregateUtils.DocumentFetchResult result;
     try {
-      DocumentDescription formManifestDescription = new DocumentDescription("Fetch of manifest failed. Detailed reason: ", 
+      DocumentDescription formManifestDescription = new DocumentDescription("Fetch of manifest failed. Detailed reason: ",
           "Fetch of manifest failed ", "form manifest", terminationFuture);
       result = AggregateUtils.getXmlDocument(fd.getManifestUrl(), serverInfo, false,
           formManifestDescription, null);
@@ -507,7 +508,7 @@ public class ServerFetcher {
         mediaFile.delete();
       }
     }
-    
+
     if ( isCancelled() ) {
       fs.setStatusString("aborting fetch of media file...", true);
       EventBus.publish(new FormStatusEvent(fs));
@@ -533,16 +534,16 @@ public class ServerFetcher {
 
   public static final AggregateUtils.DocumentFetchResult fetchFormList(ServerConnectionInfo serverInfo,
       boolean alwaysResetCredentials, TerminationFuture terminationFuture) throws XmlDocumentFetchException {
-  
+
     String urlString = serverInfo.getUrl();
     if (urlString.endsWith("/")) {
       urlString = urlString + "formList";
     } else {
       urlString = urlString + "/formList";
     }
-  
-    DocumentDescription formListDescription = 
-      new DocumentDescription("Unable to fetch formList: ", 
+
+    DocumentDescription formListDescription =
+      new DocumentDescription("Unable to fetch formList: ",
                              "Unable to fetch formList.", "form list",
                              terminationFuture);
     AggregateUtils.DocumentFetchResult result = AggregateUtils.getXmlDocument(urlString, serverInfo, alwaysResetCredentials,
