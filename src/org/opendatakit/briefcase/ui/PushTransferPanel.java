@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -54,14 +54,14 @@ import org.opendatakit.briefcase.util.TransferAction;
 
 /**
  * Push forms and data to external locations.
- * 
+ *
  * @author mitchellsundt@gmail.com
  *
  */
 public class PushTransferPanel extends JPanel {
 
   /**
-	 * 
+	 *
 	 */
   private static final long serialVersionUID = -2192404551259501394L;
 
@@ -70,7 +70,7 @@ public class PushTransferPanel extends JPanel {
 
   private static final String UPLOADING_DOT_ETC = "Uploading..........";
 
-  private JComboBox listDestinationDataSink;
+  private JComboBox<String> listDestinationDataSink;
   private JButton btnDestinationAction;
   private JLabel lblDestination;
   private JTextField txtDestinationName;
@@ -93,7 +93,8 @@ public class PushTransferPanel extends JPanel {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      JComboBox cb = (JComboBox) e.getSource();
+      @SuppressWarnings("unchecked")
+      JComboBox<String> cb = (JComboBox<String>) e.getSource();
       String strSelection = (String) cb.getSelectedItem();
       EndPointType selection = (strSelection != null) ? EndPointType.fromString(strSelection)
           : null;
@@ -185,7 +186,7 @@ public class PushTransferPanel extends JPanel {
 
   /**
    * Create the transfer-from-to panel.
-   * 
+   *
    * @param txtBriefcaseDir
    */
   public PushTransferPanel(TerminationFuture terminationFuture) {
@@ -195,7 +196,7 @@ public class PushTransferPanel extends JPanel {
 
     JLabel lblSendDataTo = new JLabel(TAB_NAME + " data to:");
 
-    listDestinationDataSink = new JComboBox(
+    listDestinationDataSink = new JComboBox<String>(
         new String[] { EndPointType.AGGREGATE_1_0_CHOICE.toString() });
 
     listDestinationDataSink.addActionListener(new DestinationSinkListener());

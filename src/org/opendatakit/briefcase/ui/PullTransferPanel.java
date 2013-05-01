@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -59,14 +59,14 @@ import org.opendatakit.briefcase.util.TransferAction;
 
 /**
  * Pull forms and data to external locations.
- * 
+ *
  * @author mitchellsundt@gmail.com
  *
  */
 public class PullTransferPanel extends JPanel {
 
   /**
-    * 
+    *
     */
   private static final long serialVersionUID = -2192404551259501394L;
 
@@ -75,7 +75,7 @@ public class PullTransferPanel extends JPanel {
 
   private static final String DOWNLOADING_DOT_ETC = "Downloading..........";
 
-  private JComboBox listOriginDataSource;
+  private JComboBox<String> listOriginDataSource;
   private JButton btnOriginAction;
   private JLabel lblOrigin;
   private JTextField txtOriginName;
@@ -98,7 +98,8 @@ public class PullTransferPanel extends JPanel {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      JComboBox cb = (JComboBox) e.getSource();
+      @SuppressWarnings("unchecked")
+      JComboBox<String> cb = (JComboBox<String>) e.getSource();
       String strSelection = (String) cb.getSelectedItem();
       EndPointType selection = (strSelection != null) ? EndPointType.fromString(strSelection)
           : null;
@@ -167,7 +168,7 @@ public class PullTransferPanel extends JPanel {
         }
       } else if (EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.equals(selection)) {
         // odkCollect...
-        WrappedFileChooser fc = new WrappedFileChooser(PullTransferPanel.this, 
+        WrappedFileChooser fc = new WrappedFileChooser(PullTransferPanel.this,
             new ODKCollectFileChooser(PullTransferPanel.this));
         String filePath = txtOriginName.getText();
         if ( filePath != null && filePath.trim().length() != 0 ) {
@@ -240,7 +241,7 @@ public class PullTransferPanel extends JPanel {
 
   /**
    * Create the transfer-from-to panel.
-   * 
+   *
    * @param txtBriefcaseDir
    */
   public PullTransferPanel(TerminationFuture terminationFuture) {
@@ -249,7 +250,7 @@ public class PullTransferPanel extends JPanel {
     this.terminationFuture = terminationFuture;
     JLabel lblGetDataFrom = new JLabel(TAB_NAME + " data from:");
 
-    listOriginDataSource = new JComboBox(new String[] {
+    listOriginDataSource = new JComboBox<String>(new String[] {
         EndPointType.AGGREGATE_0_9_X_CHOICE.toString(),
         EndPointType.AGGREGATE_1_0_CHOICE.toString(),
         EndPointType.MOUNTED_ODK_COLLECT_DEVICE_CHOICE.toString(),
@@ -445,7 +446,7 @@ public class PullTransferPanel extends JPanel {
       }
     }
   }
-  
+
   private void setTxtOriginEnabled(boolean active) {
     String strSelection = (String) listOriginDataSource.getSelectedItem();
     EndPointType selection = (strSelection != null) ? EndPointType.fromString(strSelection)

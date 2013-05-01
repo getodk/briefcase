@@ -20,7 +20,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.PrivateKey;
@@ -45,7 +44,8 @@ public class BriefcaseFormDefinition implements IFormDefinition {
     StringBuilder xmlBuilder = new StringBuilder();
     BufferedReader rdr = null;
     try {
-      rdr = new BufferedReader(new InputStreamReader(new FileInputStream(formDefinitionFile), "UTF-8"));
+      rdr = new BufferedReader(new InputStreamReader(new FileInputStream(formDefinitionFile),
+          "UTF-8"));
       String line = rdr.readLine();
       while (line != null) {
         xmlBuilder.append(line);
@@ -76,11 +76,13 @@ public class BriefcaseFormDefinition implements IFormDefinition {
     needsMediaUpdate = false;
   }
 
-  public static final BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile) throws BadFormDefinition {
+  public static final BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile)
+      throws BadFormDefinition {
     return resolveAgainstBriefcaseDefn(tmpFormFile, false);
   }
 
-  public static final BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile, boolean copyFile) throws BadFormDefinition {
+  public static final BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile,
+      boolean copyFile) throws BadFormDefinition {
 
     if (!tmpFormFile.exists()) {
       throw new BadFormDefinition("Form directory does not contain form");
@@ -113,7 +115,8 @@ public class BriefcaseFormDefinition implements IFormDefinition {
 
     boolean isIdentical = false;
     boolean needsMediaUpdate = false;
-    File revised = new File(briefcaseFormFile.getParentFile(), briefcaseFormFile.getName() + ".revised");
+    File revised = new File(briefcaseFormFile.getParentFile(), briefcaseFormFile.getName()
+        + ".revised");
     String revisedXml = null;
     JavaRosaParserWrapper revisedDefn = null;
     // determine the most up-to-date existing definition...
@@ -127,12 +130,13 @@ public class BriefcaseFormDefinition implements IFormDefinition {
       if (!briefcaseFormFile.exists()) {
         // the tmpFormFile is the first time we saw this form.
         // Rename it to formFile and parse it.
-        if ( copyFile ) {
+        if (copyFile) {
           try {
-            FileUtils.copyFile(tmpFormFile,briefcaseFormFile);
+            FileUtils.copyFile(tmpFormFile, briefcaseFormFile);
           } catch (IOException e) {
             e.printStackTrace();
-            throw new BadFormDefinition("Unable to copy form definition file into briefcase directory");
+            throw new BadFormDefinition(
+                "Unable to copy form definition file into briefcase directory");
           }
         } else {
           if (!tmpFormFile.renameTo(briefcaseFormFile)) {
@@ -149,12 +153,11 @@ public class BriefcaseFormDefinition implements IFormDefinition {
 
         // compare the two
         DifferenceResult result;
-        if ( badForm ) {
+        if (badForm) {
           // newDefn is considered identical to what we have locally...
           result = DifferenceResult.XFORMS_IDENTICAL;
         } else {
-          result = JavaRosaParserWrapper.compareXml(newDefn, existingXml,
-            existingTitle, true);
+          result = JavaRosaParserWrapper.compareXml(newDefn, existingXml, existingTitle, true);
         }
 
         if (result == DifferenceResult.XFORMS_DIFFERENT) {
@@ -164,14 +167,15 @@ public class BriefcaseFormDefinition implements IFormDefinition {
             if (result == DifferenceResult.XFORMS_DIFFERENT) {
               throw new BadFormDefinition("Form definitions are incompatible.");
             } else if (result != DifferenceResult.XFORMS_EARLIER_VERSION
-                    && result != DifferenceResult.XFORMS_MISSING_VERSION
-                    && result != DifferenceResult.XFORMS_IDENTICAL) {
-              if ( copyFile ) {
+                && result != DifferenceResult.XFORMS_MISSING_VERSION
+                && result != DifferenceResult.XFORMS_IDENTICAL) {
+              if (copyFile) {
                 try {
-                  FileUtils.copyFile(tmpFormFile,revised);
+                  FileUtils.copyFile(tmpFormFile, revised);
                 } catch (IOException e) {
                   e.printStackTrace();
-                  throw new BadFormDefinition("Unable to overwrite the '.revised' form definition file in briefcase storage");
+                  throw new BadFormDefinition(
+                      "Unable to overwrite the '.revised' form definition file in briefcase storage");
                 }
               } else {
                 if (!tmpFormFile.renameTo(revised)) {
@@ -181,9 +185,11 @@ public class BriefcaseFormDefinition implements IFormDefinition {
               needsMediaUpdate = true;
               // and re-parse the new revised file (since we just updated it...)
               revisedDefn = new JavaRosaParserWrapper(revised, readFile(revised));
-            } else if ( result == DifferenceResult.XFORMS_IDENTICAL ) {
-              // confirm that the media is up-to-date when the forms are identical
-              // allows briefcase to resume a form download when it failed during
+            } else if (result == DifferenceResult.XFORMS_IDENTICAL) {
+              // confirm that the media is up-to-date when the forms are
+              // identical
+              // allows briefcase to resume a form download when it failed
+              // during
               // the early form-media-fetch phases.
               isIdentical = true;
               needsMediaUpdate = true;
@@ -198,12 +204,13 @@ public class BriefcaseFormDefinition implements IFormDefinition {
             // not using the revised form definition
             // the tmp form definition is newer
             // overwrite everything and re-parse the new file.
-            if ( copyFile ) {
+            if (copyFile) {
               try {
-                FileUtils.copyFile(tmpFormFile,briefcaseFormFile);
+                FileUtils.copyFile(tmpFormFile, briefcaseFormFile);
               } catch (IOException e) {
                 e.printStackTrace();
-                throw new BadFormDefinition("Unable to overwrite form definition file in briefcase storage");
+                throw new BadFormDefinition(
+                    "Unable to overwrite form definition file in briefcase storage");
               }
             } else {
               if (!tmpFormFile.renameTo(briefcaseFormFile)) {
@@ -215,10 +222,11 @@ public class BriefcaseFormDefinition implements IFormDefinition {
             existingXml = readFile(briefcaseFormFile);
             existingDefn = new JavaRosaParserWrapper(briefcaseFormFile, existingXml);
           }
-        } else if ( result == DifferenceResult.XFORMS_IDENTICAL ) {
+        } else if (result == DifferenceResult.XFORMS_IDENTICAL) {
           // if a revised form exists, we assume the media is up-to-date in that
           // folder. Otherwise, confirm that the media is up-to-date when the
-          // forms are identical. This allows briefcase to resume a form download
+          // forms are identical. This allows briefcase to resume a form
+          // download
           // when it failed during the early form-media-fetch phases.
           isIdentical = true;
           needsMediaUpdate = !revised.exists();
@@ -230,25 +238,29 @@ public class BriefcaseFormDefinition implements IFormDefinition {
 
     BriefcaseFormDefinition defn;
     if (revised.exists()) {
-      defn = new BriefcaseFormDefinition(briefcaseFormDirectory, revisedDefn, revised, needsMediaUpdate);
+      defn = new BriefcaseFormDefinition(briefcaseFormDirectory, revisedDefn, revised,
+          needsMediaUpdate);
     } else {
-      defn = new BriefcaseFormDefinition(briefcaseFormDirectory, existingDefn, null, needsMediaUpdate);
+      defn = new BriefcaseFormDefinition(briefcaseFormDirectory, existingDefn, null,
+          needsMediaUpdate);
     }
 
-    if ( !isIdentical && needsMediaUpdate ) {
+    if (!isIdentical && needsMediaUpdate) {
       EventBus.publish(new UpdatedBriefcaseFormDefinitionEvent(defn));
     }
     return defn;
   }
 
-  private BriefcaseFormDefinition(File briefcaseFormDirectory, JavaRosaParserWrapper formDefn, File revisedFormFile, boolean needsMediaUpdate ) {
+  private BriefcaseFormDefinition(File briefcaseFormDirectory, JavaRosaParserWrapper formDefn,
+      File revisedFormFile, boolean needsMediaUpdate) {
     this.needsMediaUpdate = needsMediaUpdate;
     this.formDefn = formDefn;
     this.revisedFormFile = revisedFormFile;
     this.formFolder = briefcaseFormDirectory;
   }
 
-  public BriefcaseFormDefinition(File briefcaseFormDirectory, File formFile) throws BadFormDefinition {
+  public BriefcaseFormDefinition(File briefcaseFormDirectory, File formFile)
+      throws BadFormDefinition {
     formFolder = briefcaseFormDirectory;
     needsMediaUpdate = false;
     if (!formFile.exists()) {
