@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -30,13 +30,13 @@ import org.opendatakit.briefcase.util.FindDirectoryStructure;
 /**
  * This peculiar class wraps a JFileChooser and, on OSX, will use an AWT
  * FileDialog instead of the JFileChooser to render the chooser box.
- * 
+ *
  * @author mitchellsundt@gmail.com
- * 
+ *
  */
 class WrappedFileChooser {
 
-  private boolean useAwt = FindDirectoryStructure.isMac();
+  private final boolean useAwt;
   private boolean directoriesOnly;
   private Container parentWindow;
   private AbstractFileChooser fc;
@@ -52,6 +52,14 @@ class WrappedFileChooser {
     this.fc = fc;
     this.chosenFile = null;
     directoriesOnly = (fc.getFileSelectionMode() == JFileChooser.DIRECTORIES_ONLY);
+
+    //Though the Mac-specific file chooser is very nice, it no longer functions on Oracle's Java 7.
+    //The issue is that the "apple.awt.fileDialogForDirectories" property is no longer supported in
+    //Java 7. See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7161437, where the issue is
+    //marked as resolved, but they seem only to have fixed it in JDK 8.
+    String javaVersion = System.getProperty("java.version");
+    useAwt = (!((javaVersion.compareTo("1.6.0_31") > 0) && javaVersion.compareTo("1.8") < 0)) &&
+             FindDirectoryStructure.isMac();
 
     if (useAwt) {
       System.setProperty("apple.awt.fileDialogForDirectories",
