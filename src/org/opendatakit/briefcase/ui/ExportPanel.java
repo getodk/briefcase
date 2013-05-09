@@ -460,9 +460,10 @@ public class ExportPanel extends JPanel {
     super.setEnabled(enabled);
     // update the list of forms...
     List<BriefcaseFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
+    BriefcaseFormDefinition[] out = new BriefcaseFormDefinition[forms.size()];
     DefaultComboBoxModel<BriefcaseFormDefinition> formChoices =
         new DefaultComboBoxModel<BriefcaseFormDefinition>(
-              (BriefcaseFormDefinition[]) forms.toArray());
+              (BriefcaseFormDefinition[]) forms.toArray(out));
     comboBoxForm.setModel(formChoices);
 
     // enable/disable the components...
@@ -566,9 +567,9 @@ public class ExportPanel extends JPanel {
       lfd = (BriefcaseFormDefinition) comboBoxForm.getSelectedItem();
     }
     List<BriefcaseFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
+    BriefcaseFormDefinition[] out = new BriefcaseFormDefinition[forms.size()];
     DefaultComboBoxModel<BriefcaseFormDefinition> formChoices =
-        new DefaultComboBoxModel<BriefcaseFormDefinition>(
-              (BriefcaseFormDefinition[]) forms.toArray());
+        new DefaultComboBoxModel<BriefcaseFormDefinition>(forms.toArray(out));
     comboBoxForm.setModel(formChoices);
     if ( lfd != null ) {
       for ( int i = 0 ; i < forms.size() ; ++i ) {
