@@ -30,6 +30,7 @@ import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
+import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -77,16 +78,17 @@ public class ExportAction {
 
     if (lfd.isFileEncryptedForm() || lfd.isFieldEncryptedForm()) {
 
+      String errorMsg = null;
       boolean success = false;
-      while (!success) {
+      for (;;) /* this only executes once... */ {
         try {
           BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(pemFile), "UTF-8"));
           Object o = new PEMReader(br).readObject();
           if ( o == null ) {
             ODKOptionPane.showErrorDialog(null,
-                "The supplied file is not in PEM format.",
+                errorMsg = "The supplied file is not in PEM format.",
                 "Invalid RSA Private Key");
-            continue;
+            break;
           }
           PrivateKey privKey;
           if ( o instanceof KeyPair ) {
@@ -99,19 +101,25 @@ public class ExportAction {
           }
           if ( privKey == null ) {
             ODKOptionPane.showErrorDialog(null,
-                    "The supplied file does not contain a private key.",
+                errorMsg = "The supplied file does not contain a private key.",
                 "Invalid RSA Private Key");
-            continue;
+            break;
           }
           lfd.setPrivateKey(privKey);
           success = true;
+          break;
         } catch (IOException e) {
           e.printStackTrace();
           ODKOptionPane.showErrorDialog(null,
-                  "The supplied PEM file could not be parsed.",
+              errorMsg = "The supplied PEM file could not be parsed.",
               "Invalid RSA Private Key");
-          continue;
+          break;
         }
+      }
+      if ( !success ) {
+        EventBus.publish(new ExportProgressEvent(errorMsg));
+        EventBus.publish(new ExportFailedEvent(lfd));
+        return;
       }
     }
 
