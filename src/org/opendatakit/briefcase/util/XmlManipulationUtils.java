@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.javarosa.xform.parse.XFormParser;
@@ -39,10 +40,12 @@ import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
 import org.kxml2.kdom.Node;
 import org.opendatakit.aggregate.form.XFormParameters;
+import org.opendatakit.briefcase.model.CannotFixXMLException;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.MetadataUpdateException;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.util.BadXMLFixer;
 import org.opendatakit.briefcase.util.ServerFetcher.MediaFile;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionDownloadChunk;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionManifest;
@@ -261,8 +264,23 @@ public class XmlManipulationUtils {
         }
       }
     } catch (XmlPullParserException e) {
-      throw new ParsingException("Failed during parsing of submission Xml: "
-          + e.toString());
+        try {
+            return BadXMLFixer.fixBadXML(submission);
+        } catch (CannotFixXMLException e1) {
+            File debugFileLocation = new File(FileSystemUtils.getBriefcaseFolder(), "debug");
+            try {
+                if (!debugFileLocation.exists()) {
+                    FileUtils.forceMkdir(debugFileLocation);
+                }
+                long checksum = FileUtils.checksumCRC32(submission);
+                File debugFile = new File(debugFileLocation, "submission-" + checksum + ".xml");
+                FileUtils.copyFile(submission, debugFile);
+            } catch (IOException e2) {
+                throw new RuntimeException(e2);
+            }
+            throw new ParsingException("Failed during parsing of submission Xml: "
+                    + e.toString());
+        }
     } catch (IOException e) {
       throw new FileSystemException("Failed while reading submission xml: "
           + e.toString());
