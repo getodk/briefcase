@@ -15,6 +15,6 @@
 	<classpathentry kind="lib" path="lib/httpcore-4.1.2.jar"/>
 	<classpathentry kind="lib" path="lib/httpmime-4.1.2.jar"/>
 	<classpathentry kind="lib" path="lib/bcprov-jdk16-146.jar"/>
-	<classpathentry kind="lib" path="lib/javarosa-libraries-2013-08-08.jar"/>
+	<classpathentry kind="lib" path="lib/javarosa-libraries-2013-09-30.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
