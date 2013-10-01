@@ -153,6 +153,7 @@ public class ExportPanel extends JPanel {
 
     private String formName;
     private String dirName;
+    @SuppressWarnings("unused")
     private ExportType type;
 
     DetailButton() {
