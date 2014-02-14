@@ -16,17 +16,12 @@
 
 package org.opendatakit.briefcase.ui;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
-import javax.swing.BorderFactory;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 /**
  * Enhanced JOptionPane.showMessageDialog() for a JOptionPane.ERROR_MESSAGE.
@@ -91,5 +86,37 @@ public class ODKOptionPane {
     scrollPane.setPreferredSize(pref);
     JOptionPane.showMessageDialog(parentComponent,
         scrollPane, title, JOptionPane.ERROR_MESSAGE );
+  }
+
+  public static Window showMessageDialog(Window parent, String message) {
+    return showMessageDialog(parent, message, "");
+  }
+
+  public static Window showMessageDialog(Window parent, String message, String title) {
+    JDialog window = new JDialog(parent, title, Dialog.ModalityType.MODELESS);
+    window.setAlwaysOnTop(true);
+    JLabel lblMessage = new JLabel(message);
+    lblMessage.setBorder(new EmptyBorder(10, 10, 10, 10));
+    window.getContentPane().setLayout(new BorderLayout(0, 0));
+    window.getContentPane().add(lblMessage);
+    window.pack();
+    centerWindowInScreen(window);
+    window.setVisible(true);
+
+    return window;
+  }
+
+  private static void centerWindowInScreen(Window window) {
+    // Get the size of the screen
+    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+
+    // Determine the new location of the window
+    int w = window.getSize().width;
+    int h = window.getSize().height;
+    int x = (dim.width - w) / 2;
+    int y = (dim.height - h) / 2;
+
+    // Move the window
+    window.setLocation(x, y);
   }
 }
