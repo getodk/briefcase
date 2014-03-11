@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -43,6 +43,7 @@ import javax.crypto.NoSuchPaddingException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.bushe.swing.event.EventBus;
+import org.javarosa.core.model.instance.AbstractTreeElement;
 import org.javarosa.core.model.instance.TreeElement;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
@@ -146,7 +147,7 @@ public class ExportToCsv implements ITransformFormAction {
     osw.append(string);
   }
 
-  private String getFullName(TreeElement e, TreeElement group) {
+  private String getFullName(AbstractTreeElement e, TreeElement group) {
     List<String> names = new ArrayList<String>();
     while (e != null && e != group) {
       names.add(e.getName());
@@ -218,10 +219,10 @@ public class ExportToCsv implements ITransformFormAction {
       InputStreamReader isr = null;
       try {
         Cipher c = ei.getCipher("field:" + model.getName(), model.getName());
-  
+
         isr = new InputStreamReader(new CipherInputStream(
                   new ByteArrayInputStream(Base64.decodeBase64(rawElement)), c),"UTF-8");
-        
+
         b.setLength(0);
         int ch;
         while ( (ch = isr.read()) != -1 ) {
@@ -229,7 +230,7 @@ public class ExportToCsv implements ITransformFormAction {
           b.append(theChar);
         }
         return b.toString();
-        
+
       } catch (IOException e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
@@ -282,7 +283,7 @@ public class ExportToCsv implements ITransformFormAction {
         prior = current;
       } else {
         Element ec = findElement(submissionElement, current.getName());
-        switch (current.dataType) {
+        switch (current.getDataType()) {
         case org.javarosa.core.model.Constants.DATATYPE_TEXT:/**
            * Text question
            * type.
@@ -436,7 +437,7 @@ public class ExportToCsv implements ITransformFormAction {
                                                                * otherwise
                                                                * unknown
                                                                */
-          if (current.repeatable) {
+          if (current.isRepeatable()) {
             if (prior == null || !current.getName().equals(prior.getName())) {
               // repeatable group...
               if (ec == null) {
@@ -457,7 +458,7 @@ public class ExportToCsv implements ITransformFormAction {
             if (ec == null) {
               emitString(osw, first, null);
               first = false;
-            } else { 
+            } else {
               emitString(osw, first, getSubmissionValue(ei,current,ec));
               first = false;
             }
@@ -505,7 +506,7 @@ public class ExportToCsv implements ITransformFormAction {
         log.info("repeating tag at " + i + " skipping " + current.getName());
         prior = current;
       } else {
-        switch (current.dataType) {
+        switch (current.getDataType()) {
         case org.javarosa.core.model.Constants.DATATYPE_TEXT:/**
            * Text question
            * type.
@@ -574,7 +575,7 @@ public class ExportToCsv implements ITransformFormAction {
                                                                * otherwise
                                                                * unknown
                                                                */
-          if (current.repeatable) {
+          if (current.isRepeatable()) {
             // repeatable group...
             emitString(osw, first, "SET-OF-" + getFullName(current, primarySet));
             first = false;
@@ -681,11 +682,11 @@ public class ExportToCsv implements ITransformFormAction {
     }
     EventBus.publish(new ExportProgressEvent("Processing instance: " + instanceDir.getName()));
 
-    // If we are encrypted, be sure the temporary directory 
+    // If we are encrypted, be sure the temporary directory
     // that will hold the unencrypted files is created and empty.
     // If we aren't encrypted, the temporary directory
     // is the same as the instance directory.
-    
+
     File unEncryptedDir;
     if (briefcaseLfd.isFileEncryptedForm()) {
       // create or clean-up the temp directory that will hold the unencrypted
@@ -716,7 +717,7 @@ public class ExportToCsv implements ITransformFormAction {
     // parse the xml document (this is the manifest if encrypted)...
     Document doc;
     boolean isValidated = false;
-    
+
     try {
       doc = XmlManipulationUtils.parseXml(submission);
     } catch (ParsingException e) {
@@ -744,18 +745,18 @@ public class ExportToCsv implements ITransformFormAction {
     }
 
     // Beyond this point, we need to have a finally block that
-    // will clean up any decrypted files whenever there is any 
+    // will clean up any decrypted files whenever there is any
     // failure.
     try {
 
       if (briefcaseLfd.isFileEncryptedForm()) {
-        // Decrypt the form and all its media files into the 
-        // unEncryptedDir and validate the contents of all 
+        // Decrypt the form and all its media files into the
+        // unEncryptedDir and validate the contents of all
         // those files.
         // NOTE: this changes the value of 'doc'
         try {
           FileSystemUtils.DecryptOutcome outcome =
-            FileSystemUtils.decryptAndValidateSubmission(doc, briefcaseLfd.getPrivateKey(), 
+            FileSystemUtils.decryptAndValidateSubmission(doc, briefcaseLfd.getPrivateKey(),
               instanceDir, unEncryptedDir);
           doc = outcome.submission;
           isValidated = outcome.isValidated;
@@ -794,7 +795,7 @@ public class ExportToCsv implements ITransformFormAction {
 
       if (instanceId == null || instanceId.length() == 0) {
         // if we have no instanceID, and there isn't any in the file,
-        // use the checksum as the id.  
+        // use the checksum as the id.
         // NOTE: encrypted submissions always have instanceIDs.
         // This is for legacy non-OpenRosa forms.
         long checksum;
@@ -808,7 +809,7 @@ public class ExportToCsv implements ITransformFormAction {
         }
         instanceId = "crc32:" + Long.toString(checksum);
       }
-      
+
       if ( terminationFuture.isCancelled() ) {
         EventBus.publish(new ExportProgressEvent("ABORTED"));
         return false;

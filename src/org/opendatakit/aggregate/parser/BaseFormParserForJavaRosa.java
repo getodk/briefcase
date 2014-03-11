@@ -17,6 +17,7 @@
 
 package org.opendatakit.aggregate.parser;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +34,7 @@ import org.javarosa.core.model.DataBinding;
 import org.javarosa.core.model.FormDef;
 import org.javarosa.core.model.IDataReference;
 import org.javarosa.core.model.SubmissionProfile;
+import org.javarosa.core.model.instance.AbstractTreeElement;
 import org.javarosa.core.model.instance.FormInstance;
 import org.javarosa.core.model.instance.TreeElement;
 import org.javarosa.core.model.instance.TreeReference;
@@ -351,7 +353,7 @@ public class BaseFormParserForJavaRosa {
     stringLengths.put(nodeset, length);
   }
 
-  protected Integer getNodesetStringLength(TreeElement e) {
+  protected Integer getNodesetStringLength(AbstractTreeElement e) {
     List<String> path = new ArrayList<String>();
     while (e != null && e.getName() != null) {
       path.add(e.getName());
@@ -637,7 +639,11 @@ public class BaseFormParserForJavaRosa {
       // the
       // storage for this form.
       XFormParserWithBindEnhancements exfp = parseFormDefinition(ENCRYPTED_FORM_DEFINITION, this);
-      formDef = exfp.parse();
+      try {
+        formDef = exfp.parse();
+      } catch (IOException e) {
+        throw new ODKIncompleteSubmissionData("Exception " + e.toString() + " during parsing!", Reason.BAD_JR_PARSE);
+      }
 
       if (formDef == null) {
         throw new ODKIncompleteSubmissionData("Javarosa failed to construct Encrypted FormDef!",
@@ -668,11 +674,11 @@ public class BaseFormParserForJavaRosa {
 
   @SuppressWarnings("unused")
   private void printTreeElementInfo(TreeElement treeElement) {
-    System.out.println("processing te: " + treeElement.getName() + " type: " + treeElement.dataType
-        + " repeatable: " + treeElement.repeatable);
+    System.out.println("processing te: " + treeElement.getName() + " type: " + treeElement.getDataType()
+        + " repeatable: " + treeElement.isRepeatable());
   }
 
-  public String getTreeElementPath(TreeElement e) {
+  public String getTreeElementPath(AbstractTreeElement e) {
     if (e == null)
       return null;
     String s = getTreeElementPath(e.getParent());
@@ -801,9 +807,9 @@ public class BaseFormParserForJavaRosa {
       // that will be submitted to Aggregate.
       IDataReference r;
       r = subProfile1.getRef();
-      TreeElement e1 = (r != null) ? formDef1.getInstance().resolveReference(r) : null;
+      AbstractTreeElement e1 = (r != null) ? formDef1.getInstance().resolveReference(r) : null;
       r = subProfile2.getRef();
-      TreeElement e2 = (r != null) ? formDef2.getInstance().resolveReference(r) : null;
+      AbstractTreeElement e2 = (r != null) ? formDef2.getInstance().resolveReference(r) : null;
 
       if (e1 != null && e2 != null) {
         // both return only a portion of the form.
@@ -1028,8 +1034,8 @@ public class BaseFormParserForJavaRosa {
 
     for (int i = 0; i < treeElement1.getNumChildren(); i++) {
       TreeElement child = (TreeElement) treeElement1.getChildAt(i);
-      if (child.repeatable) {
-        if (child.multiplicity != TreeReference.INDEX_TEMPLATE) {
+      if (child.isRepeatable()) {
+        if (child.getMult() != TreeReference.INDEX_TEMPLATE) {
           template1DropCount++;
           log.info("element1:dropping " + child.getName());
           continue;
@@ -1045,8 +1051,8 @@ public class BaseFormParserForJavaRosa {
 
     for (int i = 0; i < treeElement2.getNumChildren(); i++) {
       TreeElement child = (TreeElement) treeElement2.getChildAt(i);
-      if (child.repeatable) {
-        if (child.multiplicity != TreeReference.INDEX_TEMPLATE) {
+      if (child.isRepeatable()) {
+        if (child.getMult() != TreeReference.INDEX_TEMPLATE) {
           template2DropCount++;
           log.info("element2:dropping " + child.getName());
           continue;
