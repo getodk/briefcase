@@ -21,6 +21,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
@@ -86,6 +87,8 @@ public class ExportPanel extends JPanel {
   private JButton btnPemFileChooseButton;
 
   private JLabel lblForm;
+
+  private ArrayList<Component> navOrder = new ArrayList<Component>();
 
   class ExportFolderActionListener implements ActionListener {
 
@@ -454,6 +457,20 @@ public class ExportPanel extends JPanel {
     setLayout(groupLayout);
 
     setActiveExportState(exportStateActive);
+
+    navOrder.add(comboBoxForm);
+    navOrder.add(comboBoxExportType);
+    navOrder.add(txtExportDirectory);
+    navOrder.add(btnChooseExportDirectory);
+    navOrder.add(pemPrivateKeyFilePath);
+    navOrder.add(btnPemFileChooseButton);
+    navOrder.add(btnDetails);
+    navOrder.add(btnExport);
+    navOrder.add(btnCancel);
+  }
+
+  public ArrayList<Component> getTraversalOrdering() {
+    return navOrder;
   }
 
   @Override

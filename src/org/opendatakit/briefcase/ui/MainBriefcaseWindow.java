@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -16,12 +16,16 @@
 
 package org.opendatakit.briefcase.ui;
 
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.EventQueue;
+import java.awt.FocusTraversalPolicy;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.util.ArrayList;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -29,6 +33,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
@@ -53,7 +58,7 @@ public class MainBriefcaseWindow implements WindowListener {
   private final TerminationFuture transferTerminationFuture = new TerminationFuture();
 
   private JTabbedPane tabbedPane;
-  
+
   /**
    * Launch the application.
    */
@@ -77,7 +82,7 @@ public class MainBriefcaseWindow implements WindowListener {
       }
     });
   }
-  
+
   class FolderActionListener implements ActionListener {
 
     @Override
@@ -109,7 +114,7 @@ public class MainBriefcaseWindow implements WindowListener {
       tabbedPane.setEnabled(false);
     }
   }
-  
+
   /**
    * Create the application.
    */
@@ -202,11 +207,110 @@ public class MainBriefcaseWindow implements WindowListener {
     tabbedPane.addTab(ExportPanel.TAB_NAME, null, exportPanel, null);
     frame.getContentPane().setLayout(groupLayout);
     ExportPanel.TAB_POSITION = 2;
-    
+
     frame.addWindowListener(this);
     setFullUIEnabled(false);
+
+    frame.setFocusTraversalPolicy(new FocusTraversalPolicy() {
+
+      @Override
+      public Component getComponentAfter(Container arg0, Component arg1) {
+        ArrayList<Component> componentOrdering = new ArrayList<Component>();
+        for (;;) {
+          int nextPanel = PullTransferPanel.TAB_POSITION;
+          componentOrdering.clear();
+          componentOrdering.add(txtBriefcaseDir);
+          componentOrdering.add(btnChoose);
+          componentOrdering.add(tabbedPane);
+          int idx = tabbedPane.getSelectedIndex();
+          if ( idx == PullTransferPanel.TAB_POSITION ) {
+            componentOrdering.addAll(gatherPanel.getTraversalOrdering());
+            nextPanel = PushTransferPanel.TAB_POSITION;
+          } else if ( idx == PushTransferPanel.TAB_POSITION ) {
+            componentOrdering.addAll(uploadPanel.getTraversalOrdering());
+            nextPanel = ExportPanel.TAB_POSITION;
+          } else if ( idx == ExportPanel.TAB_POSITION ) {
+            componentOrdering.addAll(exportPanel.getTraversalOrdering());
+            nextPanel = PullTransferPanel.TAB_POSITION;
+          }
+          componentOrdering.add(btnChoose);
+          boolean found = false;
+          for ( int i = 0 ; i < componentOrdering.size()-1 ; ++i ) {
+            if ( found || arg1 == componentOrdering.get(i) ) {
+              found = true;
+              Component comp = componentOrdering.get(i+1);
+              if ( comp == tabbedPane ) {
+                return comp;
+              }
+              if ( comp.isVisible() && comp.isEnabled() && (!(comp instanceof JTextField) || ((JTextField) comp).isEditable()) ) {
+                return comp;
+              }
+            }
+          }
+          if ( !found ) {
+            return componentOrdering.get(0);
+          }
+          tabbedPane.setSelectedIndex(nextPanel);
+        }
+      }
+
+      @Override
+      public Component getComponentBefore(Container arg0, Component arg1) {
+        ArrayList<Component> componentOrdering = new ArrayList<Component>();
+        for (;;) {
+          int nextPanel = PullTransferPanel.TAB_POSITION;
+          componentOrdering.clear();
+          componentOrdering.add(txtBriefcaseDir);
+          componentOrdering.add(btnChoose);
+          componentOrdering.add(tabbedPane);
+          int idx = tabbedPane.getSelectedIndex();
+          if ( idx == PullTransferPanel.TAB_POSITION ) {
+            componentOrdering.addAll(gatherPanel.getTraversalOrdering());
+            nextPanel = ExportPanel.TAB_POSITION;
+          } else if ( idx == PushTransferPanel.TAB_POSITION ) {
+            componentOrdering.addAll(uploadPanel.getTraversalOrdering());
+            nextPanel = PullTransferPanel.TAB_POSITION;
+          } else if ( idx == ExportPanel.TAB_POSITION ) {
+            componentOrdering.addAll(exportPanel.getTraversalOrdering());
+            nextPanel = PushTransferPanel.TAB_POSITION;
+          }
+          componentOrdering.add(btnChoose);
+          boolean found = false;
+          for ( int i = componentOrdering.size()-1 ; i > 0 ; --i ) {
+            if ( found || arg1 == componentOrdering.get(i) ) {
+              found = true;
+              Component comp = componentOrdering.get(i-1);
+              if ( comp == tabbedPane ) {
+                return comp;
+              }
+              if ( comp.isVisible() && comp.isEnabled() && (!(comp instanceof JTextField) || ((JTextField) comp).isEditable()) ) {
+                return comp;
+              }
+            }
+          }
+          if ( !found ) {
+            return componentOrdering.get(componentOrdering.size()-1);
+          }
+          tabbedPane.setSelectedIndex(nextPanel);
+        }
+      }
+
+      @Override
+      public Component getDefaultComponent(Container arg0) {
+        return btnChoose;
+      }
+
+      @Override
+      public Component getFirstComponent(Container arg0) {
+        return btnChoose;
+      }
+
+      @Override
+      public Component getLastComponent(Container arg0) {
+        return tabbedPane;
+      }});
   }
-  
+
   public void establishBriefcaseStorageLocation(boolean showDialog) {
     // set the enabled/disabled status of the panels based upon validity of default briefcase directory.
     String briefcaseDir = BriefcasePreferences.getBriefcaseDirectoryIfSet();
@@ -217,22 +321,22 @@ public class MainBriefcaseWindow implements WindowListener {
       File dir = new File(briefcaseDir);
       if ( !dir.exists() || !dir.isDirectory()) {
         reset = true;
-      } else { 
+      } else {
         File folder = FileSystemUtils.getBriefcaseFolder();
         if ( !folder.exists() || !folder.isDirectory()) {
           reset = true;
         }
-        
+
       }
     }
-    
+
     if ( showDialog || reset ) {
       // ask for new briefcase location...
       BriefcaseStorageLocationDialog fs =
           new BriefcaseStorageLocationDialog(MainBriefcaseWindow.this.frame);
       fs.setVisible(true);
       if ( fs.isCancelled() ) {
-        // if we need to reset the briefcase location, 
+        // if we need to reset the briefcase location,
         // and have cancelled, then disable the UI.
         // otherwise the value we have is fine.
         setFullUIEnabled(!reset);

@@ -85,6 +85,8 @@ public class PushTransferPanel extends JPanel {
   private boolean transferStateActive = false;
   private TerminationFuture terminationFuture;
 
+  private ArrayList<Component> navOrder = new ArrayList<Component>();
+
   /**
    * UI changes related to the selection of the destination location from
    * drop-down box.
@@ -304,6 +306,17 @@ public class PushTransferPanel extends JPanel {
     // and update the list of forms...
     updateFormStatuses();
     setActiveTransferState(transferStateActive);
+
+    navOrder.add(listDestinationDataSink);
+    navOrder.add(txtDestinationName);
+    navOrder.add(btnDestinationAction);
+    navOrder.add(btnSelectOrClearAllForms);
+    navOrder.add(btnTransfer);
+    navOrder.add(btnCancel);
+  }
+
+  public ArrayList<Component> getTraversalOrdering() {
+    return navOrder;
   }
 
   @Override
