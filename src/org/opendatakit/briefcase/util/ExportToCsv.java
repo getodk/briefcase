@@ -599,7 +599,7 @@ public class ExportToCsv implements ITransformFormAction {
   private void processRepeatingGroupDefinition(TreeElement group, TreeElement primarySet)
       throws IOException {
     String formName = briefcaseLfd.getFormName() + "-" + getFullName(group, primarySet);
-    File topLevelCsv = new File(outputDir, formName + ".csv");
+    File topLevelCsv = new File(outputDir, safeFilename(formName) + ".csv");
     FileOutputStream os = new FileOutputStream(topLevelCsv);
     OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
     fileMap.put(group, osw);
@@ -611,12 +611,16 @@ public class ExportToCsv implements ITransformFormAction {
     osw.append("\n");
   }
 
+  private String safeFilename(String name) {
+    return name.replaceAll("\\p{Punct}", "_").replace("\\p{Space}", " ");
+  }
+
   private boolean processFormDefinition() {
 
     TreeElement submission = briefcaseLfd.getSubmissionElement();
 
     String formName = briefcaseLfd.getFormName();
-    File topLevelCsv = new File(outputDir, formName + ".csv");
+    File topLevelCsv = new File(outputDir, safeFilename(formName) + ".csv");
     FileOutputStream os;
     try {
       os = new FileOutputStream(topLevelCsv);
@@ -690,8 +694,9 @@ public class ExportToCsv implements ITransformFormAction {
     File unEncryptedDir;
     if (briefcaseLfd.isFileEncryptedForm()) {
       // create or clean-up the temp directory that will hold the unencrypted
-      // files.
-      unEncryptedDir = new File(instanceDir, "temp");
+      // files. Do this in the outputDir so that the briefcase storage location
+      // can be a read-only network mount. issue 676.
+      unEncryptedDir = new File(outputDir, ".temp");
 
       if (unEncryptedDir.exists()) {
         // silently delete it...

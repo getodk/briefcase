@@ -140,7 +140,14 @@ public class BriefcaseFormDefinition implements IFormDefinition {
           }
         } else {
           if (!tmpFormFile.renameTo(briefcaseFormFile)) {
-            throw new BadFormDefinition("Form directory does not contain form");
+            // if cannot rename, try to copy instead (and mark for deletion)
+            try {
+                FileUtils.copyFile(tmpFormFile,briefcaseFormFile);
+                tmpFormFile.deleteOnExit();
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new BadFormDefinition("Form directory does not contain form (can neither rename nor copy into briefcase directory)");
+            }
           }
         }
         needsMediaUpdate = !revised.exists(); // weird if it does...
@@ -179,7 +186,14 @@ public class BriefcaseFormDefinition implements IFormDefinition {
                 }
               } else {
                 if (!tmpFormFile.renameTo(revised)) {
-                  throw new BadFormDefinition("Form directory does not contain form");
+               // if cannot rename, try to copy instead (and mark for deletion)
+                  try {
+                      FileUtils.copyFile(tmpFormFile,revised);
+                      tmpFormFile.deleteOnExit();
+                  } catch (IOException e) {
+                      e.printStackTrace();
+                      throw new BadFormDefinition("Form directory does not contain form (can neither rename nor copy into briefcase directory)");
+                  }
                 }
               }
               needsMediaUpdate = true;
@@ -214,7 +228,14 @@ public class BriefcaseFormDefinition implements IFormDefinition {
               }
             } else {
               if (!tmpFormFile.renameTo(briefcaseFormFile)) {
-                throw new BadFormDefinition("Form directory does not contain form");
+             // if cannot rename, try to copy instead (and mark for deletion)
+                try {
+                    FileUtils.copyFile(tmpFormFile,briefcaseFormFile);
+                    tmpFormFile.deleteOnExit();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw new BadFormDefinition("Form directory does not contain form (can neither rename nor copy into briefcase directory)");
+                }
               }
             }
             needsMediaUpdate = true;
