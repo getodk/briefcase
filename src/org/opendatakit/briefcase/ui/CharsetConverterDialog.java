@@ -45,6 +45,11 @@ import java.util.SortedMap;
  */
 public class CharsetConverterDialog extends JDialog implements ActionListener {
 
+  /**
+   *
+   */
+  private static final long serialVersionUID = -5321396641987129789L;
+
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
   private static final String DIALOG_TITLE = "Re-encode .csv as UTF-8";
