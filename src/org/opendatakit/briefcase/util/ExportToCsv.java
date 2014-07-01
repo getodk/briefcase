@@ -48,10 +48,10 @@ import org.javarosa.core.model.instance.TreeElement;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
 import org.kxml2.kdom.Node;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.CryptoException;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.FileSystemException;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
@@ -64,15 +64,37 @@ public class ExportToCsv implements ITransformFormAction {
 
   File outputDir;
   File outputMediaDir;
+  String baseFilename;
   BriefcaseFormDefinition briefcaseLfd;
   TerminationFuture terminationFuture;
   Map<TreeElement, OutputStreamWriter> fileMap = new HashMap<TreeElement, OutputStreamWriter>();
+  
+  boolean exportMedia = true;
+  Date startDate;
+  Date endDate;
+  boolean overwrite = false;
+  
+  
+  // Default briefcase constructor
+  public ExportToCsv(File outputDir, BriefcaseFormDefinition lfd, TerminationFuture terminationFuture) {
+    this(outputDir, lfd, terminationFuture, lfd.getFormName(), true, false, null, null);
+  }
+  
+  public ExportToCsv(File outputDir, BriefcaseFormDefinition lfd, TerminationFuture terminationFuture, String filename, boolean exportMedia, Boolean overwrite, Date start, Date end) {
+     this.outputDir = outputDir;
+     this.outputMediaDir = new File(outputDir, MEDIA_DIR);
+     this.briefcaseLfd = lfd;
+     this.terminationFuture = terminationFuture;
 
-  ExportToCsv(File outputDir, BriefcaseFormDefinition lfd, TerminationFuture terminationFuture) {
-    this.outputDir = outputDir;
-    this.outputMediaDir = new File(outputDir, MEDIA_DIR);
-    this.briefcaseLfd = lfd;
-    this.terminationFuture = terminationFuture;
+     // Strip .csv, it gets added later
+     if (filename.endsWith(".csv")) {
+         filename = filename.substring(0, filename.length()-4);
+     }
+     this.baseFilename = filename;
+     this.exportMedia = exportMedia;
+     this.overwrite = overwrite;
+     this.startDate = start;
+     this.endDate = end;
   }
 
   @Override
@@ -95,12 +117,14 @@ public class ExportToCsv implements ITransformFormAction {
       }
     }
 
-    if (!outputMediaDir.exists()) {
-      if (!outputMediaDir.mkdir()) {
-        EventBus
-            .publish(new ExportProgressEvent("Unable to create destination media directory"));
-        return false;
-      }
+    if (exportMedia) {
+       if (!outputMediaDir.exists()) {
+         if (!outputMediaDir.mkdir()) {
+           EventBus
+               .publish(new ExportProgressEvent("Unable to create destination media directory"));
+           return false;
+         }
+       }
     }
 
     if (!processFormDefinition()) {
@@ -412,21 +436,26 @@ public class ExportToCsv implements ITransformFormAction {
             emitString(osw, first, null);
             first = false;
           } else {
-            int dotIndex = binaryFilename.lastIndexOf(".");
-            String namePart = (dotIndex == -1) ? binaryFilename : binaryFilename.substring(0,
-                dotIndex);
-            String extPart = (dotIndex == -1) ? "" : binaryFilename.substring(dotIndex);
-
-            File binaryFile = new File(instanceDir, binaryFilename);
-            String destBinaryFilename = binaryFilename;
-            int version = 1;
-            File destFile = new File(outputMediaDir, destBinaryFilename);
-            while (destFile.exists()) {
-              destBinaryFilename = namePart + "-" + (++version) + extPart;
-              destFile = new File(outputMediaDir, destBinaryFilename);
-            }
-            FileUtils.copyFile(binaryFile, destFile);
+            if (exportMedia) {
+               int dotIndex = binaryFilename.lastIndexOf(".");
+               String namePart = (dotIndex == -1) ? binaryFilename : binaryFilename.substring(0,
+                   dotIndex);
+               String extPart = (dotIndex == -1) ? "" : binaryFilename.substring(dotIndex);
+   
+               File binaryFile = new File(instanceDir, binaryFilename);
+               String destBinaryFilename = binaryFilename;
+               int version = 1;
+               File destFile = new File(outputMediaDir, destBinaryFilename);
+               while (destFile.exists()) {
+                 destBinaryFilename = namePart + "-" + (++version) + extPart;
+                 destFile = new File(outputMediaDir, destBinaryFilename);
+               }
+               FileUtils.copyFile(binaryFile, destFile);
             emitString(osw, first, MEDIA_DIR + File.separator + destFile.getName());
+            } else {
+                emitString(osw, first, binaryFilename);
+            }
+
             first = false;
           }
           break;
@@ -598,9 +627,9 @@ public class ExportToCsv implements ITransformFormAction {
 
   private void processRepeatingGroupDefinition(TreeElement group, TreeElement primarySet)
       throws IOException {
-    String formName = briefcaseLfd.getFormName() + "-" + getFullName(group, primarySet);
+    String formName = baseFilename + "-" + getFullName(group, primarySet);
     File topLevelCsv = new File(outputDir, safeFilename(formName) + ".csv");
-    FileOutputStream os = new FileOutputStream(topLevelCsv);
+    FileOutputStream os = new FileOutputStream(topLevelCsv, !overwrite);
     OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
     fileMap.put(group, osw);
     boolean first = true;
@@ -619,20 +648,24 @@ public class ExportToCsv implements ITransformFormAction {
 
     TreeElement submission = briefcaseLfd.getSubmissionElement();
 
-    String formName = briefcaseLfd.getFormName();
+    String formName = baseFilename;
     File topLevelCsv = new File(outputDir, safeFilename(formName) + ".csv");
+    boolean exists = topLevelCsv.exists();
     FileOutputStream os;
     try {
-      os = new FileOutputStream(topLevelCsv);
+      os = new FileOutputStream(topLevelCsv, !overwrite);
       OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
       fileMap.put(submission, osw);
-      emitString(osw, true, "SubmissionDate");
-      emitCsvHeaders(osw, submission, submission, false);
-      emitString(osw, false, "KEY");
-      if ( briefcaseLfd.isFileEncryptedForm() ) {
-        emitString(osw, false, "isValidated");
-      }
-      osw.append("\n");
+      // only write headers if overwrite is set, or creating file for the first time
+      if (overwrite || !exists) {
+          emitString(osw, true, "SubmissionDate");
+          emitCsvHeaders(osw, submission, submission, false);
+          emitString(osw, false, "KEY");
+          if ( briefcaseLfd.isFileEncryptedForm() ) {
+              emitString(osw, false, "isValidated");
+          }
+          osw.append("\n");
+       }
 
     } catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -747,8 +780,23 @@ public class ExportToCsv implements ITransformFormAction {
       Date theDate = WebUtils.parseDate(submissionDate);
       DateFormat formatter = DateFormat.getDateTimeInstance();
       submissionDate = formatter.format(theDate);
+      
+      // just return true to skip records out of range
+      if (startDate != null && theDate.before(startDate)) {
+          log.info("Submission date is before specified, skipping: " + instanceDir.getName());
+          return true;
+      }
+      if (endDate != null && theDate.after(endDate)) {
+          log.info("Submission date is after specified, skipping: " + instanceDir.getName());
+          return true;
+      }
+      // don't export records without dates if either date is set
+      if ((startDate != null || endDate != null) && submissionDate == null) {
+          log.info("No submission date found, skipping: " + instanceDir.getName());
+          return true;
+      }
     }
-
+    
     // Beyond this point, we need to have a finally block that
     // will clean up any decrypted files whenever there is any
     // failure.

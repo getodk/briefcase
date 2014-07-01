@@ -16,5 +16,6 @@
 	<classpathentry kind="lib" path="lib/httpmime-4.1.2.jar"/>
 	<classpathentry kind="lib" path="lib/bcprov-jdk16-146.jar"/>
 	<classpathentry kind="lib" path="lib/javarosa-libraries-2014-04-29.jar"/>
+	<classpathentry kind="lib" path="lib/commons-cli-1.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

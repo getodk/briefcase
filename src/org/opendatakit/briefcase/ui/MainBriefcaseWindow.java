@@ -25,6 +25,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import javax.swing.GroupLayout;
@@ -33,11 +35,21 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.FileSystemException;
@@ -57,6 +69,25 @@ public class MainBriefcaseWindow implements WindowListener {
   private final TerminationFuture exportTerminationFuture = new TerminationFuture();
   private final TerminationFuture transferTerminationFuture = new TerminationFuture();
 
+  public static final String AGGREGATE_URL = "aggregate_url";
+  public static final String DATE_FORMAT = "yyyy/MM/dd";
+  public static final String EXCLUDE_MEDIA_EXPORT = "exclude_media_export";
+  public static final String EXPORT_DIRECTORY = "export_directory";
+  public static final String EXPORT_END_DATE = "export_end_date";
+  public static final String EXPORT_FILENAME = "export_filename";
+  public static final String EXPORT_START_DATE = "export_start_date";
+  public static final String FORM_ID = "form_id";
+  public static final String ODK_PASSWORD = "odk_password";
+  public static final String ODK_USERNAME = "odk_username";
+  public static final String OVERWRITE_CSV_EXPORT = "overwrite_csv_export";
+  public static final String STORAGE_DIRECTORY = "storage_directory";
+  public static final String ODK_DIR = "odk_directory";
+  public static final String HELP = "help";
+  public static final String VERSION = "version";
+  public static final String PEM_FILE = "pem_file";
+
+  private static final Log log = LogFactory.getLog(BaseFormParserForJavaRosa.class.getName());
+
   private JTabbedPane tabbedPane;
 
   /**
@@ -64,23 +95,95 @@ public class MainBriefcaseWindow implements WindowListener {
    */
   public static void main(String[] args) {
 
-    EventQueue.invokeLater(new Runnable() {
-      public void run() {
-        try {
-          // Set System L&F
-          UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    if (args.length == 0) {
 
-          MainBriefcaseWindow window = new MainBriefcaseWindow();
-          window.frame.setTitle(BRIEFCASE_VERSION);
-          ImageIcon icon = new ImageIcon(
-              MainBriefcaseWindow.class.getClassLoader().getResource("odk_logo.png"));
-          window.frame.setIconImage(icon.getImage());
-          window.frame.setVisible(true);
-        } catch (Exception e) {
-          e.printStackTrace();
+      EventQueue.invokeLater(new Runnable() {
+        public void run() {
+          try {
+            // Set System L&F
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+
+            MainBriefcaseWindow window = new MainBriefcaseWindow();
+            window.frame.setTitle(BRIEFCASE_VERSION);
+            ImageIcon icon = new ImageIcon(MainBriefcaseWindow.class.getClassLoader().getResource(
+                "odk_logo.png"));
+            window.frame.setIconImage(icon.getImage());
+            window.frame.setVisible(true);
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
         }
-      }
-    });
+      });
+    } else {
+      Options options = addOptions();
+      CommandLineParser parser = new BasicParser();
+      CommandLine cmd = null;
+
+        try {
+            cmd = parser.parse(options, args);
+        } catch (ParseException e1) {
+            log.error("Launch Failed: " + e1.getMessage());
+            showHelp(options);
+            System.exit(1);
+        }
+
+        if (cmd.hasOption(HELP)) {
+            showHelp(options);
+            System.exit(1);
+        }
+
+        if (cmd.hasOption(VERSION)) {
+            showVersion();
+            System.exit(1);
+        }
+
+        // required for all operations
+        if (!cmd.hasOption(FORM_ID) || !cmd.hasOption(STORAGE_DIRECTORY)) {
+            log.error(FORM_ID + " and " + STORAGE_DIRECTORY+ " are required");
+            showHelp(options);
+            System.exit(1);
+        }
+
+        // pull from collect or aggregate, not both
+        if (cmd.hasOption(ODK_DIR) && cmd.hasOption(AGGREGATE_URL)) {
+            log.error("Can only have one of " + ODK_DIR + " or " + AGGREGATE_URL);
+            showHelp(options);
+            System.exit(1);
+        }
+
+        // pull from aggregate
+        if (cmd.hasOption(AGGREGATE_URL) && (!(cmd.hasOption(ODK_USERNAME) && cmd.hasOption(ODK_PASSWORD)))) {
+            log.error(ODK_USERNAME + " and " + ODK_PASSWORD + " required when " + AGGREGATE_URL + " is specified");
+            showHelp(options);
+            System.exit(1);
+        }
+
+        // export files
+        if (cmd.hasOption(EXPORT_DIRECTORY) && !cmd.hasOption(EXPORT_FILENAME) || !cmd.hasOption(EXPORT_DIRECTORY) && cmd.hasOption(EXPORT_FILENAME)) {
+            log.error(EXPORT_DIRECTORY + " and " + EXPORT_FILENAME + " are both required to export");
+            showHelp(options);
+            System.exit(1);
+        }
+
+        if (cmd.hasOption(EXPORT_END_DATE)) {
+            if (!testDateFormat(cmd.getOptionValue(EXPORT_END_DATE))) {
+                log.error("Invalid date format in " + EXPORT_END_DATE);
+                showHelp(options);
+                System.exit(1);
+            }
+        }
+        if (cmd.hasOption(EXPORT_START_DATE)) {
+            if (!testDateFormat(cmd.getOptionValue(EXPORT_START_DATE))) {
+                log.error("Invalid date format in " + EXPORT_START_DATE);
+                showHelp(options);
+                System.exit(1);
+            }
+        }
+      
+      
+      BriefcaseCLI bcli = new BriefcaseCLI(cmd);
+      bcli.run();
+    }
   }
 
   class FolderActionListener implements ActionListener {
@@ -404,5 +507,103 @@ public class MainBriefcaseWindow implements WindowListener {
   @Override
   public void windowOpened(WindowEvent arg0) {
     establishBriefcaseStorageLocation(false);
+  }
+
+  static void showHelp(Options options) {
+    HelpFormatter formatter = new HelpFormatter();
+    formatter.printHelp("java -jar briefcase.jar", options);
+  }
+
+  static void showVersion() {
+    System.out.println("version: "+ BriefcasePreferences.VERSION);
+}
+
+  /**
+   * Setting up options for Command Line Interface
+   * @return
+   */
+  static Options addOptions() {
+    Options options = new Options();
+
+    Option server = OptionBuilder.withArgName("url").hasArg().withLongOpt(AGGREGATE_URL)
+        .withDescription("ODK Aggregate URL (must start with http:// or https://)")
+        .create("url");
+
+    Option username = OptionBuilder.withArgName("username").hasArg().withLongOpt(ODK_USERNAME)
+        .withDescription("ODK username").create("u");
+
+    Option password = OptionBuilder.withArgName("password").hasArg().withLongOpt(ODK_PASSWORD)
+        .withDescription("ODK password").create("p");
+
+    Option formid = OptionBuilder.withArgName("form_id").hasArg().withLongOpt(FORM_ID)
+        .withDescription("Form ID of form to download and export").create("id");
+
+    Option storageDir = OptionBuilder
+        .withArgName("/path/to/dir")
+        .withLongOpt(STORAGE_DIRECTORY)
+        .hasArg()
+        .withDescription(
+            "Directory to create or find ODK Briefcase Storage directory (relative path unless it begins with / or C:\\)")
+        .create("sd");
+
+    Option exportDir = OptionBuilder.withArgName("/path/to/dir").hasArg().withLongOpt(EXPORT_DIRECTORY)
+        .withDescription("Directory to export the CSV and media files into (relative path unless it begins with / or C:\\)").create("ed");
+
+      Option exportMedia = OptionBuilder.withDescription("Flag to exclude media on export")
+        .withLongOpt(EXCLUDE_MEDIA_EXPORT).create("em");
+
+    Option startDate = OptionBuilder.withArgName(DATE_FORMAT).hasArg()
+        .withLongOpt(EXPORT_START_DATE).withDescription("Include submission dates after (inclusive) this date in export to CSV")
+        .create("start");
+
+    Option endDate = OptionBuilder.withArgName(DATE_FORMAT).hasArg()
+        .withLongOpt(EXPORT_END_DATE).withDescription("Include submission dates before (exclusive) this date in export to CSV").create("end");
+
+    Option exportFilename = OptionBuilder.withArgName("name.csv").hasArg()
+        .withLongOpt(EXPORT_FILENAME).withDescription("File name for exported CSV")
+        .create("f");
+
+    Option overwrite = OptionBuilder.withLongOpt(OVERWRITE_CSV_EXPORT)
+        .withDescription("Flag to overwrite CSV on export").create("oc");
+
+    Option help = OptionBuilder.withLongOpt(HELP)
+        .withDescription("Print help information (this screen)").create("h");
+
+    Option version = OptionBuilder.withLongOpt(VERSION)
+        .withDescription("Print version information").create("v");
+
+    Option odkDir = OptionBuilder.withArgName("/path/to/dir").hasArg().withLongOpt(ODK_DIR)
+        .withDescription("/odk directory from ODK Collect (relative path unless it begins with / or C:\\)").create("od");
+
+    Option keyFile = OptionBuilder.withArgName("/path/to/file.pem").hasArg().withLongOpt(PEM_FILE)
+        .withDescription("PEM private key file (relative path unless it begins with / or C:\\)").create("pf");
+
+    options.addOption(server);
+    options.addOption(username);
+    options.addOption(password);
+    options.addOption(formid);
+    options.addOption(storageDir);
+    options.addOption(exportDir);
+    options.addOption(exportMedia);
+    options.addOption(startDate);
+    options.addOption(endDate);
+    options.addOption(exportFilename);
+    options.addOption(overwrite);
+    options.addOption(help);
+    options.addOption(version);
+    options.addOption(odkDir);
+    options.addOption(keyFile);
+
+    return options;
+  }
+  
+  static boolean testDateFormat(String date) {
+      try {
+          DateFormat df = new SimpleDateFormat(DATE_FORMAT);
+          df.parse(date);
+      } catch (java.text.ParseException e) {
+          return false;     
+      }
+      return true;         
   }
 }
