@@ -15,27 +15,27 @@ limitations under the License.
 
 This software includes the following jar files (libraries):
 
-http://www.bouncycastle.org/		/MIT X11 License/
-	bcprov-jdk16-146.jar
-http://apache.org/		/Apache 2.0/
-	commons-codec-1.5.jar
-	commons-io-2.0.1.jar
-	commons-logging-1.1.1.jar
-http://www.eventbus.org/		/Apache 2.0/
-	eventbus-1.4.jar
-http://www.jgoodies.com/freeware/forms/index.html	/BSD license/
-	forms-1.0.3.jar
-http://apache.org/		/Apache 2.0/
-	httpclient-4.1.2.jar
-	httpcore-4.1.2.jar
-	httpmime-4.1.2.jar
-https://bitbucket.org/javarosa/javarosa/wiki/Home		/Apache 2.0/
+http://www.bouncycastle.org/        /MIT X11 License/
+    bcprov-jdk16-146.jar
+http://apache.org/                  /Apache 2.0/
+    commons-cli-1.2.jar
+    commons-codec-1.5.jar
+    commons-io-2.0.1.jar
+    commons-logging-1.1.1.jar
+http://www.eventbus.org/            /Apache 2.0/
+    eventbus-1.4.jar
+http://www.jgoodies.com/freeware/forms/index.html    /BSD license/
+    forms-1.3.0.jar
+http://apache.org/                  /Apache 2.0/
+    httpclient-4.1.2.jar
+    httpcore-4.1.2.jar
+    httpmime-4.1.2.jar
+https://bitbucket.org/javarosa/javarosa/wiki/Home        /Apache 2.0/
 Special build using this fork of the project: https://bitbucket.org/m.sundt/javarosa
-	javarosa-libraries.jar
-http://kxml.sourceforge.net/kxml2/		/BSD license/
-	kxml2-2.3.0.jar
-http://www.medsea.eu/		/Apache 2.0/
-	mime-util-2.1.3.jar
-http://www.smallsql.de/		/LGPL 2.1/
-	smallsql-0.21.jar
-	
+    javarosa-libraries-2014-04-29.jar
+http://kxml.sourceforge.net/kxml2/   /BSD license/
+    kxml2-2.3.0.jar
+http://www.medsea.eu/                /Apache 2.0/
+    mime-util-2.1.3.jar
+http://www.smallsql.de/              /LGPL 2.1/
+    smallsql-0.21.jar
