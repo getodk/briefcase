@@ -83,7 +83,13 @@ public class ExportAction {
       for (;;) /* this only executes once... */ {
         try {
           BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(pemFile), "UTF-8"));
-          Object o = new PEMReader(br).readObject();
+          PEMReader rdr = new PEMReader(br);
+          Object o = rdr.readObject();
+          try {
+            rdr.close();
+          } catch ( IOException e ) {
+            // ignore.
+          }
           if ( o == null ) {
             ODKOptionPane.showErrorDialog(null,
                 errorMsg = "The supplied file is not in PEM format.",

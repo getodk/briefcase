@@ -454,6 +454,11 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
 
   class FileChooser extends AbstractFileChooser {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 6458668203143472878L;
+
     public FileChooser(boolean open, String title, String buttonText) {
       super();
       setFileSelectionMode(JFileChooser.FILES_ONLY);

@@ -522,6 +522,7 @@ public class MainBriefcaseWindow implements WindowListener {
    * Setting up options for Command Line Interface
    * @return
    */
+  @SuppressWarnings("static-access")
   static Options addOptions() {
     Options options = new Options();
 
