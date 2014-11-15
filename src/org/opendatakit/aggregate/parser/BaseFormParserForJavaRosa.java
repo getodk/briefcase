@@ -134,17 +134,23 @@ public class BaseFormParserForJavaRosa {
 
   // bind attributes that CAN change without affecting database structure
   // Note: must specify these entirely in lowercase
-  private static final String[] ChangeableBindAttributes = {
-      "relevant", "constraint", "readonly", "required", "calculate",
-      XFormParser.NAMESPACE_JAVAROSA.toLowerCase() + ":constraintmsg",
-      XFormParser.NAMESPACE_JAVAROSA.toLowerCase() + ":preload",
-      XFormParser.NAMESPACE_JAVAROSA.toLowerCase() + ":preloadparams", "appearance" };
+  private static final List<String> ChangeableBindAttributes;
 
   // core instance def. attrs. that CANNOT change w/o affecting db structure
   // Note: must specify these entirely in lowercase
-  private static final String[] NonchangeableInstanceAttributes = {
-    "id" };
+  private static final List<String> NonchangeableInstanceAttributes;
 
+  static {
+    ChangeableBindAttributes = Arrays.asList(new String[]{
+        "relevant", "constraint", "readonly", "required", "calculate",
+        XFormParser.NAMESPACE_JAVAROSA.toLowerCase() + ":constraintmsg",
+        XFormParser.NAMESPACE_JAVAROSA.toLowerCase() + ":preload",
+        XFormParser.NAMESPACE_JAVAROSA.toLowerCase() + ":preloadparams", 
+        "appearance" });
+    
+    NonchangeableInstanceAttributes = Arrays.asList(new String[]{"id"});
+  }
+  
   // nodeset attribute name, in <bind> elements
   private static final String NODESET_ATTR = "nodeset";
 
@@ -902,7 +908,7 @@ public class BaseFormParserForJavaRosa {
         // flag differences as small or large based on list in
         // NonchangeableInstanceAttributes[]
         // here, changes are ALLOWED by default, unless to a listed attribute
-        if (!Arrays.asList(NonchangeableInstanceAttributes).contains(
+        if (!NonchangeableInstanceAttributes.contains(
             fullAttributeName.toLowerCase())) {
           smalldiff = true;
         } else {
@@ -925,7 +931,7 @@ public class BaseFormParserForJavaRosa {
         // flag differences as small or large based on list in
         // NonchangeableInstanceAttributes[]
         // here, changes are ALLOWED by default, unless to a listed attribute
-        if (!Arrays.asList(NonchangeableInstanceAttributes).contains(
+        if (!NonchangeableInstanceAttributes.contains(
             fullAttributeName.toLowerCase())) {
           smalldiff = true;
         } else {
@@ -968,7 +974,7 @@ public class BaseFormParserForJavaRosa {
               // ChangeableBindAttributes[]
               // here, changes are NOT ALLOWED by default, unless to a listed
               // attribute
-              if (Arrays.asList(ChangeableBindAttributes).contains(fullAttributeName.toLowerCase())) {
+              if (ChangeableBindAttributes.contains(fullAttributeName.toLowerCase())) {
                 smalldiff = true;
               } else {
                 bigdiff = true;
@@ -997,7 +1003,7 @@ public class BaseFormParserForJavaRosa {
             // ChangeableBindAttributes[]
             // here, changes are NOT ALLOWED by default, unless to a listed
             // attribute
-            if (Arrays.asList(ChangeableBindAttributes).contains(fullAttributeName.toLowerCase())) {
+            if (ChangeableBindAttributes.contains(fullAttributeName.toLowerCase())) {
               smalldiff = true;
             } else {
               bigdiff = true;
@@ -1072,6 +1078,9 @@ public class BaseFormParserForJavaRosa {
             break;
           case XFORMS_DIFFERENT:
             bigdiff = true;
+            break;
+          default:
+            // no update for the other cases (IDENTICAL, EARLIER, MISSING, SHARE_INSTANCE)
             break;
           }
         } else {
