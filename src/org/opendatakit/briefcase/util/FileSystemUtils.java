@@ -72,6 +72,7 @@ public class FileSystemUtils {
   static final String ASYMMETRIC_ALGORITHM = "RSA/NONE/OAEPWithSHA256AndMGF1Padding";
   static final String UTF_8 = "UTF-8";
   static final String ENCRYPTED_FILE_EXTENSION = ".enc";
+  static final String MISSING_FILE_EXTENSION = ".missing";
 
   public static final String getMountPoint() {
     return System.getProperty("os.name").startsWith("Win") ? File.separator + ".." : (System
@@ -439,7 +440,7 @@ public class FileSystemUtils {
       return null;
 
     } catch (FileNotFoundException e) {
-      logger.error("No Xml File: " + e.getMessage());
+      logger.error("No File: " + e.getMessage());
       return null;
     } catch (IOException e) {
       logger.error("Problem reading from file: " + e.getMessage());
@@ -466,6 +467,15 @@ public class FileSystemUtils {
 
       Cipher c = ei.getCipher(name);
 
+      // name is now the decrypted file name
+      // if it ends in ".missing" then the file
+      // was not available and the administrator
+      // marked it as complete on the SubmissionAdmin
+      // page.
+      if ( name.endsWith(MISSING_FILE_EXTENSION) ) {
+        return;
+      }
+      
       fin = new FileInputStream(original);
       fin = new CipherInputStream(fin, c);
 
@@ -644,9 +654,16 @@ public class FileSystemUtils {
 
     appendElementSignatureSource(b, fim.instanceId);
 
+    boolean missingFile = false;
     for ( String encFilename : mediaNames ) {
       File decryptedFile = new File( unencryptedDir,
           encFilename.substring(0, encFilename.lastIndexOf(".enc")));
+      if ( decryptedFile.getName().endsWith(".missing")) {
+        // this is a missing file -- we will not be able to 
+        // confirm the signature of the submission.
+        missingFile = true;
+        continue;
+      }
       String md5 = FileSystemUtils.getMd5Hash(decryptedFile);
       appendElementSignatureSource(b, decryptedFile.getName() + "::" + md5 );
     }

@@ -256,23 +256,18 @@ public class ExportToCsv implements ITransformFormAction {
         return b.toString();
 
       } catch (IOException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
         log.severe(" element name: " + model.getName() + " exception: " + e.toString());
       } catch (InvalidKeyException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
         log.severe(" element name: " + model.getName() + " exception: " + e.toString());
       } catch (InvalidAlgorithmParameterException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
         log.severe(" element name: " + model.getName() + " exception: " + e.toString());
       } catch (NoSuchAlgorithmException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
         log.severe(" element name: " + model.getName() + " exception: " + e.toString());
       } catch (NoSuchPaddingException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
         log.severe(" element name: " + model.getName() + " exception: " + e.toString());
       } finally {
@@ -450,8 +445,10 @@ public class ExportToCsv implements ITransformFormAction {
                  destBinaryFilename = namePart + "-" + (++version) + extPart;
                  destFile = new File(outputMediaDir, destBinaryFilename);
                }
-               FileUtils.copyFile(binaryFile, destFile);
-            emitString(osw, first, MEDIA_DIR + File.separator + destFile.getName());
+               if ( binaryFile.exists() ) {
+                 FileUtils.copyFile(binaryFile, destFile);
+               }
+               emitString(osw, first, MEDIA_DIR + File.separator + destFile.getName());
             } else {
                 emitString(osw, first, binaryFilename);
             }
@@ -608,7 +605,7 @@ public class ExportToCsv implements ITransformFormAction {
             // repeatable group...
             emitString(osw, first, "SET-OF-" + getFullName(current, primarySet));
             first = false;
-            processRepeatingGroupDefinition(current, primarySet);
+            processRepeatingGroupDefinition(current, primarySet, true);
           } else if (current.getNumChildren() == 0 && current != briefcaseLfd.getSubmissionElement()) {
             // assume fields that don't have children are string fields.
             emitString(osw, first, getFullName(current, primarySet));
@@ -625,19 +622,58 @@ public class ExportToCsv implements ITransformFormAction {
     return first;
   }
 
-  private void processRepeatingGroupDefinition(TreeElement group, TreeElement primarySet)
+  private void populateRepeatGroupsIntoFileMap(TreeElement primarySet,
+      TreeElement treeElement) throws IOException {
+    // OK -- group with at least one element -- assume no value...
+    // TreeElement list has the begin and end tags for the nested groups.
+    // Swallow the end tag by looking to see if the prior and current
+    // field names are the same.
+    TreeElement prior = null;
+    for (int i = 0; i < treeElement.getNumChildren(); ++i) {
+      TreeElement current = (TreeElement) treeElement.getChildAt(i);
+      if ((prior != null) && (prior.getName().equals(current.getName()))) {
+        // it is the end-group tag... seems to happen with two adjacent repeat
+        // groups
+        log.info("repeating tag at " + i + " skipping " + current.getName());
+        prior = current;
+      } else {
+        switch (current.getDataType()) {
+        default:
+          break;
+        case org.javarosa.core.model.Constants.DATATYPE_NULL: 
+          /* for nodes that have no data, or data type otherwise unknown */
+          if (current.isRepeatable()) {
+            processRepeatingGroupDefinition(current, primarySet, false);
+          } else if (current.getNumChildren() == 0 && current != briefcaseLfd.getSubmissionElement()) {
+            // ignore - string type
+          } else {
+            /* one or more children -- this is a non-repeating group */
+            populateRepeatGroupsIntoFileMap(primarySet, current);
+          }
+          break;
+        }
+        prior = current;
+      }
+    }
+  }
+
+  private void processRepeatingGroupDefinition(TreeElement group, TreeElement primarySet, boolean emitCsvHeaders)
       throws IOException {
     String formName = baseFilename + "-" + getFullName(group, primarySet);
     File topLevelCsv = new File(outputDir, safeFilename(formName) + ".csv");
     FileOutputStream os = new FileOutputStream(topLevelCsv, !overwrite);
     OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
     fileMap.put(group, osw);
-    boolean first = true;
-    first = emitCsvHeaders(osw, group, group, first);
-    emitString(osw, first, "PARENT_KEY");
-    emitString(osw, false, "KEY");
-    emitString(osw, false, "SET-OF-" + group.getName());
-    osw.append("\n");
+    if ( emitCsvHeaders ) {
+      boolean first = true;
+      first = emitCsvHeaders(osw, group, group, first);
+      emitString(osw, first, "PARENT_KEY");
+      emitString(osw, false, "KEY");
+      emitString(osw, false, "SET-OF-" + group.getName());
+      osw.append("\n");
+    } else {
+      populateRepeatGroupsIntoFileMap(group, group);
+    }
   }
 
   private String safeFilename(String name) {
@@ -665,6 +701,8 @@ public class ExportToCsv implements ITransformFormAction {
               emitString(osw, false, "isValidated");
           }
           osw.append("\n");
+       } else {
+         populateRepeatGroupsIntoFileMap(submission, submission);
        }
 
     } catch (FileNotFoundException e) {
@@ -890,6 +928,10 @@ public class ExportToCsv implements ITransformFormAction {
         emitString(osw, false, instanceId);
         if ( briefcaseLfd.isFileEncryptedForm() ) {
           emitString(osw, false, Boolean.toString(isValidated));
+          if ( !isValidated ) {
+            EventBus.publish(new ExportProgressEvent("Decrypted submission "
+                + instanceDir.getName() + " may be missing attachments and could not be validated."));
+          }
         }
         osw.append("\n");
         return true;
