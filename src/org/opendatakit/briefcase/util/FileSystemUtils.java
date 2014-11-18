@@ -456,6 +456,14 @@ public class FileSystemUtils {
     OutputStream fout = null;
 
     try {
+      if ( original == null ) {
+        // special case -- user marked-as-complete an encrypted file on a pre-1.4.5 ODK Aggregate
+        // need to get a Cipher to update the cipher initialization vector. 
+        ei.getCipher("missing.enc");
+        logger.info("Missing file (pre-ODK Aggregate 1.4.5 mark-as-complete on server)");
+        return;
+      }
+      
       String name = original.getName();
       if (!name.endsWith(ENCRYPTED_FILE_EXTENSION)) {
         String errMsg = "Unexpected non-" + ENCRYPTED_FILE_EXTENSION + " extension " + name
@@ -473,6 +481,7 @@ public class FileSystemUtils {
       // marked it as complete on the SubmissionAdmin
       // page.
       if ( name.endsWith(MISSING_FILE_EXTENSION) ) {
+        logger.info("Missing file (ODK Aggregate 1.4.5 and higher):" + original.getName());
         return;
       }
       
@@ -560,8 +569,14 @@ public class FileSystemUtils {
     // should have all media files plus one submission.xml.enc file
     if ( filesToProcess.size() != mediaNames.size() + 1 ) {
       // figure out what we're missing...
+      int lostFileCount = 0;
       List<String> missing = new ArrayList<String>();
       for ( String name : mediaNames ) {
+        if ( name == null ) {
+          // this was lost due to an pre-ODK Aggregate 1.4.5 mark-as-complete action
+          ++lostFileCount;
+          continue;
+        }
         File f = new File(instanceDir, name);
         if ( !filesToProcess.contains(f)) {
           missing.add(name);
@@ -573,30 +588,36 @@ public class FileSystemUtils {
       }
       if ( !filesToProcess.contains(new File(instanceDir, encryptedSubmissionFile)) ) {
         b.append(" ").append(encryptedSubmissionFile);
+        throw new FileSystemException("Error decrypting: " + instanceDir.getName() + " Missing files:" + b.toString());
+      } else {
+        // ignore the fact that we don't have the lost files
+        if ( filesToProcess.size() + lostFileCount != mediaNames.size() + 1 ) {
+          throw new FileSystemException("Error decrypting: " + instanceDir.getName() + " Missing files:" + b.toString());
+        }
       }
-      throw new FileSystemException("Error decrypting: " + instanceDir.getName() + " Missing files:" + b.toString());
     }
 
     // decrypt the media files IN ORDER.
     for (String mediaName : mediaNames) {
-      File f = new File(instanceDir, mediaName);
+      String displayedName = (mediaName == null) ? "<missing .enc file>" : mediaName;
+      File f = (mediaName == null) ? null : new File(instanceDir, mediaName);
       try {
         decryptFile(ei, f, unencryptedDir);
       } catch (InvalidKeyException e) {
         e.printStackTrace();
-        throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
+        throw new CryptoException("Error decrypting:" + displayedName + " Cause: " + e.toString());
       } catch (NoSuchAlgorithmException e) {
         e.printStackTrace();
-        throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
+        throw new CryptoException("Error decrypting:" + displayedName + " Cause: " + e.toString());
       } catch (InvalidAlgorithmParameterException e) {
         e.printStackTrace();
-        throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
+        throw new CryptoException("Error decrypting:" + displayedName + " Cause: " + e.toString());
       } catch (NoSuchPaddingException e) {
         e.printStackTrace();
-        throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
+        throw new CryptoException("Error decrypting:" + displayedName + " Cause: " + e.toString());
       } catch (IOException e) {
         e.printStackTrace();
-        throw new FileSystemException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
+        throw new FileSystemException("Error decrypting:" + displayedName + " Cause: " + e.toString());
       }
     }
 
@@ -656,6 +677,10 @@ public class FileSystemUtils {
 
     boolean missingFile = false;
     for ( String encFilename : mediaNames ) {
+      if ( encFilename == null ) {
+        missingFile = true;
+        continue;
+      }
       File decryptedFile = new File( unencryptedDir,
           encFilename.substring(0, encFilename.lastIndexOf(".enc")));
       if ( decryptedFile.getName().endsWith(".missing")) {
@@ -745,9 +770,10 @@ public class FileSystemUtils {
                 if (mediaFileElementName.equals("file")) {
                   String mediaName = XFormParser.getXMLText(mediaChild, true);
                   if (mediaName == null || mediaName.length() == 0) {
-                    throw new ParsingException("Empty filename within media file element of encrypted form.");
+                    mediaNames.add(null);
+                  } else {
+                    mediaNames.add(mediaName);
                   }
-                  mediaNames.add(mediaName);
                 }
               }
             }

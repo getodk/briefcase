@@ -94,6 +94,7 @@ public class XmlManipulationUtils {
 
   private static final String OPEN_ROSA_NAMESPACE_PRELIM = "http://openrosa.org/xforms/metadata";
   private static final String OPEN_ROSA_NAMESPACE = "http://openrosa.org/xforms";
+  private static final String OPEN_ROSA_NAMESPACE_SLASH = "http://openrosa.org/xforms/";
   private static final String OPEN_ROSA_METADATA_TAG = "meta";
   private static final String OPEN_ROSA_INSTANCE_ID = "instanceID";
   private static final String BASE64_ENCRYPTED_FIELD_KEY = "base64EncryptedFieldKey";
@@ -118,6 +119,7 @@ public class XmlManipulationUtils {
                 cnUri.equals(EMPTY_STRING) || 
                 cnUri.equals(rootUri) ||
                 cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE) || 
+                cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_SLASH) || 
                 cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_PRELIM))) {
           return child;
         } else {
@@ -149,6 +151,7 @@ public class XmlManipulationUtils {
                   cnUri.equals(EMPTY_STRING) || 
                   cnUri.equals(rootUri) ||
                   cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE) || 
+                  cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_SLASH) || 
                   cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_PRELIM))) {
             return XFormParser.getXMLText(child, true);
           }
@@ -177,7 +180,8 @@ public class XmlManipulationUtils {
               && (cnUri == null || 
                   cnUri.equals(EMPTY_STRING) || 
                   cnUri.equals(rootUri) ||
-                  cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE))) {
+                  cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE) || 
+                  cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_SLASH))) {
             return XFormParser.getXMLText(child, true);
           }
         }
