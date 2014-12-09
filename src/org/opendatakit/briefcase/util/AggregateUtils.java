@@ -150,6 +150,7 @@ public class AggregateUtils {
         String errMsg = String.format(FETCH_FAILED_DETAILED_REASON, f.getAbsolutePath())
             + response.getStatusLine().getReasonPhrase() + " (" + statusCode + ")";
         log.severe(errMsg);
+        flushEntityBytes(response.getEntity());
         throw new TransmissionException(errMsg);
       }
 
@@ -238,6 +239,23 @@ public class AggregateUtils {
         description, action);
   }
 
+  private static final void flushEntityBytes(HttpEntity entity) {
+    if (entity != null) {
+      // something is amiss -- read and discard any response body.
+      try {
+        // don't really care about the stream...
+        InputStream is = entity.getContent();
+        // read to end of stream...
+        final long count = 1024L;
+        while (is.skip(count) == count)
+          ;
+        is.close();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
+  
   /**
    * Common method for returning a parsed xml document given a url and the http
    * context and client objects involved in the web connection. The document is
@@ -327,20 +345,7 @@ public class AggregateUtils {
       }
 
       if (ex != null) {
-        if (entity != null) {
-          // something is amiss -- read and discard any response body.
-          try {
-            // don't really care about the stream...
-            InputStream is = response.getEntity().getContent();
-            // read to end of stream...
-            final long count = 1024L;
-            while (is.skip(count) == count)
-              ;
-            is.close();
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        }
+        flushEntityBytes(entity);
         // and throw the exception...
         throw ex;
       }
