@@ -685,7 +685,7 @@ public class BaseFormParserForJavaRosa {
     String nodeset = "/" + getTreeElementPath(treeElement);
 
     for (int i = 0; i < this.bindElements.size(); i++) {
-      Element element = (Element) this.bindElements.get(i);
+      Element element = this.bindElements.get(i);
       if (element.getAttributeValue("", NODESET_ATTR).equalsIgnoreCase(nodeset)) {
         l.add(element);
       }
@@ -1021,7 +1021,7 @@ public class BaseFormParserForJavaRosa {
     List<TreeElement> element1ExcludingRepeatIndex0Children = new ArrayList<TreeElement>();
 
     for (int i = 0; i < treeElement1.getNumChildren(); i++) {
-      TreeElement child = (TreeElement) treeElement1.getChildAt(i);
+      TreeElement child = treeElement1.getChildAt(i);
       if (child.isRepeatable()) {
         if (child.getMult() != TreeReference.INDEX_TEMPLATE) {
           template1DropCount++;
@@ -1039,7 +1039,7 @@ public class BaseFormParserForJavaRosa {
     Map<String, TreeElement> element2ExcludingRepeatIndex0Children = new HashMap<String, TreeElement>();
 
     for (int i = 0; i < treeElement2.getNumChildren(); i++) {
-      TreeElement child = (TreeElement) treeElement2.getChildAt(i);
+      TreeElement child = treeElement2.getChildAt(i);
       if (child.isRepeatable()) {
         if (child.getMult() != TreeReference.INDEX_TEMPLATE) {
           template2DropCount++;
