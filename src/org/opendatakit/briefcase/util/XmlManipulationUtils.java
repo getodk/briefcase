@@ -405,8 +405,8 @@ public class XmlManipulationUtils {
 
         try {
           if (versionString != null ) {
-            // verify that  the version string is an integer value...
-            Integer.parseInt(versionString);
+            // verify that  the version string is a long integer value...
+            Long.parseLong(versionString);
           }
         } catch (Exception e) {
           e.printStackTrace();
