@@ -40,10 +40,11 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.protocol.HttpContext;
 import org.bushe.swing.event.EventBus;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
@@ -119,7 +120,7 @@ public class AggregateUtils {
     }
 
     // get shared HttpContext so that authentication and cookies are retained.
-    HttpContext localContext = serverInfo.getHttpContext();
+    HttpClientContext localContext = serverInfo.getHttpContext();
 
     HttpClient httpclient = serverInfo.getHttpClient();
 
@@ -224,7 +225,7 @@ public class AggregateUtils {
     }
 
     // get shared HttpContext so that authentication and cookies are retained.
-    HttpContext localContext = serverInfo.getHttpContext();
+    HttpClientContext localContext = serverInfo.getHttpContext();
     if (localContext == null) {
       localContext = WebUtils.createHttpContext();
       serverInfo.setHttpContext(localContext);
@@ -274,7 +275,7 @@ public class AggregateUtils {
     HttpClient httpClient = serverInfo.getHttpClient();
 
     // get shared HttpContext so that authentication and cookies are retained.
-    HttpContext localContext = serverInfo.getHttpContext();
+    HttpClientContext localContext = serverInfo.getHttpContext();
 
     URI u = request.getURI();
 
@@ -517,7 +518,7 @@ public class AggregateUtils {
     }
 
     // get shared HttpContext so that authentication and cookies are retained.
-    HttpContext localContext = serverInfo.getHttpContext();
+    HttpClientContext localContext = serverInfo.getHttpContext();
     if (localContext == null) {
       localContext = WebUtils.createHttpContext();
       serverInfo.setHttpContext(localContext);
@@ -662,11 +663,11 @@ public class AggregateUtils {
       long byteCount = 0L;
 
       // mime post
-      MultipartEntity entity = new MultipartEntity();
+      MultipartEntityBuilder builder = MultipartEntityBuilder.create();
 
       // add the submission file first...
-      FileBody fb = new FileBody(file, "text/xml");
-      entity.addPart(distinguishedFileTagName, fb);
+      FileBody fb = new FileBody(file, ContentType.TEXT_XML);
+      builder.addPart(distinguishedFileTagName, fb);
       log.info("added " + distinguishedFileTagName + ": " + file.getName());
       byteCount += file.length();
 
@@ -682,43 +683,43 @@ public class AggregateUtils {
         // we will be processing every one of these, so
         // we only need to deal with the content type determination...
         if (extension.equals("xml")) {
-          fb = new FileBody(f, "text/xml");
-          entity.addPart(f.getName(), fb);
+          fb = new FileBody(f, ContentType.TEXT_XML);
+          builder.addPart(f.getName(), fb);
           byteCount += f.length();
           log.info("added xml file " + f.getName());
         } else if (extension.equals("jpg")) {
-          fb = new FileBody(f, "image/jpeg");
-          entity.addPart(f.getName(), fb);
+          fb = new FileBody(f, ContentType.create("image/jpeg"));
+          builder.addPart(f.getName(), fb);
           byteCount += f.length();
           log.info("added image file " + f.getName());
         } else if (extension.equals("3gpp")) {
-          fb = new FileBody(f, "audio/3gpp");
-          entity.addPart(f.getName(), fb);
+          fb = new FileBody(f, ContentType.create("audio/3gpp"));
+          builder.addPart(f.getName(), fb);
           byteCount += f.length();
           log.info("added audio file " + f.getName());
         } else if (extension.equals("3gp")) {
-          fb = new FileBody(f, "video/3gpp");
-          entity.addPart(f.getName(), fb);
+          fb = new FileBody(f, ContentType.create("video/3gpp"));
+          builder.addPart(f.getName(), fb);
           byteCount += f.length();
           log.info("added video file " + f.getName());
         } else if (extension.equals("mp4")) {
-          fb = new FileBody(f, "video/mp4");
-          entity.addPart(f.getName(), fb);
+          fb = new FileBody(f, ContentType.create("video/mp4"));
+          builder.addPart(f.getName(), fb);
           byteCount += f.length();
           log.info("added video file " + f.getName());
         } else if (extension.equals("csv")) {
-          fb = new FileBody(f, "text/csv");
-          entity.addPart(f.getName(), fb);
+          fb = new FileBody(f, ContentType.create("text/csv"));
+          builder.addPart(f.getName(), fb);
           byteCount += f.length();
           log.info("added csv file " + f.getName());
         } else if (extension.equals("xls")) {
-          fb = new FileBody(f, "application/vnd.ms-excel");
-          entity.addPart(f.getName(), fb);
+          fb = new FileBody(f, ContentType.create("application/vnd.ms-excel"));
+          builder.addPart(f.getName(), fb);
           byteCount += f.length();
           log.info("added xls file " + f.getName());
         } else {
-          fb = new FileBody(f, "application/octet-stream");
-          entity.addPart(f.getName(), fb);
+          fb = new FileBody(f, ContentType.create("application/octet-stream"));
+          builder.addPart(f.getName(), fb);
           byteCount += f.length();
           log.warning("added unrecognized file (application/octet-stream) " + f.getName());
         }
@@ -729,8 +730,8 @@ public class AggregateUtils {
             // more than 100 attachments or the next file would exceed the 10MB threshold...
             log.info("Extremely long post is being split into multiple posts");
             try {
-              StringBody sb = new StringBody("yes", Charset.forName("UTF-8"));
-              entity.addPart("*isIncomplete*", sb);
+              StringBody sb = new StringBody("yes", ContentType.DEFAULT_TEXT.withCharset(Charset.forName("UTF-8")));
+              builder.addPart("*isIncomplete*", sb);
             } catch (Exception e) {
               e.printStackTrace();
               throw new IllegalStateException("never happens");
@@ -741,7 +742,7 @@ public class AggregateUtils {
         }
       }
 
-      httppost.setEntity(entity);
+      httppost.setEntity(builder.build());
 
       int[] validStatusList = { 201 };
 

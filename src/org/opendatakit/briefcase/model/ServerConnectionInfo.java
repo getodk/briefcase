@@ -17,7 +17,7 @@
 package org.opendatakit.briefcase.model;
 
 import org.apache.http.client.HttpClient;
-import org.apache.http.protocol.HttpContext;
+import org.apache.http.client.protocol.HttpClientContext;
 
 public class ServerConnectionInfo {
   private String url;
@@ -26,7 +26,7 @@ public class ServerConnectionInfo {
   private final char[] password;
   private final boolean isOpenRosaServer;
   private HttpClient httpClient = null;
-  private HttpContext httpContext = null;
+  private HttpClientContext httpContext = null;
 
   public ServerConnectionInfo(String url, String username, char[] cs) {
     this.url = url;
@@ -72,11 +72,11 @@ public class ServerConnectionInfo {
     this.httpClient = httpClient;
   }
 
-  public HttpContext getHttpContext() {
+  public HttpClientContext getHttpContext() {
     return httpContext;
   }
 
-  public void setHttpContext(HttpContext httpContext) {
+  public void setHttpContext(HttpClientContext httpContext) {
     this.httpContext = httpContext;
   }
 

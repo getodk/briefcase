@@ -37,22 +37,17 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.AuthSchemes;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.params.AuthPolicy;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.params.HttpClientParams;
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.SyncBasicHttpContext;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.javarosa.core.model.utils.DateUtils;
 
 /**
@@ -230,29 +225,27 @@ public final class WebUtils {
 
 		AuthScope a;
 		// allow digest auth on any port...
-		a = new AuthScope(host, -1, null, AuthPolicy.DIGEST);
+		a = new AuthScope(host, -1, null, AuthSchemes.DIGEST);
 		asList.add(a);
 		// and allow basic auth on the standard TLS/SSL ports...
-		a = new AuthScope(host, 443, null, AuthPolicy.BASIC);
+		a = new AuthScope(host, 443, null, AuthSchemes.BASIC);
 		asList.add(a);
-		a = new AuthScope(host, 8443, null, AuthPolicy.BASIC);
+		a = new AuthScope(host, 8443, null, AuthSchemes.BASIC);
 		asList.add(a);
 
 		return asList;
 	}
 
-	public static final void clearAllCredentials(HttpContext localContext) {
-		CredentialsProvider credsProvider = (CredentialsProvider) localContext
-				.getAttribute(ClientContext.CREDS_PROVIDER);
+	public static final void clearAllCredentials(HttpClientContext localContext) {
+		CredentialsProvider credsProvider = localContext.getCredentialsProvider();
 		if ( credsProvider != null ) {
 		  credsProvider.clear();
 		}
 	}
 
-	public static final boolean hasCredentials(HttpContext localContext,
+	public static final boolean hasCredentials(HttpClientContext localContext,
 			String userEmail, String host) {
-		CredentialsProvider credsProvider = (CredentialsProvider) localContext
-				.getAttribute(ClientContext.CREDS_PROVIDER);
+		CredentialsProvider credsProvider = localContext.getCredentialsProvider();
 
 		List<AuthScope> asList = buildAuthScopes(host);
 		boolean hasCreds = true;
@@ -266,16 +259,15 @@ public final class WebUtils {
 		return hasCreds;
 	}
 
-	public static final void addCredentials(HttpContext localContext,
+	public static final void addCredentials(HttpClientContext localContext,
 			String userEmail, char[] password, String host) {
 		Credentials c = new UsernamePasswordCredentials(userEmail, new String(password));
 		addCredentials(localContext, c, host);
 	}
 
-	private static final void addCredentials(HttpContext localContext,
+	private static final void addCredentials(HttpClientContext localContext,
 			Credentials c, String host) {
-		CredentialsProvider credsProvider = (CredentialsProvider) localContext
-				.getAttribute(ClientContext.CREDS_PROVIDER);
+		CredentialsProvider credsProvider = localContext.getCredentialsProvider();
 
 		List<AuthScope> asList = buildAuthScopes(host);
 		for (AuthScope a : asList) {
@@ -286,7 +278,7 @@ public final class WebUtils {
 	private static final void setOpenRosaHeaders(HttpRequest req) {
 		req.setHeader(OPEN_ROSA_VERSION_HEADER, OPEN_ROSA_VERSION);
 		req.setHeader(DATE_HEADER,
-				org.apache.http.impl.cookie.DateUtils.formatDate(new Date(), org.apache.http.impl.cookie.DateUtils.PATTERN_RFC1036));
+				org.apache.http.client.utils.DateUtils.formatDate(new Date(), org.apache.http.client.utils.DateUtils.PATTERN_RFC1036));
 	}
 
 	public static final HttpHead createOpenRosaHttpHead(URI uri) {
@@ -310,41 +302,43 @@ public final class WebUtils {
 
 	public static final HttpClient createHttpClient(int timeout) {
 		// configure connection
-		HttpParams params = new BasicHttpParams();
-		HttpConnectionParams.setConnectionTimeout(params, timeout);
-		HttpConnectionParams.setSoTimeout(params, timeout);
-		// support redirecting to handle http: => https: transition
-		HttpClientParams.setRedirecting(params, true);
-		// support authenticating
-		HttpClientParams.setAuthenticating(params, true);
-		// if possible, bias toward digest auth (may not be in 4.0 beta 2)
-		List<String> authPref = new ArrayList<String>();
-		authPref.add(AuthPolicy.DIGEST);
-		authPref.add(AuthPolicy.BASIC);
-		// does this work in Google's 4.0 beta 2 snapshot?
-		params.setParameter("http.auth-target.scheme-pref", authPref);
+	  SocketConfig socketConfig = SocketConfig.copy(SocketConfig.DEFAULT).setSoTimeout(timeout).build();
+	  
+     // if possible, bias toward digest auth (may not be in 4.0 beta 2)
+     List<String> targetPreferredAuthSchemes = new ArrayList<String>();
+     targetPreferredAuthSchemes.add(AuthSchemes.DIGEST);
+     targetPreferredAuthSchemes.add(AuthSchemes.BASIC);
 
-		// setup client
-		HttpClient httpclient = new DefaultHttpClient(params);
-      httpclient.getParams().setParameter(ClientPNames.MAX_REDIRECTS, 1);
-      httpclient.getParams().setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
+     RequestConfig requestConfig = RequestConfig.copy(RequestConfig.DEFAULT)
+	      .setConnectTimeout(timeout)
+	      // support authenticating
+	      .setAuthenticationEnabled(true)
+	      // support redirecting to handle http: => https: transition
+	      .setRedirectsEnabled(true)
+	      .setMaxRedirects(1)
+	      .setCircularRedirectsAllowed(true)
+	      .setTargetPreferredAuthSchemes(targetPreferredAuthSchemes)
+	      .build();
+	
+      CloseableHttpClient httpClient = HttpClientBuilder.create()
+          .setDefaultSocketConfig(socketConfig)
+          .setDefaultRequestConfig(requestConfig).build();
 
-      return httpclient;
+      return httpClient;
 	}
 
-	public static HttpContext createHttpContext() {
+	public static HttpClientContext createHttpContext() {
 		// set up one context for all HTTP requests so that authentication
 		// and cookies can be retained.
-		HttpContext localContext = new SyncBasicHttpContext(
-				new BasicHttpContext());
+		HttpClientContext localContext = HttpClientContext.create();
 
 		// establish a local cookie store for this attempt at downloading...
 		CookieStore cookieStore = new BasicCookieStore();
-		localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
+		localContext.setCookieStore(cookieStore);
 
 		// and establish a credentials provider...
 		CredentialsProvider credsProvider = new BasicCredentialsProvider();
-		localContext.setAttribute(ClientContext.CREDS_PROVIDER, credsProvider);
+		localContext.setCredentialsProvider(credsProvider);
 
 		return localContext;
 	}

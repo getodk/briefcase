@@ -39,12 +39,11 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 
-import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.logging.Log;
@@ -116,7 +115,7 @@ public class MainBriefcaseWindow implements WindowListener {
       });
     } else {
       Options options = addOptions();
-      CommandLineParser parser = new BasicParser();
+      CommandLineParser parser = new DefaultParser();
       CommandLine cmd = null;
 
         try {
@@ -522,62 +521,105 @@ public class MainBriefcaseWindow implements WindowListener {
    * Setting up options for Command Line Interface
    * @return
    */
-  @SuppressWarnings("static-access")
   static Options addOptions() {
     Options options = new Options();
 
-    Option server = OptionBuilder.withArgName("url").hasArg().withLongOpt(AGGREGATE_URL)
-        .withDescription("ODK Aggregate URL (must start with http:// or https://)")
-        .create("url");
-
-    Option username = OptionBuilder.withArgName("username").hasArg().withLongOpt(ODK_USERNAME)
-        .withDescription("ODK username").create("u");
-
-    Option password = OptionBuilder.withArgName("password").hasArg().withLongOpt(ODK_PASSWORD)
-        .withDescription("ODK password").create("p");
-
-    Option formid = OptionBuilder.withArgName("form_id").hasArg().withLongOpt(FORM_ID)
-        .withDescription("Form ID of form to download and export").create("id");
-
-    Option storageDir = OptionBuilder
-        .withArgName("/path/to/dir")
-        .withLongOpt(STORAGE_DIRECTORY)
+    Option server = Option.builder("url")
+        .argName("url")
         .hasArg()
-        .withDescription(
-            "Directory to create or find ODK Briefcase Storage directory (relative path unless it begins with / or C:\\)")
-        .create("sd");
+        .longOpt(AGGREGATE_URL)
+        .desc("ODK Aggregate URL (must start with http:// or https://)")
+        .build();
 
-    Option exportDir = OptionBuilder.withArgName("/path/to/dir").hasArg().withLongOpt(EXPORT_DIRECTORY)
-        .withDescription("Directory to export the CSV and media files into (relative path unless it begins with / or C:\\)").create("ed");
+    Option username = Option.builder("u")
+        .argName("username")
+        .hasArg()
+        .longOpt(ODK_USERNAME)
+        .desc("ODK username")
+        .build();
 
-      Option exportMedia = OptionBuilder.withDescription("Flag to exclude media on export")
-        .withLongOpt(EXCLUDE_MEDIA_EXPORT).create("em");
+    Option password = Option.builder("p")
+        .argName("password")
+        .hasArg()
+        .longOpt(ODK_PASSWORD)
+        .desc("ODK password")
+        .build();
 
-    Option startDate = OptionBuilder.withArgName(DATE_FORMAT).hasArg()
-        .withLongOpt(EXPORT_START_DATE).withDescription("Include submission dates after (inclusive) this date in export to CSV")
-        .create("start");
+    Option formid = Option.builder("id")
+        .argName("form_id")
+        .hasArg()
+        .longOpt(FORM_ID)
+        .desc("Form ID of form to download and export")
+        .build();
 
-    Option endDate = OptionBuilder.withArgName(DATE_FORMAT).hasArg()
-        .withLongOpt(EXPORT_END_DATE).withDescription("Include submission dates before (exclusive) this date in export to CSV").create("end");
+    Option storageDir = Option.builder("sd")
+        .argName("/path/to/dir")
+        .hasArg()
+        .longOpt(STORAGE_DIRECTORY)
+        .desc("Directory to create or find ODK Briefcase Storage directory (relative path unless it begins with / or C:\\)")
+        .build();
 
-    Option exportFilename = OptionBuilder.withArgName("name.csv").hasArg()
-        .withLongOpt(EXPORT_FILENAME).withDescription("File name for exported CSV")
-        .create("f");
+    Option exportDir = Option.builder("ed")
+        .argName("/path/to/dir")
+        .hasArg()
+        .longOpt(EXPORT_DIRECTORY)
+        .desc("Directory to export the CSV and media files into (relative path unless it begins with / or C:\\)")
+        .build();
 
-    Option overwrite = OptionBuilder.withLongOpt(OVERWRITE_CSV_EXPORT)
-        .withDescription("Flag to overwrite CSV on export").create("oc");
+    Option exportMedia = Option.builder("em")
+        .longOpt(EXCLUDE_MEDIA_EXPORT)
+        .desc("Flag to exclude media on export")
+        .build();
 
-    Option help = OptionBuilder.withLongOpt(HELP)
-        .withDescription("Print help information (this screen)").create("h");
+    Option startDate = Option.builder("start")
+        .argName(DATE_FORMAT)
+        .hasArg()
+        .longOpt(EXPORT_START_DATE)
+        .desc("Include submission dates after (inclusive) this date in export to CSV")
+        .build();
 
-    Option version = OptionBuilder.withLongOpt(VERSION)
-        .withDescription("Print version information").create("v");
+    Option endDate = Option.builder("end")
+        .argName(DATE_FORMAT)
+        .hasArg()
+        .longOpt(EXPORT_END_DATE)
+        .desc("Include submission dates before (exclusive) this date in export to CSV")
+        .build();
 
-    Option odkDir = OptionBuilder.withArgName("/path/to/dir").hasArg().withLongOpt(ODK_DIR)
-        .withDescription("/odk directory from ODK Collect (relative path unless it begins with / or C:\\)").create("od");
+    Option exportFilename = Option.builder("f")
+        .argName("name.csv")
+        .hasArg()
+        .longOpt(EXPORT_FILENAME)
+        .desc("File name for exported CSV")
+        .build();
 
-    Option keyFile = OptionBuilder.withArgName("/path/to/file.pem").hasArg().withLongOpt(PEM_FILE)
-        .withDescription("PEM private key file (relative path unless it begins with / or C:\\)").create("pf");
+    Option overwrite = Option.builder("oc")
+        .longOpt(OVERWRITE_CSV_EXPORT)
+        .desc("Flag to overwrite CSV on export")
+        .build();
+
+    Option help = Option.builder("h")
+        .longOpt(HELP)
+        .desc("Print help information (this screen)")
+        .build();
+
+    Option version = Option.builder("v")
+        .longOpt(VERSION)
+        .desc("Print version information")
+        .build();
+
+    Option odkDir = Option.builder("od")
+        .argName("/path/to/dir")
+        .hasArg()
+        .longOpt(ODK_DIR)
+        .desc("/odk directory from ODK Collect (relative path unless it begins with / or C:\\)")
+        .build();
+
+    Option keyFile = Option.builder("pf")
+        .argName("/path/to/file.pem")
+        .hasArg()
+        .longOpt(PEM_FILE)
+        .desc("PEM private key file (relative path unless it begins with / or C:\\)")
+        .build();
 
     options.addOption(server);
     options.addOption(username);
