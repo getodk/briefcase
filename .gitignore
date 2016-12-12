@@ -1,4 +1,5 @@
 bin
+out
 *.iml
 .gradle
 local.properties
