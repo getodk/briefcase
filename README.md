@@ -5,7 +5,7 @@
 
 ODK Briefcase is a desktop application that can locally store survey results gathered with [ODK Collect](https://opendatakit.org/use/collect). It can also be used to make local copies and CSV exports of data from [ODK Aggregate](https://opendatakit.org/use/aggregate/) (or compatible servers) and push data to those servers.   
 
-ODK Collect is part of Open Data Kit (ODK), a free and open-source set of tools which help organizations author, field, and manage mobile data collection solutions. Learn more about the Open Data Kit project and its history [here](https://opendatakit.org/about/) and read about example ODK deployments [here](https://opendatakit.org/about/deployments/).
+ODK Briefcase is part of Open Data Kit (ODK), a free and open-source set of tools which help organizations author, field, and manage mobile data collection solutions. Learn more about the Open Data Kit project and its history [here](https://opendatakit.org/about/) and read about example ODK deployments [here](https://opendatakit.org/about/deployments/).
 
 * ODK website: [https://opendatakit.org](https://opendatakit.org)
 * ODK Briefcase usage instructions: [https://opendatakit.org/use/briefcase](https://opendatakit.org/use/briefcase)
@@ -23,10 +23,17 @@ ODK Collect is part of Open Data Kit (ODK), a free and open-source set of tools 
 
         git clone https://github.com/YOUR-GITHUB-USERNAME/briefcase
 
-We recommend using [IntelliJ IDEA](https://www.jetbrains.com/idea/).
+We recommend using [IntelliJ IDEA](https://www.jetbrains.com/idea/) for development. On the welcome screen, click "Import Project" and navigate to your briefcase folder. Select `Create project from existing sources` and select defaults through the wizard. 
+
+The main class is `org.opendatakit.briefcase.ui.MainBriefcaseWindow`. This repository also contains code for three smaller utilities with the following main classes:
+- `org.opendatakit.briefcase.ui.CharsetConverterDialog` converts CSVs to UTF-8
+- `org.opendatakit.briefcase.ui.MainClearBriefcasePreferencesWindow` clears Briefcase preferences
+- `org.opendatakit.briefcase.ui.MainFormUploaderWindow` uploads blank forms to Aggregate instances
  
 ## Contributing code
 Any and all contributions to the project are welcome. ODK Briefcase is used across the world primarily by organizations with a social purpose so you can have real impact!
 
+If you're ready to contribute code, see [the contribution guide](CONTRIBUTING.md).
+
 ## Downloading builds
-Released production builds can be found on the [ODK website](https://opendatakit.org/downloads/download-info/odk-briefcase/) has the current production build.
+Current and previous production builds can be found on the [ODK website](https://opendatakit.org/downloads/download-info/odk-briefcase/).
