@@ -13,7 +13,7 @@ For feature requests, please include the problem description (what problem do yo
 -->
 
 #### Software versions 
-ODK Briefcase v1.x.x, Java v1.x.x, operating system, Aggregate v1.x.x...
+Briefcase v1.x.x, Java v1.x.x, operating system, Aggregate v1.x.x, Collect v1.x.x...
 
 #### Problem description
 
