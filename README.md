@@ -33,5 +33,7 @@ The main class is `org.opendatakit.briefcase.ui.MainBriefcaseWindow`. This repos
 ## Contributing code
 Any and all contributions to the project are welcome. ODK Briefcase is used across the world primarily by organizations with a social purpose so you can have real impact!
 
+If you're ready to contribute code, see [the contribution guide](CONTRIBUTING.md).
+
 ## Downloading builds
 Current and previous production builds can be found on the [ODK website](https://opendatakit.org/downloads/download-info/odk-briefcase/).
