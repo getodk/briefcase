@@ -23,7 +23,7 @@ ODK Briefcase is part of Open Data Kit (ODK), a free and open-source set of tool
 
         git clone https://github.com/YOUR-GITHUB-USERNAME/briefcase
 
-We recommend using [IntelliJ IDEA](https://www.jetbrains.com/idea/) for development. On the welcome screen, click "Import Project" and navigate to your briefcase folder. Select `Create project from existing sources` and select defaults through the wizard. 
+We recommend using [IntelliJ IDEA](https://www.jetbrains.com/idea/) for development. On the welcome screen, click "Import Project" and navigate to your briefcase folder. Select `Create project from existing sources` and select defaults through the wizard. Once the project is imported, right-click on the `res` folder, click on `Mark Directory as`, then select `Resources Root`.
 
 The main class is `org.opendatakit.briefcase.ui.MainBriefcaseWindow`. This repository also contains code for three smaller utilities with the following main classes:
 - `org.opendatakit.briefcase.ui.CharsetConverterDialog` converts CSVs to UTF-8
