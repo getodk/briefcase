@@ -26,13 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JButton;
-import javax.swing.JOptionPane;
-import javax.swing.JTable;
-import javax.swing.UIManager;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumnModel;
+import javax.swing.*;
+import javax.swing.table.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -342,6 +337,23 @@ public class FormTransferTable extends JTable {
     columns.getColumn(1).setPreferredWidth(5 * headerWidth);
     columns.getColumn(2).setPreferredWidth(5 * headerWidth);
     this.setFillsViewportHeight(true);
+
+    // set the default sortingOrder to the Form Name column
+    TableRowSorter sorter = new FormNameColumnTableRowSorter(getModel());
+    sorter.sort();
+  }
+
+  private class FormNameColumnTableRowSorter extends TableRowSorter {
+
+    private final List<RowSorter.SortKey> sortKeys = new ArrayList<>(1);
+
+    public FormNameColumnTableRowSorter(TableModel model) {
+      super(model);
+      this.setSortsOnUpdates(true);
+      sortKeys.add(new RowSorter.SortKey(1, SortOrder.ASCENDING));
+      setSortKeys(sortKeys);
+      setRowSorter(this);
+    }
   }
 
   public void setFormStatusList(List<FormStatus> statuses) {
