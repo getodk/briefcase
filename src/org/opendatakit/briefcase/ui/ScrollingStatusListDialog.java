@@ -70,6 +70,7 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
     getRootPane().setDefaultButton(cancelButton);
 
     JEditorPane editorArea = new JEditorPane("text/plain", statusHtml);
+    editorArea.setEditable(false);
   //Put the editor pane in a scroll pane.
     JScrollPane editorScrollPane = new JScrollPane(editorArea);
     editorScrollPane.setVerticalScrollBarPolicy(
