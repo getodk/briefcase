@@ -1,3 +1,3 @@
 test:
-    override:
-        - cp -r build/libs $CIRCLE_ARTIFACTS
+  post:
+    - cp -r build/libs $CIRCLE_ARTIFACTS
