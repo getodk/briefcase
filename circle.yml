@@ -1,0 +1,3 @@
+test:
+  post:
+    - cp -r build/libs $CIRCLE_ARTIFACTS

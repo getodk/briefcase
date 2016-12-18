@@ -1,6 +1,7 @@
 # ODK Briefcase
 ![Platform](https://img.shields.io/badge/platform-Java-blue.svg)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Build status](https://circleci.com/gh/opendatakit/briefcase.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/opendatakit/briefcase)
 [![Slack status](http://slack.opendatakit.org/badge.svg)](http://slack.opendatakit.org)
 
 ODK Briefcase is a desktop application that can locally store survey results gathered with [ODK Collect](https://opendatakit.org/use/collect). It can also be used to make local copies and CSV exports of data from [ODK Aggregate](https://opendatakit.org/use/aggregate/) (or compatible servers) and push data to those servers.   
@@ -38,4 +39,6 @@ Any and all contributions to the project are welcome. ODK Briefcase is used acro
 If you're ready to contribute code, see [the contribution guide](CONTRIBUTING.md).
 
 ## Downloading builds
+Per-commit debug builds can be found on [CircleCI](https://circleci.com/gh/opendatakit/briefcase). Login with your GitHub account, click the build you'd like, then find the JAR in the Artifacts tab.
+
 Current and previous production builds can be found on the [ODK website](https://opendatakit.org/downloads/download-info/odk-briefcase/).
