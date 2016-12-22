@@ -20,8 +20,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.EventQueue;
 import java.awt.FocusTraversalPolicy;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -32,9 +30,7 @@ import java.util.ArrayList;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
@@ -60,11 +56,10 @@ public class MainBriefcaseWindow implements WindowListener {
   private static final String BRIEFCASE_VERSION = "ODK Briefcase - " + BriefcasePreferences.VERSION;
 
   private JFrame frame;
-  private JTextField txtBriefcaseDir;
-  private JButton btnChoose;
   private PullTransferPanel gatherPanel;
   private PushTransferPanel uploadPanel;
   private ExportPanel exportPanel;
+  private SettingsPanel settingsPanel;
   private final TerminationFuture exportTerminationFuture = new TerminationFuture();
   private final TerminationFuture transferTerminationFuture = new TerminationFuture();
 
@@ -185,22 +180,12 @@ public class MainBriefcaseWindow implements WindowListener {
     }
   }
 
-  class FolderActionListener implements ActionListener {
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      // briefcase...
-      establishBriefcaseStorageLocation(true);
-    }
-
-  }
-
   void setFullUIEnabled(boolean state) {
     String path = BriefcasePreferences.getBriefcaseDirectoryIfSet();
     if ( path != null ) {
-      txtBriefcaseDir.setText(path + File.separator + FileSystemUtils.BRIEFCASE_DIR);
+      settingsPanel.getTxtBriefcaseDir().setText(path + File.separator + FileSystemUtils.BRIEFCASE_DIR);
     } else {
-      txtBriefcaseDir.setText("");
+      settingsPanel.getTxtBriefcaseDir().setText("");
     }
     if ( state ) {
       exportPanel.updateComboBox();
@@ -255,16 +240,6 @@ public class MainBriefcaseWindow implements WindowListener {
       }
     });
 
-    JLabel lblBriefcaseDirectory = new JLabel(MessageStrings.BRIEFCASE_STORAGE_LOCATION);
-
-    txtBriefcaseDir = new JTextField();
-    txtBriefcaseDir.setFocusable(false);
-    txtBriefcaseDir.setEditable(false);
-    txtBriefcaseDir.setColumns(10);
-
-    btnChoose = new JButton("Change...");
-    btnChoose.addActionListener(new FolderActionListener());
-
     tabbedPane = new JTabbedPane(JTabbedPane.TOP);
     GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
     groupLayout.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
@@ -275,25 +250,12 @@ public class MainBriefcaseWindow implements WindowListener {
                 groupLayout
                     .createParallelGroup(Alignment.LEADING)
                     .addComponent(tabbedPane, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 628,
-                        Short.MAX_VALUE)
-                    .addGroup(
-                        groupLayout
-                            .createSequentialGroup()
-                            .addComponent(lblBriefcaseDirectory)
-                            .addGap(18)
-                            .addComponent(txtBriefcaseDir, GroupLayout.DEFAULT_SIZE, 362,
-                                Short.MAX_VALUE).addGap(18).addComponent(btnChoose)))
+                        Short.MAX_VALUE))
             .addContainerGap()));
     groupLayout.setVerticalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
         groupLayout
             .createSequentialGroup()
             .addContainerGap()
-            .addGroup(
-                groupLayout
-                    .createParallelGroup(Alignment.BASELINE)
-                    .addComponent(txtBriefcaseDir, GroupLayout.PREFERRED_SIZE,
-                        GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnChoose).addComponent(lblBriefcaseDirectory)).addGap(33)
             .addComponent(tabbedPane, GroupLayout.DEFAULT_SIZE, 446, Short.MAX_VALUE)
             .addContainerGap()));
 
@@ -310,6 +272,9 @@ public class MainBriefcaseWindow implements WindowListener {
     frame.getContentPane().setLayout(groupLayout);
     ExportPanel.TAB_POSITION = 2;
 
+    settingsPanel = new SettingsPanel(this);
+    tabbedPane.addTab(SettingsPanel.TAB_NAME, null, settingsPanel, null);
+
     frame.addWindowListener(this);
     setFullUIEnabled(false);
 
@@ -321,8 +286,6 @@ public class MainBriefcaseWindow implements WindowListener {
         for (;;) {
           int nextPanel = PullTransferPanel.TAB_POSITION;
           componentOrdering.clear();
-          componentOrdering.add(txtBriefcaseDir);
-          componentOrdering.add(btnChoose);
           componentOrdering.add(tabbedPane);
           int idx = tabbedPane.getSelectedIndex();
           if ( idx == PullTransferPanel.TAB_POSITION ) {
@@ -335,7 +298,6 @@ public class MainBriefcaseWindow implements WindowListener {
             componentOrdering.addAll(exportPanel.getTraversalOrdering());
             nextPanel = PullTransferPanel.TAB_POSITION;
           }
-          componentOrdering.add(btnChoose);
           boolean found = false;
           for ( int i = 0 ; i < componentOrdering.size()-1 ; ++i ) {
             if ( found || arg1 == componentOrdering.get(i) ) {
@@ -362,8 +324,6 @@ public class MainBriefcaseWindow implements WindowListener {
         for (;;) {
           int nextPanel = PullTransferPanel.TAB_POSITION;
           componentOrdering.clear();
-          componentOrdering.add(txtBriefcaseDir);
-          componentOrdering.add(btnChoose);
           componentOrdering.add(tabbedPane);
           int idx = tabbedPane.getSelectedIndex();
           if ( idx == PullTransferPanel.TAB_POSITION ) {
@@ -376,7 +336,6 @@ public class MainBriefcaseWindow implements WindowListener {
             componentOrdering.addAll(exportPanel.getTraversalOrdering());
             nextPanel = PushTransferPanel.TAB_POSITION;
           }
-          componentOrdering.add(btnChoose);
           boolean found = false;
           for ( int i = componentOrdering.size()-1 ; i > 0 ; --i ) {
             if ( found || arg1 == componentOrdering.get(i) ) {
@@ -399,12 +358,12 @@ public class MainBriefcaseWindow implements WindowListener {
 
       @Override
       public Component getDefaultComponent(Container arg0) {
-        return btnChoose;
+        return tabbedPane;
       }
 
       @Override
       public Component getFirstComponent(Container arg0) {
-        return btnChoose;
+        return tabbedPane;
       }
 
       @Override
