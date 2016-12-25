@@ -39,6 +39,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.EndPointType;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
@@ -69,6 +70,8 @@ public class PushTransferPanel extends JPanel {
   public static int TAB_POSITION = -1;
 
   private static final String UPLOADING_DOT_ETC = "Uploading..........";
+  private static final BriefcasePreferences PREFERENCES =
+      BriefcasePreferences.forClass(PushTransferPanel.class);
 
   private JComboBox<String> listDestinationDataSink;
   private JButton btnDestinationAction;
@@ -95,11 +98,7 @@ public class PushTransferPanel extends JPanel {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      @SuppressWarnings("unchecked")
-      JComboBox<String> cb = (JComboBox<String>) e.getSource();
-      String strSelection = (String) cb.getSelectedItem();
-      EndPointType selection = (strSelection != null) ? EndPointType.fromString(strSelection)
-          : null;
+      EndPointType selection = getSelectedEndPointType();
 
       if (selection != null) {
         if (EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
@@ -124,12 +123,10 @@ public class PushTransferPanel extends JPanel {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      String strSelection = (String) listDestinationDataSink.getSelectedItem();
-      EndPointType selection = (strSelection != null) ? EndPointType.fromString(strSelection)
-          : null;
-
+      EndPointType selection = getSelectedEndPointType();
       if (EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
         // need to show (modal) connect dialog...
+        destinationServerInfo = initServerInfoWithPreferences();
         ServerConnectionDialog d = new ServerConnectionDialog(
             (Window) PushTransferPanel.this.getTopLevelAncestor(), destinationServerInfo, true);
         d.setVisible(true);
@@ -138,6 +135,8 @@ public class PushTransferPanel extends JPanel {
           if (info.isOpenRosaServer()) {
             destinationServerInfo = d.getServerInfo();
             txtDestinationName.setText(destinationServerInfo.getUrl());
+            PREFERENCES.put(BriefcasePreferences.USERNAME, destinationServerInfo.getUsername());
+            PREFERENCES.put(BriefcasePreferences.AGGREGATE_1_0_URL, destinationServerInfo.getUrl());
           } else {
             ODKOptionPane.showErrorDialog(PushTransferPanel.this,
                 "Server is not an ODK Aggregate 1.0 server", "Invalid Server URL");
@@ -158,11 +157,7 @@ public class PushTransferPanel extends JPanel {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-
-      String strSelection;
-      strSelection = (String) listDestinationDataSink.getSelectedItem();
-      EndPointType destinationSelection = (strSelection != null) ? EndPointType
-          .fromString(strSelection) : null;
+      EndPointType destinationSelection = getSelectedEndPointType();
 
       List<FormStatus> formsToTransfer = formTransferTable.getSelectedForms();
       // clear the transfer history...
@@ -393,6 +388,17 @@ public class PushTransferPanel extends JPanel {
     }
     // remember state...
     transferStateActive = active;
+  }
+  
+  private EndPointType getSelectedEndPointType() {
+    String strSelection = (String) listDestinationDataSink.getSelectedItem();
+    return EndPointType.fromString(strSelection);
+  }
+  
+  private ServerConnectionInfo initServerInfoWithPreferences() {
+    String url = PREFERENCES.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
+    String username = PREFERENCES.get(BriefcasePreferences.USERNAME, "");
+    return new ServerConnectionInfo(url, username, new char[0]);
   }
 
   @EventSubscriber(eventClass = TransferFailedEvent.class)
