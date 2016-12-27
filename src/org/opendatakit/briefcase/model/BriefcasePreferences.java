@@ -62,14 +62,43 @@ public class BriefcasePreferences {
     return new BriefcasePreferences(node, PreferenceScope.CLASS_NAME);
   }
   
+  /**
+   * Returns the value associated with the specified key in this preference
+   * node. Returns the specified default if there is no value associated with
+   * the key, or the backing store is inaccessible.
+   * 
+   * @param key
+   *          key whose associated value is to be returned.
+   * @param defaultValue
+   *          the value to be returned in the event that this preference node
+   *          has no value associated with key.
+   * @return the value associated with key, or defaultValue if no value is associated
+   *         with key, or the backing store is inaccessible.
+   */
   public String get(String key, String defaultValue) {
     return preferences.get(key, defaultValue);
   }
   
+  /**
+   * Associates the specified value with the specified key in this preference
+   * node.
+   * 
+   * @param key
+   *          key with which the specified value is to be associated.
+   * @param value
+   *          value to be associated with the specified key.
+   */
   public void put(String key, String value) {
     preferences.put(key, value);
   }
   
+  /**
+   * Removes the value associated with the specified key in this preference
+   * node, if any.
+   * 
+   * @param key
+   *          key whose mapping is to be removed from the preference node.
+   */
   public void remove(String key) {
     preferences.remove(key);
   }
