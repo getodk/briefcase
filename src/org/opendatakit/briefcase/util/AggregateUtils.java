@@ -208,6 +208,9 @@ public class AggregateUtils {
       e.printStackTrace();
       String msg = description.getFetchDocFailed() + "Invalid url: " + urlString + ".\nFailed with error: "
           + e.getMessage();
+      if(!urlString.toLowerCase().startsWith("http://") && !urlString.toLowerCase().startsWith("https://")){
+        msg += "\nDid you forget to prefix the address with 'http://' or 'https://' ?";
+      }
       log.severe(msg);
       throw new XmlDocumentFetchException(msg);
     } catch (URISyntaxException e) {
@@ -501,6 +504,9 @@ public class AggregateUtils {
       e.printStackTrace();
       String msg = "Invalid url: " + urlString + " for " + actionAddr + ".\nFailed with error: "
           + e.getMessage();
+      if(!urlString.toLowerCase().startsWith("http://") && !urlString.toLowerCase().startsWith("https://")){
+        msg += "\nDid you forget to prefix the address with 'http://' or 'https://' ?";
+      }
       log.severe(msg);
       throw new TransmissionException(msg);
     } catch (URISyntaxException e) {
