@@ -44,6 +44,7 @@ import javax.swing.SwingUtilities;
 
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.EndPointType;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
@@ -74,6 +75,8 @@ public class PullTransferPanel extends JPanel {
   public static int TAB_POSITION = -1;
 
   private static final String DOWNLOADING_DOT_ETC = "Downloading..........";
+  private static final BriefcasePreferences PREFERENCES =
+      BriefcasePreferences.forClass(PullTransferPanel.class);
 
   private JComboBox<String> listOriginDataSource;
   private JButton btnOriginAction;
@@ -100,12 +103,7 @@ public class PullTransferPanel extends JPanel {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      @SuppressWarnings("unchecked")
-      JComboBox<String> cb = (JComboBox<String>) e.getSource();
-      String strSelection = (String) cb.getSelectedItem();
-      EndPointType selection = (strSelection != null) ? EndPointType.fromString(strSelection)
-          : null;
-
+      EndPointType selection = getSelectedEndPointType();
       if (selection != null) {
         if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection)
             || EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
@@ -144,10 +142,8 @@ public class PullTransferPanel extends JPanel {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      String strSelection = (String) listOriginDataSource.getSelectedItem();
-      EndPointType selection = (strSelection != null) ? EndPointType.fromString(strSelection)
-          : null;
-
+      EndPointType selection = getSelectedEndPointType();
+      originServerInfo = initServerInfoWithPreferences(selection);
       if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection)) {
         // need to show (modal) connect dialog...
         LegacyServerConnectionDialog d = new LegacyServerConnectionDialog(
@@ -156,6 +152,8 @@ public class PullTransferPanel extends JPanel {
         if (d.isSuccessful()) {
           originServerInfo = d.getServerInfo();
           txtOriginName.setText(originServerInfo.getUrl());
+          PREFERENCES.put(BriefcasePreferences.AGGREGATE_0_9_X_URL, originServerInfo.getUrl());
+          PREFERENCES.put(BriefcasePreferences.TOKEN, originServerInfo.getToken());
           PullTransferPanel.this.updateFormStatuses();
         }
       } else if (EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
@@ -166,6 +164,8 @@ public class PullTransferPanel extends JPanel {
         if (d.isSuccessful()) {
           originServerInfo = d.getServerInfo();
           txtOriginName.setText(originServerInfo.getUrl());
+          PREFERENCES.put(BriefcasePreferences.USERNAME, originServerInfo.getUsername());
+          PREFERENCES.put(BriefcasePreferences.AGGREGATE_1_0_URL, originServerInfo.getUrl());
           PullTransferPanel.this.updateFormStatuses();
         }
       } else if (EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.equals(selection)) {
@@ -206,12 +206,7 @@ public class PullTransferPanel extends JPanel {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-
-      String strSelection;
-      strSelection = (String) listOriginDataSource.getSelectedItem();
-      EndPointType originSelection = (strSelection != null) ? EndPointType.fromString(strSelection)
-          : null;
-
+      EndPointType originSelection = getSelectedEndPointType();
       List<FormStatus> formsToTransfer = formTransferTable.getSelectedForms();
       // clear the transfer history...
       for (FormStatus fs : formsToTransfer) {
@@ -461,9 +456,7 @@ public class PullTransferPanel extends JPanel {
   }
 
   private void setTxtOriginEnabled(boolean active) {
-    String strSelection = (String) listOriginDataSource.getSelectedItem();
-    EndPointType selection = (strSelection != null) ? EndPointType.fromString(strSelection)
-        : null;
+    EndPointType selection = getSelectedEndPointType();
 
     if (selection != null) {
       if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection)
@@ -510,6 +503,30 @@ public class PullTransferPanel extends JPanel {
     }
     // remember state...
     transferStateActive = active;
+  }
+  
+  private EndPointType getSelectedEndPointType() {
+    String strSelection = (String) listOriginDataSource.getSelectedItem();
+    return EndPointType.fromString(strSelection);
+  }
+  
+  private ServerConnectionInfo initServerInfoWithPreferences(EndPointType type) {
+    ServerConnectionInfo connectionInfo = null;
+    switch (type) {
+      case AGGREGATE_0_9_X_CHOICE:
+        String legacyUrl = PREFERENCES.get(BriefcasePreferences.AGGREGATE_0_9_X_URL, "");
+        String token = PREFERENCES.get(BriefcasePreferences.TOKEN, "");
+        connectionInfo = new ServerConnectionInfo(legacyUrl, token);
+        break;
+      case AGGREGATE_1_0_CHOICE:
+        String url = PREFERENCES.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
+        String username = PREFERENCES.get(BriefcasePreferences.USERNAME, "");
+        connectionInfo = new ServerConnectionInfo(url, username, new char[0]);
+        break;
+      default:
+        break; // There are no preferences needed for the other types.
+    }
+    return connectionInfo;
   }
 
   @EventSubscriber(eventClass = TransferFailedEvent.class)
