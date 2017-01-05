@@ -47,14 +47,6 @@ public class BriefcasePreferences {
   }
   
   /**
-   * Factory that returns the application scoped <tt>BriefcasePreferences</tt> object.
-   * The method always return the same instance.
-   */
-  public static BriefcasePreferences applicationScoped() {
-    return Preference.APPLICATION_SCOPED;
-  }
-  
-  /**
    * Factory that creates a class scoped <tt>BriefcasePreferences</tt> object. 
    * @param node the managing class
    */
@@ -140,11 +132,11 @@ public class BriefcasePreferences {
   }
   
   /**
-   * Static member class, that holds the instance to the application scoped
-   * <tt>BriefcasePreferences</tt> object. Initializing the instance in this class, enables us to lazy-load the instance when
-   * {@link org.opendatakit.briefcase.model.BriefcasePreferences#applicationScoped
-   * BriefcasePreferences.applicationScoped()} is executed. The initialization is therefore not
-   * bound to the loading of the <tt>BriefcasePreferences</tt> class.
+   * Through this static nested class, we implement the Initialization-on-demand
+   * holder idiom. It enables a safe, highly concurrent lazy initialization for
+   * singletons. For more information on this idiom, please refer to <a href=
+   * "https://en.wikipedia.org/wiki/Initialization-on-demand_holder_idiom">
+   * Initialization-on-demand holder idiom</a>.
    */
   private static class Preference {
     private static final BriefcasePreferences APPLICATION_SCOPED =
