@@ -16,6 +16,7 @@ dependencies {
     compile group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.5.2'
     compile group: 'net.sf.kxml', name: 'kxml2', version: '2.3.0'
     compile files('lib/javarosa-libraries-2016-04-21.jar')
+    compile files('lib/smallsql-0.21.jar')
 }
 
 mainClassName = 'org.opendatakit.briefcase.ui.MainBriefcaseWindow'
