@@ -117,8 +117,8 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
 
   @EventSubscriber(eventClass = FormStatusEvent.class)
   public void onEvent(FormStatusEvent event) {
-    // Since there can be multiple downloads running and therefore publishing events
-    // at the same time, we have to check if the event is meant for this dialog instance.
+    // Since there can be multiple FormStatusEvent's published concurrently,
+    // we have to check if the event is meant for this dialog instance.
     if (event.getStatus().getFormDefinition().equals(form)) {
       editorArea.setText(event.getStatus().getStatusHistory());
     }
