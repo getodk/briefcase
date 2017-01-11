@@ -33,12 +33,20 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.IFormDefinition;
+
 public class ScrollingStatusListDialog extends JDialog implements ActionListener {
 
   /**
    * 
    */
   private static final long serialVersionUID = 3565952263140071560L;
+
+  private final JEditorPane editorArea;
+  private final IFormDefinition form;
 
   /**
    * Set up and show the dialog. The first Component argument determines which
@@ -48,30 +56,30 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
    * otherwise, it should be the component on top of which the dialog should
    * appear.
    */
-  public static void showDialog(Frame frame, String formName, String statusHtml) {
+  public static void showDialog(Frame frame, IFormDefinition form, String statusHtml) {
     ScrollingStatusListDialog dialog = new ScrollingStatusListDialog(frame, "Detailed Status:",
-        "Detailed Transfer Status for " + formName, statusHtml);
+        "Detailed Transfer Status for ", form, statusHtml);
     dialog.setVisible(true);
   }
   
-  public static void showExportDialog(Frame frame, String formName, String dirName, String statusHtml) {
-    ScrollingStatusListDialog dialog = new ScrollingStatusListDialog(frame, "Export Directory: " + dirName,
-        "Export Details for " + formName, statusHtml);
+  public static void showExportDialog(Frame frame, IFormDefinition form, String dirName, String statusHtml) {
+    ScrollingStatusListDialog dialog = new ScrollingStatusListDialog(frame,"Export Directory: " + dirName,
+        "Export Details for ", form, statusHtml);
     dialog.setVisible(true);
   }
 
-  private ScrollingStatusListDialog(Frame frame, String labelText, String title, String statusHtml) {
-    super(frame, title, true);
-
+  private ScrollingStatusListDialog(Frame frame, String labelText, String title, IFormDefinition form, String statusHtml) {
+    super(frame, title + form.getFormName(), true);
+    this.form = form;
+    AnnotationProcessor.process(this);
     // Create and initialize the buttons.
     JButton cancelButton = new JButton("Close");
     cancelButton.addActionListener(this);
-    //
     getRootPane().setDefaultButton(cancelButton);
 
-    JEditorPane editorArea = new JEditorPane("text/plain", statusHtml);
+    editorArea = new JEditorPane("text/plain", statusHtml);
     editorArea.setEditable(false);
-  //Put the editor pane in a scroll pane.
+    //Put the editor pane in a scroll pane.
     JScrollPane editorScrollPane = new JScrollPane(editorArea);
     editorScrollPane.setVerticalScrollBarPolicy(
                     JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -105,6 +113,15 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
 
     // Initialize values.
     pack();
+  }
+
+  @EventSubscriber(eventClass = FormStatusEvent.class)
+  public void onEvent(FormStatusEvent event) {
+    // Since there can be multiple downloads running and therefore publishing events
+    // at the same time, we have to check if the event is meant for this dialog instance.
+    if (event.getStatus().getFormDefinition().equals(form)) {
+      editorArea.setText(event.getStatus().getStatusHistory());
+    }
   }
 
   // Handle clicks on the Set and Cancel buttons.
