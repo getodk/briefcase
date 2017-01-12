@@ -32,9 +32,17 @@ import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.JTextComponent;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.model.ExportFailedEvent;
+import org.opendatakit.briefcase.model.ExportProgressEvent;
+import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.IFormDefinition;
 
@@ -44,6 +52,7 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
    * 
    */
   private static final long serialVersionUID = 3565952263140071560L;
+  private static final Log log = LogFactory.getLog(ScrollingStatusListDialog.class.getName());
 
   private final JEditorPane editorArea;
   private final IFormDefinition form;
@@ -121,6 +130,30 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
     // we have to check if the event is meant for this dialog instance.
     if (event.getStatus().getFormDefinition().equals(form)) {
       editorArea.setText(event.getStatus().getStatusHistory());
+    }
+  }
+  
+  @EventSubscriber(eventClass = ExportProgressEvent.class)
+  public void onEvent(ExportProgressEvent event) {
+    appendToDocument(editorArea, event.getText());
+  }
+  
+  @EventSubscriber(eventClass = ExportFailedEvent.class)
+  public void onEvent(ExportFailedEvent event) {
+    appendToDocument(editorArea,"FAILED!");
+  }
+
+  @EventSubscriber(eventClass = ExportSucceededEvent.class)
+  public void onEvent(ExportSucceededEvent event) {
+    appendToDocument(editorArea,"SUCCEEDED!");
+  }
+
+  private void appendToDocument(JTextComponent component, String msg) {
+    Document doc = component.getDocument();
+    try {
+      doc.insertString(doc.getLength(), "\n" + msg, null);
+    } catch(BadLocationException e) {
+      log.error("Insertion failed: " + e.getMessage());
     }
   }
 
