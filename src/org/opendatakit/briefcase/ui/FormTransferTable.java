@@ -122,9 +122,8 @@ public class FormTransferTable extends JTable {
     public void actionPerformed(ActionEvent e) {
       try {
         final String history = status.getStatusHistory();
-        final String formName = status.getFormName();
         setEnabled(false);
-        ScrollingStatusListDialog.showDialog(JOptionPane.getFrameForComponent(this), formName, history);
+        ScrollingStatusListDialog.showDialog(JOptionPane.getFrameForComponent(this), status.getFormDefinition(), history);
       } finally {
         setEnabled(true);
       }

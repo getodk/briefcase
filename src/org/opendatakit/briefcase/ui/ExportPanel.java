@@ -45,6 +45,7 @@ import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.IFormDefinition;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
@@ -154,7 +155,7 @@ public class ExportPanel extends JPanel {
      */
     private static final long serialVersionUID = -5106358166776020642L;
 
-    private String formName;
+    private IFormDefinition form;
     private String dirName;
     @SuppressWarnings("unused")
     private ExportType type;
@@ -165,8 +166,7 @@ public class ExportPanel extends JPanel {
     }
 
     public void setContext() {
-      formName =
-          ((BriefcaseFormDefinition) comboBoxForm.getSelectedItem()).getFormName();
+      form = ((IFormDefinition) comboBoxForm.getSelectedItem());
       type = (ExportType) comboBoxExportType.getSelectedItem();
       File outputDir = new File(txtExportDirectory.getText());
       dirName = outputDir.getAbsolutePath();
@@ -183,7 +183,7 @@ public class ExportPanel extends JPanel {
       try {
         setEnabled(false);
         ScrollingStatusListDialog.showExportDialog(JOptionPane.getFrameForComponent(this),
-            formName, dirName, history);
+            form, dirName, history);
       } finally {
         setEnabled(true);
       }

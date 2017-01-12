@@ -264,7 +264,7 @@ public class MainFormUploaderWindow {
       public void actionPerformed(ActionEvent e) {
         if ( fs != null ) {
           ScrollingStatusListDialog.showDialog(
-            MainFormUploaderWindow.this.frame, fs.getFormName(), fs.getStatusHistory());
+            MainFormUploaderWindow.this.frame, fs.getFormDefinition(), fs.getStatusHistory());
         }
       }});
 
