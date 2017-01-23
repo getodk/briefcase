@@ -24,7 +24,7 @@ mainClassName = 'org.opendatakit.briefcase.ui.MainBriefcaseWindow'
 jar {
 
     baseName = 'ODK Briefcase'
-    version = 'v1.4.9'
+    version = 'v1.4.10'
     archiveName = baseName + ' ' + version + '.jar'
 
     from {
