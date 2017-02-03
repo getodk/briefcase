@@ -25,7 +25,7 @@ jar {
 
     baseName = 'ODK Briefcase'
     // Version string also in BriefcasePreferences.java
-    version = 'v1.4.10'
+    version = getVersionName()
     archiveName = baseName + ' ' + version + '.jar'
 
     from {
@@ -41,4 +41,27 @@ jar {
     // Some of the dependencies are signed jars. When combined into a big jar, the corresponding signature files
     // don't match with big jar, so the runtime refuses to run the jar. The fix is to exclude the signature files.
     exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+}
+
+// Use the result of git describe --tags --dirty as the version name
+// From http://stackoverflow.com/questions/17097263#24121734
+def getVersionName = { ->
+    try {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            switch(ant.properties.os){
+                case 'windows':
+                    commandLine 'cmd', '/c', 'git', 'describe', '--tags', '--dirty'
+                    break
+                case 'unix':
+                    commandLine 'git', 'describe', '--tags', '--dirty'
+                    break
+            }
+            standardOutput = stdout
+        }
+        return stdout.toString().trim()
+    }
+    catch (ignored) {
+        return null;
+    }
 }
