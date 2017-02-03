@@ -19,29 +19,8 @@ dependencies {
     compile files('lib/smallsql-0.21.jar')
 }
 
-mainClassName = 'org.opendatakit.briefcase.ui.MainBriefcaseWindow'
-
-jar {
-
-    baseName = 'ODK Briefcase'
-    // Version string also in BriefcasePreferences.java
-    version = getVersionName()
-    archiveName = baseName + ' ' + version + '.jar'
-
-    from {
-        configurations.compile.collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
-    }
-
-    manifest {
-        attributes 'Main-Class': mainClassName
-    }
-
-    // Some of the dependencies are signed jars. When combined into a big jar, the corresponding signature files
-    // don't match with big jar, so the runtime refuses to run the jar. The fix is to exclude the signature files.
-    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
-}
+ant.condition(property: "os", value: "windows") { os(family: "windows") }
+ant.condition(property: "os", value: "unix" ) { os(family: "unix") }
 
 // Use the result of git describe --tags --dirty as the version name
 // From http://stackoverflow.com/questions/17097263#24121734
@@ -64,4 +43,28 @@ def getVersionName = { ->
     catch (ignored) {
         return null;
     }
+}
+
+mainClassName = 'org.opendatakit.briefcase.ui.MainBriefcaseWindow'
+
+jar {
+
+    baseName = 'ODK Briefcase'
+    // Version string also in BriefcasePreferences.java
+    version = getVersionName()
+    archiveName = baseName + ' ' + version + '.jar'
+
+    from {
+        configurations.compile.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+
+    // Some of the dependencies are signed jars. When combined into a big jar, the corresponding signature files
+    // don't match with big jar, so the runtime refuses to run the jar. The fix is to exclude the signature files.
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
 }
