@@ -1,4 +1,7 @@
-apply plugin: 'application'
+plugins {
+    id 'application'
+    id 'de.fuerstenau.buildconfig' version '1.1.7'
+}
 
 repositories {
     mavenCentral()
@@ -45,13 +48,19 @@ def getVersionName = { ->
     }
 }
 
+buildConfig {
+    appName = 'ODK Briefcase'
+    version = getVersionName()
+    clsName = 'BuildConfig'
+    packageName = 'org.opendatakit.briefcase.buildconfig'
+}
+
 mainClassName = 'org.opendatakit.briefcase.ui.MainBriefcaseWindow'
 
 jar {
 
-    baseName = 'ODK Briefcase'
-    // Version string also in BriefcasePreferences.java
-    version = getVersionName()
+    baseName = buildConfig.appName
+    version = buildConfig.version
     archiveName = baseName + ' ' + version + '.jar'
 
     from {

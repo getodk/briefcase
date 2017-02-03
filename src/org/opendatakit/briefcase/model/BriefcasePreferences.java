@@ -15,6 +15,7 @@
  */
 
 package org.opendatakit.briefcase.model;
+import org.opendatakit.briefcase.buildconfig.BuildConfig;
 
 import java.security.Security;
 import java.util.prefs.Preferences;
@@ -27,7 +28,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
  */
 public class BriefcasePreferences {
   
-  public static final String VERSION = "v1.4.10";
+  public static final String VERSION = BuildConfig.VERSION;
   public static final String USERNAME = "username";
   public static final String TOKEN = "token";
   public static final String AGGREGATE_1_0_URL = "url_1_0";
