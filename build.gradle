@@ -1,4 +1,7 @@
-apply plugin: 'application'
+plugins {
+    id 'application'
+    id 'de.fuerstenau.buildconfig' version '1.1.7'
+}
 
 repositories {
     mavenCentral()
@@ -19,13 +22,45 @@ dependencies {
     compile files('lib/smallsql-0.21.jar')
 }
 
+ant.condition(property: "os", value: "windows") { os(family: "windows") }
+ant.condition(property: "os", value: "unix" ) { os(family: "unix") }
+
+// Use the result of git describe --tags --dirty as the version name
+// From http://stackoverflow.com/questions/17097263#24121734
+def getVersionName = { ->
+    try {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            switch(ant.properties.os){
+                case 'windows':
+                    commandLine 'cmd', '/c', 'git', 'describe', '--tags', '--dirty'
+                    break
+                case 'unix':
+                    commandLine 'git', 'describe', '--tags', '--dirty'
+                    break
+            }
+            standardOutput = stdout
+        }
+        return stdout.toString().trim()
+    }
+    catch (ignored) {
+        return null;
+    }
+}
+
+buildConfig {
+    appName = 'ODK Briefcase'
+    version = getVersionName()
+    clsName = 'BuildConfig'
+    packageName = 'org.opendatakit.briefcase.buildconfig'
+}
+
 mainClassName = 'org.opendatakit.briefcase.ui.MainBriefcaseWindow'
 
 jar {
 
-    baseName = 'ODK Briefcase'
-    // Version string also in BriefcasePreferences.java
-    version = 'v1.4.10'
+    baseName = buildConfig.appName
+    version = buildConfig.version
     archiveName = baseName + ' ' + version + '.jar'
 
     from {
