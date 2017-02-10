@@ -1,6 +1,6 @@
 compile:
   override:
-    - gradle jar
+    - ./gradlew jar
 
 test:
   post:
