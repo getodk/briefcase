@@ -284,7 +284,7 @@ public class MainBriefcaseWindow implements WindowListener {
       public Component getComponentAfter(Container arg0, Component arg1) {
         ArrayList<Component> componentOrdering = new ArrayList<Component>();
         for (;;) {
-          int nextPanel = PullTransferPanel.TAB_POSITION;
+          int nextPanel = PullTransferPanel.TAB_POSITION; 
           componentOrdering.clear();
           componentOrdering.add(tabbedPane);
           int idx = tabbedPane.getSelectedIndex();
@@ -306,7 +306,7 @@ public class MainBriefcaseWindow implements WindowListener {
               if ( comp == tabbedPane ) {
                 return comp;
               }
-              if ( comp.isVisible() && comp.isEnabled() && (!(comp instanceof JTextField) || ((JTextField) comp).isEditable()) ) {
+              if ( comp.isVisible()  && (!(comp instanceof JTextField) || ((JTextField) comp).isEditable()) ) {
                 return comp;
               }
             }
@@ -314,6 +314,7 @@ public class MainBriefcaseWindow implements WindowListener {
           if ( !found ) {
             return componentOrdering.get(0);
           }
+
           tabbedPane.setSelectedIndex(nextPanel);
         }
       }
@@ -344,7 +345,7 @@ public class MainBriefcaseWindow implements WindowListener {
               if ( comp == tabbedPane ) {
                 return comp;
               }
-              if ( comp.isVisible() && comp.isEnabled() && (!(comp instanceof JTextField) || ((JTextField) comp).isEditable()) ) {
+              if ( comp.isVisible()  && (!(comp instanceof JTextField) || ((JTextField) comp).isEditable()) ) {
                 return comp;
               }
             }
