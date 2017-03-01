@@ -33,8 +33,11 @@ The main class is `org.opendatakit.briefcase.ui.MainBriefcaseWindow`. This repos
  
 ## Running the project
  
-To run the project, use the `run` Gradle task. To package a runnable jar, use the `jar` Gradle task.
-To try it, you can use the demo server. In the window that opens when running, choose connect then fill in the URL [http://opendatakit.appspot.com](http://opendatakit.appspot.com) leave username and password blank.
+To run the project, go to the `View` menu, then `Tool Windows > Gradle`. `run` will be in `odk-briefcase > Tasks > application > run`. Double-click `run` to run the application. This Gradle task will now be the default action in your `Run` menu.
+
+To package a runnable jar, use the `jar` Gradle task.
+
+To try the app, you can use the demo server. In the window that opens when running, choose Connect, then fill in the URL [http://opendatakit.appspot.com](http://opendatakit.appspot.com) leave username and password blank.
 
 ## Contributing code
 Any and all contributions to the project are welcome. ODK Briefcase is used across the world primarily by organizations with a social purpose so you can have real impact!
