@@ -33,7 +33,9 @@ The main class is `org.opendatakit.briefcase.ui.MainBriefcaseWindow`. This repos
  
 ## Running the project
  
-To run the project, go to the `View` menu, then `Tool Windows > Gradle`. `run` will be in `odk-briefcase > Tasks > application > run`. Double-click `run` to run the application. This Gradle task will now be the default action in your `Run` menu.
+To run the project, go to the `View` menu, then `Tool Windows > Gradle`. `run` will be in `odk-briefcase > Tasks > application > run`. Double-click `run` to run the application. This Gradle task will now be the default action in your `Run` menu. 
+
+You must use the Gradle task to run the application because there is a generated class (`BuildConfig`) that IntelliJ may not properly import and recognize.
 
 To package a runnable jar, use the `jar` Gradle task.
 
