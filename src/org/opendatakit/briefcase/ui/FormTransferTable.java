@@ -54,9 +54,10 @@ public class FormTransferTable extends JTable {
 	 */
   private static final long serialVersionUID = 8511088963758308085L;
   
-  public class JTableButtonRenderer implements TableCellRenderer {     
+  public class JTableButtonRenderer implements TableCellRenderer {
     @Override public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       JButton button = (JButton)value;
+      button.setOpaque(true);
       if (isSelected) {
         button.setBackground(table.getSelectionBackground());
       } else {
