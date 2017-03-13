@@ -146,7 +146,6 @@ public class ExportToCsv implements ITransformFormAction {
 
 			public int compare(File f1, File f2) {
 				try {
-
 					if (submissionDateToFileMap.get(f1) == null) {
 						submission1 = new File(f1, "submission.xml");
 						submissionDate1String = XmlManipulationUtils.parseXml(submission1).getRootElement()
