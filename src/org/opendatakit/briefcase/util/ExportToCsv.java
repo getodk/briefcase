@@ -28,14 +28,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 import javax.crypto.Cipher;
@@ -136,46 +129,32 @@ public class ExportToCsv implements ITransformFormAction {
 
     File[] instances = instancesDir.listFiles();
 
-		// Sorts the instances by the submission date. If no submission date, we
-		// assume it to be latest.
-		Arrays.sort(instances, new Comparator<File>() {
-			HashMap<File, String> submissionDateToFileMap = new HashMap<File, String>();
-			File submission1, submission2;
-			String submissionDate1String, submissionDate2String;
-			Date submissionDate1, submissionDate2;
-
-			public int compare(File f1, File f2) {
-				try {
-
-					if (submissionDateToFileMap.get(f1) == null) {
-						submission1 = new File(f1, "submission.xml");
-						submissionDate1String = XmlManipulationUtils.parseXml(submission1).getRootElement()
-								.getAttributeValue(null, "submissionDate");
-						submissionDateToFileMap.put(f1, submissionDate1String);
-					} else {
-						submissionDate1String = submissionDateToFileMap.get(f1);
-					}
-					if (submissionDateToFileMap.get(f2) == null) {
-						submission2 = new File(f2, "submission.xml");
-						submissionDate2String = XmlManipulationUtils.parseXml(submission2).getRootElement()
-								.getAttributeValue(null, "submissionDate");
-					} else {
-						submissionDate2String = submissionDateToFileMap.get(f2);
-					}
-
-					submissionDate1 = StringUtils.isNotEmptyNotNull(submissionDate1String)
-							? WebUtils.parseDate(submissionDate1String) : new Date();
-					submissionDate2 = StringUtils.isNotEmptyNotNull(submissionDate2String)
-							? WebUtils.parseDate(submissionDate2String) : new Date();
-					return submissionDate1.compareTo(submissionDate2);
-				} catch (ParsingException e) {
-					e.printStackTrace();
-				} catch (FileSystemException e) {
-					e.printStackTrace();
-				}
-				return 0;
-			}
-		});
+    //Sorts the instances by the submission date. If no submission date, we assume it to be latest.
+    Arrays.sort(instances, new Comparator<File>() {
+      File submission1, submission2;
+      String submissionDate1String, submissionDate2String;
+      Date submissionDate1, submissionDate2;
+      public int compare(File f1, File f2) {
+        try {
+          submission1 = new File(f1, "submission.xml");
+          submission2 = new File(f2, "submission.xml");
+          submissionDate1String = XmlManipulationUtils.parseXml(submission1).
+                  getRootElement().getAttributeValue(null, "submissionDate");
+          submissionDate2String = XmlManipulationUtils.parseXml(submission2).
+                  getRootElement().getAttributeValue(null, "submissionDate");
+          submissionDate1 = StringUtils.isNotEmptyNotNull(submissionDate1String) ?
+                  WebUtils.parseDate(submissionDate1String) : new Date();
+          submissionDate2 = StringUtils.isNotEmptyNotNull(submissionDate2String) ?
+                  WebUtils.parseDate(submissionDate2String) : new Date();
+          return submissionDate1.compareTo(submissionDate2);
+        } catch (ParsingException e) {
+          e.printStackTrace();
+        } catch (FileSystemException e) {
+          e.printStackTrace();
+        }
+        return 0;
+      }
+    });
 
     for (File instanceDir : instances) {
       if ( terminationFuture.isCancelled() ) {
