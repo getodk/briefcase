@@ -5,6 +5,4 @@ out
 local.properties
 .idea
 .DS_Store
-build.classpath
-.project
-.settings
+build
