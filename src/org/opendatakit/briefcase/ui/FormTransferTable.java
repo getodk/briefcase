@@ -16,7 +16,7 @@
 
 package org.opendatakit.briefcase.ui;
 
-import java.awt.Component;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -56,14 +56,16 @@ public class FormTransferTable extends JTable {
   private static boolean transferStateActive;
 
   public class JTableButtonRenderer implements TableCellRenderer {     
+
     @Override public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       JButton button = (JButton)value;
+      button.setOpaque(true);
       if (isSelected) {
         button.setBackground(table.getSelectionBackground());
       } else {
-        button.setBackground(UIManager.getColor("Button.background"));
+        button.setBackground(table.getBackground());
       }
-      return button;   
+      return button;
     }
   }
   
