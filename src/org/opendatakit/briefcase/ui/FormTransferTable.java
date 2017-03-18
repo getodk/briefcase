@@ -53,7 +53,8 @@ public class FormTransferTable extends JTable {
 	 * 
 	 */
   private static final long serialVersionUID = 8511088963758308085L;
-  
+  private static boolean transferStateActive;
+
   public class JTableButtonRenderer implements TableCellRenderer {     
     @Override public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       JButton button = (JButton)value;
@@ -250,6 +251,11 @@ public class FormTransferTable extends JTable {
     }
 
     public boolean isCellEditable(int row, int col) {
+	  // While the table is in active transfer state, you cannot de-select
+	  // already selected forms
+	  if (formStatuses.get(row).isSelected() && transferStateActive) {
+		return false;
+	  }
       return col == 0; // only the checkbox...
     }
 
@@ -378,5 +384,13 @@ public class FormTransferTable extends JTable {
   public List<FormStatus> getSelectedForms() {
     FormTransferTableModel model = (FormTransferTableModel) this.dataModel;
     return model.getSelectedForms();
+  }
+
+  public void setActiveTransferState(boolean active) {
+	transferStateActive = active;
+  }
+  
+  public boolean getActiveTransferState() {
+	return transferStateActive;
   }
 }
