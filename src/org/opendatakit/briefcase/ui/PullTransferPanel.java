@@ -473,9 +473,9 @@ public class PullTransferPanel extends JPanel {
   }
 
   private void setActiveTransferState(boolean active) {
-	formTransferTable.setActiveTransferState(active);
     setTabEnabled(!active);
     setTxtOriginEnabled(!active);
+    formTransferTable.setActiveTransferState(active);
     if (active) {
       // don't allow normal actions when we are transferring...
       listOriginDataSource.setEnabled(false);
