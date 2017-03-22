@@ -140,28 +140,15 @@ public class ExportToCsv implements ITransformFormAction {
 		// assume it to be latest.
 		if (instances != null) {
 			Arrays.sort(instances, new Comparator<File>() {
-				HashMap<File, String> submissionDateToFileMap = new HashMap<File, String>();
-				
 				public int compare(File f1, File f2) {
 					try {
-						String submissionDate1String, submissionDate2String;
-						
-						if (submissionDateToFileMap.get(f1) == null) {
-							File submission1 = new File(f1, "submission.xml");
-							submissionDate1String = XmlManipulationUtils.parseXml(submission1).getRootElement()
-									.getAttributeValue(null, "submissionDate");
-							submissionDateToFileMap.put(f1, submissionDate1String);
-						} else {
-							submissionDate1String = submissionDateToFileMap.get(f1);
-						}
-						
-						if (submissionDateToFileMap.get(f2) == null) {
-							File submission2 = new File(f2, "submission.xml");
-							submissionDate2String = XmlManipulationUtils.parseXml(submission2).getRootElement()
-									.getAttributeValue(null, "submissionDate");
-						} else {
-							submissionDate2String = submissionDateToFileMap.get(f2);
-						}
+						File submission1 = new File(f1, "submission.xml");
+						String submissionDate1String = XmlManipulationUtils.parseXml(submission1).getRootElement()
+								.getAttributeValue(null, "submissionDate");
+
+						File submission2 = new File(f2, "submission.xml");
+						String submissionDate2String = XmlManipulationUtils.parseXml(submission2).getRootElement()
+								.getAttributeValue(null, "submissionDate");
 
 						Date submissionDate1 = StringUtils.isNotEmptyNotNull(submissionDate1String)
 								? WebUtils.parseDate(submissionDate1String) : new Date();
