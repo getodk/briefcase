@@ -138,43 +138,45 @@ public class ExportToCsv implements ITransformFormAction {
 
 		// Sorts the instances by the submission date. If no submission date, we
 		// assume it to be latest.
-		Arrays.sort(instances, new Comparator<File>() {
-			HashMap<File, String> submissionDateToFileMap = new HashMap<File, String>();
-			File submission1, submission2;
-			String submissionDate1String, submissionDate2String;
-			Date submissionDate1, submissionDate2;
+		if (instances != null) {
+			Arrays.sort(instances, new Comparator<File>() {
+				HashMap<File, String> submissionDateToFileMap = new HashMap<File, String>();
+				
+				public int compare(File f1, File f2) {
+					try {
+						String submissionDate1String, submissionDate2String;
+						
+						if (submissionDateToFileMap.get(f1) == null) {
+							File submission1 = new File(f1, "submission.xml");
+							submissionDate1String = XmlManipulationUtils.parseXml(submission1).getRootElement()
+									.getAttributeValue(null, "submissionDate");
+							submissionDateToFileMap.put(f1, submissionDate1String);
+						} else {
+							submissionDate1String = submissionDateToFileMap.get(f1);
+						}
+						
+						if (submissionDateToFileMap.get(f2) == null) {
+							File submission2 = new File(f2, "submission.xml");
+							submissionDate2String = XmlManipulationUtils.parseXml(submission2).getRootElement()
+									.getAttributeValue(null, "submissionDate");
+						} else {
+							submissionDate2String = submissionDateToFileMap.get(f2);
+						}
 
-			public int compare(File f1, File f2) {
-				try {
-					if (submissionDateToFileMap.get(f1) == null) {
-						submission1 = new File(f1, "submission.xml");
-						submissionDate1String = XmlManipulationUtils.parseXml(submission1).getRootElement()
-								.getAttributeValue(null, "submissionDate");
-						submissionDateToFileMap.put(f1, submissionDate1String);
-					} else {
-						submissionDate1String = submissionDateToFileMap.get(f1);
+						Date submissionDate1 = StringUtils.isNotEmptyNotNull(submissionDate1String)
+								? WebUtils.parseDate(submissionDate1String) : new Date();
+						Date submissionDate2 = StringUtils.isNotEmptyNotNull(submissionDate2String)
+								? WebUtils.parseDate(submissionDate2String) : new Date();
+						return submissionDate1.compareTo(submissionDate2);
+					} catch (ParsingException e) {
+						e.printStackTrace();
+					} catch (FileSystemException e) {
+						e.printStackTrace();
 					}
-					if (submissionDateToFileMap.get(f2) == null) {
-						submission2 = new File(f2, "submission.xml");
-						submissionDate2String = XmlManipulationUtils.parseXml(submission2).getRootElement()
-								.getAttributeValue(null, "submissionDate");
-					} else {
-						submissionDate2String = submissionDateToFileMap.get(f2);
-					}
-
-					submissionDate1 = StringUtils.isNotEmptyNotNull(submissionDate1String)
-							? WebUtils.parseDate(submissionDate1String) : new Date();
-					submissionDate2 = StringUtils.isNotEmptyNotNull(submissionDate2String)
-							? WebUtils.parseDate(submissionDate2String) : new Date();
-					return submissionDate1.compareTo(submissionDate2);
-				} catch (ParsingException e) {
-					e.printStackTrace();
-				} catch (FileSystemException e) {
-					e.printStackTrace();
+					return 0;
 				}
-				return 0;
-			}
-		});
+			});
+		}
 
     for (File instanceDir : instances) {
       if ( terminationFuture.isCancelled() ) {
