@@ -62,10 +62,13 @@ jar {
     version = buildConfig.version
     archiveName = baseName + ' ' + version + '.jar'
     from configurations.runtime.collect { it }
+
     // A single-click Java app requires a flat jar or class loader. 
     // Fat/Flat/uber/shadow jars won't work because BouncyCastle is signed.
     // Eclipse's Jar-in-Jar loader is the most maintained.
+    // https://git.eclipse.org/c/jdt/eclipse.jdt.ui.git/plain/org.eclipse.jdt.ui/jar-in-jar-loader.zip
     from zipTree("lib/jar-in-jar-loader.zip")
+
     manifest {
         attributes 'Main-Class': 'org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader'
         attributes 'Rsrc-Main-Class': mainClassName
@@ -74,6 +77,7 @@ jar {
     }
 }
 
+// Useful for testing
 task explodedJar(type: Copy) {
     into "$buildDir/libs/$jar.baseName $jar.version"
     with jar
