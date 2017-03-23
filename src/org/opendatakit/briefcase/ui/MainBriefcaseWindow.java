@@ -53,7 +53,7 @@ import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
 public class MainBriefcaseWindow implements WindowListener {
-  private static final String BRIEFCASE_VERSION = "ODK Briefcase " + BriefcasePreferences.VERSION;
+  private static final String BRIEFCASE_VERSION = "ODK Briefcase - " + BriefcasePreferences.VERSION;
 
   private JFrame frame;
   private PullTransferPanel gatherPanel;
