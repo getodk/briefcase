@@ -39,3 +39,6 @@ http://www.medsea.eu/                /Apache 2.0/
     mime-util-2.1.3.jar
 http://www.smallsql.de/              /LGPL 2.1/
     smallsql-0.21.jar
+
+https://github.com/eclipse/eclipse.jdt.ui/      /Eclipse Public License/
+    jar-in-jar-loader.zip (org.eclipse.jdt.internal.jarinjarloader)
