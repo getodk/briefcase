@@ -34,6 +34,7 @@ public class FindDirectoryStructure {
   private static final String PROPERTY_OS = "os.name";
   private static final String OS_WINDOWS = "Windows";
   private static final String OS_MAC = "Mac";
+  private static final String USER_NAME = "user.name";
 
   public static boolean isMac() {
     String os = System.getProperty(PROPERTY_OS);
@@ -59,8 +60,21 @@ public class FindDirectoryStructure {
       return search(mounts, false);
     } else // Assume Unix
     {
-      File[] mounts = { new File("/mnt"), new File("/media") };
-      return search(mounts, false);
+      String username = System.getProperty(USER_NAME);
+      List<File> mountslist = new ArrayList<File>();
+      mountslist.add( new File("/mnt"));
+      mountslist.add( new File("/media"));
+
+      File f = new File("/media", username);
+      if (f.exists() && f.isDirectory()) {
+        mountslist.add(f);
+      } 
+
+      f = new File("/run/media", username);
+      if (f.exists() && f.isDirectory()){
+        mountslist.add(f);
+      }
+      return search(mountslist.toArray(new File[mountslist.size()]), false);
     }
   }
 
