@@ -255,7 +255,7 @@ public class FormTransferTable extends JTable {
     public boolean isCellEditable(int row, int col) {
 	  // While the table is in active transfer state, you cannot de-select
 	  // already selected forms
-	  if (formStatuses.get(row).isSelected() && transferStateActive) {
+	  if (!formStatuses.get(row).getStatusString().isEmpty() && transferStateActive) {
 		return false;
 	  }
       return col == 0; // only the checkbox...
