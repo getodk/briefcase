@@ -25,12 +25,8 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.FileSystemException;
-import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
-import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.*;
+
 
 public class TransferFromODK implements ITransferFromSourceAction {
 
@@ -175,6 +171,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
               // 1.1.8 -- submission is saved as submission.xml.
               // full instance data is stored as directoryName.xml (as is the convention in 1.1.5, 1.1.7)
               //
+              String instanceId = null;
               File fullXml = new File(dir, dir.getName() + ".xml");
               File xml = new File(dir, "submission.xml");
               if ( !xml.exists() && fullXml.exists() ) {
@@ -208,6 +205,16 @@ public class TransferFromODK implements ITransferFromSourceAction {
               }
               
               if (xml.exists()) {
+                //Check if the instance has an instanceID
+                try {
+                  XmlManipulationUtils.FormInstanceMetadata sim =
+                          XmlManipulationUtils.getFormInstanceMetadata(XmlManipulationUtils.parseXml(xml)
+                          .getRootElement());
+                  instanceId = sim.instanceId;
+                } catch (ParsingException e) {
+                  e.printStackTrace();
+                }
+
                 // OK, we can copy the directory off...
                 // Briefcase instances directory name is arbitrary.
                 // Rename the xml within that to always be "submission.xml"
@@ -216,12 +223,46 @@ public class TransferFromODK implements ITransferFromSourceAction {
                 String safeName = scratchInstance.getName();
                 
                 int i = 2;
+                boolean same = false;
                 while (scratchInstance.exists()) {
-                  String[] contents = scratchInstance.list();
+                  File[] contents = scratchInstance.listFiles(new FilenameFilter() {
+
+                    @Override
+                    public boolean accept(File dir, String name) {
+                      return name.endsWith(".xml");
+                    }});
                   if ( contents == null || contents.length == 0 ) break;
+
+                  if (contents.length == 1){
+                    String itsInstanceId  = null;
+                    try {
+                      XmlManipulationUtils.FormInstanceMetadata sim =
+                              XmlManipulationUtils.getFormInstanceMetadata(XmlManipulationUtils.parseXml(contents[0])
+                                      .getRootElement());
+                      itsInstanceId = sim.instanceId;
+
+                      //Check if the above ODK file(xml) instanceId is equal to this briefcase file instanceId
+                      //if yes don't copy it, skip to next file
+                      if (itsInstanceId != null && instanceId.equals(itsInstanceId)) {
+                        same = true;
+                        break;
+                      }
+                    } catch (ParsingException e) {
+                      e.printStackTrace();
+                    }
+
+                  }
+
                   scratchInstance = new File(destinationFormInstancesDir, safeName + "-" + Integer.toString(i));
                   i++;
                 }
+
+                if (same) {
+                  fs.setStatusString("already present - skipping: " + xml.getName(), true);
+                  EventBus.publish(new FormStatusEvent(fs));
+                  continue;
+                }
+
                 try {
                   FileUtils.copyDirectory(dir, scratchInstance);
                 } catch (IOException e) {
@@ -251,7 +292,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                 	File odkSubmissionFile = new File(scratchInstance, fullXml.getName());
                 	odkSubmissionFile.delete();
                 }
-                
+
                 fs.setStatusString(String.format("retrieving (%1$d)", instanceCount), true);
                 EventBus.publish(new FormStatusEvent(fs));
                 ++instanceCount;
