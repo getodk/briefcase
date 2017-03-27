@@ -881,12 +881,14 @@ public class ExportToCsv implements ITransformFormAction {
               instanceDir, unEncryptedDir);
           doc = outcome.submission;
           isValidated = outcome.isValidated;
-        } catch (ParsingException e) {
-          e.printStackTrace();
+        }  catch (ParsingException e) {
+          //Was unable to parse this encrypted form instance
+          //It probably has incomplete encryption data
+          //Hence skip the file
           EventBus.publish(new ExportProgressEvent("Error decrypting submission "
-              + instanceDir.getName() + " Cause: " + e.toString()));
-          return false;
-        } catch (FileSystemException e) {
+                  + instanceDir.getName() + " Cause: " + e.toString() + " skipping...."));
+          return true;
+        }  catch (FileSystemException e) {
           e.printStackTrace();
           EventBus.publish(new ExportProgressEvent("Error decrypting submission "
               + instanceDir.getName() + " Cause: " + e.toString()));
