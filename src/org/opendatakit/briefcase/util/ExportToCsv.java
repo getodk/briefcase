@@ -39,6 +39,7 @@ import java.util.logging.Logger;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.NoSuchPaddingException;
+import javax.swing.*;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
@@ -748,6 +749,8 @@ public class ExportToCsv implements ITransformFormAction {
     return true;
   }
 
+  static boolean dontShow = false;
+  private static boolean choice = true;
   private boolean processInstance(File instanceDir) {
     File submission = new File(instanceDir, "submission.xml");
     if (!submission.exists() || !submission.isFile()) {
@@ -846,6 +849,7 @@ public class ExportToCsv implements ITransformFormAction {
         // those files.
         // NOTE: this changes the value of 'doc'
         try {
+
           FileSystemUtils.DecryptOutcome outcome =
             FileSystemUtils.decryptAndValidateSubmission(doc, briefcaseLfd.getPrivateKey(),
               instanceDir, unEncryptedDir);
@@ -855,9 +859,30 @@ public class ExportToCsv implements ITransformFormAction {
           //Was unable to parse this encrypted form instance
           //It probably has incomplete encryption data
           //Hence skip the file
+
           EventBus.publish(new ExportProgressEvent("Error decrypting submission "
                   + instanceDir.getName() + " Cause: " + e.toString() + " skipping...."));
-          return true;
+
+          if(dontShow)
+            return choice;
+
+          JCheckBox checkbox = new JCheckBox("Do not show this message again.");
+          String message = "Error decrypting submission "
+                  + instanceDir.getName() + " Cause: " + e.toString() + " \n" +
+                  "Do you want to continue?\n";
+          Object[] params = {message, checkbox};
+          int confirmed = JOptionPane.showConfirmDialog(null, params,
+                   "Error exporting", JOptionPane.YES_NO_OPTION);
+
+          if (checkbox.isSelected()) {
+            dontShow = true;
+          }
+
+          if (confirmed == JOptionPane.YES_OPTION) {
+            return choice = true;
+          }
+          else return choice = false;
+
         }  catch (FileSystemException e) {
           e.printStackTrace();
           EventBus.publish(new ExportProgressEvent("Error decrypting submission "
@@ -865,9 +890,29 @@ public class ExportToCsv implements ITransformFormAction {
           return false;
         } catch (CryptoException e) {
           e.printStackTrace();
+
           EventBus.publish(new ExportProgressEvent("Error decrypting submission "
               + instanceDir.getName() + " Cause: " + e.toString()));
-          return false;
+
+          if(dontShow)
+            return choice;
+
+          JCheckBox checkbox = new JCheckBox("Do not show this message again.");
+          String message = "Error decrypting submission "
+                  + instanceDir.getName() + " Cause: " + e.toString() + " \n" +
+                  "Do you want to continue?\n";
+          Object[] params = {message, checkbox};
+          int confirmed = JOptionPane.showConfirmDialog(null, params,
+                  "Error exporting", JOptionPane.YES_NO_OPTION);
+
+          if (checkbox.isSelected()) {
+            dontShow = true;
+          }
+
+          if (confirmed == JOptionPane.YES_OPTION) {
+            return choice = true;
+          }
+          else return choice = false;
         }
       }
 
