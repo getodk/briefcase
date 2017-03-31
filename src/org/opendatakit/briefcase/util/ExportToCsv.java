@@ -855,7 +855,7 @@ public class ExportToCsv implements ITransformFormAction {
               instanceDir, unEncryptedDir);
           doc = outcome.submission;
           isValidated = outcome.isValidated;
-        }  catch (ParsingException e) {
+        }  catch (ParsingException | CryptoException | FileSystemException e) {
           //Was unable to parse this encrypted form instance
           //It probably has incomplete encryption data
           //Hence skip the file
@@ -873,37 +873,6 @@ public class ExportToCsv implements ITransformFormAction {
           Object[] params = {message, checkbox};
           int confirmed = JOptionPane.showConfirmDialog(null, params,
                    "Error exporting", JOptionPane.YES_NO_OPTION);
-
-          if (checkbox.isSelected()) {
-            dontShow = true;
-          }
-
-          if (confirmed == JOptionPane.YES_OPTION) {
-            return choice = true;
-          }
-          else return choice = false;
-
-        }  catch (FileSystemException e) {
-          e.printStackTrace();
-          EventBus.publish(new ExportProgressEvent("Error decrypting submission "
-              + instanceDir.getName() + " Cause: " + e.toString()));
-          return false;
-        } catch (CryptoException e) {
-          e.printStackTrace();
-
-          EventBus.publish(new ExportProgressEvent("Error decrypting submission "
-              + instanceDir.getName() + " Cause: " + e.toString()));
-
-          if(dontShow)
-            return choice;
-
-          JCheckBox checkbox = new JCheckBox("Do not show this message again.");
-          String message = "Error decrypting submission "
-                  + instanceDir.getName() + " Cause: " + e.toString() + " \n" +
-                  "Do you want to continue?\n";
-          Object[] params = {message, checkbox};
-          int confirmed = JOptionPane.showConfirmDialog(null, params,
-                  "Error exporting", JOptionPane.YES_NO_OPTION);
 
           if (checkbox.isSelected()) {
             dontShow = true;
