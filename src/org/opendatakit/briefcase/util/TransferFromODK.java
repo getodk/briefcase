@@ -232,7 +232,6 @@ public class TransferFromODK implements ITransferFromSourceAction {
                       return name.endsWith(".xml");
                     }});
                   if ( contents == null || contents.length == 0 ) break;
-
                   if (contents.length == 1){
                     String itsInstanceId  = null;
                     try {
