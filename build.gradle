@@ -62,22 +62,27 @@ buildConfig {
 mainClassName = 'org.opendatakit.briefcase.ui.MainBriefcaseWindow'
 
 jar {
-
     baseName = buildConfig.appName
     version = buildConfig.version
     archiveName = baseName + ' ' + version + '.jar'
+    from configurations.runtime.collect { it }
 
-    from {
-        configurations.compile.collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
-    }
+    // A single-click Java app requires a flat jar or class loader. 
+    // Fat/Flat/uber/shadow jars won't work because BouncyCastle is signed.
+    // Eclipse's Jar-in-Jar loader is the most maintained.
+    // https://git.eclipse.org/c/jdt/eclipse.jdt.ui.git/plain/org.eclipse.jdt.ui/jar-in-jar-loader.zip
+    from zipTree("lib/jar-in-jar-loader.zip")
 
     manifest {
-        attributes 'Main-Class': mainClassName
+        attributes 'Main-Class': 'org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader'
+        attributes 'Rsrc-Main-Class': mainClassName
+        attributes 'Class-Path': '.'
+        attributes 'Rsrc-Class-Path': './ ' + (configurations.runtime.collect { it.getName() }).join(' ')
     }
+}
 
-    // Some of the dependencies are signed jars. When combined into a big jar, the corresponding signature files
-    // don't match with big jar, so the runtime refuses to run the jar. The fix is to exclude the signature files.
-    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+// Useful for testing
+task explodedJar(type: Copy) {
+    into "$buildDir/libs/$jar.baseName $jar.version"
+    with jar
 }
