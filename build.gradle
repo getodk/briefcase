@@ -5,10 +5,14 @@ plugins {
 
 repositories {
     mavenCentral()
+    maven { url = 'https://oss.sonatype.org/content/groups/public' }
 }
 
 sourceSets.main.java.srcDirs = ['src']
 sourceSets.main.resources.srcDirs = ['res']
+
+targetCompatibility = '1.7'
+sourceCompatibility = '1.7'
 
 dependencies {
 
@@ -18,7 +22,7 @@ dependencies {
     compile group: 'org.bushe', name: 'eventbus', version: '1.4'
     compile group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.5.2'
     compile group: 'net.sf.kxml', name: 'kxml2', version: '2.3.0'
-    compile files('lib/javarosa-libraries-2016-04-21.jar')
+    compile group: 'org.opendatakit', name: 'opendatakit-javarosa', version: '2.1.0-SNAPSHOT'
     compile files('lib/smallsql-0.21.jar')
 }
 
