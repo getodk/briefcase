@@ -879,22 +879,18 @@ public class ExportToCsv implements ITransformFormAction {
         // those files.
         // NOTE: this changes the value of 'doc'
         try {
-
           FileSystemUtils.DecryptOutcome outcome =
             FileSystemUtils.decryptAndValidateSubmission(doc, briefcaseLfd.getPrivateKey(),
               instanceDir, unEncryptedDir);
           doc = outcome.submission;
           isValidated = outcome.isValidated;
         }  catch (ParsingException | CryptoException | FileSystemException e) {
-          //Was unable to parse this encrypted form instance
-          //It probably has incomplete encryption data
-          //Hence skip the file
-
+          //Was unable to parse or decrypt or a file system error occurred
+          //Hence skip the file if user decides to continue
           EventBus.publish(new ExportProgressEvent("Error decrypting submission "
                   + instanceDir.getName() + " Cause: " + e.toString() + " skipping...."));
 
-          if(dontShow)
-            return choice;
+          if(dontShow) return choice;
 
           JCheckBox checkbox = new JCheckBox("Do not show this message again.");
           String message = "Error decrypting submission "
@@ -904,13 +900,8 @@ public class ExportToCsv implements ITransformFormAction {
           int confirmed = JOptionPane.showConfirmDialog(null, params,
                    "Error exporting", JOptionPane.YES_NO_OPTION);
 
-          if (checkbox.isSelected()) {
-            dontShow = true;
-          }
-
-          if (confirmed == JOptionPane.YES_OPTION) {
-            return choice = true;
-          }
+          if (checkbox.isSelected()) dontShow = true;
+          if (confirmed == JOptionPane.YES_OPTION) return choice = true;
           else return choice = false;
         }
       }
