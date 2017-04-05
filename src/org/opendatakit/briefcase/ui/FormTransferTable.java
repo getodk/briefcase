@@ -210,12 +210,22 @@ public class FormTransferTable extends JTable {
     public List<FormStatus> getSelectedForms() {
       List<FormStatus> selected = new ArrayList<FormStatus>();
       for (FormStatus s : formStatuses) {
-        if (s.isSelected()) {
+    	  if (s.isSelected()) {
           selected.add(s);
         }
       }
       return selected;
     }
+    
+    public List<FormStatus> getSelectedNonActiveForms() {
+        List<FormStatus> selected = new ArrayList<FormStatus>();
+        for (FormStatus s : formStatuses) {
+      	  if (s.isSelected() && s.getStatusString().isEmpty()) {
+            selected.add(s);
+          }
+        }
+        return selected;
+      }
 
     @Override
     public int getRowCount() {
@@ -386,6 +396,11 @@ public class FormTransferTable extends JTable {
   public List<FormStatus> getSelectedForms() {
     FormTransferTableModel model = (FormTransferTableModel) this.dataModel;
     return model.getSelectedForms();
+  }
+  
+  public List<FormStatus> getSelectedNonActiveForms() {
+    FormTransferTableModel model = (FormTransferTableModel) this.dataModel;
+    return model.getSelectedNonActiveForms();
   }
 
   public void setActiveTransferState(boolean active) {

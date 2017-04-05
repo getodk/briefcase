@@ -207,7 +207,7 @@ public class PullTransferPanel extends JPanel {
     @Override
     public void actionPerformed(ActionEvent e) {
       EndPointType originSelection = getSelectedEndPointType();
-      List<FormStatus> formsToTransfer = formTransferTable.getSelectedForms();
+      List<FormStatus> formsToTransfer = formTransferTable.getSelectedNonActiveForms();
       // clear the transfer history...
       for (FormStatus fs : formsToTransfer) {
         fs.clearStatusHistory();
