@@ -210,7 +210,7 @@ public class FormTransferTable extends JTable {
     public List<FormStatus> getSelectedForms() {
       List<FormStatus> selected = new ArrayList<FormStatus>();
       for (FormStatus s : formStatuses) {
-    	  if (s.isSelected()) {
+    	if (s.isSelected()) {
           selected.add(s);
         }
       }
