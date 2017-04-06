@@ -35,11 +35,11 @@ dependencies {
     compile files('lib/smallsql-0.21.jar')
 }
 
-ant.condition(property: "os", value: "windows") { 
-    os(family: "windows") 
+ant.condition(property: 'os', value: 'windows') { 
+    os(family: 'windows') 
 }
-ant.condition(property: "os", value: "unix" ) { 
-    os(family: "unix") 
+ant.condition(property: 'os', value: 'unix' ) { 
+    os(family: 'unix') 
 }
 
 // Use the result of git describe --tags --dirty as the version name
@@ -96,6 +96,6 @@ jar {
 
 // Useful for testing
 task explodedJar(type: Copy) {
-    into "$buildDir/libs/$jar.baseName $jar.version"
+    into '$buildDir/libs/$jar.baseName $jar.version'
     with jar
 }
