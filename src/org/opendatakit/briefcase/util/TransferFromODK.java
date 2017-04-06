@@ -25,7 +25,13 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.*;
+import org.opendatakit.briefcase.model.FileSystemException;
+import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
+import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.ParsingException;
 
 
 public class TransferFromODK implements ITransferFromSourceAction {
@@ -233,16 +239,17 @@ public class TransferFromODK implements ITransferFromSourceAction {
                     }});
                   if ( contents == null || contents.length == 0 ) break;
                   if (contents.length == 1){
-                    String itsInstanceId  = null;
+                    String itsInstanceId = null;
                     try {
-                      XmlManipulationUtils.FormInstanceMetadata sim =
+                      XmlManipulationUtils.FormInstanceMetadata formInstanceMetadata =
                               XmlManipulationUtils.getFormInstanceMetadata(XmlManipulationUtils.parseXml(contents[0])
                                       .getRootElement());
-                      itsInstanceId = sim.instanceId;
+                      itsInstanceId = formInstanceMetadata.instanceId;
 
                       //Check if the above ODK file(xml) instanceId is equal to this briefcase file instanceId
                       //if yes don't copy it, skip to next file
-                      if (itsInstanceId != null && instanceId.equals(itsInstanceId)) {
+                      if (itsInstanceId != null && instanceId.equals(itsInstanceId) &&
+                              FileSystemUtils.getMd5Hash(xml).equals(FileSystemUtils.getMd5Hash(contents[0]))) {
                         same = true;
                         break;
                       }
