@@ -842,7 +842,6 @@ public class ExportToCsv implements ITransformFormAction {
     // will clean up any decrypted files whenever there is any
     // failure.
     try {
-
       if (briefcaseLfd.isFileEncryptedForm()) {
         // Decrypt the form and all its media files into the
         // unEncryptedDir and validate the contents of all
