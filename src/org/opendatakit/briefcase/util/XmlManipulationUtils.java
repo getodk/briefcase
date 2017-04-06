@@ -45,7 +45,6 @@ import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.MetadataUpdateException;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
-import org.opendatakit.briefcase.util.BadXMLFixer;
 import org.opendatakit.briefcase.util.ServerFetcher.MediaFile;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionDownloadChunk;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionManifest;
