@@ -99,8 +99,7 @@ public class DatabaseUtils {
             
       insertRecordedInstanceQuery.setString(1, instanceId);
       insertRecordedInstanceQuery.setString(2, dir.getAbsolutePath());
-      
-      if ( 1 != insertRecordedInstanceQuery.executeUpdate() ) {
+      if (1 != insertRecordedInstanceQuery.executeUpdate() ) {
         throw new SQLException("Expected one row to be updated");
       }
     } catch ( SQLException e ) {
