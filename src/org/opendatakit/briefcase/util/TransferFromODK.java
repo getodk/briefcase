@@ -33,7 +33,6 @@ import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.ParsingException;
 
-
 public class TransferFromODK implements ITransferFromSourceAction {
 
   final File odkOriginDir;
@@ -182,7 +181,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
               if ( !xml.exists() && fullXml.exists() ) {
             	  xml = fullXml; // e.g., 1.1.5, 1.1.7
               }
-    
+
               // this is a hack added to support easier generation of large test cases where we 
               // copy a single instance directory repeatedly.  Normally the xml submission file
               // has the name of the enclosing directory, but if you copy directories, this won't
@@ -247,7 +246,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
 
                       //Check if the above ODK file(xml) instanceId is equal to this briefcase file instanceId then compare their MD5 hashes
                       //if yes don't copy it, skip to next file
-                      if (itsInstanceId != null && instanceId.equals(itsInstanceId) &&
+                      if (itsInstanceId != null && itsInstanceId.equals(instanceId) &&
                               FileSystemUtils.getMd5Hash(xml).equals(FileSystemUtils.getMd5Hash(contents[0]))) {
                         same = true;
                         break;
@@ -255,7 +254,6 @@ public class TransferFromODK implements ITransferFromSourceAction {
                     } catch (ParsingException e) {
                       e.printStackTrace();
                     }
-
                   }
 
                   scratchInstance = new File(destinationFormInstancesDir, safeName + "-" + Integer.toString(i));
