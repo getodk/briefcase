@@ -176,7 +176,6 @@ public class TransferFromODK implements ITransferFromSourceAction {
       
               // 1.1.8 -- submission is saved as submission.xml.
               // full instance data is stored as directoryName.xml (as is the convention in 1.1.5, 1.1.7)
-              //
               String instanceId = null;
               File fullXml = new File(dir, dir.getName() + ".xml");
               File xml = new File(dir, "submission.xml");
@@ -213,10 +212,10 @@ public class TransferFromODK implements ITransferFromSourceAction {
               if (xml.exists()) {
                 //Check if the instance has an instanceID
                 try {
-                  XmlManipulationUtils.FormInstanceMetadata sim =
+                  XmlManipulationUtils.FormInstanceMetadata formInstanceMetadata =
                           XmlManipulationUtils.getFormInstanceMetadata(XmlManipulationUtils.parseXml(xml)
                           .getRootElement());
-                  instanceId = sim.instanceId;
+                  instanceId = formInstanceMetadata.instanceId;
                 } catch (ParsingException e) {
                   e.printStackTrace();
                 }
@@ -246,7 +245,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                                       .getRootElement());
                       itsInstanceId = formInstanceMetadata.instanceId;
 
-                      //Check if the above ODK file(xml) instanceId is equal to this briefcase file instanceId
+                      //Check if the above ODK file(xml) instanceId is equal to this briefcase file instanceId then compare their MD5 hashes
                       //if yes don't copy it, skip to next file
                       if (itsInstanceId != null && instanceId.equals(itsInstanceId) &&
                               FileSystemUtils.getMd5Hash(xml).equals(FileSystemUtils.getMd5Hash(contents[0]))) {
