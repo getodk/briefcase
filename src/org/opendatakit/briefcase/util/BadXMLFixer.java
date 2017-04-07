@@ -23,7 +23,6 @@ import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.model.CannotFixXMLException;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.ParsingException;
-import org.opendatakit.briefcase.util.XmlManipulationUtils;
 
 import java.io.File;
 import java.io.IOException;
