@@ -16,12 +16,22 @@
 
 package org.opendatakit.briefcase.ui;
 
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.border.EmptyBorder;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 
 /**
  * Enhanced JOptionPane.showMessageDialog() for a JOptionPane.ERROR_MESSAGE.
