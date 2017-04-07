@@ -351,7 +351,8 @@ public class ServerFetcher {
       if ( instanceFolder != null ) {
           //check if the submission file is present in the folder before skipping
           File instance = new File(instanceFolder, "submission.xml");
-          if (instance.exists()) {
+          File instanceEncrypted = new File(instanceFolder, "submission.xml.enc");
+          if (instance.exists() || instanceEncrypted.exists()) {
               logger.info("already present - skipping fetch: " + uri );
               return;
           }
