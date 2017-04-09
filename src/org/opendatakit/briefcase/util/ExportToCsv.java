@@ -41,6 +41,7 @@ import java.util.logging.Logger;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.NoSuchPaddingException;
+import javax.swing.*;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
@@ -75,6 +76,9 @@ public class ExportToCsv implements ITransformFormAction {
   Date startDate;
   Date endDate;
   boolean overwrite = false;
+
+  int totalFilesSkipped = 0;
+  int totalIntances = 0;
   
   
   // Default briefcase constructor
@@ -125,6 +129,7 @@ public class ExportToCsv implements ITransformFormAction {
     }
 
     File[] instances = instancesDir.listFiles();
+    totalIntances = instances.length;
 
     // Sorts the instances by the submission date. If no submission date, we
     // assume it to be latest.
@@ -778,6 +783,8 @@ public class ExportToCsv implements ITransformFormAction {
     return true;
   }
 
+  static boolean dontShow = false;
+  private static boolean choice = true;
   private boolean processInstance(File instanceDir) {
     File submission = new File(instanceDir, "submission.xml");
     if (!submission.exists() || !submission.isFile()) {
@@ -869,7 +876,6 @@ public class ExportToCsv implements ITransformFormAction {
     // will clean up any decrypted files whenever there is any
     // failure.
     try {
-
       if (briefcaseLfd.isFileEncryptedForm()) {
         // Decrypt the form and all its media files into the
         // unEncryptedDir and validate the contents of all
@@ -881,21 +887,18 @@ public class ExportToCsv implements ITransformFormAction {
               instanceDir, unEncryptedDir);
           doc = outcome.submission;
           isValidated = outcome.isValidated;
-        } catch (ParsingException e) {
-          e.printStackTrace();
+        }  catch (ParsingException | CryptoException | FileSystemException e) {
+          //Was unable to parse file or decrypt file or a file system error occurred
+          //Hence skip this instance
           EventBus.publish(new ExportProgressEvent("Error decrypting submission "
-              + instanceDir.getName() + " Cause: " + e.toString()));
-          return false;
-        } catch (FileSystemException e) {
-          e.printStackTrace();
-          EventBus.publish(new ExportProgressEvent("Error decrypting submission "
-              + instanceDir.getName() + " Cause: " + e.toString()));
-          return false;
-        } catch (CryptoException e) {
-          e.printStackTrace();
-          EventBus.publish(new ExportProgressEvent("Error decrypting submission "
-              + instanceDir.getName() + " Cause: " + e.toString()));
-          return false;
+                  + instanceDir.getName() + " Cause: " + e.toString() + " skipping...."));
+
+          log.info("Error decrypting submission "
+                  + instanceDir.getName() + " Cause: " + e.toString());
+
+          //update total number of files skipped
+            totalFilesSkipped++;
+          return true;
         }
       }
 
@@ -989,5 +992,15 @@ public class ExportToCsv implements ITransformFormAction {
   @Override
   public BriefcaseFormDefinition getFormDefinition() {
     return briefcaseLfd;
+  }
+
+  @Override
+  public FilesSkipped totalFilesSkipped() {
+    //Determine if all files where skipped or just some
+    //Note that if totalInstances = 0 then no files were skipped
+    if (totalIntances == 0) {
+      return FilesSkipped.NONE;
+    }
+    return totalFilesSkipped == totalIntances ? FilesSkipped.ALL : FilesSkipped.SOME;
   }
 }

@@ -33,6 +33,7 @@ import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.ParsingException;
 
+
 public class TransferFromODK implements ITransferFromSourceAction {
 
   final File odkOriginDir;
@@ -211,10 +212,12 @@ public class TransferFromODK implements ITransferFromSourceAction {
               if (xml.exists()) {
                 //Check if the instance has an instanceID
                 try {
+
                   XmlManipulationUtils.FormInstanceMetadata formInstanceMetadata =
                           XmlManipulationUtils.getFormInstanceMetadata(XmlManipulationUtils.parseXml(xml)
                           .getRootElement());
                   instanceId = formInstanceMetadata.instanceId;
+
                 } catch (ParsingException e) {
                   e.printStackTrace();
                 }
@@ -247,6 +250,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                       //Check if the above ODK file(xml) instanceId is equal to this briefcase file instanceId then compare their MD5 hashes
                       //if yes don't copy it, skip to next file
                       if (itsInstanceId != null && itsInstanceId.equals(instanceId) &&
+
                               FileSystemUtils.getMd5Hash(xml).equals(FileSystemUtils.getMd5Hash(contents[0]))) {
                         same = true;
                         break;
