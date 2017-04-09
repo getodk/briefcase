@@ -995,14 +995,12 @@ public class ExportToCsv implements ITransformFormAction {
   }
 
   @Override
-  public int totalFilesSkipped() {
-    //Determine if all files where skipped
-    //if so return -1 to indicate all files were skipped(error)
-    //else return totalFilesSkipped
+  public FilesSkipped totalFilesSkipped() {
+    //Determine if all files where skipped or just some
     //Note that if totalInstances = 0 then no files were skipped
     if (totalIntances == 0) {
-      return 0;
+      return FilesSkipped.NONE;
     }
-    return totalFilesSkipped == totalIntances ? totalFilesSkipped : -1;
+    return totalFilesSkipped == totalIntances ? FilesSkipped.ALL : FilesSkipped.SOME;
   }
 }

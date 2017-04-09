@@ -38,7 +38,11 @@ interface ITransformFormAction {
    *
    * @return the total number of bad files skipped during the export process
    */
-  int totalFilesSkipped();
+  FilesSkipped totalFilesSkipped();
   
   BriefcaseFormDefinition getFormDefinition();
+}
+
+enum FilesSkipped {
+  NONE, SOME, ALL;
 }

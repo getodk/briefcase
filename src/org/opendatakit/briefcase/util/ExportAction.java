@@ -57,11 +57,11 @@ public class ExportAction {
         boolean allSuccessful = true;
         allSuccessful = action.doAction();
         if (allSuccessful) {
-          if (action.totalFilesSkipped() > 0) {
+          if (action.totalFilesSkipped() == FilesSkipped.SOME) {
             EventBus.publish(new ExportSucceededWithErrorsEvent(
                     action.getFormDefinition()));
           }
-          else  if (action.totalFilesSkipped() == -1){
+          else  if (action.totalFilesSkipped() == FilesSkipped.ALL){
             //Non of the instances were exported
             EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
           }
