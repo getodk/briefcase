@@ -74,6 +74,9 @@ public class ExportToCsv implements ITransformFormAction {
   Date startDate;
   Date endDate;
   boolean overwrite = false;
+
+  int totalFilesSkipped = 0;
+  int totalIntances = 0;
   
   
   // Default briefcase constructor
@@ -134,6 +137,7 @@ public class ExportToCsv implements ITransformFormAction {
     }
 
     File[] instances = instancesDir.listFiles();
+    totalIntances = instances.length;
 
     for (File instanceDir : instances) {
       if ( terminationFuture.isCancelled() ) {
@@ -854,24 +858,17 @@ public class ExportToCsv implements ITransformFormAction {
           doc = outcome.submission;
           isValidated = outcome.isValidated;
         }  catch (ParsingException | CryptoException | FileSystemException e) {
-          //Was unable to parse or decrypt or a file system error occurred
-          //Hence skip the file if user decides to continue
+          //Was unable to parse file or decrypt file or a file system error occurred
+          //Hence skip this instance
           EventBus.publish(new ExportProgressEvent("Error decrypting submission "
                   + instanceDir.getName() + " Cause: " + e.toString() + " skipping...."));
 
-          if(dontShow) return choice;
+          log.info("Error decrypting submission "
+                  + instanceDir.getName() + " Cause: " + e.toString());
 
-          JCheckBox checkbox = new JCheckBox("Do not show this message again.");
-          String message = "Error decrypting submission "
-                  + instanceDir.getName() + " Cause: " + e.toString() + " \n" +
-                  "Do you want to continue?\n";
-          Object[] params = {message, checkbox};
-          int confirmed = JOptionPane.showConfirmDialog(null, params,
-                   "Error exporting", JOptionPane.YES_NO_OPTION);
-
-          if (checkbox.isSelected()) dontShow = true;
-          if (confirmed == JOptionPane.YES_OPTION) return choice = true;
-          else return choice = false;
+          //update total number of files skipped
+            totalFilesSkipped++;
+          return true;
         }
       }
 
@@ -965,5 +962,17 @@ public class ExportToCsv implements ITransformFormAction {
   @Override
   public BriefcaseFormDefinition getFormDefinition() {
     return briefcaseLfd;
+  }
+
+  @Override
+  public int totalFilesSkipped() {
+    //Determine if all files where skipped
+    //if so return -1 to indicate all files were skipped(error)
+    //else return totalFilesSkipped
+    //Note that if totalInstances = 0 then no files were skipped
+    if (totalIntances == 0) {
+      return 0;
+    }
+    return totalFilesSkipped == totalIntances ? totalFilesSkipped : -1;
   }
 }

@@ -50,6 +50,7 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
+import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.util.ExportAction;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
@@ -575,6 +576,13 @@ public class ExportPanel extends JPanel {
   public void successfulCompletion(ExportSucceededEvent event) {
     exportStatusList.append("\n").append("SUCCEEDED!");
     lblExporting.setText("SUCCEEDED!");
+    setActiveExportState(false);
+  }
+
+  @EventSubscriber(eventClass = ExportSucceededWithErrorsEvent.class)
+  public void successfulCompletionWithErrors(ExportSucceededWithErrorsEvent event) {
+    exportStatusList.append("\n").append("SUCCEEDED WITH ERRORS!");
+    lblExporting.setText("SUCCEEDED WITH SOME ERRORS SEE DETAILS!");
     setActiveExportState(false);
   }
 
