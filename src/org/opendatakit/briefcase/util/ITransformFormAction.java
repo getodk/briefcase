@@ -33,6 +33,12 @@ interface ITransformFormAction {
    * @return true if successful, false if there were one or more problems
    */
   boolean doAction();
+
+  /**
+   *
+   * @return the total number of bad files skipped during the export process
+   */
+  int totalFilesSkipped();
   
   BriefcaseFormDefinition getFormDefinition();
 }

@@ -32,6 +32,7 @@ import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
+import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
@@ -56,7 +57,17 @@ public class ExportAction {
         boolean allSuccessful = true;
         allSuccessful = action.doAction();
         if (allSuccessful) {
-          EventBus.publish(new ExportSucceededEvent(action.getFormDefinition()));
+          if (action.totalFilesSkipped() > 0) {
+            EventBus.publish(new ExportSucceededWithErrorsEvent(
+                    action.getFormDefinition()));
+          }
+          else  if (action.totalFilesSkipped() == -1){
+            //Non of the instances were exported
+            EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
+          }
+          else {
+            EventBus.publish(new ExportSucceededEvent(action.getFormDefinition()));
+          }
         } else {
           EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
         }
