@@ -347,10 +347,16 @@ public class ServerFetcher {
   private void downloadSubmission(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd, FormStatus fs,
       String uri) throws Exception {
 
-    if ( formDatabase.hasRecordedInstance(uri) != null ) {
-      logger.info("already present - skipping fetch: " + uri );
-      return;
-    }
+      File instanceFolder = formDatabase.hasRecordedInstance(uri);
+      if ( instanceFolder != null ) {
+          //check if the submission file is present in the folder before skipping
+          File instance = new File(instanceFolder, "submission.xml");
+          File instanceEncrypted = new File(instanceFolder, "submission.xml.enc");
+          if (instance.exists() || instanceEncrypted.exists()) {
+              logger.info("already present - skipping fetch: " + uri );
+              return;
+          }
+      }
 
     String formId = lfd.getSubmissionKey(uri);
 
