@@ -73,4 +73,10 @@ public class MessageStrings {
 
   public static final String ERROR_DIALOG_TITLE =
       "ODK Briefcase Action Failed";
+  
+  public static final String PROXY_HOST = "Host";
+  public static final String PROXY_PORT = "Port";
+  public static final String PROXY_SCHEMA = "Schema";
+
+
 }

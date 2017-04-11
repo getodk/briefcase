@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -48,6 +49,7 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.javarosa.core.model.utils.DateUtils;
 
 /**
@@ -319,11 +321,22 @@ public final class WebUtils {
 	      .setCircularRedirectsAllowed(true)
 	      .setTargetPreferredAuthSchemes(targetPreferredAuthSchemes)
 	      .build();
-	
-      CloseableHttpClient httpClient = HttpClientBuilder.create()
-          .setDefaultSocketConfig(socketConfig)
-          .setDefaultRequestConfig(requestConfig).build();
-
+     
+      boolean useProxy = true;
+      CloseableHttpClient httpClient;
+      HttpHost proxy = new HttpHost("HOST", 0, "http");
+      DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+      if (useProxy) {
+    	   httpClient = HttpClientBuilder.create()
+    	          .setDefaultSocketConfig(socketConfig)
+    	          .setDefaultRequestConfig(requestConfig)
+    	          .setRoutePlanner(routePlanner).build();
+      } else {
+    	   httpClient = HttpClientBuilder.create()
+    	          .setDefaultSocketConfig(socketConfig)
+    	          .setDefaultRequestConfig(requestConfig).build();
+      }
+      
       return httpClient;
 	}
 
