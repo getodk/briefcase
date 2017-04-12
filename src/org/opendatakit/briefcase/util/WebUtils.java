@@ -324,22 +324,22 @@ public final class WebUtils {
 	      .setTargetPreferredAuthSchemes(targetPreferredAuthSchemes)
 	      .build();
      
-      CloseableHttpClient httpClient;
-     
-      if (BriefcasePreferences.getBriefCaseProxyType().equals(ProxyConnection.ProxyType.NO_PROXY.toString())) {
-    	  httpClient = HttpClientBuilder.create()
-    	          .setDefaultSocketConfig(socketConfig)
-    	          .setDefaultRequestConfig(requestConfig).build();
-      } else {
-    	  HttpHost proxy = new HttpHost(BriefcasePreferences.getBriefCaseProxyHost(),
-    			  						Integer.parseInt(BriefcasePreferences.getBriefCaseProxyPort()),
-    			  						BriefcasePreferences.getBriefCaseProxyType().toLowerCase());
-          DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
-    	  httpClient = HttpClientBuilder.create()
-    	          .setDefaultSocketConfig(socketConfig)
-    	          .setDefaultRequestConfig(requestConfig)
-    	          .setRoutePlanner(routePlanner).build();
-      }
+     CloseableHttpClient httpClient;
+
+     if (BriefcasePreferences.getBriefCaseProxyType().equals(ProxyConnection.ProxyType.NO_PROXY.toString())) {
+    	 httpClient = HttpClientBuilder.create()
+    			 .setDefaultSocketConfig(socketConfig)
+    			 .setDefaultRequestConfig(requestConfig).build();
+     } else {
+    	 HttpHost proxy = new HttpHost(BriefcasePreferences.getBriefCaseProxyHost(),
+    			 Integer.parseInt(BriefcasePreferences.getBriefCaseProxyPort()),
+    			 BriefcasePreferences.getBriefCaseProxyType().toLowerCase());
+    	 DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+    	 httpClient = HttpClientBuilder.create()
+    			 .setDefaultSocketConfig(socketConfig)
+    			 .setDefaultRequestConfig(requestConfig)
+    			 .setRoutePlanner(routePlanner).build();
+     }
       
       return httpClient;
 	}
