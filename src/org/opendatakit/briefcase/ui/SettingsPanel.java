@@ -126,9 +126,26 @@ public class SettingsPanel extends JPanel{
     	navOrder.add(lblBriefcaseDirectory);
     	navOrder.add(txtBriefcaseDir);
     	navOrder.add(btnChoose);
+    	
+    	setCurrentProxySettings();
     }
 
-    public ArrayList<Component> getTraversalOrdering() {
+    private void setCurrentProxySettings() {
+    	String currentProxyType = BriefcasePreferences.getBriefCaseProxyType();
+		if (currentProxyType.equals(ProxyConnection.ProxyType.NO_PROXY.toString())){
+			schemaComboBox.setSelectedIndex(0);
+		} else if (currentProxyType.equals(ProxyConnection.ProxyType.HTTP.toString())) {
+			schemaComboBox.setSelectedIndex(1);
+		} else {
+			schemaComboBox.setSelectedIndex(2);
+		}
+		txtHost.setText(BriefcasePreferences.getBriefCaseProxyHost());
+		txtHost.setEnabled(false);
+		txtPort.setText(BriefcasePreferences.getBriefCaseProxyPort());
+		txtPort.setEnabled(false);
+	}
+
+	public ArrayList<Component> getTraversalOrdering() {
         return navOrder;
     }
 

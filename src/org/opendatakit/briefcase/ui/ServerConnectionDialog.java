@@ -213,7 +213,7 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
         this.setVisible(false);
       } else {
         ODKOptionPane.showErrorDialog(this,
-            errorString, "Invalid Server URL");
+            errorString+MessageStrings.PROXY_SET_ADVICE, "Invalid Server URL");
         okButton.setEnabled(true);
         cancelButton.setEnabled(true);
       }
