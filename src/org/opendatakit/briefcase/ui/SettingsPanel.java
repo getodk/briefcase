@@ -158,26 +158,26 @@ public class SettingsPanel extends JPanel{
     
     class ProxyConnectionCreateListener implements ActionListener {
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-        	ProxyConnection.ProxyType proxyType;
-            if (schemaComboBox.getSelectedIndex() == 0) {
-            	proxyType = ProxyConnection.ProxyType.NO_PROXY;
-            } else if (schemaComboBox.getSelectedIndex() == 1) {
-            	proxyType = ProxyConnection.ProxyType.HTTP;
-            } else {
-            	proxyType = ProxyConnection.ProxyType.HTTPS;
-            }
-            try {
-				BriefcasePreferences.setBriefcaseProxyProperty(new ProxyConnection(txtHost.getText(), Integer.parseInt(txtPort.getText()), proxyType));
-				txtHost.setEnabled(false);
-				txtPort.setEnabled(false);
-			} catch (NumberFormatException e1) {
-				JOptionPane.showMessageDialog(new JFrame(), MessageStrings.PORT_ERROR_MESSAGE, "Dialog",
-				        JOptionPane.ERROR_MESSAGE);
-				e1.printStackTrace();
-			}
-        }
+    	@Override
+    	public void actionPerformed(ActionEvent e) {
+    		ProxyConnection.ProxyType proxyType;
+    		if (schemaComboBox.getSelectedIndex() == 0) {
+    			proxyType = ProxyConnection.ProxyType.NO_PROXY;
+    		} else if (schemaComboBox.getSelectedIndex() == 1) {
+    			proxyType = ProxyConnection.ProxyType.HTTP;
+    		} else {
+    			proxyType = ProxyConnection.ProxyType.HTTPS;
+    		}
+    		try {
+    			BriefcasePreferences.setBriefcaseProxyProperty(new ProxyConnection(txtHost.getText(), Integer.parseInt(txtPort.getText()), proxyType));
+    			txtHost.setEnabled(false);
+    			txtPort.setEnabled(false);
+    		} catch (NumberFormatException e1) {
+    			JOptionPane.showMessageDialog(new JFrame(), MessageStrings.PORT_ERROR_MESSAGE, "Dialog",
+    					JOptionPane.ERROR_MESSAGE);
+    			e1.printStackTrace();
+    		}
+    	}
 
     }
 }
