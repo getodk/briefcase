@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 
+import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.ProxyConnection;
+
 /**
  *
  */
@@ -29,7 +32,7 @@ public class SettingsPanel extends JPanel{
     private JLabel lblPort;
     private JTextField txtPort;
     private JButton btnSave;
-    private JComboBox comboBox;
+    private JComboBox schemaComboBox;
     private JLabel lblGeneralSettings;
     private JLabel lblProxySettings;
 
@@ -44,27 +47,25 @@ public class SettingsPanel extends JPanel{
 
         btnChoose = new JButton("Change...");
         btnChoose.addActionListener(new FolderActionListener());
-        
-        lblSchema = new JLabel("Schema");
-        
-        lblHost = new JLabel("Host");
-        
+                
+        lblHost = new JLabel(MessageStrings.PROXY_HOST);
         txtHost = new JTextField();
         txtHost.setColumns(10);
         
-        lblPort = new JLabel("Port");
-        
+        lblPort = new JLabel(MessageStrings.PROXY_PORT);
         txtPort = new JTextField();
         txtPort.setColumns(10);
         
-        btnSave = new JButton("Save");
-        
+        lblSchema = new JLabel(MessageStrings.PROXY_SCHEMA);
         String[] petStrings = { "No Proxy", "http", "https"};
-        comboBox = new JComboBox<String>(petStrings);
+        schemaComboBox = new JComboBox(petStrings);
+        schemaComboBox.addActionListener(new ProxyTypeChangeListener());
         
-        lblGeneralSettings = new JLabel("<HTML><U>General Settings</U></HTML>");
+        btnSave = new JButton("Save");
+        btnSave.addActionListener(new ProxyConnectionCreateListener());
         
-        lblProxySettings = new JLabel("<HTML><U>Proxy Settings</U></HTML>");
+        lblGeneralSettings = new JLabel(MessageStrings.GENERAL_SETTINGS_STRING);
+        lblProxySettings = new JLabel(MessageStrings.PROXY_SETTINGS_STRING);
 
         GroupLayout groupLayout = new GroupLayout(this);
         groupLayout.setHorizontalGroup(
@@ -75,7 +76,7 @@ public class SettingsPanel extends JPanel{
         				.addGroup(groupLayout.createSequentialGroup()
         					.addComponent(lblSchema)
         					.addGap(4)
-        					.addComponent(comboBox, 0, 64, Short.MAX_VALUE)
+        					.addComponent(schemaComboBox, 0, 64, Short.MAX_VALUE)
         					.addPreferredGap(ComponentPlacement.RELATED)
         					.addComponent(lblHost)
         					.addGap(4)
@@ -111,7 +112,7 @@ public class SettingsPanel extends JPanel{
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
         				.addComponent(lblSchema)
-        				.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+        				.addComponent(schemaComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
         				.addComponent(txtHost, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
         				.addComponent(lblHost)
         				.addComponent(txtPort, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -141,6 +142,41 @@ public class SettingsPanel extends JPanel{
         public void actionPerformed(ActionEvent e) {
             // briefcase...
             parentWindow.establishBriefcaseStorageLocation(true);
+        }
+
+    }
+    
+    class ProxyTypeChangeListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+        	txtHost.setEnabled(true);
+        	txtPort.setEnabled(true);
+        }
+
+    }
+    
+    class ProxyConnectionCreateListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+        	ProxyConnection.ProxyType proxyType;
+            if (schemaComboBox.getSelectedIndex() == 0) {
+            	proxyType = ProxyConnection.ProxyType.NO_PROXY;
+            } else if (schemaComboBox.getSelectedIndex() == 1) {
+            	proxyType = ProxyConnection.ProxyType.HTTP;
+            } else {
+            	proxyType = ProxyConnection.ProxyType.HTTPS;
+            }
+            try {
+				BriefcasePreferences.setBriefcaseProxyProperty(new ProxyConnection(txtHost.getText(), Integer.parseInt(txtPort.getText()), proxyType));
+				txtHost.setEnabled(false);
+				txtPort.setEnabled(false);
+			} catch (NumberFormatException e1) {
+				JOptionPane.showMessageDialog(new JFrame(), MessageStrings.PORT_ERROR_MESSAGE, "Dialog",
+				        JOptionPane.ERROR_MESSAGE);
+				e1.printStackTrace();
+			}
         }
 
     }

@@ -77,6 +77,10 @@ public class MessageStrings {
   public static final String PROXY_HOST = "Host";
   public static final String PROXY_PORT = "Port";
   public static final String PROXY_SCHEMA = "Schema";
+  public static final String GENERAL_SETTINGS_STRING = "<HTML><U>General Settings</U></HTML>";
+  public static final String PROXY_SETTINGS_STRING = "<HTML><U>Proxy Settings</U></HTML>";
+  public static final String PORT_ERROR_MESSAGE = "Port should be a number";
+
 
 
 }
