@@ -45,7 +45,7 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
   JEditorPane lblTheBriefcaseStorage;
   private JTextField txtBriefcaseLocation;
   private JButton btnOK;
-  private JButton btnCancel;
+  private JButton btnQuit;
   private boolean isCancelled = false;
 
   public BriefcaseStorageLocationDialog(Window app) {
@@ -102,13 +102,12 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
         }
       }});
     
-    btnCancel = new JButton("Cancel");
-    btnCancel.addActionListener(new ActionListener(){
+    btnQuit = new JButton("Quit");
+    btnQuit.addActionListener(new ActionListener(){
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        isCancelled = true;
-        BriefcaseStorageLocationDialog.this.setVisible(false);
+        System.exit(0);
       }});
     
     GroupLayout groupLayout = new GroupLayout(getContentPane());
@@ -125,7 +124,7 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
             .addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
                   .addComponent(btnOK)
                   .addPreferredGap(ComponentPlacement.RELATED)
-                  .addComponent(btnCancel))))
+                  .addComponent(btnQuit))))
         .addContainerGap()
     );
     groupLayout.setVerticalGroup(groupLayout.createSequentialGroup()
@@ -140,7 +139,7 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
           .addPreferredGap(ComponentPlacement.RELATED)
           .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
             .addComponent(btnOK)
-            .addComponent(btnCancel))
+            .addComponent(btnQuit))
           .addContainerGap());
     getContentPane().setLayout(groupLayout);   
     pack();
@@ -178,5 +177,16 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
         txtBriefcaseLocation.setText(briefcasePath + File.separator + FileSystemUtils.BRIEFCASE_DIR);
       }
     }
+  }
+
+  public void updateForSettingsPage() {
+	btnQuit.setText("Cancel");
+	btnQuit.removeActionListener(btnQuit.getActionListeners()[0]);
+	btnQuit.addActionListener(new ActionListener(){
+	  @Override
+	  public void actionPerformed(ActionEvent e) {
+		  isCancelled = true;
+	      BriefcaseStorageLocationDialog.this.setVisible(false);
+	  }});
   }
 }

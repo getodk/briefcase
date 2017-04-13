@@ -16,28 +16,6 @@
 
 package org.opendatakit.briefcase.ui;
 
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.swing.JButton;
-import javax.swing.JOptionPane;
-import javax.swing.JTable;
-import javax.swing.UIManager;
-import javax.swing.RowSorter;
-import javax.swing.SortOrder;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumnModel;
-import javax.swing.table.TableRowSorter;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
@@ -46,6 +24,27 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatus.TransferType;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsSucceededEvent;
+
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.RowSorter;
+import javax.swing.SortOrder;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+import org.opendatakit.briefcase.util.ServerFetcher;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class FormTransferTable extends JTable {
 
@@ -214,6 +213,16 @@ public class FormTransferTable extends JTable {
       }
       return selected;
     }
+    
+    public List<FormStatus> getSelectedNonActiveForms() {
+        List<FormStatus> selected = new ArrayList<FormStatus>();
+        for (FormStatus s : formStatuses) {
+      	  if (s.isSelected() && s.getStatusString().isEmpty()) {
+            selected.add(s);
+          }
+        }
+        return selected;
+      }
 
     @Override
     public int getRowCount() {
@@ -251,10 +260,19 @@ public class FormTransferTable extends JTable {
     }
 
     public boolean isCellEditable(int row, int col) {
+	  // While the table is in active transfer state, you cannot de-select
+	  // already selected forms
+	  if (!formStatuses.get(row).getStatusString().isEmpty() && !isTransferTerminated(formStatuses.get(row).getStatusString())) {
+		return false;
+	  }
       return col == 0; // only the checkbox...
     }
 
-    public void setValueAt(Object value, int row, int col) {
+    private boolean isTransferTerminated(String statusString) {
+      return statusString.equals(ServerFetcher.SUCCESS_STATUS) || statusString.equals(ServerFetcher.FAILED_STATUS) ;
+    }
+
+	public void setValueAt(Object value, int row, int col) {
       FormStatus status = formStatuses.get(row);
       switch (col) {
       case 0:
@@ -380,4 +398,10 @@ public class FormTransferTable extends JTable {
     FormTransferTableModel model = (FormTransferTableModel) this.dataModel;
     return model.getSelectedForms();
   }
+  
+  public List<FormStatus> getSelectedNonActiveForms() {
+    FormTransferTableModel model = (FormTransferTableModel) this.dataModel;
+    return model.getSelectedNonActiveForms();
+  }
+  
 }
