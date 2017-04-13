@@ -16,6 +16,17 @@
 
 package org.opendatakit.briefcase.util;
 
+import org.bouncycastle.openssl.PEMReader;
+import org.bushe.swing.event.EventBus;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.ExportFailedEvent;
+import org.opendatakit.briefcase.model.ExportProgressEvent;
+import org.opendatakit.briefcase.model.ExportSucceededEvent;
+import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
+import org.opendatakit.briefcase.model.ExportType;
+import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.ui.ODKOptionPane;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,16 +36,6 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import org.bouncycastle.openssl.PEMReader;
-import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.ExportFailedEvent;
-import org.opendatakit.briefcase.model.ExportProgressEvent;
-import org.opendatakit.briefcase.model.ExportSucceededEvent;
-import org.opendatakit.briefcase.model.ExportType;
-import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.ui.ODKOptionPane;
 
 public class ExportAction {
 
@@ -56,7 +57,16 @@ public class ExportAction {
         boolean allSuccessful = true;
         allSuccessful = action.doAction();
         if (allSuccessful) {
-          EventBus.publish(new ExportSucceededEvent(action.getFormDefinition()));
+          if (action.totalFilesSkipped() == FilesSkipped.SOME) {
+            EventBus.publish(new ExportSucceededWithErrorsEvent(
+                    action.getFormDefinition()));
+          }
+          else  if (action.totalFilesSkipped() == FilesSkipped.ALL){
+            // None of the instances were exported
+            EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
+            } else {
+            EventBus.publish(new ExportSucceededEvent(action.getFormDefinition()));
+          }
         } else {
           EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
         }
