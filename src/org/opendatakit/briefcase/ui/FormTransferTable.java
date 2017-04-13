@@ -262,13 +262,13 @@ public class FormTransferTable extends JTable {
     public boolean isCellEditable(int row, int col) {
 	  // While the table is in active transfer state, you cannot de-select
 	  // already selected forms
-	  if (!formStatuses.get(row).getStatusString().isEmpty() && !isTerminated(formStatuses.get(row).getStatusString())) {
+	  if (!formStatuses.get(row).getStatusString().isEmpty() && !isTransferTerminated(formStatuses.get(row).getStatusString())) {
 		return false;
 	  }
       return col == 0; // only the checkbox...
     }
 
-    private boolean isTerminated(String statusString) {
+    private boolean isTransferTerminated(String statusString) {
       return statusString.equals(ServerFetcher.SUCCESS_STATUS) || statusString.equals(ServerFetcher.FAILED_STATUS) ;
     }
 
