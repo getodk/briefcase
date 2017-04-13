@@ -1,7 +1,7 @@
-compile:
-  override:
-    - ./gradlew jar
-
 test:
+  override:
+    - ./gradlew check jar
+
   post:
     - cp -r build/libs $CIRCLE_ARTIFACTS
+    - cp -r build/reports/checkstyle $CIRCLE_TEST_REPORTS

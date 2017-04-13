@@ -29,7 +29,9 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -117,22 +119,43 @@ public class ExportToCsv implements ITransformFormAction {
       }
     }
 
-    if (exportMedia) {
-       if (!outputMediaDir.exists()) {
-         if (!outputMediaDir.mkdir()) {
-           EventBus
-               .publish(new ExportProgressEvent("Unable to create destination media directory"));
-           return false;
-         }
-       }
-    }
-
     if (!processFormDefinition()) {
       // weren't able to initialize the csv file...
       return false;
     }
 
     File[] instances = instancesDir.listFiles();
+
+    // Sorts the instances by the submission date. If no submission date, we
+    // assume it to be latest.
+    if (instances != null) {
+      Arrays.sort(instances, new Comparator<File>() {
+        public int compare(File f1, File f2) {
+          try {
+            if (f1.isDirectory() && f2.isDirectory()) {
+              File submission1 = new File(f1, "submission.xml");
+              String submissionDate1String = XmlManipulationUtils.parseXml(submission1).getRootElement()
+                  .getAttributeValue(null, "submissionDate");
+
+              File submission2 = new File(f2, "submission.xml");
+              String submissionDate2String = XmlManipulationUtils.parseXml(submission2).getRootElement()
+                  .getAttributeValue(null, "submissionDate");
+
+              Date submissionDate1 = StringUtils.isNotEmptyNotNull(submissionDate1String)
+                  ? WebUtils.parseDate(submissionDate1String) : new Date();
+              Date submissionDate2 = StringUtils.isNotEmptyNotNull(submissionDate2String)
+                  ? WebUtils.parseDate(submissionDate2String) : new Date();
+              return submissionDate1.compareTo(submissionDate2);
+            }
+          } catch (ParsingException e) {
+            e.printStackTrace();
+          } catch (FileSystemException e) {
+            e.printStackTrace();
+          }
+          return 0;
+        }
+      });
+    }
 
     for (File instanceDir : instances) {
       if ( terminationFuture.isCancelled() ) {
@@ -432,6 +455,13 @@ public class ExportToCsv implements ITransformFormAction {
             first = false;
           } else {
             if (exportMedia) {
+               if (!outputMediaDir.exists()) {
+                  if (!outputMediaDir.mkdir()) {
+                    EventBus.publish(new ExportProgressEvent("Unable to create destination media directory"));
+                    return false;
+                  }
+               }
+               
                int dotIndex = binaryFilename.lastIndexOf(".");
                String namePart = (dotIndex == -1) ? binaryFilename : binaryFilename.substring(0,
                    dotIndex);
