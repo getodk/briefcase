@@ -57,8 +57,8 @@ import org.opendatakit.briefcase.util.FileSystemUtils;
 public class ExportPanel extends JPanel {
 
   /**
-	 *
-	 */
+   *
+   */
   private static final long serialVersionUID = 7169316129011796197L;
 
   public static final String TAB_NAME = "Export";
