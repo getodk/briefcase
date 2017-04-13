@@ -456,11 +456,12 @@ public class ExportToCsv implements ITransformFormAction {
             first = false;
           } else {
             if (exportMedia) {
-              if (!outputMediaDir.exists()) {
+               if (!outputMediaDir.exists()) {
                   if (!outputMediaDir.mkdir()) {
                     EventBus.publish(new ExportProgressEvent("Unable to create destination media directory"));
                     return false;
                   }
+               }
 
                int dotIndex = binaryFilename.lastIndexOf(".");
                String namePart = (dotIndex == -1) ? binaryFilename : binaryFilename.substring(0,
