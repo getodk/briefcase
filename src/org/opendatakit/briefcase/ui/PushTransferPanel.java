@@ -159,7 +159,7 @@ public class PushTransferPanel extends JPanel {
     public void actionPerformed(ActionEvent e) {
       EndPointType destinationSelection = getSelectedEndPointType();
 
-      List<FormStatus> formsToTransfer = formTransferTable.getSelectedForms();
+      List<FormStatus> formsToTransfer = formTransferTable.getSelectedNonActiveForms();
       // clear the transfer history...
       for (FormStatus fs : formsToTransfer) {
         fs.clearStatusHistory();
