@@ -49,12 +49,15 @@ public class ServerFetcher {
   private static final Log logger = LogFactory.getLog(ServerFetcher.class);
 
   private static final String MD5_COLON_PREFIX = "md5:";
-
+  
   private static final int MAX_ENTRIES = 100;
 
   ServerConnectionInfo serverInfo;
 
   private TerminationFuture terminationFuture;
+
+  public static String SUCCESS_STATUS = "SUCCESS!";
+  public static String FAILED_STATUS = "FAILED.";
 
   public static class FormListException extends Exception {
 
@@ -200,10 +203,10 @@ public class ServerFetcher {
 
         // on success, we haven't actually set a success event (because we don't know we're done)
         if ( successful ) {
-          fs.setStatusString("SUCCESS!", true);
+          fs.setStatusString(SUCCESS_STATUS, true);
           EventBus.publish(new FormStatusEvent(fs));
         } else {
-          fs.setStatusString("FAILED.", true);
+          fs.setStatusString(FAILED_STATUS, true);
           EventBus.publish(new FormStatusEvent(fs));
         }
 

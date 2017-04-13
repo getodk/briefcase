@@ -46,6 +46,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatus.TransferType;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsSucceededEvent;
+import org.opendatakit.briefcase.util.ServerFetcher;
 
 public class FormTransferTable extends JTable {
 
@@ -53,7 +54,6 @@ public class FormTransferTable extends JTable {
 	 * 
 	 */
   private static final long serialVersionUID = 8511088963758308085L;
-  private static boolean transferStateActive;
 
   public class JTableButtonRenderer implements TableCellRenderer {     
 
@@ -265,13 +265,17 @@ public class FormTransferTable extends JTable {
     public boolean isCellEditable(int row, int col) {
 	  // While the table is in active transfer state, you cannot de-select
 	  // already selected forms
-	  if (!formStatuses.get(row).getStatusString().isEmpty() && transferStateActive) {
+	  if (!formStatuses.get(row).getStatusString().isEmpty() && !isTerminated(formStatuses.get(row).getStatusString())) {
 		return false;
 	  }
       return col == 0; // only the checkbox...
     }
 
-    public void setValueAt(Object value, int row, int col) {
+    private boolean isTerminated(String statusString) {
+		return statusString.equals(ServerFetcher.SUCCESS_STATUS) || statusString.equals(ServerFetcher.FAILED_STATUS) ;
+	}
+
+	public void setValueAt(Object value, int row, int col) {
       FormStatus status = formStatuses.get(row);
       switch (col) {
       case 0:
@@ -402,12 +406,5 @@ public class FormTransferTable extends JTable {
     FormTransferTableModel model = (FormTransferTableModel) this.dataModel;
     return model.getSelectedNonActiveForms();
   }
-
-  public void setActiveTransferState(boolean active) {
-	transferStateActive = active;
-  }
   
-  public boolean getActiveTransferState() {
-	return transferStateActive;
-  }
 }
