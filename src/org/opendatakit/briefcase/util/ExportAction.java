@@ -16,16 +16,6 @@
 
 package org.opendatakit.briefcase.util;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -36,6 +26,16 @@ import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ExportAction {
 
@@ -62,7 +62,7 @@ public class ExportAction {
                     action.getFormDefinition()));
           }
           else  if (action.totalFilesSkipped() == FilesSkipped.ALL){
-            //Non of the instances were exported
+            // None of the instances were exported
             EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
             } else {
             EventBus.publish(new ExportSucceededEvent(action.getFormDefinition()));
