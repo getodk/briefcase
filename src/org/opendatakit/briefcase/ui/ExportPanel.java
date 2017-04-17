@@ -577,6 +577,7 @@ public class ExportPanel extends JPanel {
     lblExporting.setText("SUCCEEDED!");
     setActiveExportState(false);
   }
+
   @EventSubscriber(eventClass = ExportSucceededWithErrorsEvent.class)
   public void successfulCompletionWithErrors(ExportSucceededWithErrorsEvent event) {
     exportStatusList.append("\n").append("SUCCEEDED, BUT WITH ERRORS!");

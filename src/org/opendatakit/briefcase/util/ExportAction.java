@@ -60,11 +60,10 @@ public class ExportAction {
           if (action.totalFilesSkipped() == FilesSkipped.SOME) {
             EventBus.publish(new ExportSucceededWithErrorsEvent(
                     action.getFormDefinition()));
-          }
-          else  if (action.totalFilesSkipped() == FilesSkipped.ALL){
+          } else if (action.totalFilesSkipped() == FilesSkipped.ALL){
             // None of the instances were exported
             EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
-            } else {
+          } else {
             EventBus.publish(new ExportSucceededEvent(action.getFormDefinition()));
           }
         } else {
