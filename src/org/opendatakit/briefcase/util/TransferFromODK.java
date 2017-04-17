@@ -324,10 +324,10 @@ public class TransferFromODK implements ITransferFromSourceAction {
         }
       } finally {
         if ( isSuccessful ) {
-          fs.setStatusString("SUCCESS!", true);
+          fs.setStatusString(ServerFetcher.SUCCESS_STATUS, true);
           EventBus.publish(new FormStatusEvent(fs));
         } else {
-          fs.setStatusString("FAILED.", true);
+          fs.setStatusString(ServerFetcher.FAILED_STATUS, true);
           EventBus.publish(new FormStatusEvent(fs));
         }
       }

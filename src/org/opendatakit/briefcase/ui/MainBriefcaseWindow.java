@@ -396,6 +396,12 @@ public class MainBriefcaseWindow implements WindowListener {
       // ask for new briefcase location...
       BriefcaseStorageLocationDialog fs =
           new BriefcaseStorageLocationDialog(MainBriefcaseWindow.this.frame);
+      
+      // If reset is not needed, dialog has been triggered from Settings page
+      if(!reset) {
+    	  fs.updateForSettingsPage();
+      }
+      
       fs.setVisible(true);
       if ( fs.isCancelled() ) {
         // if we need to reset the briefcase location,

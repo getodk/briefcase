@@ -16,8 +16,28 @@
 
 package org.opendatakit.briefcase.util;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
+import org.bushe.swing.event.EventBus;
+import org.javarosa.core.model.instance.AbstractTreeElement;
+import org.javarosa.core.model.instance.TreeElement;
+import org.kxml2.kdom.Document;
+import org.kxml2.kdom.Element;
+import org.kxml2.kdom.Node;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.CryptoException;
+import org.opendatakit.briefcase.model.ExportProgressEvent;
+import org.opendatakit.briefcase.model.FileSystemException;
+import org.opendatakit.briefcase.model.ParsingException;
+import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
+
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.NoSuchPaddingException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -38,26 +58,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.NoSuchPaddingException;
-
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.FileUtils;
-import org.bushe.swing.event.EventBus;
-import org.javarosa.core.model.instance.AbstractTreeElement;
-import org.javarosa.core.model.instance.TreeElement;
-import org.kxml2.kdom.Document;
-import org.kxml2.kdom.Element;
-import org.kxml2.kdom.Node;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.CryptoException;
-import org.opendatakit.briefcase.model.ExportProgressEvent;
-import org.opendatakit.briefcase.model.FileSystemException;
-import org.opendatakit.briefcase.model.ParsingException;
-import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
-
 public class ExportToCsv implements ITransformFormAction {
 
   private static final String MEDIA_DIR = "media";
@@ -75,6 +75,8 @@ public class ExportToCsv implements ITransformFormAction {
   Date startDate;
   Date endDate;
   boolean overwrite = false;
+  int totalFilesSkipped = 0;
+  int totalInstances = 0;
   
   
   // Default briefcase constructor
@@ -124,7 +126,13 @@ public class ExportToCsv implements ITransformFormAction {
       return false;
     }
 
-    File[] instances = instancesDir.listFiles();
+    File[] instances = instancesDir.listFiles(new FileFilter() {
+      public boolean accept(File file) {
+        // do we have a folder with submission.xml inside
+        return file.isDirectory() && new File(file, "submission.xml").exists();
+      }
+    });
+    totalInstances = instances.length;
 
     // Sorts the instances by the submission date. If no submission date, we
     // assume it to be latest.
@@ -461,7 +469,7 @@ public class ExportToCsv implements ITransformFormAction {
                     return false;
                   }
                }
-               
+
                int dotIndex = binaryFilename.lastIndexOf(".");
                String namePart = (dotIndex == -1) ? binaryFilename : binaryFilename.substring(0,
                    dotIndex);
@@ -881,21 +889,18 @@ public class ExportToCsv implements ITransformFormAction {
               instanceDir, unEncryptedDir);
           doc = outcome.submission;
           isValidated = outcome.isValidated;
-        } catch (ParsingException e) {
-          e.printStackTrace();
+        } catch (ParsingException | CryptoException | FileSystemException e) {
+          //Was unable to parse file or decrypt file or a file system error occurred
+          //Hence skip this instance
           EventBus.publish(new ExportProgressEvent("Error decrypting submission "
-              + instanceDir.getName() + " Cause: " + e.toString()));
-          return false;
-        } catch (FileSystemException e) {
-          e.printStackTrace();
-          EventBus.publish(new ExportProgressEvent("Error decrypting submission "
-              + instanceDir.getName() + " Cause: " + e.toString()));
-          return false;
-        } catch (CryptoException e) {
-          e.printStackTrace();
-          EventBus.publish(new ExportProgressEvent("Error decrypting submission "
-              + instanceDir.getName() + " Cause: " + e.toString()));
-          return false;
+                  + instanceDir.getName() + " Cause: " + e.toString() + " skipping...."));
+
+          log.info("Error decrypting submission "
+                  + instanceDir.getName() + " Cause: " + e.toString());
+
+          //update total number of files skipped
+          totalFilesSkipped++;
+          return true;
         }
       }
 
@@ -989,5 +994,19 @@ public class ExportToCsv implements ITransformFormAction {
   @Override
   public BriefcaseFormDefinition getFormDefinition() {
     return briefcaseLfd;
+  }
+
+  @Override
+  public FilesSkipped totalFilesSkipped() {
+    //Determine if all files where skipped or just some
+    //Note that if totalInstances = 0 then no files were skipped
+    if (totalInstances == 0 || totalFilesSkipped == 0) {
+      return FilesSkipped.NONE;
+    }
+    if (totalFilesSkipped == totalInstances) {
+      return FilesSkipped.ALL;
+    } else {
+     return FilesSkipped.SOME;
+    }
   }
 }

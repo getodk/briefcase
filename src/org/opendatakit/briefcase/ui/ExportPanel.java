@@ -16,13 +16,22 @@
 
 package org.opendatakit.briefcase.ui;
 
-import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.ExportAbortEvent;
+import org.opendatakit.briefcase.model.ExportFailedEvent;
+import org.opendatakit.briefcase.model.ExportProgressEvent;
+import org.opendatakit.briefcase.model.ExportSucceededEvent;
+import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
+import org.opendatakit.briefcase.model.ExportType;
+import org.opendatakit.briefcase.model.IFormDefinition;
+import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.TransferFailedEvent;
+import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
+import org.opendatakit.briefcase.util.ExportAction;
+import org.opendatakit.briefcase.util.FileSystemUtils;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
@@ -36,28 +45,19 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
-
-import org.bushe.swing.event.annotation.AnnotationProcessor;
-import org.bushe.swing.event.annotation.EventSubscriber;
-import org.opendatakit.briefcase.model.ExportAbortEvent;
-import org.opendatakit.briefcase.model.ExportFailedEvent;
-import org.opendatakit.briefcase.model.ExportProgressEvent;
-import org.opendatakit.briefcase.model.ExportSucceededEvent;
-import org.opendatakit.briefcase.model.ExportType;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.IFormDefinition;
-import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransferFailedEvent;
-import org.opendatakit.briefcase.model.TransferSucceededEvent;
-import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
-import org.opendatakit.briefcase.util.ExportAction;
-import org.opendatakit.briefcase.util.FileSystemUtils;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ExportPanel extends JPanel {
 
   /**
-	 *
-	 */
+   *
+   */
   private static final long serialVersionUID = 7169316129011796197L;
 
   public static final String TAB_NAME = "Export";
@@ -575,6 +575,13 @@ public class ExportPanel extends JPanel {
   public void successfulCompletion(ExportSucceededEvent event) {
     exportStatusList.append("\n").append("SUCCEEDED!");
     lblExporting.setText("SUCCEEDED!");
+    setActiveExportState(false);
+  }
+
+  @EventSubscriber(eventClass = ExportSucceededWithErrorsEvent.class)
+  public void successfulCompletionWithErrors(ExportSucceededWithErrorsEvent event) {
+    exportStatusList.append("\n").append("SUCCEEDED, BUT WITH ERRORS!");
+    lblExporting.setText("SUCCEEDED, BUT WITH ERRORS. SEE DETAILS!");
     setActiveExportState(false);
   }
 
