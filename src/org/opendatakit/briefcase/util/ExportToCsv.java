@@ -128,7 +128,8 @@ public class ExportToCsv implements ITransformFormAction {
 
     File[] instances = instancesDir.listFiles(new FileFilter() {
       public boolean accept(File file) {
-        return file.isDirectory();
+        // do we have a folder with submission.xml inside
+        return file.isDirectory() && new File(file, "submission.xml").exists();
       }
     });
     totalInstances = instances.length;
