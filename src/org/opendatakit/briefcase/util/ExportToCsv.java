@@ -1003,6 +1003,10 @@ public class ExportToCsv implements ITransformFormAction {
     if (totalInstances == 0 || totalFilesSkipped == 0) {
       return FilesSkipped.NONE;
     }
-    return totalFilesSkipped == totalInstances ? FilesSkipped.ALL : FilesSkipped.SOME;
+    if (totalFilesSkipped == totalInstances) {
+      return FilesSkipped.ALL;
+    } else {
+     return FilesSkipped.SOME;
+    }
   }
 }
