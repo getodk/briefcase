@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -48,7 +49,10 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.javarosa.core.model.utils.DateUtils;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.ProxyConnection;
 
 /**
  * Common utility methods for managing the credentials associated with the
@@ -320,10 +324,22 @@ public final class WebUtils {
 	      .setTargetPreferredAuthSchemes(targetPreferredAuthSchemes)
 	      .build();
 	
-      CloseableHttpClient httpClient = HttpClientBuilder.create()
-          .setDefaultSocketConfig(socketConfig)
-          .setDefaultRequestConfig(requestConfig).build();
-
+     CloseableHttpClient httpClient;
+     
+     if (BriefcasePreferences.getBriefCaseProxyType().equals(ProxyConnection.ProxyType.NO_PROXY.toString())) {
+   	  httpClient = HttpClientBuilder.create()
+   	          .setDefaultSocketConfig(socketConfig)
+   	          .setDefaultRequestConfig(requestConfig).build();
+     } else {
+   	  HttpHost proxy = new HttpHost(BriefcasePreferences.getBriefCaseProxyHost(),
+   			  						Integer.parseInt(BriefcasePreferences.getBriefCaseProxyPort()),
+   			  						BriefcasePreferences.getBriefCaseProxyType().toLowerCase());
+         DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+   	  httpClient = HttpClientBuilder.create()
+   	          .setDefaultSocketConfig(socketConfig)
+   	          .setDefaultRequestConfig(requestConfig)
+   	          .setRoutePlanner(routePlanner).build();
+     }
       return httpClient;
 	}
 
