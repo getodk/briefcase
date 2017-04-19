@@ -103,6 +103,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
     
     for (FormStatus fs : formsToTransfer) {
       boolean isSuccessful = true;
+      int instancesSkipped = 0;
       try {
         if ( terminationFuture.isCancelled() ) {
           fs.setStatusString("aborted. Skipping fetch of form and submissions...", true);
@@ -203,6 +204,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
     					allSuccessful = isSuccessful = false;
     		         fs.setStatusString("unable to rename form instance xml: " + e.getMessage(), false);
     			      EventBus.publish(new FormStatusEvent(fs));
+    			      instancesSkipped++;
     			      continue;
     				}
             	  }
@@ -263,6 +265,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                 if (same) {
                   fs.setStatusString("already present - skipping: " + xml.getName(), true);
                   EventBus.publish(new FormStatusEvent(fs));
+                  instancesSkipped++;
                   continue;
                 }
 
@@ -273,6 +276,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                   allSuccessful = isSuccessful = false;
                   fs.setStatusString("unable to copy saved instance: " + e.getMessage(), false);
                   EventBus.publish(new FormStatusEvent(fs));
+                  instancesSkipped++;
                   continue;
                 }
                 
@@ -324,8 +328,13 @@ public class TransferFromODK implements ITransferFromSourceAction {
         }
       } finally {
         if ( isSuccessful ) {
-          fs.setStatusString(ServerFetcher.SUCCESS_STATUS, true);
-          EventBus.publish(new FormStatusEvent(fs));
+          if (instancesSkipped == 0) {
+            fs.setStatusString(ServerFetcher.SUCCESS_STATUS, true);
+            EventBus.publish(new FormStatusEvent(fs));
+          } else {
+            fs.setStatusString(ServerFetcher.SUCCESS_WITH_ERRORS_STATUS, true);
+            EventBus.publish(new FormStatusEvent(fs));
+          }
         } else {
           fs.setStatusString(ServerFetcher.FAILED_STATUS, true);
           EventBus.publish(new FormStatusEvent(fs));
