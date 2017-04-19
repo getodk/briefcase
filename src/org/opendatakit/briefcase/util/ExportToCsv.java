@@ -70,6 +70,7 @@ public class ExportToCsv implements ITransformFormAction {
   BriefcaseFormDefinition briefcaseLfd;
   TerminationFuture terminationFuture;
   Map<TreeElement, OutputStreamWriter> fileMap = new HashMap<TreeElement, OutputStreamWriter>();
+  Map<String, String> fileHashMap = new HashMap<String, String>();
   
   boolean exportMedia = true;
   Date startDate;
@@ -479,11 +480,37 @@ public class ExportToCsv implements ITransformFormAction {
                String destBinaryFilename = binaryFilename;
                int version = 1;
                File destFile = new File(outputMediaDir, destBinaryFilename);
-               while (destFile.exists()) {
-                 destBinaryFilename = namePart + "-" + (++version) + extPart;
-                 destFile = new File(outputMediaDir, destBinaryFilename);
-               }
-               if ( binaryFile.exists() ) {
+               boolean exists = false;
+                String binaryFileHash = null;
+                String destFileHash = null;
+ 
+                if (destFile.exists() && binaryFile.exists()) {
+                   binaryFileHash = FileSystemUtils.getMd5Hash(binaryFile);
+                     
+                   while (destFile.exists()) {
+                  /* check if the contents of the destFile and binaryFile is same
+                   * if yes, skip the export of such file
+                   */
+ 
+                    if (fileHashMap.containsKey(destFile.getName())) {
+                       destFileHash = fileHashMap.get(destFile.getName());
+                    } else {
+                       destFileHash = FileSystemUtils.getMd5Hash(destFile);
+                       if (destFileHash != null) {
+                         fileHashMap.put(destFile.getName(), destFileHash);
+                       }
+                    }
+ 
+                    if (binaryFileHash != null && destFileHash != null && destFileHash.equals(binaryFileHash)) {
+                     exists = true;
+                     break;
+                    }
+ 
+                    destBinaryFilename = namePart + "-" + (++version) + extPart;
+                    destFile = new File(outputMediaDir, destBinaryFilename);
+                  }
+                }
+               if (binaryFile.exists() && exists == false) {
                  FileUtils.copyFile(binaryFile, destFile);
                }
                emitString(osw, first, MEDIA_DIR + File.separator + destFile.getName());
