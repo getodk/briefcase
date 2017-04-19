@@ -27,6 +27,7 @@ import org.kxml2.kdom.Node;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.CryptoException;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
+import org.opendatakit.briefcase.model.ExportProgressPercentageEvent;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -77,6 +78,7 @@ public class ExportToCsv implements ITransformFormAction {
   boolean overwrite = false;
   int totalFilesSkipped = 0;
   int totalInstances = 0;
+  int processedInstances = 0;
   
   
   // Default briefcase constructor
@@ -793,7 +795,11 @@ public class ExportToCsv implements ITransformFormAction {
           + instanceDir.getPath()));
       return false;
     }
+
+    processedInstances++;
+
     EventBus.publish(new ExportProgressEvent("Processing instance: " + instanceDir.getName()));
+    EventBus.publish(new ExportProgressPercentageEvent((processedInstances * 100.0) / totalInstances));
 
     // If we are encrypted, be sure the temporary directory
     // that will hold the unencrypted files is created and empty.
