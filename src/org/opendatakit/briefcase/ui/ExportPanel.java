@@ -24,6 +24,7 @@ import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
+import org.opendatakit.briefcase.model.ExportProgressPercentageEvent;
 import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.model.IFormDefinition;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -45,6 +46,8 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.JProgressBar;
+import javax.swing.BorderFactory;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -75,6 +78,7 @@ public class ExportPanel extends JPanel {
   private JButton btnChooseExportDirectory;
 
   private JLabel lblExporting;
+  private JProgressBar progressBar;
   private DetailButton btnDetails;
   private JButton btnExport;
   private JButton btnCancel;
@@ -355,6 +359,11 @@ public class ExportPanel extends JPanel {
     btnPemFileChooseButton.addActionListener(new PEMFileActionListener());
 
     lblExporting = new JLabel(EXPORTING_DOT_ETC);
+    lblExporting.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+    progressBar = new JProgressBar(0, 100);
+    progressBar.setVisible(false);
+    progressBar.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
     btnDetails = new DetailButton();
     btnDetails.setEnabled(false);
@@ -407,6 +416,7 @@ public class ExportPanel extends JPanel {
                 .addGroup(
                     Alignment.TRAILING,
                     groupLayout.createSequentialGroup().addPreferredGap(ComponentPlacement.RELATED)
+                        .addComponent(progressBar).addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(btnDetails).addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(btnExport).addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(btnCancel))).addContainerGap());
@@ -450,6 +460,7 @@ public class ExportPanel extends JPanel {
                     groupLayout
                         .createParallelGroup(Alignment.TRAILING)
                         .addComponent(lblExporting).addComponent(btnDetails)
+                        .addComponent(progressBar).addComponent(btnDetails)
                 .addComponent(btnExport).addComponent(btnCancel))
                 .addContainerGap()));
 
@@ -495,14 +506,8 @@ public class ExportPanel extends JPanel {
     }
   }
 
-  private void updateExportingLabel() {
-    String text = lblExporting.getText();
-    if (text.equals(EXPORTING_DOT_ETC)) {
-      text = "Exporting.";
-    } else {
-      text += ".";
-    }
-    lblExporting.setText(text);
+  private void updateProgressBar(double progress) {
+    progressBar.setValue((int)progress);
   }
 
   private void setTabEnabled(boolean active) {
@@ -527,9 +532,10 @@ public class ExportPanel extends JPanel {
       btnExport.setEnabled(false);
       // enable cancel button
       btnCancel.setEnabled(true);
-      // show downloading progress text
-      lblExporting.setText(EXPORTING_DOT_ETC);
+      // show downloading progress bar
+      progressBar.setVisible(true);
       // save the context of this export action
+      lblExporting.setText("");
       btnDetails.setContext();
       // reset the export details list
       exportStatusList.setLength(0);
@@ -547,6 +553,9 @@ public class ExportPanel extends JPanel {
       // disable cancel button
       btnCancel.setEnabled(false);
       // retain progress text (to display last export outcome)
+      // disable progress bar
+      progressBar.setVisible(false);
+      progressBar.setValue(0);
     }
     // remember state...
     exportStateActive = active;
@@ -561,7 +570,11 @@ public class ExportPanel extends JPanel {
   @EventSubscriber(eventClass = ExportProgressEvent.class)
   public void progress(ExportProgressEvent event) {
     exportStatusList.append("\n").append(event.getText());
-    updateExportingLabel();
+  }
+
+  @EventSubscriber(eventClass = ExportProgressPercentageEvent.class)
+  public void progressBar(ExportProgressPercentageEvent event) {
+    progressBar.setValue((int)event.getProgress());
   }
 
   @EventSubscriber(eventClass = ExportFailedEvent.class)
