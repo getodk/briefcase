@@ -78,7 +78,7 @@ public final class XFormParameters implements Comparable<Object> {
 		if ( cmp != 0 ) return cmp;
 		if ( ((modelVersion == null) ? (p.modelVersion == null) :
 				(p.modelVersion != null && modelVersion.equals(p.modelVersion))) ) {
-		   // uiVersion is ignored during comparisons and equality tests
+			// uiVersion is ignored during comparisons and equality tests
 			return 0;
 		} else if ( modelVersion == null ) {
 			return 1;
