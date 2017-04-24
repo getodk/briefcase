@@ -301,7 +301,7 @@ public final class WebUtils {
 	}
 
 	public static final HttpClient createHttpClient(int timeout) {
-		// configure connection
+	  // configure connection
 	  SocketConfig socketConfig = SocketConfig.copy(SocketConfig.DEFAULT).setSoTimeout(timeout).build();
 	  
      // if possible, bias toward digest auth (may not be in 4.0 beta 2)

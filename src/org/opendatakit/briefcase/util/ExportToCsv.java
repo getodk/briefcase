@@ -37,6 +37,7 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.NoSuchPaddingException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -75,7 +76,7 @@ public class ExportToCsv implements ITransformFormAction {
   Date endDate;
   boolean overwrite = false;
   int totalFilesSkipped = 0;
-  int totalIntances = 0;
+  int totalInstances = 0;
   
   
   // Default briefcase constructor
@@ -125,8 +126,13 @@ public class ExportToCsv implements ITransformFormAction {
       return false;
     }
 
-    File[] instances = instancesDir.listFiles();
-    totalIntances = instances.length;
+    File[] instances = instancesDir.listFiles(new FileFilter() {
+      public boolean accept(File file) {
+        // do we have a folder with submission.xml inside
+        return file.isDirectory() && new File(file, "submission.xml").exists();
+      }
+    });
+    totalInstances = instances.length;
 
     // Sorts the instances by the submission date. If no submission date, we
     // assume it to be latest.
@@ -994,9 +1000,13 @@ public class ExportToCsv implements ITransformFormAction {
   public FilesSkipped totalFilesSkipped() {
     //Determine if all files where skipped or just some
     //Note that if totalInstances = 0 then no files were skipped
-    if (totalIntances == 0) {
+    if (totalInstances == 0 || totalFilesSkipped == 0) {
       return FilesSkipped.NONE;
     }
-    return totalFilesSkipped == totalIntances ? FilesSkipped.ALL : FilesSkipped.SOME;
+    if (totalFilesSkipped == totalInstances) {
+      return FilesSkipped.ALL;
+    } else {
+     return FilesSkipped.SOME;
+    }
   }
 }

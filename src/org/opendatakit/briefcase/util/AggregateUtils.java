@@ -172,12 +172,14 @@ public class AggregateUtils {
           try {
             os.close();
           } catch (Exception e) {
+        	  e.printStackTrace();
           }
         }
         if (is != null) {
           try {
             is.close();
           } catch (Exception e) {
+        	  e.printStackTrace();
           }
         }
       }

@@ -186,7 +186,7 @@ public class BriefcaseFormDefinition implements IFormDefinition {
                 }
               } else {
                 if (!tmpFormFile.renameTo(revised)) {
-               // if cannot rename, try to copy instead (and mark for deletion)
+                  // if cannot rename, try to copy instead (and mark for deletion)
                   try {
                       FileUtils.copyFile(tmpFormFile,revised);
                       tmpFormFile.deleteOnExit();
@@ -228,7 +228,7 @@ public class BriefcaseFormDefinition implements IFormDefinition {
               }
             } else {
               if (!tmpFormFile.renameTo(briefcaseFormFile)) {
-             // if cannot rename, try to copy instead (and mark for deletion)
+                // if cannot rename, try to copy instead (and mark for deletion)
                 try {
                     FileUtils.copyFile(tmpFormFile,briefcaseFormFile);
                     tmpFormFile.deleteOnExit();

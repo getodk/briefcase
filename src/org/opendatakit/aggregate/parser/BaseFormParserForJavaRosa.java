@@ -123,11 +123,9 @@ public class BaseFormParserForJavaRosa {
   // result from comparing two XForms
   public static enum DifferenceResult {
     XFORMS_IDENTICAL, // instance and body are identical
-    XFORMS_SHARE_INSTANCE, // instances (including binding) identical; body
-                           // differs
+    XFORMS_SHARE_INSTANCE, // instances (including binding) identical; body differs
     XFORMS_SHARE_SCHEMA, // instances differ, but share common database schema
-    XFORMS_DIFFERENT, // instances differ significantly enough to affect
-                      // database schema
+    XFORMS_DIFFERENT, // instances differ significantly enough to affect database schema
     XFORMS_MISSING_VERSION, XFORMS_EARLIER_VERSION
   }
 
