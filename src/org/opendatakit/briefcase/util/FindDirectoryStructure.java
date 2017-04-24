@@ -46,7 +46,7 @@ public class FindDirectoryStructure {
    * positive results. Works for Windows, Mac, and Linux operating
    * systems.
    * 
-   * @return a List<File> containing matches of currently mounted file systems
+   * @return a {@link List} of {@link File}  containing matches of currently mounted file systems
    *         which contain the directoryStructureToSearchFor
    */
   public static List<File> searchMountedDrives() {
@@ -98,7 +98,7 @@ public class FindDirectoryStructure {
    * @param isDirectChild
    *          true if the 'odk/instances' should be immediately underneath.
    *          false if it should be one level down ('.../odk/instances').
-   * @return a List<File> containing mount points which contained the
+   * @return a {@link List} of {@link File} containing mount points which contained the
    *         given directory structure underneath them
    */
   private static List<File> search(File[] mounts, boolean isDirectChild) {
