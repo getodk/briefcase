@@ -6,9 +6,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    maven { 
-        url = 'https://oss.sonatype.org/content/groups/public' 
-    }
 }
 
 sourceSets {
@@ -32,7 +29,7 @@ dependencies {
     compile group: 'org.bushe', name: 'eventbus', version: '1.4'
     compile group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.5.2'
     compile group: 'net.sf.kxml', name: 'kxml2', version: '2.3.0'
-    compile group: 'org.opendatakit', name: 'opendatakit-javarosa', version: '2.1.0-SNAPSHOT'
+    compile group: 'org.opendatakit', name: 'opendatakit-javarosa', version: '2.1.0'
     compile files('lib/smallsql-0.21.jar')
 }
 
