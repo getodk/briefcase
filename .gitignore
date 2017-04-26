@@ -6,3 +6,6 @@ local.properties
 .idea
 .DS_Store
 build
+.project
+.classpath
+.settings
