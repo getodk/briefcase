@@ -332,7 +332,7 @@ public final class WebUtils {
    	          .setDefaultRequestConfig(requestConfig).build();
      } else {
    	  HttpHost proxy = new HttpHost(proxyConnection.getHost(), proxyConnection.getPort(), 
-   			  proxyConnection.getProxyType().toLowerCase());
+   			  proxyConnection.getProxyType().toString());
          DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
    	  httpClient = HttpClientBuilder.create()
    	          .setDefaultSocketConfig(socketConfig)

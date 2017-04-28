@@ -20,6 +20,7 @@ import java.util.prefs.Preferences;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
+import org.opendatakit.briefcase.model.ProxyConnection.ProxyType;
 
 /**
  * This class is used to manage the applications preferences. It achieves this task, by using the standard
@@ -164,7 +165,7 @@ public class BriefcasePreferences {
 				  BriefcasePreferences.BRIEFCASE_PROXY_HOST_PROPERTY,"");
 		  Integer port = Integer.parseInt(Preference.APPLICATION_SCOPED.get(
 				  BriefcasePreferences.BRIEFCASE_PROXY_PORT_PROPERTY,"0"));
-		  return new ProxyConnection(host, port, proxyType);
+		  return new ProxyConnection(host, port, ProxyType.valueOf(proxyType));
 	  }
 	  return null;
   }

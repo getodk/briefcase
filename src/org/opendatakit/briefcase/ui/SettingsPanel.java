@@ -202,7 +202,7 @@ public class SettingsPanel extends JPanel {
             	proxyType = ProxyConnection.ProxyType.HTTPS;
             }
             try {
-				BriefcasePreferences.setBriefcaseProxyProperty(new ProxyConnection(txtHost.getText(), Integer.parseInt(txtPort.getText()), proxyType.toString()));
+				BriefcasePreferences.setBriefcaseProxyProperty(new ProxyConnection(txtHost.getText(), Integer.parseInt(txtPort.getText()), proxyType));
 				txtHost.setEnabled(false);
 				txtPort.setEnabled(false);
 			} catch (NumberFormatException e1) {
