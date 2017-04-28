@@ -25,13 +25,13 @@ package org.opendatakit.briefcase.model;
 public class ProxyConnection {
 	private String host;
 	private Integer port;
-	private ProxyType proxyType;
+	private String proxyType;
 
 	public enum ProxyType {
 		NO_PROXY, HTTP, HTTPS
 	}
 
-	public ProxyConnection(String host, Integer port, ProxyType proxyType) {
+	public ProxyConnection(String host, Integer port, String proxyType) {
 		super();
 		this.host = host;
 		this.port = port;
@@ -54,11 +54,11 @@ public class ProxyConnection {
 		this.port = port;
 	}
 
-	public ProxyType getProxyType() {
+	public String getProxyType() {
 		return proxyType;
 	}
 
-	public void setProxyType(ProxyType proxyType) {
+	public void setProxyType(String proxyType) {
 		this.proxyType = proxyType;
 	}
 

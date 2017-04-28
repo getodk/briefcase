@@ -139,17 +139,19 @@ public class SettingsPanel extends JPanel {
     }
     
     private void setCurrentProxySettings() {
-      String currentProxyType = BriefcasePreferences.getBriefCaseProxyType();
-	  if (currentProxyType.equals(ProxyConnection.ProxyType.NO_PROXY.toString())){
+      ProxyConnection currentProxy = BriefcasePreferences.getBriefCaseProxyConnection();
+	  if (currentProxy == null){
 	    schemaComboBox.setSelectedIndex(0);
-	  } else if (currentProxyType.equals(ProxyConnection.ProxyType.HTTP.toString())) {
+	    return;
+	  } 
+	  if (currentProxy.getProxyType().equals(ProxyConnection.ProxyType.HTTP.toString())) {
 		schemaComboBox.setSelectedIndex(1);
 	  } else {
 		schemaComboBox.setSelectedIndex(2);
 	  }
-	  txtHost.setText(BriefcasePreferences.getBriefCaseProxyHost());
+	  txtHost.setText(currentProxy.getHost());
 	  txtHost.setEnabled(false);
-	  txtPort.setText(BriefcasePreferences.getBriefCaseProxyPort());
+	  txtPort.setText(currentProxy.getPort().toString());
 	  txtPort.setEnabled(false);
 	}
 
@@ -188,14 +190,19 @@ public class SettingsPanel extends JPanel {
         public void actionPerformed(ActionEvent e) {
         	ProxyConnection.ProxyType proxyType;
             if (schemaComboBox.getSelectedIndex() == 0) {
-            	proxyType = ProxyConnection.ProxyType.NO_PROXY;
-            } else if (schemaComboBox.getSelectedIndex() == 1) {
+				BriefcasePreferences.setBriefcaseProxyProperty(null);
+            	txtHost.setEnabled(false);
+				txtPort.setEnabled(false);
+            	return;
+            } 
+            
+            if (schemaComboBox.getSelectedIndex() == 1) {
             	proxyType = ProxyConnection.ProxyType.HTTP;
             } else {
             	proxyType = ProxyConnection.ProxyType.HTTPS;
             }
             try {
-				BriefcasePreferences.setBriefcaseProxyProperty(new ProxyConnection(txtHost.getText(), Integer.parseInt(txtPort.getText()), proxyType));
+				BriefcasePreferences.setBriefcaseProxyProperty(new ProxyConnection(txtHost.getText(), Integer.parseInt(txtPort.getText()), proxyType.toString()));
 				txtHost.setEnabled(false);
 				txtPort.setEnabled(false);
 			} catch (NumberFormatException e1) {

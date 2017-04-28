@@ -325,15 +325,14 @@ public final class WebUtils {
 	      .build();
 	
      CloseableHttpClient httpClient;
-     
-     if (BriefcasePreferences.getBriefCaseProxyType().equals(ProxyConnection.ProxyType.NO_PROXY.toString())) {
+     ProxyConnection proxyConnection = BriefcasePreferences.getBriefCaseProxyConnection();
+     if (proxyConnection == null) {
    	  httpClient = HttpClientBuilder.create()
    	          .setDefaultSocketConfig(socketConfig)
    	          .setDefaultRequestConfig(requestConfig).build();
      } else {
-   	  HttpHost proxy = new HttpHost(BriefcasePreferences.getBriefCaseProxyHost(),
-   			  						Integer.parseInt(BriefcasePreferences.getBriefCaseProxyPort()),
-   			  						BriefcasePreferences.getBriefCaseProxyType().toLowerCase());
+   	  HttpHost proxy = new HttpHost(proxyConnection.getHost(), proxyConnection.getPort(), 
+   			  proxyConnection.getProxyType().toLowerCase());
          DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
    	  httpClient = HttpClientBuilder.create()
    	          .setDefaultSocketConfig(socketConfig)
