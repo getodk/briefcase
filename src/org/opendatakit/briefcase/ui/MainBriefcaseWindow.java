@@ -552,10 +552,10 @@ public class MainBriefcaseWindow implements WindowListener {
         .build();
 
     Option exportFilename = Option.builder("f")
-        .argName("name.csv")
+        .argName("name.format")
         .hasArg()
         .longOpt(EXPORT_FILENAME)
-        .desc("File name for exported CSV")
+        .desc("File name for exported format")
         .build();
 
     Option overwrite = Option.builder("oc")
