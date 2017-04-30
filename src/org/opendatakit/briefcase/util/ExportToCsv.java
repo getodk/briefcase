@@ -490,9 +490,9 @@ public class ExportToCsv implements ITransformFormAction {
                    binaryFileHash = FileSystemUtils.getMd5Hash(binaryFile);
                      
                    while (destFile.exists()) {
-                  /* check if the contents of the destFile and binaryFile is same
-                   * if yes, skip the export of such file
-                   */
+                    /* check if the contents of the destFile and binaryFile is same
+                     * if yes, skip the export of such file
+                     */
  
                     if (fileHashMap.containsKey(destFile.getName())) {
                        destFileHash = fileHashMap.get(destFile.getName());
