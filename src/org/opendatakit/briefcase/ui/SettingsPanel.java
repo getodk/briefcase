@@ -3,21 +3,25 @@ package org.opendatakit.briefcase.ui;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.util.ArrayList;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.text.AbstractDocument;
 
+import org.apache.http.HttpHost;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.ProxyConnection;
+import org.opendatakit.briefcase.util.StringUtils;
 
 /**
  *
@@ -34,13 +38,12 @@ public class SettingsPanel extends JPanel {
     private MainBriefcaseWindow parentWindow;
 
     private ArrayList<Component> navOrder = new ArrayList<Component>();
-    private JLabel lblSchema;
+    private JLabel lblProxy;
+    private JCheckBox chkProxy;
     private JLabel lblHost;
     private JTextField txtHost;
     private JLabel lblPort;
     private JTextField txtPort;
-    private JButton btnSave;
-    private JComboBox schemaComboBox;
     private JLabel lblGeneralSettings;
     private JLabel lblProxySettings;
     
@@ -56,21 +59,25 @@ public class SettingsPanel extends JPanel {
         btnChoose = new JButton("Change...");
         btnChoose.addActionListener(new FolderActionListener());
 
+        FocusListener proxyFocusListener = new ProxyFocusListener();
+
         lblHost = new JLabel(MessageStrings.PROXY_HOST);
         txtHost = new JTextField();
+        txtHost.setEnabled(false);
         txtHost.setColumns(10);
+        txtHost.addFocusListener(proxyFocusListener);
         
         lblPort = new JLabel(MessageStrings.PROXY_PORT);
         txtPort = new JTextField();
+        txtPort.setEnabled(false);
+        ((AbstractDocument)txtPort.getDocument()).setDocumentFilter(new NumericDocumentFilter());
         txtPort.setColumns(10);
+        txtPort.addFocusListener(proxyFocusListener);
         
-        lblSchema = new JLabel(MessageStrings.PROXY_SCHEMA);
-        String[] petStrings = { "No Proxy", "http", "https"};
-        schemaComboBox = new JComboBox(petStrings);
-        schemaComboBox.addActionListener(new ProxyTypeChangeListener());
-        
-        btnSave = new JButton("Save");
-        btnSave.addActionListener(new ProxyConnectionCreateListener());
+        lblProxy = new JLabel(MessageStrings.PROXY_TOGGLE);
+        chkProxy = new JCheckBox();
+        chkProxy.setSelected(false);
+        chkProxy.addActionListener(new ProxyToggleListener());
         
         lblGeneralSettings = new JLabel(MessageStrings.GENERAL_SETTINGS_STRING);
         lblProxySettings = new JLabel(MessageStrings.PROXY_SETTINGS_STRING);
@@ -82,9 +89,9 @@ public class SettingsPanel extends JPanel {
             			.addContainerGap()
             			.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
             				.addGroup(groupLayout.createSequentialGroup()
-            					.addComponent(lblSchema)
+            					.addComponent(lblProxy)
             					.addGap(4)
-            					.addComponent(schemaComboBox, 0, 64, Short.MAX_VALUE)
+            					.addComponent(chkProxy, 0, 64, Short.MAX_VALUE)
             					.addPreferredGap(ComponentPlacement.RELATED)
             					.addComponent(lblHost)
             					.addGap(4)
@@ -93,8 +100,7 @@ public class SettingsPanel extends JPanel {
             					.addComponent(lblPort)
             					.addGap(3)
             					.addComponent(txtPort, GroupLayout.DEFAULT_SIZE, 39, Short.MAX_VALUE)
-            					.addPreferredGap(ComponentPlacement.RELATED, 14, Short.MAX_VALUE)
-            					.addComponent(btnSave, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            					.addPreferredGap(ComponentPlacement.RELATED, 14, Short.MAX_VALUE))
             				.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
             					.addComponent(lblBriefcaseDirectory)
             					.addGap(18)
@@ -119,13 +125,12 @@ public class SettingsPanel extends JPanel {
             			.addComponent(lblProxySettings, GroupLayout.PREFERRED_SIZE, 17, GroupLayout.PREFERRED_SIZE)
             			.addPreferredGap(ComponentPlacement.RELATED)
             			.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-            				.addComponent(lblSchema)
-            				.addComponent(schemaComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+            				.addComponent(lblProxy)
+            				.addComponent(chkProxy, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
             				.addComponent(txtHost, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
             				.addComponent(lblHost)
             				.addComponent(txtPort, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-            				.addComponent(lblPort)
-            				.addComponent(btnSave))
+            				.addComponent(lblPort))
             			.addGap(314))
             );
 
@@ -139,20 +144,14 @@ public class SettingsPanel extends JPanel {
     }
     
     private void setCurrentProxySettings() {
-      ProxyConnection currentProxy = BriefcasePreferences.getBriefCaseProxyConnection();
-	  if (currentProxy == null){
-	    schemaComboBox.setSelectedIndex(0);
-	    return;
-	  } 
-	  if (currentProxy.getProxyType().equals(ProxyConnection.ProxyType.HTTP.toString())) {
-		schemaComboBox.setSelectedIndex(1);
-	  } else {
-		schemaComboBox.setSelectedIndex(2);
-	  }
-	  txtHost.setText(currentProxy.getHost());
-	  txtHost.setEnabled(false);
-	  txtPort.setText(currentProxy.getPort().toString());
-	  txtPort.setEnabled(false);
+      HttpHost currentProxy = BriefcasePreferences.getBriefCaseProxyConnection();
+      if (currentProxy != null) {
+    	  chkProxy.setSelected(true);
+		  txtHost.setText(currentProxy.getHostName());
+		  txtHost.setEnabled(true);
+		  txtPort.setText("" + currentProxy.getPort());
+		  txtPort.setEnabled(true);
+      }
 	}
 
     public ArrayList<Component> getTraversalOrdering() {
@@ -173,46 +172,45 @@ public class SettingsPanel extends JPanel {
 
     }
     
+    private void updateProxySettings() {
+    	BriefcasePreferences.setBriefcaseProxyProperty(new HttpHost(txtHost.getText(), Integer.parseInt(txtPort.getText())));
+    }
 
-    class ProxyTypeChangeListener implements ActionListener {
+    class ProxyToggleListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-        	txtHost.setEnabled(true);
-        	txtPort.setEnabled(true);
+        	if (e.getSource() == chkProxy) {
+        		if (chkProxy.isSelected()) {
+        			txtHost.setEnabled(true);
+        			txtPort.setEnabled(true);
+        			if (!StringUtils.isNotEmptyNotNull(txtPort.getText())) {
+        				txtPort.setText("80");
+        			}
+        			updateProxySettings();
+        		} else {
+        			txtHost.setEnabled(false);
+        			txtPort.setEnabled(false);
+        			BriefcasePreferences.setBriefcaseProxyProperty(null);
+        		}
+    		}
         }
 
     }
-    
-    class ProxyConnectionCreateListener implements ActionListener {
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-        	ProxyConnection.ProxyType proxyType;
-            if (schemaComboBox.getSelectedIndex() == 0) {
-				BriefcasePreferences.setBriefcaseProxyProperty(null);
-            	txtHost.setEnabled(false);
-				txtPort.setEnabled(false);
-            	return;
-            } 
-            
-            if (schemaComboBox.getSelectedIndex() == 1) {
-            	proxyType = ProxyConnection.ProxyType.HTTP;
-            } else {
-            	proxyType = ProxyConnection.ProxyType.HTTPS;
-            }
-            try {
-				BriefcasePreferences.setBriefcaseProxyProperty(new ProxyConnection(txtHost.getText(), Integer.parseInt(txtPort.getText()), proxyType));
-				txtHost.setEnabled(false);
-				txtPort.setEnabled(false);
-			} catch (NumberFormatException e1) {
-				JOptionPane.showMessageDialog(new JFrame(), MessageStrings.PORT_ERROR_MESSAGE, "Dialog",
-				        JOptionPane.ERROR_MESSAGE);
-				e1.printStackTrace();
-			}
-        }
+    class ProxyFocusListener implements FocusListener {
+
+		@Override
+		public void focusGained(FocusEvent e) {	
+		}
+
+		@Override
+		public void focusLost(FocusEvent e) {
+			updateProxySettings();
+		}
 
     }
+
 }
 
 
