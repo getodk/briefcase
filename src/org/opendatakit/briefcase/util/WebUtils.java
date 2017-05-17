@@ -52,7 +52,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.javarosa.core.model.utils.DateUtils;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.ProxyConnection;
+
 
 /**
  * Common utility methods for managing the credentials associated with the
@@ -325,15 +325,12 @@ public final class WebUtils {
 	      .build();
 	
      CloseableHttpClient httpClient;
-     
-     if (BriefcasePreferences.getBriefCaseProxyType().equals(ProxyConnection.ProxyType.NO_PROXY.toString())) {
+     HttpHost proxy = BriefcasePreferences.getBriefCaseProxyConnection();
+     if (proxy == null) {
    	  httpClient = HttpClientBuilder.create()
    	          .setDefaultSocketConfig(socketConfig)
    	          .setDefaultRequestConfig(requestConfig).build();
      } else {
-   	  HttpHost proxy = new HttpHost(BriefcasePreferences.getBriefCaseProxyHost(),
-   			  						Integer.parseInt(BriefcasePreferences.getBriefCaseProxyPort()),
-   			  						BriefcasePreferences.getBriefCaseProxyType().toLowerCase());
          DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
    	  httpClient = HttpClientBuilder.create()
    	          .setDefaultSocketConfig(socketConfig)
