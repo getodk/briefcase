@@ -23,8 +23,39 @@ package org.opendatakit.briefcase.util;
  * 
  */
 public class StringUtils {
-
+	
+	public static final EMPTY_STRING = "";
+	
+	/**
+	 * returns true if and only if s is neither null nor empty
+	*/
 	public static boolean isNotEmptyNotNull(String s) {
 		return s != null && !s.isEmpty();
+	}
+	
+	/**
+	 * returns true if s is null, or empty, or if s is only whitespace (), such as for example " ".
+	*/
+	public static boolean isWhiteSpace(String s) {
+		if(s == null || s.isEmpty()){
+			return true;
+		}
+		String trimmedString = s.trim();
+		return trimmedString.isempty();
+	}
+	
+	/**
+	 * null safe check for equality of two different strings.
+	 *
+	 * returns true if and only if the strings are identical.
+	*/
+	public static boolean areEqualStrings(String s1, String s2) {
+		if(s1 == null && s2 == null){
+			return true;
+		}
+		if((s1 == null && s2 != null) || (s1 != null && s2 == null)){
+			return false;
+		}
+		return s1.equals(s2);
 	}
 }
