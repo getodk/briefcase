@@ -117,11 +117,11 @@ public class BriefcasePreferences {
 
   public static void setBriefcaseProxyProperty(HttpHost value) {
     if (value == null) {
-	  Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PROXY_HOST_PROPERTY);
-	  Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PROXY_PORT_PROPERTY);
+    Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PROXY_HOST_PROPERTY);
+    Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PROXY_PORT_PROPERTY);
     } else {
-	  Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_PROXY_HOST_PROPERTY, value.getHostName());
-	  Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_PROXY_PORT_PROPERTY, "" + value.getPort());
+    Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_PROXY_HOST_PROPERTY, value.getHostName());
+    Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_PROXY_PORT_PROPERTY, "" + value.getPort());
     }
   }
   
@@ -157,13 +157,13 @@ public class BriefcasePreferences {
   }
  
   public static HttpHost getBriefCaseProxyConnection() {
-	  String host = Preference.APPLICATION_SCOPED.get(
-			  BriefcasePreferences.BRIEFCASE_PROXY_HOST_PROPERTY,null);
-	  if(host != null){
-		  Integer port = Integer.parseInt(Preference.APPLICATION_SCOPED.get(
-				  BriefcasePreferences.BRIEFCASE_PROXY_PORT_PROPERTY,"0"));
-		  return new HttpHost(host, port);
-	  }
-	  return null;
+    String host = Preference.APPLICATION_SCOPED.get(
+        BriefcasePreferences.BRIEFCASE_PROXY_HOST_PROPERTY,null);
+    if (host != null) {
+      Integer port = Integer.parseInt(Preference.APPLICATION_SCOPED.get(
+          BriefcasePreferences.BRIEFCASE_PROXY_PORT_PROPERTY,"0"));
+      return new HttpHost(host, port);
+    }
+    return null;
   }
 }

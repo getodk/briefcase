@@ -21,7 +21,7 @@ import org.opendatakit.briefcase.util.FileSystemUtils;
 public class MessageStrings {
 
   public static final String BRIEFCASE_STORAGE_LOCATION =
-      "ODK Briefcase Storage Location";
+      "Storage Location";
   public static final String ODK_DIRECTORY =
       "ODK Directory";
   public static final String EXPORT_DIRECTORY =
@@ -76,12 +76,8 @@ public class MessageStrings {
   
   public static final String PROXY_HOST = "Host";
   public static final String PROXY_PORT = "Port";
-  public static final String PROXY_TOGGLE = "Use Proxy";
-  public static final String GENERAL_SETTINGS_STRING =
-		  "<HTML><U>General Settings</U></HTML>";
-  public static final String PROXY_SETTINGS_STRING =
-		  "<HTML><U>Proxy Settings</U></HTML>";
+  public static final String PROXY_TOGGLE = "Use HTTP Proxy";
   public static final String PROXY_SET_ADVICE =
-		  ". If you are behind a proxy, try setting up your proxy details through 'Settings' tab.";
+      "If you are behind a proxy, try setting up your proxy details through 'Settings' tab.";
 
 }
