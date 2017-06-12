@@ -63,8 +63,6 @@ public class AggregateUtils {
 
   private static final String BRIEFCASE_APP_TOKEN_PARAMETER = "briefcaseAppToken";
 
-  private static final int SERVER_CONNECTION_TIMEOUT = 60000;
-
   static final Logger log = Logger.getLogger(AggregateUtils.class.getName());
 
   private static final CharSequence HTTP_CONTENT_TYPE_TEXT_XML = "text/xml";
@@ -224,10 +222,6 @@ public class AggregateUtils {
     }
 
     HttpClient httpClient = serverInfo.getHttpClient();
-    if (httpClient == null) {
-      httpClient = WebUtils.createHttpClient(SERVER_CONNECTION_TIMEOUT);
-      serverInfo.setHttpClient(httpClient);
-    }
 
     // get shared HttpContext so that authentication and cookies are retained.
     HttpClientContext localContext = serverInfo.getHttpContext();
@@ -520,10 +514,6 @@ public class AggregateUtils {
     }
 
     HttpClient httpClient = serverInfo.getHttpClient();
-    if (httpClient == null) {
-      httpClient = WebUtils.createHttpClient(SERVER_CONNECTION_TIMEOUT);
-      serverInfo.setHttpClient(httpClient);
-    }
 
     // get shared HttpContext so that authentication and cookies are retained.
     HttpClientContext localContext = serverInfo.getHttpContext();

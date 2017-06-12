@@ -15,12 +15,12 @@
  */
 
 package org.opendatakit.briefcase.model;
-import org.opendatakit.briefcase.buildconfig.BuildConfig;
-
 import java.security.Security;
 import java.util.prefs.Preferences;
 
+import org.apache.http.HttpHost;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.opendatakit.briefcase.buildconfig.BuildConfig;
 
 /**
  * This class is used to manage the applications preferences. It achieves this task, by using the standard
@@ -35,6 +35,8 @@ public class BriefcasePreferences {
   public static final String AGGREGATE_0_9_X_URL = "url_0_9_X";
   
   private static final String BRIEFCASE_DIR_PROPERTY = "briefcaseDir";
+  private static final String BRIEFCASE_PROXY_HOST_PROPERTY = "briefcaseProxyHost";
+  private static final String BRIEFCASE_PROXY_PORT_PROPERTY = "briefcaseProxyPort";
   
   static {
     // load the security provider
@@ -112,6 +114,16 @@ public class BriefcasePreferences {
     return Preference.APPLICATION_SCOPED.get(BriefcasePreferences.BRIEFCASE_DIR_PROPERTY,
         System.getProperty("user.home"));
   }
+
+  public static void setBriefcaseProxyProperty(HttpHost value) {
+    if (value == null) {
+    Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PROXY_HOST_PROPERTY);
+    Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PROXY_PORT_PROPERTY);
+    } else {
+    Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_PROXY_HOST_PROPERTY, value.getHostName());
+    Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_PROXY_PORT_PROPERTY, "" + value.getPort());
+    }
+  }
   
   /**
    * Enum that implements the strategies, to create differently scoped preferences.
@@ -142,5 +154,16 @@ public class BriefcasePreferences {
   private static class Preference {
     private static final BriefcasePreferences APPLICATION_SCOPED =
         new BriefcasePreferences(BriefcasePreferences.class, PreferenceScope.APPLICATION);
+  }
+ 
+  public static HttpHost getBriefCaseProxyConnection() {
+    String host = Preference.APPLICATION_SCOPED.get(
+        BriefcasePreferences.BRIEFCASE_PROXY_HOST_PROPERTY,null);
+    if (host != null) {
+      Integer port = Integer.parseInt(Preference.APPLICATION_SCOPED.get(
+          BriefcasePreferences.BRIEFCASE_PROXY_PORT_PROPERTY,"0"));
+      return new HttpHost(host, port);
+    }
+    return null;
   }
 }

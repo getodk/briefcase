@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -48,7 +49,10 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.javarosa.core.model.utils.DateUtils;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
+
 
 /**
  * Common utility methods for managing the credentials associated with the
@@ -59,6 +63,8 @@ import org.javarosa.core.model.utils.DateUtils;
  * 
  */
 public final class WebUtils {
+
+      private static final int SERVER_CONNECTION_TIMEOUT = 60000;
 	  /**
 	   * Date format pattern used to parse HTTP date headers in RFC 1123 format.
 	   * copied from apache.commons.lang.DateUtils
@@ -300,9 +306,9 @@ public final class WebUtils {
 		return req;
 	}
 
-	public static final HttpClient createHttpClient(int timeout) {
+	public static final HttpClient createHttpClient() {
 	  // configure connection
-	  SocketConfig socketConfig = SocketConfig.copy(SocketConfig.DEFAULT).setSoTimeout(timeout).build();
+	  SocketConfig socketConfig = SocketConfig.copy(SocketConfig.DEFAULT).setSoTimeout(SERVER_CONNECTION_TIMEOUT).build();
 	  
      // if possible, bias toward digest auth (may not be in 4.0 beta 2)
      List<String> targetPreferredAuthSchemes = new ArrayList<String>();
@@ -310,7 +316,7 @@ public final class WebUtils {
      targetPreferredAuthSchemes.add(AuthSchemes.BASIC);
 
      RequestConfig requestConfig = RequestConfig.copy(RequestConfig.DEFAULT)
-	      .setConnectTimeout(timeout)
+	      .setConnectTimeout(SERVER_CONNECTION_TIMEOUT)
 	      // support authenticating
 	      .setAuthenticationEnabled(true)
 	      // support redirecting to handle http: => https: transition
@@ -320,10 +326,19 @@ public final class WebUtils {
 	      .setTargetPreferredAuthSchemes(targetPreferredAuthSchemes)
 	      .build();
 	
-      CloseableHttpClient httpClient = HttpClientBuilder.create()
-          .setDefaultSocketConfig(socketConfig)
-          .setDefaultRequestConfig(requestConfig).build();
-
+     CloseableHttpClient httpClient;
+     HttpHost proxy = BriefcasePreferences.getBriefCaseProxyConnection();
+     if (proxy == null) {
+     httpClient = HttpClientBuilder.create()
+             .setDefaultSocketConfig(socketConfig)
+             .setDefaultRequestConfig(requestConfig).build();
+     } else {
+         DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+     httpClient = HttpClientBuilder.create()
+             .setDefaultSocketConfig(socketConfig)
+             .setDefaultRequestConfig(requestConfig)
+             .setRoutePlanner(routePlanner).build();
+     }
       return httpClient;
 	}
 
