@@ -16,7 +16,6 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.text.AbstractDocument;
 
 import org.apache.http.HttpHost;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
