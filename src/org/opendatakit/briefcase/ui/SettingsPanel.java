@@ -103,6 +103,7 @@ public class SettingsPanel extends JPanel {
         );
         groupLayout.setVerticalGroup(
           groupLayout.createSequentialGroup()
+              .addContainerGap()
               .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
                 .addComponent(txtBriefcaseDir)
                 .addComponent(btnChoose)
@@ -117,6 +118,7 @@ public class SettingsPanel extends JPanel {
               .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
                 .addComponent(lblPort)
                 .addComponent(spinPort))
+              .addContainerGap()
         );
 
         setLayout(groupLayout);
