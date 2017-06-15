@@ -16,6 +16,8 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.apache.http.HttpHost;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -56,18 +58,18 @@ public class SettingsPanel extends JPanel {
         btnChoose = new JButton("Change...");
         btnChoose.addActionListener(new FolderActionListener());
 
-        FocusListener proxyFocusListener = new ProxyFocusListener();
+        ProxyChangeListener proxyChangeListener = new ProxyChangeListener();
 
         lblHost = new JLabel(MessageStrings.PROXY_HOST);
         txtHost = new JTextField();
         txtHost.setEnabled(false);
         txtHost.setColumns(20);
-        txtHost.addFocusListener(proxyFocusListener);
+        txtHost.addFocusListener(proxyChangeListener);
 
         lblPort = new JLabel(MessageStrings.PROXY_PORT);
         spinPort = new JIntegerSpinner(8080, 0, 65535, 1);
         spinPort.setEnabled(false);
-        spinPort.addFocusListener(proxyFocusListener);
+        spinPort.addChangeListener(proxyChangeListener);
 
         lblProxy = new JLabel(MessageStrings.PROXY_TOGGLE);
         chkProxy = new JCheckBox();
@@ -185,15 +187,20 @@ public class SettingsPanel extends JPanel {
 
     }
 
-    class ProxyFocusListener implements FocusListener {
+    class ProxyChangeListener implements FocusListener, ChangeListener {
 
         @Override
-        public void focusGained(FocusEvent e) {    
+        public void focusGained(FocusEvent e) {
         }
 
         @Override
         public void focusLost(FocusEvent e) {
             updateProxySettings();
+        }
+
+        @Override
+        public void stateChanged(ChangeEvent e) {
+          updateProxySettings();
         }
 
     }
