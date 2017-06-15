@@ -49,8 +49,8 @@ import java.util.Map;
 public class FormTransferTable extends JTable {
 
   /**
-	 * 
-	 */
+     * 
+     */
   private static final long serialVersionUID = 8511088963758308085L;
   
   public class JTableButtonRenderer implements TableCellRenderer {
@@ -132,8 +132,8 @@ public class FormTransferTable extends JTable {
 
   static class FormTransferTableModel extends AbstractTableModel {
     /**
-		 * 
-		 */
+         * 
+         */
     private static final long serialVersionUID = 7108326237416622721L;
 
     public static final int BUTTON_COLUMN = 3;     
@@ -217,7 +217,7 @@ public class FormTransferTable extends JTable {
     public List<FormStatus> getSelectedNonActiveForms() {
         List<FormStatus> selected = new ArrayList<FormStatus>();
         for (FormStatus s : formStatuses) {
-      	  if (s.isSelected() && s.getStatusString().isEmpty()) {
+          if (s.isSelected() && s.getStatusString().isEmpty()) {
             selected.add(s);
           }
         }
@@ -260,11 +260,11 @@ public class FormTransferTable extends JTable {
     }
 
     public boolean isCellEditable(int row, int col) {
-	  // While the table is in active transfer state, you cannot de-select
-	  // already selected forms
-	  if (!formStatuses.get(row).getStatusString().isEmpty() && !isTransferTerminated(formStatuses.get(row).getStatusString())) {
-		return false;
-	  }
+      // While the table is in active transfer state, you cannot de-select
+      // already selected forms
+      if (!formStatuses.get(row).getStatusString().isEmpty() && !isTransferTerminated(formStatuses.get(row).getStatusString())) {
+        return false;
+      }
       return col == 0; // only the checkbox...
     }
 
@@ -272,7 +272,7 @@ public class FormTransferTable extends JTable {
       return statusString.equals(ServerFetcher.SUCCESS_STATUS) || statusString.equals(ServerFetcher.FAILED_STATUS) ;
     }
 
-	public void setValueAt(Object value, int row, int col) {
+    public void setValueAt(Object value, int row, int col) {
       FormStatus status = formStatuses.get(row);
       switch (col) {
       case 0:

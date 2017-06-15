@@ -80,7 +80,7 @@ public class DatabaseUtils {
     } catch ( SQLException e ) {
       // doesn't exist -- create it...
       stmt.execute("CREATE TABLE recorded_instance (" +
-    		" instanceId varchar2(256), directory varchar2(4096) )" );
+            " instanceId varchar2(256), directory varchar2(4096) )" );
       hasRecordedInstanceTable = true;
     } finally {
       stmt.close();

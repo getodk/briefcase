@@ -180,13 +180,13 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
   }
 
   public void updateForSettingsPage() {
-	btnQuit.setText("Cancel");
-	btnQuit.removeActionListener(btnQuit.getActionListeners()[0]);
-	btnQuit.addActionListener(new ActionListener(){
-	  @Override
-	  public void actionPerformed(ActionEvent e) {
-		  isCancelled = true;
-	      BriefcaseStorageLocationDialog.this.setVisible(false);
-	  }});
+    btnQuit.setText("Cancel");
+    btnQuit.removeActionListener(btnQuit.getActionListeners()[0]);
+    btnQuit.addActionListener(new ActionListener(){
+      @Override
+      public void actionPerformed(ActionEvent e) {
+          isCancelled = true;
+          BriefcaseStorageLocationDialog.this.setVisible(false);
+      }});
   }
 }

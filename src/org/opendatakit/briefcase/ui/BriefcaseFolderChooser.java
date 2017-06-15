@@ -27,12 +27,12 @@ import org.opendatakit.briefcase.util.FileSystemUtils;
 class BriefcaseFolderChooser extends AbstractFileChooser {
 
   /**
-	 * 
-	 */
+     * 
+     */
   private final Container parentWindow;
   /**
-	 * 
-	 */
+     * 
+     */
   private static final long serialVersionUID = 7687033156045655297L;
 
   /**

@@ -62,8 +62,8 @@ import org.opendatakit.briefcase.util.TransferAction;
 public class PushTransferPanel extends JPanel {
 
   /**
-	 *
-	 */
+     *
+     */
   private static final long serialVersionUID = -2192404551259501394L;
 
   public static final String TAB_NAME = "Push";
