@@ -18,6 +18,7 @@
 package org.opendatakit.aggregate.parser;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,7 +59,7 @@ import org.opendatakit.common.web.constants.BasicConsts;
  * @author chrislrobert@gmail.com
  *
  */
-public class BaseFormParserForJavaRosa {
+public class BaseFormParserForJavaRosa implements Serializable {
 
   private static final String LEADING_QUESTION_XML_PATTERN = "^[^<]*<\\s*\\?\\s*xml.*";
   private static final Log log = LogFactory.getLog(BaseFormParserForJavaRosa.class.getName());
@@ -311,10 +312,10 @@ public class BaseFormParserForJavaRosa {
   /**
    * The ODK Id that uniquely identifies the form
    */
-  protected final FormDef rootJavaRosaFormDef;
+  protected transient final FormDef rootJavaRosaFormDef;
   protected final XFormParameters rootElementDefn;
-  protected final TreeElement trueSubmissionElement;
-  protected final TreeElement submissionElement;
+  protected transient final TreeElement trueSubmissionElement;
+  protected transient final TreeElement submissionElement;
   protected final XFormParameters submissionElementDefn;
   protected final String base64RsaPublicKey;
   protected final boolean isFileEncryptedForm;
@@ -332,7 +333,7 @@ public class BaseFormParserForJavaRosa {
   // extracted from XForm during parsing
   private final Map<String, Integer> stringLengths = new HashMap<String, Integer>();
   // original bindings from parse-time for later comparison
-  private final List<Element> bindElements = new ArrayList<Element>();
+  private transient final List<Element> bindElements = new ArrayList<Element>();
 
   private void setNodesetStringLength(String nodeset, Integer length) {
     stringLengths.put(nodeset, length);

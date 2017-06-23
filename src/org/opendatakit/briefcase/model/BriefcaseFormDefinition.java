@@ -22,6 +22,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.security.PrivateKey;
 
 import org.apache.commons.io.FileUtils;
@@ -33,7 +34,7 @@ import org.opendatakit.briefcase.util.BadFormDefinition;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.JavaRosaParserWrapper;
 
-public class BriefcaseFormDefinition implements IFormDefinition {
+public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
   private final File formFolder;
   private final File revisedFormFile;
   private boolean needsMediaUpdate = false;

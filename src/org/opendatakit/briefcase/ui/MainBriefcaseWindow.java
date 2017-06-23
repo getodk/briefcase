@@ -89,6 +89,14 @@ public class MainBriefcaseWindow implements WindowListener {
    */
   public static void main(String[] args) {
 
+    FileSystemUtils.loadFormDefinitionCache();
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      @Override
+      public void run() {
+        FileSystemUtils.saveFormDefinitionCache();
+      }
+    });
+
     if (args.length == 0) {
 
       EventQueue.invokeLater(new Runnable() {

@@ -15,6 +15,8 @@
  */
 package org.opendatakit.aggregate.form;
 
+import java.io.Serializable;
+
 /**
  * Helper class holding the details of a 
  * specific version of a form.
@@ -23,7 +25,7 @@ package org.opendatakit.aggregate.form;
  * @author wbrunette@gmail.com
  * 
  */
-public final class XFormParameters implements Comparable<Object> {
+public final class XFormParameters implements Comparable<Object>, Serializable {
 
 	public final String formId;
 	public final String versionString;
