@@ -22,6 +22,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -33,7 +35,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -77,9 +81,44 @@ public class FileSystemUtils {
   static final String ENCRYPTED_FILE_EXTENSION = ".enc";
   static final String MISSING_FILE_EXTENSION = ".missing";
 
+  static final File cacheFile = new File(getFormsFolder().getParent(), "cache.ser");
+
+  static Map pathToHashMap;
+  static Map pathToDefinitionMap;
+
   public static final String getMountPoint() {
     return System.getProperty("os.name").startsWith("Win") ? File.separator + ".." : (System
         .getProperty("os.name").startsWith("Mac") ? "/Volumes/" : "/mnt/");
+  }
+
+  public static void saveFormDefinitionCache() {
+    if (!cacheFile.exists() || cacheFile.canWrite()) {
+      try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(cacheFile))) {
+        objectOutputStream.writeObject(pathToHashMap);
+        objectOutputStream.writeObject(pathToDefinitionMap);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  public static void loadFormDefinitionCache() {
+    if (cacheFile.exists() || cacheFile.canRead()) {
+      try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(cacheFile))) {
+        pathToHashMap = (Map) objectInputStream.readObject();
+        pathToDefinitionMap = (Map) objectInputStream.readObject();
+      } catch (IOException | ClassNotFoundException e) {
+        e.printStackTrace();
+      }
+    }
+
+    if (pathToHashMap == null) {
+      pathToHashMap = new HashMap();
+    }
+
+    if (pathToDefinitionMap == null) {
+      pathToDefinitionMap =  new HashMap();
+    }
   }
 
   // Predicates to determine whether the folder is an ODK Device
@@ -113,7 +152,7 @@ public class FileSystemUtils {
     return foi.exists() && foi.isDirectory();
   }
 
-
+  @SuppressWarnings("unchecked")
   public static final List<BriefcaseFormDefinition> getBriefcaseFormList() {
     List<BriefcaseFormDefinition> formsList = new ArrayList<BriefcaseFormDefinition>();
     File forms = FileSystemUtils.getFormsFolder();
@@ -123,7 +162,19 @@ public class FileSystemUtils {
         if (f.isDirectory()) {
           try {
             File formFile = new File(f, f.getName() + ".xml");
-            formsList.add(new BriefcaseFormDefinition(f, formFile));
+            String formFileHash = getMd5Hash(formFile);
+            String existingFormFileHash = String.valueOf(pathToHashMap.get(formFile.getAbsolutePath()));
+            BriefcaseFormDefinition existingDefinition = (BriefcaseFormDefinition) pathToDefinitionMap.get(formFile.getAbsolutePath());
+            if (existingFormFileHash == null
+                    || existingDefinition == null
+                    || !existingFormFileHash.equalsIgnoreCase(formFileHash)) {
+              // overwrite cache if the form's hash is not the same or there's no entry for the form in the cache.
+              pathToHashMap.put(formFile.getAbsolutePath(), formFileHash);
+              existingDefinition = new BriefcaseFormDefinition(f, formFile);
+              pathToDefinitionMap.put(formFile.getAbsolutePath(), existingDefinition);
+            }
+
+            formsList.add(existingDefinition);
           } catch (BadFormDefinition e) {
             log.debug("bad form definition", e);
           }

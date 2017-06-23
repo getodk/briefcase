@@ -93,7 +93,15 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
             BriefcasePreferences.setBriefcaseDirectoryProperty(null);
         }
 
-        if (args.length == 0) {
+    FileSystemUtils.loadFormDefinitionCache();
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      @Override
+      public void run() {
+        FileSystemUtils.saveFormDefinitionCache();
+      }
+    });
+
+    if (args.length == 0) {
 
             EventQueue.invokeLater(new Runnable() {
                 public void run() {
