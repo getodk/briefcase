@@ -366,6 +366,15 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
   }
 
   public TreeElement getSubmissionElement() {
+    TreeElement treeElement = formDefn.getSubmissionElement();
+    if (treeElement == null && formDefn.getFormDefinitionFile() != null) {
+      File formFile = formDefn.getFormDefinitionFile();
+      try {
+          formDefn = new JavaRosaParserWrapper(formFile, readFile(formFile));
+      } catch (ODKIncompleteSubmissionData | BadFormDefinition e) {
+        e.printStackTrace();
+      }
+    }
     return formDefn.getSubmissionElement();
   }
 
