@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,6 +44,8 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
+
+import static org.opendatakit.briefcase.util.WebUtils.MAX_CONNECTIONS_PER_ROUTE;
 
 public class ServerFetcher {
 
@@ -297,29 +300,65 @@ public class ServerFetcher {
       }
       websafeCursorString = chunk.websafeCursorString;
 
-      for (String uri : chunk.uriList) {
-        if ( isCancelled() ) {
-          fs.setStatusString("aborting fetching submissions...", true);
+      ExecutorService execSvc = Executors.newFixedThreadPool(MAX_CONNECTIONS_PER_ROUTE);
+      CompletionService<String> dlSvc = new ExecutorCompletionService(execSvc);
+      try {
+        for (String uri : chunk.uriList) {
+          if ( isCancelled() ) {
+            fs.setStatusString("aborting fetching submissions...", true);
+            EventBus.publish(new FormStatusEvent(fs));
+            return false;
+          }
+          fs.setStatusString("fetching instance " + uri + " ...", true);
           EventBus.publish(new FormStatusEvent(fs));
-          return false;
+          dlSvc.submit(new SubmissionDownload(formInstancesDir, formDatabase, lfd, fs, uri));
         }
 
-        try {
-          fs.setStatusString("fetching instance " + count++ + " ...", true);
-          EventBus.publish(new FormStatusEvent(fs));
-
-          downloadSubmission(formInstancesDir, formDatabase, lfd, fs, uri);
-        } catch (Exception e) {
-          allSuccessful = false;
-          String msg = "Error fetching submission uri: " + uri;
-          log.error(msg, e);
-          fs.setStatusString("SUBMISSION NOT RETRIEVED: " + msg + " details: " + e.getMessage(), false);
-          EventBus.publish(new FormStatusEvent(fs));
-          // but try to get the next one...
+        for (int i=0; i<chunk.uriList.size(); i++) {
+          if ( isCancelled() ) {
+            fs.setStatusString("aborting fetching submissions...", true);
+            EventBus.publish(new FormStatusEvent(fs));
+            return false;
+          }
+          try {
+            fs.setStatusString(String.format("fetched instance %s, %s...", ++count, dlSvc.take().get()), true);
+            EventBus.publish(new FormStatusEvent(fs));
+          } catch (InterruptedException | ExecutionException e) {
+            log.error("failure during submission download", e);
+            allSuccessful = false;
+            fs.setStatusString("SUBMISSION NOT RETRIEVED: " + e.getMessage(), false);
+            EventBus.publish(new FormStatusEvent(fs));
+            // but try to get the next one...
+          }
         }
+      } finally {
+        execSvc.shutdownNow();
       }
     }
     return allSuccessful;
+  }
+
+  private class SubmissionDownload implements Callable<String> {
+
+    private File formInstancesDir;
+    private DatabaseUtils formDatabase;
+    private BriefcaseFormDefinition lfd;
+    private FormStatus fs;
+    private String uri;
+
+    SubmissionDownload(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd, FormStatus fs, String uri)  {
+      this.formInstancesDir = formInstancesDir;
+      this.formDatabase = formDatabase;
+      this.lfd = lfd;
+      this.fs = fs;
+      this.uri = uri;
+    }
+
+    @Override
+    public String call() throws Exception {
+      downloadSubmission(formInstancesDir, formDatabase, lfd, fs, uri);
+      return uri;
+    }
   }
 
   public static class SubmissionManifest {
