@@ -47,9 +47,9 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.javarosa.core.model.utils.DateUtils;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 
@@ -94,6 +94,14 @@ public final class WebUtils {
 	public static final String OPEN_ROSA_VERSION_HEADER = "X-OpenRosa-Version";
 	public static final String OPEN_ROSA_VERSION = "1.0";
 	private static final String DATE_HEADER = "Date";
+
+	static final int MAX_CONNECTIONS_PER_ROUTE = Runtime.getRuntime().availableProcessors() * 3;
+
+	private static final PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+
+	static {
+		connectionManager.setDefaultMaxPerRoute(MAX_CONNECTIONS_PER_ROUTE);
+	}
 	
 
 	  private static final Date parseDateSubset( String value, String[] parsePatterns, Locale l, TimeZone tz) {
@@ -307,39 +315,37 @@ public final class WebUtils {
 	}
 
 	public static final HttpClient createHttpClient() {
-	  // configure connection
-	  SocketConfig socketConfig = SocketConfig.copy(SocketConfig.DEFAULT).setSoTimeout(SERVER_CONNECTION_TIMEOUT).build();
-	  
-     // if possible, bias toward digest auth (may not be in 4.0 beta 2)
-     List<String> targetPreferredAuthSchemes = new ArrayList<String>();
-     targetPreferredAuthSchemes.add(AuthSchemes.DIGEST);
-     targetPreferredAuthSchemes.add(AuthSchemes.BASIC);
+		// configure connection
+		SocketConfig socketConfig = SocketConfig.copy(SocketConfig.DEFAULT).setSoTimeout(SERVER_CONNECTION_TIMEOUT).build();
 
-     RequestConfig requestConfig = RequestConfig.copy(RequestConfig.DEFAULT)
-	      .setConnectTimeout(SERVER_CONNECTION_TIMEOUT)
-	      // support authenticating
-	      .setAuthenticationEnabled(true)
-	      // support redirecting to handle http: => https: transition
-	      .setRedirectsEnabled(true)
-	      .setMaxRedirects(1)
-	      .setCircularRedirectsAllowed(true)
-	      .setTargetPreferredAuthSchemes(targetPreferredAuthSchemes)
-	      .build();
-	
-     CloseableHttpClient httpClient;
-     HttpHost proxy = BriefcasePreferences.getBriefCaseProxyConnection();
-     if (proxy == null) {
-     httpClient = HttpClientBuilder.create()
-             .setDefaultSocketConfig(socketConfig)
-             .setDefaultRequestConfig(requestConfig).build();
-     } else {
-         DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
-     httpClient = HttpClientBuilder.create()
-             .setDefaultSocketConfig(socketConfig)
-             .setDefaultRequestConfig(requestConfig)
-             .setRoutePlanner(routePlanner).build();
-     }
-      return httpClient;
+		// if possible, bias toward digest auth (may not be in 4.0 beta 2)
+		List<String> targetPreferredAuthSchemes = new ArrayList<String>();
+		targetPreferredAuthSchemes.add(AuthSchemes.DIGEST);
+		targetPreferredAuthSchemes.add(AuthSchemes.BASIC);
+
+		RequestConfig requestConfig = RequestConfig.copy(RequestConfig.DEFAULT)
+				.setConnectTimeout(SERVER_CONNECTION_TIMEOUT)
+				// support authenticating
+				.setAuthenticationEnabled(true)
+				// support redirecting to handle http: => https: transition
+				.setRedirectsEnabled(true)
+				.setMaxRedirects(1)
+				.setCircularRedirectsAllowed(true)
+				.setTargetPreferredAuthSchemes(targetPreferredAuthSchemes)
+				.build();
+
+		HttpClientBuilder clientBuilder = HttpClientBuilder.create()
+				.setConnectionManager(connectionManager)
+				.setConnectionManagerShared(true)
+				.setDefaultSocketConfig(socketConfig)
+				.setDefaultRequestConfig(requestConfig);
+
+		HttpHost proxy = BriefcasePreferences.getBriefCaseProxyConnection();
+		if (proxy != null) {
+			clientBuilder.setRoutePlanner(new DefaultProxyRoutePlanner(proxy)).build();
+		}
+
+		return clientBuilder.build();
 	}
 
 	public static HttpClientContext createHttpContext() {
