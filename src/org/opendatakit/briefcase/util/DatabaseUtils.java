@@ -74,7 +74,7 @@ public class DatabaseUtils {
     }
   }
 
-  public void close() throws SQLException {
+  public synchronized void close() throws SQLException {
     if ( getRecordedInstanceQuery != null ) {
       try {
         getRecordedInstanceQuery.close();
@@ -133,7 +133,7 @@ public class DatabaseUtils {
   }
 
   // recorded instances have known instanceIds
-  public void putRecordedInstanceDirectory( String instanceId, File instanceDir) {
+  public synchronized void putRecordedInstanceDirectory( String instanceId, File instanceDir) {
     try {
       assertRecordedInstanceTable();
 
@@ -175,7 +175,7 @@ public class DatabaseUtils {
 
   // ask whether we have the recorded instance in this briefcase
   // return null if we don't.
-  public File hasRecordedInstance( String instanceId ) {
+  public synchronized File hasRecordedInstance( String instanceId ) {
     try {
       assertRecordedInstanceTable();
 
@@ -201,12 +201,12 @@ public class DatabaseUtils {
     }
   }
 
-  public void assertRecordedInstanceDirectory( String instanceId, File dir) {
+  public synchronized void assertRecordedInstanceDirectory( String instanceId, File dir) {
     forgetRecordedInstance( instanceId );
     putRecordedInstanceDirectory(instanceId, dir);
   }
 
-  public void updateInstanceLists(Set<File> instanceList) {
+  public synchronized void updateInstanceLists(Set<File> instanceList) {
     Set<File> workingSet = new TreeSet<>(instanceList);
     // scan the database's reported set of directories and remove all that are not in the set
     try (Statement stmt = connection.createStatement()) {
