@@ -22,6 +22,8 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.StringReader;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -128,8 +130,12 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
   public void onEvent(FormStatusEvent event) {
     // Since there can be multiple FormStatusEvent's published concurrently,
     // we have to check if the event is meant for this dialog instance.
-    if (event.getStatus().getFormDefinition().equals(form)) {
-      editorArea.setText(event.getStatus().getStatusHistory());
+    if (isShowing() && event.getStatus().getFormDefinition().equals(form)) {
+      try {
+        editorArea.read(new StringReader(event.getStatus().getStatusHistory()), null);
+      } catch (IOException e) {
+        log.warn("failed to load history", e);
+      }
     }
   }
   

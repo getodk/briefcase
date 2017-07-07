@@ -25,6 +25,7 @@ public class FormStatus {
   private String statusString = "";
   private final StringBuilder statusHistory = new StringBuilder();
   private boolean isSuccessful = true;
+  private int historyMaxSize = 8096;
 
   public FormStatus(TransferType transferType, IFormDefinition form) {
     this.transferType = transferType;
@@ -54,6 +55,13 @@ public class FormStatus {
 
   public void setStatusString(String statusString, boolean isSuccessful) {
     this.statusString = statusString;
+    if (statusHistory.length() > historyMaxSize) {
+      statusHistory.delete(0, statusString.length() + 1);
+      int lineEnd = statusHistory.indexOf("\n");
+      if (lineEnd >= 0) {
+        statusHistory.delete(0, lineEnd+1);
+      }
+    }
     statusHistory.append("\n");
     statusHistory.append(statusString);
     // statusHistory.append("</p>");
