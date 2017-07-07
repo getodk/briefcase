@@ -80,13 +80,12 @@ public class ExportToCsv implements ITransformFormAction {
   int totalFilesSkipped = 0;
   int totalInstances = 0;
   int processedInstances = 0;
-  
-  
-  // Default briefcase constructor
-  public ExportToCsv(File outputDir, BriefcaseFormDefinition lfd, TerminationFuture terminationFuture) {
-    this(outputDir, lfd, terminationFuture, lfd.getFormName(), true, false, null, null);
+
+
+  public ExportToCsv(File outputDir, BriefcaseFormDefinition lfd, TerminationFuture terminationFuture, Date start, Date end) {
+    this(outputDir, lfd, terminationFuture, lfd.getFormName(), true, false, start, end);
   }
-  
+
   public ExportToCsv(File outputDir, BriefcaseFormDefinition lfd, TerminationFuture terminationFuture, String filename, boolean exportMedia, Boolean overwrite, Date start, Date end) {
      this.outputDir = outputDir;
      this.outputMediaDir = new File(outputDir, MEDIA_DIR);
