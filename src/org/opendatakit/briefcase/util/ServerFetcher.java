@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -251,12 +252,26 @@ public class ServerFetcher {
     }
   };
 
+  private static class DownloadThreadFactory implements ThreadFactory {
+    private static final AtomicInteger poolNumber = new AtomicInteger(1);
+    private final AtomicInteger threadNumber = new AtomicInteger(1);
+    private final String namePrefix;
+    public DownloadThreadFactory() {
+      namePrefix = "briefcase-pull-" + poolNumber.getAndIncrement() + "-thread-";
+    }
+    public Thread newThread(Runnable r) {
+      Thread t = new Thread(r, namePrefix + threadNumber.getAndIncrement());
+      t.setPriority(Thread.MIN_PRIORITY);
+      return t;
+    }
+  }
+
   private boolean downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd,
                                                 FormStatus fs) {
     int count = 1;
     boolean allSuccessful = true;
     RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
-    ExecutorService execSvc = Executors.newFixedThreadPool(MAX_CONNECTIONS_PER_ROUTE);
+    ExecutorService execSvc = Executors.newFixedThreadPool(MAX_CONNECTIONS_PER_ROUTE, new DownloadThreadFactory());
     CompletionService<SubmissionChunk> chunkCompleter = new ExecutorCompletionService(execSvc);
     CompletionService<String> submissionCompleter = new ExecutorCompletionService(execSvc);
 
