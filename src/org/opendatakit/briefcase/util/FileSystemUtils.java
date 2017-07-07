@@ -248,20 +248,22 @@ public class FileSystemUtils {
   }
 
   public static Connection getFormDatabase(File formDirectory) throws FileSystemException {
-    File db = new File(formDirectory, "info.db");
 
-    String createFlag = "";
-    if ( !db.exists() ) {
-      createFlag = "?create=true";
+    File dbDir = new File(formDirectory, "hsqldb");
+    File dbFile = new File(dbDir, "info");
+
+    if (!dbDir.exists() && !dbDir.mkdirs()) {
+      logger.warn("failed to create database directory: " + dbDir);
     }
-    String jdbcUrl = "jdbc:smallsql:" + db.getAbsolutePath() + createFlag;
+
+    String jdbcUrl = "jdbc:hsqldb:file:" + dbFile.getAbsolutePath();
 
     try {
       // register driver
-      Class.forName( "smallsql.database.SSDriver" );
+      Class.forName( "org.hsqldb.jdbc.JDBCDriver" );
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
-      throw new FileSystemException("Unable to load SmallSQL driver");
+      throw new FileSystemException("Unable to load database driver");
     }
 
     Connection conn;

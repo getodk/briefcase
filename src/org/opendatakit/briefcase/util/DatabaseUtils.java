@@ -33,7 +33,8 @@ import java.util.TreeSet;
  *
  */
 public class DatabaseUtils {
-  private static boolean DEBUG = true;
+
+  private static boolean DEBUG = false;
 
   private Connection connection;
   
@@ -68,7 +69,7 @@ public class DatabaseUtils {
     
     Statement stmt = connection.createStatement();
     try {
-      stmt.execute("SELECT FIRST(instanceId) FROM recorded_instance");
+      stmt.execute("SELECT instanceId FROM recorded_instance limit 1");
       if ( DEBUG ) {
         stmt.execute("SELECT instanceId, directory FROM recorded_instance");
         ResultSet rs = stmt.getResultSet();
@@ -79,8 +80,7 @@ public class DatabaseUtils {
       hasRecordedInstanceTable = true;
     } catch ( SQLException e ) {
       // doesn't exist -- create it...
-      stmt.execute("CREATE TABLE recorded_instance (" +
-    		" instanceId varchar2(256), directory varchar2(4096) )" );
+      stmt.execute("CREATE TABLE recorded_instance (instanceId varchar(256) primary key, directory varchar(4096))");
       hasRecordedInstanceTable = true;
     } finally {
       stmt.close();

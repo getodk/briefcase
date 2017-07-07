@@ -31,7 +31,7 @@ dependencies {
     compile group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.5.2'
     compile group: 'net.sf.kxml', name: 'kxml2', version: '2.3.0'
     compile group: 'org.opendatakit', name: 'opendatakit-javarosa', version: '2.2.0'
-    compile files('lib/smallsql-0.21.jar')
+    compile group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
 }
 
 // Required to use fileExtensions property in checkstyle file
