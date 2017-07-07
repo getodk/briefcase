@@ -268,7 +268,7 @@ public class ServerFetcher {
 
   private boolean downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd,
                                                 FormStatus fs) {
-    int count = 1;
+    int submissionCount = 1, chunkCount = 1;
     boolean allSuccessful = true;
     RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
     ExecutorService execSvc = Executors.newFixedThreadPool(MAX_CONNECTIONS_PER_ROUTE, new DownloadThreadFactory());
@@ -289,13 +289,14 @@ public class ServerFetcher {
           return false;
         }
 
-        fs.setStatusString("processing submission chunk...", true);
+        fs.setStatusString("processing chunk " + chunkCount + "...", true);
         EventBus.publish(new FormStatusEvent(fs));
 
         oldWebsafeCursorString = websafeCursorString; // remember what we had...
         SubmissionChunk chunk;
         try {
           chunk = chunkCompleter.take().get();
+          chunkCount += 1;
           websafeCursorString = chunk.websafeCursorString;
           cursorFinished = oldWebsafeCursorString.equals(websafeCursorString);
         } catch (InterruptedException | ExecutionException e) {
@@ -324,7 +325,7 @@ public class ServerFetcher {
           }
           try {
             submissionCompleter.take().get();
-            fs.setStatusString(String.format("fetched instance %s...", count++), true);
+            fs.setStatusString(String.format("fetched instance %s...", submissionCount++), true);
             EventBus.publish(new FormStatusEvent(fs));
           } catch (InterruptedException | ExecutionException e) {
             log.error("failure during submission download", e);
