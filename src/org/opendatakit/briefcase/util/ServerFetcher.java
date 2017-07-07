@@ -241,87 +241,75 @@ public class ServerFetcher {
     return allSuccessful;
   }
 
-  public static class SubmissionDownloadChunk {
+  public static class SubmissionChunk {
     final String websafeCursorString;
     final List<String> uriList;
 
-    public SubmissionDownloadChunk(List<String> uriList, String websafeCursorString) {
+    public SubmissionChunk(List<String> uriList, String websafeCursorString) {
       this.uriList = uriList;
       this.websafeCursorString = websafeCursorString;
     }
   };
 
   private boolean downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd,
-      FormStatus fs) {
-    boolean allSuccessful = true;
-
-    RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
-
+                                                FormStatus fs) {
     int count = 1;
-    String baseUrl = serverInfo.getUrl() + "/view/submissionList";
+    boolean allSuccessful = true;
+    RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
+    ExecutorService execSvc = Executors.newFixedThreadPool(MAX_CONNECTIONS_PER_ROUTE);
+    CompletionService<SubmissionChunk> chunkCompleter = new ExecutorCompletionService(execSvc);
+    CompletionService<String> submissionCompleter = new ExecutorCompletionService(execSvc);
 
-    String oldWebsafeCursorString = "not-empty";
-    String websafeCursorString = "";
-    for (; !oldWebsafeCursorString.equals(websafeCursorString);) {
-      if ( isCancelled() ) {
-        fs.setStatusString("aborting fetching submissions...", true);
+    String oldWebsafeCursorString, websafeCursorString = "";
+
+    chunkCompleter.submit(new SubmissionChunkDownload(fs, fd.getFormId(), websafeCursorString));
+
+    boolean cursorFinished;
+
+    try {
+      do {
+        if (isCancelled()) {
+          fs.setStatusString("aborting fetching submission chunks...", true);
+          EventBus.publish(new FormStatusEvent(fs));
+          return false;
+        }
+
+        fs.setStatusString("processing submission chunk...", true);
         EventBus.publish(new FormStatusEvent(fs));
-        return false;
-      }
 
-      fs.setStatusString("retrieving next chunk of instances from server...", true);
-      EventBus.publish(new FormStatusEvent(fs));
+        oldWebsafeCursorString = websafeCursorString; // remember what we had...
+        SubmissionChunk chunk;
+        try {
+          chunk = chunkCompleter.take().get();
+          websafeCursorString = chunk.websafeCursorString;
+          cursorFinished = oldWebsafeCursorString.equals(websafeCursorString);
+        } catch (InterruptedException | ExecutionException e) {
+          return false;
+        }
 
-      Map<String, String> params = new HashMap<String, String>();
-      params.put("numEntries", Integer.toString(MAX_ENTRIES));
-      params.put("formId", fd.getFormId());
-      params.put("cursor",websafeCursorString);
-      String fullUrl = WebUtils.createLinkWithProperties(baseUrl, params);
-      oldWebsafeCursorString = websafeCursorString; // remember what we had...
-      AggregateUtils.DocumentFetchResult result;
-      try {
-        DocumentDescription submissionChunkDescription = new DocumentDescription("Fetch of submission download chunk failed.  Detailed error: ",
-            "Fetch of submission download chunk failed.", "submission download chunk",
-            terminationFuture);
-        result = AggregateUtils.getXmlDocument(fullUrl, serverInfo, false, submissionChunkDescription, null);
-      } catch (XmlDocumentFetchException e) {
-        fs.setStatusString("NOT ALL SUBMISSIONS RETRIEVED: Error fetching list of submissions: " + e.getMessage(), false);
-        EventBus.publish(new FormStatusEvent(fs));
-        return false;
-      }
+        if (!cursorFinished) {
+          // submit another chunk request so it's ready by the time we finish processing this chunk
+          chunkCompleter.submit(new SubmissionChunkDownload(fs, fd.getFormId(), websafeCursorString));
+        }
 
-      SubmissionDownloadChunk chunk;
-      try {
-        chunk = XmlManipulationUtils.parseSubmissionDownloadListResponse(result.doc);
-      } catch (ParsingException e) {
-        fs.setStatusString("NOT ALL SUBMISSIONS RETRIEVED: Error parsing the list of submissions: " + e.getMessage(), false);
-        EventBus.publish(new FormStatusEvent(fs));
-        return false;
-      }
-      websafeCursorString = chunk.websafeCursorString;
-
-      ExecutorService execSvc = Executors.newFixedThreadPool(MAX_CONNECTIONS_PER_ROUTE);
-      CompletionService<String> dlSvc = new ExecutorCompletionService(execSvc);
-      try {
         for (String uri : chunk.uriList) {
-          if ( isCancelled() ) {
-            fs.setStatusString("aborting fetching submissions...", true);
+          if (isCancelled()) {
+            fs.setStatusString("aborting requesting submissions...", true);
             EventBus.publish(new FormStatusEvent(fs));
             return false;
           }
-          fs.setStatusString("fetching instance " + uri + " ...", true);
-          EventBus.publish(new FormStatusEvent(fs));
-          dlSvc.submit(new SubmissionDownload(formInstancesDir, formDatabase, lfd, fs, uri));
+          submissionCompleter.submit(new SubmissionDownload(formInstancesDir, formDatabase, lfd, fs, uri));
         }
 
-        for (int i=0; i<chunk.uriList.size(); i++) {
-          if ( isCancelled() ) {
-            fs.setStatusString("aborting fetching submissions...", true);
+        for (int i = 0; i < chunk.uriList.size(); i++) {
+          if (isCancelled()) {
+            fs.setStatusString("aborting processing submissions...", true);
             EventBus.publish(new FormStatusEvent(fs));
             return false;
           }
           try {
-            fs.setStatusString(String.format("fetched instance %s, %s...", ++count, dlSvc.take().get()), true);
+            submissionCompleter.take().get();
+            fs.setStatusString(String.format("fetched instance %s...", count++), true);
             EventBus.publish(new FormStatusEvent(fs));
           } catch (InterruptedException | ExecutionException e) {
             log.error("failure during submission download", e);
@@ -331,11 +319,49 @@ public class ServerFetcher {
             // but try to get the next one...
           }
         }
-      } finally {
-        execSvc.shutdownNow();
-      }
+      } while (!cursorFinished);
+    } finally {
+      execSvc.shutdownNow();
     }
     return allSuccessful;
+  }
+
+  private class SubmissionChunkDownload implements Callable<SubmissionChunk> {
+
+    private final FormStatus fs;
+    private final String fullUrl;
+
+    SubmissionChunkDownload(FormStatus fs, String formId, String cursor) {
+      this.fs = fs;
+      this.fullUrl = getChunkUrl(formId, cursor);
+    }
+
+    private String getChunkUrl(String formId, String cursor) {
+      String baseUrl = serverInfo.getUrl() + "/view/submissionList";
+      Map<String, String> params = new HashMap<>();
+      params.put("numEntries", Integer.toString(MAX_ENTRIES));
+      params.put("formId", formId);
+      params.put("cursor", cursor);
+      return WebUtils.createLinkWithProperties(baseUrl, params);
+    }
+
+    public SubmissionChunk call() throws ParsingException, XmlDocumentFetchException {
+      try {
+        DocumentDescription submissionChunkDescription = new DocumentDescription("Fetch of submission download chunk failed.  Detailed error: ",
+                "Fetch of submission download chunk failed.", "submission download chunk",
+                terminationFuture);
+        AggregateUtils.DocumentFetchResult fetchResult = AggregateUtils.getXmlDocument(fullUrl, serverInfo, false, submissionChunkDescription, null);
+        return XmlManipulationUtils.parseSubmissionDownloadListResponse(fetchResult.doc);
+      } catch (XmlDocumentFetchException e) {
+        fs.setStatusString("NOT ALL SUBMISSIONS RETRIEVED: Error fetching list of submissions: " + e.getMessage(), false);
+        EventBus.publish(new FormStatusEvent(fs));
+        throw e;
+      } catch (ParsingException e) {
+        fs.setStatusString("NOT ALL SUBMISSIONS RETRIEVED: Error parsing the list of submissions: " + e.getMessage(), false);
+        EventBus.publish(new FormStatusEvent(fs));
+        throw e;
+      }
+    }
   }
 
   private class SubmissionDownload implements Callable<String> {

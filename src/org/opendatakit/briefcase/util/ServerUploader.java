@@ -43,7 +43,7 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 import org.opendatakit.briefcase.util.AggregateUtils.DocumentFetchResult;
-import org.opendatakit.briefcase.util.ServerFetcher.SubmissionDownloadChunk;
+import org.opendatakit.briefcase.util.ServerFetcher.SubmissionChunk;
 
 public class ServerUploader {
 
@@ -155,7 +155,7 @@ public class ServerUploader {
         return;
       }
 
-      SubmissionDownloadChunk chunk;
+      SubmissionChunk chunk;
       try {
         chunk = XmlManipulationUtils.parseSubmissionDownloadListResponse(result.doc);
       } catch (ParsingException e) {
