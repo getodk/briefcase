@@ -202,4 +202,17 @@ public class DatabaseUtils {
       log.error("failure while pruning instance registry", e);
     }
   }
+
+  public static void migrateData(Connection old_c, Connection new_c) throws SQLException {
+    createRecordedInstanceTable(new_c);
+    try (PreparedStatement selectStmt = old_c.prepareStatement(SELECT_ALL_SQL);
+         ResultSet rset = selectStmt.executeQuery();
+         PreparedStatement insertStmt = new_c.prepareStatement(INSERT_DML)) {
+      while (rset.next()) {
+        insertStmt.setString(1, rset.getString(1));
+        insertStmt.setString(2, rset.getString(2));
+        insertStmt.executeUpdate();
+      }
+    }
+  }
 }
