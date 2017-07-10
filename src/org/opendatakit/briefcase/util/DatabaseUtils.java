@@ -99,7 +99,7 @@ public class DatabaseUtils {
     }
   }
 
-  private void createRecordedInstanceTable(Connection c) throws SQLException {
+  private static void createRecordedInstanceTable(Connection c) throws SQLException {
     try (Statement stmt = c.createStatement()) {
       stmt.execute(CREATE_DDL);
     }
