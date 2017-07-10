@@ -39,6 +39,14 @@ public class DatabaseUtils {
 
   private static final Log log = LogFactory.getLog(DatabaseUtils.class);
 
+  private static final String CREATE_DDL = "CREATE TABLE recorded_instance (instanceId varchar(256) primary key, directory varchar(4096))";
+  private static final String ASSERT_SQL = "SELECT instanceId FROM recorded_instance limit 1";
+  private static final String SELECT_ALL_SQL = "SELECT instanceId, directory FROM recorded_instance";
+  private static final String SELECT_DIR_SQL = "SELECT directory FROM recorded_instance WHERE instanceId = ?";
+  private static final String INSERT_DML = "INSERT INTO recorded_instance (instanceId, directory) VALUES(?,?)";
+  private static final String DELETE_DML = "DELETE FROM recorded_instance WHERE instanceId = ?";
+
+
   private Connection connection;
   
   private boolean hasRecordedInstanceTable = false;
@@ -72,9 +80,9 @@ public class DatabaseUtils {
     
     Statement stmt = connection.createStatement();
     try {
-      stmt.execute("SELECT instanceId FROM recorded_instance limit 1");
+      stmt.execute(ASSERT_SQL);
       if ( log.isDebugEnabled() ) {
-        stmt.execute("SELECT instanceId, directory FROM recorded_instance");
+        stmt.execute(SELECT_ALL_SQL);
         ResultSet rs = stmt.getResultSet();
         while ( rs.next() ) {
           log.debug("recorded: " + rs.getString(1) + " @dir=" + rs.getString(2));
@@ -83,7 +91,7 @@ public class DatabaseUtils {
       hasRecordedInstanceTable = true;
     } catch ( SQLException e ) {
       // doesn't exist -- create it...
-      stmt.execute("CREATE TABLE recorded_instance (instanceId varchar(256) primary key, directory varchar(4096))");
+      stmt.execute(CREATE_DDL);
       hasRecordedInstanceTable = true;
     } finally {
       stmt.close();
@@ -97,7 +105,7 @@ public class DatabaseUtils {
       
       if ( insertRecordedInstanceQuery == null ) {
         insertRecordedInstanceQuery = 
-            connection.prepareStatement("INSERT INTO recorded_instance (instanceId, directory) VALUES(?,?)");
+            connection.prepareStatement(INSERT_DML);
       }
             
       insertRecordedInstanceQuery.setString(1, instanceId);
@@ -118,7 +126,7 @@ public class DatabaseUtils {
       
       if ( deleteRecordedInstanceQuery == null ) {
         deleteRecordedInstanceQuery = 
-            connection.prepareStatement("DELETE FROM recorded_instance WHERE instanceId = ?");
+            connection.prepareStatement(DELETE_DML);
       }
       
       deleteRecordedInstanceQuery.setString(1, instanceId );
@@ -139,7 +147,7 @@ public class DatabaseUtils {
       
       if ( getRecordedInstanceQuery == null ) {
         getRecordedInstanceQuery = 
-            connection.prepareStatement("SELECT directory FROM recorded_instance WHERE instanceId = ?");
+            connection.prepareStatement(SELECT_DIR_SQL);
       }
       
       getRecordedInstanceQuery.setString(1, instanceId);
@@ -173,7 +181,7 @@ public class DatabaseUtils {
     try {
       assertRecordedInstanceTable();
       stmt = connection.createStatement();
-      ResultSet values = stmt.executeQuery("SELECT instanceId, directory FROM recorded_instance");
+      ResultSet values = stmt.executeQuery(SELECT_ALL_SQL);
       while ( values.next() ) {
         String instanceId = values.getString(1);
         File f = new File(values.getString(2));
