@@ -74,30 +74,37 @@ public class DatabaseUtils {
       connection =  null;
     }
   }
-  
+
   private void assertRecordedInstanceTable() throws SQLException {
-    if ( hasRecordedInstanceTable ) return;
-    
-    Statement stmt = connection.createStatement();
-    try {
-      stmt.execute(ASSERT_SQL);
-      if ( log.isDebugEnabled() ) {
+
+    if (hasRecordedInstanceTable) return;
+
+    try (Statement stmt = connection.createStatement()) {
+
+      try {
+        stmt.execute(ASSERT_SQL);
+      } catch (SQLException e) {
+        log.debug("assertion failed, attempting to create instance table");
+        createRecordedInstanceTable(connection);
+        hasRecordedInstanceTable = true;
+      }
+
+      if (log.isDebugEnabled()) {
         stmt.execute(SELECT_ALL_SQL);
         ResultSet rs = stmt.getResultSet();
-        while ( rs.next() ) {
+        while (rs.next()) {
           log.debug("recorded: " + rs.getString(1) + " @dir=" + rs.getString(2));
         }
       }
-      hasRecordedInstanceTable = true;
-    } catch ( SQLException e ) {
-      // doesn't exist -- create it...
-      stmt.execute(CREATE_DDL);
-      hasRecordedInstanceTable = true;
-    } finally {
-      stmt.close();
     }
   }
-  
+
+  private void createRecordedInstanceTable(Connection c) throws SQLException {
+    try (Statement stmt = c.createStatement()) {
+      stmt.execute(CREATE_DDL);
+    }
+  }
+
   // recorded instances have known instanceIds
   public void putRecordedInstanceDirectory( String instanceId, File dir) {
     try {
