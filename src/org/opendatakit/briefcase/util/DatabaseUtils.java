@@ -16,6 +16,9 @@
 
 package org.opendatakit.briefcase.util;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -34,7 +37,7 @@ import java.util.TreeSet;
  */
 public class DatabaseUtils {
 
-  private static boolean DEBUG = false;
+  private static final Log log = LogFactory.getLog(DatabaseUtils.class);
 
   private Connection connection;
   
@@ -52,7 +55,7 @@ public class DatabaseUtils {
       try {
         getRecordedInstanceQuery.close();
       } catch ( SQLException e ) {
-        e.printStackTrace();
+        log.error("failed to close connection", e);
       } finally {
         getRecordedInstanceQuery = null;
       }
@@ -70,11 +73,11 @@ public class DatabaseUtils {
     Statement stmt = connection.createStatement();
     try {
       stmt.execute("SELECT instanceId FROM recorded_instance limit 1");
-      if ( DEBUG ) {
+      if ( log.isDebugEnabled() ) {
         stmt.execute("SELECT instanceId, directory FROM recorded_instance");
         ResultSet rs = stmt.getResultSet();
         while ( rs.next() ) {
-          System.err.println("recorded: " + rs.getString(1) + " @dir=" + rs.getString(2));
+          log.debug("recorded: " + rs.getString(1) + " @dir=" + rs.getString(2));
         }
       }
       hasRecordedInstanceTable = true;
@@ -104,7 +107,7 @@ public class DatabaseUtils {
         throw new SQLException("Expected one row to be updated");
       }
     } catch ( SQLException e ) {
-      e.printStackTrace();
+      log.error("failed to record instance " + instanceId, e);
     }
   }
   
@@ -124,7 +127,7 @@ public class DatabaseUtils {
         throw new SQLException("Expected one row to be deleted");
       }
     } catch ( SQLException e ) {
-      e.printStackTrace();
+      log.error("failed to forget instance " + instanceId, e);
     }
   }
   
@@ -150,7 +153,9 @@ public class DatabaseUtils {
       }
       return (f != null && f.exists() && f.isDirectory()) ? f : null;
     } catch ( SQLException e ) {
-      e.printStackTrace();
+      if (log.isDebugEnabled()) {
+        log.debug("failed to find recorded instance " + instanceId, e);
+      }
       return null;
     }
   }
@@ -179,7 +184,7 @@ public class DatabaseUtils {
         }
       }
     } catch ( SQLException e ) {
-      e.printStackTrace();
+      log.error("failure while pruning instance registry", e);
     }
   }
 }
