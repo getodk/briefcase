@@ -224,15 +224,16 @@ public class DatabaseUtils {
 
   static void migrateData(String fromDbUrl, String toDbUrl) throws SQLException {
     try (Connection fromConn = getConnection(fromDbUrl);
-         Connection toConn = getConnection(toDbUrl);
-         PreparedStatement selectStmt = fromConn.prepareStatement(SELECT_ALL_SQL);
-         ResultSet results = selectStmt.executeQuery();
-         PreparedStatement insertStmt = toConn.prepareStatement(INSERT_DML)) {
+         Connection toConn = getConnection(toDbUrl)) {
       createRecordedInstanceTable(toConn);
-      while (results.next()) {
-        insertStmt.setString(1, results.getString(1));
-        insertStmt.setString(2, results.getString(2));
-        insertStmt.executeUpdate();
+      try (PreparedStatement selectStmt = fromConn.prepareStatement(SELECT_ALL_SQL);
+           ResultSet results = selectStmt.executeQuery();
+           PreparedStatement insertStmt = toConn.prepareStatement(INSERT_DML)) {
+        while (results.next()) {
+          insertStmt.setString(1, results.getString(1));
+          insertStmt.setString(2, results.getString(2));
+          insertStmt.executeUpdate();
+        }
       }
     }
   }
