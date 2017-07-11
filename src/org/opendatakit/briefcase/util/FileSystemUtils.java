@@ -258,6 +258,10 @@ public class FileSystemUtils {
 
     String jdbcUrl = "jdbc:hsqldb:file:" + dbFile.getAbsolutePath();
 
+    return getConnection(jdbcUrl);
+  }
+
+  private static Connection getConnection(String jdbcUrl) throws FileSystemException {
     Connection conn;
     try {
       conn = DriverManager.getConnection( jdbcUrl );
