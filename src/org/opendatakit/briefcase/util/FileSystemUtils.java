@@ -251,8 +251,7 @@ public class FileSystemUtils {
 
   static String getFormDatabaseUrl(File formDirectory) throws FileSystemException {
 
-    File dbDir = new File(formDirectory, "hsqldb");
-    File dbFile = new File(dbDir, "info");
+    File dbDir = new File(formDirectory, HSQLDB_DIR), dbFile = new File(dbDir, HSQLDB_DB);
 
     if (!dbDir.exists() && !dbDir.mkdirs()) {
       logger.warn("failed to create database directory: " + dbDir);
