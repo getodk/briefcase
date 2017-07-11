@@ -83,9 +83,10 @@ public class DatabaseUtils {
       stmt.execute(ASSERT_SQL);
       if (log.isDebugEnabled()) {
         stmt.execute(SELECT_ALL_SQL);
-        ResultSet rs = stmt.getResultSet();
-        while (rs.next()) {
-          log.debug("recorded: " + rs.getString(1) + " @dir=" + rs.getString(2));
+        try (ResultSet rs = stmt.getResultSet()) {
+          while (rs.next()) {
+            log.debug("recorded: " + rs.getString(1) + " @dir=" + rs.getString(2));
+          }
         }
       }
     } catch (SQLException e) {
