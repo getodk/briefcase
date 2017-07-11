@@ -222,14 +222,16 @@ public class DatabaseUtils {
     }
   }
 
-  public static void migrateData(Connection old_c, Connection new_c) throws SQLException {
-    createRecordedInstanceTable(new_c);
-    try (PreparedStatement selectStmt = old_c.prepareStatement(SELECT_ALL_SQL);
-         ResultSet rset = selectStmt.executeQuery();
-         PreparedStatement insertStmt = new_c.prepareStatement(INSERT_DML)) {
-      while (rset.next()) {
-        insertStmt.setString(1, rset.getString(1));
-        insertStmt.setString(2, rset.getString(2));
+  static void migrateData(String fromDbUrl, String toDbUrl) throws SQLException {
+    try (Connection fromConn = getConnection(fromDbUrl);
+         Connection toConn = getConnection(toDbUrl);
+         PreparedStatement selectStmt = fromConn.prepareStatement(SELECT_ALL_SQL);
+         ResultSet results = selectStmt.executeQuery();
+         PreparedStatement insertStmt = toConn.prepareStatement(INSERT_DML)) {
+      createRecordedInstanceTable(toConn);
+      while (results.next()) {
+        insertStmt.setString(1, results.getString(1));
+        insertStmt.setString(2, results.getString(2));
         insertStmt.executeUpdate();
       }
     }

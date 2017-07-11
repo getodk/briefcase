@@ -31,6 +31,7 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -251,13 +252,33 @@ public class FileSystemUtils {
 
   static String getFormDatabaseUrl(File formDirectory) throws FileSystemException {
 
+    File oldDbFile = new File(formDirectory, SMALLSQL_DIR);
     File dbDir = new File(formDirectory, HSQLDB_DIR), dbFile = new File(dbDir, HSQLDB_DB);
 
-    if (!dbDir.exists() && !dbDir.mkdirs()) {
-      logger.warn("failed to create database directory: " + dbDir);
+    if (!dbDir.exists()) {
+      if (!dbDir.mkdirs()) {
+        logger.warn("failed to create database directory: " + dbDir);
+      } else if (oldDbFile.exists()) {
+        migrateDatabase(oldDbFile, dbFile);
+      }
     }
 
     return getJdbcUrl(dbFile);
+  }
+
+  private static void migrateDatabase(File oldDbFile, File dbFile) throws FileSystemException {
+    try {
+      DatabaseUtils.migrateData(getJdbcUrl(oldDbFile), getJdbcUrl(dbFile));
+    } catch (SQLException e) {
+      throw new FileSystemException(String.format("failed to migrate database %s to %s", oldDbFile, dbFile));
+    }
+    if (!oldDbFile.renameTo(getBackupFile(oldDbFile))) {
+      throw new FileSystemException(String.format("failed to backup database after migration"));
+    }
+  }
+
+  private static File getBackupFile(File file) {
+    return new File(file.getParent(), file.getName() + ".bak");
   }
 
   private static String getJdbcUrl(File dbFile) throws FileSystemException {
