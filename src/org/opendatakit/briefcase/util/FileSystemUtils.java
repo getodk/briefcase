@@ -64,6 +64,11 @@ public class FileSystemUtils {
   public static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
   static final String README_TXT = "readme.txt";
   static final String FORMS_DIR = "forms";
+  static final String HSQLDB_DIR = "info.hsqldb";
+  static final String HSQLDB_DB = "info";
+  static final String SMALLSQL_DIR = "info.db";
+  static final String HSQLDB_JDBC_PREFIX = "jdbc:hsqldb:file:";
+  static final String SMALLSQL_JDBC_PREFIX = "jdbc:smallsql:";
 
   // encryption support....
   static final String ASYMMETRIC_ALGORITHM = "RSA/NONE/OAEPWithSHA256AndMGF1Padding";
@@ -244,7 +249,7 @@ public class FileSystemUtils {
     return formPath;
   }
 
-  public static String getFormDatabaseUrl(File formDirectory) {
+  static String getFormDatabaseUrl(File formDirectory) throws FileSystemException {
 
     File dbDir = new File(formDirectory, "hsqldb");
     File dbFile = new File(dbDir, "info");
@@ -253,7 +258,26 @@ public class FileSystemUtils {
       logger.warn("failed to create database directory: " + dbDir);
     }
 
-    return "jdbc:hsqldb:file:" + dbFile.getAbsolutePath();
+    return getJdbcUrl(dbFile);
+  }
+
+  private static String getJdbcUrl(File dbFile) throws FileSystemException {
+    if (isHypersonicDatabase(dbFile)) {
+      return HSQLDB_JDBC_PREFIX + dbFile.getAbsolutePath();
+    } else if (isSmallSQLDatabase(dbFile)){
+      return SMALLSQL_JDBC_PREFIX + dbFile.getAbsolutePath() + (dbFile.exists()? "" : "?create=true");
+    } else {
+      throw new FileSystemException("unknown database type for file " + dbFile);
+    }
+  }
+
+  private static boolean isSmallSQLDatabase(File dbFile) {
+    return SMALLSQL_DIR.equals(dbFile.getName());
+  }
+
+  private static boolean isHypersonicDatabase(File dbFile) {
+    File parentFile = dbFile.getParentFile();
+    return HSQLDB_DB.equals(dbFile.getName()) && parentFile != null && HSQLDB_DIR.equals(parentFile.getName());
   }
 
   public static File getFormDefinitionFileIfExists(File formDirectory) {

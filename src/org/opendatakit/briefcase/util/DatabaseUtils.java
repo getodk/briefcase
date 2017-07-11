@@ -25,6 +25,7 @@ import java.sql.*;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static org.opendatakit.briefcase.util.FileSystemUtils.SMALLSQL_JDBC_PREFIX;
 import static org.opendatakit.briefcase.util.FileSystemUtils.getFormDatabaseUrl;
 
 /**
@@ -207,7 +208,18 @@ public class DatabaseUtils {
   }
 
   static Connection getConnection(String jdbcUrl) throws SQLException {
+    loadDriver(jdbcUrl);
     return DriverManager.getConnection(jdbcUrl);
+  }
+
+  private static void loadDriver(String jdbcUrl) throws SQLException {
+    if (jdbcUrl.startsWith(SMALLSQL_JDBC_PREFIX)) {
+      try {
+        Class.forName("smallsql.database.SSDriver");
+      } catch (ClassNotFoundException e) {
+        throw new SQLException("unable to load smallsql driver", e);
+      }
+    }
   }
 
   public static void migrateData(Connection old_c, Connection new_c) throws SQLException {
