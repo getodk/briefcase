@@ -90,8 +90,8 @@ public class DatabaseUtils {
       } catch (SQLException e) {
         log.debug("assertion failed, attempting to create instance table");
         createRecordedInstanceTable(connection);
-        hasRecordedInstanceTable = true;
       }
+      hasRecordedInstanceTable = true;
     }
   }
 
