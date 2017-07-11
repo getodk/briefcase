@@ -80,18 +80,24 @@ public class DatabaseUtils {
       try (Statement stmt = connection.createStatement()) {
         stmt.execute(ASSERT_SQL);
         if (log.isDebugEnabled()) {
-          stmt.execute(SELECT_ALL_SQL);
-          try (ResultSet rs = stmt.getResultSet()) {
-            while (rs.next()) {
-              log.debug("recorded: " + rs.getString(1) + " @dir=" + rs.getString(2));
-            }
-          }
+          dumpRecordedInstanceTable();
         }
       } catch (SQLException e) {
         log.debug("assertion failed, attempting to create instance table");
         createRecordedInstanceTable(connection);
       }
       hasRecordedInstanceTable = true;
+    }
+  }
+
+  private void dumpRecordedInstanceTable() throws SQLException {
+    try (Statement stmt = connection.createStatement()) {
+      stmt.execute(SELECT_ALL_SQL);
+      try (ResultSet rs = stmt.getResultSet()) {
+        while (rs.next()) {
+          log.debug("recorded: " + rs.getString(1) + " @dir=" + rs.getString(2));
+        }
+      }
     }
   }
 
