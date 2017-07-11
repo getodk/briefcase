@@ -258,14 +258,6 @@ public class FileSystemUtils {
 
     String jdbcUrl = "jdbc:hsqldb:file:" + dbFile.getAbsolutePath();
 
-    try {
-      // register driver
-      Class.forName( "org.hsqldb.jdbc.JDBCDriver" );
-    } catch (ClassNotFoundException e) {
-      e.printStackTrace();
-      throw new FileSystemException("Unable to load database driver");
-    }
-
     Connection conn;
     try {
       conn = DriverManager.getConnection( jdbcUrl );
