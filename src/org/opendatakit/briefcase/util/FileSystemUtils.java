@@ -270,7 +270,7 @@ public class FileSystemUtils {
     try {
       DatabaseUtils.migrateData(getJdbcUrl(oldDbFile), getJdbcUrl(dbFile));
     } catch (SQLException e) {
-      throw new FileSystemException(String.format("failed to migrate database %s to %s", oldDbFile, dbFile));
+      throw new FileSystemException(String.format("failed to migrate database %s to %s", oldDbFile, dbFile), e);
     }
     if (!oldDbFile.renameTo(getBackupFile(oldDbFile))) {
       throw new FileSystemException(String.format("failed to backup database after migration"));
