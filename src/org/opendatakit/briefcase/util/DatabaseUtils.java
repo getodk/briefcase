@@ -18,15 +18,14 @@ package org.opendatakit.briefcase.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.opendatakit.briefcase.model.FileSystemException;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Set;
 import java.util.TreeSet;
+
+import static org.opendatakit.briefcase.util.FileSystemUtils.getFormDatabaseUrl;
 
 /**
  * This class abstracts all the functionality of the instance-tracking
@@ -57,7 +56,7 @@ public class DatabaseUtils {
   public DatabaseUtils(Connection connection) {
     this.connection = connection;
   }
-  
+
   public void close() throws SQLException {
     if ( getRecordedInstanceQuery != null ) {
       try {
@@ -201,6 +200,14 @@ public class DatabaseUtils {
     } catch ( SQLException e ) {
       log.error("failure while pruning instance registry", e);
     }
+  }
+
+  public static DatabaseUtils newInstance(File formDirectory) throws FileSystemException, SQLException {
+    return new DatabaseUtils(getConnection(getFormDatabaseUrl(formDirectory)));
+  }
+
+  static Connection getConnection(String jdbcUrl) throws SQLException {
+    return DriverManager.getConnection(jdbcUrl);
   }
 
   public static void migrateData(Connection old_c, Connection new_c) throws SQLException {

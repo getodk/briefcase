@@ -125,7 +125,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
 
         DatabaseUtils formDatabase = null;
         try {
-          formDatabase = new DatabaseUtils(FileSystemUtils.getFormDatabase(briefcaseLfd.getFormDirectory()));
+          formDatabase = DatabaseUtils.newInstance(briefcaseLfd.getFormDirectory());
   
           File destinationFormInstancesDir;
           try {
@@ -303,7 +303,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
             }
           }
           
-        } catch ( FileSystemException e ) {
+        } catch ( SQLException | FileSystemException e ) {
           e.printStackTrace();
           allSuccessful = isSuccessful = false;
           fs.setStatusString("unable to open form database: " + e.getMessage(), false);

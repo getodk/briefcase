@@ -31,9 +31,6 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -247,7 +244,7 @@ public class FileSystemUtils {
     return formPath;
   }
 
-  public static Connection getFormDatabase(File formDirectory) throws FileSystemException {
+  public static String getFormDatabaseUrl(File formDirectory) {
 
     File dbDir = new File(formDirectory, "hsqldb");
     File dbFile = new File(dbDir, "info");
@@ -256,20 +253,7 @@ public class FileSystemUtils {
       logger.warn("failed to create database directory: " + dbDir);
     }
 
-    String jdbcUrl = "jdbc:hsqldb:file:" + dbFile.getAbsolutePath();
-
-    return getConnection(jdbcUrl);
-  }
-
-  private static Connection getConnection(String jdbcUrl) throws FileSystemException {
-    Connection conn;
-    try {
-      conn = DriverManager.getConnection( jdbcUrl );
-    } catch (SQLException e) {
-      e.printStackTrace();
-      throw new FileSystemException("Unable to open JDBC url: " + jdbcUrl);
-    }
-    return conn;
+    return "jdbc:hsqldb:file:" + dbFile.getAbsolutePath();
   }
 
   public static File getFormDefinitionFileIfExists(File formDirectory) {
