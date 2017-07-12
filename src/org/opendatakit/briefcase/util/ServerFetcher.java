@@ -332,7 +332,12 @@ public class ServerFetcher {
         }
       } while (!cursorFinished);
     } finally {
-      execSvc.shutdownNow();
+      execSvc.shutdown();
+      try {
+        execSvc.awaitTermination(1, TimeUnit.MINUTES);
+      } catch (InterruptedException e) {
+        log.warn("interrupted while waiting for pull to complete");
+      }
     }
     return allSuccessful;
   }
