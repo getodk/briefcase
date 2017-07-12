@@ -34,17 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.DocumentDescription;
-import org.opendatakit.briefcase.model.FileSystemException;
-import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.ParsingException;
-import org.opendatakit.briefcase.model.RemoteFormDefinition;
-import org.opendatakit.briefcase.model.ServerConnectionInfo;
-import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransmissionException;
-import org.opendatakit.briefcase.model.XmlDocumentFetchException;
+import org.opendatakit.briefcase.model.*;
 
 import static org.opendatakit.briefcase.util.WebUtils.MAX_CONNECTIONS_PER_ROUTE;
 
@@ -266,12 +256,17 @@ public class ServerFetcher {
     }
   }
 
+  private ExecutorService getFetchExecutorService() {
+    int downloadThreads = BriefcasePreferences.getBriefcaseParallelPullsProperty()? MAX_CONNECTIONS_PER_ROUTE : 1;
+    return Executors.newFixedThreadPool(downloadThreads, new DownloadThreadFactory());
+  }
+
   private boolean downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd,
                                                 FormStatus fs) {
     int submissionCount = 1, chunkCount = 1;
     boolean allSuccessful = true;
     RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
-    ExecutorService execSvc = Executors.newFixedThreadPool(MAX_CONNECTIONS_PER_ROUTE, new DownloadThreadFactory());
+    ExecutorService execSvc = getFetchExecutorService();
     CompletionService<SubmissionChunk> chunkCompleter = new ExecutorCompletionService(execSvc);
     CompletionService<String> submissionCompleter = new ExecutorCompletionService(execSvc);
 

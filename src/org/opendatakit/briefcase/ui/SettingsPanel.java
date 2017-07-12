@@ -7,14 +7,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.ArrayList;
 
-import javax.swing.GroupLayout;
+import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -45,6 +39,8 @@ public class SettingsPanel extends JPanel {
     private JTextField txtHost;
     private JLabel lblPort;
     private JSpinner spinPort;
+    private JLabel lblParallel;
+    private JCheckBox chkParallel;
 
     public SettingsPanel(MainBriefcaseWindow parentWindow) {
         this.parentWindow = parentWindow;
@@ -76,13 +72,19 @@ public class SettingsPanel extends JPanel {
         chkProxy.setSelected(false);
         chkProxy.addActionListener(new ProxyToggleListener());
 
+        lblParallel = new JLabel(MessageStrings.PARALLEL_DOWNLOADS);
+        chkParallel = new JCheckBox();
+        chkParallel.setSelected(BriefcasePreferences.getBriefcaseParallelPullsProperty());
+        chkParallel.addActionListener(new ParallelDownloadToggleListener());
+
         GroupLayout groupLayout = new GroupLayout(this);
         groupLayout.setHorizontalGroup(
           groupLayout.createSequentialGroup()
             .addContainerGap()
             .addGroup(
               groupLayout.createParallelGroup(Alignment.TRAILING)
-                .addComponent(chkProxy))
+                .addComponent(chkProxy)
+                .addComponent(chkParallel))
             .addGroup(
               groupLayout.createParallelGroup(Alignment.LEADING)
                 .addGroup(
@@ -100,7 +102,8 @@ public class SettingsPanel extends JPanel {
                     .addGroup(
                       groupLayout.createParallelGroup(Alignment.LEADING)
                         .addComponent(txtHost, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(spinPort, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE))))
+                        .addComponent(spinPort, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)))
+                      .addComponent(lblParallel))
             .addContainerGap()
         );
         groupLayout.setVerticalGroup(
@@ -120,6 +123,10 @@ public class SettingsPanel extends JPanel {
               .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
                 .addComponent(lblPort)
                 .addComponent(spinPort))
+              .addPreferredGap(ComponentPlacement.RELATED)
+              .addGroup(groupLayout.createParallelGroup(Alignment.CENTER)
+                .addComponent(lblParallel)
+                .addComponent(chkParallel))
               .addContainerGap()
         );
 
@@ -207,6 +214,15 @@ public class SettingsPanel extends JPanel {
 
     }
 
+    private class ParallelDownloadToggleListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (e.getSource() == chkParallel) {
+                BriefcasePreferences.setBriefcaseParallelPullsProperty(
+                        !BriefcasePreferences.getBriefcaseParallelPullsProperty());
+            }
+        }
+    }
 }
 
 
