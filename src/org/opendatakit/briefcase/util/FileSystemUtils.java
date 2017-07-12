@@ -31,8 +31,6 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +65,11 @@ public class FileSystemUtils {
   public static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
   static final String README_TXT = "readme.txt";
   static final String FORMS_DIR = "forms";
+  static final String HSQLDB_DIR = "info.hsqldb";
+  static final String HSQLDB_DB = "info";
+  static final String SMALLSQL_DIR = "info.db";
+  static final String HSQLDB_JDBC_PREFIX = "jdbc:hsqldb:file:";
+  static final String SMALLSQL_JDBC_PREFIX = "jdbc:smallsql:";
 
   // encryption support....
   static final String ASYMMETRIC_ALGORITHM = "RSA/NONE/OAEPWithSHA256AndMGF1Padding";
@@ -247,31 +250,54 @@ public class FileSystemUtils {
     return formPath;
   }
 
-  public static Connection getFormDatabase(File formDirectory) throws FileSystemException {
-    File db = new File(formDirectory, "info.db");
+  static String getFormDatabaseUrl(File formDirectory) throws FileSystemException {
 
-    String createFlag = "";
-    if ( !db.exists() ) {
-      createFlag = "?create=true";
-    }
-    String jdbcUrl = "jdbc:smallsql:" + db.getAbsolutePath() + createFlag;
+    File oldDbFile = new File(formDirectory, SMALLSQL_DIR);
+    File dbDir = new File(formDirectory, HSQLDB_DIR), dbFile = new File(dbDir, HSQLDB_DB);
 
-    try {
-      // register driver
-      Class.forName( "smallsql.database.SSDriver" );
-    } catch (ClassNotFoundException e) {
-      e.printStackTrace();
-      throw new FileSystemException("Unable to load SmallSQL driver");
+    if (!dbDir.exists()) {
+      if (!dbDir.mkdirs()) {
+        logger.warn("failed to create database directory: " + dbDir);
+      } else if (oldDbFile.exists()) {
+        migrateDatabase(oldDbFile, dbFile);
+      }
     }
 
-    Connection conn;
+    return getJdbcUrl(dbFile);
+  }
+
+  private static void migrateDatabase(File oldDbFile, File dbFile) throws FileSystemException {
     try {
-      conn = DriverManager.getConnection( jdbcUrl );
+      DatabaseUtils.migrateData(getJdbcUrl(oldDbFile), getJdbcUrl(dbFile));
     } catch (SQLException e) {
-      e.printStackTrace();
-      throw new FileSystemException("Unable to open JDBC url: " + jdbcUrl);
+      throw new FileSystemException(String.format("failed to migrate database %s to %s", oldDbFile, dbFile), e);
     }
-    return conn;
+    if (!oldDbFile.renameTo(getBackupFile(oldDbFile))) {
+      throw new FileSystemException(String.format("failed to backup database after migration"));
+    }
+  }
+
+  private static File getBackupFile(File file) {
+    return new File(file.getParent(), file.getName() + ".bak");
+  }
+
+  private static String getJdbcUrl(File dbFile) throws FileSystemException {
+    if (isHypersonicDatabase(dbFile)) {
+      return HSQLDB_JDBC_PREFIX + dbFile.getAbsolutePath();
+    } else if (isSmallSQLDatabase(dbFile)){
+      return SMALLSQL_JDBC_PREFIX + dbFile.getAbsolutePath() + (dbFile.exists()? "" : "?create=true");
+    } else {
+      throw new FileSystemException("unknown database type for file " + dbFile);
+    }
+  }
+
+  private static boolean isSmallSQLDatabase(File dbFile) {
+    return SMALLSQL_DIR.equals(dbFile.getName());
+  }
+
+  private static boolean isHypersonicDatabase(File dbFile) {
+    File parentFile = dbFile.getParentFile();
+    return HSQLDB_DB.equals(dbFile.getName()) && parentFile != null && HSQLDB_DIR.equals(parentFile.getName());
   }
 
   public static File getFormDefinitionFileIfExists(File formDirectory) {

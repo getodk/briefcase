@@ -17,12 +17,14 @@
 package org.opendatakit.briefcase.model;
 
 public class FileSystemException extends Exception {
-  /**
-   * 
-   */
+
   private static final long serialVersionUID = 3142210034175698950L;
 
   public FileSystemException(String message) {
     super(message);
+  }
+
+  public FileSystemException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

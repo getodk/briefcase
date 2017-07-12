@@ -212,7 +212,7 @@ public class ServerUploader {
       Set<File> briefcaseInstances = FileSystemUtils.getFormSubmissionDirectories(briefcaseLfd.getFormDirectory());
       DatabaseUtils formDatabase = null;
       try {
-        formDatabase = new DatabaseUtils(FileSystemUtils.getFormDatabase(briefcaseLfd.getFormDirectory()));
+        formDatabase = DatabaseUtils.newInstance(briefcaseLfd.getFormDirectory());
         
         // make sure all the local instances are in the database...
         formDatabase.updateInstanceLists(briefcaseInstances);
@@ -230,7 +230,7 @@ public class ServerUploader {
             break;
           }
         }
-      } catch ( FileSystemException e ) {
+      } catch ( SQLException | FileSystemException e ) {
         e.printStackTrace();
         thisFormSuccessful = false;
         allSuccessful = false;

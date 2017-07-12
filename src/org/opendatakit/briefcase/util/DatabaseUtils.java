@@ -16,14 +16,17 @@
 
 package org.opendatakit.briefcase.util;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.opendatakit.briefcase.model.FileSystemException;
+
 import java.io.File;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Set;
 import java.util.TreeSet;
+
+import static org.opendatakit.briefcase.util.FileSystemUtils.SMALLSQL_JDBC_PREFIX;
+import static org.opendatakit.briefcase.util.FileSystemUtils.getFormDatabaseUrl;
 
 /**
  * This class abstracts all the functionality of the instance-tracking
@@ -33,7 +36,16 @@ import java.util.TreeSet;
  *
  */
 public class DatabaseUtils {
-  private static boolean DEBUG = true;
+
+  private static final Log log = LogFactory.getLog(DatabaseUtils.class);
+
+  private static final String CREATE_DDL = "CREATE TABLE recorded_instance (instanceId varchar(256) primary key, directory varchar(4096))";
+  private static final String ASSERT_SQL = "SELECT instanceId FROM recorded_instance limit 1";
+  private static final String SELECT_ALL_SQL = "SELECT instanceId, directory FROM recorded_instance";
+  private static final String SELECT_DIR_SQL = "SELECT directory FROM recorded_instance WHERE instanceId = ?";
+  private static final String INSERT_DML = "INSERT INTO recorded_instance (instanceId, directory) VALUES(?,?)";
+  private static final String DELETE_DML = "DELETE FROM recorded_instance WHERE instanceId = ?";
+
 
   private Connection connection;
   
@@ -45,13 +57,13 @@ public class DatabaseUtils {
   public DatabaseUtils(Connection connection) {
     this.connection = connection;
   }
-  
+
   public void close() throws SQLException {
     if ( getRecordedInstanceQuery != null ) {
       try {
         getRecordedInstanceQuery.close();
       } catch ( SQLException e ) {
-        e.printStackTrace();
+        log.error("failed to close connection", e);
       } finally {
         getRecordedInstanceQuery = null;
       }
@@ -62,31 +74,39 @@ public class DatabaseUtils {
       connection =  null;
     }
   }
-  
+
   private void assertRecordedInstanceTable() throws SQLException {
-    if ( hasRecordedInstanceTable ) return;
-    
-    Statement stmt = connection.createStatement();
-    try {
-      stmt.execute("SELECT FIRST(instanceId) FROM recorded_instance");
-      if ( DEBUG ) {
-        stmt.execute("SELECT instanceId, directory FROM recorded_instance");
-        ResultSet rs = stmt.getResultSet();
-        while ( rs.next() ) {
-          System.err.println("recorded: " + rs.getString(1) + " @dir=" + rs.getString(2));
+    if (!hasRecordedInstanceTable) {
+      try (Statement stmt = connection.createStatement()) {
+        stmt.execute(ASSERT_SQL);
+        if (log.isDebugEnabled()) {
+          dumpRecordedInstanceTable();
         }
+      } catch (SQLException e) {
+        log.debug("assertion failed, attempting to create instance table");
+        createRecordedInstanceTable(connection);
       }
       hasRecordedInstanceTable = true;
-    } catch ( SQLException e ) {
-      // doesn't exist -- create it...
-      stmt.execute("CREATE TABLE recorded_instance (" +
-    		" instanceId varchar2(256), directory varchar2(4096) )" );
-      hasRecordedInstanceTable = true;
-    } finally {
-      stmt.close();
     }
   }
-  
+
+  private void dumpRecordedInstanceTable() throws SQLException {
+    try (Statement stmt = connection.createStatement()) {
+      stmt.execute(SELECT_ALL_SQL);
+      try (ResultSet rs = stmt.getResultSet()) {
+        while (rs.next()) {
+          log.debug("recorded: " + rs.getString(1) + " @dir=" + rs.getString(2));
+        }
+      }
+    }
+  }
+
+  private static void createRecordedInstanceTable(Connection c) throws SQLException {
+    try (Statement stmt = c.createStatement()) {
+      stmt.execute(CREATE_DDL);
+    }
+  }
+
   // recorded instances have known instanceIds
   public void putRecordedInstanceDirectory( String instanceId, File dir) {
     try {
@@ -94,7 +114,7 @@ public class DatabaseUtils {
       
       if ( insertRecordedInstanceQuery == null ) {
         insertRecordedInstanceQuery = 
-            connection.prepareStatement("INSERT INTO recorded_instance (instanceId, directory) VALUES(?,?)");
+            connection.prepareStatement(INSERT_DML);
       }
             
       insertRecordedInstanceQuery.setString(1, instanceId);
@@ -104,7 +124,7 @@ public class DatabaseUtils {
         throw new SQLException("Expected one row to be updated");
       }
     } catch ( SQLException e ) {
-      e.printStackTrace();
+      log.error("failed to record instance " + instanceId, e);
     }
   }
   
@@ -115,7 +135,7 @@ public class DatabaseUtils {
       
       if ( deleteRecordedInstanceQuery == null ) {
         deleteRecordedInstanceQuery = 
-            connection.prepareStatement("DELETE FROM recorded_instance WHERE instanceId = ?");
+            connection.prepareStatement(DELETE_DML);
       }
       
       deleteRecordedInstanceQuery.setString(1, instanceId );
@@ -124,7 +144,7 @@ public class DatabaseUtils {
         throw new SQLException("Expected one row to be deleted");
       }
     } catch ( SQLException e ) {
-      e.printStackTrace();
+      log.error("failed to forget instance " + instanceId, e);
     }
   }
   
@@ -136,7 +156,7 @@ public class DatabaseUtils {
       
       if ( getRecordedInstanceQuery == null ) {
         getRecordedInstanceQuery = 
-            connection.prepareStatement("SELECT directory FROM recorded_instance WHERE instanceId = ?");
+            connection.prepareStatement(SELECT_DIR_SQL);
       }
       
       getRecordedInstanceQuery.setString(1, instanceId);
@@ -150,7 +170,9 @@ public class DatabaseUtils {
       }
       return (f != null && f.exists() && f.isDirectory()) ? f : null;
     } catch ( SQLException e ) {
-      e.printStackTrace();
+      if (log.isDebugEnabled()) {
+        log.debug("failed to find recorded instance " + instanceId, e);
+      }
       return null;
     }
   }
@@ -168,7 +190,7 @@ public class DatabaseUtils {
     try {
       assertRecordedInstanceTable();
       stmt = connection.createStatement();
-      ResultSet values = stmt.executeQuery("SELECT instanceId, directory FROM recorded_instance");
+      ResultSet values = stmt.executeQuery(SELECT_ALL_SQL);
       while ( values.next() ) {
         String instanceId = values.getString(1);
         File f = new File(values.getString(2));
@@ -179,7 +201,42 @@ public class DatabaseUtils {
         }
       }
     } catch ( SQLException e ) {
-      e.printStackTrace();
+      log.error("failure while pruning instance registry", e);
+    }
+  }
+
+  public static DatabaseUtils newInstance(File formDirectory) throws FileSystemException, SQLException {
+    return new DatabaseUtils(getConnection(getFormDatabaseUrl(formDirectory)));
+  }
+
+  static Connection getConnection(String jdbcUrl) throws SQLException {
+    loadDriver(jdbcUrl);
+    return DriverManager.getConnection(jdbcUrl);
+  }
+
+  private static void loadDriver(String jdbcUrl) throws SQLException {
+    if (jdbcUrl.startsWith(SMALLSQL_JDBC_PREFIX)) {
+      try {
+        Class.forName("smallsql.database.SSDriver");
+      } catch (ClassNotFoundException e) {
+        throw new SQLException("unable to load smallsql driver", e);
+      }
+    }
+  }
+
+  static void migrateData(String fromDbUrl, String toDbUrl) throws SQLException {
+    try (Connection fromConn = getConnection(fromDbUrl);
+         Connection toConn = getConnection(toDbUrl)) {
+      createRecordedInstanceTable(toConn);
+      try (PreparedStatement selectStmt = fromConn.prepareStatement(SELECT_ALL_SQL);
+           ResultSet results = selectStmt.executeQuery();
+           PreparedStatement insertStmt = toConn.prepareStatement(INSERT_DML)) {
+        while (results.next()) {
+          insertStmt.setString(1, results.getString(1));
+          insertStmt.setString(2, results.getString(2));
+          insertStmt.executeUpdate();
+        }
+      }
     }
   }
 }
