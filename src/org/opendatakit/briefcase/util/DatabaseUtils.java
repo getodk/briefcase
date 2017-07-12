@@ -21,7 +21,12 @@ import org.apache.commons.logging.LogFactory;
 import org.opendatakit.briefcase.model.FileSystemException;
 
 import java.io.File;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -31,7 +36,7 @@ import static org.opendatakit.briefcase.util.FileSystemUtils.getFormDatabaseUrl;
 /**
  * This class abstracts all the functionality of the instance-tracking
  * database.
- * 
+ *
  * @author mitchellsundt@gmail.com
  *
  */
@@ -48,12 +53,12 @@ public class DatabaseUtils {
 
 
   private Connection connection;
-  
+
   private boolean hasRecordedInstanceTable = false;
   private PreparedStatement getRecordedInstanceQuery = null;
   private PreparedStatement insertRecordedInstanceQuery = null;
   private PreparedStatement deleteRecordedInstanceQuery = null;
-  
+
   public DatabaseUtils(Connection connection) {
     this.connection = connection;
   }
@@ -111,15 +116,15 @@ public class DatabaseUtils {
   public void putRecordedInstanceDirectory( String instanceId, File dir) {
     try {
       assertRecordedInstanceTable();
-      
+
       if ( insertRecordedInstanceQuery == null ) {
-        insertRecordedInstanceQuery = 
-            connection.prepareStatement(INSERT_DML);
+        insertRecordedInstanceQuery =
+                connection.prepareStatement(INSERT_DML);
       }
-            
+
       insertRecordedInstanceQuery.setString(1, instanceId);
       insertRecordedInstanceQuery.setString(2, dir.getAbsolutePath());
-      
+
       if ( 1 != insertRecordedInstanceQuery.executeUpdate() ) {
         throw new SQLException("Expected one row to be updated");
       }
@@ -127,19 +132,19 @@ public class DatabaseUtils {
       log.error("failed to record instance " + instanceId, e);
     }
   }
-  
+
   // recorded instances have known instanceIds
   private void forgetRecordedInstance( String instanceId ) {
     try {
       assertRecordedInstanceTable();
-      
+
       if ( deleteRecordedInstanceQuery == null ) {
-        deleteRecordedInstanceQuery = 
-            connection.prepareStatement(DELETE_DML);
+        deleteRecordedInstanceQuery =
+                connection.prepareStatement(DELETE_DML);
       }
-      
+
       deleteRecordedInstanceQuery.setString(1, instanceId );
-      
+
       if ( deleteRecordedInstanceQuery.executeUpdate() > 1 ) {
         throw new SQLException("Expected one row to be deleted");
       }
@@ -147,18 +152,18 @@ public class DatabaseUtils {
       log.error("failed to forget instance " + instanceId, e);
     }
   }
-  
+
   // ask whether we have the recorded instance in this briefcase
   // return null if we don't.
   public File hasRecordedInstance( String instanceId ) {
     try {
       assertRecordedInstanceTable();
-      
+
       if ( getRecordedInstanceQuery == null ) {
-        getRecordedInstanceQuery = 
-            connection.prepareStatement(SELECT_DIR_SQL);
+        getRecordedInstanceQuery =
+                connection.prepareStatement(SELECT_DIR_SQL);
       }
-      
+
       getRecordedInstanceQuery.setString(1, instanceId);
       ResultSet values = getRecordedInstanceQuery.executeQuery();
       File f = null;
@@ -176,12 +181,12 @@ public class DatabaseUtils {
       return null;
     }
   }
-  
+
   public void assertRecordedInstanceDirectory( String instanceId, File dir) {
     forgetRecordedInstance( instanceId );
     putRecordedInstanceDirectory(instanceId, dir);
   }
-    
+
   public void updateInstanceLists( Set<File> instanceList ) {
     Set<File> workingSet = new TreeSet<File>(instanceList);
     // first, go through the database's reported set of directories
