@@ -286,7 +286,7 @@ public class BaseFormParserForJavaRosa {
 
       // print unused attribute warning message for parent element
       if (XFormUtils.showUnusedAttributeWarning(e, usedAtts)) {
-        System.out.println(XFormUtils.unusedAttWarning(e, usedAtts));
+        log.debug(XFormUtils.unusedAttWarning(e, usedAtts));
       }
 
       addBinding(binding);
