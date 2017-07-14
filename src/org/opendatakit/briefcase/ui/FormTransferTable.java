@@ -115,7 +115,7 @@ public class FormTransferTable extends JTable {
       super(LABEL);
       this.status = status;
       this.addActionListener(this);
-      logger.info("creating details button");
+      logger.debug("creating details button");
     }
 
     @Override
