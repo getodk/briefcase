@@ -316,7 +316,6 @@ public class BriefcaseCLI {
     @EventSubscriber(eventClass = FormStatusEvent.class)
     public void updateDetailedStatus(FormStatusEvent fse) {
         log.info(fse.getStatusString());
-        ;
     }
 
     @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
