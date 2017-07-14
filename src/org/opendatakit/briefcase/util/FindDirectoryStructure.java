@@ -16,11 +16,13 @@
 
 package org.opendatakit.briefcase.util;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Originally written by Dylan.  Determines the mounts that have SD Cards attached.
@@ -30,7 +32,9 @@ import java.util.logging.Logger;
  *
  */
 public class FindDirectoryStructure {
-  private static final Logger _logger = Logger.getLogger(FindDirectoryStructure.class.getName());
+
+  private static final Log log = LogFactory.getLog(FindDirectoryStructure.class);
+
   private static final String PROPERTY_OS = "os.name";
   private static final String OS_WINDOWS = "Windows";
   private static final String OS_MAC = "Mac";
@@ -51,7 +55,7 @@ public class FindDirectoryStructure {
    */
   public static List<File> searchMountedDrives() {
     String os = System.getProperty(PROPERTY_OS);
-    _logger.info("OS reported as: " + os);
+    log.info("OS reported as: " + os);
     if (os.contains(OS_WINDOWS)) {
       File[] drives = File.listRoots();
       return search(drives, true);

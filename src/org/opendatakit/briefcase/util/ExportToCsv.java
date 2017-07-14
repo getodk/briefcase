@@ -18,6 +18,8 @@ package org.opendatakit.briefcase.util;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.EventBus;
 import org.javarosa.core.model.instance.AbstractTreeElement;
 import org.javarosa.core.model.instance.TreeElement;
@@ -57,13 +59,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 public class ExportToCsv implements ITransformFormAction {
 
   private static final String MEDIA_DIR = "media";
 
-  static final Logger log = Logger.getLogger(ExportToCsv.class.getName());
+  static final Log log = LogFactory.getLog(ExportToCsv.class);
 
   File outputDir;
   File outputMediaDir;
@@ -290,20 +291,9 @@ public class ExportToCsv implements ITransformFormAction {
         return b.toString();
 
       } catch (IOException e) {
-        e.printStackTrace();
-        log.severe(" element name: " + model.getName() + " exception: " + e.toString());
-      } catch (InvalidKeyException e) {
-        e.printStackTrace();
-        log.severe(" element name: " + model.getName() + " exception: " + e.toString());
-      } catch (InvalidAlgorithmParameterException e) {
-        e.printStackTrace();
-        log.severe(" element name: " + model.getName() + " exception: " + e.toString());
-      } catch (NoSuchAlgorithmException e) {
-        e.printStackTrace();
-        log.severe(" element name: " + model.getName() + " exception: " + e.toString());
-      } catch (NoSuchPaddingException e) {
-        e.printStackTrace();
-        log.severe(" element name: " + model.getName() + " exception: " + e.toString());
+        log.debug(" element name: " + model.getName() + " exception: " + e);
+      } catch (InvalidKeyException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
+        log.debug(" element name: " + model.getName() + " exception: " + e, e);
       } finally {
         if (isr != null) {
           try {
@@ -328,7 +318,7 @@ public class ExportToCsv implements ITransformFormAction {
     TreeElement prior = null;
     for (int i = 0; i < treeElement.getNumChildren(); ++i) {
       TreeElement current = (TreeElement) treeElement.getChildAt(i);
-      log.fine(" element name: " + current.getName());
+      log.debug(" element name: " + current.getName());
       if ((prior != null) && (prior.getName().equals(current.getName()))) {
         // it is the end-group tag... seems to happen with two adjacent repeat
         // groups
