@@ -27,14 +27,32 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
-import org.opendatakit.briefcase.model.*;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.DocumentDescription;
+import org.opendatakit.briefcase.model.FileSystemException;
+import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.ParsingException;
+import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.model.ServerConnectionInfo;
+import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.TransmissionException;
+import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 
 import static org.opendatakit.briefcase.util.WebUtils.MAX_CONNECTIONS_PER_ROUTE;
 
