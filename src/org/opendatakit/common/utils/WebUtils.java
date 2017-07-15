@@ -381,11 +381,7 @@ public class WebUtils {
         while ((responseLine = reader.readLine()) != null) {
           response.append(responseLine);
         }
-      } catch (UnsupportedEncodingException ex) {
-        ex.printStackTrace();
-      } catch (IllegalStateException ex) {
-        ex.printStackTrace();
-      } catch (IOException ex) {
+      } catch (IllegalStateException | IOException ex) {
         ex.printStackTrace();
       } finally {
         try {

@@ -110,10 +110,7 @@ public class AggregateUtils {
     try {
       URL uurl = new URL(downloadUrl);
       u = uurl.toURI();
-    } catch (MalformedURLException e) {
-      e.printStackTrace();
-      throw e;
-    } catch (URISyntaxException e) {
+    } catch (MalformedURLException | URISyntaxException e) {
       e.printStackTrace();
       throw e;
     }
@@ -583,8 +580,6 @@ public class AggregateUtils {
               while (is.skip(count) == count)
                 ;
               is.close();
-            } catch (IOException e) {
-              e.printStackTrace();
             } catch (Exception e) {
               e.printStackTrace();
             }

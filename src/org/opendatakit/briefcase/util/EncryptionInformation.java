@@ -45,19 +45,8 @@ public class EncryptionInformation {
       byte[] encryptedSymmetricKey = Base64.decodeBase64(base64EncryptedSymmetricKey);
       byte[] decryptedKey = pkCipher.doFinal(encryptedSymmetricKey);
       cipherFactory = new CipherFactory(instanceId, decryptedKey);
-    } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
-    } catch (NoSuchPaddingException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
-    } catch (InvalidKeyException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
-    } catch (IllegalBlockSizeException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
-    } catch (BadPaddingException e) {
+    } catch (NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | InvalidKeyException
+            | NoSuchPaddingException e) {
       e.printStackTrace();
       throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
     }

@@ -60,10 +60,7 @@ public final class CipherFactory {
       for (int i = 0; i < IV_BYTE_LENGTH; ++i) {
         ivSeedArray[i] = messageDigest[(i % messageDigest.length)];
       }
-    } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error constructing ivSeedArray Cause: " + e.toString());
-    } catch (UnsupportedEncodingException e) {
+    } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
       e.printStackTrace();
       throw new CryptoException("Error constructing ivSeedArray Cause: " + e.toString());
     }

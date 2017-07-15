@@ -148,10 +148,7 @@ public class BriefcaseCLI {
                     terminationFuture);
             try {
                 source.doAction();
-            } catch (XmlDocumentFetchException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (ParsingException e) {
+            } catch (XmlDocumentFetchException | ParsingException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }

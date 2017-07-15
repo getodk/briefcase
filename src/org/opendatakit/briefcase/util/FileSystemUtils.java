@@ -558,23 +558,8 @@ public class FileSystemUtils {
       pkCipher.init(Cipher.DECRYPT_MODE, rsaPrivateKey);
       byte[] encryptedElementSignature = Base64.decodeBase64(base64EncryptedElementSignature);
       elementDigest = pkCipher.doFinal(encryptedElementSignature);
-    } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedElementSignature Cause: "
-          + e.toString());
-    } catch (NoSuchPaddingException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedElementSignature Cause: "
-          + e.toString());
-    } catch (InvalidKeyException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedElementSignature Cause: "
-          + e.toString());
-    } catch (IllegalBlockSizeException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedElementSignature Cause: "
-          + e.toString());
-    } catch (BadPaddingException e) {
+    } catch (NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | InvalidKeyException
+            | NoSuchPaddingException e) {
       e.printStackTrace();
       throw new CryptoException("Error decrypting base64EncryptedElementSignature Cause: "
           + e.toString());
@@ -629,16 +614,8 @@ public class FileSystemUtils {
       File f = (mediaName == null) ? null : new File(instanceDir, mediaName);
       try {
         decryptFile(ei, f, unencryptedDir);
-      } catch (InvalidKeyException e) {
-        e.printStackTrace();
-        throw new CryptoException("Error decrypting:" + displayedName + " Cause: " + e.toString());
-      } catch (NoSuchAlgorithmException e) {
-        e.printStackTrace();
-        throw new CryptoException("Error decrypting:" + displayedName + " Cause: " + e.toString());
-      } catch (InvalidAlgorithmParameterException e) {
-        e.printStackTrace();
-        throw new CryptoException("Error decrypting:" + displayedName + " Cause: " + e.toString());
-      } catch (NoSuchPaddingException e) {
+      } catch (InvalidKeyException | NoSuchPaddingException | InvalidAlgorithmParameterException
+              | NoSuchAlgorithmException e) {
         e.printStackTrace();
         throw new CryptoException("Error decrypting:" + displayedName + " Cause: " + e.toString());
       } catch (IOException e) {
@@ -651,16 +628,8 @@ public class FileSystemUtils {
     File f = new File(instanceDir, encryptedSubmissionFile);
     try {
       decryptFile(ei, f, unencryptedDir);
-    } catch (InvalidKeyException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
-    } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
-    } catch (InvalidAlgorithmParameterException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
-    } catch (NoSuchPaddingException e) {
+    } catch (InvalidKeyException | NoSuchPaddingException | InvalidAlgorithmParameterException
+            | NoSuchAlgorithmException e) {
       e.printStackTrace();
       throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
     } catch (IOException e) {
@@ -676,12 +645,9 @@ public class FileSystemUtils {
     try {
       Document subDoc = XmlManipulationUtils.parseXml(submissionFile);
       submissionFim = XmlManipulationUtils.getFormInstanceMetadata(subDoc.getRootElement());
-    } catch (ParsingException e) {
+    } catch (ParsingException | FileSystemException e) {
       e.printStackTrace();
-      throw new FileSystemException("Error decrypting: " + submissionFile.getName() + " Cause: " + e.toString());
-    } catch (FileSystemException e) {
-      e.printStackTrace();
-      throw new FileSystemException("Error decrypting: " + submissionFile.getName() + " Cause: " + e.getMessage());
+      throw new FileSystemException("Error decrypting: " + submissionFile.getName() + " Cause: " + e);
     }
 
     boolean same = submissionFim.xparam.formId.equals(fim.xparam.formId);
@@ -728,12 +694,9 @@ public class FileSystemUtils {
         MessageDigest md = MessageDigest.getInstance("MD5");
         md.update(b.toString().getBytes("UTF-8"));
         messageDigest = md.digest();
-    } catch (NoSuchAlgorithmException e) {
+    } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
         e.printStackTrace();
-        throw new CryptoException("Error computing xml signature Cause: " + e.toString());
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error computing xml signature Cause: " + e.toString());
+        throw new CryptoException("Error computing xml signature Cause: " + e);
     }
 
     same = true;

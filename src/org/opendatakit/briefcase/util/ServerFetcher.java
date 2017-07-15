@@ -217,7 +217,6 @@ public class ServerFetcher {
             + se.getLocalizedMessage() + " while accessing: " + fd.getDownloadUrl()
             + " A network login screen may be interfering with the transmission to the server.", false);
         EventBus.publish(new FormStatusEvent(fs));
-        continue;
       } catch (IOException e) {
         e.printStackTrace();
         allSuccessful = false;
@@ -225,28 +224,12 @@ public class ServerFetcher {
             + fd.getDownloadUrl()
             + " A network login screen may be interfering with the transmission to the server.", false);
         EventBus.publish(new FormStatusEvent(fs));
-        continue;
-      } catch (FileSystemException e) {
+      } catch (FileSystemException | TransmissionException | URISyntaxException e) {
         e.printStackTrace();
         allSuccessful = false;
         fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
             + fd.getDownloadUrl(), false);
         EventBus.publish(new FormStatusEvent(fs));
-        continue;
-      } catch (URISyntaxException e) {
-        e.printStackTrace();
-        allSuccessful = false;
-        fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
-            + fd.getDownloadUrl(), false);
-        EventBus.publish(new FormStatusEvent(fs));
-        continue;
-      } catch (TransmissionException e) {
-        e.printStackTrace();
-        allSuccessful = false;
-        fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
-            + fd.getDownloadUrl(), false);
-        EventBus.publish(new FormStatusEvent(fs));
-        continue;
       }
     }
     return allSuccessful;

@@ -878,8 +878,7 @@ public class XmlManipulationUtils {
       throw new MetadataUpdateException(msg);
     } catch (IOException e) {
       e.printStackTrace();
-      String msg = "Temporary submission file could not be written "
-          + revisedFile.getAbsolutePath();
+      String msg = "Temporary submission file could not be written " + revisedFile.getAbsolutePath();
       logger.error(msg);
       throw new MetadataUpdateException(msg);
     }

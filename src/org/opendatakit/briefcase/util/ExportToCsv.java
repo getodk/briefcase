@@ -159,9 +159,7 @@ public class ExportToCsv implements ITransformFormAction {
                   ? WebUtils.parseDate(submissionDate2String) : new Date();
               return submissionDate1.compareTo(submissionDate2);
             }
-          } catch (ParsingException e) {
-            e.printStackTrace();
-          } catch (FileSystemException e) {
+          } catch (ParsingException | FileSystemException e) {
             e.printStackTrace();
           }
           return 0;
@@ -762,32 +760,6 @@ public class ExportToCsv implements ITransformFormAction {
          populateRepeatGroupsIntoFileMap(submission, submission);
        }
 
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-      EventBus.publish(new ExportProgressEvent("Unable to create csv file: "
-          + topLevelCsv.getPath()));
-      for (OutputStreamWriter w : fileMap.values()) {
-        try {
-          w.close();
-        } catch (IOException e1) {
-          e1.printStackTrace();
-        }
-      }
-      fileMap.clear();
-      return false;
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-      EventBus.publish(new ExportProgressEvent("Unable to create csv file: "
-          + topLevelCsv.getPath()));
-      for (OutputStreamWriter w : fileMap.values()) {
-        try {
-          w.close();
-        } catch (IOException e1) {
-          e1.printStackTrace();
-        }
-      }
-      fileMap.clear();
-      return false;
     } catch (IOException e) {
       e.printStackTrace();
       EventBus.publish(new ExportProgressEvent("Unable to create csv file: "
@@ -857,12 +829,7 @@ public class ExportToCsv implements ITransformFormAction {
 
     try {
       doc = XmlManipulationUtils.parseXml(submission);
-    } catch (ParsingException e) {
-      e.printStackTrace();
-      EventBus.publish(new ExportProgressEvent("Error parsing submission "
-          + instanceDir.getName() + " Cause: " + e.toString()));
-      return false;
-    } catch (FileSystemException e) {
+    } catch (ParsingException | FileSystemException e) {
       e.printStackTrace();
       EventBus.publish(new ExportProgressEvent("Error parsing submission "
           + instanceDir.getName() + " Cause: " + e.toString()));
