@@ -149,8 +149,7 @@ public class BriefcaseCLI {
             try {
                 source.doAction();
             } catch (XmlDocumentFetchException | ParsingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.error("failed to retrieve forms", e);
             }
 
             List<FormStatus> statuses = source.getAvailableForms();
@@ -244,9 +243,10 @@ public class BriefcaseCLI {
                         success = true;
                         break;
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        String msg = "The supplied PEM file could not be parsed.";
+                        log.error(msg, e);
                         ODKOptionPane.showErrorDialog(null,
-                                errorMsg = "The supplied PEM file could not be parsed.",
+                                errorMsg = msg,
                                 "Invalid RSA Private Key");
                         break;
                     }
