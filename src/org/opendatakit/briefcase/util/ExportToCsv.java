@@ -64,7 +64,7 @@ public class ExportToCsv implements ITransformFormAction {
 
   private static final String MEDIA_DIR = "media";
 
-  static final Log log = LogFactory.getLog(ExportToCsv.class);
+  private static final Log log = LogFactory.getLog(ExportToCsv.class);
 
   File outputDir;
   File outputMediaDir;
@@ -112,9 +112,9 @@ public class ExportToCsv implements ITransformFormAction {
     try {
       instancesDir = FileSystemUtils.getFormInstancesDirectory(briefcaseLfd.getFormDirectory());
     } catch (FileSystemException e) {
-      // emit status change...
-      EventBus.publish(new ExportProgressEvent("Unable to access instances directory of form"));
-      e.printStackTrace();
+      String msg = "Unable to access instances directory of form";
+      log.error(msg, e);
+      EventBus.publish(new ExportProgressEvent(msg));
       return false;
     }
 
@@ -160,7 +160,7 @@ public class ExportToCsv implements ITransformFormAction {
               return submissionDate1.compareTo(submissionDate2);
             }
           } catch (ParsingException | FileSystemException e) {
-            e.printStackTrace();
+            log.error("failed to sort submissions", e);
           }
           return 0;
         }
@@ -183,8 +183,9 @@ public class ExportToCsv implements ITransformFormAction {
         w.flush();
         w.close();
       } catch (IOException e) {
-        e.printStackTrace();
-        EventBus.publish(new ExportProgressEvent("Error flushing csv file"));
+        String msg = "Error flushing csv file";
+        EventBus.publish(new ExportProgressEvent(msg));
+        log.error(msg, e);
         allSuccessful = false;
       }
     }
@@ -297,7 +298,7 @@ public class ExportToCsv implements ITransformFormAction {
           try {
             isr.close();
           } catch (IOException e) {
-            e.printStackTrace();
+            log.error("failed to close reader", e);
           }
         }
       }
@@ -761,14 +762,14 @@ public class ExportToCsv implements ITransformFormAction {
        }
 
     } catch (IOException e) {
-      e.printStackTrace();
-      EventBus.publish(new ExportProgressEvent("Unable to create csv file: "
-          + topLevelCsv.getPath()));
+      String msg = "Unable to create csv file: " + topLevelCsv.getPath();
+      log.error(msg, e);
+      EventBus.publish(new ExportProgressEvent(msg));
       for (OutputStreamWriter w : fileMap.values()) {
         try {
           w.close();
         } catch (IOException e1) {
-          e1.printStackTrace();
+          log.warn("failed to close writer", e1);
         }
       }
       fileMap.clear();
@@ -807,9 +808,9 @@ public class ExportToCsv implements ITransformFormAction {
         try {
           FileUtils.deleteDirectory(unEncryptedDir);
         } catch (IOException e) {
-          e.printStackTrace();
-          EventBus.publish(new ExportProgressEvent("Unable to delete stale temp directory: "
-              + unEncryptedDir.getAbsolutePath()));
+          String msg = "Unable to delete stale temp directory: " + unEncryptedDir.getAbsolutePath();
+          log.warn(msg, e);
+          EventBus.publish(new ExportProgressEvent(msg));
           return false;
         }
       }
@@ -830,9 +831,9 @@ public class ExportToCsv implements ITransformFormAction {
     try {
       doc = XmlManipulationUtils.parseXml(submission);
     } catch (ParsingException | FileSystemException e) {
-      e.printStackTrace();
-      EventBus.publish(new ExportProgressEvent("Error parsing submission "
-          + instanceDir.getName() + " Cause: " + e.toString()));
+      String msg = "Error parsing submission " + instanceDir.getName();
+      log.error(msg, e);
+      EventBus.publish(new ExportProgressEvent(msg + " Cause: " + e.toString()));
       return false;
     }
 
@@ -898,14 +899,13 @@ public class ExportToCsv implements ITransformFormAction {
       String base64EncryptedFieldKey = null;
       // find an instanceId to use...
       try {
-        FormInstanceMetadata sim = XmlManipulationUtils.getFormInstanceMetadata(doc
-            .getRootElement());
+        FormInstanceMetadata sim = XmlManipulationUtils.getFormInstanceMetadata(doc.getRootElement());
         instanceId = sim.instanceId;
         base64EncryptedFieldKey = sim.base64EncryptedFieldKey;
       } catch (ParsingException e) {
-        e.printStackTrace();
-        EventBus.publish(new ExportProgressEvent("Could not extract metadata from submission: "
-            + submission.getAbsolutePath() + " Cause: " + e.toString()));
+        String msg = "Could not extract metadata from submission: " + submission.getAbsolutePath();
+        log.error(msg, e);
+        EventBus.publish(new ExportProgressEvent(msg + " Cause: " + e.toString()));
         return false;
       }
 
@@ -918,9 +918,9 @@ public class ExportToCsv implements ITransformFormAction {
         try {
           checksum = FileUtils.checksumCRC32(submission);
         } catch (IOException e1) {
-          e1.printStackTrace();
-          EventBus.publish(new ExportProgressEvent("Failed during computing of crc: "
-              + e1.getMessage()));
+          String msg = "Failed during computing of crc";
+          log.error(msg, e1);
+          EventBus.publish(new ExportProgressEvent(msg + ": " + e1.getMessage()));
           return false;
         }
         instanceId = "crc32:" + Long.toString(checksum);
@@ -936,9 +936,9 @@ public class ExportToCsv implements ITransformFormAction {
         try {
           ei = new EncryptionInformation(base64EncryptedFieldKey, instanceId, briefcaseLfd.getPrivateKey());
         } catch (CryptoException e) {
-          e.printStackTrace();
-          EventBus.publish(new ExportProgressEvent("Error establishing field decryption for submission "
-              + instanceDir.getName() + " Cause: " + e.toString()));
+          String msg = "Error establishing field decryption for submission " + instanceDir.getName();
+          log.error(msg, e);
+          EventBus.publish(new ExportProgressEvent(msg + " Cause: " + e.toString()));
           return false;
         }
       }
@@ -962,8 +962,9 @@ public class ExportToCsv implements ITransformFormAction {
         return true;
 
       } catch (IOException e) {
-        e.printStackTrace();
-        EventBus.publish(new ExportProgressEvent("Failed writing csv: " + e.getMessage()));
+        String msg = "Failed writing csv";
+        log.error(msg, e);
+        EventBus.publish(new ExportProgressEvent(msg + ": " + e.getMessage()));
         return false;
       }
     } finally {
@@ -972,9 +973,9 @@ public class ExportToCsv implements ITransformFormAction {
         try {
           FileUtils.deleteDirectory(unEncryptedDir);
         } catch (IOException e) {
-          e.printStackTrace();
-          EventBus.publish(new ExportProgressEvent("Unable to remove decrypted files: "
-              + e.getMessage()));
+          String msg = "Unable to remove decrypted files";
+          log.error(msg, e);
+          EventBus.publish(new ExportProgressEvent(msg + ": " + e.getMessage()));
           return false;
         }
       }

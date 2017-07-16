@@ -401,9 +401,8 @@ public class XmlManipulationUtils {
             Long.parseLong(versionString);
           }
         } catch (Exception e) {
-          e.printStackTrace();
           log.error("Parsing OpenRosa reply -- Forms list entry " + Integer.toString(i)
-              + " has an invalid version string: " + versionString);
+              + " has an invalid version string: " + versionString, e);
           formList.clear();
           throw new ParsingException(BAD_OPENROSA_FORMLIST);
         }
@@ -449,7 +448,7 @@ public class XmlManipulationUtils {
               formId = qs.substring(ODK_ID_PARAMETER_EQUALS.length());
             }
           } catch (MalformedURLException e) {
-            e.printStackTrace();
+            log.warn("bad download url", e);
           }
           if (formId == null) {
             throw new ParsingException(
@@ -717,8 +716,9 @@ public class XmlManipulationUtils {
       serializer.endDocument();
       fo.close();
     } catch (IOException e) {
-      e.printStackTrace();
-      throw new ParsingException("Unexpected IOException: " + e.getMessage());
+      String msg = "Unexpected IOException";
+      log.error(msg, e);
+      throw new ParsingException(msg + ": " + e.getMessage());
     }
 
     return new SubmissionManifest(instanceID, fo.toString(), attachmentList);
@@ -748,16 +748,14 @@ public class XmlManipulationUtils {
       fr.close();
       fs.close();
     } catch (IOException e) {
-      e.printStackTrace();
       String msg = "Original submission file could not be opened "
           + submissionFile.getAbsolutePath();
-      log.error(msg);
+      log.error(msg, e);
       throw new MetadataUpdateException(msg);
     } catch (XmlPullParserException e) {
-      e.printStackTrace();
       String msg = "Original submission file could not be parsed as XML file "
           + submissionFile.getAbsolutePath();
-      log.error(msg);
+      log.error(msg, e);
       throw new MetadataUpdateException(msg);
     }
 
@@ -865,14 +863,12 @@ public class XmlManipulationUtils {
         }
       }
     } catch (FileNotFoundException e) {
-      e.printStackTrace();
       String msg = "Temporary submission file could not be opened " + revisedFile.getAbsolutePath();
-      log.error(msg);
+      log.error(msg, e);
       throw new MetadataUpdateException(msg);
     } catch (IOException e) {
-      e.printStackTrace();
       String msg = "Temporary submission file could not be written " + revisedFile.getAbsolutePath();
-      log.error(msg);
+      log.error(msg, e);
       throw new MetadataUpdateException(msg);
     }
     return instanceID;
