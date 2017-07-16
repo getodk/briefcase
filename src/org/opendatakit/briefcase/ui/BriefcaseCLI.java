@@ -270,9 +270,7 @@ public class BriefcaseCLI {
                     endDate = df.parse(endDateString);
                 }
             } catch (ParseException e) {
-                // We've already checked for this at the beginning, so this
-                // should never happen
-                e.printStackTrace();
+                log.error("bad date range", e);
             }
 
             terminationFuture.reset();
