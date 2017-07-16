@@ -73,15 +73,8 @@ public class XmlManipulationUtils {
 
   // NOTE: the only transfered metadata is the instanceID and the submissionDate
 
-  // private static final String FORM_ID_ATTRIBUTE_NAME = "id";
-  // private static final String MODEL_VERSION_ATTRIBUTE_NAME = "version";
-  // private static final String UI_VERSION_ATTRIBUTE_NAME = "uiVersion";
   private static final String INSTANCE_ID_ATTRIBUTE_NAME = "instanceID";
   private static final String SUBMISSION_DATE_ATTRIBUTE_NAME = "submissionDate";
-
-  // private static final String IS_COMPLETE_ATTRIBUTE_NAME = "isComplete";
-  // private static final String MARKED_AS_COMPLETE_DATE_ATTRIBUTE_NAME =
-  // "markedAsCompleteDate";
 
   private static final boolean isXformsListNamespacedElement(Element e) {
     return e.getNamespace().equalsIgnoreCase(NAMESPACE_OPENROSA_ORG_XFORMS_XFORMS_LIST);
