@@ -71,7 +71,7 @@ public class BriefcaseCLI {
 
     private CommandLine mCommandline;
 
-    private static final Log log = LogFactory.getLog(BaseFormParserForJavaRosa.class.getName());
+    private static final Log log = LogFactory.getLog(BaseFormParserForJavaRosa.class);
 
     public BriefcaseCLI(CommandLine cl) {
         mCommandline = cl;
