@@ -27,6 +27,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.opendatakit.briefcase.model.CryptoException;
 
 /**
@@ -37,6 +39,8 @@ import org.opendatakit.briefcase.model.CryptoException;
  * 
  */
 public final class CipherFactory {
+
+  private static final Log log = LogFactory.getLog(CipherFactory.class);
   private static final String SYMMETRIC_ALGORITHM = "AES/CFB/PKCS5Padding";
   private static final int IV_BYTE_LENGTH = 16;
 
@@ -61,8 +65,9 @@ public final class CipherFactory {
         ivSeedArray[i] = messageDigest[(i % messageDigest.length)];
       }
     } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error constructing ivSeedArray Cause: " + e.toString());
+      String msg = "Error constructing ivSeedArray";
+      log.error(msg, e);
+      throw new CryptoException(msg + " Cause: " + e);
     }
   }
 

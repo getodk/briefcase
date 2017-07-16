@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
@@ -35,6 +37,8 @@ import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.ui.TransferInProgressDialog;
 
 public class TransferAction {
+
+  private static final Log log = LogFactory.getLog(TransferAction.class);
 
   private static ExecutorService backgroundExecutorService = Executors.newCachedThreadPool();
 
@@ -59,7 +63,7 @@ public class TransferAction {
           EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        log.error("upload transfer action failed", e);
         EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
       }
     }
@@ -91,7 +95,7 @@ public class TransferAction {
           EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        log.error("gather transfer action failed", e);
         EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
       }
     }
@@ -116,7 +120,7 @@ public class TransferAction {
         EventBus.publish(new RetrieveAvailableFormsSucceededEvent(FormStatus.TransferType.GATHER, src
             .getAvailableForms()));
       } catch (Exception e) {
-        e.printStackTrace();
+        log.error("retrieve available forms action failed", e);
         EventBus.publish(new RetrieveAvailableFormsFailedEvent(FormStatus.TransferType.GATHER, e));
       }
     }
