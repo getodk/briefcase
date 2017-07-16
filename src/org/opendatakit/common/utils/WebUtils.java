@@ -373,31 +373,13 @@ public class WebUtils {
       // instead is recommended.'
       // The WARNING is most likely only happening when running appengine locally,
       // but we should investigate to make sure
-      BufferedReader reader = null;
-      InputStreamReader isr = null;
-      try {
-        reader = new BufferedReader(isr = new InputStreamReader(e.getContent(), HtmlConsts.UTF8_ENCODE));
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(e.getContent(), HtmlConsts.UTF8_ENCODE))) {
         String responseLine;
         while ((responseLine = reader.readLine()) != null) {
           response.append(responseLine);
         }
       } catch (IllegalStateException | IOException ex) {
-        ex.printStackTrace();
-      } finally {
-        try {
-          if ( reader != null ) {
-            reader.close();
-          }
-        } catch ( IOException ex ) {
-          // no-op
-        }
-        try {
-          if ( isr != null ) {
-            isr.close();
-          }
-        } catch ( IOException ex ) {
-          // no-op
-        }
+        logger.error("failed to read response", ex);
       }
     }
     return response.toString();
