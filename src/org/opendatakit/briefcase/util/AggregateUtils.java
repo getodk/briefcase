@@ -64,7 +64,7 @@ public class AggregateUtils {
 
   private static final String BRIEFCASE_APP_TOKEN_PARAMETER = "briefcaseAppToken";
 
-  static final Log log = LogFactory.getLog(AggregateUtils.class);
+  private static final Log log = LogFactory.getLog(AggregateUtils.class);
 
   private static final CharSequence HTTP_CONTENT_TYPE_TEXT_XML = "text/xml";
 
@@ -111,7 +111,7 @@ public class AggregateUtils {
       URL uurl = new URL(downloadUrl);
       u = uurl.toURI();
     } catch (MalformedURLException | URISyntaxException e) {
-      e.printStackTrace();
+      log.error("bad download url " + downloadUrl, e);
       throw e;
     }
 
@@ -203,19 +203,16 @@ public class AggregateUtils {
       URL url = new URL(urlString);
       u = url.toURI();
     } catch (MalformedURLException e) {
-      e.printStackTrace();
-      String msg = description.getFetchDocFailed() + "Invalid url: " + urlString + ".\nFailed with error: "
-          + e.getMessage();
+      String msg = description.getFetchDocFailed() + "Invalid url: " + urlString + ".\nFailed with error: " + e.getMessage();
       if(!urlString.toLowerCase().startsWith("http://") && !urlString.toLowerCase().startsWith("https://")){
         msg += "\nDid you forget to prefix the address with 'http://' or 'https://' ?";
       }
-      log.warn(msg);
+      log.warn(msg, e) ;
       throw new XmlDocumentFetchException(msg);
     } catch (URISyntaxException e) {
-      e.printStackTrace();
       String msg = description.getFetchDocFailed() + "Invalid uri: " + urlString + ".\nFailed with error: "
           + e.getMessage();
-      log.warn(msg);
+      log.warn(msg, e);
       throw new XmlDocumentFetchException(msg);
     }
 
@@ -249,7 +246,7 @@ public class AggregateUtils {
           ;
         is.close();
       } catch (Exception e) {
-        e.printStackTrace();
+        log.error("failed to flush http content", e);
       }
     }
   }
@@ -557,10 +554,8 @@ public class AggregateUtils {
                 throw new TransmissionException(msg);
               }
             } catch (Exception e) {
-              e.printStackTrace();
-              String msg = "Starting url: " + u.toString() + " unexpected exception: "
-                  + e.getLocalizedMessage();
-              log.warn(msg);
+              String msg = "Starting url: " + u + " unexpected exception: " + e.getLocalizedMessage();
+              log.warn(msg, e);
               throw new TransmissionException(msg);
             }
           } else {
@@ -581,7 +576,7 @@ public class AggregateUtils {
                 ;
               is.close();
             } catch (Exception e) {
-              e.printStackTrace();
+              log.error("failed to process http stream", e);
             }
           }
           String msg = "The username or password may be incorrect or the url: " + u.toString()
@@ -695,7 +690,7 @@ public class AggregateUtils {
               StringBody sb = new StringBody("yes", ContentType.DEFAULT_TEXT.withCharset(Charset.forName("UTF-8")));
               builder.addPart("*isIncomplete*", sb);
             } catch (Exception e) {
-              e.printStackTrace();
+              log.error("impossible condition", e);
               throw new IllegalStateException("never happens");
             }
             ++j; // advance over the last attachment added...
@@ -724,8 +719,8 @@ public class AggregateUtils {
 
         httpRetrieveXmlDocument(httppost, validStatusList, serverInfo, false, description, action);
       } catch (XmlDocumentFetchException e) {
-        e.printStackTrace();
         allSuccessful = false;
+        log.error("upload failed", e);
         formToTransfer.setStatusString("UPLOAD FAILED: " + e.getMessage(), false);
         EventBus.publish(new FormStatusEvent(formToTransfer));
         

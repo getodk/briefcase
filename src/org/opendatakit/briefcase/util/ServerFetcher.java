@@ -165,9 +165,10 @@ public class ServerFetcher {
             formDatabase = DatabaseUtils.newInstance(briefcaseLfd.getFormDirectory());
 
           } catch (BadFormDefinition e) {
-            e.printStackTrace();
             allSuccessful = false;
-            fs.setStatusString("Error parsing form definition: " + e.getMessage(), false);
+            String msg = "Error parsing form definition";
+            log.error(msg, e);
+            fs.setStatusString(msg + ": " + e.getMessage(), false);
             EventBus.publish(new FormStatusEvent(fs));
             continue;
           }
@@ -180,9 +181,10 @@ public class ServerFetcher {
           // this will publish events
           successful = downloadAllSubmissionsForForm(formInstancesDir, formDatabase, briefcaseLfd, fs);
         } catch ( SQLException | FileSystemException e ) {
-          e.printStackTrace();
           allSuccessful = false;
-          fs.setStatusString("unable to open form database: " + e.getMessage(), false);
+          String msg = "unable to open form database";
+          log.error(msg, e);
+          fs.setStatusString(msg + ": " + e.getMessage(), false);
           EventBus.publish(new FormStatusEvent(fs));
           continue;
         } finally {
@@ -190,9 +192,10 @@ public class ServerFetcher {
             try {
               formDatabase.close();
             } catch ( SQLException e) {
-              e.printStackTrace();
               allSuccessful = false;
-              fs.setStatusString("unable to close form database: " + e.getMessage(), false);
+              String msg = "unable to close form database";
+              log.error(msg, e);
+              fs.setStatusString(msg + ": " + e.getMessage(), false);
               EventBus.publish(new FormStatusEvent(fs));
               continue;
             }
@@ -211,22 +214,22 @@ public class ServerFetcher {
         }
 
       } catch (SocketTimeoutException se) {
-        se.printStackTrace();
         allSuccessful = false;
+        log.error("error accessing " + fd.getDownloadUrl(), se);
         fs.setStatusString("Communications to the server timed out. Detailed message: "
             + se.getLocalizedMessage() + " while accessing: " + fd.getDownloadUrl()
             + " A network login screen may be interfering with the transmission to the server.", false);
         EventBus.publish(new FormStatusEvent(fs));
       } catch (IOException e) {
-        e.printStackTrace();
         allSuccessful = false;
+        log.error("error accessing " + fd.getDownloadUrl(), e);
         fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
             + fd.getDownloadUrl()
             + " A network login screen may be interfering with the transmission to the server.", false);
         EventBus.publish(new FormStatusEvent(fs));
       } catch (FileSystemException | TransmissionException | URISyntaxException e) {
-        e.printStackTrace();
         allSuccessful = false;
+        log.error("error accessing " + fd.getDownloadUrl(), e);
         fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
             + fd.getDownloadUrl(), false);
         EventBus.publish(new FormStatusEvent(fs));
@@ -307,9 +310,10 @@ public class ServerFetcher {
 
           downloadSubmission(formInstancesDir, formDatabase, lfd, fs, uri);
         } catch (Exception e) {
-          e.printStackTrace();
           allSuccessful = false;
-          fs.setStatusString("SUBMISSION NOT RETRIEVED: Error fetching submission uri: " + uri + " details: " + e.getMessage(), false);
+          String msg = "Error fetching submission uri: " + uri;
+          log.error(msg, e);
+          fs.setStatusString("SUBMISSION NOT RETRIEVED: " + msg + " details: " + e.getMessage(), false);
           EventBus.publish(new FormStatusEvent(fs));
           // but try to get the next one...
         }
