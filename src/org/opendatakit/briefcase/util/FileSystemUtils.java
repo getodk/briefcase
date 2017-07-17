@@ -60,7 +60,8 @@ import org.opendatakit.briefcase.ui.MessageStrings;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
 
 public class FileSystemUtils {
-  static final Log logger = LogFactory.getLog(FileSystemUtils.class);
+
+  static final Log log = LogFactory.getLog(FileSystemUtils.class);
 
   public static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
   static final String README_TXT = "readme.txt";
@@ -257,7 +258,7 @@ public class FileSystemUtils {
 
     if (!dbDir.exists()) {
       if (!dbDir.mkdirs()) {
-        logger.warn("failed to create database directory: " + dbDir);
+        log.warn("failed to create database directory: " + dbDir);
       } else if (oldDbFile.exists()) {
         migrateDatabase(oldDbFile, dbFile);
       }
@@ -375,7 +376,7 @@ public class FileSystemUtils {
     if (briefcaseInstances != null) {
       for (File briefcaseInstance : briefcaseInstances) {
         if (!briefcaseInstance.isDirectory() || briefcaseInstance.getName().startsWith(".")) {
-          logger.warn("skipping non-directory or dot-file in form instances subdirectory");
+          log.warn("skipping non-directory or dot-file in form instances subdirectory");
           continue;
         }
         files.add(briefcaseInstance);
@@ -432,7 +433,7 @@ public class FileSystemUtils {
       long lLength = file.length();
 
       if (lLength > Integer.MAX_VALUE) {
-        logger.error("File " + file.getName() + "is too large");
+        log.error("File " + file.getName() + "is too large");
         return null;
       }
 
@@ -462,14 +463,14 @@ public class FileSystemUtils {
       return md5;
 
     } catch (NoSuchAlgorithmException e) {
-      logger.error("MD5 calculation failed: " + e.getMessage());
+      log.error("MD5 calculation failed: " + e.getMessage());
       return null;
 
     } catch (FileNotFoundException e) {
-      logger.error("No File: " + e.getMessage());
+      log.error("No File: " + e.getMessage());
       return null;
     } catch (IOException e) {
-      logger.error("Problem reading from file: " + e.getMessage());
+      log.error("Problem reading from file: " + e.getMessage());
       return null;
     }
 
@@ -486,7 +487,7 @@ public class FileSystemUtils {
         // special case -- user marked-as-complete an encrypted file on a pre-1.4.5 ODK Aggregate
         // need to get a Cipher to update the cipher initialization vector. 
         ei.getCipher("missing.enc");
-        logger.info("Missing file (pre-ODK Aggregate 1.4.5 mark-as-complete on server)");
+        log.info("Missing file (pre-ODK Aggregate 1.4.5 mark-as-complete on server)");
         return;
       }
       
@@ -507,7 +508,7 @@ public class FileSystemUtils {
       // marked it as complete on the SubmissionAdmin
       // page.
       if ( name.endsWith(MISSING_FILE_EXTENSION) ) {
-        logger.info("Missing file (ODK Aggregate 1.4.5 and higher):" + original.getName());
+        log.info("Missing file (ODK Aggregate 1.4.5 and higher):" + original.getName());
         return;
       }
       
@@ -522,7 +523,7 @@ public class FileSystemUtils {
         len = fin.read(buffer);
       }
       fout.flush();
-      logger.info("Decrpyted:" + original.getName() + " -> " + decryptedFile.getName());
+      log.info("Decrpyted:" + original.getName() + " -> " + decryptedFile.getName());
     } finally {
       if (fin != null) {
         try {
