@@ -46,7 +46,7 @@ import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 
 public class ServerFetcher {
 
-  private static final Log logger = LogFactory.getLog(ServerFetcher.class);
+  private static final Log log = LogFactory.getLog(ServerFetcher.class);
 
   private static final String MD5_COLON_PREFIX = "md5:";
   
@@ -339,7 +339,7 @@ public class ServerFetcher {
           File instance = new File(instanceFolder, "submission.xml");
           File instanceEncrypted = new File(instanceFolder, "submission.xml.enc");
           if (instance.exists() || instanceEncrypted.exists()) {
-              logger.info("already present - skipping fetch: " + uri );
+              log.info("already present - skipping fetch: " + uri );
               return;
           }
       }
@@ -376,7 +376,7 @@ public class ServerFetcher {
     }
 
     String msg = "Fetched instanceID=" + submissionManifest.instanceID;
-    logger.info(msg);
+    log.info(msg);
 
     if ( FileSystemUtils.hasFormSubmissionDirectory(formInstancesDir, submissionManifest.instanceID)) {
       // create instance directory...
@@ -468,7 +468,7 @@ public class ServerFetcher {
       return e.getMessage();
     }
     // OK we now have the full set of files to download...
-    logger.info("Downloading " + files.size() + " media files.");
+    log.info("Downloading " + files.size() + " media files.");
     int mCount = 0;
     if (files.size() > 0) {
       for (MediaFile m : files) {
