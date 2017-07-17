@@ -81,7 +81,7 @@ public class FileSystemUtils {
   static final String ENCRYPTED_FILE_EXTENSION = ".enc";
   static final String MISSING_FILE_EXTENSION = ".missing";
 
-  static final File cacheFile = new File(getFormsFolder().getParent(), "cache.ser");
+  static final File cacheFile = new File(getBriefcaseFolder(), "cache.ser");
 
   static Map pathToHashMap;
   static Map pathToDefinitionMap;
