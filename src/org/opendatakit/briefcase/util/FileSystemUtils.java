@@ -476,46 +476,41 @@ public class FileSystemUtils {
 
   }
 
-  private static final void decryptFile(EncryptionInformation ei,
-      File original, File unencryptedDir) throws IOException, NoSuchAlgorithmException,
-      NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
-    InputStream fin = null;
-    OutputStream fout = null;
+  private static final void decryptFile(EncryptionInformation ei, File original, File unencryptedDir)
+          throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
+          InvalidAlgorithmParameterException {
 
-    try {
-      if ( original == null ) {
-        // special case -- user marked-as-complete an encrypted file on a pre-1.4.5 ODK Aggregate
-        // need to get a Cipher to update the cipher initialization vector. 
-        ei.getCipher("missing.enc");
-        log.info("Missing file (pre-ODK Aggregate 1.4.5 mark-as-complete on server)");
-        return;
-      }
-      
-      String name = original.getName();
-      if (!name.endsWith(ENCRYPTED_FILE_EXTENSION)) {
-        String errMsg = "Unexpected non-" + ENCRYPTED_FILE_EXTENSION + " extension " + name
-            + " -- ignoring file";
-        throw new IllegalArgumentException(errMsg);
-      }
-      name = name.substring(0, name.length() - ENCRYPTED_FILE_EXTENSION.length());
-      File decryptedFile = new File(unencryptedDir, name);
+    if (original == null) {
+      // special case -- user marked-as-complete an encrypted file on a pre-1.4.5 ODK Aggregate
+      // need to get a Cipher to update the cipher initialization vector.
+      ei.getCipher("missing.enc");
+      log.info("Missing file (pre-ODK Aggregate 1.4.5 mark-as-complete on server)");
+      return;
+    }
 
-      Cipher c = ei.getCipher(name);
+    String name = original.getName();
+    if (!name.endsWith(ENCRYPTED_FILE_EXTENSION)) {
+      String errMsg = "Unexpected non-" + ENCRYPTED_FILE_EXTENSION + " extension " + name
+              + " -- ignoring file";
+      throw new IllegalArgumentException(errMsg);
+    }
+    name = name.substring(0, name.length() - ENCRYPTED_FILE_EXTENSION.length());
+    File decryptedFile = new File(unencryptedDir, name);
 
-      // name is now the decrypted file name
-      // if it ends in ".missing" then the file
-      // was not available and the administrator
-      // marked it as complete on the SubmissionAdmin
-      // page.
-      if ( name.endsWith(MISSING_FILE_EXTENSION) ) {
-        log.info("Missing file (ODK Aggregate 1.4.5 and higher):" + original.getName());
-        return;
-      }
-      
-      fin = new FileInputStream(original);
-      fin = new CipherInputStream(fin, c);
+    Cipher c = ei.getCipher(name);
 
-      fout = new FileOutputStream(decryptedFile);
+    // name is now the decrypted file name
+    // if it ends in ".missing" then the file
+    // was not available and the administrator
+    // marked it as complete on the SubmissionAdmin
+    // page.
+    if (name.endsWith(MISSING_FILE_EXTENSION)) {
+      log.info("Missing file (ODK Aggregate 1.4.5 and higher):" + original.getName());
+      return;
+    }
+
+    try (InputStream fin = new CipherInputStream(new FileInputStream(original), c);
+         OutputStream fout = new FileOutputStream(decryptedFile)) {
       byte[] buffer = new byte[2048];
       int len = fin.read(buffer);
       while (len != -1) {
@@ -523,22 +518,7 @@ public class FileSystemUtils {
         len = fin.read(buffer);
       }
       fout.flush();
-      log.info("Decrpyted:" + original.getName() + " -> " + decryptedFile.getName());
-    } finally {
-      if (fin != null) {
-        try {
-          fin.close();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
-      if (fout != null) {
-        try {
-          fout.close();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
+      log.debug("Decrypted:" + original.getName() + " -> " + decryptedFile.getName());
     }
   }
 
