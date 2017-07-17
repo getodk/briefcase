@@ -106,7 +106,7 @@ public class FormTransferTable extends JTable {
      * 
      */
     private static final long serialVersionUID = -5106458166776020642L;
-    private static final Log logger = LogFactory.getLog( DetailButton.class);
+    private static final Log log = LogFactory.getLog( DetailButton.class);
     public static final String LABEL = "Details...";
     
     final FormStatus status;
@@ -115,7 +115,7 @@ public class FormTransferTable extends JTable {
       super(LABEL);
       this.status = status;
       this.addActionListener(this);
-      logger.debug("creating details button");
+      log.debug("creating details button");
     }
 
     @Override
@@ -131,14 +131,12 @@ public class FormTransferTable extends JTable {
   }
 
   static class FormTransferTableModel extends AbstractTableModel {
-    /**
-		 * 
-		 */
+
     private static final long serialVersionUID = 7108326237416622721L;
 
     public static final int BUTTON_COLUMN = 3;     
 
-    private static final Log logger = LogFactory.getLog( FormTransferTableModel.class);
+    private static final Log log = LogFactory.getLog(FormTransferTableModel.class);
     
     final String[] columnNames;
     final JButton btnSelectOrClearAllForms;
@@ -283,7 +281,7 @@ public class FormTransferTable extends JTable {
         status.setStatusString((String) value, true);
         break;
       case 3:
-        logger.warn("attempting to set button value");
+        log.warn("attempting to set button value");
         break;
       default:
         throw new IllegalStateException("unexpected column choice");

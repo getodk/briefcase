@@ -39,12 +39,13 @@ import org.opendatakit.common.web.constants.HtmlConsts;
  */
 public class WebUtils {
 
+  static final Log log = LogFactory.getLog(WebUtils.class);
   static final String IS_FORWARD_CURSOR_VALUE_TAG = "isForwardCursor";
   static final String URI_LAST_RETURNED_VALUE_TAG = "uriLastReturnedValue";
   static final String ATTRIBUTE_VALUE_TAG = "attributeValue";
   static final String ATTRIBUTE_NAME_TAG = "attributeName";
   static final String CURSOR_TAG = "cursor";
-  static final Log logger = LogFactory.getLog(WebUtils.class);
+
   /**
    * Date format pattern used to parse HTTP date headers in RFC 1123 format.
    * copied from apache.commons.lang.DateUtils
@@ -378,7 +379,7 @@ public class WebUtils {
           response.append(responseLine);
         }
       } catch (IllegalStateException | IOException ex) {
-        logger.error("failed to read response", ex);
+        log.error("failed to read response", ex);
       }
     }
     return response.toString();
