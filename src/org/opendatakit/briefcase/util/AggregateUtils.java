@@ -152,34 +152,16 @@ public class AggregateUtils {
       }
 
       // write connection to file
-      InputStream is = null;
-      OutputStream os = null;
-      try {
-        is = response.getEntity().getContent();
-        os = new FileOutputStream(f);
+
+      try (InputStream is = response.getEntity().getContent();
+           OutputStream os = new FileOutputStream(f)) {
         byte buf[] = new byte[1024];
         int len;
         while ((len = is.read(buf)) > 0) {
           os.write(buf, 0, len);
         }
         os.flush();
-      } finally {
-        if (os != null) {
-          try {
-            os.close();
-          } catch (Exception e) {
-        	  e.printStackTrace();
-          }
-        }
-        if (is != null) {
-          try {
-            is.close();
-          } catch (Exception e) {
-        	  e.printStackTrace();
-          }
-        }
       }
-
     }
   }
 
