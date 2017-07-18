@@ -17,14 +17,13 @@
 package org.opendatakit.briefcase.ui;
 
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -39,14 +38,14 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
-import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.SpinnerDateModel;
 
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.jdatepicker.JDateComponentFactory;
+import org.jdatepicker.impl.JDatePickerImpl;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
@@ -89,8 +88,9 @@ public class ExportPanel extends JPanel {
   private DetailButton btnDetails;
   private JButton btnExport;
   private JButton btnCancel;
-  private JSpinner spinStartDate;
-  private JSpinner spinEndDate;
+  private JDatePickerImpl pickStartDate;
+  private JDatePickerImpl pickEndDate;
+
   private JCheckBox checkDates;
 
   private boolean exportStateActive = false;
@@ -207,8 +207,7 @@ public class ExportPanel extends JPanel {
   class ToggleDateRangeListenser implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
-      spinStartDate.setEnabled(checkDates.isSelected());
-      spinEndDate.setEnabled(checkDates.isSelected());
+      JDatePickerUtils.setEnabled(checkDates.isSelected(), pickStartDate, pickEndDate);
     }
   }
 
@@ -271,24 +270,24 @@ public class ExportPanel extends JPanel {
         }
       }
 
+      Date fromDate = null;
+      Date toDate = null;
+      if (checkDates.isSelected()) {
+        fromDate = ((GregorianCalendar)pickStartDate.getModel().getValue()).getTime();
+        toDate = ((GregorianCalendar)pickEndDate.getModel().getValue()).getTime();
+        if (fromDate.compareTo(toDate) > 0) {
+          ODKOptionPane.showErrorDialog(ExportPanel.this,
+              MessageStrings.INVALID_DATE_RANGE_MESSAGE,
+              MessageStrings.INVALID_DATE_RANGE_TITLE);
+          return;
+        }
+      }
+
       // OK -- launch background task to do the export
 
       try {
         setActiveExportState(true);
-        Date start = null;
-        Date end = null;
-        if (checkDates.isSelected()) {
-          Date date1 = (Date)spinStartDate.getValue();
-          Date date2 = (Date)spinEndDate.getValue();
-          if (date1.compareTo(date2) < 0) {
-            start = date1;
-            end = date2;
-          } else {
-            start = date2;
-            end = date1;
-          }
-        }
-        ExportAction.export(exportDirectory, exportType, lfd, pemFile, terminationFuture, start, end);
+        ExportAction.export(exportDirectory, exportType, lfd, pemFile, terminationFuture, fromDate, toDate);
       } catch (IOException ex) {
         ODKOptionPane.showErrorDialog(ExportPanel.this,
             "Briefcase action failed: " + ex.getMessage(), "Briefcase Action Failed");
@@ -389,15 +388,16 @@ public class ExportPanel extends JPanel {
     btnPemFileChooseButton = new JButton("Choose...");
     btnPemFileChooseButton.addActionListener(new PEMFileActionListener());
 
-    JLabel lblDateRange = new JLabel("Specific Date Range:");
+    JLabel lblDateRange = new JLabel("Date Range");
+    JLabel lblDateFrom = new JLabel("From:");
+    JLabel lblDateTo = new JLabel("To:");
     checkDates = new JCheckBox("", false);
     checkDates.addActionListener(new ToggleDateRangeListenser());
-    spinStartDate = new JSpinner(new SpinnerDateModel());
-    spinStartDate.setEditor(new JSpinner.DateEditor(spinStartDate, "yyyy-MM-dd"));
-    spinStartDate.setEnabled(false);
-    spinEndDate = new JSpinner(new SpinnerDateModel());
-    spinEndDate.setEditor(new JSpinner.DateEditor(spinEndDate, "yyyy-MM-dd"));
-    spinEndDate.setEnabled(false);
+
+    JDateComponentFactory dateFactory = new JDateComponentFactory();
+    pickStartDate = (JDatePickerImpl)dateFactory.createJDatePicker();
+    pickEndDate = (JDatePickerImpl)dateFactory.createJDatePicker();
+    JDatePickerUtils.setEnabled(false, pickStartDate, pickEndDate);
 
     lblExporting = new JLabel(EXPORTING_DOT_ETC);
     lblExporting.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -432,13 +432,16 @@ public class ExportPanel extends JPanel {
                 .addGroup(
                     groupLayout
                         .createSequentialGroup()
+                        .addComponent(checkDates)
                         .addGroup(
                             groupLayout.createParallelGroup(Alignment.LEADING)
                                 .addComponent(lblForm)
                                 .addComponent(lblExportType)
                                 .addComponent(lblExportDirectory)
                                 .addComponent(lblPemPrivateKey)
-                                .addComponent(lblDateRange))
+                                .addComponent(lblDateRange)
+                                .addComponent(lblDateFrom)
+                                .addComponent(lblDateTo))
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addGroup(
                             groupLayout
@@ -456,11 +459,9 @@ public class ExportPanel extends JPanel {
                                     groupLayout.createSequentialGroup().addComponent(pemPrivateKeyFilePath)
                                         .addPreferredGap(ComponentPlacement.RELATED)
                                         .addComponent(btnPemFileChooseButton))
-                                .addGroup(
-                                    groupLayout.createSequentialGroup()
-                                    .addComponent(checkDates)
-                                    .addComponent(spinStartDate)
-                                    .addComponent(spinEndDate))))
+                                .addGap(0)
+                                .addComponent(pickStartDate)
+                                .addComponent(pickEndDate)))
                 .addComponent(lblExporting)
                 .addGroup(
                     Alignment.TRAILING,
@@ -507,11 +508,21 @@ public class ExportPanel extends JPanel {
                 .addPreferredGap(ComponentPlacement.RELATED)
                 .addGroup(
                     groupLayout
+                    .createParallelGroup(Alignment.CENTER)
+                    .addComponent(checkDates)
+                    .addComponent(lblDateRange))
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addGroup(
+                    groupLayout
                         .createParallelGroup(Alignment.BASELINE)
-                        .addComponent(lblDateRange)
-                        .addComponent(checkDates)
-                        .addComponent(spinStartDate)
-                        .addComponent(spinEndDate))
+                        .addComponent(lblDateFrom)
+                        .addComponent(pickStartDate))
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addGroup(
+                    groupLayout
+                        .createParallelGroup(Alignment.BASELINE)
+                        .addComponent(lblDateTo)
+                        .addComponent(pickEndDate))
                 .addPreferredGap(ComponentPlacement.UNRELATED, 10, Short.MAX_VALUE)
                 .addGroup(
                     groupLayout
@@ -532,8 +543,8 @@ public class ExportPanel extends JPanel {
     navOrder.add(pemPrivateKeyFilePath);
     navOrder.add(btnPemFileChooseButton);
     navOrder.add(checkDates);
-    navOrder.add(spinStartDate);
-    navOrder.add(spinEndDate);
+    navOrder.add(pickStartDate);
+    navOrder.add(pickEndDate);
     navOrder.add(btnDetails);
     navOrder.add(btnExport);
     navOrder.add(btnCancel);
@@ -559,7 +570,7 @@ public class ExportPanel extends JPanel {
     // would prefer explicit state changes referring
     // to specific components
     for (Component c: this.getComponents()) {
-      if (c != checkDates && c != spinStartDate && c != spinEndDate) {
+      if (c != checkDates && c != pickStartDate && c != pickEndDate && c != btnDetails) {
         c.setEnabled(enabled);
       }
     }

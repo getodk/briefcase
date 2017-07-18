@@ -31,6 +31,7 @@ dependencies {
     compile group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.5.2'
     compile group: 'net.sf.kxml', name: 'kxml2', version: '2.3.0'
     compile group: 'org.opendatakit', name: 'opendatakit-javarosa', version: '2.2.0'
+    compile group: 'org.jdatepicker', name: 'jdatepicker', version: '1.3.4.1'
     compile files('lib/smallsql-0.21.jar')
 }
 
