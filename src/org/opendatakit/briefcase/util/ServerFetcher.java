@@ -162,7 +162,7 @@ public class ServerFetcher {
               }
 
             }
-            formDatabase = new DatabaseUtils(FileSystemUtils.getFormDatabase(briefcaseLfd.getFormDirectory()));
+            formDatabase = DatabaseUtils.newInstance(briefcaseLfd.getFormDirectory());
 
           } catch (BadFormDefinition e) {
             e.printStackTrace();
@@ -179,7 +179,7 @@ public class ServerFetcher {
 
           // this will publish events
           successful = downloadAllSubmissionsForForm(formInstancesDir, formDatabase, briefcaseLfd, fs);
-        } catch ( FileSystemException e ) {
+        } catch ( SQLException | FileSystemException e ) {
           e.printStackTrace();
           allSuccessful = false;
           fs.setStatusString("unable to open form database: " + e.getMessage(), false);
