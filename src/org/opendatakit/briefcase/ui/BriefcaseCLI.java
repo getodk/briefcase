@@ -71,7 +71,7 @@ public class BriefcaseCLI {
 
     private CommandLine mCommandline;
 
-    private static final Log log = LogFactory.getLog(BaseFormParserForJavaRosa.class.getName());
+    private static final Log log = LogFactory.getLog(BaseFormParserForJavaRosa.class);
 
     public BriefcaseCLI(CommandLine cl) {
         mCommandline = cl;
@@ -148,12 +148,8 @@ public class BriefcaseCLI {
                     terminationFuture);
             try {
                 source.doAction();
-            } catch (XmlDocumentFetchException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (ParsingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            } catch (XmlDocumentFetchException | ParsingException e) {
+                log.error("failed to retrieve forms", e);
             }
 
             List<FormStatus> statuses = source.getAvailableForms();
@@ -247,9 +243,10 @@ public class BriefcaseCLI {
                         success = true;
                         break;
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        String msg = "The supplied PEM file could not be parsed.";
+                        log.error(msg, e);
                         ODKOptionPane.showErrorDialog(null,
-                                errorMsg = "The supplied PEM file could not be parsed.",
+                                errorMsg = msg,
                                 "Invalid RSA Private Key");
                         break;
                     }
@@ -273,9 +270,7 @@ public class BriefcaseCLI {
                     endDate = df.parse(endDateString);
                 }
             } catch (ParseException e) {
-                // We've already checked for this at the beginning, so this
-                // should never happen
-                e.printStackTrace();
+                log.error("bad date range", e);
             }
 
             terminationFuture.reset();
@@ -316,7 +311,6 @@ public class BriefcaseCLI {
     @EventSubscriber(eventClass = FormStatusEvent.class)
     public void updateDetailedStatus(FormStatusEvent fse) {
         log.info(fse.getStatusString());
-        ;
     }
 
     @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)

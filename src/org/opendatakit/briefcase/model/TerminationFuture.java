@@ -23,7 +23,7 @@ import org.bushe.swing.event.annotation.EventSubscriber;
 
 public class TerminationFuture {
 
-  private static final Log logger = LogFactory.getLog(TerminationFuture.class);
+  private static final Log log = LogFactory.getLog(TerminationFuture.class);
 
   private boolean cancelled = false;
   
@@ -34,13 +34,13 @@ public class TerminationFuture {
   @EventSubscriber(eventClass = TransferAbortEvent.class)
   public void markAsCancelled(TransferAbortEvent event) {
     cancelled = true;
-    logger.info("cancel requested: " + event.getReason());
+    log.info("cancel requested: " + event.getReason());
   }
   
   @EventSubscriber(eventClass = ExportAbortEvent.class)
   public void markAsCancelled(ExportAbortEvent event) {
     cancelled = true;
-    logger.info("cancel requested: " + event.getReason());
+    log.info("cancel requested: " + event.getReason());
   }
 
   public void reset() {

@@ -35,13 +35,13 @@ import org.opendatakit.briefcase.util.JavaRosaParserWrapper;
  *
  */
 public class OdkCollectFormDefinition implements IFormDefinition {
+
   private JavaRosaParserWrapper formDefn;
 
   private static final String readFile(File formDefinitionFile) throws BadFormDefinition {
     StringBuilder xmlBuilder = new StringBuilder();
-    BufferedReader rdr = null;
-    try {
-      rdr = new BufferedReader(new InputStreamReader(new FileInputStream(formDefinitionFile), "UTF-8"));
+    try (BufferedReader rdr = new BufferedReader(new InputStreamReader(
+            new FileInputStream(formDefinitionFile), "UTF-8"))) {
       String line = rdr.readLine();
       while (line != null) {
         xmlBuilder.append(line);
@@ -51,17 +51,8 @@ public class OdkCollectFormDefinition implements IFormDefinition {
       throw new BadFormDefinition("Form not found");
     } catch (IOException e) {
       throw new BadFormDefinition("Unable to read form");
-    } finally {
-      if (rdr != null) {
-        try {
-          rdr.close();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
     }
-    String inputXml = xmlBuilder.toString();
-    return inputXml;
+    return xmlBuilder.toString();
   }
 
   public OdkCollectFormDefinition(File formFile) throws BadFormDefinition {
