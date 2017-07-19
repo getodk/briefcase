@@ -109,7 +109,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
     
     for (FormStatus fs : formsToTransfer) {
       boolean isSuccessful = true;
-      int instancesSkipped = 0;
+      boolean instancesSkipped = false;
       try {
         if ( terminationFuture.isCancelled() ) {
           fs.setStatusString("aborted. Skipping fetch of form and submissions...", true);
@@ -212,7 +212,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                         log.error(msg, e);
                         fs.setStatusString(msg + ": " + e.getMessage(), false);
                         EventBus.publish(new FormStatusEvent(fs));
-                        instancesSkipped++;
+                        instancesSkipped = true;
                         continue;
                       }
                   }
@@ -273,7 +273,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                 if (same) {
                   fs.setStatusString("already present - skipping: " + xml.getName(), true);
                   EventBus.publish(new FormStatusEvent(fs));
-                  instancesSkipped++;
+                  instancesSkipped = true;
                   continue;
                 }
 
@@ -285,7 +285,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                   log.error(msg, e);
                   fs.setStatusString(msg + ": " + e.getMessage(), false);
                   EventBus.publish(new FormStatusEvent(fs));
-                  instancesSkipped++;
+                  instancesSkipped = true;
                   continue;
                 }
                 
@@ -340,7 +340,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
         }
       } finally {
         if ( isSuccessful ) {
-               if (instancesSkipped == 0) {
+          if (instancesSkipped) {
             fs.setStatusString(ServerFetcher.SUCCESS_STATUS, true);
             EventBus.publish(new FormStatusEvent(fs));
           } else {

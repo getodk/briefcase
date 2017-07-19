@@ -16,6 +16,24 @@
 
 package org.opendatakit.briefcase.util;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.bushe.swing.event.EventBus;
+import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.DocumentDescription;
+import org.opendatakit.briefcase.model.FileSystemException;
+import org.opendatakit.briefcase.model.FinalStatus;
+import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.ParsingException;
+import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.model.ServerConnectionInfo;
+import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.TerminationStatus;
+import org.opendatakit.briefcase.model.TransmissionException;
+import org.opendatakit.briefcase.model.XmlDocumentFetchException;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,24 +45,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.bushe.swing.event.EventBus;
-import org.bushe.swing.event.annotation.AnnotationProcessor;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.DocumentDescription;
-import org.opendatakit.briefcase.model.FileSystemException;
-import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.ParsingException;
-import org.opendatakit.briefcase.model.RemoteFormDefinition;
-import org.opendatakit.briefcase.model.ServerConnectionInfo;
-import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransmissionException;
-import org.opendatakit.briefcase.model.XmlDocumentFetchException;
-import org.opendatakit.briefcase.model.FinalStatus;
-import org.opendatakit.briefcase.model.TerminationStatus;
 
 public class ServerFetcher {
 
@@ -260,7 +260,7 @@ public class ServerFetcher {
     RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
 
     int count = 1;
-    int filesSkipped = 0;
+    boolean filesSkipped = false;
     String baseUrl = serverInfo.getUrl() + "/view/submissionList";
 
     String oldWebsafeCursorString = "not-empty";
@@ -320,12 +320,12 @@ public class ServerFetcher {
           log.error(msg, e);
           fs.setStatusString("SUBMISSION NOT RETRIEVED: " + msg + " details: " + e.getMessage(), false);
           EventBus.publish(new FormStatusEvent(fs));
-          filesSkipped++;
+          filesSkipped = true;
           // but try to get the next one...
         }
       }
     }
-  if (filesSkipped > 0) {
+  if (filesSkipped) {
      return new TerminationStatus(FinalStatus.SUCCESS_WITH_ERRORS);
    }
   
