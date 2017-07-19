@@ -46,7 +46,7 @@ import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 
 public class ServerFetcher {
 
-  private static final Log logger = LogFactory.getLog(ServerFetcher.class);
+  private static final Log log = LogFactory.getLog(ServerFetcher.class);
 
   private static final String MD5_COLON_PREFIX = "md5:";
   
@@ -162,12 +162,13 @@ public class ServerFetcher {
               }
 
             }
-            formDatabase = new DatabaseUtils(FileSystemUtils.getFormDatabase(briefcaseLfd.getFormDirectory()));
+            formDatabase = DatabaseUtils.newInstance(briefcaseLfd.getFormDirectory());
 
           } catch (BadFormDefinition e) {
-            e.printStackTrace();
             allSuccessful = false;
-            fs.setStatusString("Error parsing form definition: " + e.getMessage(), false);
+            String msg = "Error parsing form definition";
+            log.error(msg, e);
+            fs.setStatusString(msg + ": " + e.getMessage(), false);
             EventBus.publish(new FormStatusEvent(fs));
             continue;
           }
@@ -179,10 +180,11 @@ public class ServerFetcher {
 
           // this will publish events
           successful = downloadAllSubmissionsForForm(formInstancesDir, formDatabase, briefcaseLfd, fs);
-        } catch ( FileSystemException e ) {
-          e.printStackTrace();
+        } catch ( SQLException | FileSystemException e ) {
           allSuccessful = false;
-          fs.setStatusString("unable to open form database: " + e.getMessage(), false);
+          String msg = "unable to open form database";
+          log.error(msg, e);
+          fs.setStatusString(msg + ": " + e.getMessage(), false);
           EventBus.publish(new FormStatusEvent(fs));
           continue;
         } finally {
@@ -190,9 +192,10 @@ public class ServerFetcher {
             try {
               formDatabase.close();
             } catch ( SQLException e) {
-              e.printStackTrace();
               allSuccessful = false;
-              fs.setStatusString("unable to close form database: " + e.getMessage(), false);
+              String msg = "unable to close form database";
+              log.error(msg, e);
+              fs.setStatusString(msg + ": " + e.getMessage(), false);
               EventBus.publish(new FormStatusEvent(fs));
               continue;
             }
@@ -211,42 +214,25 @@ public class ServerFetcher {
         }
 
       } catch (SocketTimeoutException se) {
-        se.printStackTrace();
         allSuccessful = false;
+        log.error("error accessing " + fd.getDownloadUrl(), se);
         fs.setStatusString("Communications to the server timed out. Detailed message: "
             + se.getLocalizedMessage() + " while accessing: " + fd.getDownloadUrl()
             + " A network login screen may be interfering with the transmission to the server.", false);
         EventBus.publish(new FormStatusEvent(fs));
-        continue;
       } catch (IOException e) {
-        e.printStackTrace();
         allSuccessful = false;
+        log.error("error accessing " + fd.getDownloadUrl(), e);
         fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
             + fd.getDownloadUrl()
             + " A network login screen may be interfering with the transmission to the server.", false);
         EventBus.publish(new FormStatusEvent(fs));
-        continue;
-      } catch (FileSystemException e) {
-        e.printStackTrace();
+      } catch (FileSystemException | TransmissionException | URISyntaxException e) {
         allSuccessful = false;
+        log.error("error accessing " + fd.getDownloadUrl(), e);
         fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
             + fd.getDownloadUrl(), false);
         EventBus.publish(new FormStatusEvent(fs));
-        continue;
-      } catch (URISyntaxException e) {
-        e.printStackTrace();
-        allSuccessful = false;
-        fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
-            + fd.getDownloadUrl(), false);
-        EventBus.publish(new FormStatusEvent(fs));
-        continue;
-      } catch (TransmissionException e) {
-        e.printStackTrace();
-        allSuccessful = false;
-        fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
-            + fd.getDownloadUrl(), false);
-        EventBus.publish(new FormStatusEvent(fs));
-        continue;
       }
     }
     return allSuccessful;
@@ -324,9 +310,10 @@ public class ServerFetcher {
 
           downloadSubmission(formInstancesDir, formDatabase, lfd, fs, uri);
         } catch (Exception e) {
-          e.printStackTrace();
           allSuccessful = false;
-          fs.setStatusString("SUBMISSION NOT RETRIEVED: Error fetching submission uri: " + uri + " details: " + e.getMessage(), false);
+          String msg = "Error fetching submission uri: " + uri;
+          log.error(msg, e);
+          fs.setStatusString("SUBMISSION NOT RETRIEVED: " + msg + " details: " + e.getMessage(), false);
           EventBus.publish(new FormStatusEvent(fs));
           // but try to get the next one...
         }
@@ -356,7 +343,7 @@ public class ServerFetcher {
           File instance = new File(instanceFolder, "submission.xml");
           File instanceEncrypted = new File(instanceFolder, "submission.xml.enc");
           if (instance.exists() || instanceEncrypted.exists()) {
-              logger.info("already present - skipping fetch: " + uri );
+              log.info("already present - skipping fetch: " + uri );
               return;
           }
       }
@@ -393,7 +380,7 @@ public class ServerFetcher {
     }
 
     String msg = "Fetched instanceID=" + submissionManifest.instanceID;
-    logger.info(msg);
+    log.info(msg);
 
     if ( FileSystemUtils.hasFormSubmissionDirectory(formInstancesDir, submissionManifest.instanceID)) {
       // create instance directory...
@@ -485,7 +472,7 @@ public class ServerFetcher {
       return e.getMessage();
     }
     // OK we now have the full set of files to download...
-    logger.info("Downloading " + files.size() + " media files.");
+    log.info("Downloading " + files.size() + " media files.");
     int mCount = 0;
     if (files.size() > 0) {
       for (MediaFile m : files) {

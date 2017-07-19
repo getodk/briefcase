@@ -28,9 +28,13 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.opendatakit.briefcase.model.CryptoException;
 
 public class EncryptionInformation {
+
+  private static final Log log = LogFactory.getLog(EncryptionInformation.class);
   
   private CipherFactory cipherFactory;
   
@@ -45,21 +49,11 @@ public class EncryptionInformation {
       byte[] encryptedSymmetricKey = Base64.decodeBase64(base64EncryptedSymmetricKey);
       byte[] decryptedKey = pkCipher.doFinal(encryptedSymmetricKey);
       cipherFactory = new CipherFactory(instanceId, decryptedKey);
-    } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
-    } catch (NoSuchPaddingException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
-    } catch (InvalidKeyException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
-    } catch (IllegalBlockSizeException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
-    } catch (BadPaddingException e) {
-      e.printStackTrace();
-      throw new CryptoException("Error decrypting base64EncryptedKey Cause: " + e.toString());
+    } catch (NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | InvalidKeyException
+            | NoSuchPaddingException e) {
+      String msg = "Error decrypting base64EncryptedKey";
+      log.error(msg, e);
+      throw new CryptoException(msg + " Cause: " + e.toString());
     }
   }
   

@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.opendatakit.briefcase.model.DocumentDescription;
@@ -44,6 +46,8 @@ import org.opendatakit.briefcase.util.AggregateUtils.DocumentFetchResult;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionDownloadChunk;
 
 public class ServerUploader {
+
+  private static final Log log = LogFactory.getLog(ServerUploader.class);
   
   private final int MAX_ENTRIES = 100;
 
@@ -98,9 +102,9 @@ public class ServerUploader {
           formToTransfer.setStatusString(msg, true);
           EventBus.publish(new FormStatusEvent(formToTransfer));
         } catch (IOException e) {
-          e.printStackTrace();
-          String msg = "WARNING: Submission directory could not be renamed: " + instanceDir.getName();
-          formToTransfer.setStatusString(msg, true);
+          String msg = "Submission directory could not be renamed: " + instanceDir.getName();
+          log.warn(msg, e);
+          formToTransfer.setStatusString("WARNING: " + msg, true);
           EventBus.publish(new FormStatusEvent(formToTransfer));
         }
       }
@@ -212,7 +216,7 @@ public class ServerUploader {
       Set<File> briefcaseInstances = FileSystemUtils.getFormSubmissionDirectories(briefcaseLfd.getFormDirectory());
       DatabaseUtils formDatabase = null;
       try {
-        formDatabase = new DatabaseUtils(FileSystemUtils.getFormDatabase(briefcaseLfd.getFormDirectory()));
+        formDatabase = DatabaseUtils.newInstance(briefcaseLfd.getFormDirectory());
         
         // make sure all the local instances are in the database...
         formDatabase.updateInstanceLists(briefcaseInstances);
@@ -230,21 +234,23 @@ public class ServerUploader {
             break;
           }
         }
-      } catch ( FileSystemException e ) {
-        e.printStackTrace();
+      } catch ( SQLException | FileSystemException e ) {
         thisFormSuccessful = false;
         allSuccessful = false;
-        formToTransfer.setStatusString("unable to open form database: " + e.getMessage(), false);
+        String msg = "unable to open form database";
+        log.error(msg, e);
+        formToTransfer.setStatusString(msg + ": " + e.getMessage(), false);
         EventBus.publish(new FormStatusEvent(formToTransfer));
       } finally {
         if ( formDatabase != null ) {
           try {
             formDatabase.close();
-          } catch ( SQLException e) {
-            e.printStackTrace();
+          } catch ( SQLException e ) {
             thisFormSuccessful = false;
             allSuccessful = false;
-            formToTransfer.setStatusString("unable to close form database: " + e.getMessage(), false);
+            String msg = "unable to close form database";
+            log.warn(msg, e);
+            formToTransfer.setStatusString(msg + ": " + e.getMessage(), false);
             EventBus.publish(new FormStatusEvent(formToTransfer));
           }
         }
