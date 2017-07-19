@@ -51,7 +51,7 @@ public class DatabaseUtils {
   private static final String INSERT_DML = "INSERT INTO recorded_instance (instanceId, directory) VALUES(?,?)";
   private static final String DELETE_DML = "DELETE FROM recorded_instance WHERE instanceId = ?";
 
-
+  final private File formDir;
   private Connection connection;
 
   private boolean hasRecordedInstanceTable = false;
@@ -59,8 +59,15 @@ public class DatabaseUtils {
   private PreparedStatement insertRecordedInstanceQuery = null;
   private PreparedStatement deleteRecordedInstanceQuery = null;
 
-  public DatabaseUtils(Connection connection) {
-    this.connection = connection;
+  public DatabaseUtils(File formDir) throws FileSystemException, SQLException {
+    this.formDir = formDir;
+    connect();
+  }
+
+  public void connect() throws FileSystemException, SQLException {
+    if (connection == null) {
+      connection = getConnection(getFormDatabaseUrl(formDir));
+    }
   }
 
   public void close() throws SQLException {
@@ -76,7 +83,7 @@ public class DatabaseUtils {
     try {
       connection.close();
     } finally {
-      connection =  null;
+      connection = null;
     }
   }
 
@@ -211,7 +218,7 @@ public class DatabaseUtils {
   }
 
   public static DatabaseUtils newInstance(File formDirectory) throws FileSystemException, SQLException {
-    return new DatabaseUtils(getConnection(getFormDatabaseUrl(formDirectory)));
+    return new DatabaseUtils(formDirectory);
   }
 
   static Connection getConnection(String jdbcUrl) throws SQLException {
