@@ -25,7 +25,7 @@ public class FormStatus {
   private String statusString = "";
   private final StringBuilder statusHistory = new StringBuilder();
   private boolean isSuccessful = true;
-  private int historyMaxSize = 8096;
+  private int historyMaxSize = 8192;
 
   public FormStatus(TransferType transferType, IFormDefinition form) {
     this.transferType = transferType;
