@@ -26,6 +26,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.nio.file.Path;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -66,10 +67,12 @@ public class FileSystemUtils {
   public static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
   static final String README_TXT = "readme.txt";
   static final String FORMS_DIR = "forms";
+  static final String INSTANCE_DIR = "instances";
   static final String HSQLDB_DIR = "info.hsqldb";
   static final String HSQLDB_DB = "info";
   static final String SMALLSQL_DIR = "info.db";
   static final String HSQLDB_JDBC_PREFIX = "jdbc:hsqldb:file:";
+
   static final String SMALLSQL_JDBC_PREFIX = "jdbc:smallsql:";
 
   // encryption support....
@@ -354,17 +357,26 @@ public class FileSystemUtils {
   }
 
   public static File getFormInstancesDirectory(File formDirectory) throws FileSystemException {
-    File instancesDir = new File(formDirectory, "instances");
+    File instancesDir = new File(formDirectory, INSTANCE_DIR);
     if (!instancesDir.exists() && !instancesDir.mkdirs()) {
       throw new FileSystemException("unable to create directory: " + instancesDir.getAbsolutePath());
     }
     return instancesDir;
   }
 
-  public static Set<File> getFormSubmissionDirectories(File formDirectory) {
-    Set<File> files = new TreeSet<File>();
+  public static boolean isFormRelativeInstancePath(String path) {
+    return path.startsWith(INSTANCE_DIR);
+  }
 
-    File formInstancesDir = null;
+  public static Path makeRelative(File parent, File child) {
+    Path parentPath = parent.toPath(), childPath = child.toPath();
+    return parentPath.relativize(childPath);
+  }
+
+  public static Set<File> getFormSubmissionDirectories(File formDirectory) {
+    Set<File> files = new TreeSet<>();
+
+    File formInstancesDir;
     try {
       formInstancesDir = getFormInstancesDirectory(formDirectory);
     } catch (FileSystemException e) {
