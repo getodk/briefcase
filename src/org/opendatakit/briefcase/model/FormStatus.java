@@ -18,6 +18,9 @@ package org.opendatakit.briefcase.model;
 
 
 public class FormStatus {
+
+  public static final int STATUS_HISTORY_MAX_BYTES = 1024 * 1024;
+
   public enum TransferType { GATHER, UPLOAD };
   private final TransferType transferType;
   private boolean isSelected = false;
@@ -25,7 +28,6 @@ public class FormStatus {
   private String statusString = "";
   private final StringBuilder statusHistory = new StringBuilder();
   private boolean isSuccessful = true;
-  private int historyMaxSize = 8192;
 
   public FormStatus(TransferType transferType, IFormDefinition form) {
     this.transferType = transferType;
@@ -55,7 +57,7 @@ public class FormStatus {
 
   public void setStatusString(String statusString, boolean isSuccessful) {
     this.statusString = statusString;
-    if (statusHistory.length() > historyMaxSize) {
+    if (statusHistory.length() > STATUS_HISTORY_MAX_BYTES) {
       trimHistory(statusString.length());
     }
     statusHistory.append("\n");
