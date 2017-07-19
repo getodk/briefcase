@@ -60,7 +60,6 @@ public class FormStatus {
     }
     statusHistory.append("\n");
     statusHistory.append(statusString);
-    // statusHistory.append("</p>");
     this.isSuccessful = this.isSuccessful && isSuccessful;
   }
 
