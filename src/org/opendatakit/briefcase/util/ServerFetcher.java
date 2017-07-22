@@ -270,6 +270,7 @@ public class ServerFetcher {
     public Thread newThread(Runnable r) {
       Thread t = new Thread(r, namePrefix + threadNumber.getAndIncrement());
       t.setPriority(Thread.MIN_PRIORITY);
+      t.setDaemon(true);
       return t;
     }
   }
