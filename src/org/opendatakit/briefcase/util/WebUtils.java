@@ -342,7 +342,7 @@ public final class WebUtils {
 
 		HttpHost proxy = BriefcasePreferences.getBriefCaseProxyConnection();
 		if (proxy != null) {
-			clientBuilder.setRoutePlanner(new DefaultProxyRoutePlanner(proxy)).build();
+			clientBuilder.setRoutePlanner(new DefaultProxyRoutePlanner(proxy));
 		}
 
 		return clientBuilder.build();
