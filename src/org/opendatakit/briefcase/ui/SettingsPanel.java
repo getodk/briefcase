@@ -78,10 +78,10 @@ public class SettingsPanel extends JPanel {
         chkProxy.setSelected(false);
         chkProxy.addActionListener(new ProxyToggleListener());
 
-        lblParallel = new JLabel(MessageStrings.PARALLEL_DOWNLOADS);
+        lblParallel = new JLabel(MessageStrings.PARALLEL_PULLS);
         chkParallel = new JCheckBox();
         chkParallel.setSelected(BriefcasePreferences.getBriefcaseParallelPullsProperty());
-        chkParallel.addActionListener(new ParallelDownloadToggleListener());
+        chkParallel.addActionListener(new ParallelPullToggleListener());
 
         GroupLayout groupLayout = new GroupLayout(this);
         groupLayout.setHorizontalGroup(
@@ -220,7 +220,7 @@ public class SettingsPanel extends JPanel {
 
     }
 
-    private class ParallelDownloadToggleListener implements ActionListener {
+    private class ParallelPullToggleListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() == chkParallel) {
