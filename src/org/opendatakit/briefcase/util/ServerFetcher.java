@@ -321,6 +321,7 @@ public class ServerFetcher {
           chunkCompleter.submit(new SubmissionChunkDownload(fs, fd.getFormId(), websafeCursorString));
         }
 
+        // submit a download job for each uri in the chunk
         for (String uri : chunk.uriList) {
           if (isCancelled()) {
             fs.setStatusString("aborting requesting submissions...", true);
@@ -330,6 +331,7 @@ public class ServerFetcher {
           submissionCompleter.submit(new SubmissionDownload(formInstancesDir, formDatabase, lfd, fs, uri));
         }
 
+        // call take() and get() exactly once for each download submitted above (we don't need the uri)
         for (int i = 0; i < chunk.uriList.size(); i++) {
           if (isCancelled()) {
             fs.setStatusString("aborting processing submissions...", true);
