@@ -34,28 +34,28 @@ public class FormStatus {
     this.form = form;
   }
 
-  public TransferType getTransferType() {
+  public synchronized TransferType getTransferType() {
     return transferType;
   }
   
-  public boolean isSelected() {
+  public synchronized boolean isSelected() {
     return isSelected;
   }
 
-  public void setSelected(boolean isSelected) {
+  public synchronized void setSelected(boolean isSelected) {
     this.isSelected = isSelected;
   }
 
-  public String getStatusString() {
+  public synchronized String getStatusString() {
     return statusString;
   }
 
-  public void clearStatusHistory() {
+  public synchronized void clearStatusHistory() {
     statusHistory.setLength(0);
     isSuccessful = true;
   }
 
-  public void setStatusString(String statusString, boolean isSuccessful) {
+  public synchronized void setStatusString(String statusString, boolean isSuccessful) {
     this.statusString = statusString;
     if (statusHistory.length() > STATUS_HISTORY_MAX_BYTES) {
       trimHistory(statusString.length());
@@ -73,19 +73,19 @@ public class FormStatus {
     }
   }
 
-  public String getStatusHistory() {
+  public synchronized String getStatusHistory() {
     return statusHistory.toString();
   }
   
-  public boolean isSuccessful() {
+  public synchronized boolean isSuccessful() {
     return isSuccessful;
   }
 
-  public String getFormName() {
+  public synchronized String getFormName() {
     return form.getFormName();
   }
 
-  public IFormDefinition getFormDefinition() {
+  public synchronized IFormDefinition getFormDefinition() {
     return form;
   }
 }

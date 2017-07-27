@@ -32,7 +32,7 @@ import org.opendatakit.briefcase.model.MetadataUpdateException;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.util.ServerFetcher.MediaFile;
-import org.opendatakit.briefcase.util.ServerFetcher.SubmissionDownloadChunk;
+import org.opendatakit.briefcase.util.ServerFetcher.SubmissionChunk;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionManifest;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -539,7 +539,7 @@ public class XmlManipulationUtils {
     return files;
   }
 
-  public static final SubmissionDownloadChunk parseSubmissionDownloadListResponse(Document doc)
+  public static final SubmissionChunk parseSubmissionDownloadListResponse(Document doc)
       throws ParsingException {
     List<String> uriList = new ArrayList<String>();
     String websafeCursorString = "";
@@ -608,7 +608,7 @@ public class XmlManipulationUtils {
       }
     }
 
-    return new SubmissionDownloadChunk(uriList, websafeCursorString);
+    return new SubmissionChunk(uriList, websafeCursorString);
   }
 
   public static final SubmissionManifest parseDownloadSubmissionResponse(Document doc)

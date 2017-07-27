@@ -80,4 +80,6 @@ public class MessageStrings {
   public static final String PROXY_SET_ADVICE =
       "If you are behind a proxy, try setting up your proxy details through 'Settings' tab.";
 
+  public static final String PARALLEL_PULLS = "Pull submissions in parallel (experimental)";
+
 }
