@@ -16,6 +16,24 @@
 
 package org.opendatakit.briefcase.util;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.bushe.swing.event.EventBus;
+import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.DocumentDescription;
+import org.opendatakit.briefcase.model.FileSystemException;
+import org.opendatakit.briefcase.model.FinalStatus;
+import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.ParsingException;
+import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.model.ServerConnectionInfo;
+import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.TerminationStatus;
+import org.opendatakit.briefcase.model.TransmissionException;
+import org.opendatakit.briefcase.model.XmlDocumentFetchException;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,22 +45,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.bushe.swing.event.EventBus;
-import org.bushe.swing.event.annotation.AnnotationProcessor;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.DocumentDescription;
-import org.opendatakit.briefcase.model.FileSystemException;
-import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.ParsingException;
-import org.opendatakit.briefcase.model.RemoteFormDefinition;
-import org.opendatakit.briefcase.model.ServerConnectionInfo;
-import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransmissionException;
-import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 
 public class ServerFetcher {
 
@@ -57,7 +59,8 @@ public class ServerFetcher {
   private TerminationFuture terminationFuture;
 
   public static String SUCCESS_STATUS = "SUCCESS!";
-  public static String FAILED_STATUS = "FAILED.";
+  public static String FAILED_STATUS = "FAILED!";
+  public static String SUCCESS_WITH_ERRORS_STATUS = "SUCCESS WITH ERRORS!";
 
   public static class FormListException extends Exception {
 
@@ -124,6 +127,7 @@ public class ServerFetcher {
 
     for (int i = 0; i < total; i++) {
       FormStatus fs = formsToTransfer.get(i);
+      TerminationStatus finish = new TerminationStatus();
 
       if ( isCancelled() ) {
         fs.setStatusString("aborted. Skipping fetch of form and submissions...", true);
@@ -142,7 +146,6 @@ public class ServerFetcher {
         fs.setStatusString("resolving against briefcase form definitions", true);
         EventBus.publish(new FormStatusEvent(fs));
 
-        boolean successful = false;
         BriefcaseFormDefinition briefcaseLfd;
         DatabaseUtils formDatabase = null;
         try {
@@ -179,7 +182,7 @@ public class ServerFetcher {
           File formInstancesDir = FileSystemUtils.getFormInstancesDirectory(briefcaseLfd.getFormDirectory());
 
           // this will publish events
-          successful = downloadAllSubmissionsForForm(formInstancesDir, formDatabase, briefcaseLfd, fs);
+          finish = downloadAllSubmissionsForForm(formInstancesDir, formDatabase, briefcaseLfd, fs);
         } catch ( SQLException | FileSystemException e ) {
           allSuccessful = false;
           String msg = "unable to open form database";
@@ -202,17 +205,20 @@ public class ServerFetcher {
           }
         }
 
-        allSuccessful = allSuccessful && successful;
+        allSuccessful = allSuccessful && finish.isSuccess();
 
         // on success, we haven't actually set a success event (because we don't know we're done)
-        if ( successful ) {
+        if ( finish.getFinalStatus() == FinalStatus.SUCCESS ) {
           fs.setStatusString(SUCCESS_STATUS, true);
           EventBus.publish(new FormStatusEvent(fs));
-        } else {
+        } else if (finish.getFinalStatus() == FinalStatus.FAILED) {
           fs.setStatusString(FAILED_STATUS, true);
           EventBus.publish(new FormStatusEvent(fs));
+        } else {
+          fs.setStatusString(SUCCESS_WITH_ERRORS_STATUS, true);
+          EventBus.publish(new FormStatusEvent(fs));
         }
-
+      
       } catch (SocketTimeoutException se) {
         allSuccessful = false;
         log.error("error accessing " + fd.getDownloadUrl(), se);
@@ -248,13 +254,13 @@ public class ServerFetcher {
     }
   };
 
-  private boolean downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd,
+  private TerminationStatus downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd,
       FormStatus fs) {
-    boolean allSuccessful = true;
 
     RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
 
     int count = 1;
+    boolean filesSkipped = false;
     String baseUrl = serverInfo.getUrl() + "/view/submissionList";
 
     String oldWebsafeCursorString = "not-empty";
@@ -263,7 +269,7 @@ public class ServerFetcher {
       if ( isCancelled() ) {
         fs.setStatusString("aborting fetching submissions...", true);
         EventBus.publish(new FormStatusEvent(fs));
-        return false;
+        return new TerminationStatus(FinalStatus.FAILED);
       }
 
       fs.setStatusString("retrieving next chunk of instances from server...", true);
@@ -284,7 +290,7 @@ public class ServerFetcher {
       } catch (XmlDocumentFetchException e) {
         fs.setStatusString("NOT ALL SUBMISSIONS RETRIEVED: Error fetching list of submissions: " + e.getMessage(), false);
         EventBus.publish(new FormStatusEvent(fs));
-        return false;
+        return new TerminationStatus(FinalStatus.FAILED);
       }
 
       SubmissionDownloadChunk chunk;
@@ -293,7 +299,7 @@ public class ServerFetcher {
       } catch (ParsingException e) {
         fs.setStatusString("NOT ALL SUBMISSIONS RETRIEVED: Error parsing the list of submissions: " + e.getMessage(), false);
         EventBus.publish(new FormStatusEvent(fs));
-        return false;
+        return new TerminationStatus(FinalStatus.FAILED);
       }
       websafeCursorString = chunk.websafeCursorString;
 
@@ -301,7 +307,7 @@ public class ServerFetcher {
         if ( isCancelled() ) {
           fs.setStatusString("aborting fetching submissions...", true);
           EventBus.publish(new FormStatusEvent(fs));
-          return false;
+          return  new TerminationStatus(FinalStatus.FAILED);
         }
 
         try {
@@ -310,16 +316,21 @@ public class ServerFetcher {
 
           downloadSubmission(formInstancesDir, formDatabase, lfd, fs, uri);
         } catch (Exception e) {
-          allSuccessful = false;
           String msg = "Error fetching submission uri: " + uri;
           log.error(msg, e);
           fs.setStatusString("SUBMISSION NOT RETRIEVED: " + msg + " details: " + e.getMessage(), false);
           EventBus.publish(new FormStatusEvent(fs));
+          filesSkipped = true;
           // but try to get the next one...
         }
       }
     }
-    return allSuccessful;
+  if (filesSkipped) {
+     return new TerminationStatus(FinalStatus.SUCCESS_WITH_ERRORS);
+   }
+  
+   return new TerminationStatus(FinalStatus.SUCCESS);
+
   }
 
   public static class SubmissionManifest {

@@ -16,24 +16,24 @@
 
 package org.opendatakit.briefcase.util;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.bushe.swing.event.EventBus;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.FileSystemException;
+import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
+import org.opendatakit.briefcase.model.ParsingException;
+import org.opendatakit.briefcase.model.TerminationFuture;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.FileSystemException;
-import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
-import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.ParsingException;
 
 public class TransferFromODK implements ITransferFromSourceAction {
 
@@ -109,6 +109,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
     
     for (FormStatus fs : formsToTransfer) {
       boolean isSuccessful = true;
+      boolean instancesSkipped = false;
       try {
         if ( terminationFuture.isCancelled() ) {
           fs.setStatusString("aborted. Skipping fetch of form and submissions...", true);
@@ -211,6 +212,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                         log.error(msg, e);
                         fs.setStatusString(msg + ": " + e.getMessage(), false);
                         EventBus.publish(new FormStatusEvent(fs));
+                        instancesSkipped = true;
                         continue;
                       }
                   }
@@ -271,6 +273,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                 if (same) {
                   fs.setStatusString("already present - skipping: " + xml.getName(), true);
                   EventBus.publish(new FormStatusEvent(fs));
+                  instancesSkipped = true;
                   continue;
                 }
 
@@ -282,6 +285,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                   log.error(msg, e);
                   fs.setStatusString(msg + ": " + e.getMessage(), false);
                   EventBus.publish(new FormStatusEvent(fs));
+                  instancesSkipped = true;
                   continue;
                 }
                 
@@ -336,8 +340,13 @@ public class TransferFromODK implements ITransferFromSourceAction {
         }
       } finally {
         if ( isSuccessful ) {
-          fs.setStatusString(ServerFetcher.SUCCESS_STATUS, true);
-          EventBus.publish(new FormStatusEvent(fs));
+          if (instancesSkipped) {
+            fs.setStatusString(ServerFetcher.SUCCESS_WITH_ERRORS_STATUS, true);
+            EventBus.publish(new FormStatusEvent(fs));
+          } else {
+            fs.setStatusString(ServerFetcher.SUCCESS_STATUS, true);
+            EventBus.publish(new FormStatusEvent(fs));
+          }
         } else {
           fs.setStatusString(ServerFetcher.FAILED_STATUS, true);
           EventBus.publish(new FormStatusEvent(fs));
