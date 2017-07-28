@@ -37,6 +37,7 @@ public class BriefcasePreferences {
   private static final String BRIEFCASE_DIR_PROPERTY = "briefcaseDir";
   private static final String BRIEFCASE_PROXY_HOST_PROPERTY = "briefcaseProxyHost";
   private static final String BRIEFCASE_PROXY_PORT_PROPERTY = "briefcaseProxyPort";
+  private static final String BRIEFCASE_PARALLEL_PULLS_PROPERTY = "briefcaseParallelPulls";
   
   static {
     // load the security provider
@@ -121,8 +122,22 @@ public class BriefcasePreferences {
     Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PROXY_PORT_PROPERTY);
     } else {
     Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_PROXY_HOST_PROPERTY, value.getHostName());
-    Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_PROXY_PORT_PROPERTY, "" + value.getPort());
+    Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_PROXY_PORT_PROPERTY, new Integer(value.getPort()).toString());
     }
+  }
+
+  public static void setBriefcaseParallelPullsProperty(Boolean value) {
+    if (value == null) {
+      Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PARALLEL_PULLS_PROPERTY);
+    } else {
+      Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_PARALLEL_PULLS_PROPERTY, value.toString());
+    }
+  }
+
+  public static Boolean getBriefcaseParallelPullsProperty() {
+    return Boolean.valueOf(
+            Preference.APPLICATION_SCOPED.get(BriefcasePreferences.BRIEFCASE_PARALLEL_PULLS_PROPERTY, Boolean.FALSE.toString())
+    );
   }
   
   /**

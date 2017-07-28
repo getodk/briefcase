@@ -278,7 +278,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
         e.setAttribute(ParserConsts.NAMESPACE_ODK, "length", null);
       }
 
-      log.info("Calling handle found value " + ((value == null) ? "null" : value));
+      log.debug("Calling handle found value " + ((value == null) ? "null" : value));
 
       if (value != null) {
         Integer iValue = Integer.valueOf(value);
@@ -287,7 +287,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
 
       // print unused attribute warning message for parent element
       if (XFormUtils.showUnusedAttributeWarning(e, usedAtts)) {
-        System.out.println(XFormUtils.unusedAttWarning(e, usedAtts));
+        log.debug(XFormUtils.unusedAttWarning(e, usedAtts));
       }
 
       addBinding(binding);
@@ -587,7 +587,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
     this.isNotUploadableForm = isNotUploadableForm;
 
     if (isNotUploadableForm) {
-      log.info("Form "
+      log.debug("Form "
           + submissionElementDefn.formId
           + " is not uploadable (submission method is not form-data-post or does not have an http: or https: url. ");
     }
@@ -660,7 +660,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
 
   @SuppressWarnings("unused")
   private void printTreeElementInfo(TreeElement treeElement) {
-    System.out.println("processing te: " + treeElement.getName() + " type: " + treeElement.getDataType()
+    log.debug("processing te: " + treeElement.getName() + " type: " + treeElement.getDataType()
         + " repeatable: " + treeElement.isRepeatable());
   }
 
@@ -1024,10 +1024,10 @@ public class BaseFormParserForJavaRosa implements Serializable {
       if (child.isRepeatable()) {
         if (child.getMult() != TreeReference.INDEX_TEMPLATE) {
           template1DropCount++;
-          log.info("element1:dropping " + child.getName());
+          log.debug("element1:dropping " + child.getName());
           continue;
         }
-        log.info("element1:retaining " + child.getName());
+        log.debug("element1:retaining " + child.getName());
       }
       element1ExcludingRepeatIndex0Children.add(child);
     }
@@ -1042,10 +1042,10 @@ public class BaseFormParserForJavaRosa implements Serializable {
       if (child.isRepeatable()) {
         if (child.getMult() != TreeReference.INDEX_TEMPLATE) {
           template2DropCount++;
-          log.info("element2:dropping " + child.getName());
+          log.debug("element2:dropping " + child.getName());
           continue;
         }
-        log.info("element2:retaining " + child.getName());
+        log.debug("element2:retaining " + child.getName());
       }
       if (element2ExcludingRepeatIndex0Children.get(child.getName()) != null) {
         // consider children not uniquely named as big differences

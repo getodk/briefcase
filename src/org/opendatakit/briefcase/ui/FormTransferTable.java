@@ -35,7 +35,6 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import org.opendatakit.briefcase.util.ServerFetcher;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -106,7 +105,7 @@ public class FormTransferTable extends JTable {
      * 
      */
     private static final long serialVersionUID = -5106458166776020642L;
-    private static final Log logger = LogFactory.getLog( DetailButton.class);
+    private static final Log log = LogFactory.getLog( DetailButton.class);
     public static final String LABEL = "Details...";
     
     final FormStatus status;
@@ -115,7 +114,7 @@ public class FormTransferTable extends JTable {
       super(LABEL);
       this.status = status;
       this.addActionListener(this);
-      logger.info("creating details button");
+      log.debug("creating details button");
     }
 
     @Override
@@ -131,23 +130,21 @@ public class FormTransferTable extends JTable {
   }
 
   static class FormTransferTableModel extends AbstractTableModel {
-    /**
-		 * 
-		 */
+
     private static final long serialVersionUID = 7108326237416622721L;
 
     public static final int BUTTON_COLUMN = 3;     
 
-    private static final Log logger = LogFactory.getLog( FormTransferTableModel.class);
+    private static final Log log = LogFactory.getLog(FormTransferTableModel.class);
     
     final String[] columnNames;
     final JButton btnSelectOrClearAllForms;
     final TransferType transferType;
-    final JButton btnTransfer;
+    final JButton btnTransfer, btnCancel;
     List<FormStatus> formStatuses = new ArrayList<FormStatus>();
     private Map<FormStatus, DetailButton> buttonMap = new HashMap<FormStatus, DetailButton>();
     
-    public FormTransferTableModel(JButton btnSelectOrClearAllForms, TransferType transferType, JButton btnTransfer) {
+    public FormTransferTableModel(JButton btnSelectOrClearAllForms, TransferType transferType, JButton btnTransfer, JButton btnCancel) {
       super();
       AnnotationProcessor.process(this);// if not using AOP
 
@@ -157,6 +154,7 @@ public class FormTransferTable extends JTable {
       this.btnSelectOrClearAllForms = btnSelectOrClearAllForms;
       this.transferType = transferType;
       this.btnTransfer = btnTransfer;
+      this.btnCancel = btnCancel;
       // initially the transfer button is disabled.
       btnTransfer.setEnabled(false);
       btnSelectOrClearAllForms.setText("Clear all");
@@ -213,16 +211,6 @@ public class FormTransferTable extends JTable {
       }
       return selected;
     }
-    
-    public List<FormStatus> getSelectedNonActiveForms() {
-        List<FormStatus> selected = new ArrayList<FormStatus>();
-        for (FormStatus s : formStatuses) {
-      	  if (s.isSelected() && s.getStatusString().isEmpty()) {
-            selected.add(s);
-          }
-        }
-        return selected;
-      }
 
     @Override
     public int getRowCount() {
@@ -260,16 +248,7 @@ public class FormTransferTable extends JTable {
     }
 
     public boolean isCellEditable(int row, int col) {
-	  // While the table is in active transfer state, you cannot de-select
-	  // already selected forms
-	  if (!formStatuses.get(row).getStatusString().isEmpty() && !isTransferTerminated(formStatuses.get(row).getStatusString())) {
-		return false;
-	  }
-      return col == 0; // only the checkbox...
-    }
-
-    private boolean isTransferTerminated(String statusString) {
-      return statusString.equals(ServerFetcher.SUCCESS_STATUS) || statusString.equals(ServerFetcher.FAILED_STATUS) ;
+      return col == 0 && !btnCancel.isEnabled(); // only the checkbox...
     }
 
 	public void setValueAt(Object value, int row, int col) {
@@ -283,7 +262,7 @@ public class FormTransferTable extends JTable {
         status.setStatusString((String) value, true);
         break;
       case 3:
-        logger.warn("attempting to set button value");
+        log.warn("attempting to set button value");
         break;
       default:
         throw new IllegalStateException("unexpected column choice");
@@ -329,8 +308,8 @@ public class FormTransferTable extends JTable {
 
   }
 
-  public FormTransferTable(JButton btnSelectOrClearAllForms, FormStatus.TransferType transferType, JButton btnTransfer) {
-    super(new FormTransferTableModel(btnSelectOrClearAllForms, transferType, btnTransfer));
+  public FormTransferTable(JButton btnSelectOrClearAllForms, FormStatus.TransferType transferType, JButton btnTransfer, JButton btnCancel) {
+    super(new FormTransferTableModel(btnSelectOrClearAllForms, transferType, btnTransfer, btnCancel));
     AnnotationProcessor.process(this);// if not using AOP
     // set the button column renderer to a custom renderer
     getColumn(getColumnName(FormTransferTableModel.BUTTON_COLUMN)).setCellRenderer(new JTableButtonRenderer());
@@ -398,10 +377,5 @@ public class FormTransferTable extends JTable {
     FormTransferTableModel model = (FormTransferTableModel) this.dataModel;
     return model.getSelectedForms();
   }
-  
-  public List<FormStatus> getSelectedNonActiveForms() {
-    FormTransferTableModel model = (FormTransferTableModel) this.dataModel;
-    return model.getSelectedNonActiveForms();
-  }
-  
+
 }

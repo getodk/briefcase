@@ -18,6 +18,9 @@ package org.opendatakit.briefcase.model;
 
 
 public class FormStatus {
+
+  public static final int STATUS_HISTORY_MAX_BYTES = 1024 * 1024;
+
   public enum TransferType { GATHER, UPLOAD };
   private final TransferType transferType;
   private boolean isSelected = false;
@@ -31,48 +34,58 @@ public class FormStatus {
     this.form = form;
   }
 
-  public TransferType getTransferType() {
+  public synchronized TransferType getTransferType() {
     return transferType;
   }
   
-  public boolean isSelected() {
+  public synchronized boolean isSelected() {
     return isSelected;
   }
 
-  public void setSelected(boolean isSelected) {
+  public synchronized void setSelected(boolean isSelected) {
     this.isSelected = isSelected;
   }
 
-  public String getStatusString() {
+  public synchronized String getStatusString() {
     return statusString;
   }
 
-  public void clearStatusHistory() {
+  public synchronized void clearStatusHistory() {
     statusHistory.setLength(0);
     isSuccessful = true;
   }
 
-  public void setStatusString(String statusString, boolean isSuccessful) {
+  public synchronized void setStatusString(String statusString, boolean isSuccessful) {
     this.statusString = statusString;
+    if (statusHistory.length() > STATUS_HISTORY_MAX_BYTES) {
+      trimHistory(statusString.length());
+    }
     statusHistory.append("\n");
     statusHistory.append(statusString);
-    // statusHistory.append("</p>");
     this.isSuccessful = this.isSuccessful && isSuccessful;
   }
 
-  public String getStatusHistory() {
+  private void trimHistory(int len) {
+    statusHistory.delete(0, len + 1);
+    int lineEnd = statusHistory.indexOf("\n");
+    if (lineEnd >= 0) {
+      statusHistory.delete(0, lineEnd + 1);
+    }
+  }
+
+  public synchronized String getStatusHistory() {
     return statusHistory.toString();
   }
   
-  public boolean isSuccessful() {
+  public synchronized boolean isSuccessful() {
     return isSuccessful;
   }
 
-  public String getFormName() {
+  public synchronized String getFormName() {
     return form.getFormName();
   }
 
-  public IFormDefinition getFormDefinition() {
+  public synchronized IFormDefinition getFormDefinition() {
     return form;
   }
 }

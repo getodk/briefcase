@@ -32,7 +32,7 @@ import org.opendatakit.briefcase.model.MetadataUpdateException;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.util.ServerFetcher.MediaFile;
-import org.opendatakit.briefcase.util.ServerFetcher.SubmissionDownloadChunk;
+import org.opendatakit.briefcase.util.ServerFetcher.SubmissionChunk;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionManifest;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -55,7 +55,7 @@ public class XmlManipulationUtils {
 
   private static final String ODK_ID_PARAMETER_EQUALS = "odkId=";
 
-  private static final Log logger = LogFactory.getLog(XmlManipulationUtils.class);
+  private static final Log log = LogFactory.getLog(XmlManipulationUtils.class);
 
   private static final String BAD_OPENROSA_FORMLIST = "The server has not provided an available-forms document compliant with the OpenRosa version 1.0 standard.";
 
@@ -73,15 +73,8 @@ public class XmlManipulationUtils {
 
   // NOTE: the only transfered metadata is the instanceID and the submissionDate
 
-  // private static final String FORM_ID_ATTRIBUTE_NAME = "id";
-  // private static final String MODEL_VERSION_ATTRIBUTE_NAME = "version";
-  // private static final String UI_VERSION_ATTRIBUTE_NAME = "uiVersion";
   private static final String INSTANCE_ID_ATTRIBUTE_NAME = "instanceID";
   private static final String SUBMISSION_DATE_ATTRIBUTE_NAME = "submissionDate";
-
-  // private static final String IS_COMPLETE_ATTRIBUTE_NAME = "isComplete";
-  // private static final String MARKED_AS_COMPLETE_DATE_ATTRIBUTE_NAME =
-  // "markedAsCompleteDate";
 
   private static final boolean isXformsListNamespacedElement(Element e) {
     return e.getNamespace().equalsIgnoreCase(NAMESPACE_OPENROSA_ORG_XFORMS_XFORMS_LIST);
@@ -300,13 +293,13 @@ public class XmlManipulationUtils {
       // Attempt OpenRosa 1.0 parsing
       Element xformsElement = formListDoc.getRootElement();
       if (!xformsElement.getName().equals("xforms")) {
-        logger.error("Parsing OpenRosa reply -- root element is not <xforms> :"
+        log.error("Parsing OpenRosa reply -- root element is not <xforms> :"
             + xformsElement.getName());
         throw new ParsingException(BAD_OPENROSA_FORMLIST);
       }
       String namespace = xformsElement.getNamespace();
       if (!isXformsListNamespacedElement(xformsElement)) {
-        logger.error("Parsing OpenRosa reply -- root element namespace is incorrect:" + namespace);
+        log.error("Parsing OpenRosa reply -- root element namespace is incorrect:" + namespace);
         throw new ParsingException(BAD_OPENROSA_FORMLIST);
       }
       int nElements = xformsElement.getChildCount();
@@ -385,7 +378,7 @@ public class XmlManipulationUtils {
           }
         }
         if (formId == null || downloadUrl == null || formName == null) {
-          logger.error("Parsing OpenRosa reply -- Forms list entry " + Integer.toString(i)
+          log.error("Parsing OpenRosa reply -- Forms list entry " + Integer.toString(i)
               + " is missing one or more tags: formId, name, or downloadUrl");
           formList.clear();
           throw new ParsingException(BAD_OPENROSA_FORMLIST);
@@ -408,9 +401,8 @@ public class XmlManipulationUtils {
             Long.parseLong(versionString);
           }
         } catch (Exception e) {
-          e.printStackTrace();
-          logger.error("Parsing OpenRosa reply -- Forms list entry " + Integer.toString(i)
-              + " has an invalid version string: " + versionString);
+          log.error("Parsing OpenRosa reply -- Forms list entry " + Integer.toString(i)
+              + " has an invalid version string: " + versionString, e);
           formList.clear();
           throw new ParsingException(BAD_OPENROSA_FORMLIST);
         }
@@ -440,7 +432,7 @@ public class XmlManipulationUtils {
             downloadUrl = null;
           }
           if (downloadUrl == null || formName == null) {
-            logger.error("Parsing OpenRosa reply -- Forms list entry " + Integer.toString(i)
+            log.error("Parsing OpenRosa reply -- Forms list entry " + Integer.toString(i)
                 + " is missing form name or url attribute");
             formList.clear();
             throw new ParsingException(BAD_LEGACY_FORMLIST);
@@ -456,7 +448,7 @@ public class XmlManipulationUtils {
               formId = qs.substring(ODK_ID_PARAMETER_EQUALS.length());
             }
           } catch (MalformedURLException e) {
-            e.printStackTrace();
+            log.warn("bad download url", e);
           }
           if (formId == null) {
             throw new ParsingException(
@@ -475,19 +467,19 @@ public class XmlManipulationUtils {
     List<MediaFile> files = new ArrayList<MediaFile>();
 
     if (!isOpenRosaResponse) {
-      logger.error("Manifest reply doesn't report an OpenRosa version -- bad server?");
+      log.error("Manifest reply doesn't report an OpenRosa version -- bad server?");
       throw new ParsingException(BAD_NOT_OPENROSA_MANIFEST);
     }
 
     // Attempt OpenRosa 1.0 parsing
     Element manifestElement = doc.getRootElement();
     if (!manifestElement.getName().equals("manifest")) {
-      logger.error("Root element is not <manifest> -- was " + manifestElement.getName());
+      log.error("Root element is not <manifest> -- was " + manifestElement.getName());
       throw new ParsingException(BAD_NOT_OPENROSA_MANIFEST);
     }
     String namespace = manifestElement.getNamespace();
     if (!isXformsManifestNamespacedElement(manifestElement)) {
-      logger.error("Root element Namespace is incorrect: " + namespace);
+      log.error("Root element Namespace is incorrect: " + namespace);
       throw new ParsingException(BAD_NOT_OPENROSA_MANIFEST);
     }
     int nElements = manifestElement.getChildCount();
@@ -537,7 +529,7 @@ public class XmlManipulationUtils {
           }
         }
         if (filename == null || downloadUrl == null || hash == null) {
-          logger.error("Manifest entry " + Integer.toString(i)
+          log.error("Manifest entry " + Integer.toString(i)
               + " is missing one or more tags: filename, hash, or downloadUrl");
           throw new ParsingException(BAD_NOT_OPENROSA_MANIFEST);
         }
@@ -547,7 +539,7 @@ public class XmlManipulationUtils {
     return files;
   }
 
-  public static final SubmissionDownloadChunk parseSubmissionDownloadListResponse(Document doc)
+  public static final SubmissionChunk parseSubmissionDownloadListResponse(Document doc)
       throws ParsingException {
     List<String> uriList = new ArrayList<String>();
     String websafeCursorString = "";
@@ -557,14 +549,14 @@ public class XmlManipulationUtils {
     if (!idChunkElement.getName().equals("idChunk")) {
       String msg = "Parsing submissionList reply -- root element is not <idChunk> :"
           + idChunkElement.getName();
-      logger.error(msg);
+      log.error(msg);
       throw new ParsingException(msg);
     }
     String namespace = idChunkElement.getNamespace();
     if (!namespace.equalsIgnoreCase(NAMESPACE_OPENDATAKIT_ORG_SUBMISSIONS)) {
       String msg = "Parsing submissionList reply -- root element namespace is incorrect:"
           + namespace;
-      logger.error(msg);
+      log.error(msg);
       throw new ParsingException(msg);
     }
     int nElements = idChunkElement.getChildCount();
@@ -602,7 +594,7 @@ public class XmlManipulationUtils {
               uriList.add(uri);
             }
           } else {
-            logger.warn("Unrecognized tag inside idList: " + name);
+            log.warn("Unrecognized tag inside idList: " + name);
           }
         }
       } else if (name.equalsIgnoreCase("resumptionCursor")) {
@@ -612,11 +604,11 @@ public class XmlManipulationUtils {
           websafeCursorString = "";
         }
       } else {
-        logger.warn("Unrecognized tag inside idChunk: " + name);
+        log.warn("Unrecognized tag inside idChunk: " + name);
       }
     }
 
-    return new SubmissionDownloadChunk(uriList, websafeCursorString);
+    return new SubmissionChunk(uriList, websafeCursorString);
   }
 
   public static final SubmissionManifest parseDownloadSubmissionResponse(Document doc)
@@ -632,14 +624,14 @@ public class XmlManipulationUtils {
     if (!submissionElement.getName().equals("submission")) {
       String msg = "Parsing downloadSubmission reply -- root element is not <submission> :"
           + submissionElement.getName();
-      logger.error(msg);
+      log.error(msg);
       throw new ParsingException(msg);
     }
     String namespace = submissionElement.getNamespace();
     if (!namespace.equalsIgnoreCase(NAMESPACE_OPENDATAKIT_ORG_SUBMISSIONS)) {
       String msg = "Parsing downloadSubmission reply -- root element namespace is incorrect:"
           + namespace;
-      logger.error(msg);
+      log.error(msg);
       throw new ParsingException(msg);
     }
     int nElements = submissionElement.getChildCount();
@@ -696,7 +688,7 @@ public class XmlManipulationUtils {
         }
         attachmentList.add(new MediaFile(filename, hash, downloadUrl));
       } else {
-        logger.warn("Unrecognized tag inside submission: " + name);
+        log.warn("Unrecognized tag inside submission: " + name);
       }
     }
 
@@ -724,8 +716,9 @@ public class XmlManipulationUtils {
       serializer.endDocument();
       fo.close();
     } catch (IOException e) {
-      e.printStackTrace();
-      throw new ParsingException("Unexpected IOException: " + e.getMessage());
+      String msg = "Unexpected IOException";
+      log.error(msg, e);
+      throw new ParsingException(msg + ": " + e.getMessage());
     }
 
     return new SubmissionManifest(instanceID, fo.toString(), attachmentList);
@@ -755,16 +748,14 @@ public class XmlManipulationUtils {
       fr.close();
       fs.close();
     } catch (IOException e) {
-      e.printStackTrace();
       String msg = "Original submission file could not be opened "
           + submissionFile.getAbsolutePath();
-      logger.error(msg);
+      log.error(msg, e);
       throw new MetadataUpdateException(msg);
     } catch (XmlPullParserException e) {
-      e.printStackTrace();
       String msg = "Original submission file could not be parsed as XML file "
           + submissionFile.getAbsolutePath();
-      logger.error(msg);
+      log.error(msg, e);
       throw new MetadataUpdateException(msg);
     }
 
@@ -780,7 +771,7 @@ public class XmlManipulationUtils {
         if (!root.getAttributeValue(i).equals(instanceID)) {
           String msg = "Original submission file's instanceID does not match that on server! "
               + submissionFile.getAbsolutePath();
-          logger.error(msg);
+          log.error(msg);
           throw new MetadataUpdateException(msg);
         } else {
           hasInstanceID = true;
@@ -795,7 +786,7 @@ public class XmlManipulationUtils {
         if (Math.abs(newDate.getTime() - oldDate.getTime()) > 1000L) {
           String msg = "Original submission file's submissionDate does not match that on server! "
               + submissionFile.getAbsolutePath();
-          logger.error(msg);
+          log.error(msg);
           throw new MetadataUpdateException(msg);
         } else {
           hasSubmissionDate = true;
@@ -804,7 +795,7 @@ public class XmlManipulationUtils {
     }
 
     if (hasInstanceID && hasSubmissionDate) {
-      logger.info("submission already has instanceID and submissionDate attributes: "
+      log.info("submission already has instanceID and submissionDate attributes: "
           + submissionFile.getAbsolutePath());
       return instanceID;
     }
@@ -838,14 +829,14 @@ public class XmlManipulationUtils {
           if (!temp.delete()) {
             String msg = "Unable to remove temporary submission backup file "
                 + temp.getAbsolutePath();
-            logger.error(msg);
+            log.error(msg);
             throw new MetadataUpdateException(msg);
           }
         }
         if (!submissionFile.renameTo(temp)) {
           String msg = "Unable to rename submission to temporary submission backup file "
               + temp.getAbsolutePath();
-          logger.error(msg);
+          log.error(msg);
           throw new MetadataUpdateException(msg);
         }
 
@@ -855,7 +846,7 @@ public class XmlManipulationUtils {
         if (!revisedFile.renameTo(submissionFile)) {
           String msg = "Original submission file could not be updated "
               + submissionFile.getAbsolutePath();
-          logger.error(msg);
+          log.error(msg);
           throw new MetadataUpdateException(msg);
         }
 
@@ -866,21 +857,18 @@ public class XmlManipulationUtils {
           if (!temp.renameTo(submissionFile)) {
             String msg = "Unable to restore submission from temporary submission backup file "
                 + temp.getAbsolutePath();
-            logger.error(msg);
+            log.error(msg);
             throw new MetadataUpdateException(msg);
           }
         }
       }
     } catch (FileNotFoundException e) {
-      e.printStackTrace();
       String msg = "Temporary submission file could not be opened " + revisedFile.getAbsolutePath();
-      logger.error(msg);
+      log.error(msg, e);
       throw new MetadataUpdateException(msg);
     } catch (IOException e) {
-      e.printStackTrace();
-      String msg = "Temporary submission file could not be written "
-          + revisedFile.getAbsolutePath();
-      logger.error(msg);
+      String msg = "Temporary submission file could not be written " + revisedFile.getAbsolutePath();
+      log.error(msg, e);
       throw new MetadataUpdateException(msg);
     }
     return instanceID;

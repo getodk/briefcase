@@ -107,12 +107,11 @@ public class MainBriefcaseWindow implements WindowListener {
 
             MainBriefcaseWindow window = new MainBriefcaseWindow();
             window.frame.setTitle(BRIEFCASE_VERSION);
-            ImageIcon icon = new ImageIcon(MainBriefcaseWindow.class.getClassLoader().getResource(
-                "odk_logo.png"));
+            ImageIcon icon = new ImageIcon(MainBriefcaseWindow.class.getClassLoader().getResource("odk_logo.png"));
             window.frame.setIconImage(icon.getImage());
             window.frame.setVisible(true);
           } catch (Exception e) {
-            e.printStackTrace();
+            log.error("failed to launch app", e);
           }
         }
       });
@@ -432,10 +431,9 @@ public class MainBriefcaseWindow implements WindowListener {
           FileSystemUtils.assertBriefcaseStorageLocationParentFolder(f);
           setFullUIEnabled(true);
         } catch (FileSystemException e1) {
-          e1.printStackTrace();
-          ODKOptionPane.showErrorDialog(frame,
-              "Unable to create " + FileSystemUtils.BRIEFCASE_DIR,
-              "Failed to Create " + FileSystemUtils.BRIEFCASE_DIR);
+          String msg = "Unable to create " + FileSystemUtils.BRIEFCASE_DIR;
+          log.error(msg, e1);
+          ODKOptionPane.showErrorDialog(frame, msg, "Failed to Create " + FileSystemUtils.BRIEFCASE_DIR);
           // we had a bad path -- disable all but Choose...
           setFullUIEnabled(false);
         }

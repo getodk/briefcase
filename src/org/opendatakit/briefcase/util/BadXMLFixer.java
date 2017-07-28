@@ -41,13 +41,13 @@ import java.io.IOException;
  */
 public final class BadXMLFixer {
 
-    private static final Log logger = LogFactory.getLog(BadXMLFixer.class);
+    private static final Log log = LogFactory.getLog(BadXMLFixer.class);
 
     private static final String XML_HEADER = "<?xml version='1.0' ?>";
     private static final String ENCODING = "UTF-8";
 
     public static Document fixBadXML(File xmlFile) throws CannotFixXMLException {
-        logger.warn("Trying to fix the submission " + xmlFile.getAbsolutePath());
+        log.warn("Trying to fix the submission " + xmlFile.getAbsolutePath());
 
         try {
             String originalXML = FileUtils.readFileToString(xmlFile, ENCODING);
@@ -56,13 +56,13 @@ public final class BadXMLFixer {
             FileUtils.writeStringToFile(tempFile, fixedXML, ENCODING);
             return XmlManipulationUtils.parseXml(tempFile);
         } catch (IOException e) {
-            logger.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             throw new CannotFixXMLException("Cannot fix " + xmlFile.getAbsolutePath(), e);
         } catch (ParsingException e) {
-            logger.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             throw new CannotFixXMLException("Cannot fix " + xmlFile.getAbsolutePath(), e);
         } catch (FileSystemException e) {
-            logger.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             throw new CannotFixXMLException("Cannot fix " + xmlFile.getAbsolutePath(), e);
         }
     }
@@ -73,7 +73,7 @@ public final class BadXMLFixer {
         int endIndex = originalXML.indexOf(" ", startIndex);
         String formId = originalXML.substring(startIndex, endIndex);
 
-        logger.warn("Trying to fix a submission of the form: " + formId);
+        log.warn("Trying to fix a submission of the form: " + formId);
 
         // try to see if the last part is a part of the form id
         int idClosingTagIndex = originalXML.lastIndexOf("</");
