@@ -36,7 +36,7 @@ import org.opendatakit.briefcase.util.BadFormDefinition;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.JavaRosaParserWrapper;
 
-public class BriefcaseFormDefinition implements IFormDefinition {
+public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
 
   private static final Log log = LogFactory.getLog(BriefcaseFormDefinition.class);
   private final File formFolder;
