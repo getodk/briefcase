@@ -83,8 +83,8 @@ public class FileSystemUtils {
 
   static final File cacheFile = new File(getBriefcaseFolder(), "cache.ser");
 
-  static Map pathToHashMap;
-  static Map pathToDefinitionMap;
+  static Map<String, String> pathToMd5Map;
+  static Map<String, BriefcaseFormDefinition> pathToDefinitionMap;
 
   public static final String getMountPoint() {
     return System.getProperty("os.name").startsWith("Win") ? File.separator + ".." : (System
@@ -94,7 +94,7 @@ public class FileSystemUtils {
   public static void saveFormDefinitionCache() {
     if (!cacheFile.exists() || cacheFile.canWrite()) {
       try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(cacheFile))) {
-        objectOutputStream.writeObject(pathToHashMap);
+        objectOutputStream.writeObject(pathToMd5Map);
         objectOutputStream.writeObject(pathToDefinitionMap);
       } catch (IOException e) {
         e.printStackTrace();
@@ -102,22 +102,23 @@ public class FileSystemUtils {
     }
   }
 
+  @SuppressWarnings("unchecked")
   public static void loadFormDefinitionCache() {
-    if (cacheFile.exists() || cacheFile.canRead()) {
+    if (cacheFile.exists() && cacheFile.canRead()) {
       try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(cacheFile))) {
-        pathToHashMap = (Map) objectInputStream.readObject();
+        pathToMd5Map = (Map) objectInputStream.readObject();
         pathToDefinitionMap = (Map) objectInputStream.readObject();
       } catch (IOException | ClassNotFoundException e) {
         e.printStackTrace();
       }
     }
 
-    if (pathToHashMap == null) {
-      pathToHashMap = new HashMap();
+    if (pathToMd5Map == null) {
+      pathToMd5Map = new HashMap<>();
     }
 
     if (pathToDefinitionMap == null) {
-      pathToDefinitionMap =  new HashMap();
+      pathToDefinitionMap =  new HashMap<>();
     }
   }
 
@@ -152,7 +153,6 @@ public class FileSystemUtils {
     return foi.exists() && foi.isDirectory();
   }
 
-  @SuppressWarnings("unchecked")
   public static final List<BriefcaseFormDefinition> getBriefcaseFormList() {
     List<BriefcaseFormDefinition> formsList = new ArrayList<BriefcaseFormDefinition>();
     File forms = FileSystemUtils.getFormsFolder();
@@ -163,13 +163,13 @@ public class FileSystemUtils {
           try {
             File formFile = new File(f, f.getName() + ".xml");
             String formFileHash = getMd5Hash(formFile);
-            String existingFormFileHash = String.valueOf(pathToHashMap.get(formFile.getAbsolutePath()));
+            String existingFormFileHash = String.valueOf(pathToMd5Map.get(formFile.getAbsolutePath()));
             BriefcaseFormDefinition existingDefinition = (BriefcaseFormDefinition) pathToDefinitionMap.get(formFile.getAbsolutePath());
             if (existingFormFileHash == null
                     || existingDefinition == null
                     || !existingFormFileHash.equalsIgnoreCase(formFileHash)) {
               // overwrite cache if the form's hash is not the same or there's no entry for the form in the cache.
-              pathToHashMap.put(formFile.getAbsolutePath(), formFileHash);
+              pathToMd5Map.put(formFile.getAbsolutePath(), formFileHash);
               existingDefinition = new BriefcaseFormDefinition(f, formFile);
               pathToDefinitionMap.put(formFile.getAbsolutePath(), existingDefinition);
             }
