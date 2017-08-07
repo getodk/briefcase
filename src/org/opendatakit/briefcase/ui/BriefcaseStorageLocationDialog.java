@@ -33,6 +33,8 @@ import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.text.html.HTMLEditorKit;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.util.FileSystemUtils;
@@ -42,6 +44,8 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
    * 
    */
   private static final long serialVersionUID = 1930025310721875038L;
+  private static final Log log = LogFactory.getLog(BriefcaseStorageLocationDialog.class);
+
   JEditorPane lblTheBriefcaseStorage;
   private JTextField txtBriefcaseLocation;
   private JButton btnOK;
@@ -94,11 +98,11 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
           BriefcasePreferences.setBriefcaseDirectoryProperty(parentFolder.getAbsolutePath());
           BriefcaseStorageLocationDialog.this.setVisible(false);
         } catch (FileSystemException e) {
-          e.printStackTrace();
-          ODKOptionPane.showErrorDialog(BriefcaseStorageLocationDialog.this,
-              "Unable to create " + FileSystemUtils.BRIEFCASE_DIR + ".  Please change the " +
-                  MessageStrings.BRIEFCASE_STORAGE_LOCATION + ".",
-              "Failed to Create " + FileSystemUtils.BRIEFCASE_DIR);
+          String msg = "Unable to create " + FileSystemUtils.BRIEFCASE_DIR + ".  Please change the " +
+                  MessageStrings.BRIEFCASE_STORAGE_LOCATION + ".";
+          log.warn(msg, e);
+          ODKOptionPane.showErrorDialog(BriefcaseStorageLocationDialog.this, msg,
+                  "Failed to Create " + FileSystemUtils.BRIEFCASE_DIR);
         }
       }});
     

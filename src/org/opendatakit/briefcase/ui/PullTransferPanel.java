@@ -207,7 +207,7 @@ public class PullTransferPanel extends JPanel {
     @Override
     public void actionPerformed(ActionEvent e) {
       EndPointType originSelection = getSelectedEndPointType();
-      List<FormStatus> formsToTransfer = formTransferTable.getSelectedNonActiveForms();
+      List<FormStatus> formsToTransfer = formTransferTable.getSelectedForms();
       // clear the transfer history...
       for (FormStatus fs : formsToTransfer) {
         fs.clearStatusHistory();
@@ -293,8 +293,8 @@ public class PullTransferPanel extends JPanel {
       }
     });
 
-    formTransferTable = new FormTransferTable(btnSelectOrClearAllForms,
-        FormStatus.TransferType.GATHER, btnTransfer);
+    formTransferTable = new FormTransferTable(
+            btnSelectOrClearAllForms, FormStatus.TransferType.GATHER, btnTransfer, btnCancel);
 
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
 

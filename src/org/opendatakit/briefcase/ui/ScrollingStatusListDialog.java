@@ -128,8 +128,14 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
   public void onEvent(FormStatusEvent event) {
     // Since there can be multiple FormStatusEvent's published concurrently,
     // we have to check if the event is meant for this dialog instance.
-    if (event.getStatus().getFormDefinition().equals(form)) {
-      editorArea.setText(event.getStatus().getStatusHistory());
+    if (isShowing() && event.getStatus().getFormDefinition().equals(form)) {
+      try {
+        Document doc = editorArea.getDocument();
+        String latestStatus = "\n" + event.getStatusString();
+        doc.insertString(doc.getLength(), latestStatus, null);
+      } catch (BadLocationException e) {
+        log.warn("failed to update history", e);
+      }
     }
   }
   

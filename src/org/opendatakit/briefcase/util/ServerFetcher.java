@@ -27,12 +27,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.DocumentDescription;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -44,9 +54,11 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 
+import static org.opendatakit.briefcase.util.WebUtils.MAX_CONNECTIONS_PER_ROUTE;
+
 public class ServerFetcher {
 
-  private static final Log logger = LogFactory.getLog(ServerFetcher.class);
+  private static final Log log = LogFactory.getLog(ServerFetcher.class);
 
   private static final String MD5_COLON_PREFIX = "md5:";
   
@@ -165,9 +177,10 @@ public class ServerFetcher {
             formDatabase = DatabaseUtils.newInstance(briefcaseLfd.getFormDirectory());
 
           } catch (BadFormDefinition e) {
-            e.printStackTrace();
             allSuccessful = false;
-            fs.setStatusString("Error parsing form definition: " + e.getMessage(), false);
+            String msg = "Error parsing form definition";
+            log.error(msg, e);
+            fs.setStatusString(msg + ": " + e.getMessage(), false);
             EventBus.publish(new FormStatusEvent(fs));
             continue;
           }
@@ -180,9 +193,10 @@ public class ServerFetcher {
           // this will publish events
           successful = downloadAllSubmissionsForForm(formInstancesDir, formDatabase, briefcaseLfd, fs);
         } catch ( SQLException | FileSystemException e ) {
-          e.printStackTrace();
           allSuccessful = false;
-          fs.setStatusString("unable to open form database: " + e.getMessage(), false);
+          String msg = "unable to open form database";
+          log.error(msg, e);
+          fs.setStatusString(msg + ": " + e.getMessage(), false);
           EventBus.publish(new FormStatusEvent(fs));
           continue;
         } finally {
@@ -190,9 +204,10 @@ public class ServerFetcher {
             try {
               formDatabase.close();
             } catch ( SQLException e) {
-              e.printStackTrace();
               allSuccessful = false;
-              fs.setStatusString("unable to close form database: " + e.getMessage(), false);
+              String msg = "unable to close form database";
+              log.error(msg, e);
+              fs.setStatusString(msg + ": " + e.getMessage(), false);
               EventBus.publish(new FormStatusEvent(fs));
               continue;
             }
@@ -211,128 +226,202 @@ public class ServerFetcher {
         }
 
       } catch (SocketTimeoutException se) {
-        se.printStackTrace();
         allSuccessful = false;
+        log.error("error accessing " + fd.getDownloadUrl(), se);
         fs.setStatusString("Communications to the server timed out. Detailed message: "
             + se.getLocalizedMessage() + " while accessing: " + fd.getDownloadUrl()
             + " A network login screen may be interfering with the transmission to the server.", false);
         EventBus.publish(new FormStatusEvent(fs));
-        continue;
       } catch (IOException e) {
-        e.printStackTrace();
         allSuccessful = false;
+        log.error("error accessing " + fd.getDownloadUrl(), e);
         fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
             + fd.getDownloadUrl()
             + " A network login screen may be interfering with the transmission to the server.", false);
         EventBus.publish(new FormStatusEvent(fs));
-        continue;
-      } catch (FileSystemException e) {
-        e.printStackTrace();
+      } catch (FileSystemException | TransmissionException | URISyntaxException e) {
         allSuccessful = false;
+        log.error("error accessing " + fd.getDownloadUrl(), e);
         fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
             + fd.getDownloadUrl(), false);
         EventBus.publish(new FormStatusEvent(fs));
-        continue;
-      } catch (URISyntaxException e) {
-        e.printStackTrace();
-        allSuccessful = false;
-        fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
-            + fd.getDownloadUrl(), false);
-        EventBus.publish(new FormStatusEvent(fs));
-        continue;
-      } catch (TransmissionException e) {
-        e.printStackTrace();
-        allSuccessful = false;
-        fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
-            + fd.getDownloadUrl(), false);
-        EventBus.publish(new FormStatusEvent(fs));
-        continue;
       }
     }
     return allSuccessful;
   }
 
-  public static class SubmissionDownloadChunk {
+  public static class SubmissionChunk {
     final String websafeCursorString;
     final List<String> uriList;
 
-    public SubmissionDownloadChunk(List<String> uriList, String websafeCursorString) {
+    public SubmissionChunk(List<String> uriList, String websafeCursorString) {
       this.uriList = uriList;
       this.websafeCursorString = websafeCursorString;
     }
   };
 
+  private static class DownloadThreadFactory implements ThreadFactory {
+    private static final AtomicInteger poolNumber = new AtomicInteger(1);
+    private final AtomicInteger threadNumber = new AtomicInteger(1);
+    private final String namePrefix;
+    public DownloadThreadFactory() {
+      namePrefix = "briefcase-pull-" + poolNumber.getAndIncrement() + "-thread-";
+    }
+    public Thread newThread(Runnable r) {
+      Thread t = new Thread(r, namePrefix + threadNumber.getAndIncrement());
+      t.setPriority(Thread.MIN_PRIORITY);
+      t.setDaemon(true);
+      return t;
+    }
+  }
+
+  private ExecutorService getFetchExecutorService() {
+    int downloadThreads = BriefcasePreferences.getBriefcaseParallelPullsProperty()? MAX_CONNECTIONS_PER_ROUTE : 1;
+    return Executors.newFixedThreadPool(downloadThreads, new DownloadThreadFactory());
+  }
+
   private boolean downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd,
-      FormStatus fs) {
+                                                FormStatus fs) {
+    int submissionCount = 1, chunkCount = 1;
     boolean allSuccessful = true;
-
     RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
+    ExecutorService execSvc = getFetchExecutorService();
+    CompletionService<SubmissionChunk> chunkCompleter = new ExecutorCompletionService(execSvc);
+    CompletionService<String> submissionCompleter = new ExecutorCompletionService(execSvc);
 
-    int count = 1;
-    String baseUrl = serverInfo.getUrl() + "/view/submissionList";
+    String oldWebsafeCursorString, websafeCursorString = "";
 
-    String oldWebsafeCursorString = "not-empty";
-    String websafeCursorString = "";
-    for (; !oldWebsafeCursorString.equals(websafeCursorString);) {
-      if ( isCancelled() ) {
-        fs.setStatusString("aborting fetching submissions...", true);
-        EventBus.publish(new FormStatusEvent(fs));
-        return false;
-      }
+    chunkCompleter.submit(new SubmissionChunkDownload(fs, fd.getFormId(), websafeCursorString));
 
-      fs.setStatusString("retrieving next chunk of instances from server...", true);
-      EventBus.publish(new FormStatusEvent(fs));
+    boolean cursorFinished;
 
-      Map<String, String> params = new HashMap<String, String>();
-      params.put("numEntries", Integer.toString(MAX_ENTRIES));
-      params.put("formId", fd.getFormId());
-      params.put("cursor",websafeCursorString);
-      String fullUrl = WebUtils.createLinkWithProperties(baseUrl, params);
-      oldWebsafeCursorString = websafeCursorString; // remember what we had...
-      AggregateUtils.DocumentFetchResult result;
-      try {
-        DocumentDescription submissionChunkDescription = new DocumentDescription("Fetch of submission download chunk failed.  Detailed error: ",
-            "Fetch of submission download chunk failed.", "submission download chunk",
-            terminationFuture);
-        result = AggregateUtils.getXmlDocument(fullUrl, serverInfo, false, submissionChunkDescription, null);
-      } catch (XmlDocumentFetchException e) {
-        fs.setStatusString("NOT ALL SUBMISSIONS RETRIEVED: Error fetching list of submissions: " + e.getMessage(), false);
-        EventBus.publish(new FormStatusEvent(fs));
-        return false;
-      }
-
-      SubmissionDownloadChunk chunk;
-      try {
-        chunk = XmlManipulationUtils.parseSubmissionDownloadListResponse(result.doc);
-      } catch (ParsingException e) {
-        fs.setStatusString("NOT ALL SUBMISSIONS RETRIEVED: Error parsing the list of submissions: " + e.getMessage(), false);
-        EventBus.publish(new FormStatusEvent(fs));
-        return false;
-      }
-      websafeCursorString = chunk.websafeCursorString;
-
-      for (String uri : chunk.uriList) {
-        if ( isCancelled() ) {
-          fs.setStatusString("aborting fetching submissions...", true);
+    try {
+      do {
+        if (isCancelled()) {
+          fs.setStatusString("aborting fetching submission chunks...", true);
           EventBus.publish(new FormStatusEvent(fs));
           return false;
         }
 
-        try {
-          fs.setStatusString("fetching instance " + count++ + " ...", true);
-          EventBus.publish(new FormStatusEvent(fs));
+        fs.setStatusString("processing chunk " + chunkCount + "...", true);
+        EventBus.publish(new FormStatusEvent(fs));
 
-          downloadSubmission(formInstancesDir, formDatabase, lfd, fs, uri);
-        } catch (Exception e) {
-          e.printStackTrace();
-          allSuccessful = false;
-          fs.setStatusString("SUBMISSION NOT RETRIEVED: Error fetching submission uri: " + uri + " details: " + e.getMessage(), false);
-          EventBus.publish(new FormStatusEvent(fs));
-          // but try to get the next one...
+        oldWebsafeCursorString = websafeCursorString; // remember what we had...
+        SubmissionChunk chunk;
+        try {
+          chunk = chunkCompleter.take().get();
+          chunkCount += 1;
+          websafeCursorString = chunk.websafeCursorString;
+          cursorFinished = oldWebsafeCursorString.equals(websafeCursorString);
+        } catch (InterruptedException | ExecutionException e) {
+          return false;
         }
+
+        if (!cursorFinished) {
+          // submit another chunk request so it's ready by the time we finish processing this chunk
+          chunkCompleter.submit(new SubmissionChunkDownload(fs, fd.getFormId(), websafeCursorString));
+        }
+
+        // submit a download job for each uri in the chunk
+        for (String uri : chunk.uriList) {
+          if (isCancelled()) {
+            fs.setStatusString("aborting requesting submissions...", true);
+            EventBus.publish(new FormStatusEvent(fs));
+            return false;
+          }
+          submissionCompleter.submit(new SubmissionDownload(formInstancesDir, formDatabase, lfd, fs, uri));
+        }
+
+        // call take() and get() exactly once for each download submitted above (we don't need the uri)
+        for (int i = 0; i < chunk.uriList.size(); i++) {
+          if (isCancelled()) {
+            fs.setStatusString("aborting processing submissions...", true);
+            EventBus.publish(new FormStatusEvent(fs));
+            return false;
+          }
+          try {
+            submissionCompleter.take().get();
+            fs.setStatusString(String.format("fetched instance %s...", submissionCount++), true);
+            EventBus.publish(new FormStatusEvent(fs));
+          } catch (InterruptedException | ExecutionException e) {
+            log.error("failure during submission download", e);
+            allSuccessful = false;
+            fs.setStatusString("SUBMISSION NOT RETRIEVED: " + e.getMessage(), false);
+            EventBus.publish(new FormStatusEvent(fs));
+            // but try to get the next one...
+          }
+        }
+      } while (!cursorFinished);
+    } finally {
+      execSvc.shutdown();
+      try {
+        execSvc.awaitTermination(1, TimeUnit.MINUTES);
+      } catch (InterruptedException e) {
+        log.warn("interrupted while waiting for pull to complete");
       }
     }
     return allSuccessful;
+  }
+
+  private class SubmissionChunkDownload implements Callable<SubmissionChunk> {
+
+    private final FormStatus fs;
+    private final String fullUrl;
+
+    SubmissionChunkDownload(FormStatus fs, String formId, String cursor) {
+      this.fs = fs;
+      this.fullUrl = getChunkUrl(formId, cursor);
+    }
+
+    private String getChunkUrl(String formId, String cursor) {
+      String baseUrl = serverInfo.getUrl() + "/view/submissionList";
+      Map<String, String> params = new HashMap<>();
+      params.put("numEntries", Integer.toString(MAX_ENTRIES));
+      params.put("formId", formId);
+      params.put("cursor", cursor);
+      return WebUtils.createLinkWithProperties(baseUrl, params);
+    }
+
+    public SubmissionChunk call() throws ParsingException, XmlDocumentFetchException {
+      try {
+        DocumentDescription submissionChunkDescription = new DocumentDescription("Fetch of submission download chunk failed.  Detailed error: ",
+                "Fetch of submission download chunk failed.", "submission download chunk",
+                terminationFuture);
+        AggregateUtils.DocumentFetchResult fetchResult = AggregateUtils.getXmlDocument(fullUrl, serverInfo, false, submissionChunkDescription, null);
+        return XmlManipulationUtils.parseSubmissionDownloadListResponse(fetchResult.doc);
+      } catch (XmlDocumentFetchException e) {
+        fs.setStatusString("NOT ALL SUBMISSIONS RETRIEVED: Error fetching list of submissions: " + e.getMessage(), false);
+        EventBus.publish(new FormStatusEvent(fs));
+        throw e;
+      } catch (ParsingException e) {
+        fs.setStatusString("NOT ALL SUBMISSIONS RETRIEVED: Error parsing the list of submissions: " + e.getMessage(), false);
+        EventBus.publish(new FormStatusEvent(fs));
+        throw e;
+      }
+    }
+  }
+
+  private class SubmissionDownload implements Callable<String> {
+
+    private File formInstancesDir;
+    private DatabaseUtils formDatabase;
+    private BriefcaseFormDefinition lfd;
+    private FormStatus fs;
+    private String uri;
+
+    SubmissionDownload(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd, FormStatus fs, String uri)  {
+      this.formInstancesDir = formInstancesDir;
+      this.formDatabase = formDatabase;
+      this.lfd = lfd;
+      this.fs = fs;
+      this.uri = uri;
+    }
+
+    @Override
+    public String call() throws Exception {
+      downloadSubmission(formInstancesDir, formDatabase, lfd, fs, uri);
+      return uri;
+    }
   }
 
   public static class SubmissionManifest {
@@ -356,7 +445,7 @@ public class ServerFetcher {
           File instance = new File(instanceFolder, "submission.xml");
           File instanceEncrypted = new File(instanceFolder, "submission.xml.enc");
           if (instance.exists() || instanceEncrypted.exists()) {
-              logger.info("already present - skipping fetch: " + uri );
+              log.info("already present - skipping fetch: " + uri );
               return;
           }
       }
@@ -393,7 +482,7 @@ public class ServerFetcher {
     }
 
     String msg = "Fetched instanceID=" + submissionManifest.instanceID;
-    logger.info(msg);
+    log.info(msg);
 
     if ( FileSystemUtils.hasFormSubmissionDirectory(formInstancesDir, submissionManifest.instanceID)) {
       // create instance directory...
@@ -485,7 +574,7 @@ public class ServerFetcher {
       return e.getMessage();
     }
     // OK we now have the full set of files to download...
-    logger.info("Downloading " + files.size() + " media files.");
+    log.info("Downloading " + files.size() + " media files.");
     int mCount = 0;
     if (files.size() > 0) {
       for (MediaFile m : files) {

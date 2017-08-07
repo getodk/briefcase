@@ -20,6 +20,8 @@ package org.opendatakit.briefcase.ui;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -73,6 +75,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
    *
    */
   private static final long serialVersionUID = -5321396641987129789L;
+  private static final Log log = LogFactory.getLog(CharsetConverterDialog.class);
 
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
@@ -122,7 +125,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
           CharsetConverterDialog window = new CharsetConverterDialog(new JFrame());
           window.setVisible(true);
         } catch (Exception e) {
-          e.printStackTrace();
+          log.error("failed to start app", e);
         }
       }
     });
@@ -385,8 +388,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
           previewArea.setCaretPosition(0);
 
         } catch (Exception ex) {
-          ex.printStackTrace();
-
+          log.error("failed to create preview", ex);
           JOptionPane.showMessageDialog(CharsetConverterDialog.this,
                   ex.getMessage(),
                   "Error reading file...", JOptionPane.ERROR_MESSAGE);

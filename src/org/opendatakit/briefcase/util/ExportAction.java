@@ -27,6 +27,8 @@ import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -39,6 +41,8 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
 
 public class ExportAction {
+
+  private static final Log log = LogFactory.getLog(ExportAction.class);
 
   static final String SCRATCH_DIR = "scratch";
   static final String UTF_8 = "UTF-8";
@@ -71,7 +75,7 @@ public class ExportAction {
           EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        log.error("export action failed", e);
         EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
       }
     }
@@ -125,10 +129,9 @@ public class ExportAction {
           success = true;
           break;
         } catch (IOException e) {
-          e.printStackTrace();
-          ODKOptionPane.showErrorDialog(null,
-              errorMsg = "The supplied PEM file could not be parsed.",
-              "Invalid RSA Private Key");
+          String msg = "The supplied PEM file could not be parsed.";
+          log.error(msg, e);
+          ODKOptionPane.showErrorDialog(null, errorMsg = msg, "Invalid RSA Private Key");
           break;
         }
       }

@@ -29,8 +29,9 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.List;
-import java.util.logging.Logger;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -63,7 +64,7 @@ public class AggregateUtils {
 
   private static final String BRIEFCASE_APP_TOKEN_PARAMETER = "briefcaseAppToken";
 
-  static final Logger log = Logger.getLogger(AggregateUtils.class.getName());
+  private static final Log log = LogFactory.getLog(AggregateUtils.class);
 
   private static final CharSequence HTTP_CONTENT_TYPE_TEXT_XML = "text/xml";
 
@@ -109,11 +110,8 @@ public class AggregateUtils {
     try {
       URL uurl = new URL(downloadUrl);
       u = uurl.toURI();
-    } catch (MalformedURLException e) {
-      e.printStackTrace();
-      throw e;
-    } catch (URISyntaxException e) {
-      e.printStackTrace();
+    } catch (MalformedURLException | URISyntaxException e) {
+      log.error("bad download url " + downloadUrl, e);
       throw e;
     }
 
@@ -148,40 +146,22 @@ public class AggregateUtils {
       if (statusCode != 200) {
         String errMsg = String.format(FETCH_FAILED_DETAILED_REASON, f.getAbsolutePath())
             + response.getStatusLine().getReasonPhrase() + " (" + statusCode + ")";
-        log.severe(errMsg);
+        log.error(errMsg);
         flushEntityBytes(response.getEntity());
         throw new TransmissionException(errMsg);
       }
 
       // write connection to file
-      InputStream is = null;
-      OutputStream os = null;
-      try {
-        is = response.getEntity().getContent();
-        os = new FileOutputStream(f);
+
+      try (InputStream is = response.getEntity().getContent();
+           OutputStream os = new FileOutputStream(f)) {
         byte buf[] = new byte[1024];
         int len;
         while ((len = is.read(buf)) > 0) {
           os.write(buf, 0, len);
         }
         os.flush();
-      } finally {
-        if (os != null) {
-          try {
-            os.close();
-          } catch (Exception e) {
-        	  e.printStackTrace();
-          }
-        }
-        if (is != null) {
-          try {
-            is.close();
-          } catch (Exception e) {
-        	  e.printStackTrace();
-          }
-        }
       }
-
     }
   }
 
@@ -205,19 +185,16 @@ public class AggregateUtils {
       URL url = new URL(urlString);
       u = url.toURI();
     } catch (MalformedURLException e) {
-      e.printStackTrace();
-      String msg = description.getFetchDocFailed() + "Invalid url: " + urlString + ".\nFailed with error: "
-          + e.getMessage();
+      String msg = description.getFetchDocFailed() + "Invalid url: " + urlString + ".\nFailed with error: " + e.getMessage();
       if(!urlString.toLowerCase().startsWith("http://") && !urlString.toLowerCase().startsWith("https://")){
         msg += "\nDid you forget to prefix the address with 'http://' or 'https://' ?";
       }
-      log.severe(msg);
+      log.warn(msg, e) ;
       throw new XmlDocumentFetchException(msg);
     } catch (URISyntaxException e) {
-      e.printStackTrace();
       String msg = description.getFetchDocFailed() + "Invalid uri: " + urlString + ".\nFailed with error: "
           + e.getMessage();
-      log.severe(msg);
+      log.warn(msg, e);
       throw new XmlDocumentFetchException(msg);
     }
 
@@ -251,7 +228,7 @@ public class AggregateUtils {
           ;
         is.close();
       } catch (Exception e) {
-        e.printStackTrace();
+        log.error("failed to flush http content", e);
       }
     }
   }
@@ -332,12 +309,12 @@ public class AggregateUtils {
                   + "\nPlease verify that the URL, your user credentials and your permissions are all correct.");
         }
       } else if (entity == null) {
-        log.severe("No entity body returned from: " + u.toString() + " is not text/xml");
+        log.warn("No entity body returned from: " + u.toString() + " is not text/xml");
         ex = new XmlDocumentFetchException(description.getFetchDocFailed()
             + " Server unexpectedly returned no content while accessing: " + u.toString());
       } else if (!(lcContentType.contains(HTTP_CONTENT_TYPE_TEXT_XML) || lcContentType
           .contains(HTTP_CONTENT_TYPE_APPLICATION_XML))) {
-        log.severe("ContentType: " + entity.getContentType().getValue() + "returned from: "
+        log.warn("ContentType: " + entity.getContentType().getValue() + "returned from: "
             + u.toString() + " is not text/xml");
         ex = new XmlDocumentFetchException(description.getFetchDocFailed()
             + "A non-XML document was returned while accessing: " + u.toString()
@@ -381,8 +358,7 @@ public class AggregateUtils {
           }
         }
       } catch (Exception e) {
-        e.printStackTrace();
-        log.severe("Parsing failed with " + e.getMessage());
+        log.warn("Parsing failed with " + e.getMessage(), e);
         throw new XmlDocumentFetchException(description.getFetchDocFailed() + " while accessing: " + u.toString());
       }
 
@@ -408,8 +384,7 @@ public class AggregateUtils {
           b.append(h.getValue());
         }
         if (!versionMatch) {
-          log.warning(WebUtils.OPEN_ROSA_VERSION_HEADER + " unrecognized version(s): "
-              + b.toString());
+          log.warn(WebUtils.OPEN_ROSA_VERSION_HEADER + " unrecognized version(s): " + b);
         }
       }
 
@@ -430,18 +405,12 @@ public class AggregateUtils {
             // We can't tell if this is a spoof or not.
             String msg = description.getFetchDocFailed() + "Unexpected redirection attempt to a different host: "
                 + uNew.toString();
-            log.severe(msg);
+            log.warn(msg);
             throw new XmlDocumentFetchException(msg);
           }
-        } catch (MalformedURLException e) {
-          e.printStackTrace();
+        } catch (MalformedURLException | URISyntaxException e) {
           String msg = description.getFetchDocFailed() + "Unexpected exception: " + e.getMessage();
-          log.severe(msg);
-          throw new XmlDocumentFetchException(msg);
-        } catch (URISyntaxException e) {
-          e.printStackTrace();
-          String msg = description.getFetchDocFailed() + "Unexpected exception: " + e.getMessage();
-          log.severe(msg);
+          log.warn(msg, e);
           throw new XmlDocumentFetchException(msg);
         }
       }
@@ -450,25 +419,13 @@ public class AggregateUtils {
         action.doAction(result);
       }
       return result;
-    } catch (ClientProtocolException e) {
-      e.printStackTrace();
-      String msg = description.getFetchDocFailed() + "Unexpected exception: " + e.getMessage();
-      log.severe(msg);
+    } catch (UnknownHostException e) {
+      String msg = description.getFetchDocFailed() + "Unknown host: " + e.getMessage();
+      log.warn(msg, e);
       throw new XmlDocumentFetchException(msg);
-    } catch (IOException e) {
-      e.printStackTrace();
-      String msg;
-      if (e instanceof UnknownHostException) {
-        msg = description.getFetchDocFailed() + "Unknown host: " + e.getMessage();
-      } else {
-        msg = description.getFetchDocFailed() + "Unexpected " + e.getClass().getName() + ": " + e.getMessage();
-      }
-      log.severe(msg);
-      throw new XmlDocumentFetchException(msg);
-    } catch (MetadataUpdateException e) {
-      e.printStackTrace();
-      String msg = description.getFetchDocFailed() + "Unexpected exception: " + e.getMessage();
-      log.severe(msg);
+    } catch (IOException | MetadataUpdateException e) {
+      String msg = description.getFetchDocFailed() + "Unexpected exception: " + e;
+      log.warn(msg, e);
       throw new XmlDocumentFetchException(msg);
     }
   }
@@ -497,19 +454,15 @@ public class AggregateUtils {
       URL url = new URL(urlString);
       u = url.toURI();
     } catch (MalformedURLException e) {
-      e.printStackTrace();
-      String msg = "Invalid url: " + urlString + " for " + actionAddr + ".\nFailed with error: "
-          + e.getMessage();
+      String msg = "Invalid url: " + urlString + " for " + actionAddr + ".\nFailed with error: " + e.getMessage();
       if(!urlString.toLowerCase().startsWith("http://") && !urlString.toLowerCase().startsWith("https://")){
         msg += "\nDid you forget to prefix the address with 'http://' or 'https://' ?";
       }
-      log.severe(msg);
+      log.warn(msg, e);
       throw new TransmissionException(msg);
     } catch (URISyntaxException e) {
-      e.printStackTrace();
-      String msg = "Invalid uri: " + urlString + " for " + actionAddr + ".\nFailed with error: "
-          + e.getMessage();
-      log.severe(msg);
+      String msg = "Invalid uri: " + urlString + " for " + actionAddr + ".\nFailed with error: " + e.getMessage();
+      log.warn(msg, e);
       throw new TransmissionException(msg);
     }
 
@@ -551,13 +504,13 @@ public class AggregateUtils {
             if (!serverInfo.isOpenRosaServer()) {
               String msg = "Url: " + u.toString()
                   + " is for an ODK Aggregate 1.0 or higher (OpenRosa compliant) server!";
-              log.severe(msg);
+              log.warn(msg);
               throw new TransmissionException(msg);
             }
           } else if (serverInfo.isOpenRosaServer()) {
             String msg = "Url: " + u.toString()
                 + " is for an ODK Aggregate 0.9x or earlier (non-OpenRosa compliant) server!";
-            log.severe(msg);
+            log.warn(msg);
             throw new TransmissionException(msg);
           }
           Header[] locations = response.getHeaders("Location");
@@ -579,20 +532,18 @@ public class AggregateUtils {
                 // We can't tell if this is a spoof or not.
                 String msg = "Starting url: " + u.toString()
                     + " unexpected redirection attempt to a different host: " + uNew.toString();
-                log.severe(msg);
+                log.warn(msg);
                 throw new TransmissionException(msg);
               }
             } catch (Exception e) {
-              e.printStackTrace();
-              String msg = "Starting url: " + u.toString() + " unexpected exception: "
-                  + e.getLocalizedMessage();
-              log.severe(msg);
+              String msg = "Starting url: " + u + " unexpected exception: " + e.getLocalizedMessage();
+              log.warn(msg, e);
               throw new TransmissionException(msg);
             }
           } else {
             String msg = "The url: " + u.toString()
                 + " is not Aggregate 1.0 - status code on Head request: " + statusCode;
-            log.severe(msg);
+            log.warn(msg);
             throw new TransmissionException(msg);
           }
         } else {
@@ -606,28 +557,18 @@ public class AggregateUtils {
               while (is.skip(count) == count)
                 ;
               is.close();
-            } catch (IOException e) {
-              e.printStackTrace();
             } catch (Exception e) {
-              e.printStackTrace();
+              log.error("failed to process http stream", e);
             }
           }
           String msg = "The username or password may be incorrect or the url: " + u.toString()
               + " is not Aggregate 1.0 - status code on Head request: " + statusCode;
-          log.severe(msg);
+          log.warn(msg);
           throw new TransmissionException(msg);
         }
-      } catch (ClientProtocolException e) {
-        e.printStackTrace();
-        String msg = "Starting url: " + u.toString() + " unexpected exception: "
-            + e.getLocalizedMessage();
-        log.severe(msg);
-        throw new TransmissionException(msg);
       } catch (Exception e) {
-        e.printStackTrace();
-        String msg = "Starting url: " + u.toString() + " unexpected exception: "
-            + e.getLocalizedMessage();
-        log.severe(msg);
+        String msg = "Starting url: " + u.toString() + " unexpected exception: " + e.getLocalizedMessage();
+        log.warn(msg, e);
         throw new TransmissionException(msg);
       }
     }
@@ -719,7 +660,7 @@ public class AggregateUtils {
           fb = new FileBody(f, ContentType.create("application/octet-stream"));
           builder.addPart(f.getName(), fb);
           byteCount += f.length();
-          log.warning("added unrecognized file (application/octet-stream) " + f.getName());
+          log.warn("added unrecognized file (application/octet-stream) " + f.getName());
         }
 
         // we've added at least one attachment to the request...
@@ -731,7 +672,7 @@ public class AggregateUtils {
               StringBody sb = new StringBody("yes", ContentType.DEFAULT_TEXT.withCharset(Charset.forName("UTF-8")));
               builder.addPart("*isIncomplete*", sb);
             } catch (Exception e) {
-              e.printStackTrace();
+              log.error("impossible condition", e);
               throw new IllegalStateException("never happens");
             }
             ++j; // advance over the last attachment added...
@@ -760,8 +701,8 @@ public class AggregateUtils {
 
         httpRetrieveXmlDocument(httppost, validStatusList, serverInfo, false, description, action);
       } catch (XmlDocumentFetchException e) {
-        e.printStackTrace();
         allSuccessful = false;
+        log.error("upload failed", e);
         formToTransfer.setStatusString("UPLOAD FAILED: " + e.getMessage(), false);
         EventBus.publish(new FormStatusEvent(formToTransfer));
         

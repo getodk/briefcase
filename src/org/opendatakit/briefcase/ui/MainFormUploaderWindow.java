@@ -33,6 +33,8 @@ import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.UIManager;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -48,8 +50,9 @@ import org.opendatakit.briefcase.util.BadFormDefinition;
 import org.opendatakit.briefcase.util.TransferAction;
 
 public class MainFormUploaderWindow {
-  private static final String FORM_UPLOADER_VERSION = "ODK FormUploader - " + BriefcasePreferences.VERSION;
 
+  private static final Log log = LogFactory.getLog(MainFormUploaderWindow.class);
+  private static final String FORM_UPLOADER_VERSION = "ODK FormUploader - " + BriefcasePreferences.VERSION;
   private static final String UPLOADING_DOT_ETC = "Uploading..........";
 
   private ServerConnectionInfo destinationServerInfo = null;
@@ -84,12 +87,11 @@ public class MainFormUploaderWindow {
 
           MainFormUploaderWindow window = new MainFormUploaderWindow();
           window.frame.setTitle(FORM_UPLOADER_VERSION);
-          ImageIcon icon = new ImageIcon(
-              MainFormUploaderWindow.class.getClassLoader().getResource("odk_logo.png"));
+          ImageIcon icon = new ImageIcon(MainFormUploaderWindow.class.getClassLoader().getResource("odk_logo.png"));
           window.frame.setIconImage(icon.getImage());
           window.frame.setVisible(true);
         } catch (Exception e) {
-          e.printStackTrace();
+          log.error("failed to launch app", e);
         }
       }
     });
@@ -119,7 +121,7 @@ public class MainFormUploaderWindow {
             lblUploading.setText("");
             btnDetails.setEnabled(false);
           } catch ( BadFormDefinition ex ) {
-            ex.printStackTrace();
+            log.error("failed to create form definition for upload", ex);
           }
         }
       }
