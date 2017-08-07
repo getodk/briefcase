@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -44,8 +43,6 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
-import org.jdatepicker.JDateComponentFactory;
-import org.jdatepicker.impl.JDatePickerImpl;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
@@ -61,6 +58,10 @@ import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
 import org.opendatakit.briefcase.util.ExportAction;
 import org.opendatakit.briefcase.util.FileSystemUtils;
+
+import com.github.lgooddatepicker.components.DatePicker;
+import com.github.lgooddatepicker.optionalusertools.DateChangeListener;
+import com.github.lgooddatepicker.zinternaltools.DateChangeEvent;
 
 public class ExportPanel extends JPanel {
 
@@ -88,8 +89,8 @@ public class ExportPanel extends JPanel {
   private DetailButton btnDetails;
   private JButton btnExport;
   private JButton btnCancel;
-  private JDatePickerImpl pickStartDate;
-  private JDatePickerImpl pickEndDate;
+  private DatePicker pickStartDate;
+  private DatePicker pickEndDate;
 
   private JCheckBox checkDates;
 
@@ -204,10 +205,17 @@ public class ExportPanel extends JPanel {
     }
   }
 
-  class ToggleDateRangeListenser implements ActionListener {
+  class DateRangeActionListener implements ActionListener, DateChangeListener {
     @Override
     public void actionPerformed(ActionEvent e) {
-      JDatePickerUtils.setEnabled(checkDates.isSelected(), pickStartDate, pickEndDate);
+      pickStartDate.setEnabled(checkDates.isSelected());
+      pickEndDate.setEnabled(checkDates.isSelected());
+      ExportPanel.this.setEnabled(true);
+    }
+
+    @Override
+    public void dateChanged(DateChangeEvent arg0) {
+      ExportPanel.this.setEnabled(true);
     }
   }
 
@@ -273,8 +281,8 @@ public class ExportPanel extends JPanel {
       Date fromDate = null;
       Date toDate = null;
       if (checkDates.isSelected()) {
-        fromDate = ((GregorianCalendar)pickStartDate.getModel().getValue()).getTime();
-        toDate = ((GregorianCalendar)pickEndDate.getModel().getValue()).getTime();
+        fromDate = pickStartDate.convert().getDateWithDefaultZone();
+        toDate = pickEndDate.convert().getDateWithDefaultZone();
         if (fromDate.compareTo(toDate) > 0) {
           ODKOptionPane.showErrorDialog(ExportPanel.this,
               MessageStrings.INVALID_DATE_RANGE_MESSAGE,
@@ -333,6 +341,12 @@ public class ExportPanel extends JPanel {
         btnExport.setEnabled(false);
         return;
       }
+
+      if ( checkDates.isSelected() && (pickStartDate.getDate() == null || pickEndDate.getDate() == null)) {
+        btnExport.setEnabled(false);
+        return;
+      }
+
       boolean enabled = true;
       File exportDirectory = new File(exportDir.trim());
       if ( exportDirectory == null || !exportDirectory.exists() ) {
@@ -388,16 +402,20 @@ public class ExportPanel extends JPanel {
     btnPemFileChooseButton = new JButton("Choose...");
     btnPemFileChooseButton.addActionListener(new PEMFileActionListener());
 
-    JLabel lblDateRange = new JLabel("Date Range");
-    JLabel lblDateFrom = new JLabel("From:");
-    JLabel lblDateTo = new JLabel("To:");
+    JLabel lblDateRange = new JLabel("Submission Date Filter");
+    JLabel lblDateFrom = new JLabel("Start Date (inclusive):");
+    JLabel lblDateTo = new JLabel("End Date (exclusive):");
+    DateRangeActionListener dateRangeListener = new DateRangeActionListener();
     checkDates = new JCheckBox("", false);
-    checkDates.addActionListener(new ToggleDateRangeListenser());
+    checkDates.addActionListener(dateRangeListener);
 
-    JDateComponentFactory dateFactory = new JDateComponentFactory();
-    pickStartDate = (JDatePickerImpl)dateFactory.createJDatePicker();
-    pickEndDate = (JDatePickerImpl)dateFactory.createJDatePicker();
-    JDatePickerUtils.setEnabled(false, pickStartDate, pickEndDate);
+    pickStartDate = new DatePicker();
+    pickStartDate.setEnabled(false);
+    pickStartDate.addDateChangeListener(dateRangeListener);
+
+    pickEndDate = new DatePicker();
+    pickEndDate.setEnabled(false);
+    pickEndDate.addDateChangeListener(dateRangeListener);
 
     lblExporting = new JLabel(EXPORTING_DOT_ETC);
     lblExporting.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
