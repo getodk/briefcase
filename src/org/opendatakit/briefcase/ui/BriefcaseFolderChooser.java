@@ -86,7 +86,8 @@ class BriefcaseFolderChooser extends AbstractFileChooser {
       @Override
       public String getDescription() {
         return "Directories";
-      }});
+      }
+    });
     
     setApproveButtonText("Choose");
   }

@@ -86,12 +86,13 @@ public class ODKOptionPane {
         if ( component.getComponent().equals(scrollPane.getVerticalScrollBar()) ) {
           scrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         }
-      }});
+      }
+    });
     
     // set preferred and minimum widths of the scroll pane to 
     // the width of the 't' label above with 5 lines within the scroll area.
     Dimension pref = t.getPreferredSize();
-    pref.setSize(pref.getWidth(), 5.3*pref.getHeight());
+    pref.setSize(pref.getWidth(), 5.3 * pref.getHeight());
     scrollPane.setMinimumSize(pref);
     scrollPane.setPreferredSize(pref);
     JOptionPane.showMessageDialog(parentComponent,

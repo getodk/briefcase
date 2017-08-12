@@ -158,7 +158,7 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
     Document doc = component.getDocument();
     try {
       doc.insertString(doc.getLength(), "\n" + msg, null);
-    } catch(BadLocationException e) {
+    } catch (BadLocationException e) {
       log.error("Insertion failed: " + e.getMessage());
     }
   }

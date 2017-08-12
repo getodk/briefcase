@@ -81,7 +81,7 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
     btnChange.addActionListener(this);
     
     btnOK = new JButton("OK");
-    btnOK.addActionListener(new ActionListener(){
+    btnOK.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent arg0) {
         try {
@@ -104,15 +104,17 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
           ODKOptionPane.showErrorDialog(BriefcaseStorageLocationDialog.this, msg,
                   "Failed to Create " + FileSystemUtils.BRIEFCASE_DIR);
         }
-      }});
+      }
+    });
     
     btnQuit = new JButton("Quit");
-    btnQuit.addActionListener(new ActionListener(){
+    btnQuit.addActionListener(new ActionListener() {
 
       @Override
       public void actionPerformed(ActionEvent e) {
         System.exit(0);
-      }});
+      }
+    });
     
     GroupLayout groupLayout = new GroupLayout(getContentPane());
     groupLayout.setHorizontalGroup(groupLayout.createSequentialGroup()
@@ -186,11 +188,12 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
   public void updateForSettingsPage() {
 	btnQuit.setText("Cancel");
 	btnQuit.removeActionListener(btnQuit.getActionListeners()[0]);
-	btnQuit.addActionListener(new ActionListener(){
+	btnQuit.addActionListener(new ActionListener() {
 	  @Override
 	  public void actionPerformed(ActionEvent e) {
 		  isCancelled = true;
 	      BriefcaseStorageLocationDialog.this.setVisible(false);
-	  }});
+	  }
+	});
   }
 }

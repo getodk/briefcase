@@ -67,7 +67,7 @@ public final class XFormParameters implements Comparable<Object> {
 	@Override
 	public int hashCode() {
 		return Long.valueOf(formId.hashCode() + 
-				((modelVersion == null) ? 20480L : 37*modelVersion)).hashCode();
+				((modelVersion == null) ? 20480L : 37 * modelVersion)).hashCode();
 	}
 
 	@Override
