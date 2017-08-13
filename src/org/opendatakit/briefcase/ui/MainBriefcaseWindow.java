@@ -45,11 +45,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.ExportAbortEvent;
-import org.opendatakit.briefcase.model.FileSystemException;
-import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransferAbortEvent;
+import org.opendatakit.briefcase.model.*;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
 public class MainBriefcaseWindow implements WindowListener {
@@ -62,6 +58,7 @@ public class MainBriefcaseWindow implements WindowListener {
   private SettingsPanel settingsPanel;
   private final TerminationFuture exportTerminationFuture = new TerminationFuture();
   private final TerminationFuture transferTerminationFuture = new TerminationFuture();
+  private static BriefcaseAnalytics briefcaseAnalytics = BriefcaseAnalytics.getInstance();
 
   public static final String AGGREGATE_URL = "aggregate_url";
   public static final String DATE_FORMAT = "yyyy/MM/dd";
@@ -88,6 +85,8 @@ public class MainBriefcaseWindow implements WindowListener {
    * Launch the application.
    */
   public static void main(String[] args) {
+
+    briefcaseAnalytics.trackStartup();
 
     if (args.length == 0) {
 

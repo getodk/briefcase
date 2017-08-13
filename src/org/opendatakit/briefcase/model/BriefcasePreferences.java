@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.model;
 import java.security.Security;
+import java.util.UUID;
 import java.util.prefs.Preferences;
 
 import org.apache.http.HttpHost;
@@ -29,6 +30,7 @@ import org.opendatakit.briefcase.buildconfig.BuildConfig;
 public class BriefcasePreferences {
   
   public static final String VERSION = BuildConfig.VERSION;
+  public static final String GOOGLE_TRACKING_ID = BuildConfig.GOOGLE_TRACKING_ID;
   public static final String USERNAME = "username";
   public static final String TOKEN = "token";
   public static final String AGGREGATE_1_0_URL = "url_1_0";
@@ -38,6 +40,8 @@ public class BriefcasePreferences {
   private static final String BRIEFCASE_PROXY_HOST_PROPERTY = "briefcaseProxyHost";
   private static final String BRIEFCASE_PROXY_PORT_PROPERTY = "briefcaseProxyPort";
   private static final String BRIEFCASE_PARALLEL_PULLS_PROPERTY = "briefcaseParallelPulls";
+  private static final String BRIEFCASE_TRACKING_CONSENT_PROPERTY = "briefcaseTrackingConsent";
+  private static final String BRIEFCASE_UNIQUE_USER_ID_PROPERTY = "uniqueUserID";
   
   static {
     // load the security provider
@@ -57,7 +61,7 @@ public class BriefcasePreferences {
   public static BriefcasePreferences forClass(Class<?> node) {
     return new BriefcasePreferences(node, PreferenceScope.CLASS_NAME);
   }
-  
+
   /**
    * Returns the value associated with the specified key in this preference
    * node. Returns the specified default if there is no value associated with
@@ -180,5 +184,41 @@ public class BriefcasePreferences {
       return new HttpHost(host, port);
     }
     return null;
+  }
+
+  /**
+   * Persist the user's decision to allow/disallow their behaviour being tracked.
+   * @param value (required) the boolean value representing the user's decision.
+   */
+  public static void setBriefcaseTrackingConsentProperty(Boolean value) {
+    if (value == null) {
+      Preference.APPLICATION_SCOPED.remove(BRIEFCASE_TRACKING_CONSENT_PROPERTY);
+    } else {
+      Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY, value.toString());
+    }
+  }
+
+  /**
+   * Get the user's persisted decision to being tracked.
+   * @return the boolean representation of the user's consent to being tracked.
+   */
+  public static Boolean getBriefcaseTrackingConsentProperty() {
+    return Boolean.valueOf(
+            Preference.APPLICATION_SCOPED.get(BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY, Boolean.FALSE.toString())
+    );
+  }
+
+  /**
+   * Get the persisted UUID for the current user.
+   * <P>Note that the method will generate and persist a UUID if the user doesn't have one.</P>
+   * @return the String representation of the user's UUID.
+   */
+  public static String getUniqueUserID() {
+    String userIdErrorMessage = "An error occurred generating the UUID.";
+    String uniqueUserID = Preference.APPLICATION_SCOPED.get(BriefcasePreferences.BRIEFCASE_UNIQUE_USER_ID_PROPERTY, userIdErrorMessage);
+    if ( uniqueUserID.equals(userIdErrorMessage)) {
+      Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_UNIQUE_USER_ID_PROPERTY, UUID.randomUUID().toString());
+    }
+    return Preference.APPLICATION_SCOPED.get(BriefcasePreferences.BRIEFCASE_UNIQUE_USER_ID_PROPERTY, userIdErrorMessage);
   }
 }
