@@ -126,7 +126,7 @@ public class BaseFormParserForJavaRosa {
   private static void redirectOutput() {
     File jrLogFile = new File(FileSystemUtils.getBriefcaseFolder(), ".briefcase-javarosa.log");
     try {
-      final PrintStream jrOut = new PrintStream(jrLogFile);
+      PrintStream jrOut = new PrintStream(jrLogFile);
       Std.setOut(jrOut);
       Std.setErr(jrOut);
     } catch (FileNotFoundException e) {
