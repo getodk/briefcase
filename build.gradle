@@ -33,18 +33,19 @@ dependencies {
     compile group: 'org.opendatakit', name: 'opendatakit-javarosa', version: '2.4.0'
     compile group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
     compile files('lib/smallsql-0.21.jar')
+    compile group: 'com.brsanthu', name: 'google-analytics-java', version: '1.1.2'
 }
 
 // Required to use fileExtensions property in checkstyle file
 checkstyle {
-    toolVersion = '7.6.1' 
+    toolVersion = '7.6.1'
 }
 
-ant.condition(property: 'os', value: 'windows') { 
-    os(family: 'windows') 
+ant.condition(property: 'os', value: 'windows') {
+    os(family: 'windows')
 }
-ant.condition(property: 'os', value: 'unix' ) { 
-    os(family: 'unix') 
+ant.condition(property: 'os', value: 'unix' ) {
+    os(family: 'unix')
 }
 
 // Use the result of git describe --tags --dirty as the version name
@@ -75,6 +76,7 @@ buildConfig {
     version = getVersionName()
     clsName = 'BuildConfig'
     packageName = 'org.opendatakit.briefcase.buildconfig'
+    buildConfigField 'String', 'GOOGLE_TRACKING_ID', "UA-102618497-1"
 }
 
 mainClassName = 'org.opendatakit.briefcase.ui.MainBriefcaseWindow'
