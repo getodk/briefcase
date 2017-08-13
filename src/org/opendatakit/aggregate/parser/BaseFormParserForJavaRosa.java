@@ -129,11 +129,6 @@ public class BaseFormParserForJavaRosa {
       final PrintStream jrOut = new PrintStream(jrLogFile);
       Std.setOut(jrOut);
       Std.setErr(jrOut);
-      Runtime.getRuntime().addShutdownHook(new Thread() {
-        public void run() {
-          jrOut.close();
-        }
-      });
     } catch (FileNotFoundException e) {
       log.warn("failed to redirect javarosa output to " + jrLogFile);
     }
