@@ -76,7 +76,7 @@ buildConfig {
     version = getVersionName()
     clsName = 'BuildConfig'
     packageName = 'org.opendatakit.briefcase.buildconfig'
-    buildConfigField 'String', 'GOOGLE_TRACKING_ID', "UA-102618497-1"
+    buildConfigField 'String', 'GOOGLE_TRACKING_ID', "UA-91951913-3"
 }
 
 mainClassName = 'org.opendatakit.briefcase.ui.MainBriefcaseWindow'
