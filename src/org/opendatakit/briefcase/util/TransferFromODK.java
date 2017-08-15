@@ -186,7 +186,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
               File fullXml = new File(dir, dir.getName() + ".xml");
               File xml = new File(dir, "submission.xml");
               if ( !xml.exists() && fullXml.exists() ) {
-            	  xml = fullXml; // e.g., 1.1.5, 1.1.7
+                  xml = fullXml; // e.g., 1.1.5, 1.1.7
               }
 
               // this is a hack added to support easier generation of large test cases where we 
@@ -195,17 +195,17 @@ public class TransferFromODK implements ITransferFromSourceAction {
               // be the case.  In this instance, if there is one xml file in the directory,
               // rename it to match the directory name.
               if (!xml.exists()) {
-            	  File[] xmlFiles = dir.listFiles(new FilenameFilter() {
+                  File[] xmlFiles = dir.listFiles(new FilenameFilter() {
     
-    				@Override
-    				public boolean accept(File dir, String name) {
-    					return name.endsWith(".xml");
-    				}
-            	  });
-            	  
-            	  if ( xmlFiles.length == 1 ) {
-            		  try {
-    					FileUtils.moveFile(xmlFiles[0], xml);
+                    @Override
+                    public boolean accept(File dir, String name) {
+                        return name.endsWith(".xml");
+                    }
+                  });
+                  
+                  if ( xmlFiles.length == 1 ) {
+                      try {
+                        FileUtils.moveFile(xmlFiles[0], xml);
                       } catch (IOException e) {
                         allSuccessful = isSuccessful = false;
                         String msg = "unable to rename form instance xml";
@@ -288,13 +288,13 @@ public class TransferFromODK implements ITransferFromSourceAction {
                 }
                 
                 if ( xml.equals(fullXml) ) {
-                	// need to rename
-    	            File odkSubmissionFile = new File(scratchInstance, fullXml.getName());
-    	            File scratchSubmissionFile = new File(scratchInstance, "submission.xml");
+                    // need to rename
+                    File odkSubmissionFile = new File(scratchInstance, fullXml.getName());
+                    File scratchSubmissionFile = new File(scratchInstance, "submission.xml");
 
-    	            try {
-    	              FileUtils.moveFile(odkSubmissionFile, scratchSubmissionFile);
-    	            } catch (IOException e) {
+                    try {
+                      FileUtils.moveFile(odkSubmissionFile, scratchSubmissionFile);
+                    } catch (IOException e) {
                       allSuccessful = isSuccessful = false;
                       String msg = "unable to rename submission file to submission.xml";
                       log.error(msg, e);
@@ -303,9 +303,9 @@ public class TransferFromODK implements ITransferFromSourceAction {
                       continue;
                     }
                 } else {
-                	// delete the full xml file (keep only the submission.xml)
-                	File odkSubmissionFile = new File(scratchInstance, fullXml.getName());
-                	odkSubmissionFile.delete();
+                    // delete the full xml file (keep only the submission.xml)
+                    File odkSubmissionFile = new File(scratchInstance, fullXml.getName());
+                    odkSubmissionFile.delete();
                 }
 
                 fs.setStatusString(String.format("retrieving (%1$d)", instanceCount), true);

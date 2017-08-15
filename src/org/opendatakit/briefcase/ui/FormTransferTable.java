@@ -48,8 +48,8 @@ import java.util.Map;
 public class FormTransferTable extends JTable {
 
   /**
-	 * 
-	 */
+     * 
+     */
   private static final long serialVersionUID = 8511088963758308085L;
   
   public class JTableButtonRenderer implements TableCellRenderer {
@@ -251,7 +251,7 @@ public class FormTransferTable extends JTable {
       return col == 0 && !btnCancel.isEnabled(); // only the checkbox...
     }
 
-	public void setValueAt(Object value, int row, int col) {
+    public void setValueAt(Object value, int row, int col) {
       FormStatus status = formStatuses.get(row);
       switch (col) {
       case 0:

@@ -50,8 +50,8 @@ import org.opendatakit.briefcase.model.TransferSucceededEvent;
 public class TransferInProgressDialog extends JDialog implements ActionListener, WindowListener {
 
   /**
-	 * 
-	 */
+     * 
+     */
   private static final long serialVersionUID = 5411425417966734421L;
   private final JPanel contentPanel = new JPanel();
   private JLabel lblNewLabel;

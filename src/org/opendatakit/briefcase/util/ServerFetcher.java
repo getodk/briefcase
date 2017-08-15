@@ -74,8 +74,8 @@ public class ServerFetcher {
   public static class FormListException extends Exception {
 
     /**
-		 *
-		 */
+         *
+         */
     private static final long serialVersionUID = -2443850446028219296L;
 
     FormListException(String message) {
@@ -86,8 +86,8 @@ public class ServerFetcher {
   public static class SubmissionListException extends Exception {
 
     /**
-		 *
-		 */
+         *
+         */
     private static final long serialVersionUID = 8707375089373674335L;
 
     SubmissionListException(String message) {
@@ -98,8 +98,8 @@ public class ServerFetcher {
   public static class SubmissionDownloadException extends Exception {
 
     /**
-		 *
-		 */
+         *
+         */
     private static final long serialVersionUID = 8717375089373674335L;
 
     SubmissionDownloadException(String message) {
@@ -109,8 +109,8 @@ public class ServerFetcher {
 
   public static class DownloadException extends Exception {
     /**
-		 *
-		 */
+         *
+         */
     private static final long serialVersionUID = 3142210034175698950L;
 
     DownloadException(String message) {
