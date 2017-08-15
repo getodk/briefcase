@@ -76,35 +76,35 @@ public class ExportPanel extends JPanel {
 
   private static final String EXPORTING_DOT_ETC = "Exporting..........";
 
-  private JTextField txtExportDirectory;
+  private final JTextField txtExportDirectory;
 
-  private JComboBox<ExportType> comboBoxExportType;
+  private final JComboBox<ExportType> comboBoxExportType;
 
-  private JComboBox<BriefcaseFormDefinition> comboBoxForm;
+  private final JComboBox<BriefcaseFormDefinition> comboBoxForm;
 
-  private JButton btnChooseExportDirectory;
+  private final JButton btnChooseExportDirectory;
 
-  private JLabel lblExporting;
-  private JProgressBar progressBar;
-  private DetailButton btnDetails;
-  private JButton btnExport;
-  private JButton btnCancel;
-  private DatePicker pickStartDate;
-  private DatePicker pickEndDate;
+  private final JLabel lblExporting;
+  private final JProgressBar progressBar;
+  private final DetailButton btnDetails;
+  private final JButton btnExport;
+  private final JButton btnCancel;
+  private final DatePicker pickStartDate;
+  private final DatePicker pickEndDate;
 
-  private JCheckBox checkDates;
+  private final JCheckBox checkDates;
 
   private boolean exportStateActive = false;
   private TerminationFuture terminationFuture;
 
-  private StringBuilder exportStatusList;
-  private JTextField pemPrivateKeyFilePath;
+  private final StringBuilder exportStatusList;
+  private final JTextField pemPrivateKeyFilePath;
 
-  private JButton btnPemFileChooseButton;
+  private final JButton btnPemFileChooseButton;
 
-  private JLabel lblForm;
+  private final JLabel lblForm;
 
-  private ArrayList<Component> navOrder = new ArrayList<Component>();
+  private final ArrayList<Component> navOrder = new ArrayList<Component>();
 
   class ExportFolderActionListener implements ActionListener {
 
