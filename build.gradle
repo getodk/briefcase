@@ -34,6 +34,7 @@ dependencies {
     compile group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
     compile files('lib/smallsql-0.21.jar')
     compile group: 'com.brsanthu', name: 'google-analytics-java', version: '1.1.2'
+    compile group: 'junit', name: 'junit', version: '4.12' // should be testCompile, but junit doesn’t get added to the classpath
 }
 
 // Required to use fileExtensions property in checkstyle file
