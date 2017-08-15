@@ -27,12 +27,12 @@ import org.opendatakit.briefcase.util.FileSystemUtils;
 final class ODKCollectFileChooser extends AbstractFileChooser {
 
   /**
-	 * 
-	 */
+     * 
+     */
   private final Container parentWindow;
   /**
-	 * 
-	 */
+     * 
+     */
   private static final long serialVersionUID = 8457430037255302153L;
 
   @Override

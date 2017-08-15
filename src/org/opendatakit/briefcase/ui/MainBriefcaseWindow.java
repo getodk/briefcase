@@ -403,7 +403,7 @@ public class MainBriefcaseWindow implements WindowListener {
       
       // If reset is not needed, dialog has been triggered from Settings page
       if (!reset) {
-    	  fs.updateForSettingsPage();
+          fs.updateForSettingsPage();
       }
       
       fs.setVisible(true);

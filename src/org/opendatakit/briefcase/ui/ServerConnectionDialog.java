@@ -42,8 +42,8 @@ import org.opendatakit.briefcase.util.ServerConnectionTest;
 public class ServerConnectionDialog extends JDialog implements ActionListener {
 
   /**
-	 * 
-	 */
+     * 
+     */
   private static final long serialVersionUID = -6224121510693483027L;
 
   private static final String PASSWORD_LABEL = "Password:";
