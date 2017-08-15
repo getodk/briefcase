@@ -61,7 +61,6 @@ import org.opendatakit.briefcase.util.FileSystemUtils;
 
 import com.github.lgooddatepicker.components.DatePicker;
 import com.github.lgooddatepicker.optionalusertools.DateChangeListener;
-import com.github.lgooddatepicker.zinternaltools.DateChangeEvent;
 
 public class ExportPanel extends JPanel {
 
