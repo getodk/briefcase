@@ -200,7 +200,8 @@ public class TransferFromODK implements ITransferFromSourceAction {
     				@Override
     				public boolean accept(File dir, String name) {
     					return name.endsWith(".xml");
-    				}});
+    				}
+            	  });
             	  
             	  if ( xmlFiles.length == 1 ) {
             		  try {
@@ -242,9 +243,10 @@ public class TransferFromODK implements ITransferFromSourceAction {
                     @Override
                     public boolean accept(File dir, String name) {
                       return name.endsWith(".xml");
-                    }});
+                    }
+                  });
                   if ( contents == null || contents.length == 0 ) break;
-                  if (contents.length == 1){
+                  if (contents.length == 1) {
                     String itsInstanceId = null;
                     try {
                       XmlManipulationUtils.FormInstanceMetadata formInstanceMetadata =

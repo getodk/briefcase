@@ -207,7 +207,7 @@ public class BriefcaseCLI {
 
                 String errorMsg = null;
                 boolean success = false;
-                for (;;) /* this only executes once... */{
+                for (;;) /* this only executes once... */ {
                     try {
                         BufferedReader br = new BufferedReader(new InputStreamReader(
                                 new FileInputStream(pemFile), "UTF-8"));

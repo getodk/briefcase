@@ -94,7 +94,7 @@ public class ExportToCsv implements ITransformFormAction {
 
      // Strip .csv, it gets added later
      if (filename.endsWith(".csv")) {
-         filename = filename.substring(0, filename.length()-4);
+         filename = filename.substring(0, filename.length() - 4);
      }
      this.baseFilename = filename;
      this.exportMedia = exportMedia;

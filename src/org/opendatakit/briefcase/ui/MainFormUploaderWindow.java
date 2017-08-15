@@ -268,10 +268,11 @@ public class MainFormUploaderWindow {
           ScrollingStatusListDialog.showDialog(
             MainFormUploaderWindow.this.frame, fs.getFormDefinition(), fs.getStatusHistory());
         }
-      }});
+      }
+    });
 
     btnUploadForm = new JButton("Upload Form");
-    btnUploadForm.addActionListener(new ActionListener(){
+    btnUploadForm.addActionListener(new ActionListener() {
 
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -280,7 +281,8 @@ public class MainFormUploaderWindow {
         TransferAction.uploadForm(
             MainFormUploaderWindow.this.frame.getOwner(),
             destinationServerInfo, terminationFuture, formDefn, fs);
-      }});
+      }
+    });
 
     btnCancel = new JButton("Cancel");
     btnCancel.addActionListener(new ActionListener() {
@@ -288,7 +290,8 @@ public class MainFormUploaderWindow {
       public void actionPerformed(ActionEvent arg0) {
         terminationFuture.markAsCancelled(
             new TransferAbortEvent("Form upload cancelled by user."));
-      }});
+      }
+    });
     
     btnClose = new JButton("Close");
     btnClose.addActionListener(new ActionListener() {
