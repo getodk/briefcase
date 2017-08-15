@@ -47,6 +47,8 @@ public class SettingsPanel extends JPanel {
     private JSpinner spinPort;
     private JLabel lblParallel;
     private JCheckBox chkParallel;
+    private JLabel lblTrackingConsent;
+    private JCheckBox chkTrackingConsent;
 
     public SettingsPanel(MainBriefcaseWindow parentWindow) {
         this.parentWindow = parentWindow;
@@ -83,6 +85,11 @@ public class SettingsPanel extends JPanel {
         chkParallel.setSelected(BriefcasePreferences.getBriefcaseParallelPullsProperty());
         chkParallel.addActionListener(new ParallelPullToggleListener());
 
+        lblTrackingConsent = new JLabel(MessageStrings.TRACKING_CONSENT);
+        chkTrackingConsent = new JCheckBox();
+        chkTrackingConsent.setSelected(BriefcasePreferences.getBriefcaseTrackingConsentProperty());
+        chkTrackingConsent.addActionListener(new TrackingConsentToggleListener());
+
         GroupLayout groupLayout = new GroupLayout(this);
         groupLayout.setHorizontalGroup(
           groupLayout.createSequentialGroup()
@@ -90,7 +97,8 @@ public class SettingsPanel extends JPanel {
             .addGroup(
               groupLayout.createParallelGroup(Alignment.TRAILING)
                 .addComponent(chkProxy)
-                .addComponent(chkParallel))
+                .addComponent(chkParallel)
+                .addComponent(chkTrackingConsent))
             .addGroup(
               groupLayout.createParallelGroup(Alignment.LEADING)
                 .addGroup(
@@ -109,7 +117,8 @@ public class SettingsPanel extends JPanel {
                       groupLayout.createParallelGroup(Alignment.LEADING)
                         .addComponent(txtHost, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
                         .addComponent(spinPort, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)))
-                      .addComponent(lblParallel))
+                      .addComponent(lblParallel)
+                      .addComponent(lblTrackingConsent))
             .addContainerGap()
         );
         groupLayout.setVerticalGroup(
@@ -133,6 +142,9 @@ public class SettingsPanel extends JPanel {
               .addGroup(groupLayout.createParallelGroup(Alignment.CENTER)
                 .addComponent(lblParallel)
                 .addComponent(chkParallel))
+              .addGroup(groupLayout.createParallelGroup(Alignment.CENTER)
+                .addComponent(lblTrackingConsent)
+                .addComponent(chkTrackingConsent))
               .addContainerGap()
         );
 
@@ -229,6 +241,17 @@ public class SettingsPanel extends JPanel {
             }
         }
     }
+
+    /**
+     * This listener will pass the user's consent to being tracked onto the
+     * application's preferences so it can be persisted and used elsewhere.
+     */
+    public class TrackingConsentToggleListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (e.getSource() == chkTrackingConsent) {
+                BriefcasePreferences.setBriefcaseTrackingConsentProperty(chkTrackingConsent.isSelected());
+            }
+        }
+    }
 }
-
-
