@@ -16,24 +16,16 @@
 
 package org.opendatakit.briefcase.ui;
 
-import org.bushe.swing.event.annotation.AnnotationProcessor;
-import org.bushe.swing.event.annotation.EventSubscriber;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.ExportAbortEvent;
-import org.opendatakit.briefcase.model.ExportFailedEvent;
-import org.opendatakit.briefcase.model.ExportProgressEvent;
-import org.opendatakit.briefcase.model.ExportSucceededEvent;
-import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
-import org.opendatakit.briefcase.model.ExportProgressPercentageEvent;
-import org.opendatakit.briefcase.model.ExportType;
-import org.opendatakit.briefcase.model.IFormDefinition;
-import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransferFailedEvent;
-import org.opendatakit.briefcase.model.TransferSucceededEvent;
-import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
-import org.opendatakit.briefcase.util.ExportAction;
-import org.opendatakit.briefcase.util.FileSystemUtils;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -43,18 +35,30 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.JProgressBar;
-import javax.swing.BorderFactory;
-import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+
+import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.ExportAbortEvent;
+import org.opendatakit.briefcase.model.ExportFailedEvent;
+import org.opendatakit.briefcase.model.ExportProgressEvent;
+import org.opendatakit.briefcase.model.ExportProgressPercentageEvent;
+import org.opendatakit.briefcase.model.ExportSucceededEvent;
+import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
+import org.opendatakit.briefcase.model.ExportType;
+import org.opendatakit.briefcase.model.IFormDefinition;
+import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.TransferFailedEvent;
+import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
+import org.opendatakit.briefcase.util.ExportAction;
+import org.opendatakit.briefcase.util.FileSystemUtils;
+
+import com.github.lgooddatepicker.components.DatePicker;
 
 public class ExportPanel extends JPanel {
 
@@ -69,31 +73,33 @@ public class ExportPanel extends JPanel {
 
   private static final String EXPORTING_DOT_ETC = "Exporting..........";
 
-  private JTextField txtExportDirectory;
+  private final JTextField txtExportDirectory;
 
-  private JComboBox<ExportType> comboBoxExportType;
+  private final JComboBox<ExportType> comboBoxExportType;
 
-  private JComboBox<BriefcaseFormDefinition> comboBoxForm;
+  private final JComboBox<BriefcaseFormDefinition> comboBoxForm;
 
-  private JButton btnChooseExportDirectory;
+  private final JButton btnChooseExportDirectory;
 
-  private JLabel lblExporting;
-  private JProgressBar progressBar;
-  private DetailButton btnDetails;
-  private JButton btnExport;
-  private JButton btnCancel;
+  private final JLabel lblExporting;
+  private final JProgressBar progressBar;
+  private final DetailButton btnDetails;
+  private final JButton btnExport;
+  private final JButton btnCancel;
+  private final DatePicker pickStartDate;
+  private final DatePicker pickEndDate;
 
   private boolean exportStateActive = false;
   private TerminationFuture terminationFuture;
 
-  private StringBuilder exportStatusList;
-  private JTextField pemPrivateKeyFilePath;
+  private final StringBuilder exportStatusList;
+  private final JTextField pemPrivateKeyFilePath;
 
-  private JButton btnPemFileChooseButton;
+  private final JButton btnPemFileChooseButton;
 
-  private JLabel lblForm;
+  private final JLabel lblForm;
 
-  private ArrayList<Component> navOrder = new ArrayList<Component>();
+  private final ArrayList<Component> navOrder = new ArrayList<Component>();
 
   class ExportFolderActionListener implements ActionListener {
 
@@ -253,11 +259,20 @@ public class ExportPanel extends JPanel {
         }
       }
 
+      Date fromDate = pickStartDate.convert().getDateWithDefaultZone();
+      Date toDate = pickEndDate.convert().getDateWithDefaultZone();
+      if (fromDate != null && toDate != null && fromDate.compareTo(toDate) > 0) {
+        ODKOptionPane.showErrorDialog(ExportPanel.this,
+            MessageStrings.INVALID_DATE_RANGE_MESSAGE,
+            MessageStrings.INVALID_DATE_RANGE_TITLE);
+        return;
+      }
+
       // OK -- launch background task to do the export
 
       try {
         setActiveExportState(true);
-        ExportAction.export(exportDirectory, exportType, lfd, pemFile, terminationFuture);
+        ExportAction.export(exportDirectory, exportType, lfd, pemFile, terminationFuture, fromDate, toDate);
       } catch (IOException ex) {
         ODKOptionPane.showErrorDialog(ExportPanel.this,
             "Briefcase action failed: " + ex.getMessage(), "Briefcase Action Failed");
@@ -303,6 +318,7 @@ public class ExportPanel extends JPanel {
         btnExport.setEnabled(false);
         return;
       }
+
       boolean enabled = true;
       File exportDirectory = new File(exportDir.trim());
       if ( exportDirectory == null || !exportDirectory.exists() ) {
@@ -358,6 +374,12 @@ public class ExportPanel extends JPanel {
     btnPemFileChooseButton = new JButton("Choose...");
     btnPemFileChooseButton.addActionListener(new PEMFileActionListener());
 
+    JLabel lblDateFrom = new JLabel("Start Date (inclusive):");
+    JLabel lblDateTo = new JLabel("End Date (exclusive):");
+
+    pickStartDate = new DatePicker();
+    pickEndDate = new DatePicker();
+
     lblExporting = new JLabel(EXPORTING_DOT_ETC);
     lblExporting.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
@@ -394,8 +416,12 @@ public class ExportPanel extends JPanel {
                         .createSequentialGroup()
                         .addGroup(
                             groupLayout.createParallelGroup(Alignment.LEADING)
-                                .addComponent(lblForm).addComponent(lblExportType)
-                                .addComponent(lblExportDirectory).addComponent(lblPemPrivateKey))
+                                .addComponent(lblForm)
+                                .addComponent(lblExportType)
+                                .addComponent(lblExportDirectory)
+                                .addComponent(lblPemPrivateKey)
+                                .addComponent(lblDateFrom)
+                                .addComponent(lblDateTo))
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addGroup(
                             groupLayout
@@ -412,7 +438,10 @@ public class ExportPanel extends JPanel {
                                 .addGroup(
                                     groupLayout.createSequentialGroup().addComponent(pemPrivateKeyFilePath)
                                         .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(btnPemFileChooseButton))))
+                                        .addComponent(btnPemFileChooseButton))
+                                .addGap(0)
+                                .addComponent(pickStartDate)
+                                .addComponent(pickEndDate)))
                 .addComponent(lblExporting)
                 .addGroup(
                     Alignment.TRAILING,
@@ -456,6 +485,19 @@ public class ExportPanel extends JPanel {
                         .addComponent(pemPrivateKeyFilePath, GroupLayout.DEFAULT_SIZE,
                             GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
                         .addComponent(btnPemFileChooseButton))
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addGroup(
+                    groupLayout
+                        .createParallelGroup(Alignment.BASELINE)
+                        .addComponent(lblDateFrom)
+                        .addComponent(pickStartDate))
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addGroup(
+                    groupLayout
+                        .createParallelGroup(Alignment.BASELINE)
+                        .addComponent(lblDateTo)
+                        .addComponent(pickEndDate))
                 .addPreferredGap(ComponentPlacement.UNRELATED, 10, Short.MAX_VALUE)
                 .addGroup(
                     groupLayout
@@ -467,7 +509,6 @@ public class ExportPanel extends JPanel {
 
     exportStatusList = new StringBuilder();
     setLayout(groupLayout);
-
     setActiveExportState(exportStateActive);
 
     navOrder.add(comboBoxForm);
@@ -476,6 +517,8 @@ public class ExportPanel extends JPanel {
     navOrder.add(btnChooseExportDirectory);
     navOrder.add(pemPrivateKeyFilePath);
     navOrder.add(btnPemFileChooseButton);
+    navOrder.add(pickStartDate);
+    navOrder.add(pickEndDate);
     navOrder.add(btnDetails);
     navOrder.add(btnExport);
     navOrder.add(btnCancel);
@@ -497,9 +540,13 @@ public class ExportPanel extends JPanel {
     comboBoxForm.setModel(formChoices);
 
     // enable/disable the components...
-    Component[] com = this.getComponents();
-    for (int a = 0; a < com.length; a++) {
-      com[a].setEnabled(enabled);
+    // TODO this is brittle as the panel components change
+    // would prefer explicit state changes referring
+    // to specific components
+    for (Component c: this.getComponents()) {
+      if (c != pickStartDate && c != pickEndDate && c != btnDetails) {
+        c.setEnabled(enabled);
+      }
     }
     if (enabled) {
       // and then update the widgets based upon the transfer state
