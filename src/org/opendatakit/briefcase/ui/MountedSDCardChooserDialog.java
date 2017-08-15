@@ -83,7 +83,7 @@ public class MountedSDCardChooserDialog extends JDialog implements ActionListene
       radioPanel = new JPanel();
       
       btnOK = new JButton("OK");
-      btnOK.addActionListener(new ActionListener(){
+      btnOK.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
           outcome = true;
@@ -92,7 +92,7 @@ public class MountedSDCardChooserDialog extends JDialog implements ActionListene
       });
       
       btnCancel = new JButton("Cancel");
-      btnCancel.addActionListener(new ActionListener(){
+      btnCancel.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
           outcome = false;
@@ -101,7 +101,7 @@ public class MountedSDCardChooserDialog extends JDialog implements ActionListene
       });
 
       btnRefresh = new JButton("Refresh List");
-      btnRefresh.addActionListener(new ActionListener(){
+      btnRefresh.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
           try {
@@ -112,7 +112,8 @@ public class MountedSDCardChooserDialog extends JDialog implements ActionListene
             btnOK.setEnabled(true);
             btnCancel.setEnabled(true);
           }
-        }});
+        }
+      });
 
       GroupLayout groupLayout = new GroupLayout(getContentPane());
       groupLayout.setHorizontalGroup(groupLayout.createSequentialGroup()

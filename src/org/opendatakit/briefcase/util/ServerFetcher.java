@@ -276,7 +276,7 @@ public class ServerFetcher {
   }
 
   private ExecutorService getFetchExecutorService() {
-    int downloadThreads = BriefcasePreferences.getBriefcaseParallelPullsProperty()? MAX_CONNECTIONS_PER_ROUTE : 1;
+    int downloadThreads = BriefcasePreferences.getBriefcaseParallelPullsProperty() ? MAX_CONNECTIONS_PER_ROUTE : 1;
     return Executors.newFixedThreadPool(downloadThreads, new DownloadThreadFactory());
   }
 

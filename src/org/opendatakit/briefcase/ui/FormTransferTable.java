@@ -71,7 +71,7 @@ public class FormTransferTable extends JTable {
   
     @Override public void mouseClicked(MouseEvent e) {
       int column = FormTransferTable.this.getColumnModel().getColumnIndexAtX(e.getX());
-      int row    = e.getY()/FormTransferTable.this.getRowHeight(); 
+      int row    = e.getY() / FormTransferTable.this.getRowHeight();
   
       if (row < FormTransferTable.this.getRowCount() && row >= 0 &&
           column < FormTransferTable.this.getColumnCount() && column >= 0) {

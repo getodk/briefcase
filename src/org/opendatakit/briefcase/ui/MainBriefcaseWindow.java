@@ -45,10 +45,11 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
+import org.opendatakit.briefcase.model.BriefcaseAnalytics;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
@@ -62,6 +63,7 @@ public class MainBriefcaseWindow implements WindowListener {
   private SettingsPanel settingsPanel;
   private final TerminationFuture exportTerminationFuture = new TerminationFuture();
   private final TerminationFuture transferTerminationFuture = new TerminationFuture();
+  private static BriefcaseAnalytics briefcaseAnalytics = BriefcaseAnalytics.getInstance();
 
   public static final String AGGREGATE_URL = "aggregate_url";
   public static final String DATE_FORMAT = "yyyy/MM/dd";
@@ -88,6 +90,8 @@ public class MainBriefcaseWindow implements WindowListener {
    * Launch the application.
    */
   public static void main(String[] args) {
+
+    briefcaseAnalytics.trackStartup();
 
     if (args.length == 0) {
 
@@ -132,7 +136,7 @@ public class MainBriefcaseWindow implements WindowListener {
 
         // required for all operations
         if (!cmd.hasOption(FORM_ID) || !cmd.hasOption(STORAGE_DIRECTORY)) {
-            log.error(FORM_ID + " and " + STORAGE_DIRECTORY+ " are required");
+            log.error(FORM_ID + " and " + STORAGE_DIRECTORY + " are required");
             showHelp(options);
             System.exit(1);
         }
@@ -298,10 +302,10 @@ public class MainBriefcaseWindow implements WindowListener {
             nextPanel = PullTransferPanel.TAB_POSITION;
           }
           boolean found = false;
-          for ( int i = 0 ; i < componentOrdering.size()-1 ; ++i ) {
+          for ( int i = 0 ; i < componentOrdering.size() - 1 ; ++i ) {
             if ( found || arg1 == componentOrdering.get(i) ) {
               found = true;
-              Component comp = componentOrdering.get(i+1);
+              Component comp = componentOrdering.get(i + 1);
               if ( comp == tabbedPane ) {
                 return comp;
               }
@@ -337,10 +341,10 @@ public class MainBriefcaseWindow implements WindowListener {
             nextPanel = PushTransferPanel.TAB_POSITION;
           }
           boolean found = false;
-          for ( int i = componentOrdering.size()-1 ; i > 0 ; --i ) {
+          for ( int i = componentOrdering.size() - 1 ; i > 0 ; --i ) {
             if ( found || arg1 == componentOrdering.get(i) ) {
               found = true;
-              Component comp = componentOrdering.get(i-1);
+              Component comp = componentOrdering.get(i - 1);
               if ( comp == tabbedPane ) {
                 return comp;
               }
@@ -350,7 +354,7 @@ public class MainBriefcaseWindow implements WindowListener {
             }
           }
           if ( !found ) {
-            return componentOrdering.get(componentOrdering.size()-1);
+            return componentOrdering.get(componentOrdering.size() - 1);
           }
           tabbedPane.setSelectedIndex(nextPanel);
         }
@@ -369,7 +373,8 @@ public class MainBriefcaseWindow implements WindowListener {
       @Override
       public Component getLastComponent(Container arg0) {
         return tabbedPane;
-      }});
+      }
+    });
   }
 
   public void establishBriefcaseStorageLocation(boolean showDialog) {
@@ -397,7 +402,7 @@ public class MainBriefcaseWindow implements WindowListener {
           new BriefcaseStorageLocationDialog(MainBriefcaseWindow.this.frame);
       
       // If reset is not needed, dialog has been triggered from Settings page
-      if(!reset) {
+      if (!reset) {
     	  fs.updateForSettingsPage();
       }
       
@@ -478,7 +483,7 @@ public class MainBriefcaseWindow implements WindowListener {
   }
 
   static void showVersion() {
-    System.out.println("version: "+ BriefcasePreferences.VERSION);
+    System.out.println("version: " + BriefcasePreferences.VERSION);
 }
 
   /**

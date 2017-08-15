@@ -75,7 +75,7 @@ public class FindDirectoryStructure {
       } 
 
       f = new File("/run/media", username);
-      if (f.exists() && f.isDirectory()){
+      if (f.exists() && f.isDirectory()) {
         mountslist.add(f);
       }
       return search(mountslist.toArray(new File[mountslist.size()]), false);
@@ -120,7 +120,8 @@ public class FindDirectoryStructure {
             @Override
             public boolean accept(File f) {
               return f.isDirectory();
-            }});
+            }
+          });
           
           for ( File s : subdirs ) {
             if ( hasOdkInstancesDirectory(s) ) {

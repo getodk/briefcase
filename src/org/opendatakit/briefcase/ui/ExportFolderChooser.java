@@ -92,7 +92,8 @@ class ExportFolderChooser extends AbstractFileChooser {
       @Override
       public String getDescription() {
         return "Directories";
-      }});
+      }
+    });
     
     setApproveButtonText("Choose");
   }

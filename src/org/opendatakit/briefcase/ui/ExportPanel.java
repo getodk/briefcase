@@ -404,7 +404,8 @@ public class ExportPanel extends JPanel {
       public void actionPerformed(ActionEvent arg0) {
         ExportPanel.this.terminationFuture.markAsCancelled(
             new ExportAbortEvent(TAB_NAME + " cancelled by user."));
-      }});
+      }
+    });
 
     GroupLayout groupLayout = new GroupLayout(this);
     groupLayout.setHorizontalGroup(groupLayout
