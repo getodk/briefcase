@@ -92,8 +92,6 @@ public class ExportPanel extends JPanel {
   private final DatePicker pickStartDate;
   private final DatePicker pickEndDate;
 
-  private final JCheckBox checkDates;
-
   private boolean exportStateActive = false;
   private TerminationFuture terminationFuture;
 
@@ -205,20 +203,6 @@ public class ExportPanel extends JPanel {
     }
   }
 
-  class DateRangeActionListener implements ActionListener, DateChangeListener {
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      pickStartDate.setEnabled(checkDates.isSelected());
-      pickEndDate.setEnabled(checkDates.isSelected());
-      ExportPanel.this.setEnabled(true);
-    }
-
-    @Override
-    public void dateChanged(DateChangeEvent arg0) {
-      ExportPanel.this.setEnabled(true);
-    }
-  }
-
   /**
    * Handle click-action for the "Export" button. Extracts the settings from
    * the UI and invokes the relevant TransferAction to actually do the work.
@@ -278,17 +262,13 @@ public class ExportPanel extends JPanel {
         }
       }
 
-      Date fromDate = null;
-      Date toDate = null;
-      if (checkDates.isSelected()) {
-        fromDate = pickStartDate.convert().getDateWithDefaultZone();
-        toDate = pickEndDate.convert().getDateWithDefaultZone();
-        if (fromDate.compareTo(toDate) > 0) {
-          ODKOptionPane.showErrorDialog(ExportPanel.this,
-              MessageStrings.INVALID_DATE_RANGE_MESSAGE,
-              MessageStrings.INVALID_DATE_RANGE_TITLE);
-          return;
-        }
+      Date fromDate = pickStartDate.convert().getDateWithDefaultZone();
+      Date toDate = pickEndDate.convert().getDateWithDefaultZone();
+      if (fromDate != null && toDate != null && fromDate.compareTo(toDate) > 0) {
+        ODKOptionPane.showErrorDialog(ExportPanel.this,
+            MessageStrings.INVALID_DATE_RANGE_MESSAGE,
+            MessageStrings.INVALID_DATE_RANGE_TITLE);
+        return;
       }
 
       // OK -- launch background task to do the export
@@ -338,11 +318,6 @@ public class ExportPanel extends JPanel {
 
       String exportDir = txtExportDirectory.getText();
       if ( exportDir == null || exportDir.trim().length() == 0 ) {
-        btnExport.setEnabled(false);
-        return;
-      }
-
-      if ( checkDates.isSelected() && (pickStartDate.getDate() == null || pickEndDate.getDate() == null)) {
         btnExport.setEnabled(false);
         return;
       }
@@ -402,20 +377,11 @@ public class ExportPanel extends JPanel {
     btnPemFileChooseButton = new JButton("Choose...");
     btnPemFileChooseButton.addActionListener(new PEMFileActionListener());
 
-    JLabel lblDateRange = new JLabel("Submission Date Filter");
     JLabel lblDateFrom = new JLabel("Start Date (inclusive):");
     JLabel lblDateTo = new JLabel("End Date (exclusive):");
-    DateRangeActionListener dateRangeListener = new DateRangeActionListener();
-    checkDates = new JCheckBox("", false);
-    checkDates.addActionListener(dateRangeListener);
 
     pickStartDate = new DatePicker();
-    pickStartDate.setEnabled(false);
-    pickStartDate.addDateChangeListener(dateRangeListener);
-
     pickEndDate = new DatePicker();
-    pickEndDate.setEnabled(false);
-    pickEndDate.addDateChangeListener(dateRangeListener);
 
     lblExporting = new JLabel(EXPORTING_DOT_ETC);
     lblExporting.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -450,14 +416,12 @@ public class ExportPanel extends JPanel {
                 .addGroup(
                     groupLayout
                         .createSequentialGroup()
-                        .addComponent(checkDates)
                         .addGroup(
                             groupLayout.createParallelGroup(Alignment.LEADING)
                                 .addComponent(lblForm)
                                 .addComponent(lblExportType)
                                 .addComponent(lblExportDirectory)
                                 .addComponent(lblPemPrivateKey)
-                                .addComponent(lblDateRange)
                                 .addComponent(lblDateFrom)
                                 .addComponent(lblDateTo))
                         .addPreferredGap(ComponentPlacement.RELATED)
@@ -524,11 +488,6 @@ public class ExportPanel extends JPanel {
                             GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
                         .addComponent(btnPemFileChooseButton))
                 .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(
-                    groupLayout
-                    .createParallelGroup(Alignment.CENTER)
-                    .addComponent(checkDates)
-                    .addComponent(lblDateRange))
                 .addPreferredGap(ComponentPlacement.RELATED)
                 .addGroup(
                     groupLayout
@@ -560,7 +519,6 @@ public class ExportPanel extends JPanel {
     navOrder.add(btnChooseExportDirectory);
     navOrder.add(pemPrivateKeyFilePath);
     navOrder.add(btnPemFileChooseButton);
-    navOrder.add(checkDates);
     navOrder.add(pickStartDate);
     navOrder.add(pickEndDate);
     navOrder.add(btnDetails);
@@ -588,7 +546,7 @@ public class ExportPanel extends JPanel {
     // would prefer explicit state changes referring
     // to specific components
     for (Component c: this.getComponents()) {
-      if (c != checkDates && c != pickStartDate && c != pickEndDate && c != btnDetails) {
+      if (c != pickStartDate && c != pickEndDate && c != btnDetails) {
         c.setEnabled(enabled);
       }
     }
