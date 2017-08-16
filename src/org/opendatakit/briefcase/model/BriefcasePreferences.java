@@ -199,9 +199,8 @@ public class BriefcasePreferences {
      * @return the boolean representation of the user's consent to being tracked.
      */
     public static boolean getBriefcaseTrackingConsentProperty() {
-        return Boolean.valueOf(
-                Preference.APPLICATION_SCOPED.get(BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY, Boolean.FALSE.toString())
-        ).booleanValue();
+        return Boolean.valueOf(Preference.APPLICATION_SCOPED.get(
+                BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY, Boolean.FALSE.toString()));
     }
 
     /**

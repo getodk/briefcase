@@ -7,7 +7,7 @@ import static org.junit.Assert.assertNotNull;
 public class BriefcaseAnalyticsTest {
     @Test
     public void canGetBriefcaseAnalyticsInstance() {
-        BriefcaseAnalytics ba = BriefcaseAnalytics.getInstance();
+        BriefcaseAnalytics ba = new BriefcaseAnalytics();
         assertNotNull(ba);
     }
 }

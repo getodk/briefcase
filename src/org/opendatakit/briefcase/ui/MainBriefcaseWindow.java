@@ -63,7 +63,7 @@ public class MainBriefcaseWindow implements WindowListener {
     private SettingsPanel settingsPanel;
     private final TerminationFuture exportTerminationFuture = new TerminationFuture();
     private final TerminationFuture transferTerminationFuture = new TerminationFuture();
-    private static BriefcaseAnalytics briefcaseAnalytics = BriefcaseAnalytics.getInstance();
+    private BriefcaseAnalytics briefcaseAnalytics = new BriefcaseAnalytics();
 
     public static final String AGGREGATE_URL = "aggregate_url";
     public static final String DATE_FORMAT = "yyyy/MM/dd";
@@ -90,8 +90,6 @@ public class MainBriefcaseWindow implements WindowListener {
      * Launch the application.
      */
     public static void main(String[] args) {
-
-        briefcaseAnalytics.trackStartup();
 
         if (args.length == 0) {
 
@@ -209,6 +207,8 @@ public class MainBriefcaseWindow implements WindowListener {
      * Create the application.
      */
     public MainBriefcaseWindow() {
+        briefcaseAnalytics.trackStartup();
+
         frame = new JFrame();
         frame.setBounds(100, 100, 680, 595);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
