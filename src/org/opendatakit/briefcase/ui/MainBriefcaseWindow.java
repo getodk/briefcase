@@ -181,26 +181,20 @@ public class MainBriefcaseWindow implements WindowListener {
         }
     }
 
-    void setFullUIEnabled(boolean state) {
-        String path = BriefcasePreferences.getBriefcaseDirectoryIfSet();
-        if ( path != null ) {
-            settingsPanel.getTxtBriefcaseDir().setText(path + File.separator + FileSystemUtils.BRIEFCASE_DIR);
-        } else {
-            settingsPanel.getTxtBriefcaseDir().setText("");
-        }
-        if ( state ) {
+    private void setFullUIEnabled(boolean enabled) {
+        final String briefcaseDirectory = BriefcasePreferences.getBriefcaseDirectoryIfSet();
+        settingsPanel.getTxtBriefcaseDir().setText(briefcaseDirectory == null ?
+                "" : briefcaseDirectory + File.separator + FileSystemUtils.BRIEFCASE_DIR);
+
+        if (enabled) {
             exportPanel.updateComboBox();
             uploadPanel.updateFormStatuses();
-            exportPanel.setEnabled(true);
-            gatherPanel.setEnabled(true);
-            uploadPanel.setEnabled(true);
-            tabbedPane.setEnabled(true);
-        } else {
-            exportPanel.setEnabled(false);
-            gatherPanel.setEnabled(false);
-            uploadPanel.setEnabled(false);
-            tabbedPane.setEnabled(false);
         }
+
+        exportPanel.setEnabled(enabled);
+        gatherPanel.setEnabled(enabled);
+        uploadPanel.setEnabled(enabled);
+        tabbedPane.setEnabled(enabled);
     }
 
     /**
