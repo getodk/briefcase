@@ -62,14 +62,11 @@ import com.github.lgooddatepicker.components.DatePicker;
 
 public class ExportPanel extends JPanel {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 7169316129011796197L;
 
-    public static final String TAB_NAME = "Export";
+    static final String TAB_NAME = "Export";
 
-    public static int TAB_POSITION = -1;
+    static int TAB_POSITION = -1;
 
     private static final String EXPORTING_DOT_ETC = "Exporting..........";
 
@@ -90,16 +87,14 @@ public class ExportPanel extends JPanel {
     private final DatePicker pickEndDate;
 
     private boolean exportStateActive = false;
-    private TerminationFuture terminationFuture;
+    private final TerminationFuture terminationFuture;
 
     private final StringBuilder exportStatusList;
     private final JTextField pemPrivateKeyFilePath;
 
     private final JButton btnPemFileChooseButton;
 
-    private final JLabel lblForm;
-
-    private final ArrayList<Component> navOrder = new ArrayList<Component>();
+    private final ArrayList<Component> navOrder = new ArrayList<>();
 
     class ExportFolderActionListener implements ActionListener {
 
@@ -117,11 +112,11 @@ public class ExportPanel extends JPanel {
                     String nonBriefcasePath = fc.getSelectedFile().getAbsolutePath();
                     txtExportDirectory.setText(nonBriefcasePath);
                     ExportPanel.this.resetExport();
-                    ExportPanel.this.enableExportButton(true);
+                    ExportPanel.this.enableExportButton();
                     return;
                 }
             }
-            ExportPanel.this.enableExportButton(true); // likely disabled...
+            ExportPanel.this.enableExportButton(); // likely disabled...
         }
     }
 
@@ -141,11 +136,11 @@ public class ExportPanel extends JPanel {
                     String PEMFilePath = dlg.getSelectedFile().getAbsolutePath();
                     pemPrivateKeyFilePath.setText(PEMFilePath);
                     ExportPanel.this.resetExport();
-                    ExportPanel.this.enableExportButton(true);
+                    ExportPanel.this.enableExportButton();
                     return;
                 }
             }
-            ExportPanel.this.enableExportButton(true); // likely disabled...
+            ExportPanel.this.enableExportButton(); // likely disabled...
         }
     }
 
@@ -154,7 +149,7 @@ public class ExportPanel extends JPanel {
         @Override
         public void actionPerformed(ActionEvent e) {
             ExportPanel.this.resetExport();
-            ExportPanel.this.enableExportButton(true);
+            ExportPanel.this.enableExportButton();
         }
     }
 
@@ -175,7 +170,7 @@ public class ExportPanel extends JPanel {
             this.addActionListener(this);
         }
 
-        public void setContext() {
+        void setContext() {
             form = ((IFormDefinition) comboBoxForm.getSelectedItem());
             type = (ExportType) comboBoxExportType.getSelectedItem();
             File outputDir = new File(txtExportDirectory.getText());
@@ -217,7 +212,7 @@ public class ExportPanel extends JPanel {
                 return;
             }
             File exportDirectory = new File(exportDir.trim());
-            if ( exportDirectory == null || !exportDirectory.exists() ) {
+            if ( !exportDirectory.exists() ) {
                 ODKOptionPane.showErrorDialog(ExportPanel.this,
                         MessageStrings.DIR_NOT_EXIST,
                         MessageStrings.INVALID_EXPORT_DIRECTORY);
@@ -281,78 +276,70 @@ public class ExportPanel extends JPanel {
         }
     }
 
-    public void enableExportButton(boolean state) {
-        if ( state ) {
-
-            if (comboBoxForm.getSelectedIndex() == -1) {
-                btnPemFileChooseButton.setEnabled(false);
-                btnExport.setEnabled(false);
-                return;
-            }
-
-            BriefcaseFormDefinition lfd = (BriefcaseFormDefinition) comboBoxForm.getSelectedItem();
-            if ( lfd == null ) {
-                btnPemFileChooseButton.setEnabled(false);
-                btnExport.setEnabled(false);
-                return;
-            }
-
-            if ( lfd.isFileEncryptedForm() || lfd.isFieldEncryptedForm() ) {
-                btnPemFileChooseButton.setEnabled(true);
-                File pemFile = new File(pemPrivateKeyFilePath.getText());
-                if ( !pemFile.exists()) {
-                    btnExport.setEnabled(false);
-                    return;
-                }
-            } else {
-                btnPemFileChooseButton.setEnabled(false);
-            }
-
-            if (comboBoxExportType.getSelectedIndex() == -1) {
-                btnExport.setEnabled(false);
-                return;
-            }
-
-            String exportDir = txtExportDirectory.getText();
-            if ( exportDir == null || exportDir.trim().length() == 0 ) {
-                btnExport.setEnabled(false);
-                return;
-            }
-
-            boolean enabled = true;
-            File exportDirectory = new File(exportDir.trim());
-            if ( exportDirectory == null || !exportDirectory.exists() ) {
-                enabled = false;
-            }
-            if ( !exportDirectory.isDirectory() ) {
-                enabled = false;
-            }
-            if ( FileSystemUtils.isUnderODKFolder(exportDirectory) ) {
-                enabled = false;
-            } else if ( FileSystemUtils.isUnderBriefcaseFolder(exportDirectory)) {
-                enabled = false;
-            }
-            btnExport.setEnabled(enabled);
-        } else {
+    private void enableExportButton() {
+        if (comboBoxForm.getSelectedIndex() == -1) {
+            btnPemFileChooseButton.setEnabled(false);
             btnExport.setEnabled(false);
+            return;
         }
+
+        BriefcaseFormDefinition lfd = (BriefcaseFormDefinition) comboBoxForm.getSelectedItem();
+        if ( lfd == null ) {
+            btnPemFileChooseButton.setEnabled(false);
+            btnExport.setEnabled(false);
+            return;
+        }
+
+        if ( lfd.isFileEncryptedForm() || lfd.isFieldEncryptedForm() ) {
+            btnPemFileChooseButton.setEnabled(true);
+            File pemFile = new File(pemPrivateKeyFilePath.getText());
+            if ( !pemFile.exists()) {
+                btnExport.setEnabled(false);
+                return;
+            }
+        } else {
+            btnPemFileChooseButton.setEnabled(false);
+        }
+
+        if (comboBoxExportType.getSelectedIndex() == -1) {
+            btnExport.setEnabled(false);
+            return;
+        }
+
+        String exportDir = txtExportDirectory.getText();
+        if ( exportDir == null || exportDir.trim().length() == 0 ) {
+            btnExport.setEnabled(false);
+            return;
+        }
+
+        boolean enabled = true;
+        File exportDirectory = new File(exportDir.trim());
+        if (!exportDirectory.exists() ) {
+            enabled = false;
+        }
+        if ( !exportDirectory.isDirectory() ) {
+            enabled = false;
+        }
+        if ( FileSystemUtils.isUnderODKFolder(exportDirectory) ) {
+            enabled = false;
+        } else if ( FileSystemUtils.isUnderBriefcaseFolder(exportDirectory)) {
+            enabled = false;
+        }
+        btnExport.setEnabled(enabled);
     }
 
-    /**
-     * Create the panel.
-     */
-    public ExportPanel(TerminationFuture terminationFuture) {
+    ExportPanel(TerminationFuture terminationFuture) {
         super();
         AnnotationProcessor.process(this);// if not using AOP
         this.terminationFuture = terminationFuture;
 
-        lblForm = new JLabel("Form:");
-        comboBoxForm = new JComboBox<BriefcaseFormDefinition>();
+        JLabel lblForm = new JLabel("Form:");
+        comboBoxForm = new JComboBox<>();
         updateComboBox();
         comboBoxForm.addActionListener(new FormSelectionListener());
 
         JLabel lblExportType = new JLabel(TAB_NAME + " Type:");
-        comboBoxExportType = new JComboBox<ExportType>(ExportType.values());
+        comboBoxExportType = new JComboBox<>(ExportType.values());
 
         JLabel lblExportDirectory = new JLabel(TAB_NAME + " Directory:");
 
@@ -524,26 +511,20 @@ public class ExportPanel extends JPanel {
         navOrder.add(btnCancel);
     }
 
-    public ArrayList<Component> getTraversalOrdering() {
+    ArrayList<Component> getTraversalOrdering() {
         return navOrder;
     }
 
     @Override
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
-        // update the list of forms...
-        List<BriefcaseFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
-        BriefcaseFormDefinition[] out = new BriefcaseFormDefinition[forms.size()];
-        DefaultComboBoxModel<BriefcaseFormDefinition> formChoices =
-                new DefaultComboBoxModel<BriefcaseFormDefinition>(
-                        (BriefcaseFormDefinition[]) forms.toArray(out));
-        comboBoxForm.setModel(formChoices);
+        updateComboBox();
 
         // enable/disable the components...
         // TODO this is brittle as the panel components change
         // would prefer explicit state changes referring
         // to specific components
-        for (Component c: this.getComponents()) {
+        for (Component c : this.getComponents()) {
             if (c != pickStartDate && c != pickEndDate && c != btnDetails) {
                 c.setEnabled(enabled);
             }
@@ -554,9 +535,9 @@ public class ExportPanel extends JPanel {
         }
     }
 
-    private void updateProgressBar(double progress) {
-        progressBar.setValue((int)progress);
-    }
+  private void updateProgressBar(double progress) {
+    progressBar.setValue((int)progress);
+  }
 
     private void setTabEnabled(boolean active) {
         JTabbedPane pane = (JTabbedPane) getParent();
@@ -597,7 +578,7 @@ public class ExportPanel extends JPanel {
             comboBoxForm.setEnabled(true);
             btnChooseExportDirectory.setEnabled(true);
             // touch-up with real state...
-            enableExportButton(true);
+            enableExportButton();
             // disable cancel button
             btnCancel.setEnabled(false);
             // retain progress text (to display last export outcome)
@@ -609,21 +590,21 @@ public class ExportPanel extends JPanel {
         exportStateActive = active;
     }
 
-    public void resetExport() {
+    private void resetExport() {
         exportStatusList.setLength(0);
         lblExporting.setText(" ");
         btnDetails.setEnabled(false);
     }
 
-    @EventSubscriber(eventClass = ExportProgressEvent.class)
-    public void progress(ExportProgressEvent event) {
-        exportStatusList.append("\n").append(event.getText());
-    }
+  @EventSubscriber(eventClass = ExportProgressEvent.class)
+  public void progress(ExportProgressEvent event) {
+    exportStatusList.append("\n").append(event.getText());
+  }
 
-    @EventSubscriber(eventClass = ExportProgressPercentageEvent.class)
-    public void progressBar(ExportProgressPercentageEvent event) {
-        progressBar.setValue((int)event.getProgress());
-    }
+  @EventSubscriber(eventClass = ExportProgressPercentageEvent.class)
+  public void progressBar(ExportProgressPercentageEvent event) {
+    progressBar.setValue((int)event.getProgress());
+  }
 
     @EventSubscriber(eventClass = ExportFailedEvent.class)
     public void failedCompletion(ExportFailedEvent event) {
@@ -646,26 +627,19 @@ public class ExportPanel extends JPanel {
         setActiveExportState(false);
     }
 
-    public void updateComboBox() {
-        int selIdx = comboBoxForm.getSelectedIndex();
-        BriefcaseFormDefinition lfd = null;
-        if ( selIdx != -1 ) {
-            lfd = (BriefcaseFormDefinition) comboBoxForm.getSelectedItem();
-        }
+    void updateComboBox() {
+        final BriefcaseFormDefinition selectedForm = comboBoxForm.getSelectedIndex() == -1 ?
+                null : (BriefcaseFormDefinition) comboBoxForm.getSelectedItem();
         List<BriefcaseFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
-        BriefcaseFormDefinition[] out = new BriefcaseFormDefinition[forms.size()];
-        DefaultComboBoxModel<BriefcaseFormDefinition> formChoices =
-                new DefaultComboBoxModel<BriefcaseFormDefinition>(forms.toArray(out));
-        comboBoxForm.setModel(formChoices);
-        if ( lfd != null ) {
+        comboBoxForm.setModel(new DefaultComboBoxModel<>(forms.toArray(new BriefcaseFormDefinition[forms.size()])));
+        if ( selectedForm != null ) {
             for ( int i = 0 ; i < forms.size() ; ++i ) {
-                if ( forms.get(i).equals(lfd) ) {
+                if ( forms.get(i).equals(selectedForm) ) {
                     comboBoxForm.setSelectedIndex(i);
                     return;
                 }
             }
         }
-        comboBoxForm.setSelectedIndex(-1);
     }
 
     @EventSubscriber(eventClass = TransferFailedEvent.class)
@@ -682,5 +656,4 @@ public class ExportPanel extends JPanel {
     public void briefcaseFormListChanges(UpdatedBriefcaseFormDefinitionEvent event) {
         updateComboBox();
     }
-
 }
