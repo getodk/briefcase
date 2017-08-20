@@ -94,8 +94,6 @@ public class ExportPanel extends JPanel {
 
     private final JButton btnPemFileChooseButton;
 
-    private final ArrayList<Component> navOrder = new ArrayList<>();
-
     class WrappedFileChooserActionListener implements ActionListener {
         private final AbstractFileChooser afc;
         private final JTextField textField;
@@ -473,22 +471,6 @@ public class ExportPanel extends JPanel {
         exportStatusList = new StringBuilder();
         setLayout(groupLayout);
         setActiveExportState(exportStateActive);
-
-        navOrder.add(comboBoxForm);
-        navOrder.add(comboBoxExportType);
-        navOrder.add(txtExportDirectory);
-        navOrder.add(btnChooseExportDirectory);
-        navOrder.add(pemPrivateKeyFilePath);
-        navOrder.add(btnPemFileChooseButton);
-        navOrder.add(pickStartDate);
-        navOrder.add(pickEndDate);
-        navOrder.add(btnDetails);
-        navOrder.add(btnExport);
-        navOrder.add(btnCancel);
-    }
-
-    ArrayList<Component> getTraversalOrdering() {
-        return navOrder;
     }
 
     @Override

@@ -24,9 +24,6 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.util.StringUtils;
 
 
-/**
- *
- */
 public class SettingsPanel extends JPanel {
 
     public static final String TAB_NAME = "Settings";
@@ -38,7 +35,6 @@ public class SettingsPanel extends JPanel {
     private JButton btnChoose;
     private MainBriefcaseWindow parentWindow;
 
-    private ArrayList<Component> navOrder = new ArrayList<Component>();
     private JLabel lblProxy;
     private JCheckBox chkProxy;
     private JLabel lblHost;
@@ -150,10 +146,6 @@ public class SettingsPanel extends JPanel {
 
         setLayout(groupLayout);
 
-        navOrder.add(lblBriefcaseDirectory);
-        navOrder.add(txtBriefcaseDir);
-        navOrder.add(btnChoose);
-        
         setCurrentProxySettings();
     }
     
@@ -168,10 +160,6 @@ public class SettingsPanel extends JPanel {
       } else {
         txtHost.setText("127.0.0.1");
       }
-    }
-
-    public ArrayList<Component> getTraversalOrdering() {
-        return navOrder;
     }
 
     public JTextField getTxtBriefcaseDir() {
