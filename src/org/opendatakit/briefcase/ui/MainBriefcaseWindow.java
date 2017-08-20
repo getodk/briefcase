@@ -16,25 +16,6 @@
 
 package org.opendatakit.briefcase.ui;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.EventQueue;
-import java.awt.FocusTraversalPolicy;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
-import javax.swing.UIManager;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -47,11 +28,24 @@ import org.apache.commons.logging.LogFactory;
 import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
 import org.opendatakit.briefcase.model.BriefcaseAnalytics;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.util.FileSystemUtils;
+
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JTabbedPane;
+import javax.swing.UIManager;
+import java.awt.EventQueue;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 public class MainBriefcaseWindow implements WindowListener {
     private static final String BRIEFCASE_VERSION = "ODK Briefcase - " + BriefcasePreferences.VERSION;
@@ -274,101 +268,6 @@ public class MainBriefcaseWindow implements WindowListener {
 
         frame.addWindowListener(this);
         setFullUIEnabled(false);
-
-        frame.setFocusTraversalPolicy(new FocusTraversalPolicy() {
-
-            @Override
-            public Component getComponentAfter(Container arg0, Component arg1) {
-                ArrayList<Component> componentOrdering = new ArrayList<Component>();
-                for (;;) {
-                    int nextPanel = PullTransferPanel.TAB_POSITION;
-                    componentOrdering.clear();
-                    componentOrdering.add(tabbedPane);
-                    int idx = tabbedPane.getSelectedIndex();
-                    if ( idx == PullTransferPanel.TAB_POSITION ) {
-                        componentOrdering.addAll(gatherPanel.getTraversalOrdering());
-                        nextPanel = PushTransferPanel.TAB_POSITION;
-                    } else if ( idx == PushTransferPanel.TAB_POSITION ) {
-                        componentOrdering.addAll(uploadPanel.getTraversalOrdering());
-                        nextPanel = ExportPanel.TAB_POSITION;
-                    } else if ( idx == ExportPanel.TAB_POSITION ) {
-                        componentOrdering.addAll(exportPanel.getTraversalOrdering());
-                        nextPanel = PullTransferPanel.TAB_POSITION;
-                    }
-                    boolean found = false;
-                    for ( int i = 0 ; i < componentOrdering.size() - 1 ; ++i ) {
-                        if ( found || arg1 == componentOrdering.get(i) ) {
-                            found = true;
-                            Component comp = componentOrdering.get(i + 1);
-                            if ( comp == tabbedPane ) {
-                                return comp;
-                            }
-                            if ( comp.isVisible()  && (!(comp instanceof JTextField) || ((JTextField) comp).isEditable()) ) {
-                                return comp;
-                            }
-                        }
-                    }
-                    if ( !found ) {
-                        return componentOrdering.get(0);
-                    }
-
-                    tabbedPane.setSelectedIndex(nextPanel);
-                }
-            }
-
-            @Override
-            public Component getComponentBefore(Container arg0, Component arg1) {
-                ArrayList<Component> componentOrdering = new ArrayList<Component>();
-                for (;;) {
-                    int nextPanel = PullTransferPanel.TAB_POSITION;
-                    componentOrdering.clear();
-                    componentOrdering.add(tabbedPane);
-                    int idx = tabbedPane.getSelectedIndex();
-                    if ( idx == PullTransferPanel.TAB_POSITION ) {
-                        componentOrdering.addAll(gatherPanel.getTraversalOrdering());
-                        nextPanel = ExportPanel.TAB_POSITION;
-                    } else if ( idx == PushTransferPanel.TAB_POSITION ) {
-                        componentOrdering.addAll(uploadPanel.getTraversalOrdering());
-                        nextPanel = PullTransferPanel.TAB_POSITION;
-                    } else if ( idx == ExportPanel.TAB_POSITION ) {
-                        componentOrdering.addAll(exportPanel.getTraversalOrdering());
-                        nextPanel = PushTransferPanel.TAB_POSITION;
-                    }
-                    boolean found = false;
-                    for ( int i = componentOrdering.size() - 1 ; i > 0 ; --i ) {
-                        if ( found || arg1 == componentOrdering.get(i) ) {
-                            found = true;
-                            Component comp = componentOrdering.get(i - 1);
-                            if ( comp == tabbedPane ) {
-                                return comp;
-                            }
-                            if ( comp.isVisible()  && (!(comp instanceof JTextField) || ((JTextField) comp).isEditable()) ) {
-                                return comp;
-                            }
-                        }
-                    }
-                    if ( !found ) {
-                        return componentOrdering.get(componentOrdering.size() - 1);
-                    }
-                    tabbedPane.setSelectedIndex(nextPanel);
-                }
-            }
-
-            @Override
-            public Component getDefaultComponent(Container arg0) {
-                return tabbedPane;
-            }
-
-            @Override
-            public Component getFirstComponent(Container arg0) {
-                return tabbedPane;
-            }
-
-            @Override
-            public Component getLastComponent(Container arg0) {
-                return tabbedPane;
-            }
-        });
     }
 
     public void establishBriefcaseStorageLocation(boolean showDialog) {

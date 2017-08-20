@@ -93,8 +93,6 @@ public class PullTransferPanel extends JPanel {
   private boolean transferStateActive = false;
   private TerminationFuture terminationFuture;
 
-  private ArrayList<Component> navOrder = new ArrayList<Component>();
-
   /**
    * UI changes related to the selection of the origin location from drop-down
    * box.
@@ -372,17 +370,6 @@ public class PullTransferPanel extends JPanel {
 
     setActiveTransferState(transferStateActive);
     lblDownloading.setText("                     ");
-
-    navOrder.add(listOriginDataSource);
-    navOrder.add(txtOriginName);
-    navOrder.add(btnOriginAction);
-    navOrder.add(btnSelectOrClearAllForms);
-    navOrder.add(btnTransfer);
-    navOrder.add(btnCancel);
-  }
-
-  public ArrayList<Component> getTraversalOrdering() {
-    return navOrder;
   }
 
   @Override
