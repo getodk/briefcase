@@ -96,51 +96,28 @@ public class ExportPanel extends JPanel {
 
     private final ArrayList<Component> navOrder = new ArrayList<>();
 
-    class ExportFolderActionListener implements ActionListener {
+    class WrappedFileChooserActionListener implements ActionListener {
+        private final AbstractFileChooser afc;
+        private final JTextField textField;
+
+        WrappedFileChooserActionListener(AbstractFileChooser afc, JTextField textField) {
+            this.afc = afc;
+            this.textField = textField;
+        }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            WrappedFileChooser fc = new WrappedFileChooser(ExportPanel.this,
-                    new ExportFolderChooser(ExportPanel.this));
-            String path = txtExportDirectory.getText();
-            if ( path != null && path.trim().length() != 0 ) {
-                fc.setSelectedFile(new File(path.trim()));
+            WrappedFileChooser wfc = new WrappedFileChooser(ExportPanel.this, afc);
+            String path = textField.getText();
+            if (path != null && path.trim().length() != 0) {
+                wfc.setSelectedFile(new File(path.trim()));
             }
-            int retVal = fc.showDialog();
-            if (retVal == JFileChooser.APPROVE_OPTION) {
-                if (fc.getSelectedFile() != null) {
-                    String nonBriefcasePath = fc.getSelectedFile().getAbsolutePath();
-                    txtExportDirectory.setText(nonBriefcasePath);
-                    ExportPanel.this.resetExport();
-                    ExportPanel.this.enableExportButton();
-                    return;
-                }
+            int retVal = wfc.showDialog();
+            if (retVal == JFileChooser.APPROVE_OPTION && wfc.getSelectedFile() != null) {
+                textField.setText(wfc.getSelectedFile().getAbsolutePath());
+                resetExport();
             }
-            ExportPanel.this.enableExportButton(); // likely disabled...
-        }
-    }
-
-    class PEMFileActionListener implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent arg0) {
-            WrappedFileChooser dlg = new WrappedFileChooser(ExportPanel.this,
-                    new PrivateKeyFileChooser(ExportPanel.this));
-            String path = pemPrivateKeyFilePath.getText();
-            if ( path != null && path.trim().length() != 0 ) {
-                dlg.setSelectedFile(new File(path.trim()));
-            }
-            int retVal = dlg.showDialog();
-            if (retVal == JFileChooser.APPROVE_OPTION ) {
-                if (dlg.getSelectedFile() != null) {
-                    String PEMFilePath = dlg.getSelectedFile().getAbsolutePath();
-                    pemPrivateKeyFilePath.setText(PEMFilePath);
-                    ExportPanel.this.resetExport();
-                    ExportPanel.this.enableExportButton();
-                    return;
-                }
-            }
-            ExportPanel.this.enableExportButton(); // likely disabled...
+            enableExportButton(); // likely disabled...
         }
     }
 
@@ -148,16 +125,13 @@ public class ExportPanel extends JPanel {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            ExportPanel.this.resetExport();
-            ExportPanel.this.enableExportButton();
+            resetExport();
+            enableExportButton();
         }
     }
 
     public class DetailButton extends JButton implements ActionListener {
 
-        /**
-         *
-         */
         private static final long serialVersionUID = -5106358166776020642L;
 
         private IFormDefinition form;
@@ -349,7 +323,8 @@ public class ExportPanel extends JPanel {
         txtExportDirectory.setColumns(10);
 
         btnChooseExportDirectory = new JButton("Choose...");
-        btnChooseExportDirectory.addActionListener(new ExportFolderActionListener());
+        btnChooseExportDirectory.addActionListener(
+                new WrappedFileChooserActionListener(new ExportFolderChooser(this), txtExportDirectory));
 
         JLabel lblPemPrivateKey = new JLabel("PEM Private Key File:");
 
@@ -359,7 +334,8 @@ public class ExportPanel extends JPanel {
         pemPrivateKeyFilePath.setColumns(10);
 
         btnPemFileChooseButton = new JButton("Choose...");
-        btnPemFileChooseButton.addActionListener(new PEMFileActionListener());
+        btnPemFileChooseButton.addActionListener(
+                new WrappedFileChooserActionListener(new PrivateKeyFileChooser(this), pemPrivateKeyFilePath));
 
         JLabel lblDateFrom = new JLabel("Start Date (inclusive):");
         JLabel lblDateTo = new JLabel("End Date (exclusive):");
@@ -535,10 +511,6 @@ public class ExportPanel extends JPanel {
         }
     }
 
-  private void updateProgressBar(double progress) {
-    progressBar.setValue((int)progress);
-  }
-
     private void setTabEnabled(boolean active) {
         JTabbedPane pane = (JTabbedPane) getParent();
         if ( pane != null ) {
@@ -596,15 +568,15 @@ public class ExportPanel extends JPanel {
         btnDetails.setEnabled(false);
     }
 
-  @EventSubscriber(eventClass = ExportProgressEvent.class)
-  public void progress(ExportProgressEvent event) {
-    exportStatusList.append("\n").append(event.getText());
-  }
+    @EventSubscriber(eventClass = ExportProgressEvent.class)
+    public void progress(ExportProgressEvent event) {
+        exportStatusList.append("\n").append(event.getText());
+    }
 
-  @EventSubscriber(eventClass = ExportProgressPercentageEvent.class)
-  public void progressBar(ExportProgressPercentageEvent event) {
-    progressBar.setValue((int)event.getProgress());
-  }
+    @EventSubscriber(eventClass = ExportProgressPercentageEvent.class)
+    public void progressBar(ExportProgressPercentageEvent event) {
+        progressBar.setValue((int)event.getProgress());
+    }
 
     @EventSubscriber(eventClass = ExportFailedEvent.class)
     public void failedCompletion(ExportFailedEvent event) {
