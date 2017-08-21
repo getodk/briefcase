@@ -21,7 +21,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -65,8 +64,6 @@ public class ExportPanel extends JPanel {
     private static final long serialVersionUID = 7169316129011796197L;
 
     static final String TAB_NAME = "Export";
-
-    static int TAB_POSITION = -1;
 
     private static final String EXPORTING_DOT_ETC = "Exporting..........";
 
@@ -478,14 +475,8 @@ public class ExportPanel extends JPanel {
         super.setEnabled(enabled);
         updateComboBox();
 
-        // enable/disable the components...
-        // TODO this is brittle as the panel components change
-        // would prefer explicit state changes referring
-        // to specific components
         for (Component c : this.getComponents()) {
-            if (c != pickStartDate && c != pickEndDate && c != btnDetails) {
-                c.setEnabled(enabled);
-            }
+            c.setEnabled(enabled);
         }
         if (enabled) {
             // and then update the widgets based upon the transfer state
@@ -493,19 +484,7 @@ public class ExportPanel extends JPanel {
         }
     }
 
-    private void setTabEnabled(boolean active) {
-        JTabbedPane pane = (JTabbedPane) getParent();
-        if ( pane != null ) {
-            for ( int i = 0 ; i < pane.getTabCount() ; ++i ) {
-                if ( i != TAB_POSITION ) {
-                    pane.setEnabledAt(i, active);
-                }
-            }
-        }
-    }
-
     private void setActiveExportState(boolean active) {
-        setTabEnabled(!active);
         if (active) {
             // don't allow normal actions when we are transferring...
             comboBoxExportType.setEnabled(false);

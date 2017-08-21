@@ -61,13 +61,9 @@ import org.opendatakit.briefcase.util.TransferAction;
  */
 public class PushTransferPanel extends JPanel {
 
-  /**
-	 *
-	 */
   private static final long serialVersionUID = -2192404551259501394L;
 
   public static final String TAB_NAME = "Push";
-  public static int TAB_POSITION = -1;
 
   private static final String UPLOADING_DOT_ETC = "Uploading..........";
   private static final BriefcasePreferences PREFERENCES =
@@ -304,9 +300,8 @@ public class PushTransferPanel extends JPanel {
   @Override
   public void setEnabled(boolean enabled) {
     super.setEnabled(enabled);
-    Component[] com = this.getComponents();
-    for (int a = 0; a < com.length; a++) {
-      com[a].setEnabled(enabled);
+    for (Component aCom : this.getComponents()) {
+      aCom.setEnabled(enabled);
     }
     if (enabled) {
       // and then update the widgets based upon the transfer state
@@ -334,19 +329,7 @@ public class PushTransferPanel extends JPanel {
     lblUploading.setText(text);
   }
 
-  private void setTabEnabled(boolean active) {
-    JTabbedPane pane = (JTabbedPane) getParent();
-    if ( pane != null ) {
-      for ( int i = 0 ; i < pane.getTabCount() ; ++i ) {
-        if ( i != TAB_POSITION ) {
-          pane.setEnabledAt(i, active);
-        }
-      }
-    }
-  }
-
   private void setActiveTransferState(boolean active) {
-    setTabEnabled(!active);
     if (active) {
       // don't allow normal actions when we are transferring...
       listDestinationDataSink.setEnabled(false);

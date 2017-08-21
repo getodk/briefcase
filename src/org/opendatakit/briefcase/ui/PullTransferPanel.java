@@ -72,7 +72,6 @@ public class PullTransferPanel extends JPanel {
   private static final long serialVersionUID = -2192404551259501394L;
 
   public static final String TAB_NAME = "Pull";
-  public static int TAB_POSITION = -1;
 
   private static final String DOWNLOADING_DOT_ETC = "Downloading..........";
   private static final BriefcasePreferences PREFERENCES =
@@ -234,11 +233,6 @@ public class PullTransferPanel extends JPanel {
     }
   }
 
-  /**
-   * Create the transfer-from-to panel.
-   *
-   * @param txtBriefcaseDir
-   */
   public PullTransferPanel(TerminationFuture terminationFuture) {
     super();
     AnnotationProcessor.process(this);// if not using AOP
@@ -375,9 +369,8 @@ public class PullTransferPanel extends JPanel {
   @Override
   public void setEnabled(boolean enabled) {
     super.setEnabled(enabled);
-    Component[] com = this.getComponents();
-    for (int a = 0; a < com.length; a++) {
-      com[a].setEnabled(enabled);
+    for (Component aCom : this.getComponents()) {
+      aCom.setEnabled(enabled);
     }
     if (enabled) {
       // and then update the widgets based upon the transfer state
@@ -431,17 +424,6 @@ public class PullTransferPanel extends JPanel {
     lblDownloading.setText(text);
   }
 
-  private void setTabEnabled(boolean active) {
-    JTabbedPane pane = (JTabbedPane) getParent();
-    if ( pane != null ) {
-      for ( int i = 0 ; i < pane.getTabCount() ; ++i ) {
-        if ( i != TAB_POSITION ) {
-          pane.setEnabledAt(i, active);
-        }
-      }
-    }
-  }
-
   private void setTxtOriginEnabled(boolean active) {
     EndPointType selection = getSelectedEndPointType();
 
@@ -460,7 +442,6 @@ public class PullTransferPanel extends JPanel {
   }
 
   private void setActiveTransferState(boolean active) {
-    setTabEnabled(!active);
     setTxtOriginEnabled(!active);
     if (active) {
       // don't allow normal actions when we are transferring...
