@@ -63,7 +63,7 @@ public class MainBriefcaseWindow implements WindowListener {
     private SettingsPanel settingsPanel;
     private final TerminationFuture exportTerminationFuture = new TerminationFuture();
     private final TerminationFuture transferTerminationFuture = new TerminationFuture();
-    private BriefcaseAnalytics briefcaseAnalytics = new BriefcaseAnalytics();
+    public final BriefcaseAnalytics briefcaseAnalytics = new BriefcaseAnalytics();
 
     public static final String AGGREGATE_URL = "aggregate_url";
     public static final String DATE_FORMAT = "yyyy/MM/dd";

@@ -36,7 +36,7 @@ public class SettingsPanel extends JPanel {
     private JLabel lblBriefcaseDirectory;
     private JTextField txtBriefcaseDir;
     private JButton btnChoose;
-    private MainBriefcaseWindow parentWindow;
+    private MainBriefcaseWindow mainBriefcaseWindow;
 
     private ArrayList<Component> navOrder = new ArrayList<Component>();
     private JLabel lblProxy;
@@ -50,8 +50,8 @@ public class SettingsPanel extends JPanel {
     private JLabel lblTrackingConsent;
     private JCheckBox chkTrackingConsent;
 
-    public SettingsPanel(MainBriefcaseWindow parentWindow) {
-        this.parentWindow = parentWindow;
+    public SettingsPanel(MainBriefcaseWindow mainBriefcaseWindow) {
+        this.mainBriefcaseWindow = mainBriefcaseWindow;
         lblBriefcaseDirectory = new JLabel(MessageStrings.BRIEFCASE_STORAGE_LOCATION);
 
         txtBriefcaseDir = new JTextField();
@@ -153,10 +153,10 @@ public class SettingsPanel extends JPanel {
         navOrder.add(lblBriefcaseDirectory);
         navOrder.add(txtBriefcaseDir);
         navOrder.add(btnChoose);
-        
+
         setCurrentProxySettings();
     }
-    
+
     private void setCurrentProxySettings() {
       HttpHost currentProxy = BriefcasePreferences.getBriefCaseProxyConnection();
       if (currentProxy != null) {
@@ -183,11 +183,11 @@ public class SettingsPanel extends JPanel {
         @Override
         public void actionPerformed(ActionEvent e) {
             // briefcase...
-            parentWindow.establishBriefcaseStorageLocation(true);
+            mainBriefcaseWindow.establishBriefcaseStorageLocation(true);
         }
 
     }
-    
+
     private void updateProxySettings() {
         BriefcasePreferences.setBriefcaseProxyProperty(new HttpHost(txtHost.getText(), (int)spinPort.getValue()));
     }
@@ -243,14 +243,14 @@ public class SettingsPanel extends JPanel {
     }
 
     /**
-     * This listener will pass the user's consent to being tracked onto the
-     * application's preferences so it can be persisted and used elsewhere.
+     * This listener notifies BriefcaseAnalytics of the users' updated choice
+     * of consent about being tracked.
      */
     public class TrackingConsentToggleListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() == chkTrackingConsent) {
-                BriefcasePreferences.setBriefcaseTrackingConsentProperty(chkTrackingConsent.isSelected());
+                mainBriefcaseWindow.briefcaseAnalytics.trackConsentDecision(chkTrackingConsent.isSelected());
             }
         }
     }
