@@ -58,6 +58,8 @@ import org.opendatakit.briefcase.util.FileSystemUtils;
 
 import com.github.lgooddatepicker.components.DatePicker;
 
+import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
+
 public class ExportPanel extends JPanel {
 
     private static final long serialVersionUID = 7169316129011796197L;
@@ -197,7 +199,7 @@ public class ExportPanel extends JPanel {
                         MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY,
                         MessageStrings.INVALID_EXPORT_DIRECTORY);
                 return;
-            } else if ( FileSystemUtils.isUnderBriefcaseFolder(exportDirectory)) {
+            } else if ( isUnderBriefcaseFolder(exportDirectory)) {
                 ODKOptionPane.showErrorDialog(ExportPanel.this,
                         MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
                         MessageStrings.INVALID_EXPORT_DIRECTORY);
@@ -290,7 +292,7 @@ public class ExportPanel extends JPanel {
         }
         if ( FileSystemUtils.isUnderODKFolder(exportDirectory) ) {
             enabled = false;
-        } else if ( FileSystemUtils.isUnderBriefcaseFolder(exportDirectory)) {
+        } else if ( isUnderBriefcaseFolder(exportDirectory)) {
             enabled = false;
         }
         btnExport.setEnabled(enabled);
