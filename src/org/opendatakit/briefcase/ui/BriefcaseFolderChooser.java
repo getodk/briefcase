@@ -24,6 +24,8 @@ import javax.swing.filechooser.FileFilter;
 
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
+import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
+
 class BriefcaseFolderChooser extends AbstractFileChooser {
 
   /**
@@ -48,7 +50,7 @@ class BriefcaseFolderChooser extends AbstractFileChooser {
           MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION);
       return true;
     }
-    if (FileSystemUtils.isUnderBriefcaseFolder(f)) {
+    if (isUnderBriefcaseFolder(f)) {
       ODKOptionPane.showErrorDialog(parentWindow,
           MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
           MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION);
