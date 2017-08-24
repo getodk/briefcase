@@ -190,7 +190,7 @@ public class BriefcasePreferences {
      * @param value (required) the boolean value representing the user's decision.
      */
     public static void setBriefcaseTrackingConsentProperty(boolean value) {
-        Preference.APPLICATION_SCOPED.put(BRIEFCASE_TRACKING_CONSENT_PROPERTY, Boolean.valueOf(value).toString());
+        setBooleanProperty(BRIEFCASE_TRACKING_CONSENT_PROPERTY, value);
     }
 
     /**
@@ -198,8 +198,15 @@ public class BriefcasePreferences {
      * @return the boolean representation of the user's consent to being tracked.
      */
     public static boolean getBriefcaseTrackingConsentProperty() {
-        return Boolean.valueOf(Preference.APPLICATION_SCOPED.get(
-                BRIEFCASE_TRACKING_CONSENT_PROPERTY, Boolean.FALSE.toString()));
+        return getBooleanProperty(BRIEFCASE_TRACKING_CONSENT_PROPERTY);
+    }
+
+    private static void setBooleanProperty(String key, boolean value) {
+        Preference.APPLICATION_SCOPED.put(key, Boolean.valueOf(value).toString());
+    }
+
+    private static boolean getBooleanProperty(String key) {
+        return Boolean.valueOf(Preference.APPLICATION_SCOPED.get(key, Boolean.FALSE.toString()));
     }
 
     /**

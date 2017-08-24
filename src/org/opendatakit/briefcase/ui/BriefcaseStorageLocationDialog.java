@@ -37,7 +37,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FileSystemException;
-import org.opendatakit.briefcase.util.FileSystemUtils;
+
+import static org.opendatakit.briefcase.ui.StorageLocation.BRIEFCASE_DIR;
+import static org.opendatakit.briefcase.ui.StorageLocation.assertBriefcaseStorageLocationParentFolder;
 
 public class BriefcaseStorageLocationDialog extends JDialog implements ActionListener {
   /**
@@ -73,7 +75,7 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
     if ( directoryPath == null || directoryPath.length() == 0) {
       txtBriefcaseLocation.setColumns(10);
     } else {
-      txtBriefcaseLocation.setText(directoryPath + File.separator + FileSystemUtils.BRIEFCASE_DIR);
+      txtBriefcaseLocation.setText(directoryPath + File.separator + BRIEFCASE_DIR);
     }
     txtBriefcaseLocation.setEditable(false);
     
@@ -94,15 +96,15 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
           }
           File folder = new File(txtBriefcaseLocation.getText());
           File parentFolder = folder.getParentFile();
-          FileSystemUtils.assertBriefcaseStorageLocationParentFolder(parentFolder);
+          assertBriefcaseStorageLocationParentFolder(parentFolder);
           BriefcasePreferences.setBriefcaseDirectoryProperty(parentFolder.getAbsolutePath());
           BriefcaseStorageLocationDialog.this.setVisible(false);
         } catch (FileSystemException e) {
-          String msg = "Unable to create " + FileSystemUtils.BRIEFCASE_DIR + ".  Please change the " +
+          String msg = "Unable to create " + BRIEFCASE_DIR + ".  Please change the " +
                   MessageStrings.BRIEFCASE_STORAGE_LOCATION + ".";
           log.warn(msg, e);
           ODKOptionPane.showErrorDialog(BriefcaseStorageLocationDialog.this, msg,
-                  "Failed to Create " + FileSystemUtils.BRIEFCASE_DIR);
+                  "Failed to Create " + BRIEFCASE_DIR);
         }
       }
     });
@@ -180,7 +182,7 @@ public class BriefcaseStorageLocationDialog extends JDialog implements ActionLis
       File parentFolder = fc.getSelectedFile();
       if (parentFolder != null) {
         String briefcasePath = parentFolder.getAbsolutePath();
-        txtBriefcaseLocation.setText(briefcasePath + File.separator + FileSystemUtils.BRIEFCASE_DIR);
+        txtBriefcaseLocation.setText(briefcasePath + File.separator + BRIEFCASE_DIR);
       }
     }
   }

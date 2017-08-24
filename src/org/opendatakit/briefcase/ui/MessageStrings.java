@@ -16,8 +16,6 @@
 
 package org.opendatakit.briefcase.ui;
 
-import org.opendatakit.briefcase.util.FileSystemUtils;
-
 public class MessageStrings {
 
   public static final String BRIEFCASE_STORAGE_LOCATION =
@@ -56,10 +54,10 @@ public class MessageStrings {
       BRIEFCASE_STORAGE_LOCATION;
   public static final String BRIEFCASE_STORAGE_LOCATION_EXPLANATION_HTML =
       "<body><font face=\"verdana,sans-serif\" size=\"+1\"><p>Please " +
-      "specify the location of the <em>" + FileSystemUtils.BRIEFCASE_DIR +
+      "specify the location of the <em>" + StorageLocation.BRIEFCASE_DIR +
       "</em> area.</p>" +
       "<p>ODK Briefcase uses a storage area named <em>" +
-          FileSystemUtils.BRIEFCASE_DIR + 
+          StorageLocation.BRIEFCASE_DIR +
     "</em> identified by the " + BRIEFCASE_STORAGE_LOCATION +
     ". This storage area holds all " +
     "your form and submission data.</p><p>" +
