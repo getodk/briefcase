@@ -29,8 +29,10 @@ import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
 import org.opendatakit.briefcase.model.BriefcaseAnalytics;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportAbortEvent;
+import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
+import org.opendatakit.briefcase.util.FileSystemUtils;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -48,17 +50,16 @@ import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeListener {
+public class MainBriefcaseWindow extends WindowAdapter {
     private static final String BRIEFCASE_VERSION = "ODK Briefcase - " + BriefcasePreferences.VERSION;
 
-    JFrame frame;
+    private JFrame frame;
     private PushTransferPanel uploadPanel;
     private ExportPanel exportPanel;
     private SettingsPanel settingsPanel;
     private final TerminationFuture exportTerminationFuture = new TerminationFuture();
     private final TerminationFuture transferTerminationFuture = new TerminationFuture();
-    private BriefcaseAnalytics briefcaseAnalytics = new BriefcaseAnalytics();
-    final StorageLocation storageLocation;
+    public final BriefcaseAnalytics briefcaseAnalytics = new BriefcaseAnalytics();
 
     public static final String AGGREGATE_URL = "aggregate_url";
     public static final String DATE_FORMAT = "yyyy/MM/dd";
@@ -100,7 +101,6 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
                         window.frame.setTitle(BRIEFCASE_VERSION);
                         ImageIcon icon = new ImageIcon(MainBriefcaseWindow.class.getClassLoader().getResource("odk_logo.png"));
                         window.frame.setIconImage(icon.getImage());
-                        window.frame.setLocationRelativeTo(null);
                         window.frame.setVisible(true);
                     } catch (Exception e) {
                         log.error("failed to launch app", e);
@@ -179,11 +179,10 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         }
     }
 
-    @Override
-    public void setFullUIEnabled(boolean enabled) {
+    private void setFullUIEnabled(boolean enabled) {
         final String briefcaseDirectory = BriefcasePreferences.getBriefcaseDirectoryIfSet();
         settingsPanel.getTxtBriefcaseDir().setText(briefcaseDirectory == null ?
-                "" : briefcaseDirectory + File.separator + StorageLocation.BRIEFCASE_DIR);
+                "" : briefcaseDirectory + File.separator + FileSystemUtils.BRIEFCASE_DIR);
 
         if (enabled) {
             exportPanel.updateComboBox();
@@ -198,9 +197,6 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
                 tabbedPane.setEnabledAt(paneIndex, enabled);
             }
         }
-        if (! enabled) {
-            tabbedPane.setSelectedComponent(settingsPanel);
-        }
         tabbedPane.setEnabled(enabled);
     }
 
@@ -213,8 +209,6 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         frame = new JFrame();
         frame.setBounds(100, 100, 680, 595);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        storageLocation = new StorageLocation(frame, this);
 
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
         GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
@@ -250,7 +244,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
         frame.addWindowListener(this);
 
-        storageLocation.establishBriefcaseStorageLocation();
+        setFullUIEnabled(false);
     }
 
     /** Adds a pane to the JTabbedPane, and saves its index in a map from pane to index. */
@@ -259,10 +253,79 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         tabbedPane.addTab(title, null, pane, null);
     }
 
+    void establishBriefcaseStorageLocation(boolean showDialog) {
+        // set the enabled/disabled status of the panels based upon validity of default briefcase directory.
+        String briefcaseDir = BriefcasePreferences.getBriefcaseDirectoryIfSet();
+        boolean reset = false;
+        if ( briefcaseDir == null ) {
+            reset = true;
+        } else {
+            File dir = new File(briefcaseDir);
+            if ( !dir.exists() || !dir.isDirectory()) {
+                reset = true;
+            } else {
+                File folder = FileSystemUtils.getBriefcaseFolder();
+                if ( !folder.exists() || !folder.isDirectory()) {
+                    reset = true;
+                }
+
+            }
+        }
+
+        if ( showDialog || reset ) {
+            // ask for new briefcase location...
+            BriefcaseStorageLocationDialog fs =
+                    new BriefcaseStorageLocationDialog(MainBriefcaseWindow.this.frame);
+
+            // If reset is not needed, dialog has been triggered from Settings page
+            if (!reset) {
+                fs.updateForSettingsPage();
+            }
+
+            fs.setVisible(true);
+            if ( fs.isCancelled() ) {
+                // if we need to reset the briefcase location,
+                // and have cancelled, then disable the UI.
+                // otherwise the value we have is fine.
+                setFullUIEnabled(!reset);
+            } else {
+                String briefcasePath = BriefcasePreferences.getBriefcaseDirectoryIfSet();
+                if ( briefcasePath == null ) {
+                    // we had a bad path -- disable all but Choose...
+                    setFullUIEnabled(false);
+                } else {
+                    setFullUIEnabled(true);
+                }
+            }
+        } else {
+            File f = new File( BriefcasePreferences.getBriefcaseDirectoryProperty());
+            if (BriefcaseFolderChooser.testAndMessageBadBriefcaseStorageLocationParentFolder(f, frame)) {
+                try {
+                    FileSystemUtils.assertBriefcaseStorageLocationParentFolder(f);
+                    setFullUIEnabled(true);
+                } catch (FileSystemException e1) {
+                    String msg = "Unable to create " + FileSystemUtils.BRIEFCASE_DIR;
+                    log.error(msg, e1);
+                    ODKOptionPane.showErrorDialog(frame, msg, "Failed to Create " + FileSystemUtils.BRIEFCASE_DIR);
+                    // we had a bad path -- disable all but Choose...
+                    setFullUIEnabled(false);
+                }
+            } else {
+                // we had a bad path -- disable all but Choose...
+                setFullUIEnabled(false);
+            }
+        }
+    }
+
     @Override
     public void windowClosing(WindowEvent arg0) {
         exportTerminationFuture.markAsCancelled(new ExportAbortEvent("Main window closed"));
         transferTerminationFuture.markAsCancelled(new TransferAbortEvent("Main window closed"));
+    }
+
+    @Override
+    public void windowOpened(WindowEvent arg0) {
+        establishBriefcaseStorageLocation(false);
     }
 
     static void showHelp(Options options) {

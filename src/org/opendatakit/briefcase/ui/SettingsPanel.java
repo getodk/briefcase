@@ -4,10 +4,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.io.File;
 
-import javax.swing.*;
+import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -16,17 +21,6 @@ import org.apache.http.HttpHost;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.util.StringUtils;
 
-import static org.opendatakit.briefcase.ui.StorageLocation.BRIEFCASE_DIR;
-
-/* todo add this text
-"Please help the ODK Community of volunteers and our mission\n" +
-"to build software that better meets your needs. We use third-party\n" +
-"analytics tools to gather anonymous information about things like \n" +
-"your operating system, versions, and most-used features of this\n" +
-"software. Use of this information will always follow the ODK\n" +
-"Community Privacy Policy.\n\n" +
-"Will you allow us to collect anonymous usage statistics?");
- */
 
 public class SettingsPanel extends JPanel {
 
@@ -35,7 +29,7 @@ public class SettingsPanel extends JPanel {
     private JLabel lblBriefcaseDirectory;
     private JTextField txtBriefcaseDir;
     private JButton btnChoose;
-    private MainBriefcaseWindow parentWindow;
+    private MainBriefcaseWindow mainBriefcaseWindow;
 
     private JLabel lblProxy;
     private JCheckBox chkProxy;
@@ -48,8 +42,8 @@ public class SettingsPanel extends JPanel {
     private JLabel lblTrackingConsent;
     private JCheckBox chkTrackingConsent;
 
-    public SettingsPanel(final MainBriefcaseWindow parentWindow) {
-        this.parentWindow = parentWindow;
+    public SettingsPanel(MainBriefcaseWindow mainBriefcaseWindow) {
+        this.mainBriefcaseWindow = mainBriefcaseWindow;
         lblBriefcaseDirectory = new JLabel(MessageStrings.BRIEFCASE_STORAGE_LOCATION);
 
         txtBriefcaseDir = new JTextField();
@@ -58,39 +52,7 @@ public class SettingsPanel extends JPanel {
         txtBriefcaseDir.setColumns(20);
 
         btnChoose = new JButton("Change...");
-        btnChoose.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-                WrappedFileChooser fc = new WrappedFileChooser(parentWindow.frame,
-                        new BriefcaseFolderChooser(parentWindow.frame));
-                // figure out the initial directory path...
-                String candidateDir = txtBriefcaseDir.getText();
-                File base = null;
-                if (candidateDir == null || candidateDir.trim().length() == 0) {
-                    // nothing -- use default
-                    base = new File(BriefcasePreferences.getBriefcaseDirectoryProperty());
-                } else {
-                    // start with candidate parent and move up the tree until we have a valid directory.
-                    base = new File(candidateDir).getParentFile();
-                    while (base != null && (!base.exists() || !base.isDirectory())) {
-                        base = base.getParentFile();
-                    }
-                }
-                if (base != null) {
-                    fc.setSelectedFile(base);
-                }
-                int retVal = fc.showDialog();
-                if (retVal == JFileChooser.APPROVE_OPTION) {
-                    File parentFolder = fc.getSelectedFile();
-                    if (parentFolder != null) {
-                        String briefcasePath = parentFolder.getAbsolutePath();
-                        txtBriefcaseDir.setText(briefcasePath + File.separator + BRIEFCASE_DIR);
-                        BriefcasePreferences.setBriefcaseDirectoryProperty(briefcasePath);
-                        parentWindow.storageLocation.establishBriefcaseStorageLocation();
-                    }
-                }
-            }
-        });
+        btnChoose.addActionListener(new FolderActionListener());
 
         ProxyChangeListener proxyChangeListener = new ProxyChangeListener();
 
@@ -185,7 +147,7 @@ public class SettingsPanel extends JPanel {
 
         setCurrentProxySettings();
     }
-    
+
     private void setCurrentProxySettings() {
       HttpHost currentProxy = BriefcasePreferences.getBriefCaseProxyConnection();
       if (currentProxy != null) {
@@ -208,11 +170,11 @@ public class SettingsPanel extends JPanel {
         @Override
         public void actionPerformed(ActionEvent e) {
             // briefcase...
-            parentWindow.storageLocation.establishBriefcaseStorageLocation();
+            mainBriefcaseWindow.establishBriefcaseStorageLocation(true);
         }
 
     }
-    
+
     private void updateProxySettings() {
         BriefcasePreferences.setBriefcaseProxyProperty(new HttpHost(txtHost.getText(), (int)spinPort.getValue()));
     }
@@ -268,14 +230,14 @@ public class SettingsPanel extends JPanel {
     }
 
     /**
-     * This listener will pass the user's consent to being tracked onto the
-     * application's preferences so it can be persisted and used elsewhere.
+     * This listener notifies BriefcaseAnalytics of the users' updated choice
+     * of consent about being tracked.
      */
     public class TrackingConsentToggleListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() == chkTrackingConsent) {
-                BriefcasePreferences.setBriefcaseTrackingConsentProperty(chkTrackingConsent.isSelected());
+                mainBriefcaseWindow.briefcaseAnalytics.trackConsentDecision(chkTrackingConsent.isSelected());
             }
         }
     }
