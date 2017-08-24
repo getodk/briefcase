@@ -31,7 +31,7 @@ public class StorageLocation {
           .getBriefcaseDirectoryProperty()), BRIEFCASE_DIR);
     }
 
-    void establishBriefcaseStorageLocation() {
+    public void establishBriefcaseStorageLocation(boolean showDialog) {
         // set the enabled/disabled status of the panels based upon validity of default briefcase directory.
         String briefcaseDir = BriefcasePreferences.getBriefcaseDirectoryIfSet();
         boolean reset = false;
@@ -46,11 +46,35 @@ public class StorageLocation {
                 if ( !folder.exists() || !folder.isDirectory()) {
                     reset = true;
                 }
+
             }
         }
 
-        if (reset) {
-            uiStateChangeListener.setFullUIEnabled(false);
+        if ( showDialog || reset ) {
+            // ask for new briefcase location...
+            BriefcaseStorageLocationDialog fs =
+                    new BriefcaseStorageLocationDialog(appWindow);
+
+            // If reset is not needed, dialog has been triggered from Settings page
+            if (!reset) {
+                fs.updateForSettingsPage();
+            }
+
+            fs.setVisible(true);
+            if ( fs.isCancelled() ) {
+                // if we need to reset the briefcase location,
+                // and have cancelled, then disable the UI.
+                // otherwise the value we have is fine.
+                uiStateChangeListener.setFullUIEnabled(!reset);
+            } else {
+                String briefcasePath = BriefcasePreferences.getBriefcaseDirectoryIfSet();
+                if ( briefcasePath == null ) {
+                    // we had a bad path -- disable all but Choose...
+                    uiStateChangeListener.setFullUIEnabled(false);
+                } else {
+                    uiStateChangeListener.setFullUIEnabled(true);
+                }
+            }
         } else {
             File f = new File( BriefcasePreferences.getBriefcaseDirectoryProperty());
             if (BriefcaseFolderChooser.testAndMessageBadBriefcaseStorageLocationParentFolder(f, appWindow)) {
@@ -92,7 +116,7 @@ public class StorageLocation {
       return true;
     }
 
-    static final void assertBriefcaseStorageLocationParentFolder(File pathname) throws FileSystemException {
+    public static final void assertBriefcaseStorageLocationParentFolder(File pathname) throws FileSystemException {
       File folder = new File(pathname, StorageLocation.BRIEFCASE_DIR);
       if ( !folder.exists() ) {
         if ( !folder.mkdir() ) {
@@ -129,7 +153,7 @@ public class StorageLocation {
       }
     }
 
-    static boolean isUnderBriefcaseFolder(File pathname) {
+    public static boolean isUnderBriefcaseFolder(File pathname) {
       File parent = (pathname == null ? null : pathname.getParentFile());
       File current = pathname;
       while (parent != null) {

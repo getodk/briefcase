@@ -21,6 +21,15 @@ import org.apache.http.HttpHost;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.util.StringUtils;
 
+/* todo add this text
+"Please help the ODK Community of volunteers and our mission\n" +
+"to build software that better meets your needs. We use third-party\n" +
+"analytics tools to gather anonymous information about things like \n" +
+"your operating system, versions, and most-used features of this\n" +
+"software. Use of this information will always follow the ODK\n" +
+"Community Privacy Policy.\n\n" +
+"Will you allow us to collect anonymous usage statistics?");
+ */
 
 public class SettingsPanel extends JPanel {
 
@@ -29,7 +38,7 @@ public class SettingsPanel extends JPanel {
     private JLabel lblBriefcaseDirectory;
     private JTextField txtBriefcaseDir;
     private JButton btnChoose;
-    private MainBriefcaseWindow mainBriefcaseWindow;
+    private MainBriefcaseWindow parentWindow;
 
     private JLabel lblProxy;
     private JCheckBox chkProxy;
@@ -42,8 +51,8 @@ public class SettingsPanel extends JPanel {
     private JLabel lblTrackingConsent;
     private JCheckBox chkTrackingConsent;
 
-    public SettingsPanel(MainBriefcaseWindow mainBriefcaseWindow) {
-        this.mainBriefcaseWindow = mainBriefcaseWindow;
+    public SettingsPanel(MainBriefcaseWindow parentWindow) {
+        this.parentWindow = parentWindow;
         lblBriefcaseDirectory = new JLabel(MessageStrings.BRIEFCASE_STORAGE_LOCATION);
 
         txtBriefcaseDir = new JTextField();
@@ -147,7 +156,7 @@ public class SettingsPanel extends JPanel {
 
         setCurrentProxySettings();
     }
-
+    
     private void setCurrentProxySettings() {
       HttpHost currentProxy = BriefcasePreferences.getBriefCaseProxyConnection();
       if (currentProxy != null) {
@@ -170,11 +179,11 @@ public class SettingsPanel extends JPanel {
         @Override
         public void actionPerformed(ActionEvent e) {
             // briefcase...
-            mainBriefcaseWindow.establishBriefcaseStorageLocation(true);
+            parentWindow.storageLocation.establishBriefcaseStorageLocation(true);
         }
 
     }
-
+    
     private void updateProxySettings() {
         BriefcasePreferences.setBriefcaseProxyProperty(new HttpHost(txtHost.getText(), (int)spinPort.getValue()));
     }
@@ -230,14 +239,14 @@ public class SettingsPanel extends JPanel {
     }
 
     /**
-     * This listener notifies BriefcaseAnalytics of the users' updated choice
-     * of consent about being tracked.
+     * This listener will pass the user's consent to being tracked onto the
+     * application's preferences so it can be persisted and used elsewhere.
      */
     public class TrackingConsentToggleListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() == chkTrackingConsent) {
-                mainBriefcaseWindow.briefcaseAnalytics.trackConsentDecision(chkTrackingConsent.isSelected());
+                BriefcasePreferences.setBriefcaseTrackingConsentProperty(chkTrackingConsent.isSelected());
             }
         }
     }
