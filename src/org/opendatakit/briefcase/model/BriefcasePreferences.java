@@ -107,16 +107,16 @@ public class BriefcasePreferences {
         if (value == null) {
             Preference.APPLICATION_SCOPED.remove(BRIEFCASE_DIR_PROPERTY);
         } else {
-            Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_DIR_PROPERTY, value);
+            Preference.APPLICATION_SCOPED.put(BRIEFCASE_DIR_PROPERTY, value);
         }
     }
 
     public static String getBriefcaseDirectoryIfSet() {
-        return Preference.APPLICATION_SCOPED.get(BriefcasePreferences.BRIEFCASE_DIR_PROPERTY, null);
+        return Preference.APPLICATION_SCOPED.get(BRIEFCASE_DIR_PROPERTY, null);
     }
 
     public static String getBriefcaseDirectoryProperty() {
-        return Preference.APPLICATION_SCOPED.get(BriefcasePreferences.BRIEFCASE_DIR_PROPERTY,
+        return Preference.APPLICATION_SCOPED.get(BRIEFCASE_DIR_PROPERTY,
                 System.getProperty("user.home"));
     }
 
@@ -125,8 +125,8 @@ public class BriefcasePreferences {
             Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PROXY_HOST_PROPERTY);
             Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PROXY_PORT_PROPERTY);
         } else {
-            Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_PROXY_HOST_PROPERTY, value.getHostName());
-            Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_PROXY_PORT_PROPERTY, new Integer(value.getPort()).toString());
+            Preference.APPLICATION_SCOPED.put(BRIEFCASE_PROXY_HOST_PROPERTY, value.getHostName());
+            Preference.APPLICATION_SCOPED.put(BRIEFCASE_PROXY_PORT_PROPERTY, Integer.toString(value.getPort()));
         }
     }
 
@@ -134,13 +134,13 @@ public class BriefcasePreferences {
         if (value == null) {
             Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PARALLEL_PULLS_PROPERTY);
         } else {
-            Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_PARALLEL_PULLS_PROPERTY, value.toString());
+            Preference.APPLICATION_SCOPED.put(BRIEFCASE_PARALLEL_PULLS_PROPERTY, value.toString());
         }
     }
 
     public static Boolean getBriefcaseParallelPullsProperty() {
         return Boolean.valueOf(
-                Preference.APPLICATION_SCOPED.get(BriefcasePreferences.BRIEFCASE_PARALLEL_PULLS_PROPERTY, Boolean.FALSE.toString())
+                Preference.APPLICATION_SCOPED.get(BRIEFCASE_PARALLEL_PULLS_PROPERTY, Boolean.FALSE.toString())
         );
     }
 
@@ -176,11 +176,10 @@ public class BriefcasePreferences {
     }
 
     public static HttpHost getBriefCaseProxyConnection() {
-        String host = Preference.APPLICATION_SCOPED.get(
-                BriefcasePreferences.BRIEFCASE_PROXY_HOST_PROPERTY,null);
+        String host = Preference.APPLICATION_SCOPED.get(BRIEFCASE_PROXY_HOST_PROPERTY,null);
         if (host != null) {
             Integer port = Integer.parseInt(Preference.APPLICATION_SCOPED.get(
-                    BriefcasePreferences.BRIEFCASE_PROXY_PORT_PROPERTY,"0"));
+                    BRIEFCASE_PROXY_PORT_PROPERTY,"0"));
             return new HttpHost(host, port);
         }
         return null;
@@ -191,7 +190,7 @@ public class BriefcasePreferences {
      * @param value (required) the boolean value representing the user's decision.
      */
     public static void setBriefcaseTrackingConsentProperty(boolean value) {
-        Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY, Boolean.valueOf(value).toString());
+        Preference.APPLICATION_SCOPED.put(BRIEFCASE_TRACKING_CONSENT_PROPERTY, Boolean.valueOf(value).toString());
     }
 
     /**
@@ -200,7 +199,7 @@ public class BriefcasePreferences {
      */
     public static boolean getBriefcaseTrackingConsentProperty() {
         return Boolean.valueOf(Preference.APPLICATION_SCOPED.get(
-                BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY, Boolean.FALSE.toString()));
+                BRIEFCASE_TRACKING_CONSENT_PROPERTY, Boolean.FALSE.toString()));
     }
 
     /**
@@ -210,10 +209,10 @@ public class BriefcasePreferences {
      */
     public static String getUniqueUserID() {
         String defaultUuidValue = "UUID missing, defaulting to this message";
-        String uniqueUserID = Preference.APPLICATION_SCOPED.get(BriefcasePreferences.BRIEFCASE_UNIQUE_USER_ID_PROPERTY, defaultUuidValue);
+        String uniqueUserID = Preference.APPLICATION_SCOPED.get(BRIEFCASE_UNIQUE_USER_ID_PROPERTY, defaultUuidValue);
         if ( uniqueUserID.equals(defaultUuidValue)) {
-            Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_UNIQUE_USER_ID_PROPERTY, UUID.randomUUID().toString());
+            Preference.APPLICATION_SCOPED.put(BRIEFCASE_UNIQUE_USER_ID_PROPERTY, UUID.randomUUID().toString());
         }
-        return Preference.APPLICATION_SCOPED.get(BriefcasePreferences.BRIEFCASE_UNIQUE_USER_ID_PROPERTY, defaultUuidValue);
+        return Preference.APPLICATION_SCOPED.get(BRIEFCASE_UNIQUE_USER_ID_PROPERTY, defaultUuidValue);
     }
 }
