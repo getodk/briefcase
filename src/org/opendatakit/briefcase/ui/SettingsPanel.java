@@ -1,156 +1,186 @@
 package org.opendatakit.briefcase.ui;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.JTextField;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
 import org.apache.http.HttpHost;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.util.StringUtils;
 
-/* todo add this text
-"Please help the ODK Community of volunteers and our mission\n" +
-"to build software that better meets your needs. We use third-party\n" +
-"analytics tools to gather anonymous information about things like \n" +
-"your operating system, versions, and most-used features of this\n" +
-"software. Use of this information will always follow the ODK\n" +
-"Community Privacy Policy.\n\n" +
-"Will you allow us to collect anonymous usage statistics?");
- */
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.io.File;
 
 public class SettingsPanel extends JPanel {
 
     public static final String TAB_NAME = "Settings";
 
-    private JLabel lblBriefcaseDirectory;
-    private JTextField txtBriefcaseDir;
-    private JButton btnChoose;
-    private MainBriefcaseWindow parentWindow;
+    private final JTextField txtBriefcaseDir = new JTextField();
+    private final JCheckBox chkProxy = new JCheckBox(MessageStrings.PROXY_TOGGLE);
+    private final JTextField txtHost = new JTextField();
+    private final JSpinner spinPort = new JIntegerSpinner(8080, 0, 65535, 1);
+    private final JCheckBox chkParallel = new JCheckBox(MessageStrings.PARALLEL_PULLS);
+    private final JCheckBox chkTrackingConsent = new JCheckBox(MessageStrings.TRACKING_CONSENT);
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JTextArea txtCollectionInfo;
+    private javax.swing.JTextArea txtStorageInfo;
 
-    private JLabel lblProxy;
-    private JCheckBox chkProxy;
-    private JLabel lblHost;
-    private JTextField txtHost;
-    private JLabel lblPort;
-    private JSpinner spinPort;
-    private JLabel lblParallel;
-    private JCheckBox chkParallel;
-    private JLabel lblTrackingConsent;
-    private JCheckBox chkTrackingConsent;
-
-    public SettingsPanel(MainBriefcaseWindow parentWindow) {
-        this.parentWindow = parentWindow;
-        lblBriefcaseDirectory = new JLabel(MessageStrings.BRIEFCASE_STORAGE_LOCATION);
-
-        txtBriefcaseDir = new JTextField();
+    SettingsPanel(final MainBriefcaseWindow parentWindow) {
         txtBriefcaseDir.setFocusable(false);
         txtBriefcaseDir.setEditable(false);
-        txtBriefcaseDir.setColumns(20);
+        txtBriefcaseDir.setColumns(80);
 
-        btnChoose = new JButton("Change...");
-        btnChoose.addActionListener(new FolderActionListener());
+        final JButton btnChoose = new JButton("Change...");
+        btnChoose.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                WrappedFileChooser fc = new WrappedFileChooser(parentWindow.frame,
+                        new BriefcaseFolderChooser(parentWindow.frame));
+                // figure out the initial directory path...
+                String candidateDir = txtBriefcaseDir.getText();
+                File base = null;
+                if (candidateDir == null || candidateDir.trim().length() == 0) {
+                    // nothing -- use default
+                    base = new File(BriefcasePreferences.getBriefcaseDirectoryProperty());
+                } else {
+                    // start with candidate parent and move up the tree until we have a valid directory.
+                    base = new File(candidateDir).getParentFile();
+                    while (base != null && (!base.exists() || !base.isDirectory())) {
+                        base = base.getParentFile();
+                    }
+                }
+                if (base != null) {
+                    fc.setSelectedFile(base);
+                }
+                int retVal = fc.showDialog();
+                if (retVal == JFileChooser.APPROVE_OPTION) {
+                    File parentFolder = fc.getSelectedFile();
+                    if (parentFolder != null) {
+                        String briefcasePath = parentFolder.getAbsolutePath();
+                        txtBriefcaseDir.setText(briefcasePath);
+                        BriefcasePreferences.setBriefcaseDirectoryProperty(briefcasePath);
+                        parentWindow.storageLocation.establishBriefcaseStorageLocation();
+                    }
+                }
+            }
+        });
 
         ProxyChangeListener proxyChangeListener = new ProxyChangeListener();
 
-        lblHost = new JLabel(MessageStrings.PROXY_HOST);
-        txtHost = new JTextField();
         txtHost.setEnabled(false);
-        txtHost.setColumns(20);
         txtHost.addFocusListener(proxyChangeListener);
 
-        lblPort = new JLabel(MessageStrings.PROXY_PORT);
-        spinPort = new JIntegerSpinner(8080, 0, 65535, 1);
         spinPort.setEnabled(false);
         spinPort.addChangeListener(proxyChangeListener);
 
-        lblProxy = new JLabel(MessageStrings.PROXY_TOGGLE);
-        chkProxy = new JCheckBox();
         chkProxy.setSelected(false);
         chkProxy.addActionListener(new ProxyToggleListener());
 
-        lblParallel = new JLabel(MessageStrings.PARALLEL_PULLS);
-        chkParallel = new JCheckBox();
         chkParallel.setSelected(BriefcasePreferences.getBriefcaseParallelPullsProperty());
         chkParallel.addActionListener(new ParallelPullToggleListener());
 
-        lblTrackingConsent = new JLabel(MessageStrings.TRACKING_CONSENT);
-        chkTrackingConsent = new JCheckBox();
         chkTrackingConsent.setSelected(BriefcasePreferences.getBriefcaseTrackingConsentProperty());
         chkTrackingConsent.addActionListener(new TrackingConsentToggleListener());
 
-        GroupLayout groupLayout = new GroupLayout(this);
-        groupLayout.setHorizontalGroup(
-          groupLayout.createSequentialGroup()
-            .addContainerGap()
-            .addGroup(
-              groupLayout.createParallelGroup(Alignment.TRAILING)
-                .addComponent(chkProxy)
-                .addComponent(chkParallel)
-                .addComponent(chkTrackingConsent))
-            .addGroup(
-              groupLayout.createParallelGroup(Alignment.LEADING)
-                .addGroup(
-                  groupLayout.createSequentialGroup()
-                    .addComponent(lblBriefcaseDirectory)
-                    .addComponent(txtBriefcaseDir)
+        final JLabel lblBriefcaseDir = new JLabel(MessageStrings.BRIEFCASE_STORAGE_LOCATION);
+        final JLabel lblHost = new JLabel(MessageStrings.PROXY_HOST);
+        final JLabel lblPort = new JLabel(MessageStrings.PROXY_PORT);
+
+        jScrollPane1 = new javax.swing.JScrollPane();
+        txtCollectionInfo = new javax.swing.JTextArea();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        txtStorageInfo = new javax.swing.JTextArea();
+
+        lblBriefcaseDir.setText("Storage Location");
+
+        txtCollectionInfo.setEditable(false);
+        txtCollectionInfo.setFocusable(false);
+        txtCollectionInfo.setRows(5);
+        txtCollectionInfo.setText(MessageStrings.TRACKING_CONSENT_EXPLANATION);
+        txtCollectionInfo.setFocusable(false);
+        jScrollPane1.setViewportView(txtCollectionInfo);
+
+        txtStorageInfo.setEditable(false);
+        txtStorageInfo.setFocusable(false);
+        txtStorageInfo.setRows(4);
+        txtStorageInfo.setText(MessageStrings.BRIEFCASE_STORAGE_LOCATION_EXPLANATION);
+        txtStorageInfo.setFocusable(false);
+        jScrollPane3.setViewportView(txtStorageInfo);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane3)
+                    .addComponent(jScrollPane1)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lblBriefcaseDir)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtBriefcaseDir)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 125, Short.MAX_VALUE)
+                        .addComponent(btnChoose))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(chkProxy)
+                            .addComponent(chkParallel)
+                            .addComponent(chkTrackingConsent)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(29, 29, 29)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(lblPort)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(spinPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(lblHost)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(txtHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblBriefcaseDir)
+                    .addComponent(txtBriefcaseDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnChoose))
-                .addComponent(lblProxy)
-                .addGroup(
-                  groupLayout.createSequentialGroup()
-                    .addGroup(
-                       groupLayout.createParallelGroup(Alignment.LEADING)
-                         .addComponent(lblHost)
-                         .addComponent(lblPort))
-                    .addGroup(
-                      groupLayout.createParallelGroup(Alignment.LEADING)
-                        .addComponent(txtHost, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(spinPort, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)))
-                      .addComponent(lblParallel)
-                      .addComponent(lblTrackingConsent))
-            .addContainerGap()
-        );
-        groupLayout.setVerticalGroup(
-          groupLayout.createSequentialGroup()
-              .addContainerGap()
-              .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-                .addComponent(txtBriefcaseDir)
-                .addComponent(btnChoose)
-                .addComponent(lblBriefcaseDirectory))
-              .addPreferredGap(ComponentPlacement.RELATED)
-              .addGroup(groupLayout.createParallelGroup(Alignment.CENTER)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(chkTrackingConsent)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(chkParallel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(chkProxy)
-                .addComponent(lblProxy))
-              .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-                .addComponent(lblHost)
-                .addComponent(txtHost))
-              .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-                .addComponent(lblPort)
-                .addComponent(spinPort))
-              .addPreferredGap(ComponentPlacement.RELATED)
-              .addGroup(groupLayout.createParallelGroup(Alignment.CENTER)
-                .addComponent(lblParallel)
-                .addComponent(chkParallel))
-              .addGroup(groupLayout.createParallelGroup(Alignment.CENTER)
-                .addComponent(lblTrackingConsent)
-                .addComponent(chkTrackingConsent))
-              .addContainerGap()
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(txtHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(4, 4, 4)
+                        .addComponent(lblHost)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblPort)
+                    .addComponent(spinPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(12, 12, 12))
         );
-
-        setLayout(groupLayout);
-
+        setLayout(layout);
         setCurrentProxySettings();
     }
     
@@ -167,20 +197,10 @@ public class SettingsPanel extends JPanel {
       }
     }
 
-    public JTextField getTxtBriefcaseDir() {
+    JTextField getTxtBriefcaseDir() {
         return txtBriefcaseDir;
     }
 
-    class FolderActionListener implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            // briefcase...
-            parentWindow.storageLocation.establishBriefcaseStorageLocation(true);
-        }
-
-    }
-    
     private void updateProxySettings() {
         BriefcasePreferences.setBriefcaseProxyProperty(new HttpHost(txtHost.getText(), (int)spinPort.getValue()));
     }
