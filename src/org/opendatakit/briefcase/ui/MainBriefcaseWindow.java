@@ -51,7 +51,7 @@ import java.util.Map;
 public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeListener {
     private static final String BRIEFCASE_VERSION = "ODK Briefcase - " + BriefcasePreferences.VERSION;
 
-    private JFrame frame;
+    JFrame frame;
     private PushTransferPanel uploadPanel;
     private ExportPanel exportPanel;
     private SettingsPanel settingsPanel;
@@ -250,7 +250,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
         frame.addWindowListener(this);
 
-        setFullUIEnabled(false);
+        storageLocation.establishBriefcaseStorageLocation();
     }
 
     /** Adds a pane to the JTabbedPane, and saves its index in a map from pane to index. */
