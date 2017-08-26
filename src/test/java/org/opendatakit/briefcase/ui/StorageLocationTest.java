@@ -40,12 +40,6 @@ public class StorageLocationTest {
     }
 
     @Test
-    public void canFetchPrefs() {
-        String d = BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull();
-        assertNotNull(d);
-    }
-
-    @Test
     public void canEstablishStorageLocation() throws IOException {
         BriefcasePreferences bp = mock(BriefcasePreferences.class);
         final Path tempPath = Files.createTempDirectory("xxxx");
