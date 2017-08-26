@@ -155,7 +155,7 @@ public class FileSystemUtils {
   }
 
   public static File getFormsFolder() {
-    return new File(StorageLocation.getBriefcaseFolder(), FORMS_DIR);
+    return new File(new StorageLocation().getBriefcaseFolder(), FORMS_DIR);
   }
 
   public static String asFilesystemSafeName(String formName) {
@@ -236,7 +236,7 @@ public class FileSystemUtils {
 
   public static File getTempFormDefinitionFile()
       throws FileSystemException {
-    File briefcase = StorageLocation.getBriefcaseFolder();
+    File briefcase = new StorageLocation().getBriefcaseFolder();
     File tempDefnFile;
     try {
       tempDefnFile = File.createTempFile("tempDefn", ".xml", briefcase);

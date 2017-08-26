@@ -181,7 +181,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
     @Override
     public void setFullUIEnabled(boolean enabled) {
-        final String briefcaseDirectory = BriefcasePreferences.getBriefcaseDirectoryIfSet();
+        final String briefcaseDirectory = BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull();
         settingsPanel.getTxtBriefcaseDir().setText(briefcaseDirectory == null ?
                 "" : briefcaseDirectory + File.separator + StorageLocation.BRIEFCASE_DIR);
 
@@ -214,7 +214,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         frame.setBounds(100, 100, 680, 595);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        storageLocation = new StorageLocation(frame, this);
+        storageLocation = new StorageLocation();
 
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
         GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
@@ -250,7 +250,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
         frame.addWindowListener(this);
 
-        storageLocation.establishBriefcaseStorageLocation();
+        storageLocation.establishBriefcaseStorageLocation(frame, this);
     }
 
     /** Adds a pane to the JTabbedPane, and saves its index in a map from pane to index. */

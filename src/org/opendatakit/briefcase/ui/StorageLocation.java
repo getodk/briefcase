@@ -15,84 +15,54 @@ import static org.opendatakit.briefcase.util.FileSystemUtils.FORMS_DIR;
 
 /** Managing the Briefcase storage location */
 public class StorageLocation {
-    private final Window appWindow;
-    private final UiStateChangeListener uiStateChangeListener;
-    public static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
+    static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
     static final String README_TXT = "readme.txt";
+    private final BriefcasePreferences briefcasePreferences;
     private static final Log log = LogFactory.getLog(StorageLocation.class.getName());
 
-    public StorageLocation(Window appWindow, UiStateChangeListener uiStateChangeListener) {
-        this.appWindow = appWindow;
-        this.uiStateChangeListener = uiStateChangeListener;
+    public StorageLocation() {
+        briefcasePreferences = BriefcasePreferences.appScoped();
     }
 
-    public static File getBriefcaseFolder() {
-      return new File(new File(BriefcasePreferences
-          .getBriefcaseDirectoryProperty()), BRIEFCASE_DIR);
+    public StorageLocation(BriefcasePreferences briefcasePreferences) {
+        this.briefcasePreferences = briefcasePreferences;
     }
 
-    void establishBriefcaseStorageLocation() {
-        // set the enabled/disabled status of the panels based upon validity of default briefcase directory.
-        String briefcaseDir = BriefcasePreferences.getBriefcaseDirectoryIfSet();
-        boolean reset = false;
-        if ( briefcaseDir == null ) {
-            reset = true;
-        } else {
+    /** Returns a File object representing the Briefcase storage location folder, using the directory provided
+     * by the user if there is one, otherwise the user’s home directory. */
+    public File getBriefcaseFolder() {
+        File briefcaseFolderLocation = new File(briefcasePreferences.getBriefcaseDirectoryOrUserHome());
+        return new File(briefcaseFolderLocation, BRIEFCASE_DIR);
+    }
+
+    /**
+     * Sets the enabled/disabled status of the panels based upon the validity of the default briefcase directory.
+     * @param errorParentWindow the parent window of error dialogs
+     * @param uiStateChangeListener an object whose setFullUIEnabled method is to be called
+     */
+    void establishBriefcaseStorageLocation(Window errorParentWindow, UiStateChangeListener uiStateChangeListener) {
+        String briefcaseDir = briefcasePreferences.getBriefcaseDirectoryOrNull();
+        boolean enableUi = false;
+
+        if (briefcaseDir != null) {
             File dir = new File(briefcaseDir);
-            if ( !dir.exists() || !dir.isDirectory()) {
-                reset = true;
-            } else {
-                File folder = StorageLocation.getBriefcaseFolder();
-                if ( !folder.exists() || !folder.isDirectory()) {
-                    reset = true;
+            if (dir.exists() && dir.isDirectory()) {
+                if (BriefcaseFolderChooser.testAndMessageBadBriefcaseStorageLocationParentFolder(dir, errorParentWindow)) {
+                    try {
+                        assertBriefcaseStorageLocationParentFolder(dir);
+                        enableUi = true;
+                    } catch (FileSystemException e1) {
+                        String msg = "Unable to create " + StorageLocation.BRIEFCASE_DIR;
+                        log.error(msg, e1);
+                        ODKOptionPane.showErrorDialog(errorParentWindow, msg, "Failed to Create " + StorageLocation.BRIEFCASE_DIR);
+                    }
                 }
             }
         }
-
-        if (reset) {
-            uiStateChangeListener.setFullUIEnabled(false);
-        } else {
-            File f = new File( BriefcasePreferences.getBriefcaseDirectoryProperty());
-            if (BriefcaseFolderChooser.testAndMessageBadBriefcaseStorageLocationParentFolder(f, appWindow)) {
-                try {
-                    assertBriefcaseStorageLocationParentFolder(f);
-                    uiStateChangeListener.setFullUIEnabled(true);
-                } catch (FileSystemException e1) {
-                    String msg = "Unable to create " + StorageLocation.BRIEFCASE_DIR;
-                    log.error(msg, e1);
-                    ODKOptionPane.showErrorDialog(appWindow, msg, "Failed to Create " + StorageLocation.BRIEFCASE_DIR);
-                    // we had a bad path -- disable all but Choose...
-                    uiStateChangeListener.setFullUIEnabled(false);
-                }
-            } else {
-                // we had a bad path -- disable all but Choose...
-                uiStateChangeListener.setFullUIEnabled(false);
-            }
-        }
+        uiStateChangeListener.setFullUIEnabled(enableUi);
     }
 
-    public static final boolean isBriefcaseStorageLocationParentFolder(File pathname) {
-      if ( !pathname.exists() ) {
-        return false;
-      }
-      File folder = new File(pathname, StorageLocation.BRIEFCASE_DIR);
-      if ( !folder.exists() ) {
-        return false;
-      }
-      if ( !folder.isDirectory() ) {
-        return false;
-      }
-      File forms = new File(folder, FORMS_DIR);
-      if ( !forms.exists() ) {
-        return false;
-      }
-      if ( !forms.isDirectory() ) {
-        return false;
-      }
-      return true;
-    }
-
-    static final void assertBriefcaseStorageLocationParentFolder(File pathname) throws FileSystemException {
+    void assertBriefcaseStorageLocationParentFolder(File pathname) throws FileSystemException {
       File folder = new File(pathname, StorageLocation.BRIEFCASE_DIR);
       if ( !folder.exists() ) {
         if ( !folder.mkdir() ) {
@@ -129,18 +99,32 @@ public class StorageLocation {
       }
     }
 
+    /**
+     * Returns whether pathname is a folder under the Briefcase storage folder
+     * @param pathname the File to check
+     */
     static boolean isUnderBriefcaseFolder(File pathname) {
-      File parent = (pathname == null ? null : pathname.getParentFile());
-      File current = pathname;
-      while (parent != null) {
-        if (isBriefcaseStorageLocationParentFolder(parent) &&
-            current.getName().equals(StorageLocation.BRIEFCASE_DIR)) {
-          return true;
+        File current = pathname;
+        File parent = pathname == null ? null : pathname.getParentFile();
+        while (parent != null) {
+            if (isStorageLocationParent(parent) && current.getName().equals(StorageLocation.BRIEFCASE_DIR)) {
+                return true;
+            }
+            current = parent;
+            parent = parent.getParentFile();
         }
-        current = parent;
-        parent = parent.getParentFile();
-      }
-      return false;
+        return false;
     }
 
+    private static boolean isStorageLocationParent(File pathname) {
+        if (!pathname.exists()) {
+            return false;
+        }
+        File folder = new File(pathname, StorageLocation.BRIEFCASE_DIR);
+        if (!folder.exists() || !folder.isDirectory()) {
+            return false;
+        }
+        File forms = new File(folder, FORMS_DIR);
+        return forms.exists() && forms.isDirectory();
+    }
 }
