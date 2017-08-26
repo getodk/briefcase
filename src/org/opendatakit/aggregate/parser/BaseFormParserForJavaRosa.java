@@ -124,7 +124,7 @@ public class BaseFormParserForJavaRosa {
   }
 
   private static void redirectOutput() {
-    File jrLogFile = new File(StorageLocation.getBriefcaseFolder(), ".briefcase-javarosa.log");
+    File jrLogFile = new File(new StorageLocation().getBriefcaseFolder(), ".briefcase-javarosa.log");
     try {
       PrintStream jrOut = new PrintStream(jrLogFile);
       Std.setOut(jrOut);

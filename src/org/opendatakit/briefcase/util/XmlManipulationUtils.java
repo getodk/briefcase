@@ -264,7 +264,7 @@ public class XmlManipulationUtils {
         try {
             return BadXMLFixer.fixBadXML(submission);
         } catch (CannotFixXMLException e1) {
-            File debugFileLocation = new File(StorageLocation.getBriefcaseFolder(), "debug");
+            File debugFileLocation = new File(new StorageLocation().getBriefcaseFolder(), "debug");
             try {
                 if (!debugFileLocation.exists()) {
                     FileUtils.forceMkdir(debugFileLocation);

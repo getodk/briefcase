@@ -50,7 +50,7 @@ public class SettingsPanel extends JPanel {
                 File base = null;
                 if (candidateDir == null || candidateDir.trim().length() == 0) {
                     // nothing -- use default
-                    base = new File(BriefcasePreferences.getBriefcaseDirectoryProperty());
+                    base = new File(BriefcasePreferences.appScoped().getBriefcaseDirectoryOrUserHome());
                 } else {
                     // start with candidate parent and move up the tree until we have a valid directory.
                     base = new File(candidateDir).getParentFile();
@@ -68,7 +68,7 @@ public class SettingsPanel extends JPanel {
                         String briefcasePath = parentFolder.getAbsolutePath();
                         txtBriefcaseDir.setText(briefcasePath);
                         BriefcasePreferences.setBriefcaseDirectoryProperty(briefcasePath);
-                        parentWindow.storageLocation.establishBriefcaseStorageLocation();
+                        parentWindow.storageLocation.establishBriefcaseStorageLocation(parentWindow.frame, parentWindow);
                     }
                 }
             }
