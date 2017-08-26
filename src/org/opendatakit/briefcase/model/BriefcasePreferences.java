@@ -20,6 +20,8 @@ import java.util.UUID;
 import java.util.prefs.Preferences;
 
 import org.apache.http.HttpHost;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
 
@@ -42,6 +44,7 @@ public class BriefcasePreferences {
     private static final String BRIEFCASE_PARALLEL_PULLS_PROPERTY = "briefcaseParallelPulls";
     private static final String BRIEFCASE_TRACKING_CONSENT_PROPERTY = "briefcaseTrackingConsent";
     private static final String BRIEFCASE_UNIQUE_USER_ID_PROPERTY = "uniqueUserID";
+    private static final Logger log = Logger.getLogger(BriefcasePreferences.class);
 
     static {
         // load the security provider
@@ -52,6 +55,7 @@ public class BriefcasePreferences {
 
     private BriefcasePreferences(Class<?> node, PreferenceScope scope) {
         this.preferences = scope.preferenceFactory(node);
+        BasicConfigurator.configure();
     }
 
     /**
@@ -76,6 +80,8 @@ public class BriefcasePreferences {
      *         with key, or the backing store is inaccessible.
      */
     public String get(String key, String defaultValue) {
+        log.info(preferences);
+        log.info(key);
         return preferences.get(key, defaultValue);
     }
 
@@ -111,13 +117,12 @@ public class BriefcasePreferences {
         }
     }
 
-    public static String getBriefcaseDirectoryIfSet() {
-        return Preference.APPLICATION_SCOPED.get(BRIEFCASE_DIR_PROPERTY, null);
+    public String getBriefcaseDirectoryOrNull() {
+        return get(BRIEFCASE_DIR_PROPERTY, null);
     }
 
-    public static String getBriefcaseDirectoryProperty() {
-        return Preference.APPLICATION_SCOPED.get(BRIEFCASE_DIR_PROPERTY,
-                System.getProperty("user.home"));
+    public String getBriefcaseDirectoryOrUserHome() {
+        return get(BRIEFCASE_DIR_PROPERTY, System.getProperty("user.home"));
     }
 
     public static void setBriefcaseProxyProperty(HttpHost value) {
@@ -173,6 +178,10 @@ public class BriefcasePreferences {
     private static class Preference {
         private static final BriefcasePreferences APPLICATION_SCOPED =
                 new BriefcasePreferences(BriefcasePreferences.class, PreferenceScope.APPLICATION);
+    }
+
+    public static BriefcasePreferences appScoped() {
+        return Preference.APPLICATION_SCOPED;
     }
 
     public static HttpHost getBriefCaseProxyConnection() {

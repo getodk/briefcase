@@ -97,7 +97,7 @@ public class BriefcaseCLI {
         TerminationFuture terminationFuture = new TerminationFuture();
 
         BriefcasePreferences.setBriefcaseDirectoryProperty(storageDir);
-        File f = StorageLocation.getBriefcaseFolder();
+        File f = new StorageLocation().getBriefcaseFolder();
 
         if (!f.exists()) {
             boolean success = f.mkdirs();
