@@ -37,7 +37,7 @@ public class SettingsPanel extends JPanel {
     SettingsPanel(final MainBriefcaseWindow parentWindow) {
         txtBriefcaseDir.setFocusable(false);
         txtBriefcaseDir.setEditable(false);
-        txtBriefcaseDir.setColumns(80);
+        txtBriefcaseDir.setColumns(50);
 
         final JButton btnChoose = new JButton("Change...");
         btnChoose.addActionListener(new ActionListener() {

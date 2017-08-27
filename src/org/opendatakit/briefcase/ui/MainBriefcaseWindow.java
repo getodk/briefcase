@@ -32,12 +32,7 @@ import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
 
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JTabbedPane;
-import javax.swing.UIManager;
+import javax.swing.*;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
@@ -93,15 +88,8 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
             EventQueue.invokeLater(new Runnable() {
                 public void run() {
                     try {
-                        // Set System L&F
                         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-
                         MainBriefcaseWindow window = new MainBriefcaseWindow();
-                        window.frame.setTitle(BRIEFCASE_VERSION);
-                        ImageIcon icon = new ImageIcon(MainBriefcaseWindow.class.getClassLoader().getResource("odk_logo.png"));
-                        window.frame.setIconImage(icon.getImage());
-                        window.frame.setLocationRelativeTo(null);
-                        window.frame.setVisible(true);
                     } catch (Exception e) {
                         log.error("failed to launch app", e);
                     }
@@ -211,29 +199,12 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         briefcaseAnalytics.trackStartup();
 
         frame = new JFrame();
-        frame.setBounds(100, 100, 680, 595);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         storageLocation = new StorageLocation();
 
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-        GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
-        groupLayout.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
-                groupLayout
-                        .createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(
-                                groupLayout
-                                        .createParallelGroup(Alignment.LEADING)
-                                        .addComponent(tabbedPane, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 628,
-                                                Short.MAX_VALUE))
-                        .addContainerGap()));
-        groupLayout.setVerticalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
-                groupLayout
-                        .createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(tabbedPane, GroupLayout.DEFAULT_SIZE, 446, Short.MAX_VALUE)
-                        .addContainerGap()));
+        frame.setContentPane(tabbedPane);
 
         PullTransferPanel gatherPanel = new PullTransferPanel(transferTerminationFuture);
         addPane(PullTransferPanel.TAB_NAME, gatherPanel);
@@ -243,12 +214,16 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
         exportPanel = new ExportPanel(exportTerminationFuture);
         addPane(ExportPanel.TAB_NAME, exportPanel);
-        frame.getContentPane().setLayout(groupLayout);
 
         settingsPanel = new SettingsPanel(this);
         addPane(SettingsPanel.TAB_NAME, settingsPanel);
 
         frame.addWindowListener(this);
+        frame.setTitle(BRIEFCASE_VERSION);
+        frame.setIconImage(new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png")).getImage());
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
 
         storageLocation.establishBriefcaseStorageLocation(frame, this);
     }
