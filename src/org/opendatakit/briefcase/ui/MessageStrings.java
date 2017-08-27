@@ -50,11 +50,11 @@ public class MessageStrings {
   
   public static final String INVALID_PEM_FILE_DIALOG_TITLE =
       "Invalid Private Key (PEM) File";
-  static final String BRIEFCASE_STORAGE_LOCATION_EXPLANATION =
-          "Briefcase uses a storage area named ODK Briefcase Storage inside the Storage Location\n" +
-          "below. This storage area holds all your form and submission data. Once created, you\n" +
-          "can copy and transport this storage area across systems, just like a briefcase of paper\n" +
-          "documents.";
+  static final String BRIEFCASE_WELCOME =
+          "Please set the path in your file system where Briefcase should create its\n" +
+          "storage area (a directory called ODK Briefcase Storage). This storage area will\n" +
+          "hold all your form and submission data. Once created, you can copy and transport\n" +
+          "this storage area across systems, just like a briefcase of paper documents.";
   public static final String README_CONTENTS =
       "This ODK Briefcase storage area retains\n" +
       "all the forms and submissions that have been\n" +
@@ -80,6 +80,5 @@ public class MessageStrings {
           "features of this software. Use of this information will always follow the ODK\n" +
           "Community Privacy Policy.";
 
-  public static final String TRACKING_CONSENT = "Allow tracking of non-personal usage data";
-
+  static final String TRACKING_CONSENT = "Gather anonymous usage data";
 }

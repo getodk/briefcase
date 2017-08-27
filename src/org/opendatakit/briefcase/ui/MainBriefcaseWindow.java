@@ -32,7 +32,12 @@ import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
 
-import javax.swing.*;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JTabbedPane;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
@@ -44,7 +49,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeListener {
-    private static final String BRIEFCASE_VERSION = "ODK Briefcase - " + BriefcasePreferences.VERSION;
+    private static final String APP_NAME = "ODK Briefcase";
+    private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BriefcasePreferences.VERSION;
+    private final ImageIcon imageIcon = new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png"));
 
     JFrame frame;
     private PushTransferPanel uploadPanel;
@@ -220,12 +227,21 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
         frame.addWindowListener(this);
         frame.setTitle(BRIEFCASE_VERSION);
-        frame.setIconImage(new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png")).getImage());
+        frame.setIconImage(imageIcon.getImage());
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
         storageLocation.establishBriefcaseStorageLocation(frame, this);
+
+        showIntroDialogIfNeeded();
+    }
+
+    private void showIntroDialogIfNeeded() {
+        String message = MessageStrings.BRIEFCASE_WELCOME + "\n\n" + MessageStrings.TRACKING_CONSENT_EXPLANATION;
+        if (BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull() == null) {
+            JOptionPane.showMessageDialog(frame, message, APP_NAME, JOptionPane.INFORMATION_MESSAGE, imageIcon);
+        }
     }
 
     /** Adds a pane to the JTabbedPane, and saves its index in a map from pane to index. */
