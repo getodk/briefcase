@@ -29,10 +29,6 @@ public class SettingsPanel extends JPanel {
     private final JSpinner spinPort = new JIntegerSpinner(8080, 0, 65535, 1);
     private final JCheckBox chkParallel = new JCheckBox(MessageStrings.PARALLEL_PULLS);
     private final JCheckBox chkTrackingConsent = new JCheckBox(MessageStrings.TRACKING_CONSENT);
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JTextArea txtCollectionInfo;
-    private javax.swing.JTextArea txtStorageInfo;
 
     SettingsPanel(final MainBriefcaseWindow parentWindow) {
         txtBriefcaseDir.setFocusable(false);
@@ -95,26 +91,7 @@ public class SettingsPanel extends JPanel {
         final JLabel lblHost = new JLabel(MessageStrings.PROXY_HOST);
         final JLabel lblPort = new JLabel(MessageStrings.PROXY_PORT);
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        txtCollectionInfo = new javax.swing.JTextArea();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        txtStorageInfo = new javax.swing.JTextArea();
-
         lblBriefcaseDir.setText("Storage Location");
-
-        txtCollectionInfo.setEditable(false);
-        txtCollectionInfo.setFocusable(false);
-        txtCollectionInfo.setRows(5);
-        txtCollectionInfo.setText(MessageStrings.TRACKING_CONSENT_EXPLANATION);
-        txtCollectionInfo.setFocusable(false);
-        jScrollPane1.setViewportView(txtCollectionInfo);
-
-        txtStorageInfo.setEditable(false);
-        txtStorageInfo.setFocusable(false);
-        txtStorageInfo.setRows(4);
-        txtStorageInfo.setText(MessageStrings.BRIEFCASE_STORAGE_LOCATION_EXPLANATION);
-        txtStorageInfo.setFocusable(false);
-        jScrollPane3.setViewportView(txtStorageInfo);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -123,13 +100,11 @@ public class SettingsPanel extends JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3)
-                    .addComponent(jScrollPane1)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(lblBriefcaseDir)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtBriefcaseDir)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 125, Short.MAX_VALUE)
+                        .addComponent(txtBriefcaseDir, javax.swing.GroupLayout.DEFAULT_SIZE, 358, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnChoose))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -154,19 +129,15 @@ public class SettingsPanel extends JPanel {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblBriefcaseDir)
                     .addComponent(txtBriefcaseDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnChoose))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(chkTrackingConsent)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(chkParallel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(chkProxy)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -177,10 +148,8 @@ public class SettingsPanel extends JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblPort)
-                    .addComponent(spinPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(12, 12, 12))
+                    .addComponent(spinPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
-        setLayout(layout);
         setCurrentProxySettings();
     }
     
