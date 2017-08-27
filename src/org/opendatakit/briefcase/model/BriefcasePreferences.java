@@ -20,7 +20,6 @@ import java.util.UUID;
 import java.util.prefs.Preferences;
 
 import org.apache.http.HttpHost;
-import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
@@ -55,7 +54,6 @@ public class BriefcasePreferences {
 
     private BriefcasePreferences(Class<?> node, PreferenceScope scope) {
         this.preferences = scope.preferenceFactory(node);
-        BasicConfigurator.configure();
     }
 
     /**
@@ -80,8 +78,6 @@ public class BriefcasePreferences {
      *         with key, or the backing store is inaccessible.
      */
     public String get(String key, String defaultValue) {
-        log.info(preferences);
-        log.info(key);
         return preferences.get(key, defaultValue);
     }
 
