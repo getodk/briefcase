@@ -64,8 +64,6 @@ public class ExportPanel extends JPanel {
 
     static final String TAB_NAME = "Export";
 
-    private static final String EXPORTING_DOT_ETC = "Exporting..........";
-
     private final JTextField txtExportDirectory;
 
     private final JComboBox<ExportType> comboBoxExportType;
@@ -337,7 +335,7 @@ public class ExportPanel extends JPanel {
         pickStartDate = new DatePicker();
         pickEndDate = new DatePicker();
 
-        lblExporting = new JLabel(EXPORTING_DOT_ETC);
+        lblExporting = new JLabel("");
         lblExporting.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         progressBar = new JProgressBar(0, 100);
