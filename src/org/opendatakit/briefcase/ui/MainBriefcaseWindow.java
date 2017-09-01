@@ -50,6 +50,7 @@ import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
+import org.opendatakit.briefcase.util.CacheUtils;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
 public class MainBriefcaseWindow implements WindowListener {
@@ -88,14 +89,7 @@ public class MainBriefcaseWindow implements WindowListener {
    * Launch the application.
    */
   public static void main(String[] args) {
-
-    FileSystemUtils.loadFormDefinitionCache();
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        FileSystemUtils.saveFormDefinitionCache();
-      }
-    });
+    CacheUtils.initFormDefinitionCache();
 
     if (args.length == 0) {
 
