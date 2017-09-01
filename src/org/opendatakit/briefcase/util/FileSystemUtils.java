@@ -81,45 +81,9 @@ public class FileSystemUtils {
   static final String ENCRYPTED_FILE_EXTENSION = ".enc";
   static final String MISSING_FILE_EXTENSION = ".missing";
 
-  static final File cacheFile = new File(getBriefcaseFolder(), "cache.ser");
-
-  static Map<String, String> pathToMd5Map;
-  static Map<String, BriefcaseFormDefinition> pathToDefinitionMap;
-
   public static final String getMountPoint() {
     return System.getProperty("os.name").startsWith("Win") ? File.separator + ".." : (System
         .getProperty("os.name").startsWith("Mac") ? "/Volumes/" : "/mnt/");
-  }
-
-  public static void saveFormDefinitionCache() {
-    if (!cacheFile.exists() || cacheFile.canWrite()) {
-      try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(cacheFile))) {
-        objectOutputStream.writeObject(pathToMd5Map);
-        objectOutputStream.writeObject(pathToDefinitionMap);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  public static void loadFormDefinitionCache() {
-    if (cacheFile.exists() && cacheFile.canRead()) {
-      try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(cacheFile))) {
-        pathToMd5Map = (Map) objectInputStream.readObject();
-        pathToDefinitionMap = (Map) objectInputStream.readObject();
-      } catch (IOException | ClassNotFoundException e) {
-        e.printStackTrace();
-      }
-    }
-
-    if (pathToMd5Map == null) {
-      pathToMd5Map = new HashMap<>();
-    }
-
-    if (pathToDefinitionMap == null) {
-      pathToDefinitionMap =  new HashMap<>();
-    }
   }
 
   // Predicates to determine whether the folder is an ODK Device
@@ -163,15 +127,15 @@ public class FileSystemUtils {
           try {
             File formFile = new File(f, f.getName() + ".xml");
             String formFileHash = getMd5Hash(formFile);
-            String existingFormFileHash = String.valueOf(pathToMd5Map.get(formFile.getAbsolutePath()));
-            BriefcaseFormDefinition existingDefinition = (BriefcaseFormDefinition) pathToDefinitionMap.get(formFile.getAbsolutePath());
+            String existingFormFileHash = String.valueOf(CacheUtils.getFormFileMd5Hash(formFile.getAbsolutePath()));
+            BriefcaseFormDefinition existingDefinition = CacheUtils.getFormFileFormDefinition(formFile.getAbsolutePath());
             if (existingFormFileHash == null
                     || existingDefinition == null
                     || !existingFormFileHash.equalsIgnoreCase(formFileHash)) {
               // overwrite cache if the form's hash is not the same or there's no entry for the form in the cache.
-              pathToMd5Map.put(formFile.getAbsolutePath(), formFileHash);
+              CacheUtils.putFormFileMd5Hash(formFile.getAbsolutePath(), formFileHash);
               existingDefinition = new BriefcaseFormDefinition(f, formFile);
-              pathToDefinitionMap.put(formFile.getAbsolutePath(), existingDefinition);
+              CacheUtils.putFormFileFormDefinition(formFile.getAbsolutePath(), existingDefinition);
             }
 
             formsList.add(existingDefinition);
