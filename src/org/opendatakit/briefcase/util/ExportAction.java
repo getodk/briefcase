@@ -16,6 +16,17 @@
 
 package org.opendatakit.briefcase.util;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.util.Date;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.openssl.PEMReader;
@@ -28,16 +39,6 @@ import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class ExportAction {
 
@@ -64,7 +65,7 @@ public class ExportAction {
           if (action.totalFilesSkipped() == FilesSkipped.SOME) {
             EventBus.publish(new ExportSucceededWithErrorsEvent(
                     action.getFormDefinition()));
-          } else if (action.totalFilesSkipped() == FilesSkipped.ALL){
+          } else if (action.totalFilesSkipped() == FilesSkipped.ALL) {
             // None of the instances were exported
             EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
           } else {
@@ -87,7 +88,7 @@ public class ExportAction {
 
   public static void export(
       File outputDir, ExportType outputType, BriefcaseFormDefinition lfd, File pemFile,
-      TerminationFuture terminationFuture) throws IOException {
+      TerminationFuture terminationFuture, Date start, Date end) throws IOException {
 
     if (lfd.isFileEncryptedForm() || lfd.isFieldEncryptedForm()) {
 
@@ -143,7 +144,7 @@ public class ExportAction {
 
     ITransformFormAction action;
     if (outputType == ExportType.CSV) {
-      action = new ExportToCsv(outputDir, lfd, terminationFuture);
+      action = new ExportToCsv(outputDir, lfd, terminationFuture, start, end);
     } else {
       throw new IllegalStateException("outputType not recognized");
     }

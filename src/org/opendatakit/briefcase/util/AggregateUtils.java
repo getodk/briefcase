@@ -186,7 +186,7 @@ public class AggregateUtils {
       u = url.toURI();
     } catch (MalformedURLException e) {
       String msg = description.getFetchDocFailed() + "Invalid url: " + urlString + ".\nFailed with error: " + e.getMessage();
-      if(!urlString.toLowerCase().startsWith("http://") && !urlString.toLowerCase().startsWith("https://")){
+      if (!urlString.toLowerCase().startsWith("http://") && !urlString.toLowerCase().startsWith("https://")) {
         msg += "\nDid you forget to prefix the address with 'http://' or 'https://' ?";
       }
       log.warn(msg, e) ;
@@ -455,7 +455,7 @@ public class AggregateUtils {
       u = url.toURI();
     } catch (MalformedURLException e) {
       String msg = "Invalid url: " + urlString + " for " + actionAddr + ".\nFailed with error: " + e.getMessage();
-      if(!urlString.toLowerCase().startsWith("http://") && !urlString.toLowerCase().startsWith("https://")){
+      if (!urlString.toLowerCase().startsWith("http://") && !urlString.toLowerCase().startsWith("https://")) {
         msg += "\nDid you forget to prefix the address with 'http://' or 'https://' ?";
       }
       log.warn(msg, e);
@@ -665,7 +665,7 @@ public class AggregateUtils {
 
         // we've added at least one attachment to the request...
         if (j + 1 < files.size()) {
-          if ((j-lastJ+1) > 100 || byteCount + files.get(j + 1).length() > 10000000L) {
+          if ((j - lastJ + 1) > 100 || byteCount + files.get(j + 1).length() > 10000000L) {
             // more than 100 attachments or the next file would exceed the 10MB threshold...
             log.info("Extremely long post is being split into multiple posts");
             try {

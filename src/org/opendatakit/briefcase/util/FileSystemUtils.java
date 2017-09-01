@@ -299,8 +299,8 @@ public class FileSystemUtils {
   private static String getJdbcUrl(File dbFile) throws FileSystemException {
     if (isHypersonicDatabase(dbFile)) {
       return HSQLDB_JDBC_PREFIX + dbFile.getAbsolutePath();
-    } else if (isSmallSQLDatabase(dbFile)){
-      return SMALLSQL_JDBC_PREFIX + dbFile.getAbsolutePath() + (dbFile.exists()? "" : "?create=true");
+    } else if (isSmallSQLDatabase(dbFile)) {
+      return SMALLSQL_JDBC_PREFIX + dbFile.getAbsolutePath() + (dbFile.exists() ? "" : "?create=true");
     } else {
       throw new FileSystemException("unknown database type for file " + dbFile);
     }

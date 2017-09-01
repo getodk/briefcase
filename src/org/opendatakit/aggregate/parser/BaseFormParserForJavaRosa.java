@@ -17,8 +17,11 @@
 
 package org.opendatakit.aggregate.parser;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +33,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.javarosa.core.io.Std;
 import org.javarosa.core.model.DataBinding;
 import org.javarosa.core.model.FormDef;
 import org.javarosa.core.model.IDataReference;
@@ -48,6 +52,7 @@ import org.opendatakit.aggregate.constants.ParserConsts;
 import org.opendatakit.aggregate.exception.ODKIncompleteSubmissionData;
 import org.opendatakit.aggregate.exception.ODKIncompleteSubmissionData.Reason;
 import org.opendatakit.aggregate.form.XFormParameters;
+import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.common.utils.WebUtils;
 import org.opendatakit.common.web.constants.BasicConsts;
 
@@ -112,9 +117,21 @@ public class BaseFormParserForJavaRosa implements Serializable {
              // new CoreModelModule().registerModule();
              // replace with direct call to PrototypeManager
              PrototypeManager.registerPrototypes(SERIALIABLE_CLASSES);
+             redirectOutput();
              new XFormsModule().registerModule();
              isJavaRosaInitialized = true;
        }
+    }
+  }
+
+  private static void redirectOutput() {
+    File jrLogFile = new File(FileSystemUtils.getBriefcaseFolder(), ".briefcase-javarosa.log");
+    try {
+      PrintStream jrOut = new PrintStream(jrLogFile);
+      Std.setOut(jrOut);
+      Std.setErr(jrOut);
+    } catch (FileNotFoundException e) {
+      log.warn("failed to redirect javarosa output to " + jrLogFile);
     }
   }
 

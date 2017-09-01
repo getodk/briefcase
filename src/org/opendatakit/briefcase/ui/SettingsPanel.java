@@ -1,11 +1,9 @@
 package org.opendatakit.briefcase.ui;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.util.ArrayList;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -24,21 +22,15 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.util.StringUtils;
 
 
-/**
- *
- */
 public class SettingsPanel extends JPanel {
 
     public static final String TAB_NAME = "Settings";
 
-    public static int TAB_POSITION = -1;
-
     private JLabel lblBriefcaseDirectory;
     private JTextField txtBriefcaseDir;
     private JButton btnChoose;
-    private MainBriefcaseWindow parentWindow;
+    private MainBriefcaseWindow mainBriefcaseWindow;
 
-    private ArrayList<Component> navOrder = new ArrayList<Component>();
     private JLabel lblProxy;
     private JCheckBox chkProxy;
     private JLabel lblHost;
@@ -47,9 +39,11 @@ public class SettingsPanel extends JPanel {
     private JSpinner spinPort;
     private JLabel lblParallel;
     private JCheckBox chkParallel;
+    private JLabel lblTrackingConsent;
+    private JCheckBox chkTrackingConsent;
 
-    public SettingsPanel(MainBriefcaseWindow parentWindow) {
-        this.parentWindow = parentWindow;
+    public SettingsPanel(MainBriefcaseWindow mainBriefcaseWindow) {
+        this.mainBriefcaseWindow = mainBriefcaseWindow;
         lblBriefcaseDirectory = new JLabel(MessageStrings.BRIEFCASE_STORAGE_LOCATION);
 
         txtBriefcaseDir = new JTextField();
@@ -83,6 +77,11 @@ public class SettingsPanel extends JPanel {
         chkParallel.setSelected(BriefcasePreferences.getBriefcaseParallelPullsProperty());
         chkParallel.addActionListener(new ParallelPullToggleListener());
 
+        lblTrackingConsent = new JLabel(MessageStrings.TRACKING_CONSENT);
+        chkTrackingConsent = new JCheckBox();
+        chkTrackingConsent.setSelected(BriefcasePreferences.getBriefcaseTrackingConsentProperty());
+        chkTrackingConsent.addActionListener(new TrackingConsentToggleListener());
+
         GroupLayout groupLayout = new GroupLayout(this);
         groupLayout.setHorizontalGroup(
           groupLayout.createSequentialGroup()
@@ -90,7 +89,8 @@ public class SettingsPanel extends JPanel {
             .addGroup(
               groupLayout.createParallelGroup(Alignment.TRAILING)
                 .addComponent(chkProxy)
-                .addComponent(chkParallel))
+                .addComponent(chkParallel)
+                .addComponent(chkTrackingConsent))
             .addGroup(
               groupLayout.createParallelGroup(Alignment.LEADING)
                 .addGroup(
@@ -109,7 +109,8 @@ public class SettingsPanel extends JPanel {
                       groupLayout.createParallelGroup(Alignment.LEADING)
                         .addComponent(txtHost, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
                         .addComponent(spinPort, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)))
-                      .addComponent(lblParallel))
+                      .addComponent(lblParallel)
+                      .addComponent(lblTrackingConsent))
             .addContainerGap()
         );
         groupLayout.setVerticalGroup(
@@ -133,18 +134,17 @@ public class SettingsPanel extends JPanel {
               .addGroup(groupLayout.createParallelGroup(Alignment.CENTER)
                 .addComponent(lblParallel)
                 .addComponent(chkParallel))
+              .addGroup(groupLayout.createParallelGroup(Alignment.CENTER)
+                .addComponent(lblTrackingConsent)
+                .addComponent(chkTrackingConsent))
               .addContainerGap()
         );
 
         setLayout(groupLayout);
 
-        navOrder.add(lblBriefcaseDirectory);
-        navOrder.add(txtBriefcaseDir);
-        navOrder.add(btnChoose);
-        
         setCurrentProxySettings();
     }
-    
+
     private void setCurrentProxySettings() {
       HttpHost currentProxy = BriefcasePreferences.getBriefCaseProxyConnection();
       if (currentProxy != null) {
@@ -158,10 +158,6 @@ public class SettingsPanel extends JPanel {
       }
     }
 
-    public ArrayList<Component> getTraversalOrdering() {
-        return navOrder;
-    }
-
     public JTextField getTxtBriefcaseDir() {
         return txtBriefcaseDir;
     }
@@ -171,11 +167,11 @@ public class SettingsPanel extends JPanel {
         @Override
         public void actionPerformed(ActionEvent e) {
             // briefcase...
-            parentWindow.establishBriefcaseStorageLocation(true);
+            mainBriefcaseWindow.establishBriefcaseStorageLocation(true);
         }
 
     }
-    
+
     private void updateProxySettings() {
         BriefcasePreferences.setBriefcaseProxyProperty(new HttpHost(txtHost.getText(), (int)spinPort.getValue()));
     }
@@ -229,6 +225,17 @@ public class SettingsPanel extends JPanel {
             }
         }
     }
+
+    /**
+     * This listener notifies BriefcaseAnalytics of the users' updated choice
+     * of consent about being tracked.
+     */
+    public class TrackingConsentToggleListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (e.getSource() == chkTrackingConsent) {
+                mainBriefcaseWindow.briefcaseAnalytics.trackConsentDecision(chkTrackingConsent.isSelected());
+            }
+        }
+    }
 }
-
-

@@ -43,6 +43,8 @@ public class MessageStrings {
       "Invalid " + BRIEFCASE_STORAGE_LOCATION;
   public static final String INVALID_EXPORT_DIRECTORY =
       "Invalid " + EXPORT_DIRECTORY;
+  public static final String INVALID_DATE_RANGE_MESSAGE = "Invalid date range: \"From\" date must be before \"To\" date.";
+  public static final String INVALID_DATE_RANGE_TITLE = "Invalid Date Range";
   public static final String INVALID_DIRECTORY =
       "Invalid Directory";
   public static final String INVALID_PEM_FILE =
@@ -81,5 +83,6 @@ public class MessageStrings {
       "If you are behind a proxy, try setting up your proxy details through 'Settings' tab.";
 
   public static final String PARALLEL_PULLS = "Pull submissions in parallel (experimental)";
+  public static final String TRACKING_CONSENT = "Allow tracking of non-personal usage data";
 
 }
