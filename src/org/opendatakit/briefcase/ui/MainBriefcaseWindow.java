@@ -31,6 +31,8 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
+import org.opendatakit.briefcase.util.CacheUtils;
+import org.opendatakit.briefcase.util.FileSystemUtils;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -85,21 +87,15 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     /** A map from each pane to its index in the JTabbedPane */
     private final Map<Component, Integer> paneToIndexMap = new HashMap<>();
 
-    /**
-     * Launch the application.
-     */
-    public static void main(String[] args) {
-        if (false) { // Set to true during testing to clear the storage location
-            BriefcasePreferences.setBriefcaseDirectoryProperty(null);
-        }
-
-    FileSystemUtils.loadFormDefinitionCache();
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        FileSystemUtils.saveFormDefinitionCache();
+  /**
+   * Launch the application.
+   */
+  public static void main(String[] args) {
+      if (false) { // Set to true during testing to clear the storage location
+          BriefcasePreferences.setBriefcaseDirectoryProperty(null);
       }
-    });
+
+    CacheUtils.initFormDefinitionCache();
 
     if (args.length == 0) {
 
