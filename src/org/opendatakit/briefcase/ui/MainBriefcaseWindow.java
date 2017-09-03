@@ -59,7 +59,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     private SettingsPanel settingsPanel;
     private final TerminationFuture exportTerminationFuture = new TerminationFuture();
     private final TerminationFuture transferTerminationFuture = new TerminationFuture();
-    private BriefcaseAnalytics briefcaseAnalytics = new BriefcaseAnalytics();
+    final BriefcaseAnalytics briefcaseAnalytics = new BriefcaseAnalytics();
     final StorageLocation storageLocation;
 
     public static final String AGGREGATE_URL = "aggregate_url";
