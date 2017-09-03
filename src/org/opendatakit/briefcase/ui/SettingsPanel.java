@@ -1,6 +1,7 @@
 package org.opendatakit.briefcase.ui;
 
 import org.apache.http.HttpHost;
+import org.opendatakit.briefcase.model.BriefcaseAnalytics;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.util.StringUtils;
 
@@ -85,7 +86,7 @@ public class SettingsPanel extends JPanel {
         chkParallel.addActionListener(new ParallelPullToggleListener());
 
         chkTrackingConsent.setSelected(BriefcasePreferences.getBriefcaseTrackingConsentProperty());
-        chkTrackingConsent.addActionListener(new TrackingConsentToggleListener());
+        chkTrackingConsent.addActionListener(new TrackingConsentToggleListener(parentWindow.briefcaseAnalytics));
 
         final JLabel lblBriefcaseDir = new JLabel(MessageStrings.BRIEFCASE_STORAGE_LOCATION);
         final JLabel lblHost = new JLabel(MessageStrings.PROXY_HOST);
@@ -225,14 +226,20 @@ public class SettingsPanel extends JPanel {
     }
 
     /**
-     * This listener will pass the user's consent to being tracked onto the
-     * application's preferences so it can be persisted and used elsewhere.
+     * This listener notifies BriefcaseAnalytics of the users' updated choice
+     * of consent about being tracked.
      */
     public class TrackingConsentToggleListener implements ActionListener {
+        private final BriefcaseAnalytics briefcaseAnalytics;
+
+        TrackingConsentToggleListener(BriefcaseAnalytics briefcaseAnalytics) {
+            this.briefcaseAnalytics = briefcaseAnalytics;
+        }
+
         @Override
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() == chkTrackingConsent) {
-                BriefcasePreferences.setBriefcaseTrackingConsentProperty(chkTrackingConsent.isSelected());
+                briefcaseAnalytics.trackConsentDecision(chkTrackingConsent.isSelected());
             }
         }
     }
