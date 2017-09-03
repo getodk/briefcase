@@ -89,6 +89,9 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
      * Launch the application.
      */
     public static void main(String[] args) {
+        if (false) { // Set to true during testing to clear the storage location
+            BriefcasePreferences.setBriefcaseDirectoryProperty(null);
+        }
 
         if (args.length == 0) {
 
