@@ -24,12 +24,12 @@ import javax.swing.JFileChooser;
 class FormDefinitionFileChooser extends AbstractFileChooser {
 
   /**
-	 * 
-	 */
+     *
+     */
   private final Container parentWindow;
   /**
-	 * 
-	 */
+     *
+     */
   private static final long serialVersionUID = 7687043156045655297L;
 
   /**

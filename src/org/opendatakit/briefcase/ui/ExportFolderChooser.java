@@ -34,12 +34,12 @@ import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolde
 class ExportFolderChooser extends AbstractFileChooser {
 
   /**
-	 * 
-	 */
+     *
+     */
   private final Container parentWindow;
   /**
-	 * 
-	 */
+     *
+     */
   private static final long serialVersionUID = 7687033156145655297L;
   
   /**
