@@ -90,7 +90,8 @@ public class SettingsPanel extends JPanel {
               groupLayout.createParallelGroup(Alignment.TRAILING)
                 .addComponent(chkProxy)
                 .addComponent(chkParallel)
-                .addComponent(chkTrackingConsent))
+//                .addComponent(chkTrackingConsent)
+)
             .addGroup(
               groupLayout.createParallelGroup(Alignment.LEADING)
                 .addGroup(
@@ -110,7 +111,8 @@ public class SettingsPanel extends JPanel {
                         .addComponent(txtHost, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
                         .addComponent(spinPort, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)))
                       .addComponent(lblParallel)
-                      .addComponent(lblTrackingConsent))
+//                      .addComponent(lblTrackingConsent)
+)
             .addContainerGap()
         );
         groupLayout.setVerticalGroup(
@@ -135,8 +137,9 @@ public class SettingsPanel extends JPanel {
                 .addComponent(lblParallel)
                 .addComponent(chkParallel))
               .addGroup(groupLayout.createParallelGroup(Alignment.CENTER)
-                .addComponent(lblTrackingConsent)
-                .addComponent(chkTrackingConsent))
+//                .addComponent(lblTrackingConsent)
+//                .addComponent(chkTrackingConsent)
+)
               .addContainerGap()
         );
 
