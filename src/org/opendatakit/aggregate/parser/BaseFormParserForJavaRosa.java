@@ -51,7 +51,7 @@ import org.opendatakit.aggregate.constants.ParserConsts;
 import org.opendatakit.aggregate.exception.ODKIncompleteSubmissionData;
 import org.opendatakit.aggregate.exception.ODKIncompleteSubmissionData.Reason;
 import org.opendatakit.aggregate.form.XFormParameters;
-import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.common.utils.WebUtils;
 import org.opendatakit.common.web.constants.BasicConsts;
 
@@ -124,7 +124,7 @@ public class BaseFormParserForJavaRosa {
   }
 
   private static void redirectOutput() {
-    File jrLogFile = new File(FileSystemUtils.getBriefcaseFolder(), ".briefcase-javarosa.log");
+    File jrLogFile = new File(new StorageLocation().getBriefcaseFolder(), ".briefcase-javarosa.log");
     try {
       PrintStream jrOut = new PrintStream(jrLogFile);
       Std.setOut(jrOut);

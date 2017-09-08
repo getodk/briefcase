@@ -16,84 +16,77 @@
 
 package org.opendatakit.briefcase.ui;
 
-import java.awt.Container;
-import java.io.File;
+import org.opendatakit.briefcase.util.FileSystemUtils;
 
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
+import java.awt.Container;
+import java.io.File;
 
-import org.opendatakit.briefcase.util.FileSystemUtils;
+import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 
 class BriefcaseFolderChooser extends AbstractFileChooser {
 
-  /**
-	 * 
-	 */
-  private final Container parentWindow;
-  /**
-	 * 
-	 */
-  private static final long serialVersionUID = 7687033156045655297L;
+    private final Container parentWindow;
+    private static final long serialVersionUID = 7687033156045655297L;
 
-  /**
-   * 
-   * @param f
-   * @param parentWindow
-   * @return true if directory contains a valid BriefcaseStorageLocation or could contain one.
-   */
-  public static final boolean testAndMessageBadBriefcaseStorageLocationParentFolder(File f, Container parentWindow) {
-    if ( f == null || !f.exists() ) {
-      ODKOptionPane.showErrorDialog(parentWindow,
-          MessageStrings.DIR_NOT_EXIST,
-          MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION);
-      return true;
+    /**
+     * Returns true if directory contains a valid BriefcaseStorageLocation or could contain one. Shows messages
+     * in dialogs.
+     */
+    static boolean testAndMessageBadBriefcaseStorageLocationParentFolder(File file, Container parentWindow) {
+        if (file == null || !file.exists()) {
+            ODKOptionPane.showErrorDialog(parentWindow,
+                    MessageStrings.DIR_NOT_EXIST,
+                    MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION);
+            return true;
+        }
+        if (isUnderBriefcaseFolder(file)) {
+            ODKOptionPane.showErrorDialog(parentWindow,
+                    MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
+                    MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION);
+            return false;
+        }
+        if (FileSystemUtils.isUnderODKFolder(file)) {
+            ODKOptionPane.showErrorDialog(parentWindow,
+                    MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY,
+                    MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION);
+            return false;
+        }
+
+        return true;
     }
-    if (FileSystemUtils.isUnderBriefcaseFolder(f)) {
-      ODKOptionPane.showErrorDialog(parentWindow,
-          MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
-          MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION);
-      return false;
-    } else if (FileSystemUtils.isUnderODKFolder(f)) {
-      ODKOptionPane.showErrorDialog(parentWindow,
-          MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY,
-          MessageStrings.INVALID_BRIEFCASE_STORAGE_LOCATION);
-      return false;
-    } else {
-      return true;
+
+    @Override
+    public void approveSelection() {
+        if (testAndMessageBadBriefcaseStorageLocationParentFolder(getSelectedFile(), parentWindow)) {
+            super.approveSelection();
+        }
     }
-  }
 
-  @Override
-  public void approveSelection() {
-    File f = this.getSelectedFile();
-    if (testAndMessageBadBriefcaseStorageLocationParentFolder(f, parentWindow)) {
-      super.approveSelection();
+    BriefcaseFolderChooser(Container parentWindow) {
+        super();
+        this.parentWindow = parentWindow;
+        setDialogTitle("Choose " + MessageStrings.BRIEFCASE_STORAGE_LOCATION);
+        setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        setDialogType(JFileChooser.OPEN_DIALOG); // allow creating file
+        setFileFilter(new FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                return f.isDirectory();
+            }
+
+            @Override
+            public String getDescription() {
+                return "Directories";
+            }
+        });
+
+        setApproveButtonText("Choose");
     }
-  }
 
-  BriefcaseFolderChooser(Container parentWindow) {
-    super();
-    this.parentWindow = parentWindow;
-    setDialogTitle("Choose " + MessageStrings.BRIEFCASE_STORAGE_LOCATION);
-    setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-    setDialogType(JFileChooser.OPEN_DIALOG); // allow creating file
-    setFileFilter(new FileFilter() {
-      @Override
-      public boolean accept(File f) {
-        return f.isDirectory();
-      }
-
-      @Override
-      public String getDescription() {
-        return "Directories";
-      }
-    });
-    
-    setApproveButtonText("Choose");
-  }
-
-  @Override
-  public boolean testAndMessageBadFolder(File f, Container parentWindow) {
-    return testAndMessageBadBriefcaseStorageLocationParentFolder(f, parentWindow);
-  }
+    @Override
+    public boolean testAndMessageBadFolder(File f, Container parentWindow) {
+        return testAndMessageBadBriefcaseStorageLocationParentFolder(f, parentWindow);
+    }
 }

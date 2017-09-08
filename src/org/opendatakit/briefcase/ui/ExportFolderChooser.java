@@ -24,6 +24,8 @@ import javax.swing.filechooser.FileFilter;
 
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
+import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
+
 /**
  * Class that ensures that a non-briefcase directory is chosen
  * @author mitchellsundt@gmail.com
@@ -32,12 +34,12 @@ import org.opendatakit.briefcase.util.FileSystemUtils;
 class ExportFolderChooser extends AbstractFileChooser {
 
   /**
-	 * 
-	 */
+     *
+     */
   private final Container parentWindow;
   /**
-	 * 
-	 */
+     *
+     */
   private static final long serialVersionUID = 7687033156145655297L;
   
   /**
@@ -54,7 +56,7 @@ class ExportFolderChooser extends AbstractFileChooser {
           MessageStrings.DIR_NOT_DIRECTORY,
           MessageStrings.INVALID_EXPORT_DIRECTORY);
       return false;
-    } else if (FileSystemUtils.isUnderBriefcaseFolder(f)) {
+    } else if (isUnderBriefcaseFolder(f)) {
       ODKOptionPane.showErrorDialog(parentWindow,
           MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
           MessageStrings.INVALID_EXPORT_DIRECTORY);
