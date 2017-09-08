@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatus.TransferType;
 import org.opendatakit.briefcase.model.FormStatusEvent;
@@ -140,11 +141,11 @@ public class FormTransferTable extends JTable {
     final String[] columnNames;
     final JButton btnSelectOrClearAllForms;
     final TransferType transferType;
-    final JButton btnTransfer, btnCancel;
+    final JButton btnTransfer, btnDelete, btnCancel;
     List<FormStatus> formStatuses = new ArrayList<FormStatus>();
     private Map<FormStatus, DetailButton> buttonMap = new HashMap<FormStatus, DetailButton>();
     
-    public FormTransferTableModel(JButton btnSelectOrClearAllForms, TransferType transferType, JButton btnTransfer, JButton btnCancel) {
+    public FormTransferTableModel(JButton btnSelectOrClearAllForms, TransferType transferType, JButton btnTransfer, JButton btnDelete, JButton btnCancel) {
       super();
       AnnotationProcessor.process(this);// if not using AOP
 
@@ -154,6 +155,7 @@ public class FormTransferTable extends JTable {
       this.btnSelectOrClearAllForms = btnSelectOrClearAllForms;
       this.transferType = transferType;
       this.btnTransfer = btnTransfer;
+      this.btnDelete = btnDelete;
       this.btnCancel = btnCancel;
       // initially the transfer button is disabled.
       btnTransfer.setEnabled(false);
@@ -185,6 +187,7 @@ public class FormTransferTable extends JTable {
         anySelected = anySelected || f.isSelected();
       }
       btnTransfer.setEnabled(anySelected);
+      btnDelete.setEnabled(anySelected);
       if (!anyDeselected) {
         FormTransferTableModel.this.btnSelectOrClearAllForms.setText("Clear all");
       } else {
@@ -309,7 +312,11 @@ public class FormTransferTable extends JTable {
   }
 
   public FormTransferTable(JButton btnSelectOrClearAllForms, FormStatus.TransferType transferType, JButton btnTransfer, JButton btnCancel) {
-    super(new FormTransferTableModel(btnSelectOrClearAllForms, transferType, btnTransfer, btnCancel));
+    this(btnSelectOrClearAllForms, transferType, btnTransfer, new JButton(), btnCancel);
+  }
+
+  public FormTransferTable(JButton btnSelectOrClearAllForms, FormStatus.TransferType transferType, JButton btnTransfer, JButton btnDelete ,JButton btnCancel) {
+    super(new FormTransferTableModel(btnSelectOrClearAllForms, transferType, btnTransfer, btnDelete, btnCancel));
     AnnotationProcessor.process(this);// if not using AOP
     // set the button column renderer to a custom renderer
     getColumn(getColumnName(FormTransferTableModel.BUTTON_COLUMN)).setCellRenderer(new JTableButtonRenderer());
@@ -378,4 +385,14 @@ public class FormTransferTable extends JTable {
     return model.getSelectedForms();
   }
 
+  public List<BriefcaseFormDefinition> getSelectedBriefcaseFormDefinitions() {
+    FormTransferTableModel model = (FormTransferTableModel) this.dataModel;
+    List<BriefcaseFormDefinition> selectedForms = new ArrayList<>();
+    for (FormStatus s : model.formStatuses) {
+      if (s.isSelected()) {
+        selectedForms.add((BriefcaseFormDefinition) s.getFormDefinition());
+      }
+    }
+    return selectedForms;
+  }
 }
