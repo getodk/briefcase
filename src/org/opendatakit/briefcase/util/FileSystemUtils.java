@@ -189,7 +189,6 @@ public class FileSystemUtils {
     return foi.exists() && foi.isDirectory();
   }
 
-
   public static final List<BriefcaseFormDefinition> getBriefcaseFormList() {
     List<BriefcaseFormDefinition> formsList = new ArrayList<BriefcaseFormDefinition>();
     File forms = FileSystemUtils.getFormsFolder();
@@ -199,7 +198,19 @@ public class FileSystemUtils {
         if (f.isDirectory()) {
           try {
             File formFile = new File(f, f.getName() + ".xml");
-            formsList.add(new BriefcaseFormDefinition(f, formFile));
+            String formFileHash = getMd5Hash(formFile);
+            String existingFormFileHash = String.valueOf(CacheUtils.getFormFileMd5Hash(formFile.getAbsolutePath()));
+            BriefcaseFormDefinition existingDefinition = CacheUtils.getFormFileFormDefinition(formFile.getAbsolutePath());
+            if (existingFormFileHash == null
+                    || existingDefinition == null
+                    || !existingFormFileHash.equalsIgnoreCase(formFileHash)) {
+              // overwrite cache if the form's hash is not the same or there's no entry for the form in the cache.
+              CacheUtils.putFormFileMd5Hash(formFile.getAbsolutePath(), formFileHash);
+              existingDefinition = new BriefcaseFormDefinition(f, formFile);
+              CacheUtils.putFormFileFormDefinition(formFile.getAbsolutePath(), existingDefinition);
+            }
+
+            formsList.add(existingDefinition);
           } catch (BadFormDefinition e) {
             log.debug("bad form definition", e);
           }

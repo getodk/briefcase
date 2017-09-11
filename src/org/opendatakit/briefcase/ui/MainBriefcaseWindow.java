@@ -32,6 +32,7 @@ import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
+import org.opendatakit.briefcase.util.CacheUtils;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
 import javax.swing.GroupLayout;
@@ -88,6 +89,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
      * Launch the application.
      */
     public static void main(String[] args) {
+        CacheUtils.initFormDefinitionCache();
 
         if (args.length == 0) {
 
