@@ -241,9 +241,9 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     }
 
     private void showIntroDialogIfNeeded() {
-        String message = MessageStrings.BRIEFCASE_WELCOME + "\n\n" + MessageStrings.TRACKING_CONSENT_EXPLANATION;
         if (BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull() == null) {
-            JOptionPane.showMessageDialog(frame, message, APP_NAME, JOptionPane.INFORMATION_MESSAGE, imageIcon);
+            JOptionPane.showMessageDialog(frame, MessageStrings.BRIEFCASE_WELCOME, APP_NAME,
+                    JOptionPane.INFORMATION_MESSAGE, imageIcon);
         }
     }
 
