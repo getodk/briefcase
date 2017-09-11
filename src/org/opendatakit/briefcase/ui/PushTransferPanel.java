@@ -376,7 +376,7 @@ public class PushTransferPanel extends JPanel {
       btnDestinationAction.setEnabled(true);
       btnSelectOrClearAllForms.setEnabled(true);
       btnTransfer.setEnabled(true);
-      btnDelete.setEnabled(formTransferTable.getSelectedForms().size() > 0);
+      btnDelete.setEnabled(!formTransferTable.getSelectedForms().isEmpty());
       btnCancel.setEnabled(false);
       // hide downloading progress text (by setting foreground color to
       // background)
