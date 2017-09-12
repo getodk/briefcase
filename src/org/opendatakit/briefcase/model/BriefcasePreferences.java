@@ -20,7 +20,6 @@ import java.util.UUID;
 import java.util.prefs.Preferences;
 
 import org.apache.http.HttpHost;
-import org.apache.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
 
@@ -43,7 +42,6 @@ public class BriefcasePreferences {
     private static final String BRIEFCASE_PARALLEL_PULLS_PROPERTY = "briefcaseParallelPulls";
     private static final String BRIEFCASE_TRACKING_CONSENT_PROPERTY = "briefcaseTrackingConsent";
     private static final String BRIEFCASE_UNIQUE_USER_ID_PROPERTY = "uniqueUserID";
-    private static final Logger log = Logger.getLogger(BriefcasePreferences.class);
 
     static {
         // load the security provider
