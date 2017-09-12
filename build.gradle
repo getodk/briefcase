@@ -12,10 +12,15 @@ repositories {
 sourceSets {
     main {
         java {
-            srcDirs = ['src/org']
+            srcDirs = ['src']
         }
         resources {
             srcDirs = ['res']
+        }
+    }
+    test {
+        java {
+            srcDirs = ['test']
         }
     }
 }
