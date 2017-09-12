@@ -31,7 +31,6 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
-import org.opendatakit.briefcase.util.CacheUtils;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
 import javax.swing.ImageIcon;
@@ -91,11 +90,9 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
    * Launch the application.
    */
   public static void main(String[] args) {
-      if (false) { // Set to true during testing to clear the storage location
-          BriefcasePreferences.setBriefcaseDirectoryProperty(null);
-      }
-
-    CacheUtils.initFormDefinitionCache();
+    if (false) { // Set to true during testing to clear the storage location
+      BriefcasePreferences.setBriefcaseDirectoryProperty(null);
+    }
 
     if (args.length == 0) {
 
@@ -216,6 +213,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         storageLocation = new StorageLocation();
+        createFormCache();
 
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
         frame.setContentPane(tabbedPane);
@@ -242,6 +240,12 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         storageLocation.establishBriefcaseStorageLocation(frame, this);
 
         showIntroDialogIfNeeded();
+    }
+
+    private void createFormCache() {
+        if (BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull() != null) {
+            FileSystemUtils.createFormCacheInBriefcaseFolder();
+        }
     }
 
     private void showIntroDialogIfNeeded() {
