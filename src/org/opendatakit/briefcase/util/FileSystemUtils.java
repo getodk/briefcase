@@ -22,8 +22,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -35,9 +33,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -65,6 +61,8 @@ import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
 public class FileSystemUtils {
 
   static final Log log = LogFactory.getLog(FileSystemUtils.class);
+
+  private static FormCache formCache = new NullFormCache();
 
   public static final String FORMS_DIR = "forms";
   static final String INSTANCE_DIR = "instances";
@@ -117,6 +115,12 @@ public class FileSystemUtils {
     return foi.exists() && foi.isDirectory();
   }
 
+  /** Creates a new FormCache in the briefcase folder. Called, at program startup if the briefcase
+   * folder has been established, and whenever it changes */
+  public static void createFormCacheInBriefcaseFolder() {
+    FileSystemUtils.formCache = new FormCache(new StorageLocation().getBriefcaseFolder());
+  }
+
   public static final List<BriefcaseFormDefinition> getBriefcaseFormList() {
     List<BriefcaseFormDefinition> formsList = new ArrayList<BriefcaseFormDefinition>();
     File forms = FileSystemUtils.getFormsFolder();
@@ -127,15 +131,15 @@ public class FileSystemUtils {
           try {
             File formFile = new File(f, f.getName() + ".xml");
             String formFileHash = getMd5Hash(formFile);
-            String existingFormFileHash = String.valueOf(CacheUtils.getFormFileMd5Hash(formFile.getAbsolutePath()));
-            BriefcaseFormDefinition existingDefinition = CacheUtils.getFormFileFormDefinition(formFile.getAbsolutePath());
+            String existingFormFileHash = formCache.getFormFileMd5Hash(formFile.getAbsolutePath());
+            BriefcaseFormDefinition existingDefinition = formCache.getFormFileFormDefinition(formFile.getAbsolutePath());
             if (existingFormFileHash == null
                     || existingDefinition == null
                     || !existingFormFileHash.equalsIgnoreCase(formFileHash)) {
               // overwrite cache if the form's hash is not the same or there's no entry for the form in the cache.
-              CacheUtils.putFormFileMd5Hash(formFile.getAbsolutePath(), formFileHash);
+              formCache.putFormFileMd5Hash(formFile.getAbsolutePath(), formFileHash);
               existingDefinition = new BriefcaseFormDefinition(f, formFile);
-              CacheUtils.putFormFileFormDefinition(formFile.getAbsolutePath(), existingDefinition);
+              formCache.putFormFileFormDefinition(formFile.getAbsolutePath(), existingDefinition);
             }
 
             formsList.add(existingDefinition);

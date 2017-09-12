@@ -3,6 +3,7 @@ package org.opendatakit.briefcase.ui;
 import org.apache.http.HttpHost;
 import org.opendatakit.briefcase.model.BriefcaseAnalytics;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.StringUtils;
 
 import javax.swing.JButton;
@@ -65,6 +66,7 @@ public class SettingsPanel extends JPanel {
                         String briefcasePath = parentFolder.getAbsolutePath();
                         txtBriefcaseDir.setText(briefcasePath);
                         BriefcasePreferences.setBriefcaseDirectoryProperty(briefcasePath);
+                        FileSystemUtils.createFormCacheInBriefcaseFolder();
                         parentWindow.storageLocation.establishBriefcaseStorageLocation(parentWindow.frame, parentWindow);
                     }
                 }

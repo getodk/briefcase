@@ -11,25 +11,13 @@ import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CacheUtils {
+public class FormCache {
+    private final File cacheFile;
+    private Map<String, String> pathToMd5Map = new HashMap<>();
+    private Map<String, BriefcaseFormDefinition> pathToDefinitionMap = new HashMap<>();
 
-    static final File cacheFile = new File(FileSystemUtils.getBriefcaseFolder(), "cache.ser");
-    static Map<String, String> pathToMd5Map;
-    static Map<String, BriefcaseFormDefinition> pathToDefinitionMap;
-
-    public static void saveFormDefinitionCache() {
-        if (!cacheFile.exists() || cacheFile.canWrite()) {
-            try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(cacheFile))) {
-                objectOutputStream.writeObject(pathToMd5Map);
-                objectOutputStream.writeObject(pathToDefinitionMap);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public static void initFormDefinitionCache() {
+    public FormCache(File storagePath) {
+        cacheFile = new File(storagePath, "cache.ser");
         if (cacheFile.exists() && cacheFile.canRead()) {
             try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(cacheFile))) {
                 pathToMd5Map = (Map) objectInputStream.readObject();
@@ -42,30 +30,38 @@ public class CacheUtils {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                CacheUtils.saveFormDefinitionCache();
+                save();
             }
         });
     }
 
-    public static String getFormFileMd5Hash(String filePath) {
-        if (pathToMd5Map == null) {
-            pathToMd5Map = new HashMap<>();
+    private void save() {
+        if (!cacheFile.exists() || cacheFile.canWrite()) {
+            try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(cacheFile))) {
+                objectOutputStream.writeObject(pathToMd5Map);
+                objectOutputStream.writeObject(pathToDefinitionMap);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    public String getFormFileMd5Hash(String filePath) {
         return pathToMd5Map.get(filePath);
     }
 
-    public static void putFormFileMd5Hash(String filePath, String md5Hash) {
+    public void putFormFileMd5Hash(String filePath, String md5Hash) {
         pathToMd5Map.put(filePath, md5Hash);
     }
 
-    public static BriefcaseFormDefinition getFormFileFormDefinition(String filePath) {
+    public BriefcaseFormDefinition getFormFileFormDefinition(String filePath) {
         if (pathToDefinitionMap == null) {
             pathToDefinitionMap = new HashMap<>();
         }
         return pathToDefinitionMap.get(filePath);
     }
 
-    public static void putFormFileFormDefinition(String filePath, BriefcaseFormDefinition definition) {
+    public void putFormFileFormDefinition(String filePath, BriefcaseFormDefinition definition) {
         pathToDefinitionMap.put(filePath, definition);
     }
 }
