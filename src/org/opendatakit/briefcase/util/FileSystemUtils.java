@@ -62,7 +62,7 @@ public class FileSystemUtils {
 
   static final Log log = LogFactory.getLog(FileSystemUtils.class);
 
-  private static FormCache formCache = new NullFormCache();
+  private static FormCacheble formCache = new NullFormCache();
 
   public static final String FORMS_DIR = "forms";
   static final String INSTANCE_DIR = "instances";

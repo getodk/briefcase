@@ -11,7 +11,7 @@ import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FormCache {
+public class FormCache implements FormCacheble {
     private final File cacheFile;
     private Map<String, String> pathToMd5Map = new HashMap<>();
     private Map<String, BriefcaseFormDefinition> pathToDefinitionMap = new HashMap<>();
@@ -46,14 +46,17 @@ public class FormCache {
         }
     }
 
+    @Override
     public String getFormFileMd5Hash(String filePath) {
         return pathToMd5Map.get(filePath);
     }
 
+    @Override
     public void putFormFileMd5Hash(String filePath, String md5Hash) {
         pathToMd5Map.put(filePath, md5Hash);
     }
 
+    @Override
     public BriefcaseFormDefinition getFormFileFormDefinition(String filePath) {
         if (pathToDefinitionMap == null) {
             pathToDefinitionMap = new HashMap<>();
@@ -61,6 +64,7 @@ public class FormCache {
         return pathToDefinitionMap.get(filePath);
     }
 
+    @Override
     public void putFormFileFormDefinition(String filePath, BriefcaseFormDefinition definition) {
         pathToDefinitionMap.put(filePath, definition);
     }
