@@ -334,8 +334,8 @@ public class ExportPanel extends JPanel {
         JLabel lblDateFrom = new JLabel("Start Date (inclusive):");
         JLabel lblDateTo = new JLabel("End Date (exclusive):");
 
-        pickStartDate = new DatePicker();
-        pickEndDate = new DatePicker();
+        pickStartDate = createDatePicker();
+        pickEndDate = createDatePicker();
 
         lblExporting = new JLabel("");
         lblExporting.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -467,6 +467,21 @@ public class ExportPanel extends JPanel {
         exportStatusList = new StringBuilder();
         setLayout(groupLayout);
         setActiveExportState(exportStateActive);
+    }
+
+    /**
+     * The DatePicker default text box and calendar button don't match with the rest of the UI.
+     * This tweaks those elements to be consistent with the rest of the application.
+     */
+    private DatePicker createDatePicker() {
+        DatePicker datePicker = new DatePicker();
+        JTextField model = new JTextField();
+
+        datePicker.getComponentToggleCalendarButton().setText("Choose...");
+        datePicker.getComponentDateTextField().setBorder(model.getBorder());
+        datePicker.getComponentDateTextField().setMargin(model.getMargin());
+
+        return datePicker;
     }
 
     @Override
