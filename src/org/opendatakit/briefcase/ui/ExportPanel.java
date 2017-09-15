@@ -555,22 +555,22 @@ public class ExportPanel extends JPanel {
 
     @EventSubscriber(eventClass = ExportFailedEvent.class)
     public void failedCompletion(ExportFailedEvent event) {
-        exportStatusList.append("\n").append("FAILED!");
-        lblExporting.setText("FAILED!");
+        exportStatusList.append("\n").append("Failed.");
+        lblExporting.setText("Failed.");
         setActiveExportState(false);
     }
 
     @EventSubscriber(eventClass = ExportSucceededEvent.class)
     public void successfulCompletion(ExportSucceededEvent event) {
-        exportStatusList.append("\n").append("SUCCEEDED!");
-        lblExporting.setText("SUCCEEDED!");
+        exportStatusList.append("\n").append("Succeeded.");
+        lblExporting.setText("Succeeded.");
         setActiveExportState(false);
     }
 
     @EventSubscriber(eventClass = ExportSucceededWithErrorsEvent.class)
     public void successfulCompletionWithErrors(ExportSucceededWithErrorsEvent event) {
-        exportStatusList.append("\n").append("SUCCEEDED, BUT WITH ERRORS!");
-        lblExporting.setText("SUCCEEDED, BUT WITH ERRORS. SEE DETAILS!");
+        exportStatusList.append("\n").append("Succeeded, but with errors.");
+        lblExporting.setText("Succeeded, but with errors. See details.");
         setActiveExportState(false);
     }
 
