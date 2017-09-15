@@ -150,7 +150,7 @@ public class ServerUploader {
             terminationFuture);
         result = AggregateUtils.getXmlDocument(fullUrl, serverInfo, false, submissionChunkDescription, null);
       } catch (XmlDocumentFetchException e) {
-        fs.setStatusString("NOT ALL SUBMISSIONS RETRIEVED: Error fetching list of instanceIds: " + e.getMessage(), false);
+        fs.setStatusString("Not all submissions retrieved: Error fetching list of instanceIds: " + e.getMessage(), false);
         EventBus.publish(new FormStatusEvent(fs));
         return;
       }
@@ -159,7 +159,7 @@ public class ServerUploader {
       try {
         chunk = XmlManipulationUtils.parseSubmissionDownloadListResponse(result.doc);
       } catch (ParsingException e) {
-        fs.setStatusString("Not all instanceIds retrived: Error parsing the submission download chunk: " + e.getMessage(), false);
+        fs.setStatusString("Not all instanceIds retrieved: Error parsing the submission download chunk: " + e.getMessage(), false);
         EventBus.publish(new FormStatusEvent(fs));
         return;
       }
