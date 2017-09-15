@@ -290,12 +290,12 @@ public class BriefcaseCLI {
 
     @EventSubscriber(eventClass = ExportFailedEvent.class)
     public void failedCompletion(ExportFailedEvent event) {
-        log.error("FAILED!");
+        log.error("Failed.");
     }
 
     @EventSubscriber(eventClass = ExportSucceededEvent.class)
     public void successfulCompletion(ExportSucceededEvent event) {
-        log.info("SUCCEEDED!");
+        log.info("Succeeded.");
     }
 
     @EventSubscriber(eventClass = TransferFailedEvent.class)

@@ -221,13 +221,13 @@ public class MainFormUploaderWindow {
 
   @EventSubscriber(eventClass = TransferFailedEvent.class)
   public void failedCompletion(TransferFailedEvent event) {
-    lblUploading.setText("Failed!");
+    lblUploading.setText("Failed.");
     setActiveTransferState(false);
   }
 
   @EventSubscriber(eventClass = TransferSucceededEvent.class)
   public void successfulCompletion(TransferSucceededEvent event) {
-    lblUploading.setText("Succeeded!");
+    lblUploading.setText("Succeeded.");
     setActiveTransferState(false);
   }
   
