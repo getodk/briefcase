@@ -21,12 +21,13 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.opendatakit.briefcase.util.WebUtils;
 
 public class ServerConnectionInfo {
+
   private String url;
   private final String token; // for legacy ODK Aggregate 0.9.8 access
   private final String username;
   private final char[] password;
   private final boolean isOpenRosaServer;
-  private HttpClientContext httpContext = null;
+  private static final ThreadLocal<HttpClientContext> threadSafeContext = new ThreadLocal<>();
 
   public ServerConnectionInfo(String url, String username, char[] cs) {
     this.url = url;
@@ -69,11 +70,11 @@ public class ServerConnectionInfo {
   }
 
   public HttpClientContext getHttpContext() {
-    return httpContext;
+    return threadSafeContext.get();
   }
 
   public void setHttpContext(HttpClientContext httpContext) {
-    this.httpContext = httpContext;
+    this.threadSafeContext.set(httpContext);
   }
 
   public boolean isOpenRosaServer() {
