@@ -286,8 +286,8 @@ public class ServerFetcher {
     boolean allSuccessful = true;
     RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
     ExecutorService execSvc = getFetchExecutorService();
-    CompletionService<SubmissionChunk> chunkCompleter = new ExecutorCompletionService(execSvc);
-    CompletionService<String> submissionCompleter = new ExecutorCompletionService(execSvc);
+    CompletionService<SubmissionChunk> chunkCompleter = new ExecutorCompletionService<>(execSvc);
+    CompletionService<String> submissionCompleter = new ExecutorCompletionService<>(execSvc);
 
     String oldWebsafeCursorString, websafeCursorString = "";
 
