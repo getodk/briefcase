@@ -109,7 +109,6 @@ public class ServerUploader {
         }
       }
     }
-    
   }
   
   // remove any instances already completed on server
@@ -173,10 +172,11 @@ public class ServerUploader {
       }
     }
   }
-  
+
   public boolean uploadFormAndSubmissionFiles(List<FormStatus> formsToTransfer) {
+
     boolean allSuccessful = true;
-    
+
     for (FormStatus formToTransfer : formsToTransfer) {
 
       BriefcaseFormDefinition briefcaseLfd = (BriefcaseFormDefinition) formToTransfer.getFormDefinition();
@@ -212,7 +212,7 @@ public class ServerUploader {
         // error already logged...
         continue;
       }
-      
+
       Set<File> briefcaseInstances = FileSystemUtils.getFormSubmissionDirectories(briefcaseLfd.getFormDirectory());
       DatabaseUtils formDatabase = null;
       try {
@@ -342,23 +342,23 @@ public class ServerUploader {
     // We have the actual server URL in u, possibly redirected to https.
     // We know we are talking to the server because the head request
     // succeeded and had a Location header field.
-  
+
     // try to send instance
     // get instance file
     File file = new File(instanceDirectory, "submission.xml");
-  
+
     String submissionFile = file.getName();
-  
+
     if (!file.exists()) {
       String msg = "Submission file not found: " + file.getAbsolutePath();
       formToTransfer.setStatusString(msg, false);
       EventBus.publish(new FormStatusEvent(formToTransfer));
       return false;
     }
-  
+
     // find all files in parent directory
     File[] allFiles = instanceDirectory.listFiles();
-  
+
     // clean up the list, removing anything that is suspicious
     // or that we won't attempt to upload. For OpenRosa servers,
     // we'll upload just about everything...
@@ -376,7 +376,7 @@ public class ServerUploader {
       }
     }
     SubmissionResponseAction action = new SubmissionResponseAction(file);
-    
+
     if ( isCancelled() ) {
       formToTransfer.setStatusString("aborting upload of submission...", true);
       EventBus.publish(new FormStatusEvent(formToTransfer));
@@ -385,9 +385,9 @@ public class ServerUploader {
 
     DocumentDescription submissionUploadDescription = new DocumentDescription("Submission upload failed.  Detailed error: ",
         "Submission upload failed.", "submission (" + count + " of " + totalCount + ")", terminationFuture);
-    boolean outcome = AggregateUtils.uploadFilesToServer(serverInfo, u, "xml_submission_file", file, files, 
+    boolean outcome = AggregateUtils.uploadFilesToServer(serverInfo, u, "xml_submission_file", file, files,
         submissionUploadDescription, action, terminationFuture, formToTransfer);
-    
+
     // and try to rename the instance directory to be its instanceID
     action.afterUpload(formToTransfer);
     return outcome;
