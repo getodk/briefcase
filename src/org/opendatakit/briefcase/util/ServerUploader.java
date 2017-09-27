@@ -112,7 +112,7 @@ public class ServerUploader {
   }
   
   // remove any instances already completed on server
-  private void removeAllServerInstances(FormStatus fs, DatabaseUtils formDatabase, Set<File> instancesToUpload) {
+  private void subtractServerInstances(FormStatus fs, DatabaseUtils formDatabase, Set<File> instancesToUpload) {
 
     /*
      * The /view/submissionList interface returns the list of COMPLETED submissions
@@ -220,10 +220,10 @@ public class ServerUploader {
         
         // make sure all the local instances are in the database...
         formDatabase.updateInstanceLists(briefcaseInstances);
-        
-        removeAllServerInstances(formToTransfer, formDatabase, briefcaseInstances);
-        // upload the submissions we have locally -- these will exclude whatever was on the server
-        
+
+        // exclude submissions the server reported as already submitted
+        subtractServerInstances(formToTransfer, formDatabase, briefcaseInstances);
+
         int i = 1;
         for (File briefcaseInstance : briefcaseInstances) {
           outcome = uploadSubmission(formDatabase, formToTransfer, u, i++, briefcaseInstances.size(), briefcaseInstance);
