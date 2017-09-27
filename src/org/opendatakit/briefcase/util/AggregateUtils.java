@@ -236,9 +236,9 @@ public class AggregateUtils {
     // get shared HttpContext so that authentication and cookies are retained.
     HttpClientContext localContext = WebUtils.getHttpContext();
 
-    URI u = request.getURI();
+    URI uri = request.getURI();
 
-    WebUtils.setCredentials(localContext, serverInfo, u, alwaysResetCredentials);
+    WebUtils.setCredentials(localContext, serverInfo, uri, alwaysResetCredentials);
 
     if (!serverInfo.isOpenRosaServer()) {
       request.addHeader(BRIEFCASE_APP_TOKEN_PARAMETER, serverInfo.getToken());
@@ -272,26 +272,26 @@ public class AggregateUtils {
 
         if (statusCode == 400) {
           ex = new XmlDocumentFetchException(description.getFetchDocFailed() + webError + " while accessing: "
-              + u.toString() + "\nPlease verify that the " + description.getDocumentDescriptionType()
+              + uri.toString() + "\nPlease verify that the " + description.getDocumentDescriptionType()
               + " that is being uploaded is well-formed.");
         } else {
           ex = new XmlDocumentFetchException(
               description.getFetchDocFailed()
                   + webError
                   + " while accessing: "
-                  + u.toString()
+                  + uri.toString()
                   + "\nPlease verify that the URL, your user credentials and your permissions are all correct.");
         }
       } else if (entity == null) {
-        log.warn("No entity body returned from: " + u.toString() + " is not text/xml");
+        log.warn("No entity body returned from: " + uri.toString() + " is not text/xml");
         ex = new XmlDocumentFetchException(description.getFetchDocFailed()
-            + " Server unexpectedly returned no content while accessing: " + u.toString());
+            + " Server unexpectedly returned no content while accessing: " + uri.toString());
       } else if (!(lcContentType.contains(HTTP_CONTENT_TYPE_TEXT_XML) || lcContentType
           .contains(HTTP_CONTENT_TYPE_APPLICATION_XML))) {
         log.warn("ContentType: " + entity.getContentType().getValue() + "returned from: "
-            + u.toString() + " is not text/xml");
+            + uri.toString() + " is not text/xml");
         ex = new XmlDocumentFetchException(description.getFetchDocFailed()
-            + "A non-XML document was returned while accessing: " + u.toString()
+            + "A non-XML document was returned while accessing: " + uri.toString()
             + "\nA network login screen may be interfering with the transmission to the server.");
       }
 
@@ -333,7 +333,7 @@ public class AggregateUtils {
         }
       } catch (Exception e) {
         log.warn("Parsing failed with " + e.getMessage(), e);
-        throw new XmlDocumentFetchException(description.getFetchDocFailed() + " while accessing: " + u.toString());
+        throw new XmlDocumentFetchException(description.getFetchDocFailed() + " while accessing: " + uri.toString());
       }
 
       // examine header fields...
@@ -368,7 +368,7 @@ public class AggregateUtils {
         try {
           URL url = new URL(locations[0].getValue());
           URI uNew = url.toURI();
-          if (u.getHost().equalsIgnoreCase(uNew.getHost())) {
+          if (uri.getHost().equalsIgnoreCase(uNew.getHost())) {
             // trust the server to tell us a new location
             // ... and possibly to use https instead.
             String fullUrl = url.toExternalForm();
