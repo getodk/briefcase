@@ -32,9 +32,7 @@ public class BriefcasePreferences {
     public static final String VERSION = BuildConfig.VERSION;
     public static final String GOOGLE_TRACKING_ID = BuildConfig.GOOGLE_TRACKING_ID;
     public static final String USERNAME = "username";
-    public static final String TOKEN = "token";
     public static final String AGGREGATE_1_0_URL = "url_1_0";
-    public static final String AGGREGATE_0_9_X_URL = "url_0_9_X";
 
     private static final String BRIEFCASE_DIR_PROPERTY = "briefcaseDir";
     private static final String BRIEFCASE_PROXY_HOST_PROPERTY = "briefcaseProxyHost";
