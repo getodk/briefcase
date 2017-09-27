@@ -105,8 +105,7 @@ public class PullTransferPanel extends JPanel {
     public void actionPerformed(ActionEvent e) {
       EndPointType selection = getSelectedEndPointType();
       if (selection != null) {
-        if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection)
-            || EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
+        if (EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
           lblOrigin.setText("URL:");
           txtOriginName.setText("");
           txtOriginName.setEditable(false);
@@ -144,19 +143,7 @@ public class PullTransferPanel extends JPanel {
     public void actionPerformed(ActionEvent e) {
       EndPointType selection = getSelectedEndPointType();
       originServerInfo = initServerInfoWithPreferences(selection);
-      if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection)) {
-        // need to show (modal) connect dialog...
-        LegacyServerConnectionDialog d = new LegacyServerConnectionDialog(
-            (Window) PullTransferPanel.this.getTopLevelAncestor(), originServerInfo, false);
-        d.setVisible(true);
-        if (d.isSuccessful()) {
-          originServerInfo = d.getServerInfo();
-          txtOriginName.setText(originServerInfo.getUrl());
-          PREFERENCES.put(BriefcasePreferences.AGGREGATE_0_9_X_URL, originServerInfo.getUrl());
-          PREFERENCES.put(BriefcasePreferences.TOKEN, originServerInfo.getToken());
-          PullTransferPanel.this.updateFormStatuses();
-        }
-      } else if (EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
+      if (EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
         // need to show (modal) connect dialog...
         ServerConnectionDialog d = new ServerConnectionDialog(
             (Window) PullTransferPanel.this.getTopLevelAncestor(), originServerInfo, false);
@@ -215,8 +202,7 @@ public class PullTransferPanel extends JPanel {
 
       try {
         setActiveTransferState(true);
-        if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(originSelection)
-            || EndPointType.AGGREGATE_1_0_CHOICE.equals(originSelection)) {
+        if (EndPointType.AGGREGATE_1_0_CHOICE.equals(originSelection)) {
           TransferAction.transferServerToBriefcase(originServerInfo, terminationFuture,
               formsToTransfer);
         } else if (EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.equals(originSelection)) {
@@ -248,7 +234,6 @@ public class PullTransferPanel extends JPanel {
     JLabel lblGetDataFrom = new JLabel(TAB_NAME + " data from:");
 
     listOriginDataSource = new JComboBox<String>(new String[] {
-        EndPointType.AGGREGATE_0_9_X_CHOICE.toString(),
         EndPointType.AGGREGATE_1_0_CHOICE.toString(),
         EndPointType.MOUNTED_ODK_COLLECT_DEVICE_CHOICE.toString(),
         EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.toString() });
@@ -405,8 +390,7 @@ public class PullTransferPanel extends JPanel {
     String strSelection = (String) listOriginDataSource.getSelectedItem();
     EndPointType selection = (strSelection != null) ? EndPointType.fromString(strSelection) : null;
     if (selection != null) {
-      if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection)
-          || EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
+      if (EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
         // clear the list of forms first...
         formTransferTable.setFormStatusList(statuses);
         terminationFuture.reset();
@@ -459,8 +443,7 @@ public class PullTransferPanel extends JPanel {
     EndPointType selection = getSelectedEndPointType();
 
     if (selection != null) {
-      if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection)
-          || EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
+      if (EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
         txtOriginName.setEditable(false);
       } else if (EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.equals(selection)) {
         txtOriginName.setEditable(active);
@@ -512,20 +495,12 @@ public class PullTransferPanel extends JPanel {
   
   private ServerConnectionInfo initServerInfoWithPreferences(EndPointType type) {
     ServerConnectionInfo connectionInfo = null;
-    switch (type) {
-      case AGGREGATE_0_9_X_CHOICE:
-        String legacyUrl = PREFERENCES.get(BriefcasePreferences.AGGREGATE_0_9_X_URL, "");
-        String token = PREFERENCES.get(BriefcasePreferences.TOKEN, "");
-        connectionInfo = new ServerConnectionInfo(legacyUrl, token);
-        break;
-      case AGGREGATE_1_0_CHOICE:
-        String url = PREFERENCES.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
-        String username = PREFERENCES.get(BriefcasePreferences.USERNAME, "");
-        connectionInfo = new ServerConnectionInfo(url, username, new char[0]);
-        break;
-      default:
-        break; // There are no preferences needed for the other types.
-    }
+    if (type == EndPointType.AGGREGATE_1_0_CHOICE) {
+      String url = PREFERENCES.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
+      String username = PREFERENCES.get(BriefcasePreferences.USERNAME, "");
+      connectionInfo = new ServerConnectionInfo(url, username, new char[0]);
+    } // There are no preferences needed for the other types.
+
     return connectionInfo;
   }
 
