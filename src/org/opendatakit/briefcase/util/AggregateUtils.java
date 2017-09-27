@@ -115,23 +115,15 @@ public class AggregateUtils {
       throw e;
     }
 
-    // get shared HttpContext so that authentication and cookies are retained.
-    HttpClientContext localContext = serverInfo.getHttpContext();
+    HttpClient httpclient = WebUtils.createHttpClient();
 
-    HttpClient httpclient = serverInfo.getHttpClient();
+    // get shared HttpContext so that authentication and cookies are retained.
+    HttpClientContext localContext = WebUtils.getHttpContext();
 
     // set up request...
     HttpGet req = WebUtils.createOpenRosaHttpGet(u);
 
-    if (serverInfo.getUsername() != null && serverInfo.getUsername().length() != 0) {
-      if (!WebUtils.hasCredentials(localContext, serverInfo.getUsername(), u.getHost())) {
-        WebUtils.clearAllCredentials(localContext);
-        WebUtils.addCredentials(localContext, serverInfo.getUsername(), serverInfo.getPassword(),
-            u.getHost());
-      }
-    } else {
-      WebUtils.clearAllCredentials(localContext);
-    }
+    WebUtils.setCredentials(localContext, serverInfo, u);
 
     if (!serverInfo.isOpenRosaServer()) {
       req.addHeader(BRIEFCASE_APP_TOKEN_PARAMETER, serverInfo.getToken());
@@ -198,15 +190,6 @@ public class AggregateUtils {
       throw new XmlDocumentFetchException(msg);
     }
 
-    HttpClient httpClient = serverInfo.getHttpClient();
-
-    // get shared HttpContext so that authentication and cookies are retained.
-    HttpClientContext localContext = serverInfo.getHttpContext();
-    if (localContext == null) {
-      localContext = WebUtils.createHttpContext();
-      serverInfo.setHttpContext(localContext);
-    }
-
     // set up request...
     HttpGet req = WebUtils.createOpenRosaHttpGet(u);
 
@@ -248,23 +231,14 @@ public class AggregateUtils {
       DocumentDescription description, 
       ResponseAction action) throws XmlDocumentFetchException {
 
-    HttpClient httpClient = serverInfo.getHttpClient();
+    HttpClient httpClient = WebUtils.createHttpClient();
 
     // get shared HttpContext so that authentication and cookies are retained.
-    HttpClientContext localContext = serverInfo.getHttpContext();
+    HttpClientContext localContext = WebUtils.getHttpContext();
 
     URI u = request.getURI();
 
-    if (serverInfo.getUsername() != null && serverInfo.getUsername().length() != 0) {
-      if (alwaysResetCredentials
-          || !WebUtils.hasCredentials(localContext, serverInfo.getUsername(), u.getHost())) {
-        WebUtils.clearAllCredentials(localContext);
-        WebUtils.addCredentials(localContext, serverInfo.getUsername(), serverInfo.getPassword(),
-            u.getHost());
-      }
-    } else {
-      WebUtils.clearAllCredentials(localContext);
-    }
+    WebUtils.setCredentials(localContext, serverInfo, u, alwaysResetCredentials);
 
     if (!serverInfo.isOpenRosaServer()) {
       request.addHeader(BRIEFCASE_APP_TOKEN_PARAMETER, serverInfo.getToken());
@@ -466,24 +440,12 @@ public class AggregateUtils {
       throw new TransmissionException(msg);
     }
 
-    HttpClient httpClient = serverInfo.getHttpClient();
+    HttpClient httpClient = WebUtils.createHttpClient();
 
     // get shared HttpContext so that authentication and cookies are retained.
-    HttpClientContext localContext = serverInfo.getHttpContext();
-    if (localContext == null) {
-      localContext = WebUtils.createHttpContext();
-      serverInfo.setHttpContext(localContext);
-    }
+    HttpClientContext localContext = WebUtils.getHttpContext();
 
-    if (serverInfo.getUsername() != null && serverInfo.getUsername().length() != 0) {
-      if (!WebUtils.hasCredentials(localContext, serverInfo.getUsername(), u.getHost())) {
-        WebUtils.clearAllCredentials(localContext);
-        WebUtils.addCredentials(localContext, serverInfo.getUsername(), serverInfo.getPassword(),
-            u.getHost());
-      }
-    } else {
-      WebUtils.clearAllCredentials(localContext);
-    }
+    WebUtils.setCredentials(localContext, serverInfo, u);
 
     {
       // we need to issue a head request

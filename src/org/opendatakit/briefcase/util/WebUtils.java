@@ -52,6 +52,7 @@ import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.javarosa.core.model.utils.DateUtils;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.ServerConnectionInfo;
 
 
 /**
@@ -65,6 +66,9 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 public final class WebUtils {
 
       private static final int SERVER_CONNECTION_TIMEOUT = 60000;
+
+      private static final ThreadLocal<HttpClientContext> threadSafeContext = new ThreadLocal<>();
+
       /**
        * Date format pattern used to parse HTTP date headers in RFC 1123 format.
        * copied from apache.commons.lang.DateUtils
@@ -103,6 +107,46 @@ public final class WebUtils {
         connectionManager.setDefaultMaxPerRoute(MAX_CONNECTIONS_PER_ROUTE);
     }
 
+    /**
+     * Get the {@link HttpClientContext} bound to the current thread.
+     *
+     * @return http context bound to the current thread, or if none exists, a newly created one.
+     */
+    public static HttpClientContext getHttpContext() {
+        HttpClientContext httpContext = threadSafeContext.get();
+        if (httpContext == null) {
+            httpContext = createHttpContext();
+            threadSafeContext.set(httpContext);
+        }
+        return httpContext;
+    }
+
+    /**
+     * Convenience method for {@link #setCredentials(HttpClientContext, ServerConnectionInfo, URI, boolean)}.
+     */
+    public static void setCredentials(HttpClientContext httpContext, ServerConnectionInfo info, URI uri) {
+        setCredentials(httpContext, info, uri, false);
+    }
+
+    /**
+     * Sets up the authentication credentials for the specified http context.
+     *
+     * @param httpContext the context to set credentials on
+     * @param info supplies the credentials, if any
+     * @param uri the uri to supply credentials for (uses hostname)
+     * @param alwaysReset replace context's creds every time when 'true', otherwise only if not already present
+     */
+    public static void setCredentials(HttpClientContext httpContext, ServerConnectionInfo info, URI uri, boolean alwaysReset) {
+        String hostname = uri.getHost();
+        if (info.hasCredentials()) {
+            if (alwaysReset || !hasCredentials(httpContext, info.getUsername(), hostname)) {
+                clearAllCredentials(httpContext);
+                addCredentials(httpContext, info.getUsername(), info.getPassword(), hostname);
+            }
+        } else {
+            clearAllCredentials(httpContext);
+        }
+    }
 
       private static final Date parseDateSubset( String value, String[] parsePatterns, Locale l, TimeZone tz) {
         // borrowed from apache.commons.lang.DateUtils...
