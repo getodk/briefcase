@@ -62,8 +62,6 @@ import org.xmlpull.v1.XmlPullParser;
 
 public class AggregateUtils {
 
-  private static final String BRIEFCASE_APP_TOKEN_PARAMETER = "briefcaseAppToken";
-
   private static final Log log = LogFactory.getLog(AggregateUtils.class);
 
   private static final CharSequence HTTP_CONTENT_TYPE_TEXT_XML = "text/xml";
@@ -131,10 +129,6 @@ public class AggregateUtils {
       }
     } else {
       WebUtils.clearAllCredentials(localContext);
-    }
-
-    if (!serverInfo.isOpenRosaServer()) {
-      req.addHeader(BRIEFCASE_APP_TOKEN_PARAMETER, serverInfo.getToken());
     }
 
     HttpResponse response = null;
@@ -264,10 +258,6 @@ public class AggregateUtils {
       }
     } else {
       WebUtils.clearAllCredentials(localContext);
-    }
-
-    if (!serverInfo.isOpenRosaServer()) {
-      request.addHeader(BRIEFCASE_APP_TOKEN_PARAMETER, serverInfo.getToken());
     }
 
     if ( description.isCancelled() ) {
@@ -488,10 +478,6 @@ public class AggregateUtils {
     {
       // we need to issue a head request
       HttpHead httpHead = WebUtils.createOpenRosaHttpHead(u);
-
-      if (!serverInfo.isOpenRosaServer()) {
-        httpHead.addHeader(BRIEFCASE_APP_TOKEN_PARAMETER, serverInfo.getToken());
-      }
 
       // prepare response
       HttpResponse response = null;
