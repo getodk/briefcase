@@ -31,6 +31,7 @@ import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.MetadataUpdateException;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.briefcase.util.ServerFetcher.MediaFile;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionChunk;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionManifest;
@@ -263,7 +264,7 @@ public class XmlManipulationUtils {
         try {
             return BadXMLFixer.fixBadXML(submission);
         } catch (CannotFixXMLException e1) {
-            File debugFileLocation = new File(FileSystemUtils.getBriefcaseFolder(), "debug");
+            File debugFileLocation = new File(new StorageLocation().getBriefcaseFolder(), "debug");
             try {
                 if (!debugFileLocation.exists()) {
                     FileUtils.forceMkdir(debugFileLocation);
