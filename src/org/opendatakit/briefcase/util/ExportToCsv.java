@@ -558,7 +558,7 @@ public class ExportToCsv implements ITransformFormAction {
                 first = false;
               }
             } else {
-            /* one or more children -- this is a non-repeating group */
+              /* one or more children -- this is a non-repeating group */
               first = emitSubmissionCsv(osw, ei, ec, primarySet, current, first, uniquePath, instanceDir);
             }
             break;
@@ -683,7 +683,7 @@ public class ExportToCsv implements ITransformFormAction {
               emitString(osw, first, getFullName(current, primarySet));
               first = false;
             } else {
-            /* one or more children -- this is a non-repeating group */
+              /* one or more children -- this is a non-repeating group */
               first = emitCsvHeaders(osw, primarySet, current, first);
             }
             break;
@@ -712,13 +712,13 @@ public class ExportToCsv implements ITransformFormAction {
           default:
             break;
           case org.javarosa.core.model.Constants.DATATYPE_NULL:
-          /* for nodes that have no data, or data type otherwise unknown */
+            /* for nodes that have no data, or data type otherwise unknown */
             if (current.isRepeatable()) {
               processRepeatingGroupDefinition(current, primarySet, false);
             } else if (current.getNumChildren() == 0 && current != briefcaseLfd.getSubmissionElement()) {
               // ignore - string type
             } else {
-            /* one or more children -- this is a non-repeating group */
+              /* one or more children -- this is a non-repeating group */
               populateRepeatGroupsIntoFileMap(primarySet, current);
             }
             break;
