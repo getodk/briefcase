@@ -19,17 +19,17 @@ package org.opendatakit.briefcase.model;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 
 public class DocumentDescription {
-  
+
   final String fetchDocFailed;
   final String fetchDocFailedNoDetail;
   final String documentDescriptionType;
   final TerminationFuture terminationFuture;
   volatile boolean cancelled = false;
-  
-  public DocumentDescription(String fetchDocFailed, 
-                      String fetchDocFailedNoDetail,
-                      String documentDescriptionType,
-                      TerminationFuture terminationFuture) {
+
+  public DocumentDescription(String fetchDocFailed,
+                             String fetchDocFailedNoDetail,
+                             String documentDescriptionType,
+                             TerminationFuture terminationFuture) {
     AnnotationProcessor.process(this);// if not using AOP
 
     this.fetchDocFailed = fetchDocFailed;
@@ -37,7 +37,7 @@ public class DocumentDescription {
     this.documentDescriptionType = documentDescriptionType;
     this.terminationFuture = terminationFuture;
   }
-  
+
   public boolean isCancelled() {
     return terminationFuture.isCancelled();
   }

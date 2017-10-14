@@ -34,9 +34,9 @@ import org.opendatakit.briefcase.model.CryptoException;
 /**
  * Handles the initialization of Cipher objects for the decryption of submission
  * and media files.
- * 
+ *
  * @author mitchellsundt@gmail.com
- * 
+ *
  */
 public final class CipherFactory {
 
@@ -71,8 +71,8 @@ public final class CipherFactory {
     }
   }
 
-  public Cipher getCipher(String context) throws InvalidKeyException,
-      InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
+  public Cipher getCipher(String context)
+      throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
     ++ivSeedArray[ivCounter % ivSeedArray.length];
     ++ivCounter;
     IvParameterSpec baseIv = new IvParameterSpec(ivSeedArray);
@@ -82,8 +82,8 @@ public final class CipherFactory {
     return c;
   }
 
-  public Cipher getCipher(String context, String fieldName) throws InvalidKeyException,
-      InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException,
+  public Cipher getCipher(String context, String fieldName)
+      throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException,
       UnsupportedEncodingException {
     MessageDigest md = MessageDigest.getInstance("MD5");
     md.update(instanceId.getBytes("UTF-8"));

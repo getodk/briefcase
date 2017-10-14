@@ -65,8 +65,7 @@ public class PushTransferPanel extends JPanel {
   public static final String TAB_NAME = "Push";
 
   private static final String UPLOADING_DOT_ETC = "Uploading..........";
-  private static final BriefcasePreferences PREFERENCES =
-      BriefcasePreferences.forClass(PushTransferPanel.class);
+  private static final BriefcasePreferences PREFERENCES = BriefcasePreferences.forClass(PushTransferPanel.class);
 
   private JComboBox<String> listDestinationDataSink;
   private JButton btnDestinationAction;
@@ -120,8 +119,8 @@ public class PushTransferPanel extends JPanel {
       if (EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
         // need to show (modal) connect dialog...
         destinationServerInfo = initServerInfoWithPreferences();
-        ServerConnectionDialog d = new ServerConnectionDialog(
-            (Window) PushTransferPanel.this.getTopLevelAncestor(), destinationServerInfo, true);
+        ServerConnectionDialog d = new ServerConnectionDialog((Window) PushTransferPanel.this.getTopLevelAncestor(),
+            destinationServerInfo, true);
         d.setVisible(true);
         if (d.isSuccessful()) {
           ServerConnectionInfo info = d.getServerInfo();
@@ -131,8 +130,8 @@ public class PushTransferPanel extends JPanel {
             PREFERENCES.put(BriefcasePreferences.USERNAME, destinationServerInfo.getUsername());
             PREFERENCES.put(BriefcasePreferences.AGGREGATE_1_0_URL, destinationServerInfo.getUrl());
           } else {
-            ODKOptionPane.showErrorDialog(PushTransferPanel.this,
-                "Server is not an ODK Aggregate 1.0 server", "Invalid Server URL");
+            ODKOptionPane.showErrorDialog(PushTransferPanel.this, "Server is not an ODK Aggregate 1.0 server",
+                "Invalid Server URL");
           }
         }
       } else {
@@ -161,14 +160,13 @@ public class PushTransferPanel extends JPanel {
       try {
         setActiveTransferState(true);
         if (EndPointType.AGGREGATE_1_0_CHOICE.equals(destinationSelection)) {
-          TransferAction.transferBriefcaseToServer(
-              destinationServerInfo, terminationFuture, formsToTransfer);
+          TransferAction.transferBriefcaseToServer(destinationServerInfo, terminationFuture, formsToTransfer);
         } else {
           throw new IllegalStateException("unhandled case");
         }
       } catch (IOException ex) {
-        ODKOptionPane.showErrorDialog(PushTransferPanel.this,
-            "Briefcase action failed: " + ex.getMessage(), "Briefcase Action Failed");
+        ODKOptionPane.showErrorDialog(PushTransferPanel.this, "Briefcase action failed: " + ex.getMessage(),
+            "Briefcase Action Failed");
         setActiveTransferState(false);
       }
     }
@@ -186,8 +184,7 @@ public class PushTransferPanel extends JPanel {
 
     JLabel lblSendDataTo = new JLabel(TAB_NAME + " data to:");
 
-    listDestinationDataSink = new JComboBox<String>(
-        new String[] { EndPointType.AGGREGATE_1_0_CHOICE.toString() });
+    listDestinationDataSink = new JComboBox<String>(new String[] {EndPointType.AGGREGATE_1_0_CHOICE.toString()});
 
     listDestinationDataSink.addActionListener(new DestinationSinkListener());
 
@@ -216,64 +213,55 @@ public class PushTransferPanel extends JPanel {
       }
     });
 
-    formTransferTable = new FormTransferTable(
-            btnSelectOrClearAllForms, FormStatus.TransferType.UPLOAD, btnTransfer, btnCancel);
+    formTransferTable = new FormTransferTable(btnSelectOrClearAllForms, FormStatus.TransferType.UPLOAD, btnTransfer,
+        btnCancel);
 
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
 
     JSeparator separatorFormsList = new JSeparator();
 
     GroupLayout groupLayout = new GroupLayout(this);
-    groupLayout.setHorizontalGroup(groupLayout
-        .createSequentialGroup()
+    groupLayout.setHorizontalGroup(groupLayout.createSequentialGroup()
         .addContainerGap()
-        .addGroup(
-            groupLayout
-                .createParallelGroup(Alignment.LEADING)
-                // get-data and origin rows
-                .addGroup(
-                    Alignment.LEADING,
-                    // sequential -- 2 elements - label - widgets
-                    groupLayout
-                        .createSequentialGroup()
-                        .addGroup(
-                            groupLayout.createParallelGroup(Alignment.TRAILING)
-                                .addComponent(lblDestination).addComponent(lblSendDataTo))
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(
-                            groupLayout
-                                .createParallelGroup(Alignment.LEADING)
-                                .addComponent(listDestinationDataSink)
-                                .addGroup(
-                                    Alignment.TRAILING,
-                                    groupLayout.createSequentialGroup()
-                                        .addComponent(txtDestinationName)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(btnDestinationAction))))
-                .addComponent(separatorFormsList, GroupLayout.DEFAULT_SIZE,
-                    GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
-                .addComponent(lblFormsToTransfer)
-                // scroll pane
-                .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
-                    Short.MAX_VALUE)
-                .addGroup(
-                    groupLayout.createSequentialGroup().addComponent(btnSelectOrClearAllForms)
-                        .addPreferredGap(ComponentPlacement.RELATED).addComponent(lblUploading))
-                .addGroup(
-                    Alignment.TRAILING,
-                    groupLayout.createSequentialGroup().addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(btnTransfer).addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(btnCancel))).addContainerGap());
-    groupLayout.setVerticalGroup(groupLayout
-        .createSequentialGroup()
+        .addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+            // get-data and origin rows
+            .addGroup(Alignment.LEADING,
+                // sequential -- 2 elements - label - widgets
+                groupLayout.createSequentialGroup()
+                    .addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
+                        .addComponent(lblDestination)
+                        .addComponent(lblSendDataTo))
+                    .addPreferredGap(ComponentPlacement.RELATED)
+                    .addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+                        .addComponent(listDestinationDataSink)
+                        .addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
+                            .addComponent(txtDestinationName)
+                            .addPreferredGap(ComponentPlacement.RELATED)
+                            .addComponent(btnDestinationAction))))
+            .addComponent(separatorFormsList, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
+            .addComponent(lblFormsToTransfer)
+            // scroll pane
+            .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
+            .addGroup(groupLayout.createSequentialGroup()
+                .addComponent(btnSelectOrClearAllForms)
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addComponent(lblUploading))
+            .addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addComponent(btnTransfer)
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addComponent(btnCancel)))
+        .addContainerGap());
+    groupLayout.setVerticalGroup(groupLayout.createSequentialGroup()
         .addContainerGap()
-        .addGroup(
-            groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblSendDataTo)
-                .addComponent(listDestinationDataSink))
+        .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+            .addComponent(lblSendDataTo)
+            .addComponent(listDestinationDataSink))
         .addPreferredGap(ComponentPlacement.RELATED)
-        .addGroup(
-            groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblDestination)
-                .addComponent(txtDestinationName).addComponent(btnDestinationAction))
+        .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+            .addComponent(lblDestination)
+            .addComponent(txtDestinationName)
+            .addComponent(btnDestinationAction))
         .addPreferredGap(ComponentPlacement.RELATED)
         .addComponent(separatorFormsList, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
             GroupLayout.PREFERRED_SIZE)
@@ -282,10 +270,12 @@ public class PushTransferPanel extends JPanel {
         .addPreferredGap(ComponentPlacement.RELATED)
         .addComponent(scrollPane, 200, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
         .addPreferredGap(ComponentPlacement.RELATED)
-        .addGroup(
-            groupLayout.createParallelGroup(Alignment.BASELINE)
-                .addComponent(btnSelectOrClearAllForms).addComponent(lblUploading)
-                .addComponent(btnTransfer).addComponent(btnCancel)).addContainerGap());
+        .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+            .addComponent(btnSelectOrClearAllForms)
+            .addComponent(lblUploading)
+            .addComponent(btnTransfer)
+            .addComponent(btnCancel))
+        .addContainerGap());
     setLayout(groupLayout);
     listDestinationDataSink.setSelectedIndex(0);
 
@@ -358,12 +348,12 @@ public class PushTransferPanel extends JPanel {
     // remember state...
     transferStateActive = active;
   }
-  
+
   private EndPointType getSelectedEndPointType() {
     String strSelection = (String) listDestinationDataSink.getSelectedItem();
     return EndPointType.fromString(strSelection);
   }
-  
+
   private ServerConnectionInfo initServerInfoWithPreferences() {
     String url = PREFERENCES.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
     String username = PREFERENCES.get(BriefcasePreferences.USERNAME, "");

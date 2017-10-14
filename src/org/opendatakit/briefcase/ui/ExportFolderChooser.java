@@ -34,39 +34,36 @@ import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolde
 class ExportFolderChooser extends AbstractFileChooser {
 
   /**
-     *
-     */
+   *
+   */
   private final Container parentWindow;
   /**
-     *
-     */
+   *
+   */
   private static final long serialVersionUID = 7687033156145655297L;
-  
+
   /**
-   * 
+   *
    * @param f
    * @param parentWindow
    * @return true if directory is a valid briefcase directory.
    */
   public static final boolean testAndMessageBadNonBriefcaseFolder(File f, Container parentWindow) {
-    if ( !f.exists() ) {
+    if (!f.exists()) {
       return false;
     } else if (!f.isDirectory()) {
-      ODKOptionPane.showErrorDialog(parentWindow,
-          MessageStrings.DIR_NOT_DIRECTORY,
+      ODKOptionPane.showErrorDialog(parentWindow, MessageStrings.DIR_NOT_DIRECTORY,
           MessageStrings.INVALID_EXPORT_DIRECTORY);
       return false;
     } else if (isUnderBriefcaseFolder(f)) {
-      ODKOptionPane.showErrorDialog(parentWindow,
-          MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
+      ODKOptionPane.showErrorDialog(parentWindow, MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
           MessageStrings.INVALID_EXPORT_DIRECTORY);
       return false;
     } else if (FileSystemUtils.isUnderODKFolder(f)) {
-      ODKOptionPane.showErrorDialog(parentWindow,
-          MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY,
+      ODKOptionPane.showErrorDialog(parentWindow, MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY,
           MessageStrings.INVALID_EXPORT_DIRECTORY);
       return false;
-    } else { 
+    } else {
       return true; // allow directory to already have files and directories...
     }
   }
@@ -96,7 +93,7 @@ class ExportFolderChooser extends AbstractFileChooser {
         return "Directories";
       }
     });
-    
+
     setApproveButtonText("Choose");
   }
 

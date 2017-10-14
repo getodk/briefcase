@@ -27,7 +27,6 @@ import org.opendatakit.briefcase.model.ParsingException;
 import java.io.File;
 import java.io.IOException;
 
-
 /**
  * CTOSurvey contribution to address issues with Android 4.3 systems not
  * properly flushing OpenSSL CipherStreams.
@@ -41,55 +40,55 @@ import java.io.IOException;
  */
 public final class BadXMLFixer {
 
-    private static final Log log = LogFactory.getLog(BadXMLFixer.class);
+  private static final Log log = LogFactory.getLog(BadXMLFixer.class);
 
-    private static final String XML_HEADER = "<?xml version='1.0' ?>";
-    private static final String ENCODING = "UTF-8";
+  private static final String XML_HEADER = "<?xml version='1.0' ?>";
+  private static final String ENCODING = "UTF-8";
 
-    public static Document fixBadXML(File xmlFile) throws CannotFixXMLException {
-        log.warn("Trying to fix the submission " + xmlFile.getAbsolutePath());
+  public static Document fixBadXML(File xmlFile) throws CannotFixXMLException {
+    log.warn("Trying to fix the submission " + xmlFile.getAbsolutePath());
 
-        try {
-            String originalXML = FileUtils.readFileToString(xmlFile, ENCODING);
-            String fixedXML = fixXML(originalXML);
-            File tempFile = File.createTempFile(xmlFile.getName(), ".fixed.xml");
-            FileUtils.writeStringToFile(tempFile, fixedXML, ENCODING);
-            return XmlManipulationUtils.parseXml(tempFile);
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-            throw new CannotFixXMLException("Cannot fix " + xmlFile.getAbsolutePath(), e);
-        } catch (ParsingException e) {
-            log.error(e.getMessage(), e);
-            throw new CannotFixXMLException("Cannot fix " + xmlFile.getAbsolutePath(), e);
-        } catch (FileSystemException e) {
-            log.error(e.getMessage(), e);
-            throw new CannotFixXMLException("Cannot fix " + xmlFile.getAbsolutePath(), e);
-        }
+    try {
+      String originalXML = FileUtils.readFileToString(xmlFile, ENCODING);
+      String fixedXML = fixXML(originalXML);
+      File tempFile = File.createTempFile(xmlFile.getName(), ".fixed.xml");
+      FileUtils.writeStringToFile(tempFile, fixedXML, ENCODING);
+      return XmlManipulationUtils.parseXml(tempFile);
+    } catch (IOException e) {
+      log.error(e.getMessage(), e);
+      throw new CannotFixXMLException("Cannot fix " + xmlFile.getAbsolutePath(), e);
+    } catch (ParsingException e) {
+      log.error(e.getMessage(), e);
+      throw new CannotFixXMLException("Cannot fix " + xmlFile.getAbsolutePath(), e);
+    } catch (FileSystemException e) {
+      log.error(e.getMessage(), e);
+      throw new CannotFixXMLException("Cannot fix " + xmlFile.getAbsolutePath(), e);
+    }
+  }
+
+  protected static String fixXML(String originalXML) throws CannotFixXMLException {
+    // try to find the name of the root element, that is the formId
+    int startIndex = XML_HEADER.length() + 1;
+    int endIndex = originalXML.indexOf(" ", startIndex);
+    String formId = originalXML.substring(startIndex, endIndex);
+
+    log.warn("Trying to fix a submission of the form: " + formId);
+
+    // try to see if the last part is a part of the form id
+    int idClosingTagIndex = originalXML.lastIndexOf("</");
+    if (idClosingTagIndex == -1) {
+      throw new CannotFixXMLException("Cannot find a single closing tag in this file!");
     }
 
-    protected static String fixXML(String originalXML) throws CannotFixXMLException {
-        // try to find the name of the root element, that is the formId
-        int startIndex = XML_HEADER.length() + 1;
-        int endIndex = originalXML.indexOf(" ", startIndex);
-        String formId = originalXML.substring(startIndex, endIndex);
-
-        log.warn("Trying to fix a submission of the form: " + formId);
-
-        // try to see if the last part is a part of the form id
-        int idClosingTagIndex = originalXML.lastIndexOf("</");
-        if (idClosingTagIndex == -1) {
-            throw new CannotFixXMLException("Cannot find a single closing tag in this file!");
-        }
-
-        String lastPart = originalXML.substring(idClosingTagIndex + 2);
-        if (lastPart.equals("") || (formId + ">").startsWith(lastPart)) {
-            // this is the easy case just fill in the rest of the id.
-            return originalXML.substring(0, idClosingTagIndex) + "</" + formId + ">";
-        } else if (("meta></" + formId + ">").startsWith(lastPart)) {
-            // that means that perhaps the entire closing tag is missing, let's give it a try
-            return originalXML.substring(0, idClosingTagIndex) + "</meta></" + formId + ">";
-        } else {
-            throw new CannotFixXMLException("Cannot understand where this file was truncated");
-        }
+    String lastPart = originalXML.substring(idClosingTagIndex + 2);
+    if (lastPart.equals("") || (formId + ">").startsWith(lastPart)) {
+      // this is the easy case just fill in the rest of the id.
+      return originalXML.substring(0, idClosingTagIndex) + "</" + formId + ">";
+    } else if (("meta></" + formId + ">").startsWith(lastPart)) {
+      // that means that perhaps the entire closing tag is missing, let's give it a try
+      return originalXML.substring(0, idClosingTagIndex) + "</meta></" + formId + ">";
+    } else {
+      throw new CannotFixXMLException("Cannot understand where this file was truncated");
     }
+  }
 }

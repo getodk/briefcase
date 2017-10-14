@@ -30,7 +30,7 @@ public class RetrieveAvailableFormsFailedEvent {
   public TransferType getTransferType() {
     return transferType;
   }
-  
+
   public String getReason() {
     if (e != null) {
       return "Exception: " + e.getMessage();

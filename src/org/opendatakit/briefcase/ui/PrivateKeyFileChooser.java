@@ -24,12 +24,12 @@ import javax.swing.JFileChooser;
 public class PrivateKeyFileChooser extends AbstractFileChooser {
 
   /**
-     *
-     */
+   *
+   */
   private static final long serialVersionUID = 7687043156045655207L;
 
   private Container parentWindow;
-  
+
   public PrivateKeyFileChooser(Container parentWindow) {
     super();
     this.parentWindow = parentWindow;
@@ -49,9 +49,8 @@ public class PrivateKeyFileChooser extends AbstractFileChooser {
 
   @Override
   public boolean testAndMessageBadFolder(File f, Container parentWindow) {
-    if ( f == null || !f.isFile()) {
-      ODKOptionPane.showErrorDialog(parentWindow,
-          MessageStrings.INVALID_PEM_FILE,
+    if (f == null || !f.isFile()) {
+      ODKOptionPane.showErrorDialog(parentWindow, MessageStrings.INVALID_PEM_FILE,
           MessageStrings.INVALID_PEM_FILE_DIALOG_TITLE);
     } else {
       return true;

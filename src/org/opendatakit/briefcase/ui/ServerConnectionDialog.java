@@ -42,8 +42,8 @@ import org.opendatakit.briefcase.util.ServerConnectionTest;
 public class ServerConnectionDialog extends JDialog implements ActionListener {
 
   /**
-     *
-     */
+   *
+   */
   private static final long serialVersionUID = -6224121510693483027L;
 
   private static final String PASSWORD_LABEL = "Password:";
@@ -64,7 +64,7 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
   private JButton okButton;
 
   private JButton cancelButton;
-  
+
   private TerminationFuture terminationFuture = new TerminationFuture();
 
   /**
@@ -92,57 +92,46 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
 
     textPasswordField = new JPasswordField();
     textPasswordField.setColumns(10);
-    
+
     JLabel lblOdkAggregateUsernamePassword = new JLabel(ODK_AGGREGATE_USERNAME_PASSSWORD_LABEL);
     JLabel lblOdkAggregateUsernamePassword2 = new JLabel(ODK_AGGREGATE_USERNAME_PASSSWORD_LABEL2);
-    
+
     GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
-    gl_contentPanel.setHorizontalGroup(gl_contentPanel
-        .createSequentialGroup()
+    gl_contentPanel.setHorizontalGroup(gl_contentPanel.createSequentialGroup()
         .addContainerGap()
         .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-          .addGroup(
-              gl_contentPanel.createSequentialGroup()
-                  .addGroup(
-                      gl_contentPanel.createParallelGroup(Alignment.TRAILING).addComponent(lblUrl)
-                          .addComponent(lblUsername).addComponent(lblPassword))
-                  .addPreferredGap(ComponentPlacement.RELATED)
-                  .addGroup(
-                      gl_contentPanel
-                          .createParallelGroup(Alignment.LEADING)
-                          .addComponent(textUrlField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-                              Short.MAX_VALUE)
-                          .addComponent(textUsernameField, GroupLayout.PREFERRED_SIZE,
-                              GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                          .addComponent(textPasswordField, GroupLayout.PREFERRED_SIZE,
-                              GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-          .addComponent(lblOdkAggregateUsernamePassword)
-          .addComponent(lblOdkAggregateUsernamePassword2))
+            .addGroup(gl_contentPanel.createSequentialGroup()
+                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+                    .addComponent(lblUrl)
+                    .addComponent(lblUsername)
+                    .addComponent(lblPassword))
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+                    .addComponent(textUrlField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(textUsernameField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                        Short.MAX_VALUE)
+                    .addComponent(textPasswordField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                        Short.MAX_VALUE)))
+            .addComponent(lblOdkAggregateUsernamePassword)
+            .addComponent(lblOdkAggregateUsernamePassword2))
         .addContainerGap());
 
-    gl_contentPanel.setVerticalGroup(gl_contentPanel
-        .createSequentialGroup()
+    gl_contentPanel.setVerticalGroup(gl_contentPanel.createSequentialGroup()
         .addContainerGap()
-        .addGroup(
-            gl_contentPanel
-                .createParallelGroup(Alignment.BASELINE)
-                .addComponent(lblUrl)
-                .addComponent(textUrlField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-                    GroupLayout.PREFERRED_SIZE))
+        .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+            .addComponent(lblUrl)
+            .addComponent(textUrlField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                GroupLayout.PREFERRED_SIZE))
         .addPreferredGap(ComponentPlacement.RELATED)
-        .addGroup(
-            gl_contentPanel
-                .createParallelGroup(Alignment.BASELINE)
-                .addComponent(lblUsername)
-                .addComponent(textUsernameField, GroupLayout.PREFERRED_SIZE,
-                    GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+        .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+            .addComponent(lblUsername)
+            .addComponent(textUsernameField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                GroupLayout.PREFERRED_SIZE))
         .addPreferredGap(ComponentPlacement.RELATED)
-        .addGroup(
-            gl_contentPanel
-                .createParallelGroup(Alignment.BASELINE)
-                .addComponent(lblPassword)
-                .addComponent(textPasswordField, GroupLayout.PREFERRED_SIZE,
-                    GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+        .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+            .addComponent(lblPassword)
+            .addComponent(textPasswordField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                GroupLayout.PREFERRED_SIZE))
         .addPreferredGap(ComponentPlacement.UNRELATED)
         .addComponent(lblOdkAggregateUsernamePassword)
         .addPreferredGap(ComponentPlacement.RELATED)
@@ -200,15 +189,15 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
         paint(getGraphics());
         terminationFuture.reset();
         ServerConnectionTest backgroundAction = new ServerConnectionTest(info, terminationFuture, asTarget);
-  
+
         backgroundAction.run();
         isSuccessful = backgroundAction.isSuccessful();
         errorString = backgroundAction.getErrorReason();
       } finally {
         setCursor(saved);
       }
-      
-      if ( isSuccessful ) {
+
+      if (isSuccessful) {
         serverInfo = info;
         this.setVisible(false);
       } else {
@@ -218,12 +207,11 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
         if (!(errorMessage.endsWith("!") || errorMessage.endsWith("."))) {
           errorMessage += ". ";
         }
-        ODKOptionPane.showErrorDialog(this,
-            errorMessage + MessageStrings.PROXY_SET_ADVICE, "Invalid Server URL");
+        ODKOptionPane.showErrorDialog(this, errorMessage + MessageStrings.PROXY_SET_ADVICE, "Invalid Server URL");
         okButton.setEnabled(true);
         cancelButton.setEnabled(true);
       }
-      
+
     } else {
       // cancel...
       terminationFuture.markAsCancelled(new TransferAbortEvent("User cancels connection."));

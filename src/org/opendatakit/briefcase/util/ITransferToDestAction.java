@@ -18,7 +18,7 @@ package org.opendatakit.briefcase.util;
 
 interface ITransferToDestAction {
   /**
-   * 
+   *
    * @return true if successful, false if there were one or more problems
    */
   boolean doAction();

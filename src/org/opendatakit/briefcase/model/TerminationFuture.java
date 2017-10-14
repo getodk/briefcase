@@ -26,17 +26,17 @@ public class TerminationFuture {
   private static final Log log = LogFactory.getLog(TerminationFuture.class);
 
   private boolean cancelled = false;
-  
+
   public TerminationFuture() {
     AnnotationProcessor.process(this);
   }
-  
+
   @EventSubscriber(eventClass = TransferAbortEvent.class)
   public void markAsCancelled(TransferAbortEvent event) {
     cancelled = true;
     log.info("cancel requested: " + event.getReason());
   }
-  
+
   @EventSubscriber(eventClass = ExportAbortEvent.class)
   public void markAsCancelled(ExportAbortEvent event) {
     cancelled = true;
@@ -46,7 +46,7 @@ public class TerminationFuture {
   public void reset() {
     cancelled = false;
   }
-  
+
   public boolean isCancelled() {
     return cancelled;
   }

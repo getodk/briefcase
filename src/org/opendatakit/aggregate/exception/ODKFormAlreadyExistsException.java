@@ -22,7 +22,7 @@ package org.opendatakit.aggregate.exception;
  *
  * @author wbrunette@gmail.com
  * @author mitchellsundt@gmail.com
- * 
+ *
  */
 public class ODKFormAlreadyExistsException extends Exception {
 
@@ -37,10 +37,10 @@ public class ODKFormAlreadyExistsException extends Exception {
   public ODKFormAlreadyExistsException() {
     super();
   }
-  
+
   /**
    * Construct exception with the error message
-   * 
+   *
    * @param message
    *    exception message
    */
@@ -50,7 +50,7 @@ public class ODKFormAlreadyExistsException extends Exception {
 
   /**
    * Construction exception with error message and throwable cause
-   * 
+   *
    * @param message
    *    exception message
    * @param cause
@@ -62,7 +62,7 @@ public class ODKFormAlreadyExistsException extends Exception {
 
   /**
    * Construction exception with throwable cause
-   * 
+   *
    * @param cause
    *    throwable cause
    */

@@ -23,13 +23,13 @@ import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
  * These all work only on forms within the Briefcase storage area.
  *
  * E.g., CSV exports.
- * 
+ *
  * @author mitchellsundt@gmail.com
  *
  */
 interface ITransformFormAction {
   /**
-   * 
+   *
    * @return true if successful, false if there were one or more problems
    */
   boolean doAction();

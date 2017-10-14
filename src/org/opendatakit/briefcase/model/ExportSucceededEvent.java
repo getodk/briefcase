@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.model;
 
-
 public class ExportSucceededEvent {
 
   @SuppressWarnings("unused")

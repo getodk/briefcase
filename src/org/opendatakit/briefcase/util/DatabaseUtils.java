@@ -53,7 +53,8 @@ public class DatabaseUtils {
   private static final String SELECT_DIR_SQL = "SELECT directory FROM recorded_instance WHERE instanceId = ?";
   private static final String INSERT_DML = "INSERT INTO recorded_instance (instanceId, directory) VALUES(?,?)";
   private static final String DELETE_DML = "DELETE FROM recorded_instance WHERE instanceId = ?";
-  private static final String RELATIVE_DML = "UPDATE recorded_instance set directory = regexp_replace(directory,'.*(" + INSTANCE_DIR + ")','$1')";
+  private static final String RELATIVE_DML =
+      "UPDATE recorded_instance set directory = regexp_replace(directory,'.*(" + INSTANCE_DIR + ")','$1')";
 
   final private File formDir;
   private Connection connection;
@@ -75,10 +76,10 @@ public class DatabaseUtils {
   }
 
   public synchronized void close() throws SQLException {
-    if ( getRecordedInstanceQuery != null ) {
+    if (getRecordedInstanceQuery != null) {
       try {
         getRecordedInstanceQuery.close();
-      } catch ( SQLException e ) {
+      } catch (SQLException e) {
         log.error("failed to close connection", e);
       } finally {
         getRecordedInstanceQuery = null;
@@ -93,8 +94,7 @@ public class DatabaseUtils {
 
   private void assertRecordedInstanceTable() throws SQLException {
     if (!hasRecordedInstanceTable) {
-      try (Statement stmt = connection.createStatement();
-           ResultSet rset = stmt.executeQuery(ASSERT_SQL)) {
+      try (Statement stmt = connection.createStatement(); ResultSet rset = stmt.executeQuery(ASSERT_SQL)) {
         if (rset.next() && !isFormRelativeInstancePath(rset.getString(2))) {
           makeRecordedInstanceDirsRelative(connection);
         }
@@ -133,67 +133,65 @@ public class DatabaseUtils {
   }
 
   // recorded instances have known instanceIds
-  public synchronized void putRecordedInstanceDirectory( String instanceId, File instanceDir) {
+  public synchronized void putRecordedInstanceDirectory(String instanceId, File instanceDir) {
     try {
       assertRecordedInstanceTable();
 
-      if ( insertRecordedInstanceQuery == null ) {
-        insertRecordedInstanceQuery =
-                connection.prepareStatement(INSERT_DML);
+      if (insertRecordedInstanceQuery == null) {
+        insertRecordedInstanceQuery = connection.prepareStatement(INSERT_DML);
       }
 
       insertRecordedInstanceQuery.setString(1, instanceId);
       insertRecordedInstanceQuery.setString(2, makeRelative(formDir, instanceDir).toString());
 
-      if ( 1 != insertRecordedInstanceQuery.executeUpdate() ) {
+      if (1 != insertRecordedInstanceQuery.executeUpdate()) {
         throw new SQLException("Expected one row to be updated");
       }
-    } catch ( SQLException e ) {
+    } catch (SQLException e) {
       log.error("failed to record instance " + instanceId, e);
     }
   }
 
   // recorded instances have known instanceIds
-  private void forgetRecordedInstance( String instanceId ) {
+  private void forgetRecordedInstance(String instanceId) {
     try {
       assertRecordedInstanceTable();
 
-      if ( deleteRecordedInstanceQuery == null ) {
-        deleteRecordedInstanceQuery =
-                connection.prepareStatement(DELETE_DML);
+      if (deleteRecordedInstanceQuery == null) {
+        deleteRecordedInstanceQuery = connection.prepareStatement(DELETE_DML);
       }
 
-      deleteRecordedInstanceQuery.setString(1, instanceId );
+      deleteRecordedInstanceQuery.setString(1, instanceId);
 
-      if ( deleteRecordedInstanceQuery.executeUpdate() > 1 ) {
+      if (deleteRecordedInstanceQuery.executeUpdate() > 1) {
         throw new SQLException("Expected one row to be deleted");
       }
-    } catch ( SQLException e ) {
+    } catch (SQLException e) {
       log.error("failed to forget instance " + instanceId, e);
     }
   }
 
   // ask whether we have the recorded instance in this briefcase
   // return null if we don't.
-  public synchronized File hasRecordedInstance( String instanceId ) {
+  public synchronized File hasRecordedInstance(String instanceId) {
     try {
       assertRecordedInstanceTable();
 
-      if ( getRecordedInstanceQuery == null ) {
+      if (getRecordedInstanceQuery == null) {
         getRecordedInstanceQuery = connection.prepareStatement(SELECT_DIR_SQL);
       }
 
       getRecordedInstanceQuery.setString(1, instanceId);
       ResultSet values = getRecordedInstanceQuery.executeQuery();
       File f = null;
-      while ( values.next() ) {
-        if ( f != null ) {
+      while (values.next()) {
+        if (f != null) {
           throw new SQLException("Duplicate entries for instanceId: " + instanceId);
         }
         f = new File(formDir, values.getString(1));
       }
       return (f != null && f.exists() && f.isDirectory()) ? f : null;
-    } catch ( SQLException e ) {
+    } catch (SQLException e) {
       if (log.isDebugEnabled()) {
         log.debug("failed to find recorded instance " + instanceId, e);
       }
@@ -201,8 +199,8 @@ public class DatabaseUtils {
     }
   }
 
-  public synchronized void assertRecordedInstanceDirectory( String instanceId, File dir) {
-    forgetRecordedInstance( instanceId );
+  public synchronized void assertRecordedInstanceDirectory(String instanceId, File dir) {
+    forgetRecordedInstance(instanceId);
     putRecordedInstanceDirectory(instanceId, dir);
   }
 
@@ -247,12 +245,11 @@ public class DatabaseUtils {
   }
 
   static void migrateData(String fromDbUrl, String toDbUrl) throws SQLException {
-    try (Connection fromConn = getConnection(fromDbUrl);
-         Connection toConn = getConnection(toDbUrl)) {
+    try (Connection fromConn = getConnection(fromDbUrl); Connection toConn = getConnection(toDbUrl)) {
       createRecordedInstanceTable(toConn);
       try (PreparedStatement selectStmt = fromConn.prepareStatement(SELECT_ALL_SQL);
-           ResultSet results = selectStmt.executeQuery();
-           PreparedStatement insertStmt = toConn.prepareStatement(INSERT_DML)) {
+          ResultSet results = selectStmt.executeQuery();
+          PreparedStatement insertStmt = toConn.prepareStatement(INSERT_DML)) {
         while (results.next()) {
           insertStmt.setString(1, results.getString(1));
           insertStmt.setString(2, results.getString(2));
