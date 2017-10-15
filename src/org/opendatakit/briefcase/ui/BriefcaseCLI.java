@@ -14,7 +14,6 @@
  * the License.
  */
 
-
 package org.opendatakit.briefcase.ui;
 
 import java.io.BufferedReader;
@@ -61,261 +60,252 @@ import org.opendatakit.briefcase.util.TransferFromODK;
 import org.opendatakit.briefcase.util.TransferFromServer;
 
 /**
- * 
+ *
  * Command line interface contributed by Nafundi
- * 
+ *
  * @author chartung@nafundi.com
  *
  */
 public class BriefcaseCLI {
 
-    private CommandLine mCommandline;
+  private CommandLine mCommandline;
 
-    private static final Log log = LogFactory.getLog(BaseFormParserForJavaRosa.class);
+  private static final Log log = LogFactory.getLog(BaseFormParserForJavaRosa.class);
 
-    public BriefcaseCLI(CommandLine cl) {
-        mCommandline = cl;
+  public BriefcaseCLI(CommandLine cl) {
+    mCommandline = cl;
+  }
+
+  public void run() {
+    String username = mCommandline.getOptionValue(MainBriefcaseWindow.ODK_USERNAME);
+    String password = mCommandline.getOptionValue(MainBriefcaseWindow.ODK_PASSWORD);
+    String server = mCommandline.getOptionValue(MainBriefcaseWindow.AGGREGATE_URL);
+    String formid = mCommandline.getOptionValue(MainBriefcaseWindow.FORM_ID);
+    String storageDir = mCommandline.getOptionValue(MainBriefcaseWindow.STORAGE_DIRECTORY);
+    String fileName = mCommandline.getOptionValue(MainBriefcaseWindow.EXPORT_FILENAME);
+    String exportPath = mCommandline.getOptionValue(MainBriefcaseWindow.EXPORT_DIRECTORY);
+    String startDateString = mCommandline.getOptionValue(MainBriefcaseWindow.EXPORT_START_DATE);
+    String endDateString = mCommandline.getOptionValue(MainBriefcaseWindow.EXPORT_END_DATE);
+    // note that we invert incoming value
+    boolean exportMedia = !mCommandline.hasOption(MainBriefcaseWindow.EXCLUDE_MEDIA_EXPORT);
+    boolean overwrite = mCommandline.hasOption(MainBriefcaseWindow.OVERWRITE_CSV_EXPORT);
+    String odkDir = mCommandline.getOptionValue(MainBriefcaseWindow.ODK_DIR);
+    String pemKeyFile = mCommandline.getOptionValue(MainBriefcaseWindow.PEM_FILE);
+
+    BriefcaseFormDefinition toExport = null;
+    TerminationFuture terminationFuture = new TerminationFuture();
+
+    BriefcasePreferences.setBriefcaseDirectoryProperty(storageDir);
+    File f = new StorageLocation().getBriefcaseFolder();
+
+    if (!f.exists()) {
+      boolean success = f.mkdirs();
+      if (success) {
+        log.info("Successfully created directory. Using: " + f.getAbsolutePath());
+      } else {
+        log.error("Unable to create directory: " + f.getAbsolutePath());
+        System.exit(0);
+      }
+    } else if (f.exists() && !f.isDirectory()) {
+      log.error("Not a directory.  " + f.getAbsolutePath());
+      System.exit(0);
+    } else if (f.exists() && f.isDirectory()) {
+      log.info("Directory found, using " + f.getAbsolutePath());
     }
 
-    public void run() {
-        String username = mCommandline.getOptionValue(MainBriefcaseWindow.ODK_USERNAME);
-        String password = mCommandline.getOptionValue(MainBriefcaseWindow.ODK_PASSWORD);
-        String server = mCommandline.getOptionValue(MainBriefcaseWindow.AGGREGATE_URL);
-        String formid = mCommandline.getOptionValue(MainBriefcaseWindow.FORM_ID);
-        String storageDir = mCommandline.getOptionValue(MainBriefcaseWindow.STORAGE_DIRECTORY);
-        String fileName = mCommandline.getOptionValue(MainBriefcaseWindow.EXPORT_FILENAME);
-        String exportPath = mCommandline.getOptionValue(MainBriefcaseWindow.EXPORT_DIRECTORY);
-        String startDateString = mCommandline.getOptionValue(MainBriefcaseWindow.EXPORT_START_DATE);
-        String endDateString = mCommandline.getOptionValue(MainBriefcaseWindow.EXPORT_END_DATE);
-        // note that we invert incoming value
-        boolean exportMedia = !mCommandline.hasOption(MainBriefcaseWindow.EXCLUDE_MEDIA_EXPORT);
-        boolean overwrite = mCommandline.hasOption(MainBriefcaseWindow.OVERWRITE_CSV_EXPORT);
-        String odkDir = mCommandline.getOptionValue(MainBriefcaseWindow.ODK_DIR);
-        String pemKeyFile = mCommandline.getOptionValue(MainBriefcaseWindow.PEM_FILE);
+    if (odkDir != null) {
+      // importing from ODK dir
+      List<FormStatus> statuses = new ArrayList<FormStatus>();
+      File odk = new File(odkDir);
+      List<OdkCollectFormDefinition> forms = FileSystemUtils.getODKFormList(odk);
+      for (OdkCollectFormDefinition form : forms) {
+        statuses.add(new FormStatus(FormStatus.TransferType.GATHER, form));
+      }
 
-        BriefcaseFormDefinition toExport = null;
-        TerminationFuture terminationFuture = new TerminationFuture();
+      TransferFromODK source = new TransferFromODK(odk, terminationFuture, statuses);
+      source.doAction();
+    } else if (server != null) {
+      // importing from server
+      ServerConnectionInfo sci = new ServerConnectionInfo(server, username, password.toCharArray());
 
-        BriefcasePreferences.setBriefcaseDirectoryProperty(storageDir);
-        File f = new StorageLocation().getBriefcaseFolder();
+      ServerConnectionTest backgroundAction = new ServerConnectionTest(sci, terminationFuture, true);
 
-        if (!f.exists()) {
-            boolean success = f.mkdirs();
-            if (success) {
-                log.info("Successfully created directory. Using: " + f.getAbsolutePath());
+      backgroundAction.run();
+      boolean isSuccessful = backgroundAction.isSuccessful();
+
+      if (!isSuccessful) {
+        String errorString = backgroundAction.getErrorReason();
+        log.error(errorString);
+        System.exit(1);
+      }
+
+      terminationFuture.reset();
+
+      RetrieveAvailableFormsFromServer source = new RetrieveAvailableFormsFromServer(sci, terminationFuture);
+      try {
+        source.doAction();
+      } catch (XmlDocumentFetchException | ParsingException e) {
+        log.error("failed to retrieve forms", e);
+      }
+
+      List<FormStatus> statuses = source.getAvailableForms();
+      FormStatus toDl = null;
+      boolean found = false;
+      for (int i = 0; i < statuses.size(); i++) {
+        FormStatus fs = statuses.get(i);
+        if (formid.equals(fs.getFormDefinition().getFormId())) {
+          found = true;
+          toDl = fs;
+        }
+      }
+      if (!found) {
+        log.error("form ID doesn't exist on server");
+        System.exit(0);
+      }
+
+      log.info("beginning download: " + toDl.getFormName());
+      terminationFuture.reset();
+      List<FormStatus> formsToTransfer = new ArrayList<FormStatus>();
+      formsToTransfer.add(toDl);
+
+      TransferFromServer serverSource = new TransferFromServer(sci, terminationFuture, formsToTransfer);
+
+      boolean status = serverSource.doAction();
+    }
+
+    if (exportPath != null) {
+      List<BriefcaseFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
+      for (int i = 0; i < forms.size(); i++) {
+        BriefcaseFormDefinition x = forms.get(i);
+        if (formid.equals(x.getFormId())) {
+          toExport = x;
+          break;
+        }
+      }
+
+      if (toExport == null) {
+        log.error("Form not found");
+        return;
+      }
+
+      File pemFile = null;
+      if (toExport.isFileEncryptedForm() || toExport.isFieldEncryptedForm()) {
+        if (pemKeyFile == null) {
+          log.error("Briefcase action failed: No specified PrivateKey file for encrypted form");
+          return;
+        }
+        pemFile = new File(pemKeyFile);
+        if (!pemFile.exists()) {
+          log.error("Briefcase action failed: No PrivateKey file for encrypted form");
+          return;
+        }
+
+        String errorMsg = null;
+        boolean success = false;
+        for (; ; ) /* this only executes once... */ {
+          try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(pemFile), "UTF-8"));
+            PEMReader rdr = new PEMReader(br);
+            Object o = rdr.readObject();
+            try {
+              rdr.close();
+            } catch (IOException e) {
+              // ignore.
+            }
+            if (o == null) {
+              ODKOptionPane.showErrorDialog(null, errorMsg = "The supplied file is not in PEM format.",
+                  "Invalid RSA Private Key");
+              break;
+            }
+            PrivateKey privKey;
+            if (o instanceof KeyPair) {
+              KeyPair kp = (KeyPair) o;
+              privKey = kp.getPrivate();
+            } else if (o instanceof PrivateKey) {
+              privKey = (PrivateKey) o;
             } else {
-                log.error("Unable to create directory: " + f.getAbsolutePath());
-                System.exit(0);
+              privKey = null;
             }
-        } else if (f.exists() && !f.isDirectory()) {
-            log.error("Not a directory.  " + f.getAbsolutePath());
-            System.exit(0);
-        } else if (f.exists() && f.isDirectory()) {
-            log.info("Directory found, using " + f.getAbsolutePath());
+            if (privKey == null) {
+              ODKOptionPane.showErrorDialog(null, errorMsg = "The supplied file does not contain a private key.",
+                  "Invalid RSA Private Key");
+              break;
+            }
+            toExport.setPrivateKey(privKey);
+            success = true;
+            break;
+          } catch (IOException e) {
+            String msg = "The supplied PEM file could not be parsed.";
+            log.error(msg, e);
+            ODKOptionPane.showErrorDialog(null, errorMsg = msg, "Invalid RSA Private Key");
+            break;
+          }
         }
-
-        if (odkDir != null) {
-            // importing from ODK dir
-            List<FormStatus> statuses = new ArrayList<FormStatus>();
-            File odk = new File(odkDir);
-            List<OdkCollectFormDefinition> forms = FileSystemUtils.getODKFormList(odk);
-            for (OdkCollectFormDefinition form : forms) {
-                statuses.add(new FormStatus(FormStatus.TransferType.GATHER, form));
-            }
-
-            TransferFromODK source = new TransferFromODK(odk, terminationFuture, statuses);
-            source.doAction();
-        } else if (server != null) {
-            // importing from server
-            ServerConnectionInfo sci = new ServerConnectionInfo(server, username,
-                    password.toCharArray());
-
-            ServerConnectionTest backgroundAction = new ServerConnectionTest(sci,
-                    terminationFuture, true);
-
-            backgroundAction.run();
-            boolean isSuccessful = backgroundAction.isSuccessful();
-
-            if (!isSuccessful) {
-                String errorString = backgroundAction.getErrorReason();
-                log.error(errorString);
-                System.exit(1);
-            }
-
-            terminationFuture.reset();
-            
-            RetrieveAvailableFormsFromServer source = new RetrieveAvailableFormsFromServer(sci,
-                    terminationFuture);
-            try {
-                source.doAction();
-            } catch (XmlDocumentFetchException | ParsingException e) {
-                log.error("failed to retrieve forms", e);
-            }
-
-            List<FormStatus> statuses = source.getAvailableForms();
-            FormStatus toDl = null;
-            boolean found = false;
-            for (int i = 0; i < statuses.size(); i++) {
-                FormStatus fs = statuses.get(i);
-                if (formid.equals(fs.getFormDefinition().getFormId())) {
-                    found = true;
-                    toDl = fs;
-                }
-            }
-            if (!found) {
-                log.error("form ID doesn't exist on server");
-                System.exit(0);
-            }
-
-            log.info("beginning download: " + toDl.getFormName());
-            terminationFuture.reset();
-            List<FormStatus> formsToTransfer = new ArrayList<FormStatus>();
-            formsToTransfer.add(toDl);
-
-            TransferFromServer serverSource = new TransferFromServer(sci, terminationFuture,
-                    formsToTransfer);
-
-            boolean status = serverSource.doAction();
+        if (!success) {
+          EventBus.publish(new ExportProgressEvent(errorMsg));
+          EventBus.publish(new ExportFailedEvent(toExport));
+          return;
         }
+      }
 
-        if (exportPath != null) {
-            List<BriefcaseFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
-            for (int i = 0; i < forms.size(); i++) {
-                BriefcaseFormDefinition x = forms.get(i);
-                if (formid.equals(x.getFormId())) {
-                    toExport = x;
-                    break;
-                }
-            }
+      Date startDate = null;
+      Date endDate = null;
+      DateFormat df = new SimpleDateFormat(MainBriefcaseWindow.DATE_FORMAT);
 
-            if (toExport == null) {
-                log.error("Form not found");
-                return;
-            }
-
-            File pemFile = null;
-            if (toExport.isFileEncryptedForm() || toExport.isFieldEncryptedForm()) {
-                if (pemKeyFile == null) {
-                    log.error("Briefcase action failed: No specified PrivateKey file for encrypted form");
-                    return;
-                }
-                pemFile = new File(pemKeyFile);
-                if (!pemFile.exists()) {
-                    log.error("Briefcase action failed: No PrivateKey file for encrypted form");
-                    return;
-                }
-
-                String errorMsg = null;
-                boolean success = false;
-                for (;;) /* this only executes once... */ {
-                    try {
-                        BufferedReader br = new BufferedReader(new InputStreamReader(
-                                new FileInputStream(pemFile), "UTF-8"));
-                        PEMReader rdr = new PEMReader(br);
-                        Object o = rdr.readObject();
-                        try {
-                          rdr.close();
-                        } catch ( IOException e ) {
-                          // ignore.
-                        }
-                        if (o == null) {
-                            ODKOptionPane.showErrorDialog(null,
-                                    errorMsg = "The supplied file is not in PEM format.",
-                                    "Invalid RSA Private Key");
-                            break;
-                        }
-                        PrivateKey privKey;
-                        if (o instanceof KeyPair) {
-                            KeyPair kp = (KeyPair)o;
-                            privKey = kp.getPrivate();
-                        } else if (o instanceof PrivateKey) {
-                            privKey = (PrivateKey)o;
-                        } else {
-                            privKey = null;
-                        }
-                        if (privKey == null) {
-                            ODKOptionPane.showErrorDialog(null,
-                                    errorMsg = "The supplied file does not contain a private key.",
-                                    "Invalid RSA Private Key");
-                            break;
-                        }
-                        toExport.setPrivateKey(privKey);
-                        success = true;
-                        break;
-                    } catch (IOException e) {
-                        String msg = "The supplied PEM file could not be parsed.";
-                        log.error(msg, e);
-                        ODKOptionPane.showErrorDialog(null,
-                                errorMsg = msg,
-                                "Invalid RSA Private Key");
-                        break;
-                    }
-                }
-                if (!success) {
-                    EventBus.publish(new ExportProgressEvent(errorMsg));
-                    EventBus.publish(new ExportFailedEvent(toExport));
-                    return;
-                }
-            }
-
-            Date startDate = null;
-            Date endDate = null;
-            DateFormat df = new SimpleDateFormat(MainBriefcaseWindow.DATE_FORMAT);
-
-            try {
-                if (startDateString != null) {
-                    startDate = df.parse(startDateString);
-                }
-                if (endDateString != null) {
-                    endDate = df.parse(endDateString);
-                }
-            } catch (ParseException e) {
-                log.error("bad date range", e);
-            }
-
-            terminationFuture.reset();
-            File dir = new File(exportPath);
-            log.info("exporting to : " + dir.getAbsolutePath());
-            ExportToCsv exp = new ExportToCsv(dir, toExport, terminationFuture, fileName,
-                    exportMedia, overwrite, startDate, endDate);
-            exp.doAction();
+      try {
+        if (startDateString != null) {
+          startDate = df.parse(startDateString);
         }
+        if (endDateString != null) {
+          endDate = df.parse(endDateString);
+        }
+      } catch (ParseException e) {
+        log.error("bad date range", e);
+      }
 
+      terminationFuture.reset();
+      File dir = new File(exportPath);
+      log.info("exporting to : " + dir.getAbsolutePath());
+      ExportToCsv exp = new ExportToCsv(dir, toExport, terminationFuture, fileName, exportMedia, overwrite, startDate,
+          endDate);
+      exp.doAction();
     }
 
-    @EventSubscriber(eventClass = ExportProgressEvent.class)
-    public void progress(ExportProgressEvent event) {
-        log.info(event.getText());
-    }
+  }
 
-    @EventSubscriber(eventClass = ExportFailedEvent.class)
-    public void failedCompletion(ExportFailedEvent event) {
-        log.error("Failed.");
-    }
+  @EventSubscriber(eventClass = ExportProgressEvent.class)
+  public void progress(ExportProgressEvent event) {
+    log.info(event.getText());
+  }
 
-    @EventSubscriber(eventClass = ExportSucceededEvent.class)
-    public void successfulCompletion(ExportSucceededEvent event) {
-        log.info("Succeeded.");
-    }
+  @EventSubscriber(eventClass = ExportFailedEvent.class)
+  public void failedCompletion(ExportFailedEvent event) {
+    log.error("Failed.");
+  }
 
-    @EventSubscriber(eventClass = TransferFailedEvent.class)
-    public void failedCompletion(TransferFailedEvent event) {
-        log.error("Transfer Failed");
-    }
+  @EventSubscriber(eventClass = ExportSucceededEvent.class)
+  public void successfulCompletion(ExportSucceededEvent event) {
+    log.info("Succeeded.");
+  }
 
-    @EventSubscriber(eventClass = TransferSucceededEvent.class)
-    public void successfulCompletion(TransferSucceededEvent event) {
-        log.info("Transfer Succeeded");
-    }
+  @EventSubscriber(eventClass = TransferFailedEvent.class)
+  public void failedCompletion(TransferFailedEvent event) {
+    log.error("Transfer Failed");
+  }
 
-    @EventSubscriber(eventClass = FormStatusEvent.class)
-    public void updateDetailedStatus(FormStatusEvent fse) {
-        log.info(fse.getStatusString());
-    }
+  @EventSubscriber(eventClass = TransferSucceededEvent.class)
+  public void successfulCompletion(TransferSucceededEvent event) {
+    log.info("Transfer Succeeded");
+  }
 
-    @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
-    public void formsAvailableFromServer(RetrieveAvailableFormsFailedEvent event) {
-        log.error("Accessing the server failed with error: " + event.getReason());
-    }
+  @EventSubscriber(eventClass = FormStatusEvent.class)
+  public void updateDetailedStatus(FormStatusEvent fse) {
+    log.info(fse.getStatusString());
+  }
+
+  @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
+  public void formsAvailableFromServer(RetrieveAvailableFormsFailedEvent event) {
+    log.error("Accessing the server failed with error: " + event.getReason());
+  }
 
 }

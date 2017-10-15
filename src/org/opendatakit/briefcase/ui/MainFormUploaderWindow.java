@@ -62,7 +62,7 @@ public class MainFormUploaderWindow {
   private JTextField txtDestinationName;
   private JButton btnChooseServer;
 
-  private JLabel  lblUploading;
+  private JLabel lblUploading;
   private JButton btnDetails;
   private JButton btnUploadForm;
   private JButton btnCancel;
@@ -96,7 +96,7 @@ public class MainFormUploaderWindow {
       }
     });
   }
-  
+
   class FormDefinitionActionListener implements ActionListener {
 
     @Override
@@ -105,7 +105,7 @@ public class MainFormUploaderWindow {
       WrappedFileChooser fc = new WrappedFileChooser(MainFormUploaderWindow.this.frame,
           new FormDefinitionFileChooser(MainFormUploaderWindow.this.frame));
       String path = txtFormDefinitionFile.getText();
-      if ( path != null && path.trim().length() != 0 ) {
+      if (path != null && path.trim().length() != 0) {
         fc.setSelectedFile(new File(path.trim()));
       }
       int retVal = fc.showDialog();
@@ -114,13 +114,14 @@ public class MainFormUploaderWindow {
           String formDefinitionPath = fc.getSelectedFile().getAbsolutePath();
           try {
             File formFile = new File(formDefinitionPath);
-            BriefcaseFormDefinition lfd = new BriefcaseFormDefinition(formFile.getParentFile(), new File(formDefinitionPath));
+            BriefcaseFormDefinition lfd = new BriefcaseFormDefinition(formFile.getParentFile(),
+                new File(formDefinitionPath));
             fs = new FormStatus(FormStatus.TransferType.UPLOAD, lfd);
             txtFormDefinitionFile.setText(formDefinitionPath);
             setUploadFormEnabled(true);
             lblUploading.setText("");
             btnDetails.setEnabled(false);
-          } catch ( BadFormDefinition ex ) {
+          } catch (BadFormDefinition ex) {
             log.error("failed to create form definition for upload", ex);
           }
         }
@@ -128,6 +129,7 @@ public class MainFormUploaderWindow {
     }
 
   }
+
   /**
    * Handle click-action for destination "Choose..." and "Connect..." button and
    * the related UI updates (e.g., populating the available forms list).
@@ -137,8 +139,7 @@ public class MainFormUploaderWindow {
     @Override
     public void actionPerformed(ActionEvent e) {
       // need to show (modal) connect dialog...
-      ServerConnectionDialog d = new ServerConnectionDialog(
-          MainFormUploaderWindow.this.frame.getOwner(), 
+      ServerConnectionDialog d = new ServerConnectionDialog(MainFormUploaderWindow.this.frame.getOwner(),
           destinationServerInfo, true);
       d.setVisible(true);
       if (d.isSuccessful()) {
@@ -150,8 +151,8 @@ public class MainFormUploaderWindow {
           lblUploading.setText("");
           btnDetails.setEnabled(false);
         } else {
-          ODKOptionPane.showErrorDialog(MainFormUploaderWindow.this.frame,
-              "Server is not an ODK Aggregate 1.0 server", "Invalid Server URL");
+          ODKOptionPane.showErrorDialog(MainFormUploaderWindow.this.frame, "Server is not an ODK Aggregate 1.0 server",
+              "Invalid Server URL");
         }
       }
     }
@@ -167,12 +168,10 @@ public class MainFormUploaderWindow {
   }
 
   private void setUploadFormEnabled(boolean enable) {
-      btnUploadForm.setEnabled(enable &&
-        destinationServerInfo != null &&
-        txtFormDefinitionFile.getText() != null &&
-        txtFormDefinitionFile.getText().length() != 0);
+    btnUploadForm.setEnabled(enable && destinationServerInfo != null && txtFormDefinitionFile.getText() != null
+        && txtFormDefinitionFile.getText().length() != 0);
   }
-  
+
   private void setActiveTransferState(boolean active) {
     if (active) {
       // don't allow normal actions when we are transferring...
@@ -230,7 +229,7 @@ public class MainFormUploaderWindow {
     lblUploading.setText("Succeeded.");
     setActiveTransferState(false);
   }
-  
+
   /**
    * Initialize the contents of the frame.
    */
@@ -248,25 +247,25 @@ public class MainFormUploaderWindow {
 
     btnChoose = new JButton("Choose...");
     btnChoose.addActionListener(new FormDefinitionActionListener());
-    
+
     txtDestinationName = new JTextField();
     txtDestinationName.setFocusable(false);
     txtDestinationName.setEditable(false);
     txtDestinationName.setColumns(10);
-    
+
     btnChooseServer = new JButton("Configure...");
     btnChooseServer.addActionListener(new DestinationActionListener());
-    
+
     lblUploading = new JLabel("");
-    
+
     btnDetails = new JButton("Details...");
     btnDetails.addActionListener(new ActionListener() {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        if ( fs != null ) {
-          ScrollingStatusListDialog.showDialog(
-            MainFormUploaderWindow.this.frame, fs.getFormDefinition(), fs.getStatusHistory());
+        if (fs != null) {
+          ScrollingStatusListDialog.showDialog(MainFormUploaderWindow.this.frame, fs.getFormDefinition(),
+              fs.getStatusHistory());
         }
       }
     });
@@ -278,9 +277,8 @@ public class MainFormUploaderWindow {
       public void actionPerformed(ActionEvent e) {
         setActiveTransferState(true);
         File formDefn = new File(txtFormDefinitionFile.getText());
-        TransferAction.uploadForm(
-            MainFormUploaderWindow.this.frame.getOwner(),
-            destinationServerInfo, terminationFuture, formDefn, fs);
+        TransferAction.uploadForm(MainFormUploaderWindow.this.frame.getOwner(), destinationServerInfo,
+            terminationFuture, formDefn, fs);
       }
     });
 
@@ -288,21 +286,18 @@ public class MainFormUploaderWindow {
     btnCancel.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent arg0) {
-        terminationFuture.markAsCancelled(
-            new TransferAbortEvent("Form upload cancelled by user."));
+        terminationFuture.markAsCancelled(new TransferAbortEvent("Form upload cancelled by user."));
       }
     });
-    
+
     btnClose = new JButton("Close");
     btnClose.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if ( transferStateActive ) {
-          if ( JOptionPane.YES_OPTION != JOptionPane.showOptionDialog(frame,
-              "An upload is in progress. Are you sure you want to abort and exit?",
-              "Confirm Stop Form Upload",
-              JOptionPane.YES_NO_OPTION,
-              JOptionPane.ERROR_MESSAGE, null, null, null) ) {
+        if (transferStateActive) {
+          if (JOptionPane.YES_OPTION != JOptionPane.showOptionDialog(frame,
+              "An upload is in progress. Are you sure you want to abort and exit?", "Confirm Stop Form Upload",
+              JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, null, null)) {
             return; // no-op
           }
           terminationFuture.markAsCancelled(new TransferAbortEvent("User closes window"));
@@ -312,24 +307,21 @@ public class MainFormUploaderWindow {
         System.exit(0);
       }
     });
-    
+
     JLabel lblUploadToServer = new JLabel("Upload to server:");
-    
+
     GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
-    groupLayout.setHorizontalGroup(groupLayout
-        .createSequentialGroup()
+    groupLayout.setHorizontalGroup(groupLayout.createSequentialGroup()
         .addContainerGap()
         .addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
             .addComponent(lblFormDefinitionFile)
             .addComponent(lblUploadToServer)
-            .addComponent(lblUploading)
-            )
+            .addComponent(lblUploading))
         .addPreferredGap(ComponentPlacement.RELATED)
         .addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-            .addComponent(txtFormDefinitionFile, 
-                GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
-            .addComponent(txtDestinationName,  
-                GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
+            .addComponent(txtFormDefinitionFile, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
+                Short.MAX_VALUE)
+            .addComponent(txtDestinationName, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
             .addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
                 .addComponent(btnDetails)
                 .addPreferredGap(ComponentPlacement.RELATED)
@@ -341,30 +333,30 @@ public class MainFormUploaderWindow {
             .addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
                 .addComponent(btnChoose, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
                 .addComponent(btnChooseServer, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE))
-          .addComponent(btnClose))
-        .addContainerGap());
-    groupLayout.setVerticalGroup(
-      groupLayout.createParallelGroup(Alignment.LEADING)
-        .addGroup(groupLayout.createSequentialGroup()
-          .addContainerGap()
-          .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-            .addComponent(txtFormDefinitionFile, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-            .addComponent(lblFormDefinitionFile)
-            .addComponent(btnChoose))
-          .addPreferredGap(ComponentPlacement.RELATED)
-          .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-            .addComponent(lblUploadToServer)
-            .addComponent(txtDestinationName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-            .addComponent(btnChooseServer))
-          .addPreferredGap(ComponentPlacement.UNRELATED, 10, Short.MAX_VALUE)
-          .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-              .addComponent(lblUploading)
-              .addComponent(btnDetails)
-            .addComponent(btnUploadForm)
-            .addComponent(btnCancel)
             .addComponent(btnClose))
-          .addContainerGap())
-    );
+        .addContainerGap());
+    groupLayout.setVerticalGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+        .addGroup(groupLayout.createSequentialGroup()
+            .addContainerGap()
+            .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+                .addComponent(txtFormDefinitionFile, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                    GroupLayout.PREFERRED_SIZE)
+                .addComponent(lblFormDefinitionFile)
+                .addComponent(btnChoose))
+            .addPreferredGap(ComponentPlacement.RELATED)
+            .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+                .addComponent(lblUploadToServer)
+                .addComponent(txtDestinationName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                    GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnChooseServer))
+            .addPreferredGap(ComponentPlacement.UNRELATED, 10, Short.MAX_VALUE)
+            .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+                .addComponent(lblUploading)
+                .addComponent(btnDetails)
+                .addComponent(btnUploadForm)
+                .addComponent(btnCancel)
+                .addComponent(btnClose))
+            .addContainerGap()));
 
     frame.getContentPane().setLayout(groupLayout);
     setActiveTransferState(false);

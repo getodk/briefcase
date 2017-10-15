@@ -17,14 +17,13 @@
 
 package org.opendatakit.common.web.constants;
 
-
 /**
  * Static HTML utility functions used to generate proper HTML for ODK Aggregate
  * visual outputs
- * 
+ *
  * @author wbrunette@gmail.com
  * @author mitchellsundt@gmail.com
- * 
+ *
  */
 public class HtmlStrUtil {
 
@@ -65,11 +64,16 @@ public class HtmlStrUtil {
   }
 
   public static final String createHref(String url, String displayText) {
-    return HtmlConsts.BEGIN_OPEN_TAG + A + BasicConsts.SPACE + createAttribute(HREF, url)
-        + HtmlConsts.END_TAG + displayText + createEndTag(A);
+    return HtmlConsts.BEGIN_OPEN_TAG + A + BasicConsts.SPACE + createAttribute(HREF, url) + HtmlConsts.END_TAG
+        + displayText + createEndTag(A);
   }
 
-  public static final String createInput(String type, String name, String value, boolean isChecked, int size, String extras) {
+  public static final String createInput(String type,
+                                         String name,
+                                         String value,
+                                         boolean isChecked,
+                                         int size,
+                                         String extras) {
     StringBuilder html = new StringBuilder();
     html.append(HtmlConsts.BEGIN_OPEN_TAG + INPUT);
     if (type != null) {
@@ -86,37 +90,37 @@ public class HtmlStrUtil {
     }
     html.append(BasicConsts.SPACE);
     html.append(createAttribute(ATTR_SIZE, Integer.toString(size)));
-    
-    if ( extras != null) {
-        html.append(BasicConsts.SPACE);
-        html.append(extras);
+
+    if (extras != null) {
+      html.append(BasicConsts.SPACE);
+      html.append(extras);
     }
-    
-    if ( isChecked ) {
-        html.append(BasicConsts.SPACE);
-        html.append(ATTR_CHECKED);
+
+    if (isChecked) {
+      html.append(BasicConsts.SPACE);
+      html.append(ATTR_CHECKED);
     }
     html.append(HtmlConsts.END_SELF_CLOSING_TAG);
     return html.toString();
   }
 
   public static final String createInput(String type, String name, String value, int size) {
-      return createInput(type, name, value, false, size, null);
+    return createInput(type, name, value, false, size, null);
   }
 
   public static final String createInput(String type, String name, String value) {
-      return createInput(type, name, value, false, INPUT_WIDGET_SIZE_LIMIT, null);
+    return createInput(type, name, value, false, INPUT_WIDGET_SIZE_LIMIT, null);
   }
-  
+
   public static final String createNonSavingPasswordInput(String name) {
-      return createInput(HtmlConsts.INPUT_TYPE_PASSWORD, name, "",
-                            false, INPUT_WIDGET_SIZE_LIMIT, "autocomplete=\"off\"");
+    return createInput(HtmlConsts.INPUT_TYPE_PASSWORD, name, "", false, INPUT_WIDGET_SIZE_LIMIT,
+        "autocomplete=\"off\"");
   }
-  
+
   public static final String createInput(String type, String name, String value, boolean checked) {
     return createInput(type, name, value, checked, INPUT_WIDGET_SIZE_LIMIT, null);
   }
-  
+
   public static final String createFormBeginTag(String action, String encodingType, String method) {
     StringBuilder html = new StringBuilder();
     html.append(HtmlConsts.BEGIN_OPEN_TAG + HtmlConsts.FORM);

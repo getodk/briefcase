@@ -42,6 +42,7 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.EventQueue;
@@ -96,14 +97,10 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
   private static final String DONE_TITLE = "Done!";
 
   private static CharsetEntry[] commonCharsetEntries = new CharsetEntry[] {
-       new CharsetEntry("Windows Latin 1", "Windows-1252"),
-       new CharsetEntry("Mac OS Roman", "MacRoman"),
-       new CharsetEntry("UNICODE", "UTF-8"),
-       new CharsetEntry("UNICODE", "UTF-16"),
-       new CharsetEntry("Windows Central European", "Windows-1250"),
-       new CharsetEntry("Windows Greek", "Windows-1253"),
-       new CharsetEntry("ISO 646", "US-ASCII")
-  };
+      new CharsetEntry("Windows Latin 1", "Windows-1252"), new CharsetEntry("Mac OS Roman", "MacRoman"),
+      new CharsetEntry("UNICODE", "UTF-8"), new CharsetEntry("UNICODE", "UTF-16"),
+      new CharsetEntry("Windows Central European", "Windows-1250"), new CharsetEntry("Windows Greek", "Windows-1253"),
+      new CharsetEntry("ISO 646", "US-ASCII")};
 
   private JTextField tfFile;
   private JList<CharsetEntry> listCharset;
@@ -272,7 +269,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
       }
     }
 
-    SortedMap<String,Charset> charsetSortedMap = Charset.availableCharsets();
+    SortedMap<String, Charset> charsetSortedMap = Charset.availableCharsets();
     for (Map.Entry<String, Charset> charsetMapEntry : charsetSortedMap.entrySet()) {
       CharsetEntry charsetEntry = new CharsetEntry(charsetMapEntry.getValue().displayName(), charsetMapEntry.getKey());
       if (!defaultListModel.contains(charsetEntry)) {
@@ -294,8 +291,8 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
       });
     } else {
       JOptionPane.showMessageDialog(this,
-              "It appears that your installed Java Runtime Environment does not support any charset encodings!",
-              "Error", JOptionPane.ERROR_MESSAGE);
+          "It appears that your installed Java Runtime Environment does not support any charset encodings!", "Error",
+          JOptionPane.ERROR_MESSAGE);
     }
   }
 
@@ -305,7 +302,8 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
     String actionCommand = e.getActionCommand();
 
     if (BROWSE_COMMAND.equals(actionCommand)) {
-      WrappedFileChooser dlg = new WrappedFileChooser(window, new FileChooser(true, "Select the file to convert...", "Select"));
+      WrappedFileChooser dlg = new WrappedFileChooser(window,
+          new FileChooser(true, "Select the file to convert...", "Select"));
       String path = getFilePath();
       if (path != null && path.trim().length() != 0) {
         dlg.setSelectedFile(new File(path.trim()));
@@ -329,7 +327,8 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
       if (cbOverride.isSelected()) {
         destinationPath = new File(filePath);
       } else {
-        WrappedFileChooser dlg = new WrappedFileChooser(window, new FileChooser(false, "Select the file to convert to...", "Save"));
+        WrappedFileChooser dlg = new WrappedFileChooser(window,
+            new FileChooser(false, "Select the file to convert to...", "Save"));
         dlg.setSelectedFile(new File(filePath));
         int retVal = dlg.showDialog();
         if (retVal == JFileChooser.APPROVE_OPTION && dlg.getSelectedFile() != null) {
@@ -339,22 +338,17 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
         }
       }
 
-
       File file = new File(filePath);
       try {
         List<String> lines = FileUtils.readLines(file, getCharsetName());
         FileUtils.writeLines(destinationPath, "UTF-8", lines, LINE_SEPARATOR);
 
-        JOptionPane.showMessageDialog(this,
-                DONE_MESSAGE,
-                DONE_TITLE, JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, DONE_MESSAGE, DONE_TITLE, JOptionPane.INFORMATION_MESSAGE);
 
         cancelButton.setText("Close");
 
       } catch (Exception ex) {
-        JOptionPane.showMessageDialog(this,
-                ex.getMessage(),
-                "Error converting file...", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, ex.getMessage(), "Error converting file...", JOptionPane.ERROR_MESSAGE);
       }
     } else if (CANCEL_COMMAND.equals(actionCommand)) {
       closeDialog();
@@ -389,9 +383,8 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
 
         } catch (Exception ex) {
           log.error("failed to create preview", ex);
-          JOptionPane.showMessageDialog(CharsetConverterDialog.this,
-                  ex.getMessage(),
-                  "Error reading file...", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(CharsetConverterDialog.this, ex.getMessage(), "Error reading file...",
+              JOptionPane.ERROR_MESSAGE);
         } finally {
           IOUtils.closeQuietly(bufferedReader);
 
@@ -481,7 +474,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
   class FileChooser extends AbstractFileChooser {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 6458668203143472878L;
 

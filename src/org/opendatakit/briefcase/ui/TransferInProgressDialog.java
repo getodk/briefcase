@@ -50,8 +50,8 @@ import org.opendatakit.briefcase.model.TransferSucceededEvent;
 public class TransferInProgressDialog extends JDialog implements ActionListener, WindowListener {
 
   /**
-     *
-     */
+   *
+   */
   private static final long serialVersionUID = 5411425417966734421L;
   private final JPanel contentPanel = new JPanel();
   private JLabel lblNewLabel;
@@ -63,8 +63,8 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
    * Create the dialog.
    */
   public TransferInProgressDialog(Window topLevel, TransferType transferType, TerminationFuture terminationFuture) {
-    super(topLevel, ((transferType == TransferType.UPLOAD) ? 
-        PushTransferPanel.TAB_NAME : PullTransferPanel.TAB_NAME) + " in progress...", ModalityType.DOCUMENT_MODAL);
+    super(topLevel, ((transferType == TransferType.UPLOAD) ? PushTransferPanel.TAB_NAME : PullTransferPanel.TAB_NAME)
+        + " in progress...", ModalityType.DOCUMENT_MODAL);
     AnnotationProcessor.process(this);// if not using AOP
     this.terminationFuture = terminationFuture;
 
@@ -73,14 +73,15 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
     contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
     getContentPane().add(contentPanel, BorderLayout.CENTER);
     {
-      lblNewLabel = new JLabel(((transferType == TransferType.UPLOAD) ? 
-          PushTransferPanel.TAB_NAME : PullTransferPanel.TAB_NAME) + " in progress...");
+      lblNewLabel = new JLabel(
+          ((transferType == TransferType.UPLOAD) ? PushTransferPanel.TAB_NAME : PullTransferPanel.TAB_NAME)
+              + " in progress...");
     }
     cancelButton = new JButton("Cancel");
     cancelButton.setActionCommand("Cancel");
     cancelButton.addActionListener(this);
     addWindowListener(this);
-    
+
     textAreaStatusDetail = new JTextArea();
     textAreaStatusDetail.setFocusable(false);
     textAreaStatusDetail.setFocusTraversalKeysEnabled(false);
@@ -90,31 +91,29 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
     textAreaStatusDetail.setLineWrap(true);
     textAreaStatusDetail.setWrapStyleWord(true);
     textAreaStatusDetail.setPreferredSize(new Dimension(300, 105));
-    
+
     GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
-    gl_contentPanel.setHorizontalGroup(
-      gl_contentPanel.createParallelGroup(Alignment.LEADING)
+    gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
         .addGroup(gl_contentPanel.createSequentialGroup()
-          .addContainerGap()
-          .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-              .addComponent(lblNewLabel)
-              .addGroup(Alignment.TRAILING, gl_contentPanel.createSequentialGroup()
-              .addComponent(textAreaStatusDetail, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
-              .addPreferredGap(ComponentPlacement.RELATED)
-              .addComponent(cancelButton)))
-          .addContainerGap())
-    );
-    gl_contentPanel.setVerticalGroup(
-      gl_contentPanel.createParallelGroup(Alignment.LEADING)
+            .addContainerGap()
+            .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+                .addComponent(lblNewLabel)
+                .addGroup(Alignment.TRAILING, gl_contentPanel.createSequentialGroup()
+                    .addComponent(textAreaStatusDetail, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
+                        Short.MAX_VALUE)
+                    .addPreferredGap(ComponentPlacement.RELATED)
+                    .addComponent(cancelButton)))
+            .addContainerGap()));
+    gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
         .addGroup(Alignment.TRAILING, gl_contentPanel.createSequentialGroup()
-          .addContainerGap()
-          .addComponent(lblNewLabel)
-          .addPreferredGap(ComponentPlacement.RELATED)
-          .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-            .addComponent(cancelButton)
-            .addComponent(textAreaStatusDetail, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE))
-          .addContainerGap())
-    );
+            .addContainerGap()
+            .addComponent(lblNewLabel)
+            .addPreferredGap(ComponentPlacement.RELATED)
+            .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+                .addComponent(cancelButton)
+                .addComponent(textAreaStatusDetail, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
+                    Short.MAX_VALUE))
+            .addContainerGap()));
     contentPanel.setLayout(gl_contentPanel);
   }
 
@@ -127,12 +126,12 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
   public void successfulCompletion(TransferSucceededEvent event) {
     this.setVisible(false);
   }
-  
+
   @EventSubscriber(eventClass = FormStatusEvent.class)
   public void updateDetailedStatus(FormStatusEvent fse) {
     textAreaStatusDetail.setText(fse.getStatusString());
   }
-  
+
   @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
   public void failedRemoteCompletion(RetrieveAvailableFormsFailedEvent event) {
     this.setVisible(false);
@@ -159,8 +158,8 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
     // warn that this will stop the transfer, and
     // if they still want to, do the same action
     // as the cancel button.
-    int outcome = JOptionPane.showConfirmDialog(this, "Cancel the in-progress transfer?",
-        "Close Window", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+    int outcome = JOptionPane.showConfirmDialog(this, "Cancel the in-progress transfer?", "Close Window",
+        JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
     if (outcome == JOptionPane.OK_OPTION) {
       actionPerformed(null);
     }

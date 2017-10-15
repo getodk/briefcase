@@ -71,78 +71,77 @@ public class MountedSDCardChooserDialog extends JDialog implements ActionListene
   private JButton btnCancel;
 
   public MountedSDCardChooserDialog(Window parentWindow, String candidatePath) {
-      super(parentWindow, "Mounted SD Card", ModalityType.DOCUMENT_MODAL);
+    super(parentWindow, "Mounted SD Card", ModalityType.DOCUMENT_MODAL);
 
-      if ( candidatePath != null && candidatePath.trim().length() != 0 ) {
-        odkDevice = new File(candidatePath);
-      } else {
-        odkDevice = null;
+    if (candidatePath != null && candidatePath.trim().length() != 0) {
+      odkDevice = new File(candidatePath);
+    } else {
+      odkDevice = null;
+    }
+
+    JLabel lblChooseLocation = new JLabel("Select the mounted SD card:");
+    radioPanel = new JPanel();
+
+    btnOK = new JButton("OK");
+    btnOK.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        outcome = true;
+        setVisible(false);
       }
-      
-      JLabel lblChooseLocation = new JLabel("Select the mounted SD card:");
-      radioPanel = new JPanel();
-      
-      btnOK = new JButton("OK");
-      btnOK.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          outcome = true;
-          setVisible(false);
-        }
-      });
-      
-      btnCancel = new JButton("Cancel");
-      btnCancel.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          outcome = false;
-          setVisible(false);
-        }
-      });
+    });
 
-      btnRefresh = new JButton("Refresh List");
-      btnRefresh.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          try {
-            btnOK.setEnabled(false);
-            btnCancel.setEnabled(false);
-            rebuildPanel();
-          } finally {
-            btnOK.setEnabled(true);
-            btnCancel.setEnabled(true);
-          }
-        }
-      });
+    btnCancel = new JButton("Cancel");
+    btnCancel.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        outcome = false;
+        setVisible(false);
+      }
+    });
 
-      GroupLayout groupLayout = new GroupLayout(getContentPane());
-      groupLayout.setHorizontalGroup(groupLayout.createSequentialGroup()
-          .addContainerGap()
-          .addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-              .addComponent(lblChooseLocation)
-              .addComponent(radioPanel)
-              .addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
-                    .addComponent(btnRefresh)
-                    .addPreferredGap(ComponentPlacement.RELATED)
-                    .addComponent(btnOK)
-                    .addPreferredGap(ComponentPlacement.RELATED)
-                    .addComponent(btnCancel)))
-          .addContainerGap()
-      );
-      groupLayout.setVerticalGroup(groupLayout.createSequentialGroup()
-            .addContainerGap()
+    btnRefresh = new JButton("Refresh List");
+    btnRefresh.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        try {
+          btnOK.setEnabled(false);
+          btnCancel.setEnabled(false);
+          rebuildPanel();
+        } finally {
+          btnOK.setEnabled(true);
+          btnCancel.setEnabled(true);
+        }
+      }
+    });
+
+    GroupLayout groupLayout = new GroupLayout(getContentPane());
+    groupLayout.setHorizontalGroup(groupLayout.createSequentialGroup()
+        .addContainerGap()
+        .addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
             .addComponent(lblChooseLocation)
-            .addPreferredGap(ComponentPlacement.RELATED)
             .addComponent(radioPanel)
-            .addPreferredGap(ComponentPlacement.RELATED)
-            .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+            .addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
                 .addComponent(btnRefresh)
+                .addPreferredGap(ComponentPlacement.RELATED)
                 .addComponent(btnOK)
-              .addComponent(btnCancel))
-            .addContainerGap());
-      getContentPane().setLayout(groupLayout);   
-      rebuildPanel();
-   }
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addComponent(btnCancel)))
+        .addContainerGap());
+    groupLayout.setVerticalGroup(groupLayout.createSequentialGroup()
+        .addContainerGap()
+        .addComponent(lblChooseLocation)
+        .addPreferredGap(ComponentPlacement.RELATED)
+        .addComponent(radioPanel)
+        .addPreferredGap(ComponentPlacement.RELATED)
+        .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+            .addComponent(btnRefresh)
+            .addComponent(btnOK)
+            .addComponent(btnCancel))
+        .addContainerGap());
+    getContentPane().setLayout(groupLayout);
+    rebuildPanel();
+  }
 
   private void rebuildPanel() {
     GroupLayout groupLayout = new GroupLayout(radioPanel);
@@ -152,7 +151,7 @@ public class MountedSDCardChooserDialog extends JDialog implements ActionListene
 
     // remove everything from the panel
     radioPanel.removeAll();
-    while ( radioGroup.getButtonCount() != 0 ) {
+    while (radioGroup.getButtonCount() != 0) {
       AbstractButton rb = radioGroup.getElements().nextElement();
       radioGroup.remove(rb);
     }
@@ -160,19 +159,19 @@ public class MountedSDCardChooserDialog extends JDialog implements ActionListene
     // construct the panel
     ParallelGroup leftAlignedHorizontals = groupLayout.createParallelGroup(Alignment.LEADING);
     SequentialGroup verticalGroup = groupLayout.createSequentialGroup();
-    
+
     int len = 0;
     File oldDevice = odkDevice;
     JRadioButton activeButton = null;
     odkDevice = null;
     boolean first = true;
-    for ( File m : mounts ) {
+    for (File m : mounts) {
       String mountName = m.getAbsolutePath();
       JRadioButton mountButton = new JRadioButton(mountName, first);
       mountButton.setActionCommand(mountName);
       radioGroup.add(mountButton);
       mountButton.addActionListener(this);
-      if ( first ) {
+      if (first) {
         verticalGroup.addContainerGap();
         odkDevice = new File(mountName);
         activeButton = mountButton;
@@ -180,9 +179,9 @@ public class MountedSDCardChooserDialog extends JDialog implements ActionListene
         verticalGroup.addPreferredGap(ComponentPlacement.RELATED);
       }
       // try to preserve original mount point selection
-      if ( oldDevice != null ) {
-        if ( oldDevice.getAbsolutePath().startsWith(mountName) ) {
-          if ( len < mountName.length() ) {
+      if (oldDevice != null) {
+        if (oldDevice.getAbsolutePath().startsWith(mountName)) {
+          if (len < mountName.length()) {
             len = mountName.length();
             odkDevice = new File(mountName);
             activeButton = mountButton;
@@ -193,18 +192,15 @@ public class MountedSDCardChooserDialog extends JDialog implements ActionListene
       verticalGroup.addComponent(mountButton);
       first = false;
     }
-    if ( first != true ) {
+    if (first != true) {
       verticalGroup.addContainerGap();
     }
     // TODO: set the chosen device as selected.
-    if ( activeButton != null ) {
+    if (activeButton != null) {
       activeButton.setSelected(true);
     }
-    groupLayout.setHorizontalGroup(groupLayout.createSequentialGroup()
-        .addContainerGap()
-        .addGroup(leftAlignedHorizontals)
-        .addContainerGap()
-    );
+    groupLayout.setHorizontalGroup(
+        groupLayout.createSequentialGroup().addContainerGap().addGroup(leftAlignedHorizontals).addContainerGap());
     groupLayout.setVerticalGroup(verticalGroup);
     radioPanel.setLayout(groupLayout);
     pack();

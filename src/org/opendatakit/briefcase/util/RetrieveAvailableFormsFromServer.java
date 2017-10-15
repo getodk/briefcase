@@ -33,8 +33,7 @@ public class RetrieveAvailableFormsFromServer {
   final TerminationFuture terminationFuture;
   List<FormStatus> formStatuses = new ArrayList<FormStatus>();
 
-  public RetrieveAvailableFormsFromServer(ServerConnectionInfo originServerInfo,
-      TerminationFuture terminationFuture) {
+  public RetrieveAvailableFormsFromServer(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture) {
     this.originServerInfo = originServerInfo;
     this.terminationFuture = terminationFuture;
   }

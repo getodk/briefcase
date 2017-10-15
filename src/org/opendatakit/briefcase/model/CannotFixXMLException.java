@@ -27,20 +27,20 @@ package org.opendatakit.briefcase.model;
  */
 public class CannotFixXMLException extends Exception {
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 4472810265526213636L;
+  /**
+   *
+   */
+  private static final long serialVersionUID = 4472810265526213636L;
 
-    public CannotFixXMLException(String message) {
-        super(message);
-    }
+  public CannotFixXMLException(String message) {
+    super(message);
+  }
 
-    public CannotFixXMLException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public CannotFixXMLException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    public CannotFixXMLException(Throwable cause) {
-        super(cause);
-    }
+  public CannotFixXMLException(Throwable cause) {
+    super(cause);
+  }
 }

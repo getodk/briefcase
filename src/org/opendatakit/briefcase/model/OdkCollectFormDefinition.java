@@ -40,8 +40,8 @@ public class OdkCollectFormDefinition implements IFormDefinition {
 
   private static final String readFile(File formDefinitionFile) throws BadFormDefinition {
     StringBuilder xmlBuilder = new StringBuilder();
-    try (BufferedReader rdr = new BufferedReader(new InputStreamReader(
-            new FileInputStream(formDefinitionFile), "UTF-8"))) {
+    try (BufferedReader rdr = new BufferedReader(
+        new InputStreamReader(new FileInputStream(formDefinitionFile), "UTF-8"))) {
       String line = rdr.readLine();
       while (line != null) {
         xmlBuilder.append(line);
@@ -138,7 +138,8 @@ public class OdkCollectFormDefinition implements IFormDefinition {
       String id = getFormId();
       String versionString = getVersionString();
 
-      return (id.equals(lf.getFormId()) && ((versionString == null) ? (lf.getVersionString() == null)
+      return (id.equals(lf.getFormId()) && ((versionString == null)
+          ? (lf.getVersionString() == null)
           : versionString.equals(lf.getVersionString())));
     }
 

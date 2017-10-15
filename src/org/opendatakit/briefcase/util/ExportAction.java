@@ -63,8 +63,7 @@ public class ExportAction {
         allSuccessful = action.doAction();
         if (allSuccessful) {
           if (action.totalFilesSkipped() == FilesSkipped.SOME) {
-            EventBus.publish(new ExportSucceededWithErrorsEvent(
-                    action.getFormDefinition()));
+            EventBus.publish(new ExportSucceededWithErrorsEvent(action.getFormDefinition()));
           } else if (action.totalFilesSkipped() == FilesSkipped.ALL) {
             // None of the instances were exported
             EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
@@ -86,42 +85,44 @@ public class ExportAction {
     backgroundExecutorService.execute(new TransformFormRunnable(action));
   }
 
-  public static void export(
-      File outputDir, ExportType outputType, BriefcaseFormDefinition lfd, File pemFile,
-      TerminationFuture terminationFuture, Date start, Date end) throws IOException {
+  public static void export(File outputDir,
+                            ExportType outputType,
+                            BriefcaseFormDefinition lfd,
+                            File pemFile,
+                            TerminationFuture terminationFuture,
+                            Date start,
+                            Date end) throws IOException {
 
     if (lfd.isFileEncryptedForm() || lfd.isFieldEncryptedForm()) {
 
       String errorMsg = null;
       boolean success = false;
-      for (;;) /* this only executes once... */ {
+      for (; ; ) /* this only executes once... */ {
         try {
           BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(pemFile), "UTF-8"));
           PEMReader rdr = new PEMReader(br);
           Object o = rdr.readObject();
           try {
             rdr.close();
-          } catch ( IOException e ) {
+          } catch (IOException e) {
             // ignore.
           }
-          if ( o == null ) {
-            ODKOptionPane.showErrorDialog(null,
-                errorMsg = "The supplied file is not in PEM format.",
+          if (o == null) {
+            ODKOptionPane.showErrorDialog(null, errorMsg = "The supplied file is not in PEM format.",
                 "Invalid RSA Private Key");
             break;
           }
           PrivateKey privKey;
-          if ( o instanceof KeyPair ) {
+          if (o instanceof KeyPair) {
             KeyPair kp = (KeyPair) o;
             privKey = kp.getPrivate();
-          } else if ( o instanceof PrivateKey ) {
+          } else if (o instanceof PrivateKey) {
             privKey = (PrivateKey) o;
           } else {
             privKey = null;
           }
-          if ( privKey == null ) {
-            ODKOptionPane.showErrorDialog(null,
-                errorMsg = "The supplied file does not contain a private key.",
+          if (privKey == null) {
+            ODKOptionPane.showErrorDialog(null, errorMsg = "The supplied file does not contain a private key.",
                 "Invalid RSA Private Key");
             break;
           }
@@ -135,7 +136,7 @@ public class ExportAction {
           break;
         }
       }
-      if ( !success ) {
+      if (!success) {
         EventBus.publish(new ExportProgressEvent(errorMsg));
         EventBus.publish(new ExportFailedEvent(lfd));
         return;

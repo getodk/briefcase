@@ -28,8 +28,9 @@ public class TransferFromServer implements ITransferFromSourceAction {
   final TerminationFuture terminationFuture;
   final List<FormStatus> formsToTransfer;
 
-  public TransferFromServer(ServerConnectionInfo originServerInfo, 
-      TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) {
+  public TransferFromServer(ServerConnectionInfo originServerInfo,
+                            TerminationFuture terminationFuture,
+                            List<FormStatus> formsToTransfer) {
     this.originServerInfo = originServerInfo;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
@@ -37,9 +38,9 @@ public class TransferFromServer implements ITransferFromSourceAction {
 
   @Override
   public boolean doAction() {
-    
+
     ServerFetcher fetcher = new ServerFetcher(originServerInfo, terminationFuture);
-    
+
     return fetcher.downloadFormAndSubmissionFiles(formsToTransfer);
   }
 

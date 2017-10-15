@@ -58,14 +58,12 @@ class WrappedFileChooser {
     //Java 7. See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7161437, where the issue is
     //marked as resolved, but they seem only to have fixed it in JDK 8.
     String javaVersion = System.getProperty("java.version");
-    useAwt = (!((javaVersion.compareTo("1.7") >= 0) && javaVersion.compareTo("1.8") < 0)) &&
-             FindDirectoryStructure.isMac();
+    useAwt =
+        (!((javaVersion.compareTo("1.7") >= 0) && javaVersion.compareTo("1.8") < 0)) && FindDirectoryStructure.isMac();
 
     if (useAwt) {
-      System.setProperty("apple.awt.fileDialogForDirectories",
-                          directoriesOnly ? "true" : "false");
-      dlg = new FileDialog((Frame) SwingUtilities.getWindowAncestor(parentWindow),
-          fc.getDialogTitle());
+      System.setProperty("apple.awt.fileDialogForDirectories", directoriesOnly ? "true" : "false");
+      dlg = new FileDialog((Frame) SwingUtilities.getWindowAncestor(parentWindow), fc.getDialogTitle());
       if (directoriesOnly) {
         dlg.setFilenameFilter(new FilenameFilter() {
           @Override

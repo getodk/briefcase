@@ -23,7 +23,7 @@ import javax.swing.JFileChooser;
 
 /**
  * For enabling the WrappedFileChooser to wrap a JFileChooser.
- * 
+ *
  * @author mitchellsundt@gmail.com
  *
  */
