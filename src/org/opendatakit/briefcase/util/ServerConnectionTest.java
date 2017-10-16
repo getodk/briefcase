@@ -24,16 +24,16 @@ public class ServerConnectionTest implements Runnable {
   private final ServerConnectionInfo info;
   private final TerminationFuture terminationFuture;
   private final boolean asTarget;
-  
+
   private String errorReason = null;
   private boolean isSuccessful = false;
-  
+
   public ServerConnectionTest(ServerConnectionInfo info, TerminationFuture terminationFuture, boolean asTarget) {
     this.info = info;
     this.terminationFuture = terminationFuture;
     this.asTarget = asTarget;
   }
-  
+
   @Override
   public void run() {
     try {
@@ -56,5 +56,5 @@ public class ServerConnectionTest implements Runnable {
   public boolean isSuccessful() {
     return isSuccessful;
   }
-  
+
 }

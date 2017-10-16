@@ -24,12 +24,12 @@ import java.util.Date;
  *
  * @author wbrunette@gmail.com
  * @author mitchellsundt@gmail.com
- * 
+ *
  */
 public final class BasicConsts {
 
   public static final String NULL = "NULL";
-  
+
   // general constants
   public static final String NEW_LINE = "\n";
   public static final String COMMA = ",";

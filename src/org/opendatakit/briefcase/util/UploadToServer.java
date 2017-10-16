@@ -29,29 +29,32 @@ public class UploadToServer implements ITransferToDestAction {
   FormStatus status;
   File formDef;
   File formMediaDir;
-  
-  UploadToServer(ServerConnectionInfo destinationServerInfo, TerminationFuture terminationFuture, File formDefn, FormStatus status) {
+
+  UploadToServer(ServerConnectionInfo destinationServerInfo,
+                 TerminationFuture terminationFuture,
+                 File formDefn,
+                 FormStatus status) {
     this.destServerInfo = destinationServerInfo;
     this.terminationFuture = terminationFuture;
     this.status = status;
     this.formDef = formDefn;
-    
+
     String mediaName = formDefn.getName();
     mediaName = mediaName.substring(0, mediaName.lastIndexOf(".")) + "-media";
-    File mediaDir = new File( formDefn.getParentFile(), mediaName);
-    if ( mediaDir.exists() ) {
+    File mediaDir = new File(formDefn.getParentFile(), mediaName);
+    if (mediaDir.exists()) {
       this.formMediaDir = mediaDir;
     } else {
       this.formMediaDir = null;
     }
   }
-  
+
   @Override
   public boolean doAction() {
 
     ServerUploader uploader = new ServerUploader(destServerInfo, terminationFuture);
 
-    return uploader.uploadForm( status, formDef, formMediaDir);
+    return uploader.uploadForm(status, formDef, formMediaDir);
   }
 
 }

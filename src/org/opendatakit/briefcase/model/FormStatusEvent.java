@@ -28,7 +28,7 @@ public class FormStatusEvent {
   public FormStatus getStatus() {
     return status;
   }
-  
+
   public String getStatusString() {
     return statusString;
   }

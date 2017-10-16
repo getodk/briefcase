@@ -20,7 +20,9 @@ public interface IFormDefinition {
 
   enum LocationType {
     LOCAL, REMOTE
-  };
+  }
+
+  ;
 
   public abstract LocationType getFormLocation();
 

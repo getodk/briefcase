@@ -80,8 +80,9 @@ public class FileSystemUtils {
   static final String MISSING_FILE_EXTENSION = ".missing";
 
   public static final String getMountPoint() {
-    return System.getProperty("os.name").startsWith("Win") ? File.separator + ".." : (System
-        .getProperty("os.name").startsWith("Mac") ? "/Volumes/" : "/mnt/");
+    return System.getProperty("os.name").startsWith("Win")
+        ? File.separator + ".."
+        : (System.getProperty("os.name").startsWith("Mac") ? "/Volumes/" : "/mnt/");
   }
 
   // Predicates to determine whether the folder is an ODK Device
@@ -98,8 +99,9 @@ public class FileSystemUtils {
     File parent = (pathname == null ? null : pathname.getParentFile());
     File current = pathname;
     while (parent != null) {
-      if (isODKDevice(parent) && current.getName().equals("odk"))
+      if (isODKDevice(parent) && current.getName().equals("odk")) {
         return true;
+      }
       current = parent;
       parent = parent.getParentFile();
     }
@@ -132,10 +134,10 @@ public class FileSystemUtils {
             File formFile = new File(f, f.getName() + ".xml");
             String formFileHash = getMd5Hash(formFile);
             String existingFormFileHash = formCache.getFormFileMd5Hash(formFile.getAbsolutePath());
-            BriefcaseFormDefinition existingDefinition = formCache.getFormFileFormDefinition(formFile.getAbsolutePath());
-            if (existingFormFileHash == null
-                    || existingDefinition == null
-                    || !existingFormFileHash.equalsIgnoreCase(formFileHash)) {
+            BriefcaseFormDefinition existingDefinition = formCache.getFormFileFormDefinition(
+                formFile.getAbsolutePath());
+            if (existingFormFileHash == null || existingDefinition == null || !existingFormFileHash.equalsIgnoreCase(
+                formFileHash)) {
               // overwrite cache if the form's hash is not the same or there's no entry for the form in the cache.
               formCache.putFormFileMd5Hash(formFile.getAbsolutePath(), formFileHash);
               existingDefinition = new BriefcaseFormDefinition(f, formFile);
@@ -181,8 +183,7 @@ public class FileSystemUtils {
     return formName.replaceAll("[/\\\\:]", "").trim();
   }
 
-  public static File getFormDirectory(String formName)
-      throws FileSystemException {
+  public static File getFormDirectory(String formName) throws FileSystemException {
     // clean up friendly form name...
     String rootName = asFilesystemSafeName(formName);
     File formPath = new File(getFormsFolder(), rootName);
@@ -253,8 +254,7 @@ public class FileSystemUtils {
     return formDefnFile;
   }
 
-  public static File getTempFormDefinitionFile()
-      throws FileSystemException {
+  public static File getTempFormDefinitionFile() throws FileSystemException {
     File briefcase = new StorageLocation().getBriefcaseFolder();
     File tempDefnFile;
     try {
@@ -266,8 +266,7 @@ public class FileSystemUtils {
     return tempDefnFile;
   }
 
-  public static File getFormDefinitionFile(File formDirectory)
-      throws FileSystemException {
+  public static File getFormDefinitionFile(File formDirectory) throws FileSystemException {
     File formDefnFile = new File(formDirectory, formDirectory.getName() + ".xml");
 
     return formDefnFile;
@@ -284,8 +283,7 @@ public class FileSystemUtils {
     return mediaDir;
   }
 
-  public static File getMediaDirectory(File formDirectory)
-      throws FileSystemException {
+  public static File getMediaDirectory(File formDirectory) throws FileSystemException {
     File mediaDir = new File(formDirectory, formDirectory.getName() + "-media");
     if (!mediaDir.exists() && !mediaDir.mkdirs()) {
       throw new FileSystemException("unable to create directory: " + mediaDir.getAbsolutePath());
@@ -407,8 +405,9 @@ public class FileSystemUtils {
 
       BigInteger number = new BigInteger(1, messageDigest);
       String md5 = number.toString(16);
-      while (md5.length() < 32)
+      while (md5.length() < 32) {
         md5 = "0" + md5;
+      }
       is.close();
       return md5;
 
@@ -427,8 +426,8 @@ public class FileSystemUtils {
   }
 
   private static final void decryptFile(EncryptionInformation ei, File original, File unencryptedDir)
-          throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
-          InvalidAlgorithmParameterException {
+      throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
+      InvalidAlgorithmParameterException {
 
     if (original == null) {
       // special case -- user marked-as-complete an encrypted file on a pre-1.4.5 ODK Aggregate
@@ -440,8 +439,7 @@ public class FileSystemUtils {
 
     String name = original.getName();
     if (!name.endsWith(ENCRYPTED_FILE_EXTENSION)) {
-      String errMsg = "Unexpected non-" + ENCRYPTED_FILE_EXTENSION + " extension " + name
-              + " -- ignoring file";
+      String errMsg = "Unexpected non-" + ENCRYPTED_FILE_EXTENSION + " extension " + name + " -- ignoring file";
       throw new IllegalArgumentException(errMsg);
     }
     name = name.substring(0, name.length() - ENCRYPTED_FILE_EXTENSION.length());
@@ -460,7 +458,7 @@ public class FileSystemUtils {
     }
 
     try (InputStream fin = new CipherInputStream(new FileInputStream(original), c);
-         OutputStream fout = new FileOutputStream(decryptedFile)) {
+        OutputStream fout = new FileOutputStream(decryptedFile)) {
       byte[] buffer = new byte[2048];
       int len = fin.read(buffer);
       while (len != -1) {
@@ -473,10 +471,14 @@ public class FileSystemUtils {
   }
 
   private static boolean decryptSubmissionFiles(String base64EncryptedSymmetricKey,
-      FormInstanceMetadata fim, List<String> mediaNames,
-      String encryptedSubmissionFile, String base64EncryptedElementSignature,
-      PrivateKey rsaPrivateKey, File instanceDir, File unencryptedDir) throws FileSystemException,
-      CryptoException, ParsingException {
+                                                FormInstanceMetadata fim,
+                                                List<String> mediaNames,
+                                                String encryptedSubmissionFile,
+                                                String base64EncryptedElementSignature,
+                                                PrivateKey rsaPrivateKey,
+                                                File instanceDir,
+                                                File unencryptedDir)
+      throws FileSystemException, CryptoException, ParsingException {
 
     EncryptionInformation ei = new EncryptionInformation(base64EncryptedSymmetricKey, fim.instanceId, rsaPrivateKey);
 
@@ -489,8 +491,7 @@ public class FileSystemUtils {
       pkCipher.init(Cipher.DECRYPT_MODE, rsaPrivateKey);
       byte[] encryptedElementSignature = Base64.decodeBase64(base64EncryptedElementSignature);
       elementDigest = pkCipher.doFinal(encryptedElementSignature);
-    } catch (NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | InvalidKeyException
-            | NoSuchPaddingException e) {
+    } catch (NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | InvalidKeyException | NoSuchPaddingException e) {
       String msg = "Error decrypting base64EncryptedElementSignature";
       log.error(msg, e);
       throw new CryptoException(msg + " Cause: " + e.toString());
@@ -501,40 +502,41 @@ public class FileSystemUtils {
     File[] allFiles = instanceDir.listFiles();
     List<File> filesToProcess = new ArrayList<File>();
     for (File f : allFiles) {
-      if ( mediaNames.contains(f.getName()) ) {
+      if (mediaNames.contains(f.getName())) {
         filesToProcess.add(f);
-      } else if ( encryptedSubmissionFile.equals(f.getName()) ) {
+      } else if (encryptedSubmissionFile.equals(f.getName())) {
         filesToProcess.add(f);
       }
     }
 
     // should have all media files plus one submission.xml.enc file
-    if ( filesToProcess.size() != mediaNames.size() + 1 ) {
+    if (filesToProcess.size() != mediaNames.size() + 1) {
       // figure out what we're missing...
       int lostFileCount = 0;
       List<String> missing = new ArrayList<String>();
-      for ( String name : mediaNames ) {
-        if ( name == null ) {
+      for (String name : mediaNames) {
+        if (name == null) {
           // this was lost due to an pre-ODK Aggregate 1.4.5 mark-as-complete action
           ++lostFileCount;
           continue;
         }
         File f = new File(instanceDir, name);
-        if ( !filesToProcess.contains(f)) {
+        if (!filesToProcess.contains(f)) {
           missing.add(name);
         }
       }
       StringBuilder b = new StringBuilder();
-      for ( String name : missing ) {
+      for (String name : missing) {
         b.append(" ").append(name);
       }
-      if ( !filesToProcess.contains(new File(instanceDir, encryptedSubmissionFile)) ) {
+      if (!filesToProcess.contains(new File(instanceDir, encryptedSubmissionFile))) {
         b.append(" ").append(encryptedSubmissionFile);
         throw new FileSystemException("Error decrypting: " + instanceDir.getName() + " Missing files:" + b.toString());
       } else {
         // ignore the fact that we don't have the lost files
-        if ( filesToProcess.size() + lostFileCount != mediaNames.size() + 1 ) {
-          throw new FileSystemException("Error decrypting: " + instanceDir.getName() + " Missing files:" + b.toString());
+        if (filesToProcess.size() + lostFileCount != mediaNames.size() + 1) {
+          throw new FileSystemException(
+              "Error decrypting: " + instanceDir.getName() + " Missing files:" + b.toString());
         }
       }
     }
@@ -545,8 +547,7 @@ public class FileSystemUtils {
       File f = (mediaName == null) ? null : new File(instanceDir, mediaName);
       try {
         decryptFile(ei, f, unencryptedDir);
-      } catch (InvalidKeyException | NoSuchPaddingException | InvalidAlgorithmParameterException
-              | NoSuchAlgorithmException e) {
+      } catch (InvalidKeyException | NoSuchPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
         String msg = "Error decrypting:" + displayedName;
         log.error(msg, e);
         throw new CryptoException(msg + " Cause: " + e.toString());
@@ -561,8 +562,7 @@ public class FileSystemUtils {
     File f = new File(instanceDir, encryptedSubmissionFile);
     try {
       decryptFile(ei, f, unencryptedDir);
-    } catch (InvalidKeyException | NoSuchPaddingException | InvalidAlgorithmParameterException
-            | NoSuchAlgorithmException e) {
+    } catch (InvalidKeyException | NoSuchPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
       String msg = "Error decrypting:" + f.getName();
       log.error(msg, e);
       throw new CryptoException(msg + " Cause: " + e.toString());
@@ -573,7 +573,7 @@ public class FileSystemUtils {
     }
 
     // get the FIM for the decrypted submission file
-    File submissionFile = new File( unencryptedDir,
+    File submissionFile = new File(unencryptedDir,
         encryptedSubmissionFile.substring(0, encryptedSubmissionFile.lastIndexOf(".enc")));
 
     FormInstanceMetadata submissionFim;
@@ -588,7 +588,7 @@ public class FileSystemUtils {
 
     boolean same = submissionFim.xparam.formId.equals(fim.xparam.formId);
 
-    if ( !same ) {
+    if (!same) {
       throw new FileSystemException("Error decrypting:" + unencryptedDir.getName()
           + " Cause: form instance metadata differs from that in manifest");
     }
@@ -596,7 +596,7 @@ public class FileSystemUtils {
     // Construct the element signature string
     StringBuilder b = new StringBuilder();
     appendElementSignatureSource(b, fim.xparam.formId);
-    if ( fim.xparam.modelVersion != null ) {
+    if (fim.xparam.modelVersion != null) {
       appendElementSignatureSource(b, Long.toString(fim.xparam.modelVersion));
     }
     appendElementSignatureSource(b, base64EncryptedSymmetricKey);
@@ -604,21 +604,20 @@ public class FileSystemUtils {
     appendElementSignatureSource(b, fim.instanceId);
 
     boolean missingFile = false;
-    for ( String encFilename : mediaNames ) {
-      if ( encFilename == null ) {
+    for (String encFilename : mediaNames) {
+      if (encFilename == null) {
         missingFile = true;
         continue;
       }
-      File decryptedFile = new File( unencryptedDir,
-          encFilename.substring(0, encFilename.lastIndexOf(".enc")));
-      if ( decryptedFile.getName().endsWith(".missing")) {
+      File decryptedFile = new File(unencryptedDir, encFilename.substring(0, encFilename.lastIndexOf(".enc")));
+      if (decryptedFile.getName().endsWith(".missing")) {
         // this is a missing file -- we will not be able to 
         // confirm the signature of the submission.
         missingFile = true;
         continue;
       }
       String md5 = FileSystemUtils.getMd5Hash(decryptedFile);
-      appendElementSignatureSource(b, decryptedFile.getName() + "::" + md5 );
+      appendElementSignatureSource(b, decryptedFile.getName() + "::" + md5);
     }
 
     String md5 = FileSystemUtils.getMd5Hash(submissionFile);
@@ -627,9 +626,9 @@ public class FileSystemUtils {
     // compute the digest of the element signature string
     byte[] messageDigest;
     try {
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        md.update(b.toString().getBytes("UTF-8"));
-        messageDigest = md.digest();
+      MessageDigest md = MessageDigest.getInstance("MD5");
+      md.update(b.toString().getBytes("UTF-8"));
+      messageDigest = md.digest();
     } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
       String msg = "Error computing xml signature";
       log.error(msg, e);
@@ -637,8 +636,8 @@ public class FileSystemUtils {
     }
 
     same = true;
-    for ( int i = 0 ; i < messageDigest.length ; ++i ) {
-      if ( messageDigest[i] != elementDigest[i] ) {
+    for (int i = 0; i < messageDigest.length; ++i) {
+      if (messageDigest[i] != elementDigest[i]) {
         same = false;
         break;
       }
@@ -662,8 +661,10 @@ public class FileSystemUtils {
   }
 
   public static DecryptOutcome decryptAndValidateSubmission(Document doc,
-      PrivateKey rsaPrivateKey, File instanceDir, File unEncryptedDir)
-          throws ParsingException, FileSystemException, CryptoException {
+                                                            PrivateKey rsaPrivateKey,
+                                                            File instanceDir,
+                                                            File unEncryptedDir)
+      throws ParsingException, FileSystemException, CryptoException {
 
     Element rootElement = doc.getRootElement();
 
@@ -730,8 +731,8 @@ public class FileSystemUtils {
       base64EncryptedElementSignature = XFormParser.getXMLText(base64Signature, true);
     }
 
-    if (instanceIdMetadata == null || base64EncryptedSymmetricKey == null
-        || base64EncryptedElementSignature == null || encryptedSubmissionFile == null) {
+    if (instanceIdMetadata == null || base64EncryptedSymmetricKey == null || base64EncryptedElementSignature == null
+        || encryptedSubmissionFile == null) {
       throw new ParsingException("Missing one or more required elements of encrypted form.");
     }
 
@@ -748,9 +749,8 @@ public class FileSystemUtils {
       throw new ParsingException("InstanceID within metadata does not match that on top level element.");
     }
 
-    boolean isValidated = FileSystemUtils.decryptSubmissionFiles(base64EncryptedSymmetricKey, fim,
-          mediaNames, encryptedSubmissionFile,
-          base64EncryptedElementSignature, rsaPrivateKey, instanceDir, unEncryptedDir);
+    boolean isValidated = FileSystemUtils.decryptSubmissionFiles(base64EncryptedSymmetricKey, fim, mediaNames,
+        encryptedSubmissionFile, base64EncryptedElementSignature, rsaPrivateKey, instanceDir, unEncryptedDir);
 
     // and change doc to be the decrypted submission document
     File decryptedSubmission = new File(unEncryptedDir, "submission.xml");
@@ -762,13 +762,11 @@ public class FileSystemUtils {
     // verify that the metadata matches between the manifest and the submission
     rootElement = doc.getRootElement();
     FormInstanceMetadata sim = XmlManipulationUtils.getFormInstanceMetadata(rootElement);
-    if ( !fim.xparam.equals(sim.xparam) ) {
-      throw new ParsingException(
-          "FormId or version in decrypted submission does not match that in manifest!");
+    if (!fim.xparam.equals(sim.xparam)) {
+      throw new ParsingException("FormId or version in decrypted submission does not match that in manifest!");
     }
-    if ( !fim.instanceId.equals(sim.instanceId) ) {
-      throw new ParsingException(
-          "InstanceId in decrypted submission does not match that in manifest!");
+    if (!fim.instanceId.equals(sim.instanceId)) {
+      throw new ParsingException("InstanceId in decrypted submission does not match that in manifest!");
     }
 
     return new DecryptOutcome(doc, isValidated);

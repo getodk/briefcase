@@ -23,20 +23,14 @@ package org.opendatakit.aggregate.exception;
  *
  * @author wbrunette@gmail.com
  * @author mitchellsundt@gmail.com
- * 
+ *
  */
 public class ODKIncompleteSubmissionData extends Exception {
-  
+
   public enum Reason {
-    UNKNOWN,
-    TITLE_MISSING,
-    ID_MISSING,
-    ID_MALFORMED,
-    MISSING_XML,
-    BAD_JR_PARSE,
-    MISMATCHED_SUBMISSION_ELEMENT;
+    UNKNOWN, TITLE_MISSING, ID_MISSING, ID_MALFORMED, MISSING_XML, BAD_JR_PARSE, MISMATCHED_SUBMISSION_ELEMENT;
   }
-  
+
   private Reason reason;
 
   /**
@@ -54,7 +48,7 @@ public class ODKIncompleteSubmissionData extends Exception {
 
   /**
    * Construct exception with the error message
-   * 
+   *
    * @param message exception message
    */
   @SuppressWarnings("unused")
@@ -64,7 +58,7 @@ public class ODKIncompleteSubmissionData extends Exception {
 
   /**
    * Construction exception with error message and throwable cause
-   * 
+   *
    * @param message exception message
    * @param cause throwable cause
    */
@@ -75,7 +69,7 @@ public class ODKIncompleteSubmissionData extends Exception {
 
   /**
    * Construction exception with throwable cause
-   * 
+   *
    * @param cause throwable cause
    */
   @SuppressWarnings("unused")
@@ -85,7 +79,7 @@ public class ODKIncompleteSubmissionData extends Exception {
 
   /**
    * Default constructor with reason
-   * 
+   *
    * @param exceptionReason exception reason
    */
   public ODKIncompleteSubmissionData(Reason exceptionReason) {
@@ -95,7 +89,7 @@ public class ODKIncompleteSubmissionData extends Exception {
 
   /**
    * Construct exception with the error message and reason
-   * 
+   *
    * @param message exception message
    * @param exceptionReason exception reason
    */
@@ -106,7 +100,7 @@ public class ODKIncompleteSubmissionData extends Exception {
 
   /**
    * Construction exception with error message, throwable cause, and reason
-   * 
+   *
    * @param message exception message
    * @param cause throwable cause
    * @param exceptionReason exception reason
@@ -118,7 +112,7 @@ public class ODKIncompleteSubmissionData extends Exception {
 
   /**
    * Construction exception with throwable cause and reason
-   * 
+   *
    * @param cause throwable cause
    * @param exceptionReason exception reason
    */
@@ -126,7 +120,7 @@ public class ODKIncompleteSubmissionData extends Exception {
     super(cause);
     reason = exceptionReason;
   }
-  
+
   /**
    * Get the reason why the exception was generated
    * @return the reason

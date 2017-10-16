@@ -19,7 +19,7 @@ package org.opendatakit.briefcase.model;
 public class TransmissionException extends Exception {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = -2163450446028219296L;
 

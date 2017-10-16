@@ -117,8 +117,8 @@ public class TransferAction {
     public void run() {
       try {
         src.doAction();
-        EventBus.publish(new RetrieveAvailableFormsSucceededEvent(FormStatus.TransferType.GATHER, src
-            .getAvailableForms()));
+        EventBus.publish(
+            new RetrieveAvailableFormsSucceededEvent(FormStatus.TransferType.GATHER, src.getAvailableForms()));
       } catch (Exception e) {
         log.error("retrieve available forms action failed", e);
         EventBus.publish(new RetrieveAvailableFormsFailedEvent(FormStatus.TransferType.GATHER, e));
@@ -127,12 +127,13 @@ public class TransferAction {
 
   }
 
-  private static void showDialogAndRun(Window topLevel, RetrieveAvailableFormsFromServer src,
-      TerminationFuture terminationFuture) {
+  private static void showDialogAndRun(Window topLevel,
+                                       RetrieveAvailableFormsFromServer src,
+                                       TerminationFuture terminationFuture) {
     // create the dialog first so that the background task will always have a
     // listener for its completion events...
-    final TransferInProgressDialog dlg = new TransferInProgressDialog(topLevel,
-        FormStatus.TransferType.GATHER, terminationFuture);
+    final TransferInProgressDialog dlg = new TransferInProgressDialog(topLevel, FormStatus.TransferType.GATHER,
+        terminationFuture);
 
     backgroundExecutorService.execute(new RetrieveAvailableFormsRunnable(src));
 
@@ -140,24 +141,26 @@ public class TransferAction {
   }
 
   public static void retrieveAvailableFormsFromServer(Window topLevel,
-      ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture) {
-    RetrieveAvailableFormsFromServer source = 
-        new RetrieveAvailableFormsFromServer(originServerInfo, terminationFuture);
+                                                      ServerConnectionInfo originServerInfo,
+                                                      TerminationFuture terminationFuture) {
+    RetrieveAvailableFormsFromServer source = new RetrieveAvailableFormsFromServer(originServerInfo, terminationFuture);
     showDialogAndRun(topLevel, source, terminationFuture);
   }
 
-  public static void uploadForm(Window topLevel, ServerConnectionInfo destinationServerInfo,
-      TerminationFuture terminationFuture, File formDefn, FormStatus status) {
-    UploadToServer dest = new UploadToServer(destinationServerInfo, terminationFuture, formDefn,
-        status);
+  public static void uploadForm(Window topLevel,
+                                ServerConnectionInfo destinationServerInfo,
+                                TerminationFuture terminationFuture,
+                                File formDefn,
+                                FormStatus status) {
+    UploadToServer dest = new UploadToServer(destinationServerInfo, terminationFuture, formDefn, status);
     backgroundRun(dest, Collections.singletonList(status));
   }
 
   public static void transferServerToBriefcase(ServerConnectionInfo originServerInfo,
-      TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) throws IOException {
+                                               TerminationFuture terminationFuture,
+                                               List<FormStatus> formsToTransfer) throws IOException {
 
-    TransferFromServer source = new TransferFromServer(originServerInfo, terminationFuture,
-        formsToTransfer);
+    TransferFromServer source = new TransferFromServer(originServerInfo, terminationFuture, formsToTransfer);
     backgroundRun(source, formsToTransfer);
   }
 
@@ -168,18 +171,19 @@ public class TransferAction {
    * @param formsToTransfer
    * @throws IOException
    */
-  public static void transferODKToBriefcase(File odkSrcDir, TerminationFuture terminationFuture,
-      List<FormStatus> formsToTransfer) throws IOException {
+  public static void transferODKToBriefcase(File odkSrcDir,
+                                            TerminationFuture terminationFuture,
+                                            List<FormStatus> formsToTransfer) throws IOException {
 
     TransferFromODK source = new TransferFromODK(odkSrcDir, terminationFuture, formsToTransfer);
     backgroundRun(source, formsToTransfer);
   }
 
   public static void transferBriefcaseToServer(ServerConnectionInfo destinationServerInfo,
-      TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) throws IOException {
+                                               TerminationFuture terminationFuture,
+                                               List<FormStatus> formsToTransfer) throws IOException {
 
-    TransferToServer dest = new TransferToServer(destinationServerInfo, terminationFuture,
-        formsToTransfer);
+    TransferToServer dest = new TransferToServer(destinationServerInfo, terminationFuture, formsToTransfer);
     backgroundRun(dest, formsToTransfer);
   }
 }

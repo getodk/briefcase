@@ -24,30 +24,28 @@ import javax.swing.JFileChooser;
 class FormDefinitionFileChooser extends AbstractFileChooser {
 
   /**
-     *
-     */
+   *
+   */
   private final Container parentWindow;
   /**
-     *
-     */
+   *
+   */
   private static final long serialVersionUID = 7687043156045655297L;
 
   /**
-   * 
+   *
    * @param f
    * @param parentWindow
    * @return true if file exists and has an xml extension.
    */
   public static final boolean testAndMessageBadFormDefinitionFile(File f, Container parentWindow) {
-    if ( !f.exists() ) {
-      ODKOptionPane.showErrorDialog(parentWindow,
-          "Form definition file does not exist",
+    if (!f.exists()) {
+      ODKOptionPane.showErrorDialog(parentWindow, "Form definition file does not exist",
           "Invalid Form Definition File");
       return false;
     }
-    if ( !f.getName().endsWith(".xml") ) {
-      ODKOptionPane.showErrorDialog(parentWindow,
-          "Form definition file should be an XML file (ending in .xml).",
+    if (!f.getName().endsWith(".xml")) {
+      ODKOptionPane.showErrorDialog(parentWindow, "Form definition file should be an XML file (ending in .xml).",
           "Invalid Form Definition File");
       return false;
     }

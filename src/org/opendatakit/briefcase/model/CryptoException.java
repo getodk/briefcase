@@ -18,8 +18,8 @@ package org.opendatakit.briefcase.model;
 
 public class CryptoException extends Exception {
   /**
-     * 
-     */
+   *
+   */
   private static final long serialVersionUID = 3142230034175698950L;
 
   public CryptoException(String message) {

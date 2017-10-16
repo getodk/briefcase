@@ -22,9 +22,9 @@ import java.util.List;
  * Signals the completion of the retrieval of forms to display as available from
  * a server. The transfer of submissions is signaled by the TransferXXXEvent
  * classes.
- * 
+ *
  * @author mitchellsundt@gmail.com
- * 
+ *
  */
 public class RetrieveAvailableFormsSucceededEvent {
   private FormStatus.TransferType transferType;
@@ -38,7 +38,7 @@ public class RetrieveAvailableFormsSucceededEvent {
   public FormStatus.TransferType getTransferType() {
     return transferType;
   }
-  
+
   public List<FormStatus> getFormsToTransfer() {
     return formsToTransfer;
   }

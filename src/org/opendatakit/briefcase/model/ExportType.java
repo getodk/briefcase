@@ -17,15 +17,15 @@
 package org.opendatakit.briefcase.model;
 
 public enum ExportType {
-    CSV(".csv and media files"); // CSV output type
+  CSV(".csv and media files"); // CSV output type
 
-    private String displayString;
+  private String displayString;
 
-    ExportType(String displayString) {
-        this.displayString = displayString;
-    }
+  ExportType(String displayString) {
+    this.displayString = displayString;
+  }
 
-    public String toString() {
-        return displayString;
-    }
+  public String toString() {
+    return displayString;
+  }
 }

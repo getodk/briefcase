@@ -66,15 +66,14 @@ import org.opendatakit.briefcase.util.TransferAction;
 public class PullTransferPanel extends JPanel {
 
   /**
-    *
-    */
+   *
+   */
   private static final long serialVersionUID = -2192404551259501394L;
 
   public static final String TAB_NAME = "Pull";
 
   private static final String DOWNLOADING_DOT_ETC = "Downloading..........";
-  private static final BriefcasePreferences PREFERENCES =
-      BriefcasePreferences.forClass(PullTransferPanel.class);
+  private static final BriefcasePreferences PREFERENCES = BriefcasePreferences.forClass(PullTransferPanel.class);
 
   private JComboBox<String> listOriginDataSource;
   private JButton btnOriginAction;
@@ -101,8 +100,8 @@ public class PullTransferPanel extends JPanel {
     public void actionPerformed(ActionEvent e) {
       EndPointType selection = getSelectedEndPointType();
       if (selection != null) {
-        if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection)
-            || EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
+        if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection) || EndPointType.AGGREGATE_1_0_CHOICE.equals(
+            selection)) {
           lblOrigin.setText("URL:");
           txtOriginName.setText("");
           txtOriginName.setEditable(false);
@@ -154,8 +153,8 @@ public class PullTransferPanel extends JPanel {
         }
       } else if (EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
         // need to show (modal) connect dialog...
-        ServerConnectionDialog d = new ServerConnectionDialog(
-            (Window) PullTransferPanel.this.getTopLevelAncestor(), originServerInfo, false);
+        ServerConnectionDialog d = new ServerConnectionDialog((Window) PullTransferPanel.this.getTopLevelAncestor(),
+            originServerInfo, false);
         d.setVisible(true);
         if (d.isSuccessful()) {
           originServerInfo = d.getServerInfo();
@@ -169,7 +168,7 @@ public class PullTransferPanel extends JPanel {
         WrappedFileChooser fc = new WrappedFileChooser(PullTransferPanel.this,
             new ODKCollectFileChooser(PullTransferPanel.this));
         String filePath = txtOriginName.getText();
-        if ( filePath != null && filePath.trim().length() != 0 ) {
+        if (filePath != null && filePath.trim().length() != 0) {
           fc.setSelectedFile(new File(filePath.trim()));
         }
         int retVal = fc.showDialog();
@@ -211,22 +210,20 @@ public class PullTransferPanel extends JPanel {
 
       try {
         setActiveTransferState(true);
-        if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(originSelection)
-            || EndPointType.AGGREGATE_1_0_CHOICE.equals(originSelection)) {
-          TransferAction.transferServerToBriefcase(originServerInfo, terminationFuture,
-              formsToTransfer);
+        if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(originSelection) || EndPointType.AGGREGATE_1_0_CHOICE.equals(
+            originSelection)) {
+          TransferAction.transferServerToBriefcase(originServerInfo, terminationFuture, formsToTransfer);
         } else if (EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.equals(originSelection)) {
-          TransferAction.transferODKToBriefcase(new File(txtOriginName.getText()),
-              terminationFuture, formsToTransfer);
+          TransferAction.transferODKToBriefcase(new File(txtOriginName.getText()), terminationFuture, formsToTransfer);
         } else if (EndPointType.MOUNTED_ODK_COLLECT_DEVICE_CHOICE.equals(originSelection)) {
-          TransferAction.transferODKToBriefcase(new File(new File(txtOriginName.getText()), "odk"),
-              terminationFuture, formsToTransfer);
+          TransferAction.transferODKToBriefcase(new File(new File(txtOriginName.getText()), "odk"), terminationFuture,
+              formsToTransfer);
         } else {
           throw new IllegalStateException("unhandled case");
         }
       } catch (IOException ex) {
-        ODKOptionPane.showErrorDialog(PullTransferPanel.this,
-            "Briefcase action failed: " + ex.getMessage(), "Briefcase Action Failed");
+        ODKOptionPane.showErrorDialog(PullTransferPanel.this, "Briefcase action failed: " + ex.getMessage(),
+            "Briefcase Action Failed");
         setActiveTransferState(false);
       }
     }
@@ -238,11 +235,10 @@ public class PullTransferPanel extends JPanel {
     this.terminationFuture = terminationFuture;
     JLabel lblGetDataFrom = new JLabel(TAB_NAME + " data from:");
 
-    listOriginDataSource = new JComboBox<String>(new String[] {
-        EndPointType.AGGREGATE_0_9_X_CHOICE.toString(),
-        EndPointType.AGGREGATE_1_0_CHOICE.toString(),
-        EndPointType.MOUNTED_ODK_COLLECT_DEVICE_CHOICE.toString(),
-        EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.toString() });
+    listOriginDataSource = new JComboBox<String>(
+        new String[] {EndPointType.AGGREGATE_0_9_X_CHOICE.toString(), EndPointType.AGGREGATE_1_0_CHOICE.toString(),
+            EndPointType.MOUNTED_ODK_COLLECT_DEVICE_CHOICE.toString(),
+            EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.toString()});
     listOriginDataSource.addActionListener(new OriginSourceListener());
 
     lblOrigin = new JLabel("Origin:");
@@ -258,7 +254,7 @@ public class PullTransferPanel extends JPanel {
 
       @Override
       public void focusLost(FocusEvent e) {
-        if ( txtOriginName.isEditable() ) {
+        if (txtOriginName.isEditable()) {
           PullTransferPanel.this.updateFormStatuses();
         }
       }
@@ -284,63 +280,55 @@ public class PullTransferPanel extends JPanel {
       }
     });
 
-    formTransferTable = new FormTransferTable(
-            btnSelectOrClearAllForms, FormStatus.TransferType.GATHER, btnTransfer, btnCancel);
+    formTransferTable = new FormTransferTable(btnSelectOrClearAllForms, FormStatus.TransferType.GATHER, btnTransfer,
+        btnCancel);
 
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
 
     JSeparator separatorFormsList = new JSeparator();
 
     GroupLayout groupLayout = new GroupLayout(this);
-    groupLayout.setHorizontalGroup(groupLayout
-        .createSequentialGroup()
+    groupLayout.setHorizontalGroup(groupLayout.createSequentialGroup()
         .addContainerGap()
-        .addGroup(
-            groupLayout
-                .createParallelGroup(Alignment.LEADING)
-                // get-data and origin rows
-                .addGroup(
-                    Alignment.LEADING,
-                    // sequential -- 2 elements - label - widgets
-                    groupLayout
-                        .createSequentialGroup()
-                        .addGroup(
-                            groupLayout.createParallelGroup(Alignment.TRAILING)
-                                .addComponent(lblOrigin).addComponent(lblGetDataFrom))
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(
-                            groupLayout
-                                .createParallelGroup(Alignment.LEADING)
-                                .addComponent(listOriginDataSource)
-                                .addGroup(
-                                    Alignment.TRAILING,
-                                    groupLayout.createSequentialGroup().addComponent(txtOriginName)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(btnOriginAction))))
-                .addComponent(separatorFormsList, GroupLayout.DEFAULT_SIZE,
-                    GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
-                .addComponent(lblFormsToTransfer)
-                // scroll pane
-                .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
-                    Short.MAX_VALUE)
-                .addGroup(
-                    groupLayout.createSequentialGroup().addComponent(btnSelectOrClearAllForms)
-                        .addPreferredGap(ComponentPlacement.RELATED).addComponent(lblDownloading))
-                .addGroup(
-                    Alignment.TRAILING,
-                    groupLayout.createSequentialGroup().addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(btnTransfer).addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(btnCancel))).addContainerGap());
-    groupLayout.setVerticalGroup(groupLayout
-        .createSequentialGroup()
+        .addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+            // get-data and origin rows
+            .addGroup(Alignment.LEADING,
+                // sequential -- 2 elements - label - widgets
+                groupLayout.createSequentialGroup()
+                    .addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
+                        .addComponent(lblOrigin)
+                        .addComponent(lblGetDataFrom))
+                    .addPreferredGap(ComponentPlacement.RELATED)
+                    .addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+                        .addComponent(listOriginDataSource)
+                        .addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
+                            .addComponent(txtOriginName)
+                            .addPreferredGap(ComponentPlacement.RELATED)
+                            .addComponent(btnOriginAction))))
+            .addComponent(separatorFormsList, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
+            .addComponent(lblFormsToTransfer)
+            // scroll pane
+            .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
+            .addGroup(groupLayout.createSequentialGroup()
+                .addComponent(btnSelectOrClearAllForms)
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addComponent(lblDownloading))
+            .addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addComponent(btnTransfer)
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addComponent(btnCancel)))
+        .addContainerGap());
+    groupLayout.setVerticalGroup(groupLayout.createSequentialGroup()
         .addContainerGap()
-        .addGroup(
-            groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblGetDataFrom)
-                .addComponent(listOriginDataSource))
+        .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+            .addComponent(lblGetDataFrom)
+            .addComponent(listOriginDataSource))
         .addPreferredGap(ComponentPlacement.RELATED)
-        .addGroup(
-            groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblOrigin)
-                .addComponent(txtOriginName).addComponent(btnOriginAction))
+        .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+            .addComponent(lblOrigin)
+            .addComponent(txtOriginName)
+            .addComponent(btnOriginAction))
         .addPreferredGap(ComponentPlacement.RELATED)
         .addComponent(separatorFormsList, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
             GroupLayout.PREFERRED_SIZE)
@@ -349,10 +337,12 @@ public class PullTransferPanel extends JPanel {
         .addPreferredGap(ComponentPlacement.RELATED)
         .addComponent(scrollPane, 200, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
         .addPreferredGap(ComponentPlacement.RELATED)
-        .addGroup(
-            groupLayout.createParallelGroup(Alignment.BASELINE)
-                .addComponent(btnSelectOrClearAllForms).addComponent(lblDownloading)
-                .addComponent(btnTransfer).addComponent(btnCancel)).addContainerGap());
+        .addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+            .addComponent(btnSelectOrClearAllForms)
+            .addComponent(lblDownloading)
+            .addComponent(btnTransfer)
+            .addComponent(btnCancel))
+        .addContainerGap());
     setLayout(groupLayout);
 
     // and finally, set the initial selections in the combo boxes...
@@ -384,12 +374,13 @@ public class PullTransferPanel extends JPanel {
     String strSelection = (String) listOriginDataSource.getSelectedItem();
     EndPointType selection = (strSelection != null) ? EndPointType.fromString(strSelection) : null;
     if (selection != null) {
-      if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection)
-          || EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
+      if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection) || EndPointType.AGGREGATE_1_0_CHOICE.equals(
+          selection)) {
         // clear the list of forms first...
         formTransferTable.setFormStatusList(statuses);
         terminationFuture.reset();
-        TransferAction.retrieveAvailableFormsFromServer((Window) getTopLevelAncestor(), originServerInfo, terminationFuture);
+        TransferAction.retrieveAvailableFormsFromServer((Window) getTopLevelAncestor(), originServerInfo,
+            terminationFuture);
         // list will be communicated back via the
         // RetrieveAvailableFormsSucceededEvent
       } else if (EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.equals(selection)) {
@@ -427,8 +418,8 @@ public class PullTransferPanel extends JPanel {
     EndPointType selection = getSelectedEndPointType();
 
     if (selection != null) {
-      if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection)
-          || EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
+      if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection) || EndPointType.AGGREGATE_1_0_CHOICE.equals(
+          selection)) {
         txtOriginName.setEditable(false);
       } else if (EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.equals(selection)) {
         txtOriginName.setEditable(active);
@@ -471,12 +462,12 @@ public class PullTransferPanel extends JPanel {
     // remember state...
     transferStateActive = active;
   }
-  
+
   private EndPointType getSelectedEndPointType() {
     String strSelection = (String) listOriginDataSource.getSelectedItem();
     return EndPointType.fromString(strSelection);
   }
-  
+
   private ServerConnectionInfo initServerInfoWithPreferences(EndPointType type) {
     ServerConnectionInfo connectionInfo = null;
     switch (type) {

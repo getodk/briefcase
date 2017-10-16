@@ -30,7 +30,8 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 
 public class MainClearBriefcasePreferencesWindow {
 
-  private static final String CLEAR_PREFERENCES_VERSION = "ODK ClearBriefcasePreferences - " + BriefcasePreferences.VERSION;
+  private static final String CLEAR_PREFERENCES_VERSION =
+      "ODK ClearBriefcasePreferences - " + BriefcasePreferences.VERSION;
   private static final Log log = LogFactory.getLog(MainClearBriefcasePreferencesWindow.class);
 
   /**
@@ -43,16 +44,13 @@ public class MainClearBriefcasePreferencesWindow {
         try {
           // Set System L&F
           UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-          Image myImage = Toolkit.getDefaultToolkit().getImage(
-              MainClearBriefcasePreferencesWindow.class.getClassLoader().getResource("odk_logo.png"));
-          Object[] options = {"Purge",
-              "Cancel"};
+          Image myImage = Toolkit.getDefaultToolkit()
+              .getImage(MainClearBriefcasePreferencesWindow.class.getClassLoader().getResource("odk_logo.png"));
+          Object[] options = {"Purge", "Cancel"};
           int outcome = JOptionPane.showOptionDialog(null,
-              "Clear all Briefcase preferences.                                            ",
-              CLEAR_PREFERENCES_VERSION, 
-              JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, 
-              new ImageIcon(myImage), options, options[1]);
-          if ( outcome == 0 ) {
+              "Clear all Briefcase preferences.                                            ", CLEAR_PREFERENCES_VERSION,
+              JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, new ImageIcon(myImage), options, options[1]);
+          if (outcome == 0) {
             BriefcasePreferences.setBriefcaseDirectoryProperty(null);
           }
         } catch (Exception e) {
