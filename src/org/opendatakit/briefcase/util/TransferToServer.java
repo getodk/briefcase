@@ -27,8 +27,9 @@ public class TransferToServer implements ITransferToDestAction {
   TerminationFuture terminationFuture;
   List<FormStatus> formsToTransfer;
 
-  public TransferToServer(ServerConnectionInfo destServerInfo, 
-      TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) {
+  public TransferToServer(ServerConnectionInfo destServerInfo,
+                          TerminationFuture terminationFuture,
+                          List<FormStatus> formsToTransfer) {
     this.destServerInfo = destServerInfo;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
@@ -37,7 +38,7 @@ public class TransferToServer implements ITransferToDestAction {
   @Override
   public boolean doAction() {
     ServerUploader uploader = new ServerUploader(destServerInfo, terminationFuture);
-    
-    return uploader.uploadFormAndSubmissionFiles( formsToTransfer);
+
+    return uploader.uploadFormAndSubmissionFiles(formsToTransfer);
   }
 }

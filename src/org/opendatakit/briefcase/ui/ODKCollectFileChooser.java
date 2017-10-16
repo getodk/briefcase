@@ -34,7 +34,7 @@ final class ODKCollectFileChooser extends AbstractFileChooser {
   @Override
   public void approveSelection() {
     File f = this.getSelectedFile();
-    if ( testAndMessageBadFolder(f, parentWindow) ) {
+    if (testAndMessageBadFolder(f, parentWindow)) {
       super.approveSelection();
     }
   }
@@ -56,34 +56,28 @@ final class ODKCollectFileChooser extends AbstractFileChooser {
         return "Directories";
       }
     });
-    
+
     setApproveButtonText("Choose");
   }
 
   @Override
   public boolean testAndMessageBadFolder(File f, Container parentWindow) {
-    if ( f == null || !f.exists() ) {
-      ODKOptionPane.showErrorDialog(parentWindow,
-          MessageStrings.DIR_NOT_EXIST,
-          MessageStrings.INVALID_ODK_DIRECTORY);
+    if (f == null || !f.exists()) {
+      ODKOptionPane.showErrorDialog(parentWindow, MessageStrings.DIR_NOT_EXIST, MessageStrings.INVALID_ODK_DIRECTORY);
       return false;
     }
     File parent = f.getParentFile();
-    if ( !f.isDirectory() ) {
-      ODKOptionPane.showErrorDialog(parentWindow,
-          MessageStrings.DIR_NOT_DIRECTORY,
+    if (!f.isDirectory()) {
+      ODKOptionPane.showErrorDialog(parentWindow, MessageStrings.DIR_NOT_DIRECTORY,
           MessageStrings.INVALID_ODK_DIRECTORY);
     } else if (isUnderBriefcaseFolder(f)) {
-      ODKOptionPane.showErrorDialog(parentWindow,
-          MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
+      ODKOptionPane.showErrorDialog(parentWindow, MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
           MessageStrings.INVALID_ODK_DIRECTORY);
     } else if (FileSystemUtils.isUnderODKFolder(parent)) {
-      ODKOptionPane.showErrorDialog(parentWindow,
-          MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY,
+      ODKOptionPane.showErrorDialog(parentWindow, MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY,
           MessageStrings.INVALID_ODK_DIRECTORY);
     } else if (!FileSystemUtils.isODKInstancesParentFolder(f)) {
-      ODKOptionPane.showErrorDialog(this.parentWindow,
-          MessageStrings.DIR_NOT_ODK_COLLECT_DIRECTORY, 
+      ODKOptionPane.showErrorDialog(this.parentWindow, MessageStrings.DIR_NOT_ODK_COLLECT_DIRECTORY,
           MessageStrings.INVALID_ODK_DIRECTORY);
     } else {
       return true;

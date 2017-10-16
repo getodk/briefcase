@@ -19,7 +19,7 @@ package org.opendatakit.briefcase.model;
 public class MetadataUpdateException extends Exception {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = -2483850446028219296L;
 

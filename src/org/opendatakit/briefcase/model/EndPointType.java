@@ -22,14 +22,14 @@ public enum EndPointType {
 
   public String toString() {
     switch (this) {
-    case AGGREGATE_0_9_X_CHOICE:
-      return "Aggregate 0.9.x";
-    case AGGREGATE_1_0_CHOICE:
-      return "Aggregate 1.0";
-    case MOUNTED_ODK_COLLECT_DEVICE_CHOICE:
-      return "Mounted Android SD Card";
-    case CUSTOM_ODK_COLLECT_DIRECTORY:
-      return "Custom Path to ODK Directory";
+      case AGGREGATE_0_9_X_CHOICE:
+        return "Aggregate 0.9.x";
+      case AGGREGATE_1_0_CHOICE:
+        return "Aggregate 1.0";
+      case MOUNTED_ODK_COLLECT_DEVICE_CHOICE:
+        return "Mounted Android SD Card";
+      case CUSTOM_ODK_COLLECT_DIRECTORY:
+        return "Custom Path to ODK Directory";
     }
     throw new IllegalStateException("Unhandled EndPointType value");
   }

@@ -19,10 +19,10 @@ package org.opendatakit.aggregate.constants;
 
 /**
  * Constants used for parsing in ODK aggregate 
- *  
+ *
  * @author wbrunette@gmail.com
  * @author mitchellsundt@gmail.com
- * 
+ *
  */
 public final class ParserConsts {
 
@@ -35,19 +35,19 @@ public final class ParserConsts {
   public static final String UI_VERSION_ATTRIBUTE_NAME = "uiVersion";
 
   public static final String INSTANCE_ID_ATTRIBUTE_NAME = "instanceID";
-  
+
   public static final String SUBMISSION_DATE_ATTRIBUTE_NAME = "submissionDate";
 
   public static final String IS_COMPLETE_ATTRIBUTE_NAME = "isComplete";
 
   public static final String MARKED_AS_COMPLETE_DATE_ATTRIBUTE_NAME = "markedAsCompleteDate";
-  
+
   public static final String NAMESPACE_ATTRIBUTE = "xmlns";
 
   public static final String FORWARD_SLASH = "/";
-  
+
   public static final String FORWARD_SLASH_SUBSTITUTION = "&frasl;";
-  
+
   public static final String VALUE_FORMATTED = "  Value: ";
 
   public static final String ATTRIBUTE_FORMATTED = " Attribute> ";

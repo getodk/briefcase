@@ -44,8 +44,8 @@ import org.opendatakit.briefcase.util.ServerConnectionTest;
 public class LegacyServerConnectionDialog extends JDialog implements ActionListener {
 
   /**
-     *
-     */
+   *
+   */
   private static final long serialVersionUID = -6224121510693483027L;
 
   private static final String URL_LABEL = "URL:";
@@ -62,7 +62,7 @@ public class LegacyServerConnectionDialog extends JDialog implements ActionListe
   private JButton okButton;
 
   private JButton cancelButton;
-  
+
   private TerminationFuture terminationFuture = new TerminationFuture();
 
   /**
@@ -94,49 +94,35 @@ public class LegacyServerConnectionDialog extends JDialog implements ActionListe
     txtrDescription.setText("Please obtain the token value (the Briefcase Application Token)"
         + " from the Briefcase page of ODK Aggregate 0.9.8 or higher.");
     GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
-    gl_contentPanel.setHorizontalGroup(gl_contentPanel
-        .createSequentialGroup()
+    gl_contentPanel.setHorizontalGroup(gl_contentPanel.createSequentialGroup()
         .addContainerGap()
-        .addGroup(
-            gl_contentPanel
-                .createParallelGroup(Alignment.TRAILING)
-                .addGroup(
-                    gl_contentPanel
-                        .createSequentialGroup()
-                        .addGroup(
-                            gl_contentPanel.createParallelGroup(Alignment.LEADING)
-                                .addComponent(lblBriefcaseAppToken).addComponent(lblUrl))
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(
-                            gl_contentPanel
-                                .createParallelGroup(Alignment.LEADING)
-                                .addComponent(textUrlField, GroupLayout.PREFERRED_SIZE, 400,
-                                    Short.MAX_VALUE)
-                                .addComponent(textAppTokenField, GroupLayout.PREFERRED_SIZE, 400,
-                                    Short.MAX_VALUE)))
-                .addComponent(txtrDescription, GroupLayout.PREFERRED_SIZE,
-                    GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)).addContainerGap());
-    gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-        .addGroup(
-            gl_contentPanel
-                .createSequentialGroup()
-                .addContainerGap()
-                .addGroup(
-                    gl_contentPanel
-                        .createParallelGroup(Alignment.BASELINE)
-                        .addComponent(textUrlField, GroupLayout.PREFERRED_SIZE,
-                            GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(lblUrl))
+        .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+            .addGroup(gl_contentPanel.createSequentialGroup()
+                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+                    .addComponent(lblBriefcaseAppToken)
+                    .addComponent(lblUrl))
                 .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(
-                    gl_contentPanel
-                        .createParallelGroup(Alignment.BASELINE)
-                        .addComponent(lblBriefcaseAppToken)
-                        .addComponent(textAppTokenField, GroupLayout.PREFERRED_SIZE,
-                            GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(ComponentPlacement.UNRELATED)
-                .addComponent(txtrDescription, GroupLayout.PREFERRED_SIZE,
-                    GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE).addContainerGap()));
+                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+                    .addComponent(textUrlField, GroupLayout.PREFERRED_SIZE, 400, Short.MAX_VALUE)
+                    .addComponent(textAppTokenField, GroupLayout.PREFERRED_SIZE, 400, Short.MAX_VALUE)))
+            .addComponent(txtrDescription, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE))
+        .addContainerGap());
+    gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+        .addGroup(gl_contentPanel.createSequentialGroup()
+            .addContainerGap()
+            .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+                .addComponent(textUrlField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                    GroupLayout.PREFERRED_SIZE)
+                .addComponent(lblUrl))
+            .addPreferredGap(ComponentPlacement.RELATED)
+            .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+                .addComponent(lblBriefcaseAppToken)
+                .addComponent(textAppTokenField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                    GroupLayout.PREFERRED_SIZE))
+            .addPreferredGap(ComponentPlacement.UNRELATED)
+            .addComponent(txtrDescription, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                GroupLayout.PREFERRED_SIZE)
+            .addContainerGap()));
     contentPanel.setLayout(gl_contentPanel);
     {
       JPanel buttonPane = new JPanel();
@@ -175,8 +161,7 @@ public class LegacyServerConnectionDialog extends JDialog implements ActionListe
   public void actionPerformed(ActionEvent e) {
     if (CONNECT.equals(e.getActionCommand())) {
       // do action...
-      ServerConnectionInfo info = new ServerConnectionInfo(textUrlField.getText(),
-          textAppTokenField.getText());
+      ServerConnectionInfo info = new ServerConnectionInfo(textUrlField.getText(), textAppTokenField.getText());
 
       okButton.setEnabled(false);
       cancelButton.setEnabled(false);
@@ -195,8 +180,8 @@ public class LegacyServerConnectionDialog extends JDialog implements ActionListe
       } finally {
         setCursor(saved);
       }
-      
-      if ( isSuccessful ) {
+
+      if (isSuccessful) {
         serverInfo = info;
         this.setVisible(false);
       } else {

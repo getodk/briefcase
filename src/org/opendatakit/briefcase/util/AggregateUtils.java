@@ -90,7 +90,7 @@ public class AggregateUtils {
    * Common routine to download a document from the downloadUrl and save the
    * contents in the file 'f'. Shared by media file download and form file
    * download.
-   * 
+   *
    * @param f
    * @param downloadUrl
    * @throws URISyntaxException
@@ -98,9 +98,8 @@ public class AggregateUtils {
    * @throws ClientProtocolException
    * @throws TransmissionException
    */
-  public static final void commonDownloadFile(ServerConnectionInfo serverInfo, File f,
-      String downloadUrl) throws URISyntaxException, ClientProtocolException, IOException,
-      TransmissionException {
+  public static final void commonDownloadFile(ServerConnectionInfo serverInfo, File f, String downloadUrl)
+      throws URISyntaxException, ClientProtocolException, IOException, TransmissionException {
 
     // OK. We need to download it because we either:
     // (1) don't have it
@@ -136,8 +135,8 @@ public class AggregateUtils {
       int statusCode = response.getStatusLine().getStatusCode();
 
       if (statusCode != 200) {
-        String errMsg = String.format(FETCH_FAILED_DETAILED_REASON, f.getAbsolutePath())
-            + response.getStatusLine().getReasonPhrase() + " (" + statusCode + ")";
+        String errMsg = String.format(FETCH_FAILED_DETAILED_REASON, f.getAbsolutePath()) + response.getStatusLine()
+            .getReasonPhrase() + " (" + statusCode + ")";
         log.error(errMsg);
         flushEntityBytes(response.getEntity());
         throw new TransmissionException(errMsg);
@@ -145,8 +144,7 @@ public class AggregateUtils {
 
       // write connection to file
 
-      try (InputStream is = response.getEntity().getContent();
-           OutputStream os = new FileOutputStream(f)) {
+      try (InputStream is = response.getEntity().getContent(); OutputStream os = new FileOutputStream(f)) {
         byte buf[] = new byte[1024];
         int len;
         while ((len = is.read(buf)) > 0) {
@@ -161,31 +159,33 @@ public class AggregateUtils {
    * Common method for returning a parsed xml document given a url and the http
    * context and client objects involved in the web connection. The document is
    * the body of the response entity and should be xml.
-   * 
+   *
    * @param urlString
    * @param localContext
    * @param httpclient
    * @return
    */
   public static final DocumentFetchResult getXmlDocument(String urlString,
-      ServerConnectionInfo serverInfo, boolean alwaysResetCredentials, 
-      DocumentDescription description, ResponseAction action)
-      throws XmlDocumentFetchException {
+                                                         ServerConnectionInfo serverInfo,
+                                                         boolean alwaysResetCredentials,
+                                                         DocumentDescription description,
+                                                         ResponseAction action) throws XmlDocumentFetchException {
 
     URI u = null;
     try {
       URL url = new URL(urlString);
       u = url.toURI();
     } catch (MalformedURLException e) {
-      String msg = description.getFetchDocFailed() + "Invalid url: " + urlString + ".\nFailed with error: " + e.getMessage();
+      String msg =
+          description.getFetchDocFailed() + "Invalid url: " + urlString + ".\nFailed with error: " + e.getMessage();
       if (!urlString.toLowerCase().startsWith("http://") && !urlString.toLowerCase().startsWith("https://")) {
         msg += "\nDid you forget to prefix the address with 'http://' or 'https://' ?";
       }
-      log.warn(msg, e) ;
+      log.warn(msg, e);
       throw new XmlDocumentFetchException(msg);
     } catch (URISyntaxException e) {
-      String msg = description.getFetchDocFailed() + "Invalid uri: " + urlString + ".\nFailed with error: "
-          + e.getMessage();
+      String msg =
+          description.getFetchDocFailed() + "Invalid uri: " + urlString + ".\nFailed with error: " + e.getMessage();
       log.warn(msg, e);
       throw new XmlDocumentFetchException(msg);
     }
@@ -193,10 +193,9 @@ public class AggregateUtils {
     // set up request...
     HttpGet req = WebUtils.createOpenRosaHttpGet(u);
 
-    int[] validStatusList = { 200 };
+    int[] validStatusList = {200};
 
-    return httpRetrieveXmlDocument(req, validStatusList, serverInfo, alwaysResetCredentials,
-        description, action);
+    return httpRetrieveXmlDocument(req, validStatusList, serverInfo, alwaysResetCredentials, description, action);
   }
 
   private static final void flushEntityBytes(HttpEntity entity) {
@@ -207,29 +206,33 @@ public class AggregateUtils {
         InputStream is = entity.getContent();
         // read to end of stream...
         final long count = 1024L;
-        while (is.skip(count) == count)
+        while (is.skip(count) == count) {
           ;
+        }
         is.close();
       } catch (Exception e) {
         log.error("failed to flush http content", e);
       }
     }
   }
-  
+
   /**
    * Common method for returning a parsed xml document given a url and the http
    * context and client objects involved in the web connection. The document is
    * the body of the response entity and should be xml.
-   * 
+   *
    * @param urlString
    * @param localContext
    * @param httpclient
    * @return
    */
   private static final DocumentFetchResult httpRetrieveXmlDocument(HttpUriRequest request,
-      int[] validStatusList, ServerConnectionInfo serverInfo, boolean alwaysResetCredentials,
-      DocumentDescription description, 
-      ResponseAction action) throws XmlDocumentFetchException {
+                                                                   int[] validStatusList,
+                                                                   ServerConnectionInfo serverInfo,
+                                                                   boolean alwaysResetCredentials,
+                                                                   DocumentDescription description,
+                                                                   ResponseAction action)
+      throws XmlDocumentFetchException {
 
     HttpClient httpClient = WebUtils.createHttpClient();
 
@@ -244,18 +247,17 @@ public class AggregateUtils {
       request.addHeader(BRIEFCASE_APP_TOKEN_PARAMETER, serverInfo.getToken());
     }
 
-    if ( description.isCancelled() ) {
+    if (description.isCancelled()) {
       throw new XmlDocumentFetchException("Transfer of " + description.getDocumentDescriptionType() + " aborted.");
     }
-    
+
     HttpResponse response = null;
     try {
       response = httpClient.execute(request, localContext);
       int statusCode = response.getStatusLine().getStatusCode();
 
       HttpEntity entity = response.getEntity();
-      String lcContentType = (entity == null) ? null : entity.getContentType().getValue()
-          .toLowerCase();
+      String lcContentType = (entity == null) ? null : entity.getContentType().getValue().toLowerCase();
 
       XmlDocumentFetchException ex = null;
       boolean statusCodeValid = false;
@@ -271,28 +273,27 @@ public class AggregateUtils {
         String webError = response.getStatusLine().getReasonPhrase() + " (" + statusCode + ")";
 
         if (statusCode == 400) {
-          ex = new XmlDocumentFetchException(description.getFetchDocFailed() + webError + " while accessing: "
-              + uri.toString() + "\nPlease verify that the " + description.getDocumentDescriptionType()
-              + " that is being uploaded is well-formed.");
+          ex = new XmlDocumentFetchException(
+              description.getFetchDocFailed() + webError + " while accessing: " + uri.toString()
+                  + "\nPlease verify that the " + description.getDocumentDescriptionType()
+                  + " that is being uploaded is well-formed.");
         } else {
           ex = new XmlDocumentFetchException(
-              description.getFetchDocFailed()
-                  + webError
-                  + " while accessing: "
-                  + uri.toString()
+              description.getFetchDocFailed() + webError + " while accessing: " + uri.toString()
                   + "\nPlease verify that the URL, your user credentials and your permissions are all correct.");
         }
       } else if (entity == null) {
         log.warn("No entity body returned from: " + uri.toString() + " is not text/xml");
-        ex = new XmlDocumentFetchException(description.getFetchDocFailed()
-            + " Server unexpectedly returned no content while accessing: " + uri.toString());
-      } else if (!(lcContentType.contains(HTTP_CONTENT_TYPE_TEXT_XML) || lcContentType
-          .contains(HTTP_CONTENT_TYPE_APPLICATION_XML))) {
-        log.warn("ContentType: " + entity.getContentType().getValue() + "returned from: "
-            + uri.toString() + " is not text/xml");
-        ex = new XmlDocumentFetchException(description.getFetchDocFailed()
-            + "A non-XML document was returned while accessing: " + uri.toString()
-            + "\nA network login screen may be interfering with the transmission to the server.");
+        ex = new XmlDocumentFetchException(
+            description.getFetchDocFailed() + " Server unexpectedly returned no content while accessing: "
+                + uri.toString());
+      } else if (!(lcContentType.contains(HTTP_CONTENT_TYPE_TEXT_XML) || lcContentType.contains(
+          HTTP_CONTENT_TYPE_APPLICATION_XML))) {
+        log.warn("ContentType: " + entity.getContentType().getValue() + "returned from: " + uri.toString()
+            + " is not text/xml");
+        ex = new XmlDocumentFetchException(
+            description.getFetchDocFailed() + "A non-XML document was returned while accessing: " + uri.toString()
+                + "\nA network login screen may be interfering with the transmission to the server.");
       }
 
       if (ex != null) {
@@ -377,8 +378,8 @@ public class AggregateUtils {
           } else {
             // Don't follow a redirection attempt to a different host.
             // We can't tell if this is a spoof or not.
-            String msg = description.getFetchDocFailed() + "Unexpected redirection attempt to a different host: "
-                + uNew.toString();
+            String msg = description.getFetchDocFailed() + "Unexpected redirection attempt to a different host: " + uNew
+                .toString();
             log.warn(msg);
             throw new XmlDocumentFetchException(msg);
           }
@@ -407,14 +408,14 @@ public class AggregateUtils {
   /**
    * Send a HEAD request to the server to confirm the validity of the URL and
    * credentials.
-   * 
+   *
    * @param serverInfo
    * @param actionAddr
    * @return the confirmed URI of this action.
    * @throws TransmissionException
    */
-  public static final URI testServerConnectionWithHeadRequest(ServerConnectionInfo serverInfo,
-      String actionAddr) throws TransmissionException {
+  public static final URI testServerConnectionWithHeadRequest(ServerConnectionInfo serverInfo, String actionAddr)
+      throws TransmissionException {
 
     String urlString = serverInfo.getUrl();
     if (urlString.endsWith("/")) {
@@ -464,14 +465,14 @@ public class AggregateUtils {
           Header[] openRosaVersions = response.getHeaders(WebUtils.OPEN_ROSA_VERSION_HEADER);
           if (openRosaVersions != null && openRosaVersions.length != 0) {
             if (!serverInfo.isOpenRosaServer()) {
-              String msg = "Url: " + u.toString()
-                  + " is for an ODK Aggregate 1.0 or higher (OpenRosa compliant) server!";
+              String msg =
+                  "Url: " + u.toString() + " is for an ODK Aggregate 1.0 or higher (OpenRosa compliant) server!";
               log.warn(msg);
               throw new TransmissionException(msg);
             }
           } else if (serverInfo.isOpenRosaServer()) {
-            String msg = "Url: " + u.toString()
-                + " is for an ODK Aggregate 0.9x or earlier (non-OpenRosa compliant) server!";
+            String msg =
+                "Url: " + u.toString() + " is for an ODK Aggregate 0.9x or earlier (non-OpenRosa compliant) server!";
             log.warn(msg);
             throw new TransmissionException(msg);
           }
@@ -492,8 +493,8 @@ public class AggregateUtils {
               } else {
                 // Don't follow a redirection attempt to a different host.
                 // We can't tell if this is a spoof or not.
-                String msg = "Starting url: " + u.toString()
-                    + " unexpected redirection attempt to a different host: " + uNew.toString();
+                String msg = "Starting url: " + u.toString() + " unexpected redirection attempt to a different host: "
+                    + uNew.toString();
                 log.warn(msg);
                 throw new TransmissionException(msg);
               }
@@ -503,8 +504,8 @@ public class AggregateUtils {
               throw new TransmissionException(msg);
             }
           } else {
-            String msg = "The url: " + u.toString()
-                + " is not Aggregate 1.0 - status code on Head request: " + statusCode;
+            String msg =
+                "The url: " + u.toString() + " is not Aggregate 1.0 - status code on Head request: " + statusCode;
             log.warn(msg);
             throw new TransmissionException(msg);
           }
@@ -516,8 +517,9 @@ public class AggregateUtils {
               InputStream is = response.getEntity().getContent();
               // read to end of stream...
               final long count = 1024L;
-              while (is.skip(count) == count)
+              while (is.skip(count) == count) {
                 ;
+              }
               is.close();
             } catch (Exception e) {
               log.error("failed to process http stream", e);
@@ -536,13 +538,20 @@ public class AggregateUtils {
     }
   }
 
-  public static final boolean uploadFilesToServer(ServerConnectionInfo serverInfo, URI u,
-      String distinguishedFileTagName, File file, List<File> files, DocumentDescription description,
-      SubmissionResponseAction action, TerminationFuture terminationFuture, FormStatus formToTransfer) {
+  public static final boolean uploadFilesToServer(ServerConnectionInfo serverInfo,
+                                                  URI u,
+                                                  String distinguishedFileTagName,
+                                                  File file,
+                                                  List<File> files,
+                                                  DocumentDescription description,
+                                                  SubmissionResponseAction action,
+                                                  TerminationFuture terminationFuture,
+                                                  FormStatus formToTransfer) {
 
     boolean allSuccessful = true;
-    formToTransfer.setStatusString("Preparing for upload of " + description.getDocumentDescriptionType() + " with "
-        + files.size() + " media attachments", true);
+    formToTransfer.setStatusString(
+        "Preparing for upload of " + description.getDocumentDescriptionType() + " with " + files.size()
+            + " media attachments", true);
     EventBus.publish(new FormStatusEvent(formToTransfer));
 
     boolean first = true; // handles case where there are no media files
@@ -552,13 +561,14 @@ public class AggregateUtils {
       lastJ = j;
       first = false;
 
-      if ( terminationFuture.isCancelled() ) {
-        formToTransfer.setStatusString("Aborting upload of " + description.getDocumentDescriptionType() + " with "
-            + files.size() + " media attachments", true);
+      if (terminationFuture.isCancelled()) {
+        formToTransfer.setStatusString(
+            "Aborting upload of " + description.getDocumentDescriptionType() + " with " + files.size()
+                + " media attachments", true);
         EventBus.publish(new FormStatusEvent(formToTransfer));
         return false;
       }
-      
+
       HttpPost httppost = WebUtils.createOpenRosaHttpPost(u);
 
       long byteCount = 0L;
@@ -645,19 +655,21 @@ public class AggregateUtils {
 
       httppost.setEntity(builder.build());
 
-      int[] validStatusList = { 201 };
+      int[] validStatusList = {201};
 
       try {
         if (j != files.size()) {
-          formToTransfer.setStatusString("Uploading " + description.getDocumentDescriptionType()
-              + " and media files " + (lastJ + 1) + " through " + (j + 1) + " of " + files.size()
-              + " media attachments", true);
+          formToTransfer.setStatusString(
+              "Uploading " + description.getDocumentDescriptionType() + " and media files " + (lastJ + 1) + " through "
+                  + (j + 1) + " of " + files.size() + " media attachments", true);
         } else if (j == 0) {
-          formToTransfer.setStatusString("Uploading " + description.getDocumentDescriptionType()
-              + " with no media attachments", true);
+          formToTransfer.setStatusString(
+              "Uploading " + description.getDocumentDescriptionType() + " with no media attachments", true);
         } else {
-          formToTransfer.setStatusString("Uploading " + description.getDocumentDescriptionType() + " and "
-              + (j - lastJ) + ((lastJ != 0) ? " remaining" : "") + " media attachments", true);
+          formToTransfer.setStatusString(
+              "Uploading " + description.getDocumentDescriptionType() + " and " + (j - lastJ) + ((lastJ != 0)
+                  ? " remaining"
+                  : "") + " media attachments", true);
         }
         EventBus.publish(new FormStatusEvent(formToTransfer));
 
@@ -667,8 +679,10 @@ public class AggregateUtils {
         log.error("upload failed", e);
         formToTransfer.setStatusString("UPLOAD FAILED: " + e.getMessage(), false);
         EventBus.publish(new FormStatusEvent(formToTransfer));
-        
-        if ( description.isCancelled() ) return false;
+
+        if (description.isCancelled()) {
+          return false;
+        }
       }
     }
 

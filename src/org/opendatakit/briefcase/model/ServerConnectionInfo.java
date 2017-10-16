@@ -51,7 +51,7 @@ public class ServerConnectionInfo {
   public String getToken() {
     return token;
   }
-  
+
   public String getUsername() {
     return username;
   }

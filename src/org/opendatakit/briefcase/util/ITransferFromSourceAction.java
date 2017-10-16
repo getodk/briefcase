@@ -18,7 +18,7 @@ package org.opendatakit.briefcase.util;
 
 interface ITransferFromSourceAction {
   /**
-   * 
+   *
    * @return true if successful, false if there were one or more problems.
    */
   boolean doAction();

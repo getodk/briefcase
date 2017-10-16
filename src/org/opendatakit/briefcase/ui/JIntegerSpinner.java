@@ -12,9 +12,9 @@ import javax.swing.text.NumberFormatter;
 public class JIntegerSpinner extends JSpinner {
 
   public JIntegerSpinner(int value, int min, int max, int step) {
-    super (new SpinnerNumberModel(8080, 0, 65535, 1));
+    super(new SpinnerNumberModel(8080, 0, 65535, 1));
     JFormattedTextField txt = ((JSpinner.NumberEditor) this.getEditor()).getTextField();
-    NumberFormatter formatter = (NumberFormatter)txt.getFormatter();
+    NumberFormatter formatter = (NumberFormatter) txt.getFormatter();
     formatter.setFormat(new DecimalFormat("#####"));
     formatter.setAllowsInvalid(false);
     ((NumberFormatter) txt.getFormatter()).setAllowsInvalid(false);

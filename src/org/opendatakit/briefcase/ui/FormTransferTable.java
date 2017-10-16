@@ -35,6 +35,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -48,13 +49,19 @@ import java.util.Map;
 public class FormTransferTable extends JTable {
 
   /**
-     *
-     */
+   *
+   */
   private static final long serialVersionUID = 8511088963758308085L;
-  
+
   public class JTableButtonRenderer implements TableCellRenderer {
-    @Override public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      JButton button = (JButton)value;
+    @Override
+    public Component getTableCellRendererComponent(JTable table,
+                                                   Object value,
+                                                   boolean isSelected,
+                                                   boolean hasFocus,
+                                                   int row,
+                                                   int column) {
+      JButton button = (JButton) value;
       button.setOpaque(true);
       if (isSelected) {
         button.setBackground(table.getSelectionBackground());
@@ -64,20 +71,21 @@ public class FormTransferTable extends JTable {
       return button;
     }
   }
-  
+
   public class JTableButtonMouseListener implements MouseListener {
     public JTableButtonMouseListener() {
     }
-  
-    @Override public void mouseClicked(MouseEvent e) {
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
       int column = FormTransferTable.this.getColumnModel().getColumnIndexAtX(e.getX());
-      int row    = e.getY() / FormTransferTable.this.getRowHeight();
-  
-      if (row < FormTransferTable.this.getRowCount() && row >= 0 &&
-          column < FormTransferTable.this.getColumnCount() && column >= 0) {
+      int row = e.getY() / FormTransferTable.this.getRowHeight();
+
+      if (row < FormTransferTable.this.getRowCount() && row >= 0 && column < FormTransferTable.this.getColumnCount()
+          && column >= 0) {
         Object value = FormTransferTable.this.getValueAt(row, column);
         if (value instanceof JButton) {
-          ((JButton)value).doClick();
+          ((JButton) value).doClick();
         }
       }
     }
@@ -98,18 +106,18 @@ public class FormTransferTable extends JTable {
     public void mouseExited(MouseEvent e) {
     }
   }
-  
+
   public static class DetailButton extends JButton implements ActionListener {
-    
+
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -5106458166776020642L;
-    private static final Log log = LogFactory.getLog( DetailButton.class);
+    private static final Log log = LogFactory.getLog(DetailButton.class);
     public static final String LABEL = "Details...";
-    
+
     final FormStatus status;
-    
+
     DetailButton(FormStatus status) {
       super(LABEL);
       this.status = status;
@@ -122,7 +130,8 @@ public class FormTransferTable extends JTable {
       try {
         final String history = status.getStatusHistory();
         setEnabled(false);
-        ScrollingStatusListDialog.showDialog(JOptionPane.getFrameForComponent(this), status.getFormDefinition(), history);
+        ScrollingStatusListDialog.showDialog(JOptionPane.getFrameForComponent(this), status.getFormDefinition(),
+            history);
       } finally {
         setEnabled(true);
       }
@@ -133,24 +142,28 @@ public class FormTransferTable extends JTable {
 
     private static final long serialVersionUID = 7108326237416622721L;
 
-    public static final int BUTTON_COLUMN = 3;     
+    public static final int BUTTON_COLUMN = 3;
 
     private static final Log log = LogFactory.getLog(FormTransferTableModel.class);
-    
+
     final String[] columnNames;
     final JButton btnSelectOrClearAllForms;
     final TransferType transferType;
     final JButton btnTransfer, btnCancel;
     List<FormStatus> formStatuses = new ArrayList<FormStatus>();
     private Map<FormStatus, DetailButton> buttonMap = new HashMap<FormStatus, DetailButton>();
-    
-    public FormTransferTableModel(JButton btnSelectOrClearAllForms, TransferType transferType, JButton btnTransfer, JButton btnCancel) {
+
+    public FormTransferTableModel(JButton btnSelectOrClearAllForms,
+                                  TransferType transferType,
+                                  JButton btnTransfer,
+                                  JButton btnCancel) {
       super();
       AnnotationProcessor.process(this);// if not using AOP
 
-      this.columnNames = new String[]{ "Selected", "Form Name", ((transferType == TransferType.UPLOAD) ?
-          PushTransferPanel.TAB_NAME : PullTransferPanel.TAB_NAME) + " Status", DetailButton.LABEL };
-      
+      this.columnNames = new String[] {"Selected", "Form Name",
+          ((transferType == TransferType.UPLOAD) ? PushTransferPanel.TAB_NAME : PullTransferPanel.TAB_NAME) + " Status",
+          DetailButton.LABEL};
+
       this.btnSelectOrClearAllForms = btnSelectOrClearAllForms;
       this.transferType = transferType;
       this.btnTransfer = btnTransfer;
@@ -195,7 +208,7 @@ public class FormTransferTable extends JTable {
     public TransferType getTransferType() {
       return transferType;
     }
-    
+
     public void setFormStatusList(List<FormStatus> statuses) {
       formStatuses = statuses;
       updateButtonsAfterStatusChange();
@@ -231,19 +244,19 @@ public class FormTransferTable extends JTable {
      * each cell. If we didn't implement this method, then the boolean column would
      * contain text ("true"/"false"), rather than a check box.
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings( {"rawtypes", "unchecked"})
     public Class getColumnClass(int c) {
       switch (c) {
-      case 0:
-        return Boolean.class;
-      case 1:
-        return String.class;
-      case 2:
-        return String.class;
-      case 3:
-        return JButton.class;
-      default:
-        throw new IllegalStateException("unexpected column choice");
+        case 0:
+          return Boolean.class;
+        case 1:
+          return String.class;
+        case 2:
+          return String.class;
+        case 3:
+          return JButton.class;
+        default:
+          throw new IllegalStateException("unexpected column choice");
       }
     }
 
@@ -254,18 +267,18 @@ public class FormTransferTable extends JTable {
     public void setValueAt(Object value, int row, int col) {
       FormStatus status = formStatuses.get(row);
       switch (col) {
-      case 0:
-        status.setSelected((Boolean) value);
-        updateButtonsAfterStatusChange();
-        break;
-      case 2:
-        status.setStatusString((String) value, true);
-        break;
-      case 3:
-        log.warn("attempting to set button value");
-        break;
-      default:
-        throw new IllegalStateException("unexpected column choice");
+        case 0:
+          status.setSelected((Boolean) value);
+          updateButtonsAfterStatusChange();
+          break;
+        case 2:
+          status.setStatusString((String) value, true);
+          break;
+        case 3:
+          log.warn("attempting to set button value");
+          break;
+        default:
+          throw new IllegalStateException("unexpected column choice");
       }
       fireTableCellUpdated(row, col);
     }
@@ -274,28 +287,28 @@ public class FormTransferTable extends JTable {
     public Object getValueAt(int rowIndex, int columnIndex) {
       FormStatus status = formStatuses.get(rowIndex);
       switch (columnIndex) {
-      case 0:
-        return status.isSelected();
-      case 1:
-        return status.getFormName();
-      case 2:
-        return status.getStatusString();
-      case 3:
-        DetailButton button = buttonMap.get(status);
-        if ( button == null ) {
-          button = new DetailButton(status);
-          buttonMap.put(status, button);
-        }
-        return button;
-      default:
-        throw new IllegalStateException("unexpected column choice");
+        case 0:
+          return status.isSelected();
+        case 1:
+          return status.getFormName();
+        case 2:
+          return status.getStatusString();
+        case 3:
+          DetailButton button = buttonMap.get(status);
+          if (button == null) {
+            button = new DetailButton(status);
+            buttonMap.put(status, button);
+          }
+          return button;
+        default:
+          throw new IllegalStateException("unexpected column choice");
       }
     }
 
     @EventSubscriber(eventClass = FormStatusEvent.class)
     public void fireStatusChange(FormStatusEvent fse) {
       FormStatus fs = fse.getStatus();
-      if ( fs.getTransferType() == transferType ) {
+      if (fs.getTransferType() == transferType) {
         for (int rowIndex = 0; rowIndex < formStatuses.size(); ++rowIndex) {
           FormStatus status = formStatuses.get(rowIndex);
           if (status.equals(fs)) {
@@ -308,23 +321,26 @@ public class FormTransferTable extends JTable {
 
   }
 
-  public FormTransferTable(JButton btnSelectOrClearAllForms, FormStatus.TransferType transferType, JButton btnTransfer, JButton btnCancel) {
+  public FormTransferTable(JButton btnSelectOrClearAllForms,
+                           FormStatus.TransferType transferType,
+                           JButton btnTransfer,
+                           JButton btnCancel) {
     super(new FormTransferTableModel(btnSelectOrClearAllForms, transferType, btnTransfer, btnCancel));
     AnnotationProcessor.process(this);// if not using AOP
     // set the button column renderer to a custom renderer
     getColumn(getColumnName(FormTransferTableModel.BUTTON_COLUMN)).setCellRenderer(new JTableButtonRenderer());
     addMouseListener(new JTableButtonMouseListener());
-    
+
     TableColumnModel columns = this.getColumnModel();
     // determine width of "Selected" column header
     TableCellRenderer headerRenderer = this.getTableHeader().getDefaultRenderer();
-    Component comp = headerRenderer.getTableCellRendererComponent(null, columns.getColumn(0)
-        .getHeaderValue(), false, false, 0, 0);
+    Component comp = headerRenderer.getTableCellRendererComponent(null, columns.getColumn(0).getHeaderValue(), false,
+        false, 0, 0);
     int headerWidth = comp.getPreferredSize().width;
     columns.getColumn(0).setMinWidth(headerWidth);
     columns.getColumn(0).setMaxWidth(headerWidth);
     columns.getColumn(0).setPreferredWidth(headerWidth);
-    
+
     // create a detail button (that we'll throw away)
     // so we can get the needed column and row dimensions.
     comp = new DetailButton(null);
@@ -333,7 +349,7 @@ public class FormTransferTable extends JTable {
     columns.getColumn(FormTransferTableModel.BUTTON_COLUMN).setMinWidth(buttonWidth);
     columns.getColumn(FormTransferTableModel.BUTTON_COLUMN).setMaxWidth(buttonWidth);
     columns.getColumn(FormTransferTableModel.BUTTON_COLUMN).setPreferredWidth(buttonWidth);
-    
+
     // set the row height to be big enough to include a button and have space above and below it
     setRowHeight(buttonHeight); // btn used is arbitrary...
 
@@ -368,7 +384,7 @@ public class FormTransferTable extends JTable {
   @EventSubscriber(eventClass = RetrieveAvailableFormsSucceededEvent.class)
   public void formsAvailableFromServer(RetrieveAvailableFormsSucceededEvent event) {
     FormTransferTableModel model = (FormTransferTableModel) this.dataModel;
-    if ( event.getTransferType() == model.getTransferType() ) {
+    if (event.getTransferType() == model.getTransferType()) {
       setFormStatusList(event.getFormsToTransfer());
     }
   }

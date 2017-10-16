@@ -72,36 +72,36 @@ public class BaseFormParserForJavaRosa implements Serializable {
   /**
    * Classes needed to serialize objects. Need to put anything from JR in here.
    */
-  public final static String[] SERIALIABLE_CLASSES = {
-    "org.javarosa.core.services.locale.ResourceFileDataSource", // JavaRosaCoreModule
-    "org.javarosa.core.services.locale.TableLocaleSource", // JavaRosaCoreModule
-    "org.javarosa.core.model.FormDef",
-    "org.javarosa.core.model.SubmissionProfile", // CoreModelModule
-    "org.javarosa.core.model.QuestionDef", // CoreModelModule
-    "org.javarosa.core.model.GroupDef", // CoreModelModule
-    "org.javarosa.core.model.instance.FormInstance", // CoreModelModule
-    "org.javarosa.core.model.data.BooleanData", // CoreModelModule
-    "org.javarosa.core.model.data.DateData", // CoreModelModule
-    "org.javarosa.core.model.data.DateTimeData", // CoreModelModule
-    "org.javarosa.core.model.data.DecimalData", // CoreModelModule
-    "org.javarosa.core.model.data.GeoPointData", // CoreModelModule
-    "org.javarosa.core.model.data.GeoShapeData", // CoreModelModule
-    "org.javarosa.core.model.data.GeoTraceData", // CoreModelModule
-    "org.javarosa.core.model.data.IntegerData", // CoreModelModule
-    "org.javarosa.core.model.data.LongData", // CoreModelModule
-    "org.javarosa.core.model.data.MultiPointerAnswerData", // CoreModelModule
-    "org.javarosa.core.model.data.PointerAnswerData", // CoreModelModule
-    "org.javarosa.core.model.data.SelectMultiData", // CoreModelModule
-    "org.javarosa.core.model.data.SelectOneData", // CoreModelModule
-    "org.javarosa.core.model.data.StringData", // CoreModelModule
-    "org.javarosa.core.model.data.TimeData", // CoreModelModule
-    "org.javarosa.core.model.data.UncastData", // CoreModelModule
-    "org.javarosa.core.model.data.helper.BasicDataPointer", // CoreModelModule
-    "org.javarosa.core.model.Action", // CoreModelModule
-    "org.javarosa.core.model.actions.SetValueAction" //CoreModelModule
+  public final static String[] SERIALIABLE_CLASSES = {"org.javarosa.core.services.locale.ResourceFileDataSource",
+      // JavaRosaCoreModule
+      "org.javarosa.core.services.locale.TableLocaleSource", // JavaRosaCoreModule
+      "org.javarosa.core.model.FormDef", "org.javarosa.core.model.SubmissionProfile", // CoreModelModule
+      "org.javarosa.core.model.QuestionDef", // CoreModelModule
+      "org.javarosa.core.model.GroupDef", // CoreModelModule
+      "org.javarosa.core.model.instance.FormInstance", // CoreModelModule
+      "org.javarosa.core.model.data.BooleanData", // CoreModelModule
+      "org.javarosa.core.model.data.DateData", // CoreModelModule
+      "org.javarosa.core.model.data.DateTimeData", // CoreModelModule
+      "org.javarosa.core.model.data.DecimalData", // CoreModelModule
+      "org.javarosa.core.model.data.GeoPointData", // CoreModelModule
+      "org.javarosa.core.model.data.GeoShapeData", // CoreModelModule
+      "org.javarosa.core.model.data.GeoTraceData", // CoreModelModule
+      "org.javarosa.core.model.data.IntegerData", // CoreModelModule
+      "org.javarosa.core.model.data.LongData", // CoreModelModule
+      "org.javarosa.core.model.data.MultiPointerAnswerData", // CoreModelModule
+      "org.javarosa.core.model.data.PointerAnswerData", // CoreModelModule
+      "org.javarosa.core.model.data.SelectMultiData", // CoreModelModule
+      "org.javarosa.core.model.data.SelectOneData", // CoreModelModule
+      "org.javarosa.core.model.data.StringData", // CoreModelModule
+      "org.javarosa.core.model.data.TimeData", // CoreModelModule
+      "org.javarosa.core.model.data.UncastData", // CoreModelModule
+      "org.javarosa.core.model.data.helper.BasicDataPointer", // CoreModelModule
+      "org.javarosa.core.model.Action", // CoreModelModule
+      "org.javarosa.core.model.actions.SetValueAction" //CoreModelModule
   };
 
   private static boolean isJavaRosaInitialized = false;
+
   /**
    * The JR implementation here does not look thread-safe or
    * like something to be invoked more than once.
@@ -109,18 +109,18 @@ public class BaseFormParserForJavaRosa implements Serializable {
    */
   private static final void initializeJavaRosa() {
     synchronized (log) {
-       if ( !isJavaRosaInitialized ) {
-             // need a list of classes that formdef uses
-             // unfortunately, the JR registerModule() functions do more than this.
-             // register just the classes that would have been registered by:
-             // new JavaRosaCoreModule().registerModule();
-             // new CoreModelModule().registerModule();
-             // replace with direct call to PrototypeManager
-             PrototypeManager.registerPrototypes(SERIALIABLE_CLASSES);
-             redirectOutput();
-             new XFormsModule().registerModule();
-             isJavaRosaInitialized = true;
-       }
+      if (!isJavaRosaInitialized) {
+        // need a list of classes that formdef uses
+        // unfortunately, the JR registerModule() functions do more than this.
+        // register just the classes that would have been registered by:
+        // new JavaRosaCoreModule().registerModule();
+        // new CoreModelModule().registerModule();
+        // replace with direct call to PrototypeManager
+        PrototypeManager.registerPrototypes(SERIALIABLE_CLASSES);
+        redirectOutput();
+        new XFormsModule().registerModule();
+        isJavaRosaInitialized = true;
+      }
     }
   }
 
@@ -156,16 +156,15 @@ public class BaseFormParserForJavaRosa implements Serializable {
   private static final List<String> NonchangeableInstanceAttributes;
 
   static {
-    ChangeableBindAttributes = Arrays.asList(new String[]{
-        "relevant", "constraint", "readonly", "required", "calculate",
-        XFormParser.NAMESPACE_JAVAROSA.toLowerCase() + ":constraintmsg",
-        XFormParser.NAMESPACE_JAVAROSA.toLowerCase() + ":preload",
-        XFormParser.NAMESPACE_JAVAROSA.toLowerCase() + ":preloadparams", 
-        "appearance" });
-    
-    NonchangeableInstanceAttributes = Arrays.asList(new String[]{"id"});
+    ChangeableBindAttributes = Arrays.asList(
+        new String[] {"relevant", "constraint", "readonly", "required", "calculate",
+            XFormParser.NAMESPACE_JAVAROSA.toLowerCase() + ":constraintmsg",
+            XFormParser.NAMESPACE_JAVAROSA.toLowerCase() + ":preload",
+            XFormParser.NAMESPACE_JAVAROSA.toLowerCase() + ":preloadparams", "appearance"});
+
+    NonchangeableInstanceAttributes = Arrays.asList(new String[] {"id"});
   }
-  
+
   // nodeset attribute name, in <bind> elements
   private static final String NODESET_ATTR = "nodeset";
 
@@ -174,37 +173,19 @@ public class BaseFormParserForJavaRosa implements Serializable {
 
   private static final String ENCRYPTED_FORM_DEFINITION = "<?xml version=\"1.0\"?>"
       + "<h:html xmlns=\"http://www.w3.org/2002/xforms\" xmlns:h=\"http://www.w3.org/1999/xhtml\" xmlns:ev=\"http://www.w3.org/2001/xml-events\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:odk=\""
-      + ParserConsts.NAMESPACE_ODK
-      + "\" xmlns:jr=\"http://openrosa.org/javarosa\">"
-      + "<h:head>"
-      + "<h:title>Encrypted Form</h:title>"
-      + "<model>"
-      + "<instance>"
+      + ParserConsts.NAMESPACE_ODK + "\" xmlns:jr=\"http://openrosa.org/javarosa\">" + "<h:head>"
+      + "<h:title>Encrypted Form</h:title>" + "<model>" + "<instance>"
       + "<data id=\"encrypted\" xmlns=\"http://www.opendatakit.org/xforms/encrypted\" xmlns:orx=\"http://openrosa.org/xforms\">"
-      + "<base64EncryptedKey/>"
-      + "<orx:meta>"
-      + "<orx:instanceID/>"
-      + "</orx:meta>"
-      + "<media>"
-      + "<file/>"
-      + "</media>"
-      + "<encryptedXmlFile/>"
-      + "<base64EncryptedElementSignature/>"
-      + "</data>"
-      + "</instance>"
+      + "<base64EncryptedKey/>" + "<orx:meta>" + "<orx:instanceID/>" + "</orx:meta>" + "<media>" + "<file/>"
+      + "</media>" + "<encryptedXmlFile/>" + "<base64EncryptedElementSignature/>" + "</data>" + "</instance>"
       + "<bind nodeset=\"/data/base64EncryptedKey\" type=\"string\" odk:length=\"2048\" />"
       + "<bind nodeset=\"/data/meta/instanceID\" type=\"string\"/>"
       + "<bind nodeset=\"/data/media/file\" type=\"binary\"/>"
       + "<bind nodeset=\"/data/encryptedXmlFile\" type=\"binary\"/>"
-      + "<bind nodeset=\"/data/base64EncryptedElementSignature\" type=\"string\" odk:length=\"2048\" />"
-      + "</model>"
-      + "</h:head>"
-      + "<h:body>"
-      + "<input ref=\"base64EncryptedKey\"><label>Encrypted Symmetric Key</label></input>"
-      + "<input ref=\"meta/instanceID\"><label>InstanceID</label></input>"
-      + "<repeat nodeset=\"/data/media\">"
-      + "<upload ref=\"file\" mediatype=\"image/*\"><label>media file</label></upload>"
-      + "</repeat>"
+      + "<bind nodeset=\"/data/base64EncryptedElementSignature\" type=\"string\" odk:length=\"2048\" />" + "</model>"
+      + "</h:head>" + "<h:body>" + "<input ref=\"base64EncryptedKey\"><label>Encrypted Symmetric Key</label></input>"
+      + "<input ref=\"meta/instanceID\"><label>InstanceID</label></input>" + "<repeat nodeset=\"/data/media\">"
+      + "<upload ref=\"file\" mediatype=\"image/*\"><label>media file</label></upload>" + "</repeat>"
       + "<upload ref=\"encryptedXmlFile\" mediatype=\"image/*\"><label>submission</label></upload>"
       + "<input ref=\"base64EncryptedElementSignature\"><label>Encrypted Element Signature</label></input>"
       + "</h:body>" + "</h:html>";
@@ -213,18 +194,21 @@ public class BaseFormParserForJavaRosa implements Serializable {
 
   private static int xmlInsertLocation(String xml) {
     int idx = xml.indexOf(">");
-    if (idx == -1)
+    if (idx == -1) {
       return -1;
+    }
     String snip = xml.substring(0, idx).toLowerCase();
     if (snip.matches(LEADING_QUESTION_XML_PATTERN)) {
       // the file started with a <?xml...?> tag -- get the next(<html>) tag.
       idx = xml.indexOf(">", idx + 1); // <html
-      if (idx == -1)
+      if (idx == -1) {
         return -1;
+      }
     }
     idx = xml.indexOf(">", idx + 1);
-    if (idx == -1)
+    if (idx == -1) {
       return -1;
+    }
     ++idx;
     return idx;
   }
@@ -234,8 +218,9 @@ public class BaseFormParserForJavaRosa implements Serializable {
 
     if (xml.startsWith(ODK_TIMESTAMP_COMMENT, idx)) {
       int endIdx = xml.indexOf(">", idx);
-      if (endIdx == -1)
+      if (endIdx == -1) {
         return xml;
+      }
       ++endIdx;
       return xml.substring(0, idx) + xml.substring(endIdx);
     } else {
@@ -249,8 +234,9 @@ public class BaseFormParserForJavaRosa implements Serializable {
     if (xml.startsWith(ODK_TIMESTAMP_COMMENT, idx)) {
       // find space after the IS8601 timestamp
       int endIdx = xml.indexOf(" ", idx + ODK_TIMESTAMP_COMMENT.length());
-      if (endIdx == -1)
+      if (endIdx == -1) {
         return new Date();
+      }
       ++endIdx;
       String timestamp = xml.substring(idx + ODK_TIMESTAMP_COMMENT.length(), endIdx);
       Date d = WebUtils.parseDate(timestamp);
@@ -267,9 +253,8 @@ public class BaseFormParserForJavaRosa implements Serializable {
   public static String xmlWithTimestampComment(String xmlWithoutTimestampComment, String serverUrl) {
     int idx = xmlInsertLocation(xmlWithoutTimestampComment);
 
-    return xmlWithoutTimestampComment.substring(0, idx) + ODK_TIMESTAMP_COMMENT
-        + WebUtils.iso8601Date(new Date()) + " on " + serverUrl + " -->"
-        + xmlWithoutTimestampComment.substring(idx);
+    return xmlWithoutTimestampComment.substring(0, idx) + ODK_TIMESTAMP_COMMENT + WebUtils.iso8601Date(new Date())
+        + " on " + serverUrl + " -->" + xmlWithoutTimestampComment.substring(idx);
   }
 
   private static class XFormParserWithBindEnhancements extends XFormParser {
@@ -312,7 +297,8 @@ public class BaseFormParserForJavaRosa implements Serializable {
   }
 
   private static synchronized final XFormParserWithBindEnhancements parseFormDefinition(String xml,
-      BaseFormParserForJavaRosa parser) throws ODKIncompleteSubmissionData {
+                                                                                        BaseFormParserForJavaRosa parser)
+      throws ODKIncompleteSubmissionData {
 
     StringReader isr = null;
     try {
@@ -395,14 +381,12 @@ public class BaseFormParserForJavaRosa implements Serializable {
       String name = rootElement.getAttributeName(i);
       if (name.equals(ParserConsts.FORM_ID_ATTRIBUTE_NAME)) {
         formIdValue = rootElement.getAttributeValue(i);
-        formIdValue = formIdValue.replaceAll(ParserConsts.FORWARD_SLASH,
-            ParserConsts.FORWARD_SLASH_SUBSTITUTION);
+        formIdValue = formIdValue.replaceAll(ParserConsts.FORWARD_SLASH, ParserConsts.FORWARD_SLASH_SUBSTITUTION);
         break;
       }
     }
 
-    return new XFormParameters((formIdValue == null) ? defaultFormIdValue : formIdValue,
-        versionString);
+    return new XFormParameters((formIdValue == null) ? defaultFormIdValue : formIdValue, versionString);
   }
 
   /**
@@ -453,8 +437,9 @@ public class BaseFormParserForJavaRosa implements Serializable {
         return e;
       } else if (e.getNumChildren() != 0) {
         TreeElement v = findDepthFirst(e, name);
-        if (v != null)
+        if (v != null) {
           return v;
+        }
       }
     }
     return null;
@@ -479,8 +464,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
       if (l.size() == 1) {
         TreeElement ek = l.get(0);
         String base64EncryptedFieldRsaPublicKey = getBindAttribute(ek, BASE64_RSA_PUBLIC_KEY);
-        if (base64EncryptedFieldRsaPublicKey != null
-            && base64EncryptedFieldRsaPublicKey.trim().length() == 0) {
+        if (base64EncryptedFieldRsaPublicKey != null && base64EncryptedFieldRsaPublicKey.trim().length() == 0) {
           base64EncryptedFieldRsaPublicKey = null;
         }
         return base64EncryptedFieldRsaPublicKey;
@@ -510,21 +494,18 @@ public class BaseFormParserForJavaRosa implements Serializable {
     try {
       rootJavaRosaFormDef = xfp.parse();
     } catch (Exception e) {
-      throw new ODKIncompleteSubmissionData(
-          "Javarosa failed to construct a FormDef. Is this an XForm definition?", e,
+      throw new ODKIncompleteSubmissionData("Javarosa failed to construct a FormDef. Is this an XForm definition?", e,
           Reason.BAD_JR_PARSE);
     }
 
     if (rootJavaRosaFormDef == null) {
-      throw new ODKIncompleteSubmissionData(
-          "Javarosa failed to construct a FormDef.  Is this an XForm definition?",
+      throw new ODKIncompleteSubmissionData("Javarosa failed to construct a FormDef.  Is this an XForm definition?",
           Reason.BAD_JR_PARSE);
     }
     FormInstance dataModel = rootJavaRosaFormDef.getInstance();
     if (dataModel == null) {
       throw new ODKIncompleteSubmissionData(
-          "Javarosa failed to construct a FormInstance.  Is this an XForm definition?",
-          Reason.BAD_JR_PARSE);
+          "Javarosa failed to construct a FormInstance.  Is this an XForm definition?", Reason.BAD_JR_PARSE);
     }
     TreeElement rootElement = dataModel.getRoot();
 
@@ -540,8 +521,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
           schemaMalformed = true;
         } else {
           // need to escape all slashes... for xpath processing...
-          schemaValue = schemaValue.replaceAll(ParserConsts.FORWARD_SLASH,
-              ParserConsts.FORWARD_SLASH_SUBSTITUTION);
+          schemaValue = schemaValue.replaceAll(ParserConsts.FORWARD_SLASH, ParserConsts.FORWARD_SLASH_SUBSTITUTION);
         }
       } else {
         // malformed...
@@ -555,8 +535,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
     } catch (IllegalArgumentException e) {
       if (schemaMalformed) {
         throw new ODKIncompleteSubmissionData(
-            "xmlns attribute for the data model is not well-formed: '"
-                + dataModel.schema
+            "xmlns attribute for the data model is not well-formed: '" + dataModel.schema
                 + "' should be of the form xmlns=\"http://your.domain.org/formId\"\nConsider defining the formId using the 'id' attribute instead of the 'xmlns' attribute (id=\"formId\")",
             Reason.ID_MALFORMED);
       } else {
@@ -565,11 +544,11 @@ public class BaseFormParserForJavaRosa implements Serializable {
             Reason.ID_MISSING);
       }
     }
-    if (!allowLegacy && rootElementDefn.modelVersion != null
-        && (rootElementDefn.modelVersion > Long.valueOf(Integer.MAX_VALUE))) {
+    if (!allowLegacy && rootElementDefn.modelVersion != null && (rootElementDefn.modelVersion > Long.valueOf(
+        Integer.MAX_VALUE))) {
       // for some reason, the datastore is not persisting Long values correctly?
-      throw new ODKIncompleteSubmissionData(
-          "The version string must be an integer less than 2147483648", Reason.ID_MALFORMED);
+      throw new ODKIncompleteSubmissionData("The version string must be an integer less than 2147483648",
+          Reason.ID_MALFORMED);
     }
     isInvalidFormXmlns = schemaMalformed;
 
@@ -597,15 +576,14 @@ public class BaseFormParserForJavaRosa implements Serializable {
 
     if (p != null) {
       String altUrl = p.getAction();
-      isNotUploadableForm = (altUrl == null || !altUrl.startsWith("http") || p.getMethod() == null || !p
-          .getMethod().equals("form-data-post"));
+      isNotUploadableForm = (altUrl == null || !altUrl.startsWith("http") || p.getMethod() == null || !p.getMethod()
+          .equals("form-data-post"));
     }
 
     this.isNotUploadableForm = isNotUploadableForm;
 
     if (isNotUploadableForm) {
-      log.debug("Form "
-          + submissionElementDefn.formId
+      log.debug("Form " + submissionElementDefn.formId
           + " is not uploadable (submission method is not form-data-post or does not have an http: or https: url. ");
     }
 
@@ -649,13 +627,12 @@ public class BaseFormParserForJavaRosa implements Serializable {
       }
 
       if (formDef == null) {
-        throw new ODKIncompleteSubmissionData("Javarosa failed to construct Encrypted FormDef!",
-            Reason.BAD_JR_PARSE);
+        throw new ODKIncompleteSubmissionData("Javarosa failed to construct Encrypted FormDef!", Reason.BAD_JR_PARSE);
       }
       dataModel = formDef.getInstance();
       if (dataModel == null) {
-        throw new ODKIncompleteSubmissionData(
-            "Javarosa failed to construct Encrypted FormInstance!", Reason.BAD_JR_PARSE);
+        throw new ODKIncompleteSubmissionData("Javarosa failed to construct Encrypted FormInstance!",
+            Reason.BAD_JR_PARSE);
       }
       submissionElement = dataModel.getRoot();
       base64EncryptedFieldRsaPublicKey = extractBase64FieldEncryptionKey(trueSubmissionElement);
@@ -677,16 +654,18 @@ public class BaseFormParserForJavaRosa implements Serializable {
 
   @SuppressWarnings("unused")
   private void printTreeElementInfo(TreeElement treeElement) {
-    log.debug("processing te: " + treeElement.getName() + " type: " + treeElement.getDataType()
-        + " repeatable: " + treeElement.isRepeatable());
+    log.debug("processing te: " + treeElement.getName() + " type: " + treeElement.getDataType() + " repeatable: "
+        + treeElement.isRepeatable());
   }
 
   public String getTreeElementPath(AbstractTreeElement<?> e) {
-    if (e == null)
+    if (e == null) {
       return null;
+    }
     String s = getTreeElementPath(e.getParent());
-    if (s == null)
+    if (s == null) {
       return e.getName();
+    }
     return s + "/" + e.getName();
   }
 
@@ -730,8 +709,9 @@ public class BaseFormParserForJavaRosa implements Serializable {
    * @throws ODKIncompleteSubmissionData
    */
   public static DifferenceResult compareXml(BaseFormParserForJavaRosa incomingParser,
-      String existingXml, String existingTitle, boolean isWithinUpdateWindow)
-      throws ODKIncompleteSubmissionData {
+                                            String existingXml,
+                                            String existingTitle,
+                                            boolean isWithinUpdateWindow) throws ODKIncompleteSubmissionData {
     if (incomingParser == null || existingXml == null) {
       throw new ODKIncompleteSubmissionData(Reason.MISSING_XML);
     }
@@ -743,13 +723,11 @@ public class BaseFormParserForJavaRosa implements Serializable {
 
     // parse XML
     FormDef formDef1, formDef2;
-    BaseFormParserForJavaRosa existingParser = new BaseFormParserForJavaRosa(existingXml,
-        existingTitle, true);
+    BaseFormParserForJavaRosa existingParser = new BaseFormParserForJavaRosa(existingXml, existingTitle, true);
     formDef1 = incomingParser.rootJavaRosaFormDef;
     formDef2 = existingParser.rootJavaRosaFormDef;
     if (formDef1 == null || formDef2 == null) {
-      throw new ODKIncompleteSubmissionData(
-          "Javarosa failed to construct a FormDef.  Is this an XForm definition?",
+      throw new ODKIncompleteSubmissionData("Javarosa failed to construct a FormDef.  Is this an XForm definition?",
           Reason.BAD_JR_PARSE);
     }
 
@@ -764,13 +742,13 @@ public class BaseFormParserForJavaRosa implements Serializable {
     }
 
     String evs = existingParser.rootElementDefn.versionString;
-    boolean modelVersionSame = (incomingParser.rootElementDefn.modelVersion == null) ? (existingParser.rootElementDefn.modelVersion == null)
-        : incomingParser.rootElementDefn.modelVersion
-            .equals(existingParser.rootElementDefn.modelVersion);
+    boolean modelVersionSame = (incomingParser.rootElementDefn.modelVersion == null)
+        ? (existingParser.rootElementDefn.modelVersion == null)
+        : incomingParser.rootElementDefn.modelVersion.equals(existingParser.rootElementDefn.modelVersion);
 
     boolean isEarlierVersion = false;
-    if (!(evs == null || (modelVersionSame && ivs.length() > evs.length()) || (!modelVersionSame && ivs
-        .compareTo(evs) > 0))) {
+    if (!(evs == null || (modelVersionSame && ivs.length() > evs.length()) || (!modelVersionSame
+        && ivs.compareTo(evs) > 0))) {
       // disallow updates if none of the following applies:
       // (1) if the existing form does not have a version (the new one does).
       // (2) if the existing form and new form have the same model version
@@ -865,13 +843,12 @@ public class BaseFormParserForJavaRosa implements Serializable {
     FormInstance dataModel2 = formDef2.getInstance();
     if (dataModel1 == null || dataModel2 == null) {
       throw new ODKIncompleteSubmissionData(
-          "Javarosa failed to construct a FormInstance.  Is this an XForm definition?",
-          Reason.BAD_JR_PARSE);
+          "Javarosa failed to construct a FormInstance.  Is this an XForm definition?", Reason.BAD_JR_PARSE);
     }
 
     // return result of element-by-element instance/binding comparison
-    DifferenceResult rc = compareTreeElements(dataModel1.getRoot(), incomingParser,
-        dataModel2.getRoot(), existingParser);
+    DifferenceResult rc = compareTreeElements(dataModel1.getRoot(), incomingParser, dataModel2.getRoot(),
+        existingParser);
     if (DifferenceResult.XFORMS_DIFFERENT == rc) {
       return rc;
     } else if (isEarlierVersion) {
@@ -894,7 +871,9 @@ public class BaseFormParserForJavaRosa implements Serializable {
    *         encryption.
    */
   public static DifferenceResult compareTreeElements(TreeElement treeElement1,
-      BaseFormParserForJavaRosa parser1, TreeElement treeElement2, BaseFormParserForJavaRosa parser2) {
+                                                     BaseFormParserForJavaRosa parser1,
+                                                     TreeElement treeElement2,
+                                                     BaseFormParserForJavaRosa parser2) {
     boolean smalldiff = false, bigdiff = false;
 
     // compare names
@@ -910,17 +889,17 @@ public class BaseFormParserForJavaRosa implements Serializable {
         attributeNamespace = null;
       }
       String attributeName = treeElement1.getAttributeName(i);
-      String fullAttributeName = (attributeNamespace == null ? attributeName : attributeNamespace
-          + ":" + attributeName);
+      String fullAttributeName = (attributeNamespace == null
+          ? attributeName
+          : attributeNamespace + ":" + attributeName);
 
       // see if there's a difference in this attribute
-      if (!treeElement1.getAttributeValue(i).equals(
-          treeElement2.getAttributeValue(attributeNamespace, attributeName))) {
+      if (!treeElement1.getAttributeValue(i)
+          .equals(treeElement2.getAttributeValue(attributeNamespace, attributeName))) {
         // flag differences as small or large based on list in
         // NonchangeableInstanceAttributes[]
         // here, changes are ALLOWED by default, unless to a listed attribute
-        if (!NonchangeableInstanceAttributes.contains(
-            fullAttributeName.toLowerCase())) {
+        if (!NonchangeableInstanceAttributes.contains(fullAttributeName.toLowerCase())) {
           smalldiff = true;
         } else {
           bigdiff = true;
@@ -934,16 +913,16 @@ public class BaseFormParserForJavaRosa implements Serializable {
         attributeNamespace = null;
       }
       String attributeName = treeElement2.getAttributeName(i);
-      String fullAttributeName = (attributeNamespace == null ? attributeName : attributeNamespace
-          + ":" + attributeName);
+      String fullAttributeName = (attributeNamespace == null
+          ? attributeName
+          : attributeNamespace + ":" + attributeName);
 
       // see if this is an attribute only in treeElement2
       if (treeElement1.getAttributeValue(attributeNamespace, attributeName) == null) {
         // flag differences as small or large based on list in
         // NonchangeableInstanceAttributes[]
         // here, changes are ALLOWED by default, unless to a listed attribute
-        if (!NonchangeableInstanceAttributes.contains(
-            fullAttributeName.toLowerCase())) {
+        if (!NonchangeableInstanceAttributes.contains(fullAttributeName.toLowerCase())) {
           smalldiff = true;
         } else {
           bigdiff = true;
@@ -963,20 +942,18 @@ public class BaseFormParserForJavaRosa implements Serializable {
           attributeNamespace = null;
         }
         String attributeName = binding.getAttributeName(j);
-        String fullAttributeName = (attributeNamespace == null ? attributeName : attributeNamespace
-            + ":" + attributeName);
+        String fullAttributeName = (attributeNamespace == null
+            ? attributeName
+            : attributeNamespace + ":" + attributeName);
 
         if (!fullAttributeName.equalsIgnoreCase(NODESET_ATTR)) {
           // see if there's a difference in this attribute
           String value1 = binding.getAttributeValue(j);
           String value2 = getBindingAttributeValue(bindings2, attributeNamespace, attributeName);
           if (!value1.equals(value2)) {
-            if (fullAttributeName.toLowerCase().equals(TYPE_ATTR)
-                && value1 != null
-                && value2 != null
-                && ((value1.toLowerCase().equals("string") && value2.toLowerCase()
-                    .equals("select1")) || (value1.toLowerCase().equals("select1") && value2
-                    .toLowerCase().equals("string")))) {
+            if (fullAttributeName.toLowerCase().equals(TYPE_ATTR) && value1 != null && value2 != null && (
+                (value1.toLowerCase().equals("string") && value2.toLowerCase().equals("select1")) || (
+                    value1.toLowerCase().equals("select1") && value2.toLowerCase().equals("string")))) {
               // handle changes between string and select1 data types as special
               // (allowable) case
               smalldiff = true;
@@ -1004,8 +981,9 @@ public class BaseFormParserForJavaRosa implements Serializable {
           attributeNamespace = null;
         }
         String attributeName = binding.getAttributeName(j);
-        String fullAttributeName = (attributeNamespace == null ? attributeName : attributeNamespace
-            + ":" + attributeName);
+        String fullAttributeName = (attributeNamespace == null
+            ? attributeName
+            : attributeNamespace + ":" + attributeName);
 
         if (!fullAttributeName.equalsIgnoreCase(NODESET_ATTR)) {
           // see if this is an attribute only in bindings2
@@ -1031,8 +1009,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
     // Otherwise, if you have specified the jr:template attribute,
     // it appears only as an INDEX_TEMPLATE element.
 
-    @SuppressWarnings("unused")
-    int template1DropCount = 0;
+    @SuppressWarnings("unused") int template1DropCount = 0;
     // get non-template entries for treeElement1
     List<TreeElement> element1ExcludingRepeatIndex0Children = new ArrayList<TreeElement>();
 
@@ -1049,8 +1026,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
       element1ExcludingRepeatIndex0Children.add(child);
     }
 
-    @SuppressWarnings("unused")
-    int template2DropCount = 0;
+    @SuppressWarnings("unused") int template2DropCount = 0;
     // get non-template entries for treeElement2
     Map<String, TreeElement> element2ExcludingRepeatIndex0Children = new HashMap<String, TreeElement>();
 
@@ -1072,29 +1048,27 @@ public class BaseFormParserForJavaRosa implements Serializable {
     }
 
     // compare children
-    if (element1ExcludingRepeatIndex0Children.size() != element2ExcludingRepeatIndex0Children
-        .size()) {
+    if (element1ExcludingRepeatIndex0Children.size() != element2ExcludingRepeatIndex0Children.size()) {
       // consider differences in basic structure (e.g., number and grouping of
       // fields) as big
       bigdiff = true;
     } else {
       for (int i = 0; i < element1ExcludingRepeatIndex0Children.size(); i++) {
         TreeElement childElement1 = element1ExcludingRepeatIndex0Children.get(i);
-        TreeElement childElement2 = element2ExcludingRepeatIndex0Children.get(childElement1
-            .getName());
+        TreeElement childElement2 = element2ExcludingRepeatIndex0Children.get(childElement1.getName());
 
         if (childElement2 != null) {
           // recursively compare children...
           switch (compareTreeElements(childElement1, parser1, childElement2, parser2)) {
-          case XFORMS_SHARE_SCHEMA:
-            smalldiff = true;
-            break;
-          case XFORMS_DIFFERENT:
-            bigdiff = true;
-            break;
-          default:
-            // no update for the other cases (IDENTICAL, EARLIER, MISSING, SHARE_INSTANCE)
-            break;
+            case XFORMS_SHARE_SCHEMA:
+              smalldiff = true;
+              break;
+            case XFORMS_DIFFERENT:
+              bigdiff = true;
+              break;
+            default:
+              // no update for the other cases (IDENTICAL, EARLIER, MISSING, SHARE_INSTANCE)
+              break;
           }
         } else {
           // consider children not found as big differences
@@ -1116,7 +1090,8 @@ public class BaseFormParserForJavaRosa implements Serializable {
   // search list of recorded bindings for a particular attribute; return its
   // value
   private static String getBindingAttributeValue(List<Element> bindings,
-      String attributeNamespace, String attributeName) {
+                                                 String attributeNamespace,
+                                                 String attributeName) {
     String retval = null;
 
     for (int i = 0; i < bindings.size(); i++) {
@@ -1134,8 +1109,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
     Element retval = new Element();
     retval.createElement(element.getNamespace(), element.getName());
     for (int i = 0; i < element.getAttributeCount(); i++) {
-      retval.setAttribute(element.getAttributeNamespace(i), element.getAttributeName(i),
-          element.getAttributeValue(i));
+      retval.setAttribute(element.getAttributeNamespace(i), element.getAttributeName(i), element.getAttributeValue(i));
     }
     return (retval);
   }

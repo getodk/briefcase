@@ -19,7 +19,7 @@ package org.opendatakit.briefcase.model;
 public class ParsingException extends Exception {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = -2463850446028219296L;
 

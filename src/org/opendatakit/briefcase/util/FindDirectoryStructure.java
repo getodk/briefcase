@@ -26,7 +26,7 @@ import java.util.List;
 
 /**
  * Originally written by Dylan.  Determines the mounts that have SD Cards attached.
- * 
+ *
  * @author the.dylan.price@gmail.com
  * @author mitchellsundt@gmail.com
  *
@@ -44,12 +44,12 @@ public class FindDirectoryStructure {
     String os = System.getProperty(PROPERTY_OS);
     return os.contains(OS_MAC);
   }
-  
+
   /**
    * Searches mounted drives for /odk/instances and returns a list of
    * positive results. Works for Windows, Mac, and Linux operating
    * systems.
-   * 
+   *
    * @return a {@link List} of {@link File}  containing matches of currently mounted file systems
    *         which contain the directoryStructureToSearchFor
    */
@@ -60,19 +60,19 @@ public class FindDirectoryStructure {
       File[] drives = File.listRoots();
       return search(drives, true);
     } else if (os.contains(OS_MAC)) {
-      File[] mounts = { new File("/Volumes"), new File("/media"), new File("/mnt") };
+      File[] mounts = {new File("/Volumes"), new File("/media"), new File("/mnt")};
       return search(mounts, false);
     } else // Assume Unix
     {
       String username = System.getProperty(USER_NAME);
       List<File> mountslist = new ArrayList<File>();
-      mountslist.add( new File("/mnt"));
-      mountslist.add( new File("/media"));
+      mountslist.add(new File("/mnt"));
+      mountslist.add(new File("/media"));
 
       File f = new File("/media", username);
       if (f.exists() && f.isDirectory()) {
         mountslist.add(f);
-      } 
+      }
 
       f = new File("/run/media", username);
       if (f.exists() && f.isDirectory()) {
@@ -84,19 +84,19 @@ public class FindDirectoryStructure {
 
   private static boolean hasOdkInstancesDirectory(File f) {
     File fo = new File(f, "odk");
-    if ( fo.exists() && f.isDirectory() ) {
+    if (fo.exists() && f.isDirectory()) {
       File foi = new File(fo, "instances");
-      if ( foi.exists() && f.isDirectory() ) {
+      if (foi.exists() && f.isDirectory()) {
         return true;
       }
     }
     return false;
   }
-  
+
   /**
    * Checks each given potential directory for existence of odk/instances
    * under it and returns a list of positive matches.
-   * 
+   *
    * @param mounts
    *          the potential mount points to check.
    * @param isDirectChild
@@ -109,10 +109,10 @@ public class FindDirectoryStructure {
 
     List<File> candidates = new ArrayList<File>();
 
-    for ( File f : mounts ) {
-      if ( f.exists() && f.isDirectory() ) {
-        if ( isDirectChild ) {
-          if ( hasOdkInstancesDirectory(f) ) {
+    for (File f : mounts) {
+      if (f.exists() && f.isDirectory()) {
+        if (isDirectChild) {
+          if (hasOdkInstancesDirectory(f)) {
             candidates.add(f);
           }
         } else {
@@ -122,9 +122,9 @@ public class FindDirectoryStructure {
               return f.isDirectory();
             }
           });
-          
-          for ( File s : subdirs ) {
-            if ( hasOdkInstancesDirectory(s) ) {
+
+          for (File s : subdirs) {
+            if (hasOdkInstancesDirectory(s)) {
               candidates.add(s);
             }
           }

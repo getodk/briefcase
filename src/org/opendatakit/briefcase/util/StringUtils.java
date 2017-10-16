@@ -18,13 +18,13 @@ package org.opendatakit.briefcase.util;
 
 /**
  * Common utility methods to handle extended String functionalities.
- * 
+ *
  * @author rclakmal@gmail.com
- * 
+ *
  */
 public class StringUtils {
 
-    public static boolean isNotEmptyNotNull(String s) {
-        return s != null && !s.isEmpty();
-    }
+  public static boolean isNotEmptyNotNull(String s) {
+    return s != null && !s.isEmpty();
+  }
 }

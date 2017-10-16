@@ -49,7 +49,7 @@ import org.opendatakit.briefcase.model.IFormDefinition;
 public class ScrollingStatusListDialog extends JDialog implements ActionListener {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 3565952263140071560L;
   private static final Log log = LogFactory.getLog(ScrollingStatusListDialog.class.getName());
@@ -70,14 +70,18 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
         "Detailed Transfer Status for ", form, statusHtml);
     dialog.setVisible(true);
   }
-  
+
   public static void showExportDialog(Frame frame, IFormDefinition form, String dirName, String statusHtml) {
-    ScrollingStatusListDialog dialog = new ScrollingStatusListDialog(frame,"Export Directory: " + dirName,
+    ScrollingStatusListDialog dialog = new ScrollingStatusListDialog(frame, "Export Directory: " + dirName,
         "Export Details for ", form, statusHtml);
     dialog.setVisible(true);
   }
 
-  private ScrollingStatusListDialog(Frame frame, String labelText, String title, IFormDefinition form, String statusHtml) {
+  private ScrollingStatusListDialog(Frame frame,
+                                    String labelText,
+                                    String title,
+                                    IFormDefinition form,
+                                    String statusHtml) {
     super(frame, title + form.getFormName(), true);
     this.form = form;
     AnnotationProcessor.process(this);
@@ -90,8 +94,7 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
     editorArea.setEditable(false);
     //Put the editor pane in a scroll pane.
     JScrollPane editorScrollPane = new JScrollPane(editorArea);
-    editorScrollPane.setVerticalScrollBarPolicy(
-                    JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+    editorScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
     editorScrollPane.setPreferredSize(new Dimension(400, 300));
     editorScrollPane.setMinimumSize(new Dimension(10, 10));
 
@@ -138,20 +141,20 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
       }
     }
   }
-  
+
   @EventSubscriber(eventClass = ExportProgressEvent.class)
   public void onEvent(ExportProgressEvent event) {
     appendToDocument(editorArea, event.getText());
   }
-  
+
   @EventSubscriber(eventClass = ExportFailedEvent.class)
   public void onEvent(ExportFailedEvent event) {
-    appendToDocument(editorArea,"Failed.");
+    appendToDocument(editorArea, "Failed.");
   }
 
   @EventSubscriber(eventClass = ExportSucceededEvent.class)
   public void onEvent(ExportSucceededEvent event) {
-    appendToDocument(editorArea,"Succeeded.");
+    appendToDocument(editorArea, "Succeeded.");
   }
 
   private void appendToDocument(JTextComponent component, String msg) {

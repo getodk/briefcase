@@ -15,9 +15,9 @@ import org.opendatakit.common.web.constants.HtmlConsts;
 public class JavaRosaParserWrapper extends BaseFormParserForJavaRosa {
   private final File formDefinitionFile;
   private final String md5Hash;
-  
+
   public JavaRosaParserWrapper(File formDefinitionFile, String inputXml) throws ODKIncompleteSubmissionData {
-    super( inputXml, null, true );
+    super(inputXml, null, true);
     this.formDefinitionFile = formDefinitionFile;
     try {
       md5Hash = newMD5HashUri(inputXml.getBytes(HtmlConsts.UTF8_ENCODE));
@@ -27,77 +27,75 @@ public class JavaRosaParserWrapper extends BaseFormParserForJavaRosa {
   }
 
   public final static String newMD5HashUri(byte[] asBytes) {
-       try {
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        md.update(asBytes);
-        
-           byte[] messageDigest = md.digest();
+    try {
+      MessageDigest md = MessageDigest.getInstance("MD5");
+      md.update(asBytes);
 
-           BigInteger number = new BigInteger(1, messageDigest);
-           String md5 = number.toString(16);
-           while (md5.length() < 32)
-               md5 = "0" + md5;
-           return "md5:" + md5;
-       } catch (NoSuchAlgorithmException e) {
-        throw new IllegalStateException("Unexpected problem computing md5 hash", e);
-     }
+      byte[] messageDigest = md.digest();
+
+      BigInteger number = new BigInteger(1, messageDigest);
+      String md5 = number.toString(16);
+      while (md5.length() < 32) {
+        md5 = "0" + md5;
+      }
+      return "md5:" + md5;
+    } catch (NoSuchAlgorithmException e) {
+      throw new IllegalStateException("Unexpected problem computing md5 hash", e);
+    }
   }
 
   public XFormParameters getRootElementDefn() {
-     return rootElementDefn;
+    return rootElementDefn;
   }
 
   public XFormParameters getSubmissionElementDefn() {
-     return submissionElementDefn;
+    return submissionElementDefn;
   }
-  
+
   public String getSubmissionKey(String uri) {
-     return submissionElementDefn.formId +
-     "[@version=" + submissionElementDefn.modelVersion +
-     " and @uiVersion=null" +
-     "]/" + ( isFileEncryptedForm() ? "data" : getSubmissionElement().getName()) +
-     "[@key=" + uri + "]";
+    return submissionElementDefn.formId + "[@version=" + submissionElementDefn.modelVersion + " and @uiVersion=null"
+        + "]/" + (isFileEncryptedForm() ? "data" : getSubmissionElement().getName()) + "[@key=" + uri + "]";
   }
 
   public TreeElement getSubmissionElement() {
     // for Briefcase, this is the original un-encrypted submission element
     return trueSubmissionElement;
   }
-  
+
   public boolean isFieldEncryptedForm() {
-     return isFieldEncryptedForm;
+    return isFieldEncryptedForm;
   }
 
   public boolean isFileEncryptedForm() {
     return isFileEncryptedForm;
   }
-  
+
   public String getBase64RsaPublicKey() {
     return base64RsaPublicKey;
   }
-  
+
   public String getBase64EncryptedFieldRsaPublicKey() {
     return base64EncryptedFieldRsaPublicKey;
   }
-  
+
   public boolean isNotUploadableForm() {
-     return isNotUploadableForm;
+    return isNotUploadableForm;
   }
-  
+
   public boolean isInvalidFormXmlns() {
-     return isInvalidFormXmlns;
+    return isInvalidFormXmlns;
   }
-  
+
   public String getFormName() {
-     return title;
+    return title;
   }
-  
+
   public File getFormDefinitionFile() {
-     return formDefinitionFile;
+    return formDefinitionFile;
   }
-  
+
   public String getMD5Hash() {
-     return md5Hash;
+    return md5Hash;
   }
 
 }
