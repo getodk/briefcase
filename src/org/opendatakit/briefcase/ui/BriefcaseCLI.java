@@ -293,14 +293,14 @@ public class BriefcaseCLI {
         log.error("Failed.");
     }
 
-    @EventSubscriber(eventClass = ExportSucceededEvent.class)
-    public void successfulCompletion(ExportSucceededEvent event) {
-        log.info("Succeeded.");
-    }
-
     @EventSubscriber(eventClass = TransferFailedEvent.class)
     public void failedCompletion(TransferFailedEvent event) {
         log.error("Transfer Failed");
+    }
+
+    @EventSubscriber(eventClass = ExportSucceededEvent.class)
+    public void successfulCompletion(ExportSucceededEvent event) {
+        log.info("Succeeded.");
     }
 
     @EventSubscriber(eventClass = TransferSucceededEvent.class)

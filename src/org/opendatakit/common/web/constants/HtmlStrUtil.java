@@ -107,14 +107,14 @@ public class HtmlStrUtil {
   public static final String createInput(String type, String name, String value) {
       return createInput(type, name, value, false, INPUT_WIDGET_SIZE_LIMIT, null);
   }
-  
+
+  public static final String createInput(String type, String name, String value, boolean checked) {
+    return createInput(type, name, value, checked, INPUT_WIDGET_SIZE_LIMIT, null);
+  }
+
   public static final String createNonSavingPasswordInput(String name) {
       return createInput(HtmlConsts.INPUT_TYPE_PASSWORD, name, "",
                             false, INPUT_WIDGET_SIZE_LIMIT, "autocomplete=\"off\"");
-  }
-  
-  public static final String createInput(String type, String name, String value, boolean checked) {
-    return createInput(type, name, value, checked, INPUT_WIDGET_SIZE_LIMIT, null);
   }
   
   public static final String createFormBeginTag(String action, String encodingType, String method) {
