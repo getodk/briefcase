@@ -672,7 +672,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
       }
     }
     // clean illegal characters from title
-    title = formTitle.replace(BasicConsts.FORWARDSLASH, BasicConsts.EMPTY_STRING);
+    title = formTitle.replaceAll(BasicConsts.INVALID_CHARS, BasicConsts.EMPTY_STRING);
   }
 
   @SuppressWarnings("unused")
