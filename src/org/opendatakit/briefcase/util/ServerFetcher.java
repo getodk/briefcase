@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.util;
 
+import static org.opendatakit.briefcase.util.WebUtils.MAX_CONNECTIONS_PER_ROUTE;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -53,8 +55,6 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
-
-import static org.opendatakit.briefcase.util.WebUtils.MAX_CONNECTIONS_PER_ROUTE;
 
 public class ServerFetcher {
 

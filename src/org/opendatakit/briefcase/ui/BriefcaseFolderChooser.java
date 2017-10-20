@@ -16,14 +16,15 @@
 
 package org.opendatakit.briefcase.ui;
 
-import org.opendatakit.briefcase.util.FileSystemUtils;
+import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileFilter;
 import java.awt.Container;
 import java.io.File;
 
-import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileFilter;
+
+import org.opendatakit.briefcase.util.FileSystemUtils;
 
 class BriefcaseFolderChooser extends AbstractFileChooser {
 

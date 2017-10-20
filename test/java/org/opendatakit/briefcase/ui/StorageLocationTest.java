@@ -1,19 +1,19 @@
 package org.opendatakit.briefcase.ui;
 
-import org.junit.Test;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FileSystemException;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.FileSystemException;
 
 public class StorageLocationTest {
 

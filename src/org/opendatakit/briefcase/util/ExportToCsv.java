@@ -16,28 +16,6 @@
 
 package org.opendatakit.briefcase.util;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.bushe.swing.event.EventBus;
-import org.javarosa.core.model.instance.AbstractTreeElement;
-import org.javarosa.core.model.instance.TreeElement;
-import org.kxml2.kdom.Document;
-import org.kxml2.kdom.Element;
-import org.kxml2.kdom.Node;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.CryptoException;
-import org.opendatakit.briefcase.model.ExportProgressEvent;
-import org.opendatakit.briefcase.model.ExportProgressPercentageEvent;
-import org.opendatakit.briefcase.model.FileSystemException;
-import org.opendatakit.briefcase.model.ParsingException;
-import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
-
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.NoSuchPaddingException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
@@ -57,6 +35,29 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.NoSuchPaddingException;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.bushe.swing.event.EventBus;
+import org.javarosa.core.model.instance.AbstractTreeElement;
+import org.javarosa.core.model.instance.TreeElement;
+import org.kxml2.kdom.Document;
+import org.kxml2.kdom.Element;
+import org.kxml2.kdom.Node;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.CryptoException;
+import org.opendatakit.briefcase.model.ExportProgressEvent;
+import org.opendatakit.briefcase.model.ExportProgressPercentageEvent;
+import org.opendatakit.briefcase.model.FileSystemException;
+import org.opendatakit.briefcase.model.ParsingException;
+import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
 
 public class ExportToCsv implements ITransformFormAction {
 

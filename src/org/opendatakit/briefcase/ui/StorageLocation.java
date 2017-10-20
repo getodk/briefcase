@@ -1,9 +1,6 @@
 package org.opendatakit.briefcase.ui;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FileSystemException;
+import static org.opendatakit.briefcase.util.FileSystemUtils.FORMS_DIR;
 
 import java.awt.Window;
 import java.io.File;
@@ -11,7 +8,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-import static org.opendatakit.briefcase.util.FileSystemUtils.FORMS_DIR;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.FileSystemException;
 
 /** Managing the Briefcase storage location */
 public class StorageLocation {

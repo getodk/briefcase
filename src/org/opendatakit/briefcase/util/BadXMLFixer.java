@@ -16,6 +16,9 @@
 
 package org.opendatakit.briefcase.util;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -23,9 +26,6 @@ import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.model.CannotFixXMLException;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.ParsingException;
-
-import java.io.File;
-import java.io.IOException;
 
 
 /**

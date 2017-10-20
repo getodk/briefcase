@@ -16,6 +16,23 @@
 
 package org.opendatakit.briefcase.ui;
 
+import java.awt.Component;
+import java.awt.EventQueue;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JTabbedPane;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -32,22 +49,6 @@ import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.util.FileSystemUtils;
-
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JTabbedPane;
-import javax.swing.UIManager;
-import javax.swing.WindowConstants;
-import java.awt.Component;
-import java.awt.EventQueue;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.Map;
 
 public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeListener {
     private static final String APP_NAME = "ODK Briefcase";

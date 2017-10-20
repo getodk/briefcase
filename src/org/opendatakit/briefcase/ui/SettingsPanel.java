@@ -1,10 +1,10 @@
 package org.opendatakit.briefcase.ui;
 
-import org.apache.http.HttpHost;
-import org.opendatakit.briefcase.model.BriefcaseAnalytics;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.util.FileSystemUtils;
-import org.opendatakit.briefcase.util.StringUtils;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.io.File;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -15,11 +15,12 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.io.File;
+
+import org.apache.http.HttpHost;
+import org.opendatakit.briefcase.model.BriefcaseAnalytics;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.briefcase.util.StringUtils;
 
 public class SettingsPanel extends JPanel {
 
