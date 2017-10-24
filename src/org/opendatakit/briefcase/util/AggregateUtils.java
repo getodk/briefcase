@@ -62,8 +62,6 @@ import org.xmlpull.v1.XmlPullParser;
 
 public class AggregateUtils {
 
-  private static final String BRIEFCASE_APP_TOKEN_PARAMETER = "briefcaseAppToken";
-
   private static final Log log = LogFactory.getLog(AggregateUtils.class);
 
   private static final CharSequence HTTP_CONTENT_TYPE_TEXT_XML = "text/xml";
@@ -124,10 +122,6 @@ public class AggregateUtils {
     HttpGet req = WebUtils.createOpenRosaHttpGet(u);
 
     WebUtils.setCredentials(localContext, serverInfo, u);
-
-    if (!serverInfo.isOpenRosaServer()) {
-      req.addHeader(BRIEFCASE_APP_TOKEN_PARAMETER, serverInfo.getToken());
-    }
 
     HttpResponse response = null;
     // try
@@ -239,10 +233,6 @@ public class AggregateUtils {
     URI uri = request.getURI();
 
     WebUtils.setCredentials(localContext, serverInfo, uri, alwaysResetCredentials);
-
-    if (!serverInfo.isOpenRosaServer()) {
-      request.addHeader(BRIEFCASE_APP_TOKEN_PARAMETER, serverInfo.getToken());
-    }
 
     if ( description.isCancelled() ) {
       throw new XmlDocumentFetchException("Transfer of " + description.getDocumentDescriptionType() + " aborted.");
@@ -450,10 +440,6 @@ public class AggregateUtils {
     {
       // we need to issue a head request
       HttpHead httpHead = WebUtils.createOpenRosaHttpHead(u);
-
-      if (!serverInfo.isOpenRosaServer()) {
-        httpHead.addHeader(BRIEFCASE_APP_TOKEN_PARAMETER, serverInfo.getToken());
-      }
 
       // prepare response
       HttpResponse response = null;

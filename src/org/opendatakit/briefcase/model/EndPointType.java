@@ -18,12 +18,10 @@ package org.opendatakit.briefcase.model;
 
 public enum EndPointType {
 
-  AGGREGATE_0_9_X_CHOICE, AGGREGATE_1_0_CHOICE, MOUNTED_ODK_COLLECT_DEVICE_CHOICE, CUSTOM_ODK_COLLECT_DIRECTORY;
+  AGGREGATE_1_0_CHOICE, MOUNTED_ODK_COLLECT_DEVICE_CHOICE, CUSTOM_ODK_COLLECT_DIRECTORY;
 
   public String toString() {
     switch (this) {
-    case AGGREGATE_0_9_X_CHOICE:
-      return "Aggregate 0.9.x";
     case AGGREGATE_1_0_CHOICE:
       return "Aggregate 1.0";
     case MOUNTED_ODK_COLLECT_DEVICE_CHOICE:
