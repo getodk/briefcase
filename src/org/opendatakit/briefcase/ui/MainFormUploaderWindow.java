@@ -143,16 +143,11 @@ public class MainFormUploaderWindow {
       d.setVisible(true);
       if (d.isSuccessful()) {
         ServerConnectionInfo info = d.getServerInfo();
-        if (info.isOpenRosaServer()) {
-          destinationServerInfo = d.getServerInfo();
-          txtDestinationName.setText(destinationServerInfo.getUrl());
-          setUploadFormEnabled(true);
-          lblUploading.setText("");
-          btnDetails.setEnabled(false);
-        } else {
-          ODKOptionPane.showErrorDialog(MainFormUploaderWindow.this.frame,
-              "Server is not an ODK Aggregate 1.0 server", "Invalid Server URL");
-        }
+        destinationServerInfo = d.getServerInfo();
+        txtDestinationName.setText(destinationServerInfo.getUrl());
+        setUploadFormEnabled(true);
+        lblUploading.setText("");
+        btnDetails.setEnabled(false);
       }
     }
 

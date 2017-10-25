@@ -124,16 +124,10 @@ public class PushTransferPanel extends JPanel {
             (Window) PushTransferPanel.this.getTopLevelAncestor(), destinationServerInfo, true);
         d.setVisible(true);
         if (d.isSuccessful()) {
-          ServerConnectionInfo info = d.getServerInfo();
-          if (info.isOpenRosaServer()) {
-            destinationServerInfo = d.getServerInfo();
-            txtDestinationName.setText(destinationServerInfo.getUrl());
-            PREFERENCES.put(BriefcasePreferences.USERNAME, destinationServerInfo.getUsername());
-            PREFERENCES.put(BriefcasePreferences.AGGREGATE_1_0_URL, destinationServerInfo.getUrl());
-          } else {
-            ODKOptionPane.showErrorDialog(PushTransferPanel.this,
-                "Server is not an ODK Aggregate 1.0 server", "Invalid Server URL");
-          }
+          destinationServerInfo = d.getServerInfo();
+          txtDestinationName.setText(destinationServerInfo.getUrl());
+          PREFERENCES.put(BriefcasePreferences.USERNAME, destinationServerInfo.getUsername());
+          PREFERENCES.put(BriefcasePreferences.AGGREGATE_1_0_URL, destinationServerInfo.getUrl());
         }
       } else {
         throw new IllegalStateException("unexpected case");

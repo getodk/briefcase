@@ -448,16 +448,9 @@ public class AggregateUtils {
         int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode == 204) {
           Header[] openRosaVersions = response.getHeaders(WebUtils.OPEN_ROSA_VERSION_HEADER);
-          if (openRosaVersions != null && openRosaVersions.length != 0) {
-            if (!serverInfo.isOpenRosaServer()) {
-              String msg = "Url: " + u.toString()
-                  + " is for an ODK Aggregate 1.0 or higher (OpenRosa compliant) server!";
-              log.warn(msg);
-              throw new TransmissionException(msg);
-            }
-          } else if (serverInfo.isOpenRosaServer()) {
+          if (openRosaVersions == null || openRosaVersions.length == 0) {
             String msg = "Url: " + u.toString()
-                + " is for an ODK Aggregate 0.9x or earlier (non-OpenRosa compliant) server!";
+                    + ", header missing: " + WebUtils.OPEN_ROSA_VERSION_HEADER;
             log.warn(msg);
             throw new TransmissionException(msg);
           }
