@@ -16,8 +16,6 @@
 
 package org.opendatakit.briefcase.model;
 
-import org.opendatakit.common.web.constants.BasicConsts;
-
 public class RemoteFormDefinition implements IFormDefinition {
 
   final String formName;
@@ -28,7 +26,7 @@ public class RemoteFormDefinition implements IFormDefinition {
 
   public RemoteFormDefinition(String formName, String formId,
       String versionString, String downloadUrl, String manifestUrl) {
-    this.formName = formName == null ? null : formName.replaceAll(BasicConsts.INVALID_CHARS, BasicConsts.EMPTY_STRING);
+    this.formName = formName;
     this.formId = formId;
     this.versionString = versionString;
     this.downloadUrl = downloadUrl;
