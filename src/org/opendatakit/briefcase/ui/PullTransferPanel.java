@@ -341,7 +341,7 @@ public class PullTransferPanel extends JPanel {
     setLayout(groupLayout);
 
     // and finally, set the initial selections in the combo boxes...
-    listOriginDataSource.setSelectedIndex(1);
+    listOriginDataSource.setSelectedIndex(0);
 
     // set up the transfer action...
     btnTransfer.addActionListener(new TransferActionListener());
