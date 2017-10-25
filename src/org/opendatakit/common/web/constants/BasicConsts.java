@@ -54,7 +54,7 @@ public final class BasicConsts {
   public static final String RIGHT_BRACKET = "]";
   public static final String LEFT_PARENTHESIS = "(";
   public static final String RIGHT_PARENTHESIS = ")";
-  public static final String INVALID_CHARS = "[^a-zA-Z0-9\\s]";
+  public static final String INVALID_CHARS = "[^a-zA-Z0-9\\ \\-\\_]";
   // constant as only needs to be created once
   public static final Date EPOCH = new Date(0);
 }
