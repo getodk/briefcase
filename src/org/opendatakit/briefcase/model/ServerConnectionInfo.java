@@ -21,13 +21,11 @@ public class ServerConnectionInfo {
   private String url;
   private final String username;
   private final char[] password;
-  private final boolean isOpenRosaServer;
 
   public ServerConnectionInfo(String url, String username, char[] cs) {
     this.url = url;
     this.username = username;
     this.password = cs;
-    this.isOpenRosaServer = true;
   }
 
   public String getUrl() {
@@ -44,10 +42,6 @@ public class ServerConnectionInfo {
 
   public char[] getPassword() {
     return password;
-  }
-
-  public boolean isOpenRosaServer() {
-    return isOpenRosaServer;
   }
 
   public boolean hasCredentials() {

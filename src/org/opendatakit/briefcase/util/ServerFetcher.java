@@ -500,15 +500,11 @@ public class ServerFetcher {
       fo.write(submissionManifest.submissionXml);
       fo.close();
 
-      // if we get here and it was a legacy server (0.9.x), we don't
-      // actually know whether the submission was complete.  Otherwise,
       // if we get here, we know that this is a completed submission
       // (because it was in /view/submissionList) and that we safely
       // copied it into the storage area (because we didn't get any
       // exceptions).
-      if ( serverInfo.isOpenRosaServer() ) {
-        formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
-      }
+      formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
     } else {
       // create instance directory...
       File instanceDir = FileSystemUtils.assertFormSubmissionDirectory(formInstancesDir,
@@ -525,15 +521,11 @@ public class ServerFetcher {
       fo.write(submissionManifest.submissionXml);
       fo.close();
 
-      // if we get here and it was a legacy server (0.9.x), we don't
-      // actually know whether the submission was complete.  Otherwise,
       // if we get here, we know that this is a completed submission
       // (because it was in /view/submissionList) and that we safely
       // copied it into the storage area (because we didn't get any
       // exceptions).
-      if ( serverInfo.isOpenRosaServer() ) {
-        formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
-      }
+      formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
     }
 
   }
