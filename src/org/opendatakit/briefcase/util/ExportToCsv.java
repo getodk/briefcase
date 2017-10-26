@@ -166,7 +166,7 @@ public class ExportToCsv implements ITransformFormAction {
 
     for (File instanceDir : instances) {
       if ( terminationFuture.isCancelled() ) {
-        EventBus.publish(new ExportProgressEvent("ABORTED"));
+        EventBus.publish(new ExportProgressEvent("Aborted"));
         allSuccessful = false;
         break;
       }
@@ -924,7 +924,7 @@ public class ExportToCsv implements ITransformFormAction {
       }
 
       if ( terminationFuture.isCancelled() ) {
-        EventBus.publish(new ExportProgressEvent("ABORTED"));
+        EventBus.publish(new ExportProgressEvent("Aborted"));
         return false;
       }
 
