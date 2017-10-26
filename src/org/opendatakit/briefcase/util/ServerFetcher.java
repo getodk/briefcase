@@ -68,14 +68,14 @@ public class ServerFetcher {
 
   private TerminationFuture terminationFuture;
 
-  public static String SUCCESS_STATUS = "SUCCESS!";
-  public static String FAILED_STATUS = "FAILED.";
+  public static String SUCCESS_STATUS = "Success.";
+  public static String FAILED_STATUS = "Failed.";
 
   public static class FormListException extends Exception {
 
     /**
-		 *
-		 */
+         *
+         */
     private static final long serialVersionUID = -2443850446028219296L;
 
     FormListException(String message) {
@@ -86,8 +86,8 @@ public class ServerFetcher {
   public static class SubmissionListException extends Exception {
 
     /**
-		 *
-		 */
+         *
+         */
     private static final long serialVersionUID = 8707375089373674335L;
 
     SubmissionListException(String message) {
@@ -98,8 +98,8 @@ public class ServerFetcher {
   public static class SubmissionDownloadException extends Exception {
 
     /**
-		 *
-		 */
+         *
+         */
     private static final long serialVersionUID = 8717375089373674335L;
 
     SubmissionDownloadException(String message) {
@@ -109,8 +109,8 @@ public class ServerFetcher {
 
   public static class DownloadException extends Exception {
     /**
-		 *
-		 */
+         *
+         */
     private static final long serialVersionUID = 3142210034175698950L;
 
     DownloadException(String message) {
@@ -287,8 +287,8 @@ public class ServerFetcher {
     boolean allSuccessful = true;
     RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
     ExecutorService execSvc = getFetchExecutorService();
-    CompletionService<SubmissionChunk> chunkCompleter = new ExecutorCompletionService(execSvc);
-    CompletionService<String> submissionCompleter = new ExecutorCompletionService(execSvc);
+    CompletionService<SubmissionChunk> chunkCompleter = new ExecutorCompletionService<>(execSvc);
+    CompletionService<String> submissionCompleter = new ExecutorCompletionService<>(execSvc);
 
     String oldWebsafeCursorString;
     String websafeCursorString = "";
@@ -348,7 +348,7 @@ public class ServerFetcher {
           } catch (InterruptedException | ExecutionException e) {
             log.error("failure during submission download", e);
             allSuccessful = false;
-            fs.setStatusString("SUBMISSION NOT RETRIEVED: " + e.getMessage(), false);
+            fs.setStatusString("Submission not retrieved: " + e.getMessage(), false);
             EventBus.publish(new FormStatusEvent(fs));
             // but try to get the next one...
           }
@@ -392,11 +392,11 @@ public class ServerFetcher {
         AggregateUtils.DocumentFetchResult fetchResult = AggregateUtils.getXmlDocument(fullUrl, serverInfo, false, submissionChunkDescription, null);
         return XmlManipulationUtils.parseSubmissionDownloadListResponse(fetchResult.doc);
       } catch (XmlDocumentFetchException e) {
-        fs.setStatusString("NOT ALL SUBMISSIONS RETRIEVED: Error fetching list of submissions: " + e.getMessage(), false);
+        fs.setStatusString("Not all submissions retrieved: Error fetching list of submissions: " + e.getMessage(), false);
         EventBus.publish(new FormStatusEvent(fs));
         throw e;
       } catch (ParsingException e) {
-        fs.setStatusString("NOT ALL SUBMISSIONS RETRIEVED: Error parsing the list of submissions: " + e.getMessage(), false);
+        fs.setStatusString("Not all submissions retrieved: Error parsing the list of submissions: " + e.getMessage(), false);
         EventBus.publish(new FormStatusEvent(fs));
         throw e;
       }

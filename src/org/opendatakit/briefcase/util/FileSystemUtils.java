@@ -23,7 +23,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.file.Path;
@@ -52,21 +51,20 @@ import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
 import org.kxml2.kdom.Node;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.CryptoException;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
-import org.opendatakit.briefcase.ui.MessageStrings;
+import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
 
 public class FileSystemUtils {
 
   static final Log log = LogFactory.getLog(FileSystemUtils.class);
 
-  public static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
-  static final String README_TXT = "readme.txt";
-  static final String FORMS_DIR = "forms";
+  private static FormCacheble formCache = new NullFormCache();
+
+  public static final String FORMS_DIR = "forms";
   static final String INSTANCE_DIR = "instances";
   static final String HSQLDB_DIR = "info.hsqldb";
   static final String HSQLDB_DB = "info";
@@ -84,78 +82,6 @@ public class FileSystemUtils {
   public static final String getMountPoint() {
     return System.getProperty("os.name").startsWith("Win") ? File.separator + ".." : (System
         .getProperty("os.name").startsWith("Mac") ? "/Volumes/" : "/mnt/");
-  }
-
-  public static final boolean isBriefcaseStorageLocationParentFolder(File pathname) {
-    if ( !pathname.exists() ) {
-      return false;
-    }
-    File folder = new File(pathname, BRIEFCASE_DIR);
-    if ( !folder.exists() ) {
-      return false;
-    }
-    if ( !folder.isDirectory() ) {
-      return false;
-    }
-    File forms = new File(folder, FORMS_DIR);
-    if ( !forms.exists() ) {
-      return false;
-    }
-    if ( !forms.isDirectory() ) {
-      return false;
-    }
-    return true;
-  }
-
-  public static final void assertBriefcaseStorageLocationParentFolder(File pathname) throws FileSystemException {
-    File folder = new File(pathname, BRIEFCASE_DIR);
-    if ( !folder.exists() ) {
-      if ( !folder.mkdir() ) {
-        throw new FileSystemException("Unable to create " + BRIEFCASE_DIR);
-      }
-    }
-    File forms = new File(folder, FORMS_DIR);
-    if ( !forms.exists() ) {
-      if ( !forms.mkdir() ) {
-        throw new FileSystemException("Unable to create " + FORMS_DIR);
-      }
-    }
-
-    File f = new File(folder, README_TXT);
-    if ( !f.exists() ) {
-      try {
-        if ( !f.createNewFile() ) {
-          throw new FileSystemException("Unable to create " + README_TXT);
-        }
-      } catch (IOException e) {
-        String msg = "Unable to create " + README_TXT;
-        log.error(msg, e);
-        throw new FileSystemException(msg);
-      }
-    }
-    try {
-      OutputStreamWriter fout = new OutputStreamWriter(new FileOutputStream(f,false), "UTF-8");
-      fout.write(MessageStrings.README_CONTENTS);
-      fout.close();
-    } catch (IOException e) {
-      String msg = "Unable to write " + README_TXT;
-      log.error(msg, e);
-      throw new FileSystemException(msg);
-    }
-  }
-
-  public static final boolean isUnderBriefcaseFolder(File pathname) {
-    File parent = (pathname == null ? null : pathname.getParentFile());
-    File current = pathname;
-    while (parent != null) {
-      if (isBriefcaseStorageLocationParentFolder(parent) &&
-          current.getName().equals(BRIEFCASE_DIR)) {
-        return true;
-      }
-      current = parent;
-      parent = parent.getParentFile();
-    }
-    return false;
   }
 
   // Predicates to determine whether the folder is an ODK Device
@@ -189,6 +115,11 @@ public class FileSystemUtils {
     return foi.exists() && foi.isDirectory();
   }
 
+  /** Creates a new FormCache in the briefcase folder. Called, at program startup if the briefcase
+   * folder has been established, and whenever it changes */
+  public static void createFormCacheInBriefcaseFolder() {
+    FileSystemUtils.formCache = new FormCache(new StorageLocation().getBriefcaseFolder());
+  }
 
   public static final List<BriefcaseFormDefinition> getBriefcaseFormList() {
     List<BriefcaseFormDefinition> formsList = new ArrayList<BriefcaseFormDefinition>();
@@ -199,7 +130,19 @@ public class FileSystemUtils {
         if (f.isDirectory()) {
           try {
             File formFile = new File(f, f.getName() + ".xml");
-            formsList.add(new BriefcaseFormDefinition(f, formFile));
+            String formFileHash = getMd5Hash(formFile);
+            String existingFormFileHash = formCache.getFormFileMd5Hash(formFile.getAbsolutePath());
+            BriefcaseFormDefinition existingDefinition = formCache.getFormFileFormDefinition(formFile.getAbsolutePath());
+            if (existingFormFileHash == null
+                    || existingDefinition == null
+                    || !existingFormFileHash.equalsIgnoreCase(formFileHash)) {
+              // overwrite cache if the form's hash is not the same or there's no entry for the form in the cache.
+              formCache.putFormFileMd5Hash(formFile.getAbsolutePath(), formFileHash);
+              existingDefinition = new BriefcaseFormDefinition(f, formFile);
+              formCache.putFormFileFormDefinition(formFile.getAbsolutePath(), existingDefinition);
+            }
+
+            formsList.add(existingDefinition);
           } catch (BadFormDefinition e) {
             log.debug("bad form definition", e);
           }
@@ -230,13 +173,8 @@ public class FileSystemUtils {
     return formsList;
   }
 
-  public static File getBriefcaseFolder() {
-    return new File(new File(BriefcasePreferences
-        .getBriefcaseDirectoryProperty()), BRIEFCASE_DIR);
-  }
-
   public static File getFormsFolder() {
-    return new File(getBriefcaseFolder(), FORMS_DIR);
+    return new File(new StorageLocation().getBriefcaseFolder(), FORMS_DIR);
   }
 
   public static String asFilesystemSafeName(String formName) {
@@ -318,7 +256,7 @@ public class FileSystemUtils {
 
   public static File getTempFormDefinitionFile()
       throws FileSystemException {
-    File briefcase = getBriefcaseFolder();
+    File briefcase = new StorageLocation().getBriefcaseFolder();
     File tempDefnFile;
     try {
       tempDefnFile = File.createTempFile("tempDefn", ".xml", briefcase);

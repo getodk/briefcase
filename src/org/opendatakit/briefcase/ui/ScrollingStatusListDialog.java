@@ -146,12 +146,12 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
   
   @EventSubscriber(eventClass = ExportFailedEvent.class)
   public void onEvent(ExportFailedEvent event) {
-    appendToDocument(editorArea,"FAILED!");
+    appendToDocument(editorArea,"Failed.");
   }
 
   @EventSubscriber(eventClass = ExportSucceededEvent.class)
   public void onEvent(ExportSucceededEvent event) {
-    appendToDocument(editorArea,"SUCCEEDED!");
+    appendToDocument(editorArea,"Succeeded.");
   }
 
   private void appendToDocument(JTextComponent component, String msg) {
