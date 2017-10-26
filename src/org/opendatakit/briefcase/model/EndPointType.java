@@ -30,8 +30,9 @@ public enum EndPointType {
       return "Mounted Android SD Card";
     case CUSTOM_ODK_COLLECT_DIRECTORY:
       return "Custom Path to ODK Directory";
+    default:
+      throw new IllegalStateException("Unhandled EndPointType value");
     }
-    throw new IllegalStateException("Unhandled EndPointType value");
   }
 
   public static EndPointType fromString(String toStringValue) {
