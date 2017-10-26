@@ -37,7 +37,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingUtilities;
@@ -72,7 +71,6 @@ public class PullTransferPanel extends JPanel {
   private static final long serialVersionUID = -2192404551259501394L;
 
   public static final String TAB_NAME = "Pull";
-  public static int TAB_POSITION = -1;
 
   private static final String DOWNLOADING_DOT_ETC = "Downloading..........";
   private static final BriefcasePreferences PREFERENCES =
@@ -93,8 +91,6 @@ public class PullTransferPanel extends JPanel {
   private boolean transferStateActive = false;
   private TerminationFuture terminationFuture;
 
-  private ArrayList<Component> navOrder = new ArrayList<Component>();
-
   /**
    * UI changes related to the selection of the origin location from drop-down
    * box.
@@ -105,8 +101,7 @@ public class PullTransferPanel extends JPanel {
     public void actionPerformed(ActionEvent e) {
       EndPointType selection = getSelectedEndPointType();
       if (selection != null) {
-        if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection)
-            || EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
+        if (EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
           lblOrigin.setText("URL:");
           txtOriginName.setText("");
           txtOriginName.setEditable(false);
@@ -144,19 +139,7 @@ public class PullTransferPanel extends JPanel {
     public void actionPerformed(ActionEvent e) {
       EndPointType selection = getSelectedEndPointType();
       originServerInfo = initServerInfoWithPreferences(selection);
-      if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection)) {
-        // need to show (modal) connect dialog...
-        LegacyServerConnectionDialog d = new LegacyServerConnectionDialog(
-            (Window) PullTransferPanel.this.getTopLevelAncestor(), originServerInfo, false);
-        d.setVisible(true);
-        if (d.isSuccessful()) {
-          originServerInfo = d.getServerInfo();
-          txtOriginName.setText(originServerInfo.getUrl());
-          PREFERENCES.put(BriefcasePreferences.AGGREGATE_0_9_X_URL, originServerInfo.getUrl());
-          PREFERENCES.put(BriefcasePreferences.TOKEN, originServerInfo.getToken());
-          PullTransferPanel.this.updateFormStatuses();
-        }
-      } else if (EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
+      if (EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
         // need to show (modal) connect dialog...
         ServerConnectionDialog d = new ServerConnectionDialog(
             (Window) PullTransferPanel.this.getTopLevelAncestor(), originServerInfo, false);
@@ -215,8 +198,7 @@ public class PullTransferPanel extends JPanel {
 
       try {
         setActiveTransferState(true);
-        if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(originSelection)
-            || EndPointType.AGGREGATE_1_0_CHOICE.equals(originSelection)) {
+        if (EndPointType.AGGREGATE_1_0_CHOICE.equals(originSelection)) {
           TransferAction.transferServerToBriefcase(originServerInfo, terminationFuture,
               formsToTransfer);
         } else if (EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.equals(originSelection)) {
@@ -236,11 +218,6 @@ public class PullTransferPanel extends JPanel {
     }
   }
 
-  /**
-   * Create the transfer-from-to panel.
-   *
-   * @param txtBriefcaseDir
-   */
   public PullTransferPanel(TerminationFuture terminationFuture) {
     super();
     AnnotationProcessor.process(this);// if not using AOP
@@ -248,7 +225,6 @@ public class PullTransferPanel extends JPanel {
     JLabel lblGetDataFrom = new JLabel(TAB_NAME + " data from:");
 
     listOriginDataSource = new JComboBox<String>(new String[] {
-        EndPointType.AGGREGATE_0_9_X_CHOICE.toString(),
         EndPointType.AGGREGATE_1_0_CHOICE.toString(),
         EndPointType.MOUNTED_ODK_COLLECT_DEVICE_CHOICE.toString(),
         EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.toString() });
@@ -365,32 +341,20 @@ public class PullTransferPanel extends JPanel {
     setLayout(groupLayout);
 
     // and finally, set the initial selections in the combo boxes...
-    listOriginDataSource.setSelectedIndex(1);
+    listOriginDataSource.setSelectedIndex(0);
 
     // set up the transfer action...
     btnTransfer.addActionListener(new TransferActionListener());
 
     setActiveTransferState(transferStateActive);
     lblDownloading.setText("                     ");
-
-    navOrder.add(listOriginDataSource);
-    navOrder.add(txtOriginName);
-    navOrder.add(btnOriginAction);
-    navOrder.add(btnSelectOrClearAllForms);
-    navOrder.add(btnTransfer);
-    navOrder.add(btnCancel);
-  }
-
-  public ArrayList<Component> getTraversalOrdering() {
-    return navOrder;
   }
 
   @Override
   public void setEnabled(boolean enabled) {
     super.setEnabled(enabled);
-    Component[] com = this.getComponents();
-    for (int a = 0; a < com.length; a++) {
-      com[a].setEnabled(enabled);
+    for (Component aCom : this.getComponents()) {
+      aCom.setEnabled(enabled);
     }
     if (enabled) {
       // and then update the widgets based upon the transfer state
@@ -405,8 +369,7 @@ public class PullTransferPanel extends JPanel {
     String strSelection = (String) listOriginDataSource.getSelectedItem();
     EndPointType selection = (strSelection != null) ? EndPointType.fromString(strSelection) : null;
     if (selection != null) {
-      if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection)
-          || EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
+      if (EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
         // clear the list of forms first...
         formTransferTable.setFormStatusList(statuses);
         terminationFuture.reset();
@@ -444,23 +407,11 @@ public class PullTransferPanel extends JPanel {
     lblDownloading.setText(text);
   }
 
-  private void setTabEnabled(boolean active) {
-    JTabbedPane pane = (JTabbedPane) getParent();
-    if ( pane != null ) {
-      for ( int i = 0 ; i < pane.getTabCount() ; ++i ) {
-        if ( i != TAB_POSITION ) {
-          pane.setEnabledAt(i, active);
-        }
-      }
-    }
-  }
-
   private void setTxtOriginEnabled(boolean active) {
     EndPointType selection = getSelectedEndPointType();
 
     if (selection != null) {
-      if (EndPointType.AGGREGATE_0_9_X_CHOICE.equals(selection)
-          || EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
+      if (EndPointType.AGGREGATE_1_0_CHOICE.equals(selection)) {
         txtOriginName.setEditable(false);
       } else if (EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.equals(selection)) {
         txtOriginName.setEditable(active);
@@ -473,7 +424,6 @@ public class PullTransferPanel extends JPanel {
   }
 
   private void setActiveTransferState(boolean active) {
-    setTabEnabled(!active);
     setTxtOriginEnabled(!active);
     if (active) {
       // don't allow normal actions when we are transferring...
@@ -512,20 +462,12 @@ public class PullTransferPanel extends JPanel {
   
   private ServerConnectionInfo initServerInfoWithPreferences(EndPointType type) {
     ServerConnectionInfo connectionInfo = null;
-    switch (type) {
-      case AGGREGATE_0_9_X_CHOICE:
-        String legacyUrl = PREFERENCES.get(BriefcasePreferences.AGGREGATE_0_9_X_URL, "");
-        String token = PREFERENCES.get(BriefcasePreferences.TOKEN, "");
-        connectionInfo = new ServerConnectionInfo(legacyUrl, token);
-        break;
-      case AGGREGATE_1_0_CHOICE:
-        String url = PREFERENCES.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
-        String username = PREFERENCES.get(BriefcasePreferences.USERNAME, "");
-        connectionInfo = new ServerConnectionInfo(url, username, new char[0]);
-        break;
-      default:
-        break; // There are no preferences needed for the other types.
-    }
+    if (type == EndPointType.AGGREGATE_1_0_CHOICE) {
+      String url = PREFERENCES.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
+      String username = PREFERENCES.get(BriefcasePreferences.USERNAME, "");
+      connectionInfo = new ServerConnectionInfo(url, username, new char[0]);
+    } // There are no preferences needed for the other types.
+
     return connectionInfo;
   }
 

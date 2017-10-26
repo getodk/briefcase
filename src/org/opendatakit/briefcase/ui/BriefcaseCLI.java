@@ -97,7 +97,7 @@ public class BriefcaseCLI {
         TerminationFuture terminationFuture = new TerminationFuture();
 
         BriefcasePreferences.setBriefcaseDirectoryProperty(storageDir);
-        File f = FileSystemUtils.getBriefcaseFolder();
+        File f = new StorageLocation().getBriefcaseFolder();
 
         if (!f.exists()) {
             boolean success = f.mkdirs();
@@ -290,17 +290,17 @@ public class BriefcaseCLI {
 
     @EventSubscriber(eventClass = ExportFailedEvent.class)
     public void failedCompletion(ExportFailedEvent event) {
-        log.error("FAILED!");
-    }
-
-    @EventSubscriber(eventClass = ExportSucceededEvent.class)
-    public void successfulCompletion(ExportSucceededEvent event) {
-        log.info("SUCCEEDED!");
+        log.error("Failed.");
     }
 
     @EventSubscriber(eventClass = TransferFailedEvent.class)
     public void failedCompletion(TransferFailedEvent event) {
         log.error("Transfer Failed");
+    }
+
+    @EventSubscriber(eventClass = ExportSucceededEvent.class)
+    public void successfulCompletion(ExportSucceededEvent event) {
+        log.info("Succeeded.");
     }
 
     @EventSubscriber(eventClass = TransferSucceededEvent.class)

@@ -295,7 +295,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
     } else {
       JOptionPane.showMessageDialog(this,
               "It appears that your installed Java Runtime Environment does not support any charset encodings!",
-              "Error!", JOptionPane.ERROR_MESSAGE);
+              "Error", JOptionPane.ERROR_MESSAGE);
     }
   }
 

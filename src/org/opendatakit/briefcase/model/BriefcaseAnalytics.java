@@ -27,15 +27,17 @@ public class BriefcaseAnalytics {
     }
 
     /**
-     *  Sends usage information to Google Analytics, only if the user has consented.
-     *  The information is modeled using an {@link EventHit} object.
+     *  Sends usage information to Google Analytics, only if the user has consented,
+     *  or if they are enabling or disabling tracking. The information is modeled using an {@link EventHit} object.
      *
      * @param action (required) name of the event itself.
      * @param label (optional) an open-ended label.
      * @param value (optional) an open-ended value. Must be an integer.
+     * @param always whether to track the event even when the tracking is turned off
+     *               (such as when we record that they have changed the tracking preference). Usually false.
      */
-    public void trackEvent(String action, String label, Integer value) {
-        if (BriefcasePreferences.getBriefcaseTrackingConsentProperty()) {
+    public void trackEvent(String action, String label, Integer value, boolean always) {
+        if (always || BriefcasePreferences.getBriefcaseTrackingConsentProperty()) {
             EventHit eventHit = new EventHit();
             eventHit.trackingId(GOOGLE_TRACKING_ID);
             eventHit.clientId(UNIQUE_USER_ID);
@@ -55,6 +57,14 @@ public class BriefcaseAnalytics {
      * Track this application's startup event.
      */
     public void trackStartup() {
-        trackEvent("Application-Startup", null, null);
+        trackEvent("Application-Startup", null, null, false);
+    }
+
+    /**
+     * Tracks the user giving/withdrawing their consent for usage tracking, and saves the new preference.
+     */
+    public void trackConsentDecision(boolean givesConsent) {
+        BriefcasePreferences.setBriefcaseTrackingConsentProperty(givesConsent);
+        trackEvent(givesConsent ? "Tracking-Enabled" : "Tracking-Disabled", null, null, true);
     }
 }
