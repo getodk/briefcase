@@ -257,7 +257,8 @@ public class FileSystemUtils {
   static String getFormDatabaseUrl(File formDirectory) throws FileSystemException {
 
     File oldDbFile = new File(formDirectory, SMALLSQL_DIR);
-    File dbDir = new File(formDirectory, HSQLDB_DIR), dbFile = new File(dbDir, HSQLDB_DB);
+    File dbDir = new File(formDirectory, HSQLDB_DIR);
+    File dbFile = new File(dbDir, HSQLDB_DB);
 
     if (!dbDir.exists()) {
       if (!dbDir.mkdirs()) {
@@ -368,8 +369,10 @@ public class FileSystemUtils {
     return path.startsWith(INSTANCE_DIR);
   }
 
-  public static Path makeRelative(File parent, File child) {
-    Path parentPath = parent.toPath(), childPath = child.toPath();
+  public static Path makeRelative(File parent,
+                                  File child) {
+    Path parentPath = parent.toPath();
+    Path childPath = child.toPath();
     return parentPath.relativize(childPath);
   }
 

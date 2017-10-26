@@ -741,7 +741,8 @@ public class BaseFormParserForJavaRosa {
     }
 
     // parse XML
-    FormDef formDef1, formDef2;
+    FormDef formDef1;
+    FormDef formDef2;
     BaseFormParserForJavaRosa existingParser = new BaseFormParserForJavaRosa(existingXml,
         existingTitle, true);
     formDef1 = incomingParser.rootJavaRosaFormDef;
@@ -893,8 +894,11 @@ public class BaseFormParserForJavaRosa {
    *         encryption.
    */
   public static DifferenceResult compareTreeElements(TreeElement treeElement1,
-      BaseFormParserForJavaRosa parser1, TreeElement treeElement2, BaseFormParserForJavaRosa parser2) {
-    boolean smalldiff = false, bigdiff = false;
+                                                     BaseFormParserForJavaRosa parser1,
+                                                     TreeElement treeElement2,
+                                                     BaseFormParserForJavaRosa parser2) {
+    boolean smalldiff = false;
+    boolean bigdiff = false;
 
     // compare names
     if (!treeElement1.getName().equals(treeElement2.getName())) {

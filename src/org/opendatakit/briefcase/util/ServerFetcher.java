@@ -282,14 +282,16 @@ public class ServerFetcher {
 
   private boolean downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd,
                                                 FormStatus fs) {
-    int submissionCount = 1, chunkCount = 1;
+    int submissionCount = 1;
+    int chunkCount = 1;
     boolean allSuccessful = true;
     RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
     ExecutorService execSvc = getFetchExecutorService();
     CompletionService<SubmissionChunk> chunkCompleter = new ExecutorCompletionService(execSvc);
     CompletionService<String> submissionCompleter = new ExecutorCompletionService(execSvc);
 
-    String oldWebsafeCursorString, websafeCursorString = "";
+    String oldWebsafeCursorString;
+    String websafeCursorString = "";
 
     chunkCompleter.submit(new SubmissionChunkDownload(fs, fd.getFormId(), websafeCursorString));
 
