@@ -102,16 +102,16 @@ public class BriefcaseCLI {
         if (!f.exists()) {
             boolean success = f.mkdirs();
             if (success) {
-                log.info("Successfully created directory. Using: " + f.getAbsolutePath());
+                System.out.println("Successfully created directory. Using: " + f.getAbsolutePath());
             } else {
-                log.error("Unable to create directory: " + f.getAbsolutePath());
+                System.err.println("Unable to create directory: " + f.getAbsolutePath());
                 System.exit(0);
             }
         } else if (f.exists() && !f.isDirectory()) {
-            log.error("Not a directory.  " + f.getAbsolutePath());
+            System.err.println("Not a directory.  " + f.getAbsolutePath());
             System.exit(0);
         } else if (f.exists() && f.isDirectory()) {
-            log.info("Directory found, using " + f.getAbsolutePath());
+            System.out.println("Directory found, using " + f.getAbsolutePath());
         }
 
         if (BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull() != null) {
@@ -142,7 +142,7 @@ public class BriefcaseCLI {
 
             if (!isSuccessful) {
                 String errorString = backgroundAction.getErrorReason();
-                log.error(errorString);
+                System.err.println(errorString);
                 System.exit(1);
             }
 
@@ -153,7 +153,8 @@ public class BriefcaseCLI {
             try {
                 source.doAction();
             } catch (XmlDocumentFetchException | ParsingException e) {
-                log.error("failed to retrieve forms", e);
+                System.err.println("failed to retrieve forms");
+                e.printStackTrace();
             }
 
             List<FormStatus> statuses = source.getAvailableForms();
@@ -167,11 +168,11 @@ public class BriefcaseCLI {
                 }
             }
             if (!found) {
-                log.error("form ID doesn't exist on server");
+                System.err.println("form ID doesn't exist on server");
                 System.exit(0);
             }
 
-            log.info("beginning download: " + toDl.getFormName());
+            System.out.println("beginning download: " + toDl.getFormName());
             terminationFuture.reset();
             List<FormStatus> formsToTransfer = new ArrayList<FormStatus>();
             formsToTransfer.add(toDl);
@@ -193,19 +194,19 @@ public class BriefcaseCLI {
             }
 
             if (toExport == null) {
-                log.error("Form not found");
+                System.err.println("Form not found");
                 return;
             }
 
             File pemFile = null;
             if (toExport.isFileEncryptedForm() || toExport.isFieldEncryptedForm()) {
                 if (pemKeyFile == null) {
-                    log.error("Briefcase action failed: No specified PrivateKey file for encrypted form");
+                    System.err.println("Briefcase action failed: No specified PrivateKey file for encrypted form");
                     return;
                 }
                 pemFile = new File(pemKeyFile);
                 if (!pemFile.exists()) {
-                    log.error("Briefcase action failed: No PrivateKey file for encrypted form");
+                    System.err.println("Briefcase action failed: No PrivateKey file for encrypted form");
                     return;
                 }
 
@@ -248,7 +249,8 @@ public class BriefcaseCLI {
                         break;
                     } catch (IOException e) {
                         String msg = "The supplied PEM file could not be parsed.";
-                        log.error(msg, e);
+                        System.err.println("msg");
+                        e.printStackTrace();
                         ODKOptionPane.showErrorDialog(null,
                                 errorMsg = msg,
                                 "Invalid RSA Private Key");
@@ -274,12 +276,13 @@ public class BriefcaseCLI {
                     endDate = df.parse(endDateString);
                 }
             } catch (ParseException e) {
-                log.error("bad date range", e);
+                System.err.println("bad date range");
+                e.printStackTrace();
             }
 
             terminationFuture.reset();
             File dir = new File(exportPath);
-            log.info("exporting to : " + dir.getAbsolutePath());
+            System.out.println("exporting to : " + dir.getAbsolutePath());
             ExportToCsv exp = new ExportToCsv(dir, toExport, terminationFuture, fileName,
                     exportMedia, overwrite, startDate, endDate);
             exp.doAction();
@@ -289,37 +292,37 @@ public class BriefcaseCLI {
 
     @EventSubscriber(eventClass = ExportProgressEvent.class)
     public void progress(ExportProgressEvent event) {
-        log.info(event.getText());
+        System.out.println(event.getText());
     }
 
     @EventSubscriber(eventClass = ExportFailedEvent.class)
     public void failedCompletion(ExportFailedEvent event) {
-        log.error("Failed.");
+        System.err.println("Failed.");
     }
 
     @EventSubscriber(eventClass = TransferFailedEvent.class)
     public void failedCompletion(TransferFailedEvent event) {
-        log.error("Transfer Failed");
+        System.err.println("Transfer Failed");
     }
 
     @EventSubscriber(eventClass = ExportSucceededEvent.class)
     public void successfulCompletion(ExportSucceededEvent event) {
-        log.info("Succeeded.");
+        System.out.println("Succeeded.");
     }
 
     @EventSubscriber(eventClass = TransferSucceededEvent.class)
     public void successfulCompletion(TransferSucceededEvent event) {
-        log.info("Transfer Succeeded");
+        System.out.println("Transfer Succeeded");
     }
 
     @EventSubscriber(eventClass = FormStatusEvent.class)
     public void updateDetailedStatus(FormStatusEvent fse) {
-        log.info(fse.getStatusString());
+        System.out.println(fse.getStatusString());
     }
 
     @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
     public void formsAvailableFromServer(RetrieveAvailableFormsFailedEvent event) {
-        log.error("Accessing the server failed with error: " + event.getReason());
+        System.err.println("Accessing the server failed with error: " + event.getReason());
     }
 
 }
