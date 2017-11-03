@@ -36,6 +36,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
+import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -74,6 +75,7 @@ public class BriefcaseCLI {
     private static final Log log = LogFactory.getLog(BaseFormParserForJavaRosa.class);
 
     public BriefcaseCLI(CommandLine cl) {
+        AnnotationProcessor.process(this);
         mCommandline = cl;
     }
 
