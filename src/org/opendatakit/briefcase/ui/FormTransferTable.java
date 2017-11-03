@@ -140,7 +140,8 @@ public class FormTransferTable extends JTable {
     final String[] columnNames;
     final JButton btnSelectOrClearAllForms;
     final TransferType transferType;
-    final JButton btnTransfer, btnCancel;
+    final JButton btnTransfer;
+    final JButton btnCancel;
     List<FormStatus> formStatuses = new ArrayList<FormStatus>();
     private Map<FormStatus, DetailButton> buttonMap = new HashMap<FormStatus, DetailButton>();
     
