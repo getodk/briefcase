@@ -114,6 +114,10 @@ public class BriefcaseCLI {
             log.info("Directory found, using " + f.getAbsolutePath());
         }
 
+        if (BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull() != null) {
+            FileSystemUtils.createFormCacheInBriefcaseFolder();
+        }
+
         if (odkDir != null) {
             // importing from ODK dir
             List<FormStatus> statuses = new ArrayList<FormStatus>();
