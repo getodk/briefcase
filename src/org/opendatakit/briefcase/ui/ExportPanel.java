@@ -16,6 +16,10 @@
 
 package org.opendatakit.briefcase.ui;
 
+import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
+
+import com.github.lgooddatepicker.components.DatePicker;
+
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -55,10 +59,6 @@ import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
 import org.opendatakit.briefcase.util.ExportAction;
 import org.opendatakit.briefcase.util.FileSystemUtils;
-
-import com.github.lgooddatepicker.components.DatePicker;
-
-import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 
 public class ExportPanel extends JPanel {
 

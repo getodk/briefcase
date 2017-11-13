@@ -1,7 +1,5 @@
 package org.opendatakit.briefcase.util;
 
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -10,6 +8,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 
 public class FormCache implements FormCacheble {
     private final File cacheFile;

@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.ui;
 
+import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
+
 import java.awt.Container;
 import java.io.File;
 
@@ -23,8 +25,6 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 
 import org.opendatakit.briefcase.util.FileSystemUtils;
-
-import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 
 final class ODKCollectFileChooser extends AbstractFileChooser {
 
