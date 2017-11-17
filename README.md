@@ -35,8 +35,8 @@ There might be some compile errors in the IDE about a missing class `BuildConfig
 If are working with [encrypted forms](http://docs.opendatakit.org/encrypted-forms) you may get a `InvalidKeyException`. This is because you do not have an unlimited crypto policy enabled in Java. Do this:
 
 * Java 8 Update 151 or later: Set `crypto.policy=unlimited` in `$JAVA_HOME/jre/lib/security/java.security`
-* Java 8: Install [Unlimited Strength Policy Files 8](http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html)
-* Java 7: Install [Unlimited Strength Policy Files 7](http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html)
+* Java 8: Install [Unlimited Strength Policy Files 8](http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html) in `$JAVA_HOME/jre/lib/security`
+* Java 7: Install [Unlimited Strength Policy Files 7](http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html) in `$JAVA_HOME/jre/lib/security`
  
 ## Running the project
  
