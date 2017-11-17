@@ -14,8 +14,11 @@ jobs:
             - ~/.gradle
             - ~/code/.gradle
           key: jars-{{ checksum "build.gradle" }}
-      - store_test_results:
+      - store_artifacts:
           path: build/reports
+          destination: reports
       - store_artifacts:
           path: build/libs
           destination: libs
+      - store_test_results:
+          path: build/reports/tests/test
