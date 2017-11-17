@@ -1,0 +1,13 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/code
+    docker:
+      - image: circleci/openjdk:latest
+    steps:
+      - checkout
+      - run: ./gradlew check test jar
+      - store_test_results:
+          path: build/reports
+      - store_artifacts:
+          path: build/libs
