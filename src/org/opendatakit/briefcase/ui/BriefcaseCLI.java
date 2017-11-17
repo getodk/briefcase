@@ -223,9 +223,8 @@ public class BriefcaseCLI {
                           // ignore.
                         }
                         if (o == null) {
-                            ODKOptionPane.showErrorDialog(null,
-                                    errorMsg = "The supplied file is not in PEM format.",
-                                    "Invalid RSA Private Key");
+                            errorMsg = "The supplied file is not in PEM format.";
+                            System.err.println(errorMsg);
                             break;
                         }
                         PrivateKey privKey;
@@ -238,20 +237,16 @@ public class BriefcaseCLI {
                             privKey = null;
                         }
                         if (privKey == null) {
-                            ODKOptionPane.showErrorDialog(null,
-                                    errorMsg = "The supplied file does not contain a private key.",
-                                    "Invalid RSA Private Key");
+                            errorMsg = "The supplied file does not contain a private key.";
+                            System.err.println(errorMsg);
                             break;
                         }
                         toExport.setPrivateKey(privKey);
                         success = true;
                         break;
                     } catch (IOException e) {
-                        String msg = "The supplied PEM file could not be parsed.";
-                        log.error(msg, e);
-                        ODKOptionPane.showErrorDialog(null,
-                                errorMsg = msg,
-                                "Invalid RSA Private Key");
+                        System.err.println("The supplied PEM file could not be parsed.");
+                        e.printStackTrace();
                         break;
                     }
                 }
