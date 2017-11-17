@@ -21,4 +21,4 @@ jobs:
           path: build/libs
           destination: libs
       - store_test_results:
-          path: build/reports/tests/test
+          path: build/reports/tests
