@@ -2,6 +2,8 @@ package org.opendatakit.briefcase.operations;
 
 import static org.opendatakit.briefcase.operations.Common.DIR;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
+import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
+import static org.opendatakit.briefcase.operations.Common.bootCache;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -55,6 +57,7 @@ public class Export {
   public static Operation EXPORT_FORM = Operation.of(
       EXPORT,
       args -> export(
+          args.get(STORAGE_DIR),
           args.get(FORM_ID),
           args.get(FILE),
           args.get(DIR),
@@ -64,11 +67,12 @@ public class Export {
           args.has(OVERWRITE),
           args.getOptional(PEM_FILE)
       ),
-      Arrays.asList(FORM_ID, FILE, DIR),
+      Arrays.asList(STORAGE_DIR, FORM_ID, FILE, DIR),
       Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END)
   );
 
-  private static void export(String formid, String fileName, String exportPath, Date startDateString, Date endDateString, boolean exportMedia, boolean overwrite, Optional<String> pemKeyFile) {
+  private static void export(String storageDir, String formid, String fileName, String exportPath, Date startDateString, Date endDateString, boolean exportMedia, boolean overwrite, Optional<String> pemKeyFile) {
+    bootCache(storageDir);
     BriefcaseFormDefinition formDefinition = null;
     List<BriefcaseFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
     for (int i = 0; i < forms.size(); i++) {

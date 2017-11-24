@@ -18,7 +18,8 @@ class CustomHelpFormatter {
   static void printHelp(Set<Operation> requiredOperations, Set<Operation> operations) {
     printUsage();
     Map<String, String> helpLinesPerShortcode = getParamHelpLines(requiredOperations, operations);
-    printRequiredParams(helpLinesPerShortcode, requiredOperations);
+    if (!requiredOperations.isEmpty())
+      printRequiredParams(helpLinesPerShortcode, requiredOperations);
     printAvailableOperations(helpLinesPerShortcode, operations);
     printParamsPerOperation(helpLinesPerShortcode, operations);
   }

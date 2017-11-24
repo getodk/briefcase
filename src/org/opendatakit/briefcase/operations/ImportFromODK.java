@@ -1,6 +1,8 @@
 package org.opendatakit.briefcase.operations;
 
 import static org.opendatakit.briefcase.operations.Common.DIR;
+import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
+import static org.opendatakit.briefcase.operations.Common.bootCache;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -20,11 +22,15 @@ public class ImportFromODK {
 
   public static final Operation IMPORT_FROM_ODK = Operation.of(
       IMPORT,
-      args -> importODK(args.get(DIR)),
+      args -> importODK(
+          args.get(STORAGE_DIR),
+          args.get(DIR)
+      ),
       Collections.singletonList(DIR)
   );
 
-  private static void importODK(String odkDir) {
+  private static void importODK(String storageDir, String odkDir) {
+    bootCache(storageDir);
     TerminationFuture terminationFuture = new TerminationFuture();
     List<FormStatus> statuses = new ArrayList<FormStatus>();
     File odk = new File(odkDir);

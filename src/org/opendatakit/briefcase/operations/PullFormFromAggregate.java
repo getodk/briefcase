@@ -1,6 +1,8 @@
 package org.opendatakit.briefcase.operations;
 
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
+import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
+import static org.opendatakit.briefcase.operations.Common.bootCache;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,15 +30,16 @@ public class PullFormFromAggregate {
   public static Operation PULL_FORM_FROM_AGGREGATE = Operation.of(
       PULL_AGGREGATE,
       args -> pullFormFromAggregate(
-          args.get(ODK_USERNAME),
+          args.get(STORAGE_DIR),
+          args.get(FORM_ID), args.get(ODK_USERNAME),
           args.get(ODK_PASSWORD),
-          args.get(AGGREGATE_SERVER),
-          args.get(FORM_ID)
+          args.get(AGGREGATE_SERVER)
       ),
       Arrays.asList(FORM_ID, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER)
   );
 
-  private static void pullFormFromAggregate(String username, String password, String server, String formid) {
+  private static void pullFormFromAggregate(String storageDir, String formid, String username, String password, String server) {
+    bootCache(storageDir);
     TerminationFuture terminationFuture = new TerminationFuture();
     ServerConnectionInfo sci = new ServerConnectionInfo(server, username, password.toCharArray());
 
