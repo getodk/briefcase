@@ -1,5 +1,23 @@
 package org.opendatakit.briefcase.operations;
 
+import static org.opendatakit.briefcase.operations.Common.DIR;
+import static org.opendatakit.briefcase.operations.Common.FORM_ID;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.openssl.PEMReader;
@@ -12,21 +30,6 @@ import org.opendatakit.briefcase.util.ExportToCsv;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
-
-import java.io.*;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-
-import static org.opendatakit.briefcase.operations.Common.DIR;
-import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 
 public class Export {
   private static final Log LOGGER = LogFactory.getLog(Export.class);

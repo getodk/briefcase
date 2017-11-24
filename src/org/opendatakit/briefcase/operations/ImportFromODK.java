@@ -1,5 +1,11 @@
 package org.opendatakit.briefcase.operations;
 
+import static org.opendatakit.briefcase.operations.Common.DIR;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -7,13 +13,6 @@ import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferFromODK;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static org.opendatakit.briefcase.operations.Common.DIR;
 
 public class ImportFromODK {
 

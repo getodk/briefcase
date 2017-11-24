@@ -16,19 +16,28 @@
 
 package org.opendatakit.briefcase.ui;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
-import org.opendatakit.briefcase.model.*;
-import org.opendatakit.briefcase.util.FileSystemUtils;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JTabbedPane;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
+import org.opendatakit.briefcase.model.BriefcaseAnalytics;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.ExportAbortEvent;
+import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.TransferAbortEvent;
+import org.opendatakit.briefcase.util.FileSystemUtils;
 
 public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeListener {
   private static final String APP_NAME = "ODK Briefcase";

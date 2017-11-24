@@ -1,5 +1,9 @@
 package org.opendatakit.briefcase.operations;
 
+import static java.util.stream.Collectors.toSet;
+
+import java.io.File;
+import java.util.stream.Stream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -7,11 +11,6 @@ import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
-
-import java.io.File;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toSet;
 
 public class Common {
   private static final Log LOGGER = LogFactory.getLog(Common.class);

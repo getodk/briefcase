@@ -1,11 +1,11 @@
 package org.opendatakit.common.cli;
 
+import static java.util.Collections.emptySet;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-
-import static java.util.Collections.emptySet;
 
 public class Operation {
   final Param param;

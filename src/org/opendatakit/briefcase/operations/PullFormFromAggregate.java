@@ -1,19 +1,22 @@
 package org.opendatakit.briefcase.operations;
 
+import static org.opendatakit.briefcase.operations.Common.FORM_ID;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.opendatakit.briefcase.model.*;
+import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.ParsingException;
+import org.opendatakit.briefcase.model.ServerConnectionInfo;
+import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 import org.opendatakit.briefcase.util.RetrieveAvailableFormsFromServer;
 import org.opendatakit.briefcase.util.ServerConnectionTest;
 import org.opendatakit.briefcase.util.TransferFromServer;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 
 public class PullFormFromAggregate {
   private static final Log LOGGER = LogFactory.getLog(PullFormFromAggregate.class);

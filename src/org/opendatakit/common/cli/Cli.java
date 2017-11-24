@@ -1,10 +1,8 @@
 package org.opendatakit.common.cli;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toSet;
+import static org.opendatakit.common.cli.CustomHelpFormatter.printHelp;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,10 +10,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toSet;
-import static org.opendatakit.common.cli.CustomHelpFormatter.printHelp;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 
 public class Cli {
   private static final Param<Void> SHOW_HELP = Param.flag("h", "help", "Show help");

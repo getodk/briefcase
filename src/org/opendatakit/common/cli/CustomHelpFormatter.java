@@ -1,7 +1,8 @@
 package org.opendatakit.common.cli;
 
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+import static org.opendatakit.common.cli.Cli.mapToOptions;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -10,10 +11,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
-import static org.opendatakit.common.cli.Cli.mapToOptions;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
 
 class CustomHelpFormatter {
   static void printHelp(Set<Operation> requiredOperations, Set<Operation> operations) {
@@ -43,6 +42,15 @@ class CustomHelpFormatter {
         .forEach(param -> System.out.println("  " + helpLinesPerShortcode.get(param.shortCode)));
   }
 
+  private static void printRequiredParams(Map<String, String> helpLinesPerShortcode, Set<Operation> requiredOperations) {
+    System.out.println("Required params:");
+    requiredOperations.stream()
+        .flatMap(operation -> operation.requiredParams.stream())
+        .sorted(Comparator.comparing(param -> param.shortCode))
+        .forEach(param -> System.out.println(helpLinesPerShortcode.get(param.shortCode)));
+    System.out.println("");
+  }
+
   private static void printOptionalParams(Map<String, String> helpLinesPerShortcode, Operation operation) {
     System.out.println("  (optionally)");
     operation.optionalParams.stream()
@@ -55,15 +63,6 @@ class CustomHelpFormatter {
     operations.stream()
         .sorted(Comparator.comparing(operation -> operation.param.shortCode))
         .forEach(operation -> System.out.println(helpLinesPerShortcode.get(operation.param.shortCode)));
-    System.out.println("");
-  }
-
-  private static void printRequiredParams(Map<String, String> helpLinesPerShortcode, Set<Operation> requiredOperations) {
-    System.out.println("Required params:");
-    requiredOperations.stream()
-        .flatMap(operation -> operation.requiredParams.stream())
-        .sorted(Comparator.comparing(param -> param.shortCode))
-        .forEach(param -> System.out.println(helpLinesPerShortcode.get(param.shortCode)));
     System.out.println("");
   }
 

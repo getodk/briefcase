@@ -1,10 +1,9 @@
 package org.opendatakit.common.cli;
 
-import org.apache.commons.cli.Option;
-
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import org.apache.commons.cli.Option;
 
 public class Param<T> {
   final String shortCode;
