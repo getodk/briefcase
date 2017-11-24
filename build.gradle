@@ -100,7 +100,7 @@ buildConfig {
     buildConfigField 'String', 'GOOGLE_TRACKING_ID', "UA-91951913-3"
 }
 
-mainClassName = 'org.opendatakit.briefcase.ui.MainBriefcaseWindow'
+mainClassName = 'org.opendatakit.briefcase.Launcher'
 
 jar {
     baseName = buildConfig.appName
