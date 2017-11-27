@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.model;
 
-
 import org.opendatakit.common.pubsub.Event;
 
 public class ExportFailedEvent implements Event {

@@ -24,7 +24,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
