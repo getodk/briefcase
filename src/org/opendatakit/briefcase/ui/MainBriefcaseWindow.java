@@ -23,6 +23,9 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -37,7 +40,10 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
+import org.opendatakit.briefcase.util.ExportAction;
 import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.common.pubsub.PubSub;
+import org.opendatakit.common.pubsub.ThreadSafePubSub;
 
 public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeListener {
   private static final String APP_NAME = "ODK Briefcase";
@@ -62,11 +68,15 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   private final Map<Component, Integer> paneToIndexMap = new HashMap<>();
 
   public static void launchGUI() {
+    PubSub pubSub = new ThreadSafePubSub();
+    Executor executor = ForkJoinPool.commonPool();
+    ExportAction exportAction = new ExportAction(pubSub, executor);
+
     EventQueue.invokeLater(new Runnable() {
       public void run() {
         try {
           UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-          MainBriefcaseWindow window = new MainBriefcaseWindow();
+          MainBriefcaseWindow window = new MainBriefcaseWindow(pubSub, exportAction);
         } catch (Exception e) {
           log.error("failed to launch app", e);
         }
@@ -101,8 +111,10 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
   /**
    * Create the application.
+   * @param pubSub
+   * @param exportAction
    */
-  private MainBriefcaseWindow() {
+  private MainBriefcaseWindow(PubSub pubSub, ExportAction exportAction) {
     briefcaseAnalytics.trackStartup();
 
     frame = new JFrame();
@@ -120,7 +132,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     uploadPanel = new PushTransferPanel(transferTerminationFuture);
     addPane(PushTransferPanel.TAB_NAME, uploadPanel);
 
-    exportPanel = new ExportPanel(exportTerminationFuture);
+    exportPanel = new ExportPanel(pubSub, exportAction, exportTerminationFuture);
     addPane(ExportPanel.TAB_NAME, exportPanel);
 
     settingsPanel = new SettingsPanel(this);

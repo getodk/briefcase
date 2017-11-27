@@ -17,11 +17,18 @@
 package org.opendatakit.briefcase.model;
 
 
-public class ExportFailedEvent {
+import org.opendatakit.common.pubsub.Event;
+
+public class ExportFailedEvent implements Event {
   @SuppressWarnings("unused")
   private BriefcaseFormDefinition form;
 
   public ExportFailedEvent(BriefcaseFormDefinition form) {
     this.form = form;
+  }
+
+  @Override
+  public String toString() {
+    return "Export has failed";
   }
 }

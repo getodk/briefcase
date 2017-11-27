@@ -5,13 +5,7 @@ import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.operations.Common.bootCache;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.security.KeyPair;
-import java.security.PrivateKey;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -22,16 +16,19 @@ import java.util.Optional;
 import java.util.function.Function;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.bouncycastle.openssl.PEMReader;
-import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
+import org.opendatakit.briefcase.model.ExportProgressPercentageEvent;
+import org.opendatakit.briefcase.model.ExportSucceededEvent;
+import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
+import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.util.ExportToCsv;
+import org.opendatakit.briefcase.util.ExportAction;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
+import org.opendatakit.common.pubsub.SimplePubSub;
 
 public class Export {
   private static final Log LOGGER = LogFactory.getLog(Export.class);
@@ -72,7 +69,29 @@ public class Export {
   );
 
   private static void export(String storageDir, String formid, String fileName, String exportPath, Date startDateString, Date endDateString, boolean exportMedia, boolean overwrite, Optional<String> pemKeyFile) {
+    SimplePubSub pubSub = new SimplePubSub();
     bootCache(storageDir);
+    BriefcaseFormDefinition formDefinition = getFormDefinition(formid);
+    File pemFile = pemKeyFile.map(File::new).orElse(null);
+
+    pubSub.subscribe(ExportProgressEvent.class, System.out::println);
+    pubSub.subscribe(ExportProgressPercentageEvent.class, System.out::println);
+    pubSub.subscribe(ExportFailedEvent.class, System.err::println);
+    pubSub.subscribe(ExportSucceededEvent.class, System.out::println);
+    pubSub.subscribe(ExportSucceededWithErrorsEvent.class, System.out::println);
+
+    new ExportAction(pubSub, Runnable::run).export(
+        new File(exportPath),
+        ExportType.CSV,
+        formDefinition,
+        pemFile,
+        new TerminationFuture(),
+        startDateString,
+        endDateString
+    );
+  }
+
+  private static BriefcaseFormDefinition getFormDefinition(String formid) {
     BriefcaseFormDefinition formDefinition = null;
     List<BriefcaseFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
     for (int i = 0; i < forms.size(); i++) {
@@ -84,75 +103,9 @@ public class Export {
     }
 
     if (formDefinition == null) {
-      LOGGER.error("Form not found");
-      return;
+      System.err.println("Form not found");
+      System.exit(1);
     }
-
-    if (formDefinition.isFileEncryptedForm() || formDefinition.isFieldEncryptedForm()) {
-      File pemFile;
-      if (!pemKeyFile.isPresent()) {
-        LOGGER.error("Briefcase action failed: No specified PrivateKey file for encrypted form");
-        return;
-      }
-      pemFile = new File(pemKeyFile.get());
-      if (!pemFile.exists()) {
-        LOGGER.error("Briefcase action failed: No PrivateKey file for encrypted form");
-        return;
-      }
-
-      String errorMsg = null;
-      boolean success = false;
-      for (; ; ) /* this only executes once... */ {
-        try {
-          BufferedReader br = new BufferedReader(new InputStreamReader(
-              new FileInputStream(pemFile), "UTF-8"));
-          PEMReader rdr = new PEMReader(br);
-          Object o = rdr.readObject();
-          try {
-            rdr.close();
-          } catch (IOException e) {
-            // ignore.
-          }
-          if (o == null) {
-            errorMsg = "The supplied file is not in PEM format.";
-            System.err.println(errorMsg);
-            break;
-          }
-          PrivateKey privKey;
-          if (o instanceof KeyPair) {
-            KeyPair kp = (KeyPair) o;
-            privKey = kp.getPrivate();
-          } else if (o instanceof PrivateKey) {
-            privKey = (PrivateKey) o;
-          } else {
-            privKey = null;
-          }
-          if (privKey == null) {
-            errorMsg = "The supplied file does not contain a private key.";
-            System.err.println(errorMsg);
-            break;
-          }
-          formDefinition.setPrivateKey(privKey);
-          success = true;
-          break;
-        } catch (IOException e) {
-          System.err.println("The supplied PEM file could not be parsed.");
-          e.printStackTrace();
-          break;
-        }
-      }
-      if (!success) {
-        EventBus.publish(new ExportProgressEvent(errorMsg));
-        EventBus.publish(new ExportFailedEvent(formDefinition));
-        return;
-      }
-    }
-
-    TerminationFuture terminationFuture = new TerminationFuture();
-    terminationFuture.reset();
-    File dir = new File(exportPath);
-    LOGGER.info("exporting to : " + dir.getAbsolutePath());
-    ExportToCsv exp = new ExportToCsv(dir, formDefinition, terminationFuture, fileName, exportMedia, overwrite, startDateString, endDateString);
-    exp.doAction();
+    return formDefinition;
   }
 }

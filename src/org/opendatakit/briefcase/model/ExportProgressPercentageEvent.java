@@ -16,7 +16,9 @@
 
 package org.opendatakit.briefcase.model;
 
-public class ExportProgressPercentageEvent {
+import org.opendatakit.common.pubsub.Event;
+
+public class ExportProgressPercentageEvent implements Event {
   private final double progress;
 
   public ExportProgressPercentageEvent(double progress) {
@@ -27,4 +29,8 @@ public class ExportProgressPercentageEvent {
     return progress;
   }
 
+  @Override
+  public String toString() {
+    return "Export progress at " + progress;
+  }
 }

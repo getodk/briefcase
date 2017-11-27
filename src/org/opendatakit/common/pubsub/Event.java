@@ -1,4 +1,4 @@
 package org.opendatakit.common.pubsub;
 
-public class Event {
+public interface Event {
 }
