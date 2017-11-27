@@ -31,11 +31,12 @@ public class PullFormFromAggregate {
       PULL_AGGREGATE,
       args -> pullFormFromAggregate(
           args.get(STORAGE_DIR),
-          args.get(FORM_ID), args.get(ODK_USERNAME),
+          args.get(FORM_ID),
+          args.get(ODK_USERNAME),
           args.get(ODK_PASSWORD),
           args.get(AGGREGATE_SERVER)
       ),
-      Arrays.asList(FORM_ID, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER)
+      Arrays.asList(STORAGE_DIR, FORM_ID, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER)
   );
 
   private static void pullFormFromAggregate(String storageDir, String formid, String username, String password, String server) {

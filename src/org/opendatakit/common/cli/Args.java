@@ -21,7 +21,7 @@ public class Args {
 
   public <T> T get(Param<T> key) {
     return getOptional(key)
-        .orElseThrow(() -> new IllegalArgumentException("No option " + key + " has been received"));
+        .orElseThrow(() -> new IllegalArgumentException("No param -" + key.shortCode + " has been declared"));
   }
 
   public <T> T getOrNull(Param<T> key) {

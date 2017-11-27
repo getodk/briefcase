@@ -103,10 +103,14 @@ public class Cli {
 
   private Map<Param, String> getValuesMap(CommandLine cli, Set<Param> params) {
     Map<Param, String> valuesMap = new HashMap<>();
-    params.stream()
-        .filter(Param::isArg)
-        // We can't collect toMap() because it will throw NPEs if values are null
-        .forEach(param -> valuesMap.put(param, cli.getOptionValue(param.shortCode)));
+    // We can't collect toMap() because it will throw NPEs if values are null
+    params.forEach(param -> {
+      if (param.isArg())
+        valuesMap.put(param, cli.getOptionValue(param.shortCode));
+      if (param.isFlag() && cli.hasOption(param.shortCode))
+        valuesMap.put(param, null);
+
+    });
     return valuesMap;
   }
 

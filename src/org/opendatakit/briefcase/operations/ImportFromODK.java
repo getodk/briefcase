@@ -6,7 +6,7 @@ import static org.opendatakit.briefcase.operations.Common.bootCache;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
@@ -26,7 +26,7 @@ public class ImportFromODK {
           args.get(STORAGE_DIR),
           args.get(DIR)
       ),
-      Collections.singletonList(DIR)
+      Arrays.asList(STORAGE_DIR, DIR)
   );
 
   private static void importODK(String storageDir, String odkDir) {

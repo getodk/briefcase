@@ -8,7 +8,7 @@ import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.common.cli.Param;
 
-public class Common {
+class Common {
   private static final Log LOGGER = LogFactory.getLog(Common.class);
 
   static final Param<String> STORAGE_DIR = Param.arg("sd", "storage_directory", "Briefcase storage directory");

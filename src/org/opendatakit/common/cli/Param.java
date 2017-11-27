@@ -44,6 +44,10 @@ public class Param<T> {
     return this.option.hasArg();
   }
 
+  boolean isFlag() {
+    return !this.option.hasArg();
+  }
+
   public T map(String value) {
     return this.mapper
         .orElseThrow(() -> new RuntimeException("No mapper defined for param -" + shortCode))
