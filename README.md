@@ -53,6 +53,13 @@ Any and all contributions to the project are welcome. ODK Briefcase is used acro
 
 If you're ready to contribute code, see [the contribution guide](CONTRIBUTING.md).
 
+## Contributing testing
+All releases are verified on the following operating systems:
+* Ubuntu 17.04
+* Windows 7
+
+Testing checklists can be found on the [Briefcase testing plan](https://docs.google.com/spreadsheets/d/1H46G7OW21rk5skSyjpEx3dCZVv5Ly4WDK8LISmrz714/edit?usp=sharing).
+
 ## Downloading builds
 Per-commit debug builds can be found on [CircleCI](https://circleci.com/gh/opendatakit/briefcase). Login with your GitHub account, click the build you'd like, then find the JAR in the Artifacts tab under $CIRCLE_ARTIFACTS/libs.
 
