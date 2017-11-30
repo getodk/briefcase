@@ -24,7 +24,6 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -59,6 +58,7 @@ import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
 import org.opendatakit.briefcase.util.ExportAction;
 import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.common.pubsub.PubSub;
 
 public class ExportPanel extends JPanel {
 
@@ -169,7 +169,14 @@ public class ExportPanel extends JPanel {
      */
     class ExportActionListener implements ActionListener {
 
-        @Override
+      private ExportAction exportAction;
+
+      public ExportActionListener(ExportAction exportAction) {
+
+        this.exportAction = exportAction;
+      }
+
+      @Override
         public void actionPerformed(ActionEvent e) {
 
             String exportDir = txtExportDirectory.getText();
@@ -233,14 +240,8 @@ public class ExportPanel extends JPanel {
 
             // OK -- launch background task to do the export
 
-            try {
-                setActiveExportState(true);
-                ExportAction.export(exportDirectory, exportType, lfd, pemFile, terminationFuture, fromDate, toDate);
-            } catch (IOException ex) {
-                ODKOptionPane.showErrorDialog(ExportPanel.this,
-                        "Briefcase action failed: " + ex.getMessage(), "Briefcase Action Failed");
-                setActiveExportState(true);
-            }
+            setActiveExportState(true);
+            exportAction.export(exportDirectory, exportType, lfd, pemFile, terminationFuture, fromDate, toDate);
         }
     }
 
@@ -296,7 +297,7 @@ public class ExportPanel extends JPanel {
         btnExport.setEnabled(enabled);
     }
 
-    ExportPanel(TerminationFuture terminationFuture) {
+    ExportPanel(PubSub pubSub, ExportAction exportAction, TerminationFuture terminationFuture) {
         super();
         AnnotationProcessor.process(this);// if not using AOP
         this.terminationFuture = terminationFuture;
@@ -348,7 +349,7 @@ public class ExportPanel extends JPanel {
         btnDetails.setEnabled(false);
 
         btnExport = new JButton(TAB_NAME);
-        btnExport.addActionListener(new ExportActionListener());
+        btnExport.addActionListener(new ExportActionListener(exportAction));
         btnExport.setEnabled(false);
 
         btnCancel = new JButton("Cancel");
@@ -467,6 +468,23 @@ public class ExportPanel extends JPanel {
         exportStatusList = new StringBuilder();
         setLayout(groupLayout);
         setActiveExportState(exportStateActive);
+        pubSub.subscribe(ExportProgressEvent.class, event -> exportStatusList.append("\n").append(event.getText()));
+        pubSub.subscribe(ExportProgressPercentageEvent.class, event -> progressBar.setValue((int)event.getProgress()));
+        pubSub.subscribe(ExportFailedEvent.class, event -> {
+            exportStatusList.append("\n").append("Failed.");
+            lblExporting.setText("Failed.");
+            setActiveExportState(false);
+        });
+        pubSub.subscribe(ExportSucceededEvent.class, event -> {
+            exportStatusList.append("\n").append("Succeeded.");
+            lblExporting.setText("Succeeded.");
+            setActiveExportState(false);
+        });
+        pubSub.subscribe(ExportSucceededWithErrorsEvent.class, event -> {
+            exportStatusList.append("\n").append("Succeeded, but with errors.");
+            lblExporting.setText("Succeeded, but with errors. See details.");
+            setActiveExportState(false);
+        });
     }
 
     /**

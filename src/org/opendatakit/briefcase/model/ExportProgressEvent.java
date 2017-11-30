@@ -16,7 +16,9 @@
 
 package org.opendatakit.briefcase.model;
 
-public class ExportProgressEvent {
+import org.opendatakit.common.pubsub.Event;
+
+public class ExportProgressEvent implements Event {
   private final String text;
 
   public ExportProgressEvent(String text) {
@@ -27,4 +29,8 @@ public class ExportProgressEvent {
     return text;
   }
 
+  @Override
+  public String toString() {
+    return text;
+  }
 }

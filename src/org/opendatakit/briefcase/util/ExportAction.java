@@ -24,13 +24,10 @@ import java.io.InputStreamReader;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.util.Date;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
+import java.util.concurrent.Executor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.openssl.PEMReader;
-import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
@@ -39,87 +36,80 @@ import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
+import org.opendatakit.common.pubsub.PubSub;
 
+/**
+ * This class has the logic for exporting a form from Briefcase
+ * <p>
+ * It is a pure-logic class without dependencies to any framework or execution-context.
+ * <p>
+ * To execute an {@link ExportAction} you need to provide (via constructor):
+ * <ul>
+ * <li>a {@link PubSub} instance that this class will use to inform about its outcome</li>
+ * <li>an {@link Executor} instance that will ultimately run this operation's logic</li>
+ * </ul>
+ */
 public class ExportAction {
-
   private static final Log log = LogFactory.getLog(ExportAction.class);
+  private final PubSub pubSub;
+  private final Executor executor;
 
-  static final String SCRATCH_DIR = "scratch";
-  static final String UTF_8 = "UTF-8";
-
-  private static ExecutorService backgroundExecutorService = Executors.newCachedThreadPool();
-
-  private static class TransformFormRunnable implements Runnable {
-    ITransformFormAction action;
-
-    TransformFormRunnable(ITransformFormAction action) {
-      this.action = action;
-    }
-
-    @Override
-    public void run() {
-      try {
-        boolean allSuccessful = true;
-        allSuccessful = action.doAction();
-        if (allSuccessful) {
-          if (action.totalFilesSkipped() == FilesSkipped.SOME) {
-            EventBus.publish(new ExportSucceededWithErrorsEvent(
-                    action.getFormDefinition()));
-          } else if (action.totalFilesSkipped() == FilesSkipped.ALL) {
-            // None of the instances were exported
-            EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
-          } else {
-            EventBus.publish(new ExportSucceededEvent(action.getFormDefinition()));
-          }
-        } else {
-          EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
-        }
-      } catch (Exception e) {
-        log.error("export action failed", e);
-        EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
-      }
-    }
-
+  /**
+   * Main constructor for this class.
+   *
+   * @param pubSub   a {@link PubSub} instance that the instance will use to inform about its outcome
+   * @param executor an {@link Executor} instance that will ultimately run this operation's logic
+   */
+  public ExportAction(PubSub pubSub, Executor executor) {
+    this.pubSub = pubSub;
+    this.executor = executor;
   }
 
-  private static void backgroundRun(ITransformFormAction action) {
-    backgroundExecutorService.execute(new TransformFormRunnable(action));
-  }
-
-  public static void export(
+  /**
+   * Exports a given form to the given outputDir
+   *
+   * @param outputDir         directory where files will be written with the export results
+   * @param outputType        type of output desired. Must be a member of {@link ExportType}
+   * @param lfd               an instance of {@link BriefcaseFormDefinition} with the form's definition
+   * @param pemFile           a {@link File} with PEM cryptographic keys to decrypt encrypted form submissions
+   * @param terminationFuture a {@link TerminationFuture} instance
+   * @param start             a {@link Date} instance defining the range of dates you want to export
+   * @param end               a {@link Date} instance defining the range of dates you want to export
+   */
+  public void export(
       File outputDir, ExportType outputType, BriefcaseFormDefinition lfd, File pemFile,
-      TerminationFuture terminationFuture, Date start, Date end) throws IOException {
+      TerminationFuture terminationFuture, Date start, Date end) {
 
     if (lfd.isFileEncryptedForm() || lfd.isFieldEncryptedForm()) {
 
       String errorMsg = null;
       boolean success = false;
-      for (;;) /* this only executes once... */ {
+      for (; ; ) /* this only executes once... */ {
         try {
           BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(pemFile), "UTF-8"));
           PEMReader rdr = new PEMReader(br);
           Object o = rdr.readObject();
           try {
             rdr.close();
-          } catch ( IOException e ) {
+          } catch (IOException e) {
             // ignore.
           }
-          if ( o == null ) {
+          if (o == null) {
             ODKOptionPane.showErrorDialog(null,
                 errorMsg = "The supplied file is not in PEM format.",
                 "Invalid RSA Private Key");
             break;
           }
           PrivateKey privKey;
-          if ( o instanceof KeyPair ) {
+          if (o instanceof KeyPair) {
             KeyPair kp = (KeyPair) o;
             privKey = kp.getPrivate();
-          } else if ( o instanceof PrivateKey ) {
+          } else if (o instanceof PrivateKey) {
             privKey = (PrivateKey) o;
           } else {
             privKey = null;
           }
-          if ( privKey == null ) {
+          if (privKey == null) {
             ODKOptionPane.showErrorDialog(null,
                 errorMsg = "The supplied file does not contain a private key.",
                 "Invalid RSA Private Key");
@@ -135,9 +125,9 @@ public class ExportAction {
           break;
         }
       }
-      if ( !success ) {
-        EventBus.publish(new ExportProgressEvent(errorMsg));
-        EventBus.publish(new ExportFailedEvent(lfd));
+      if (!success) {
+        pubSub.publish(new ExportProgressEvent(errorMsg));
+        pubSub.publish(new ExportFailedEvent(lfd));
         return;
       }
     }
@@ -149,6 +139,27 @@ public class ExportAction {
       throw new IllegalStateException("outputType not recognized");
     }
 
-    backgroundRun(action);
+    executor.execute(() -> {
+      try {
+        boolean allSuccessful = true;
+        allSuccessful = action.doAction();
+        if (allSuccessful) {
+          if (action.totalFilesSkipped() == FilesSkipped.SOME) {
+            pubSub.publish(new ExportSucceededWithErrorsEvent(
+                action.getFormDefinition()));
+          } else if (action.totalFilesSkipped() == FilesSkipped.ALL) {
+            // None of the instances were exported
+            pubSub.publish(new ExportFailedEvent(action.getFormDefinition()));
+          } else {
+            pubSub.publish(new ExportSucceededEvent(action.getFormDefinition()));
+          }
+        } else {
+          pubSub.publish(new ExportFailedEvent(action.getFormDefinition()));
+        }
+      } catch (Exception e) {
+        log.error("export action failed", e);
+        pubSub.publish(new ExportFailedEvent(action.getFormDefinition()));
+      }
+    });
   }
 }
