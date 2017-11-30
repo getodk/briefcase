@@ -38,17 +38,44 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
 import org.opendatakit.common.pubsub.PubSub;
 
+/**
+ * This class has the logic for exporting a form from Briefcase
+ * <p>
+ * It is a pure-logic class without dependencies to any framework or execution-context.
+ * <p>
+ * To execute an {@link ExportAction} you need to provide (via constructor):
+ * <ul>
+ * <li>a {@link PubSub} instance that this class will use to inform about its outcome</li>
+ * <li>an {@link Executor} instance that will ultimately run this operation's logic</li>
+ * </ul>
+ */
 public class ExportAction {
-
   private static final Log log = LogFactory.getLog(ExportAction.class);
   private final PubSub pubSub;
   private final Executor executor;
 
+  /**
+   * Main constructor for this class.
+   *
+   * @param pubSub   a {@link PubSub} instance that the instance will use to inform about its outcome
+   * @param executor an {@link Executor} instance that will ultimately run this operation's logic
+   */
   public ExportAction(PubSub pubSub, Executor executor) {
     this.pubSub = pubSub;
     this.executor = executor;
   }
 
+  /**
+   * Exports a given form to the given outputDir
+   *
+   * @param outputDir         directory where files will be written with the export results
+   * @param outputType        type of output desired. Must be a member of {@link ExportType}
+   * @param lfd               an instance of {@link BriefcaseFormDefinition} with the form's definition
+   * @param pemFile           a {@link File} with PEM cryptographic keys to decrypt encrypted form submissions
+   * @param terminationFuture a {@link TerminationFuture} instance
+   * @param start             a {@link Date} instance defining the range of dates you want to export
+   * @param end               a {@link Date} instance defining the range of dates you want to export
+   */
   public void export(
       File outputDir, ExportType outputType, BriefcaseFormDefinition lfd, File pemFile,
       TerminationFuture terminationFuture, Date start, Date end) {

@@ -5,6 +5,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+/**
+ * This class is a simple, straightforward implementation of {@link PubSub} that runs in the main thread
+ * <p>
+ * Internally, subscribers are stored in a {@link HashMap}
+ */
 public class SimplePubSub implements PubSub {
   private final Map<Class, Consumer> subscriptions = new HashMap<>();
 

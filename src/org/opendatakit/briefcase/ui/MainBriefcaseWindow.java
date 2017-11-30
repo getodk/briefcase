@@ -61,11 +61,14 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   private static final Log log = LogFactory.getLog(BaseFormParserForJavaRosa.class.getName());
 
   private final JTabbedPane tabbedPane;
-  /**
-   * A map from each pane to its index in the JTabbedPane
-   */
   private final Map<Component, Integer> paneToIndexMap = new HashMap<>();
 
+  /**
+   * Launches the Swift GUI
+   *
+   * First, it creates the required dependencies to create an {@link ExportAction} instance
+   * and then it creates the {@link MainBriefcaseWindow} with them
+   */
   public static void launchGUI() {
     PubSub pubSub = new ThreadSafePubSub();
     Executor executor = ForkJoinPool.commonPool();
