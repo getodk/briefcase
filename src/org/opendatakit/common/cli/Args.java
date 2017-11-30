@@ -9,16 +9,18 @@ import org.apache.commons.cli.CommandLine;
 
 /**
  * This class serves as a container of values parsed from the command line.
- * <p>It holds the values inside a <code>{@link Map}&lt;{@link Param}, String&gt;</code> and offers a
- * type-safe, null-safe API to get them thanks to the use of generics and the
- * {@link Optional} type.
+ * <p>
+ * It holds the values inside a <code>{@link Map}&lt;{@link Param}, String&gt;</code>
+ * and offers a type-safe, null-safe API to get them thanks to the use of generics
+ * and the {@link Optional} type.
  */
 public class Args {
   private final Map<Param, String> valuesMap;
 
   /**
    * Private constructor.
-   * <p>Users of this class should call the {@link #from(CommandLine, Set)}
+   * <p>
+   * Users of this class should call the {@link #from(CommandLine, Set)}
    * factory instead.
    *
    * @param valuesMap the <code>{@link java.util.Map}&lt;{@link Param}, String&gt;</code> with the params and values
@@ -29,7 +31,7 @@ public class Args {
   }
 
   /**
-   * <p>Factory that extracts a set of values for the given params set from a
+   * Factory that extracts a set of values for the given params set from a
    * {@link CommandLine} instance
    * <ul>
    * <li>For argument params, it extracts their value</li>
@@ -54,8 +56,9 @@ public class Args {
   }
 
   /**
-   * <p>Returns true if the <code>key</code> is contained in the <code>valuesMap</code>
-   * <p>Useful to check for presence of flag params
+   * Returns true if the <code>key</code> is contained in the <code>valuesMap</code>
+   * <p>
+   * Useful to check for presence of flag params
    *
    * @param key the {@link Param} instance to be searched
    * @return true if <code>key</code> is contained in the <code>valuesMap</code>
@@ -65,7 +68,7 @@ public class Args {
   }
 
   /**
-   * <p>Returns an {@link Optional} instance with the value of the given <code>key</code>
+   * Returns an {@link Optional} instance with the value of the given <code>key</code>
    *
    * @param key the {@link Param} key of the value to be retrieved
    * @param <T> type of the value to be retrieved
@@ -77,8 +80,9 @@ public class Args {
   }
 
   /**
-   * <p>Returns the value contained in the given <code>key</code>
-   * <p>Throws an {@link IllegalArgumentException} if the key is not contained,
+   * Returns the value contained in the given <code>key</code>
+   * <p>
+   * Throws an {@link IllegalArgumentException} if the key is not contained,
    * or if the <code>key</code> corresponds to a flag param
    *
    * @param key the {@link Param} key of the value to be retrieved
@@ -91,7 +95,7 @@ public class Args {
   }
 
   /**
-   * <p>Shortcut to <code>getOptional(key).orElse(null)</code> to avoid handling explicit
+   * Shortcut to <code>getOptional(key).orElse(null)</code> to avoid handling explicit
    * null values
    *
    * @param key the {@link Param} key of the value to be retrieved

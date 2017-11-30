@@ -16,9 +16,10 @@ import org.apache.commons.cli.ParseException;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 
 /**
- * <p>Cli is a command line adapter. It helps define executable operations and their
+ * Cli is a command line adapter. It helps define executable operations and their
  * required and optional params.
- * <p>It defines some default operations like "show help" and "show version"
+ * <p>
+ * It defines some default operations like "show help" and "show version"
  */
 public class Cli {
   private static final Param<Void> SHOW_HELP = Param.flag("h", "help", "Show help");
