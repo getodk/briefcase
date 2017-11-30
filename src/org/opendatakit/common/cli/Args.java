@@ -2,6 +2,7 @@ package org.opendatakit.common.cli;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.cli.CommandLine;
@@ -101,4 +102,23 @@ public class Args {
     return getOptional(key).orElse(null);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Args args = (Args) o;
+    return Objects.equals(valuesMap, args.valuesMap);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(valuesMap);
+  }
+
+  @Override
+  public String toString() {
+    return "Args{" +
+        "valuesMap=" + valuesMap +
+        '}';
+  }
 }

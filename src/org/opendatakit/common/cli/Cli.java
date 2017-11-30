@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.opendatakit.common.cli.CustomHelpFormatter.printHelp;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -137,8 +138,33 @@ public class Cli {
     return options;
   }
 
-
   private static void printVersion() {
     System.out.println("Briefcase " + BriefcasePreferences.VERSION);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Cli cli = (Cli) o;
+    return Objects.equals(requiredOperations, cli.requiredOperations) &&
+        Objects.equals(operations, cli.operations) &&
+        Objects.equals(otherwiseRunnables, cli.otherwiseRunnables) &&
+        Objects.equals(executedOperations, cli.executedOperations);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(requiredOperations, operations, otherwiseRunnables, executedOperations);
+  }
+
+  @Override
+  public String toString() {
+    return "Cli{" +
+        "requiredOperations=" + requiredOperations +
+        ", operations=" + operations +
+        ", otherwiseRunnables=" + otherwiseRunnables +
+        ", executedOperations=" + executedOperations +
+        '}';
   }
 }
