@@ -97,16 +97,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
     if (args.length == 0) {
 
-            EventQueue.invokeLater(new Runnable() {
-                public void run() {
-                    try {
-                        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                        MainBriefcaseWindow window = new MainBriefcaseWindow();
-                    } catch (Exception e) {
-                        log.error("failed to launch app", e);
-                    }
-                }
-            });
+            launchGUI();
         } else {
             Options options = addOptions();
             CommandLineParser parser = new DefaultParser();
@@ -177,6 +168,19 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
             BriefcaseCLI bcli = new BriefcaseCLI(cmd);
             bcli.run();
         }
+    }
+
+    public static void launchGUI() {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                    MainBriefcaseWindow window = new MainBriefcaseWindow();
+                } catch (Exception e) {
+                    log.error("failed to launch app", e);
+                }
+            }
+        });
     }
 
     @Override
