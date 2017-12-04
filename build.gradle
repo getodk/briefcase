@@ -2,6 +2,7 @@ plugins {
     id 'application'
     id 'checkstyle'
     id 'de.fuerstenau.buildconfig' version '1.1.8'
+    id 'idea'
 }
 
 repositories {
