@@ -1,16 +1,16 @@
 # Testing result templates
 
 ## Tested with success!
-#### Verified on: [List of os versions]
+#### Verified on: [List of operating systems]
 #### Verified cases: [optional]
 
 ***
 
 ## Bug[s] has[have] been found! / Regression[s] has[have] been found!
 
-#### Verified on: [List of os versions]
+#### Verified on: [List of operating systems]
 
-#### Problem visible on: [only if it's related to some specific os versions, otherwise it’s the same as above]
+#### Problem visible on: [only if it's related to some specific operating systems, otherwise it’s the same as above]
 
 #### Steps to reproduce:
 
