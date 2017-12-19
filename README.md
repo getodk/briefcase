@@ -61,6 +61,8 @@ All releases are verified on the following operating systems:
 
 Testing checklists can be found on the [Briefcase testing plan](https://docs.google.com/spreadsheets/d/1H46G7OW21rk5skSyjpEx3dCZVv5Ly4WDK8LISmrz714/edit?usp=sharing).
 
+If you have finished testing a pull request, please use a template from [Testing result templates](.github/TESTING_RESULT_TEMPLATES.md) to report your insights.
+
 ## Downloading builds
 Per-commit debug builds can be found on [CircleCI](https://circleci.com/gh/opendatakit/briefcase). Login with your GitHub account, click the build you'd like, then find the JAR in the Artifacts tab under $CIRCLE_ARTIFACTS/libs.
 
