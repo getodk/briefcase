@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -41,6 +42,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.JCheckBox;
 
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
@@ -89,6 +91,9 @@ public class ExportPanel extends JPanel {
     private final JTextField pemPrivateKeyFilePath;
 
     private final JButton btnPemFileChooseButton;
+
+    private final JCheckBox chkBoxStartDateInclusive;
+    private final JCheckBox chkBoxEndDateInclusive;
 
     class WrappedFileChooserActionListener implements ActionListener {
         private final AbstractFileChooser afc;
@@ -223,7 +228,13 @@ public class ExportPanel extends JPanel {
             }
 
             Date fromDate = pickStartDate.convert().getDateWithDefaultZone();
+            if (!chkBoxStartDateInclusive.isSelected()) {
+                fromDate = new Date(fromDate.getTime() + TimeUnit.DAYS.toMillis(1));
+            }
             Date toDate = pickEndDate.convert().getDateWithDefaultZone();
+            if (!chkBoxEndDateInclusive.isSelected()) {
+                toDate = new Date(toDate.getTime() - TimeUnit.DAYS.toMillis(1));
+            }
             if (fromDate != null && toDate != null && fromDate.compareTo(toDate) > 0) {
                 ODKOptionPane.showErrorDialog(ExportPanel.this,
                         MessageStrings.INVALID_DATE_RANGE_MESSAGE,
@@ -331,11 +342,16 @@ public class ExportPanel extends JPanel {
         btnPemFileChooseButton.addActionListener(
                 new WrappedFileChooserActionListener(new PrivateKeyFileChooser(this), pemPrivateKeyFilePath));
 
-        JLabel lblDateFrom = new JLabel("Start Date (inclusive):");
-        JLabel lblDateTo = new JLabel("End Date (exclusive):");
+        JLabel lblDateFrom = new JLabel("Start Date:");
+        JLabel lblDateTo = new JLabel("End Date:");
 
         pickStartDate = createDatePicker();
         pickEndDate = createDatePicker();
+
+        chkBoxStartDateInclusive = new JCheckBox("Inclusive");
+        chkBoxStartDateInclusive.setSelected(true);
+        chkBoxEndDateInclusive = new JCheckBox("Inclusive");
+        chkBoxEndDateInclusive.setSelected(true);
 
         lblExporting = new JLabel("");
         lblExporting.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -397,8 +413,14 @@ public class ExportPanel extends JPanel {
                                                                                 .addPreferredGap(ComponentPlacement.RELATED)
                                                                                 .addComponent(btnPemFileChooseButton))
                                                                 .addGap(0)
-                                                                .addComponent(pickStartDate)
-                                                                .addComponent(pickEndDate)))
+                                                                .addGroup(
+                                                                        groupLayout.createParallelGroup(Alignment.LEADING)
+                                                                                .addComponent(pickStartDate)
+                                                                                .addComponent(chkBoxStartDateInclusive))
+                                                                .addGroup(
+                                                                        groupLayout.createParallelGroup(Alignment.LEADING)
+                                                                                .addComponent(pickEndDate)
+                                                                                .addComponent(chkBoxEndDateInclusive))))
                                 .addComponent(lblExporting)
                                 .addGroup(
                                         Alignment.TRAILING,
@@ -450,11 +472,15 @@ public class ExportPanel extends JPanel {
                                                 .addComponent(lblDateFrom)
                                                 .addComponent(pickStartDate))
                                 .addPreferredGap(ComponentPlacement.RELATED)
+                                .addComponent(chkBoxStartDateInclusive)
+                                .addPreferredGap(ComponentPlacement.RELATED)
                                 .addGroup(
                                         groupLayout
                                                 .createParallelGroup(Alignment.BASELINE)
                                                 .addComponent(lblDateTo)
                                                 .addComponent(pickEndDate))
+                                .addPreferredGap(ComponentPlacement.RELATED)
+                                .addComponent(chkBoxEndDateInclusive)
                                 .addPreferredGap(ComponentPlacement.UNRELATED, 10, Short.MAX_VALUE)
                                 .addGroup(
                                         groupLayout
