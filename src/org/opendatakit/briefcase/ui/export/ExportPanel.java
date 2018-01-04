@@ -72,25 +72,25 @@ public class ExportPanel extends JPanel {
 
   public static final String TAB_NAME = "Export";
 
-  final JTextField txtExportDirectory;
+  private final JTextField txtExportDirectory;
   private final JButton btnChooseExportDirectory;
 
-  final JTextField pemPrivateKeyFilePath;
+  private final JTextField pemPrivateKeyFilePath;
   private final JButton btnPemFileChooseButton;
 
-  final DatePicker pickStartDate;
-  final DatePicker pickEndDate;
+  private final DatePicker pickStartDate;
+  private final DatePicker pickEndDate;
 
-  final FormExportTableModel tableModel;
+  private final FormExportTableModel tableModel;
 
   private final JButton btnSelectAll;
   private final JButton btnClearAll;
 
-  final JButton btnExport;
+  private final JButton btnExport;
 
   private boolean exportStateActive = false;
 
-  final TerminationFuture terminationFuture;
+  private final TerminationFuture terminationFuture;
 
   public ExportPanel(TerminationFuture terminationFuture) {
     super();
@@ -249,7 +249,7 @@ public class ExportPanel extends JPanel {
     setActiveExportState(exportStateActive);
   }
 
-  List<String> getErrors() {
+  private List<String> getErrors() {
     List<String> errors = new ArrayList<>();
 
     String exportDirText = txtExportDirectory.getText().trim();
@@ -325,7 +325,7 @@ public class ExportPanel extends JPanel {
     }
   }
 
-  void showErrors(List<String> errors, String headerText, String title) {
+  private void showErrors(List<String> errors, String headerText, String title) {
     if (!errors.isEmpty()) {
       String message = String.format("%s\n\n%s", headerText, errors.stream().map(e -> "- " + e).collect(joining("\n")));
       showErrorDialog(this, message, title);
@@ -361,7 +361,7 @@ public class ExportPanel extends JPanel {
     }
   }
 
-  void setActiveExportState(boolean active) {
+  private void setActiveExportState(boolean active) {
     if (active) {
       // don't allow normal actions when we are transferring...
       btnChooseExportDirectory.setEnabled(false);
