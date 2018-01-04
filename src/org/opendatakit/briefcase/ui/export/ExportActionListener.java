@@ -61,24 +61,6 @@ class ExportActionListener implements ActionListener {
       return;
     }
 
-    if (exportPanel.comboBoxExportType.getSelectedIndex() == -1 || exportPanel.comboBoxForm.getSelectedIndex() == -1) {
-      return;
-    }
-
-    ExportType exportType = (ExportType) exportPanel.comboBoxExportType.getSelectedItem();
-    BriefcaseFormDefinition lfd = (BriefcaseFormDefinition) exportPanel.comboBoxForm.getSelectedItem();
-
-    File pemFile = null;
-    if (lfd.isFileEncryptedForm() || lfd.isFieldEncryptedForm()) {
-      pemFile = new File(exportPanel.pemPrivateKeyFilePath.getText());
-      if (!pemFile.exists()) {
-        ODKOptionPane.showErrorDialog(exportPanel,
-            "Briefcase action failed: No PrivateKey file for encrypted form",
-            MessageStrings.ERROR_DIALOG_TITLE);
-        return;
-      }
-    }
-
     Date fromDate = exportPanel.pickStartDate.convert().getDateWithDefaultZone();
     Date toDate = exportPanel.pickEndDate.convert().getDateWithDefaultZone();
     if (fromDate != null && toDate != null && fromDate.compareTo(toDate) > 0) {
@@ -86,17 +68,6 @@ class ExportActionListener implements ActionListener {
           MessageStrings.INVALID_DATE_RANGE_MESSAGE,
           MessageStrings.INVALID_DATE_RANGE_TITLE);
       return;
-    }
-
-    // OK -- launch background task to do the export
-
-    try {
-      exportPanel.setActiveExportState(true);
-      ExportAction.export(exportDirectory, exportType, lfd, pemFile, exportPanel.terminationFuture, fromDate, toDate);
-    } catch (IOException ex) {
-      ODKOptionPane.showErrorDialog(exportPanel,
-          "Briefcase action failed: " + ex.getMessage(), "Briefcase Action Failed");
-      exportPanel.setActiveExportState(true);
     }
   }
 }

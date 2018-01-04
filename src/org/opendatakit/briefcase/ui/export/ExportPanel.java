@@ -16,35 +16,36 @@
 
 package org.opendatakit.briefcase.ui.export;
 
+import static java.lang.Short.MAX_VALUE;
+import static java.util.stream.Collectors.toList;
+import static javax.swing.GroupLayout.Alignment.BASELINE;
+import static javax.swing.GroupLayout.Alignment.LEADING;
+import static javax.swing.GroupLayout.Alignment.TRAILING;
+import static javax.swing.GroupLayout.DEFAULT_SIZE;
+import static javax.swing.GroupLayout.PREFERRED_SIZE;
+import static javax.swing.LayoutStyle.ComponentPlacement.RELATED;
+import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 
 import com.github.lgooddatepicker.components.DatePicker;
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportProgressPercentageEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
-import org.opendatakit.briefcase.model.ExportType;
+import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
@@ -60,59 +61,26 @@ public class ExportPanel extends JPanel {
   public static final String TAB_NAME = "Export";
 
   final JTextField txtExportDirectory;
-
-  final JComboBox<ExportType> comboBoxExportType;
-
-  final JComboBox<BriefcaseFormDefinition> comboBoxForm;
-
   private final JButton btnChooseExportDirectory;
 
-  private final JLabel lblExporting;
-  private final JProgressBar progressBar;
-  private final DetailButton btnDetails;
-  private final JButton btnExport;
-  private final JButton btnCancel;
+  final JTextField pemPrivateKeyFilePath;
+  private final JButton btnPemFileChooseButton;
+
   final DatePicker pickStartDate;
   final DatePicker pickEndDate;
 
+  private final FormExportTableModel tableModel;
+
+  private final JButton btnSelectAll;
+  private final JButton btnClearAll;
+
+  private final JButton btnExport;
+
   private boolean exportStateActive = false;
+
   final TerminationFuture terminationFuture;
 
-  final StringBuilder exportStatusList;
-  final JTextField pemPrivateKeyFilePath;
-
-  private final JButton btnPemFileChooseButton;
-
   void enableExportButton() {
-    if (comboBoxForm.getSelectedIndex() == -1) {
-      btnPemFileChooseButton.setEnabled(false);
-      btnExport.setEnabled(false);
-      return;
-    }
-
-    BriefcaseFormDefinition lfd = (BriefcaseFormDefinition) comboBoxForm.getSelectedItem();
-    if (lfd == null) {
-      btnPemFileChooseButton.setEnabled(false);
-      btnExport.setEnabled(false);
-      return;
-    }
-
-    if (lfd.isFileEncryptedForm() || lfd.isFieldEncryptedForm()) {
-      btnPemFileChooseButton.setEnabled(true);
-      File pemFile = new File(pemPrivateKeyFilePath.getText());
-      if (!pemFile.exists()) {
-        btnExport.setEnabled(false);
-        return;
-      }
-    } else {
-      btnPemFileChooseButton.setEnabled(false);
-    }
-
-    if (comboBoxExportType.getSelectedIndex() == -1) {
-      btnExport.setEnabled(false);
-      return;
-    }
-
     String exportDir = txtExportDirectory.getText();
     if (exportDir == null || exportDir.trim().length() == 0) {
       btnExport.setEnabled(false);
@@ -138,15 +106,8 @@ public class ExportPanel extends JPanel {
   public ExportPanel(TerminationFuture terminationFuture) {
     super();
     AnnotationProcessor.process(this);// if not using AOP
+
     this.terminationFuture = terminationFuture;
-
-    JLabel lblForm = new JLabel("Form:");
-    comboBoxForm = new JComboBox<>();
-    updateComboBox();
-    comboBoxForm.addActionListener(new FormSelectionListener(this));
-
-    JLabel lblExportType = new JLabel("Export Type:");
-    comboBoxExportType = new JComboBox<>(ExportType.values());
 
     JLabel lblExportDirectory = new JLabel("Export Directory:");
 
@@ -176,137 +137,100 @@ public class ExportPanel extends JPanel {
     pickStartDate = createDatePicker();
     pickEndDate = createDatePicker();
 
-    lblExporting = new JLabel("");
-    lblExporting.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    tableModel = new FormExportTableModel();
 
-    progressBar = new JProgressBar(0, 100);
-    progressBar.setVisible(false);
-    progressBar.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    btnSelectAll = new JButton("Select all");
 
-    btnDetails = new DetailButton(this);
-    btnDetails.setEnabled(false);
+    btnClearAll = new JButton("Clear all");
+
+    JLabel lblFormsToTransfer = new JLabel("Forms to export:");
+
+    JScrollPane scrollPane = new JScrollPane(new FormExportTable(tableModel));
+    JSeparator separatorFormsList = new JSeparator();
 
     btnExport = new JButton("Export");
     btnExport.addActionListener(new ExportActionListener(this));
     btnExport.setEnabled(false);
 
-    btnCancel = new JButton("Cancel");
-    btnCancel.addActionListener(new ActionListener() {
-
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        ExportPanel.this.terminationFuture.markAsCancelled(
-            new ExportAbortEvent("Export cancelled by user."));
-      }
-    });
-
     GroupLayout groupLayout = new GroupLayout(this);
-    groupLayout.setHorizontalGroup(groupLayout
-        .createSequentialGroup()
+
+    GroupLayout.ParallelGroup labels = groupLayout.createParallelGroup(LEADING)
+        .addComponent(lblExportDirectory)
+        .addComponent(lblPemPrivateKey)
+        .addComponent(lblDateFrom)
+        .addComponent(lblDateTo);
+
+    GroupLayout.ParallelGroup fields = groupLayout.createParallelGroup(LEADING)
+        .addGroup(groupLayout.createSequentialGroup().addComponent(txtExportDirectory).addPreferredGap(RELATED).addComponent(btnChooseExportDirectory))
+        .addGroup(groupLayout.createSequentialGroup().addComponent(pemPrivateKeyFilePath).addPreferredGap(RELATED).addComponent(btnPemFileChooseButton))
+        .addComponent(pickStartDate)
+        .addComponent(pickEndDate);
+
+    GroupLayout.SequentialGroup leftActions = groupLayout.createSequentialGroup()
+        .addComponent(btnSelectAll)
+        .addComponent(btnClearAll);
+
+    GroupLayout.SequentialGroup rightActions = groupLayout.createSequentialGroup()
+        .addComponent(btnExport);
+
+    GroupLayout.SequentialGroup horizontalGroup = groupLayout.createSequentialGroup()
         .addContainerGap()
-        .addGroup(
-            groupLayout
-                .createParallelGroup(Alignment.LEADING)
-                .addGroup(
-                    groupLayout
-                        .createSequentialGroup()
-                        .addGroup(
-                            groupLayout.createParallelGroup(Alignment.LEADING)
-                                .addComponent(lblForm)
-                                .addComponent(lblExportType)
-                                .addComponent(lblExportDirectory)
-                                .addComponent(lblPemPrivateKey)
-                                .addComponent(lblDateFrom)
-                                .addComponent(lblDateTo))
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(
-                            groupLayout
-                                .createParallelGroup(Alignment.LEADING)
-                                .addComponent(comboBoxForm, Alignment.TRAILING,
-                                    GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
-                                .addComponent(comboBoxExportType, Alignment.TRAILING,
-                                    GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
-                                .addGroup(
-                                    groupLayout.createSequentialGroup()
-                                        .addComponent(txtExportDirectory)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(btnChooseExportDirectory))
-                                .addGroup(
-                                    groupLayout.createSequentialGroup().addComponent(pemPrivateKeyFilePath)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(btnPemFileChooseButton))
-                                .addGap(0)
-                                .addComponent(pickStartDate)
-                                .addComponent(pickEndDate)))
-                .addComponent(lblExporting)
-                .addGroup(
-                    Alignment.TRAILING,
-                    groupLayout.createSequentialGroup().addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(progressBar).addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(btnDetails).addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(btnExport).addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(btnCancel))).addContainerGap());
+        .addGroup(groupLayout.createParallelGroup(LEADING)
+            .addGroup(groupLayout.createSequentialGroup()
+                .addGroup(labels)
+                .addPreferredGap(RELATED)
+                .addGroup(fields)
+            )
+            .addComponent(separatorFormsList, DEFAULT_SIZE, PREFERRED_SIZE, MAX_VALUE)
+            .addComponent(lblFormsToTransfer)
+            .addComponent(scrollPane, PREFERRED_SIZE, PREFERRED_SIZE, MAX_VALUE)
+            .addGroup(LEADING, leftActions)
+            .addGroup(TRAILING, rightActions)
+        )
+        .addContainerGap();
 
-    groupLayout.setVerticalGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-        .addGroup(
-            groupLayout
-                .createSequentialGroup()
-                .addContainerGap()
-                .addGroup(
-                    groupLayout
-                        .createParallelGroup(Alignment.BASELINE)
-                        .addComponent(comboBoxForm, GroupLayout.DEFAULT_SIZE,
-                            GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(lblForm))
-                .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(
-                    groupLayout
-                        .createParallelGroup(Alignment.BASELINE)
-                        .addComponent(comboBoxExportType, GroupLayout.DEFAULT_SIZE,
-                            GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(lblExportType))
-                .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(
-                    groupLayout
-                        .createParallelGroup(Alignment.BASELINE)
-                        .addComponent(lblExportDirectory)
-                        .addComponent(btnChooseExportDirectory)
-                        .addComponent(txtExportDirectory, GroupLayout.DEFAULT_SIZE,
-                            GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(
-                    groupLayout
-                        .createParallelGroup(Alignment.BASELINE)
-                        .addComponent(lblPemPrivateKey)
-                        .addComponent(pemPrivateKeyFilePath, GroupLayout.DEFAULT_SIZE,
-                            GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(btnPemFileChooseButton))
-                .addPreferredGap(ComponentPlacement.RELATED)
-                .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(
-                    groupLayout
-                        .createParallelGroup(Alignment.BASELINE)
-                        .addComponent(lblDateFrom)
-                        .addComponent(pickStartDate))
-                .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(
-                    groupLayout
-                        .createParallelGroup(Alignment.BASELINE)
-                        .addComponent(lblDateTo)
-                        .addComponent(pickEndDate))
-                .addPreferredGap(ComponentPlacement.UNRELATED, 10, Short.MAX_VALUE)
-                .addGroup(
-                    groupLayout
-                        .createParallelGroup(Alignment.TRAILING)
-                        .addComponent(lblExporting).addComponent(btnDetails)
-                        .addComponent(progressBar).addComponent(btnDetails)
-                        .addComponent(btnExport).addComponent(btnCancel))
-                .addContainerGap()));
 
-    exportStatusList = new StringBuilder();
+    GroupLayout.ParallelGroup verticalGroup = groupLayout
+        .createParallelGroup(LEADING)
+        .addGroup(groupLayout.createSequentialGroup()
+            .addContainerGap()
+            .addGroup(groupLayout.createParallelGroup(BASELINE)
+                .addComponent(lblExportDirectory)
+                .addComponent(btnChooseExportDirectory)
+                .addComponent(txtExportDirectory, DEFAULT_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+            )
+            .addPreferredGap(RELATED)
+            .addGroup(groupLayout.createParallelGroup(BASELINE).addComponent(lblPemPrivateKey).addComponent(pemPrivateKeyFilePath, DEFAULT_SIZE, PREFERRED_SIZE, PREFERRED_SIZE).addComponent(btnPemFileChooseButton)).addPreferredGap(RELATED)
+            .addPreferredGap(RELATED)
+            .addGroup(groupLayout.createParallelGroup(BASELINE).addComponent(lblDateFrom).addComponent(pickStartDate))
+            .addPreferredGap(RELATED)
+            .addGroup(groupLayout.createParallelGroup(BASELINE).addComponent(lblDateTo).addComponent(pickEndDate))
+            .addPreferredGap(ComponentPlacement.UNRELATED, 10, MAX_VALUE)
+            .addComponent(separatorFormsList, PREFERRED_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+            .addPreferredGap(ComponentPlacement.RELATED)
+            .addComponent(lblFormsToTransfer)
+            .addPreferredGap(ComponentPlacement.RELATED)
+            .addComponent(scrollPane, 200, PREFERRED_SIZE, MAX_VALUE)
+            .addPreferredGap(ComponentPlacement.RELATED)
+            .addGroup(groupLayout.createParallelGroup(TRAILING)
+                .addComponent(btnSelectAll)
+                .addComponent(btnClearAll)
+                .addComponent(btnExport))
+            .addContainerGap());
+
+    groupLayout.setHorizontalGroup(horizontalGroup);
+    groupLayout.setVerticalGroup(verticalGroup);
     setLayout(groupLayout);
+    updateForms();
     setActiveExportState(exportStateActive);
   }
+
+  public void updateForms() {
+    tableModel.setForms(FileSystemUtils.getBriefcaseFormList().stream()
+        .map(formDefinition -> new FormStatus(EXPORT, formDefinition))
+        .collect(toList()));
+  }
+
 
   /**
    * The DatePicker default text box and calendar button don't match with the rest of the UI.
@@ -326,7 +250,7 @@ public class ExportPanel extends JPanel {
   @Override
   public void setEnabled(boolean enabled) {
     super.setEnabled(enabled);
-    updateComboBox();
+    updateForms();
 
     for (Component c : this.getComponents()) {
       c.setEnabled(enabled);
@@ -340,106 +264,59 @@ public class ExportPanel extends JPanel {
   void setActiveExportState(boolean active) {
     if (active) {
       // don't allow normal actions when we are transferring...
-      comboBoxExportType.setEnabled(false);
-      comboBoxForm.setEnabled(false);
       btnChooseExportDirectory.setEnabled(false);
       btnPemFileChooseButton.setEnabled(false);
       btnExport.setEnabled(false);
-      // enable cancel button
-      btnCancel.setEnabled(true);
-      // show downloading progress bar
-      progressBar.setVisible(true);
-      // save the context of this export action
-      lblExporting.setText("");
-      btnDetails.setContext();
-      // reset the export details list
-      exportStatusList.setLength(0);
-      exportStatusList.append("Starting Export...");
-      btnDetails.setEnabled(true);
       // reset the termination future so we can cancel activity
       terminationFuture.reset();
     } else {
-      // restore normal actions when we aren't transferring...
-      comboBoxExportType.setEnabled(true);
-      comboBoxForm.setEnabled(true);
       btnChooseExportDirectory.setEnabled(true);
       // touch-up with real state...
       enableExportButton();
-      // disable cancel button
-      btnCancel.setEnabled(false);
       // retain progress text (to display last export outcome)
-      // disable progress bar
-      progressBar.setVisible(false);
-      progressBar.setValue(0);
     }
     // remember state...
     exportStateActive = active;
   }
 
   void resetExport() {
-    exportStatusList.setLength(0);
-    lblExporting.setText(" ");
-    btnDetails.setEnabled(false);
   }
 
   @EventSubscriber(eventClass = ExportProgressEvent.class)
   public void progress(ExportProgressEvent event) {
-    exportStatusList.append("\n").append(event.getText());
   }
 
   @EventSubscriber(eventClass = ExportProgressPercentageEvent.class)
   public void progressBar(ExportProgressPercentageEvent event) {
-    progressBar.setValue((int) event.getProgress());
   }
 
   @EventSubscriber(eventClass = ExportFailedEvent.class)
   public void failedCompletion(ExportFailedEvent event) {
-    exportStatusList.append("\n").append("Failed.");
-    lblExporting.setText("Failed.");
     setActiveExportState(false);
   }
 
   @EventSubscriber(eventClass = ExportSucceededEvent.class)
   public void successfulCompletion(ExportSucceededEvent event) {
-    exportStatusList.append("\n").append("Succeeded.");
-    lblExporting.setText("Succeeded.");
     setActiveExportState(false);
   }
 
   @EventSubscriber(eventClass = ExportSucceededWithErrorsEvent.class)
   public void successfulCompletionWithErrors(ExportSucceededWithErrorsEvent event) {
-    exportStatusList.append("\n").append("Succeeded, but with errors.");
-    lblExporting.setText("Succeeded, but with errors. See details.");
     setActiveExportState(false);
-  }
-
-  public void updateComboBox() {
-    final BriefcaseFormDefinition selectedForm = comboBoxForm.getSelectedIndex() == -1 ?
-        null : (BriefcaseFormDefinition) comboBoxForm.getSelectedItem();
-    List<BriefcaseFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
-    comboBoxForm.setModel(new DefaultComboBoxModel<>(forms.toArray(new BriefcaseFormDefinition[forms.size()])));
-    if (selectedForm != null) {
-      for (int i = 0; i < forms.size(); ++i) {
-        if (forms.get(i).equals(selectedForm)) {
-          comboBoxForm.setSelectedIndex(i);
-          return;
-        }
-      }
-    }
   }
 
   @EventSubscriber(eventClass = TransferFailedEvent.class)
   public void failedTransferCompletion(TransferFailedEvent event) {
-    updateComboBox();
+
   }
 
   @EventSubscriber(eventClass = TransferSucceededEvent.class)
   public void successfulTransferCompletion(TransferSucceededEvent event) {
-    updateComboBox();
+
   }
 
   @EventSubscriber(eventClass = UpdatedBriefcaseFormDefinitionEvent.class)
   public void briefcaseFormListChanges(UpdatedBriefcaseFormDefinitionEvent event) {
-    updateComboBox();
+
   }
 }

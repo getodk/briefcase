@@ -192,7 +192,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
         if (enabled) {
             exportPanel.updateComboBox();
-            newExportPanel.updateComboBox();
+            newExportPanel.updateForms();
             uploadPanel.updateFormStatuses();
         }
 
