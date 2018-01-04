@@ -393,6 +393,7 @@ public class ExportPanel extends JPanel {
 
   private List<String> export() {
     return tableModel.getSelectedForms().parallelStream()
+        .peek(FormStatus::clearStatusHistory)
         .map(formStatus -> (BriefcaseFormDefinition) formStatus.getFormDefinition())
         .flatMap(formDefinition -> this.export(formDefinition).stream())
         .collect(toList());
