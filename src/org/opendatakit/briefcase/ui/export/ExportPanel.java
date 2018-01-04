@@ -19,6 +19,7 @@ package org.opendatakit.briefcase.ui.export;
 import static java.lang.Short.MAX_VALUE;
 import static java.nio.file.Files.exists;
 import static java.nio.file.Files.isDirectory;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static javax.swing.GroupLayout.Alignment.BASELINE;
 import static javax.swing.GroupLayout.Alignment.LEADING;
@@ -85,12 +86,12 @@ public class ExportPanel extends JPanel {
   final DatePicker pickStartDate;
   final DatePicker pickEndDate;
 
-  private final FormExportTableModel tableModel;
+  final FormExportTableModel tableModel;
 
   private final JButton btnSelectAll;
   private final JButton btnClearAll;
 
-  private final JButton btnExport;
+  final JButton btnExport;
 
   private boolean exportStateActive = false;
 
@@ -234,7 +235,7 @@ public class ExportPanel extends JPanel {
     setActiveExportState(exportStateActive);
   }
 
-  private List<String> getErrors() {
+  List<String> getErrors() {
     List<String> errors = new ArrayList<>();
 
     String exportDirText = txtExportDirectory.getText().trim();
@@ -307,6 +308,13 @@ public class ExportPanel extends JPanel {
     if (fromDate != null && toDate != null && fromDate.compareTo(toDate) >= 0) {
       showErrorDialog(this, INVALID_DATE_RANGE_MESSAGE, "Export configuration error");
       targetDatePicker.clear();
+    }
+  }
+
+  void showErrors(List<String> errors, String headerText, String title) {
+    if (!errors.isEmpty()) {
+      String message = String.format("%s\n\n%s", headerText, errors.stream().map(e -> "- " + e).collect(joining("\n")));
+      showErrorDialog(this, message, title);
     }
   }
 

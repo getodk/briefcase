@@ -1,14 +1,17 @@
 package org.opendatakit.briefcase.ui.export;
 
-import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
+import static java.util.stream.Collectors.toList;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Date;
-import org.opendatakit.briefcase.ui.MessageStrings;
-import org.opendatakit.briefcase.ui.ODKOptionPane;
-import org.opendatakit.briefcase.util.FileSystemUtils;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.ExportType;
+import org.opendatakit.briefcase.util.ExportAction;
 
 /**
  * Handle click-action for the "Export" button. Extracts the settings from
@@ -24,46 +27,59 @@ class ExportActionListener implements ActionListener {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-
-    String exportDir = exportPanel.txtExportDirectory.getText();
-    if (exportDir == null || exportDir.trim().length() == 0) {
-      ODKOptionPane.showErrorDialog(exportPanel,
-          "Export directory was not specified.",
-          MessageStrings.INVALID_EXPORT_DIRECTORY);
-      return;
-    }
-    File exportDirectory = new File(exportDir.trim());
-    if (!exportDirectory.exists()) {
-      ODKOptionPane.showErrorDialog(exportPanel,
-          MessageStrings.DIR_NOT_EXIST,
-          MessageStrings.INVALID_EXPORT_DIRECTORY);
-      return;
-    }
-    if (!exportDirectory.isDirectory()) {
-      ODKOptionPane.showErrorDialog(exportPanel,
-          MessageStrings.DIR_NOT_DIRECTORY,
-          MessageStrings.INVALID_EXPORT_DIRECTORY);
-      return;
-    }
-    if (FileSystemUtils.isUnderODKFolder(exportDirectory)) {
-      ODKOptionPane.showErrorDialog(exportPanel,
-          MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY,
-          MessageStrings.INVALID_EXPORT_DIRECTORY);
-      return;
-    } else if (isUnderBriefcaseFolder(exportDirectory)) {
-      ODKOptionPane.showErrorDialog(exportPanel,
-          MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
-          MessageStrings.INVALID_EXPORT_DIRECTORY);
-      return;
+    List<String> configurationErrors = exportPanel.getErrors();
+    exportPanel.showErrors(
+        configurationErrors,
+        "We can't export the forms until these errors are corrected:",
+        "Export configuration error"
+    );
+    if (configurationErrors.isEmpty()) {
+      new Thread(() -> {
+        exportPanel.btnExport.setEnabled(false);
+        List<String> errors = export();
+        exportPanel.showErrors(
+            errors,
+            "We have found some errors while performing the requested export actions:",
+            "Export error report"
+        );
+        exportPanel.btnExport.setEnabled(true);
+      }).start();
     }
 
-    Date fromDate = exportPanel.pickStartDate.convert().getDateWithDefaultZone();
-    Date toDate = exportPanel.pickEndDate.convert().getDateWithDefaultZone();
-    if (fromDate != null && toDate != null && fromDate.compareTo(toDate) > 0) {
-      ODKOptionPane.showErrorDialog(exportPanel,
-          MessageStrings.INVALID_DATE_RANGE_MESSAGE,
-          MessageStrings.INVALID_DATE_RANGE_TITLE);
-      return;
+  }
+
+  private List<String> export() {
+    return exportPanel.tableModel.getSelectedForms().parallelStream()
+        .map(formStatus -> (BriefcaseFormDefinition) formStatus.getFormDefinition())
+        .flatMap(formDefinition -> this.export(formDefinition).stream())
+        .collect(toList());
+  }
+
+  private List<String> export(BriefcaseFormDefinition formDefinition) {
+
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
     }
+    List<String> errors = new ArrayList<>();
+    Optional<File> pemFile = Optional.ofNullable(exportPanel.pemPrivateKeyFilePath.getText()).map(File::new).filter(File::exists);
+    if ((formDefinition.isFileEncryptedForm() || formDefinition.isFieldEncryptedForm()) && !pemFile.isPresent())
+      errors.add(formDefinition.getFormName() + " form requires is encrypted and you haven't defined a valid private key file location");
+    else
+      try {
+        ExportAction.export(
+            new File(exportPanel.txtExportDirectory.getText().trim()),
+            ExportType.CSV,
+            formDefinition,
+            pemFile.orElse(null),
+            exportPanel.terminationFuture,
+            exportPanel.pickStartDate.convert().getDateWithDefaultZone(),
+            exportPanel.pickEndDate.convert().getDateWithDefaultZone()
+        );
+      } catch (IOException ex) {
+        errors.add("Export of form " + formDefinition.getFormName() + " has failed: " + ex.getMessage());
+      }
+    return errors;
   }
 }
