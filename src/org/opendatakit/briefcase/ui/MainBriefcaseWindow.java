@@ -48,6 +48,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
+import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
 public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeListener {
@@ -58,7 +59,6 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     JFrame frame;
     private PushTransferPanel uploadPanel;
     private ExportPanel exportPanel;
-    private org.opendatakit.briefcase.ui.export.ExportPanel newExportPanel;
     private SettingsPanel settingsPanel;
     private final TerminationFuture exportTerminationFuture = new TerminationFuture();
     private final TerminationFuture transferTerminationFuture = new TerminationFuture();
@@ -191,8 +191,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
                 "" : briefcaseDirectory + File.separator + StorageLocation.BRIEFCASE_DIR);
 
         if (enabled) {
-            exportPanel.updateComboBox();
-            newExportPanel.updateForms();
+            exportPanel.updateForms();
             uploadPanel.updateFormStatuses();
         }
 
@@ -233,9 +232,6 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
         exportPanel = new ExportPanel(exportTerminationFuture);
         addPane(ExportPanel.TAB_NAME, exportPanel);
-
-        newExportPanel = new org.opendatakit.briefcase.ui.export.ExportPanel(exportTerminationFuture);
-        addPane(org.opendatakit.briefcase.ui.export.ExportPanel.TAB_NAME, newExportPanel);
 
         settingsPanel = new SettingsPanel(this);
         addPane(SettingsPanel.TAB_NAME, settingsPanel);
