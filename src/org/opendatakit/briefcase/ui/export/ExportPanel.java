@@ -130,14 +130,14 @@ public class ExportPanel extends JPanel {
     JLabel lblDateTo = new JLabel("End Date (exclusive):");
 
     pickStartDate = createDatePicker();
-    pickStartDate.addDateChangeListener(__ -> enableExportButton());
+    pickStartDate.addDateChangeListener(__ -> updateExportButton());
     pickStartDate.addDateChangeListener(__ -> validateDate(pickStartDate));
     pickEndDate = createDatePicker();
-    pickEndDate.addDateChangeListener(__ -> enableExportButton());
+    pickEndDate.addDateChangeListener(__ -> updateExportButton());
     pickEndDate.addDateChangeListener(__ -> validateDate(pickEndDate));
 
     tableModel = new FormExportTableModel();
-    tableModel.onSelectionChange(this::enableExportButton);
+    tableModel.onSelectionChange(this::updateExportButton);
     tableModel.onSelectionChange(this::updateSelectAllButton);
     tableModel.onSelectionChange(this::updateClearAllButton);
 
@@ -285,7 +285,7 @@ public class ExportPanel extends JPanel {
     return errors;
   }
 
-  void enableExportButton() {
+  private void updateExportButton() {
     btnExport.setEnabled(getErrors().isEmpty());
   }
 
@@ -306,7 +306,7 @@ public class ExportPanel extends JPanel {
   private void chooseLocation(FileChooser fileChooser, JTextField locationField) {
     fileChooser.choose().ifPresent(file -> {
       locationField.setText(file.getAbsolutePath());
-      enableExportButton();
+      updateExportButton();
     });
   }
 
@@ -378,7 +378,7 @@ public class ExportPanel extends JPanel {
       pickEndDate.setEnabled(true);
       btnExport.setEnabled(true);
       // touch-up with real state...
-      enableExportButton();
+      updateExportButton();
       // retain progress text (to display last export outcome)
     }
     // remember state...
