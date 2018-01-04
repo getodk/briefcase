@@ -26,10 +26,15 @@ import static javax.swing.GroupLayout.PREFERRED_SIZE;
 import static javax.swing.LayoutStyle.ComponentPlacement.RELATED;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
+import static org.opendatakit.briefcase.ui.export.FileChooser.directory;
+import static org.opendatakit.briefcase.ui.export.FileChooser.file;
+import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 
 import com.github.lgooddatepicker.components.DatePicker;
 import java.awt.Component;
 import java.io.File;
+import java.nio.file.Paths;
+import java.util.Optional;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -50,9 +55,8 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
-import org.opendatakit.briefcase.ui.ExportFolderChooser;
-import org.opendatakit.briefcase.ui.PrivateKeyFileChooser;
 import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.briefcase.util.StringUtils;
 
 public class ExportPanel extends JPanel {
 
@@ -117,8 +121,12 @@ public class ExportPanel extends JPanel {
     txtExportDirectory.setColumns(10);
 
     btnChooseExportDirectory = new JButton("Choose...");
-    btnChooseExportDirectory.addActionListener(
-        new WrappedFileChooserActionListener(this, new ExportFolderChooser(this), txtExportDirectory));
+    btnChooseExportDirectory.addActionListener(__ -> chooseLocation(directory(
+        this,
+        fileFrom(txtExportDirectory),
+        f -> f.exists() && f.isDirectory() && !isUnderBriefcaseFolder(f) && !isUnderODKFolder(f),
+        "Exclude Briefcase & ODK directories"
+    ), txtExportDirectory));
 
     JLabel lblPemPrivateKey = new JLabel("PEM Private Key File:");
 
@@ -128,8 +136,10 @@ public class ExportPanel extends JPanel {
     pemPrivateKeyFilePath.setColumns(10);
 
     btnPemFileChooseButton = new JButton("Choose...");
-    btnPemFileChooseButton.addActionListener(
-        new WrappedFileChooserActionListener(this, new PrivateKeyFileChooser(this), pemPrivateKeyFilePath));
+    btnPemFileChooseButton.addActionListener(__ -> chooseLocation(file(
+        this,
+        fileFrom(pemPrivateKeyFilePath)
+    ), pemPrivateKeyFilePath));
 
     JLabel lblDateFrom = new JLabel("Start Date (inclusive):");
     JLabel lblDateTo = new JLabel("End Date (exclusive):");
@@ -231,6 +241,18 @@ public class ExportPanel extends JPanel {
         .collect(toList()));
   }
 
+  private void chooseLocation(FileChooser fileChooser, JTextField locationField) {
+    fileChooser.choose().ifPresent(file -> {
+      locationField.setText(file.getAbsolutePath());
+      enableExportButton();
+    });
+  }
+
+  private Optional<File> fileFrom(JTextField textField) {
+    return Optional.ofNullable(textField.getText())
+        .filter(StringUtils::isNotEmptyNotNull)
+        .map(path -> Paths.get(path).toFile());
+  }
 
   /**
    * The DatePicker default text box and calendar button don't match with the rest of the UI.

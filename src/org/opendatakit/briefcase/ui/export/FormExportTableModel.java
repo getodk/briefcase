@@ -1,15 +1,19 @@
 package org.opendatakit.briefcase.ui.export;
 
-import java.util.*;
+import static javax.swing.JOptionPane.getFrameForComponent;
+import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
-import org.bushe.swing.event.annotation.EventSubscriber;
-import org.opendatakit.briefcase.model.*;
-
-import static javax.swing.JOptionPane.getFrameForComponent;
-import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.FormStatus;
 
 class FormExportTableModel extends AbstractTableModel {
   private static final long serialVersionUID = 7108326237416622721L;

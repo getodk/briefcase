@@ -5,13 +5,9 @@ import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolde
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.ui.MessageStrings;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
-import org.opendatakit.briefcase.util.ExportAction;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
 /**
