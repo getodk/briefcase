@@ -103,7 +103,7 @@ public class StorageLocation {
      * Returns whether pathname is a folder under the Briefcase storage folder
      * @param pathname the File to check
      */
-    static boolean isUnderBriefcaseFolder(File pathname) {
+    public static boolean isUnderBriefcaseFolder(File pathname) {
         File current = pathname;
         File parent = pathname == null ? null : pathname.getParentFile();
         while (parent != null) {

@@ -31,7 +31,7 @@ import org.opendatakit.briefcase.util.FileSystemUtils;
  * @author mitchellsundt@gmail.com
  *
  */
-class ExportFolderChooser extends AbstractFileChooser {
+public class ExportFolderChooser extends AbstractFileChooser {
 
   /**
      *

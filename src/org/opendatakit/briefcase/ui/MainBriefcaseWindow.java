@@ -58,6 +58,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     JFrame frame;
     private PushTransferPanel uploadPanel;
     private ExportPanel exportPanel;
+    private org.opendatakit.briefcase.ui.export.ExportPanel newExportPanel;
     private SettingsPanel settingsPanel;
     private final TerminationFuture exportTerminationFuture = new TerminationFuture();
     private final TerminationFuture transferTerminationFuture = new TerminationFuture();
@@ -191,6 +192,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
         if (enabled) {
             exportPanel.updateComboBox();
+            newExportPanel.updateComboBox();
             uploadPanel.updateFormStatuses();
         }
 
@@ -231,6 +233,9 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
         exportPanel = new ExportPanel(exportTerminationFuture);
         addPane(ExportPanel.TAB_NAME, exportPanel);
+
+        newExportPanel = new org.opendatakit.briefcase.ui.export.ExportPanel(exportTerminationFuture);
+        addPane(ExportPanel.TAB_NAME, newExportPanel);
 
         settingsPanel = new SettingsPanel(this);
         addPane(SettingsPanel.TAB_NAME, settingsPanel);

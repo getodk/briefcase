@@ -34,7 +34,7 @@ import org.opendatakit.briefcase.util.FindDirectoryStructure;
  * @author mitchellsundt@gmail.com
  *
  */
-class WrappedFileChooser {
+public class WrappedFileChooser {
 
   private final boolean useAwt;
   private boolean directoriesOnly;
@@ -47,7 +47,7 @@ class WrappedFileChooser {
     return fc.testAndMessageBadFolder(f, parentWindow);
   }
 
-  WrappedFileChooser(Container parentWindow, AbstractFileChooser fc) {
+  public WrappedFileChooser(Container parentWindow, AbstractFileChooser fc) {
     this.parentWindow = parentWindow;
     this.fc = fc;
     this.chosenFile = null;
