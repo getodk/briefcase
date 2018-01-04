@@ -20,7 +20,7 @@ public class DetailButton extends JButton implements ActionListener {
   private ExportType type;
 
   DetailButton(ExportPanel exportPanel) {
-    super(ExportPanel.TAB_NAME + " Details...");
+    super("Export Details...");
     this.exportPanel = exportPanel;
     this.addActionListener(this);
   }

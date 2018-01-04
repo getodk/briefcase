@@ -235,7 +235,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         addPane(ExportPanel.TAB_NAME, exportPanel);
 
         newExportPanel = new org.opendatakit.briefcase.ui.export.ExportPanel(exportTerminationFuture);
-        addPane(ExportPanel.TAB_NAME, newExportPanel);
+        addPane(org.opendatakit.briefcase.ui.export.ExportPanel.TAB_NAME, newExportPanel);
 
         settingsPanel = new SettingsPanel(this);
         addPane(SettingsPanel.TAB_NAME, settingsPanel);

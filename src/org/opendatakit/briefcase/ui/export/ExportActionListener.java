@@ -32,7 +32,7 @@ class ExportActionListener implements ActionListener {
     String exportDir = exportPanel.txtExportDirectory.getText();
     if (exportDir == null || exportDir.trim().length() == 0) {
       ODKOptionPane.showErrorDialog(exportPanel,
-          ExportPanel.TAB_NAME + " directory was not specified.",
+          "Export directory was not specified.",
           MessageStrings.INVALID_EXPORT_DIRECTORY);
       return;
     }

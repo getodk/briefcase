@@ -57,7 +57,7 @@ public class ExportPanel extends JPanel {
 
   private static final long serialVersionUID = 7169316129011796197L;
 
-  static final String TAB_NAME = "Export";
+  public static final String TAB_NAME = "Export";
 
   final JTextField txtExportDirectory;
 
@@ -145,10 +145,10 @@ public class ExportPanel extends JPanel {
     updateComboBox();
     comboBoxForm.addActionListener(new FormSelectionListener(this));
 
-    JLabel lblExportType = new JLabel(TAB_NAME + " Type:");
+    JLabel lblExportType = new JLabel("Export Type:");
     comboBoxExportType = new JComboBox<>(ExportType.values());
 
-    JLabel lblExportDirectory = new JLabel(TAB_NAME + " Directory:");
+    JLabel lblExportDirectory = new JLabel("Export Directory:");
 
     txtExportDirectory = new JTextField();
     txtExportDirectory.setFocusable(false);
@@ -186,7 +186,7 @@ public class ExportPanel extends JPanel {
     btnDetails = new DetailButton(this);
     btnDetails.setEnabled(false);
 
-    btnExport = new JButton(TAB_NAME);
+    btnExport = new JButton("Export");
     btnExport.addActionListener(new ExportActionListener(this));
     btnExport.setEnabled(false);
 
@@ -196,7 +196,7 @@ public class ExportPanel extends JPanel {
       @Override
       public void actionPerformed(ActionEvent arg0) {
         ExportPanel.this.terminationFuture.markAsCancelled(
-            new ExportAbortEvent(TAB_NAME + " cancelled by user."));
+            new ExportAbortEvent("Export cancelled by user."));
       }
     });
 
@@ -354,7 +354,7 @@ public class ExportPanel extends JPanel {
       btnDetails.setContext();
       // reset the export details list
       exportStatusList.setLength(0);
-      exportStatusList.append("Starting " + TAB_NAME + "...");
+      exportStatusList.append("Starting Export...");
       btnDetails.setEnabled(true);
       // reset the termination future so we can cancel activity
       terminationFuture.reset();
