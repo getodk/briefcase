@@ -42,6 +42,7 @@ import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 import com.github.lgooddatepicker.components.DatePicker;
 import java.awt.Component;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -58,16 +59,19 @@ import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportProgressPercentageEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
+import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
+import org.opendatakit.briefcase.util.ExportAction;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.StringUtils;
 
@@ -159,8 +163,27 @@ public class ExportPanel extends JPanel {
     JSeparator separatorFormsList = new JSeparator();
 
     btnExport = new JButton("Export");
-    btnExport.addActionListener(new ExportActionListener(this));
     btnExport.setEnabled(false);
+    btnExport.addActionListener(__ -> {
+      List<String> configurationErrors = getErrors();
+      showErrors(
+          configurationErrors,
+          "We can't export the forms until these errors are corrected:",
+          "Export configuration error"
+      );
+      if (configurationErrors.isEmpty()) {
+        new Thread(() -> {
+          btnExport.setEnabled(false);
+          List<String> errors = export();
+          showErrors(
+              errors,
+              "We have found some errors while performing the requested export actions:",
+              "Export error report"
+          );
+          btnExport.setEnabled(true);
+        }).start();
+      }
+    });
 
     GroupLayout groupLayout = new GroupLayout(this);
 
@@ -366,6 +389,35 @@ public class ExportPanel extends JPanel {
   }
 
   void resetExport() {
+  }
+
+  private List<String> export() {
+    return tableModel.getSelectedForms().parallelStream()
+        .map(formStatus -> (BriefcaseFormDefinition) formStatus.getFormDefinition())
+        .flatMap(formDefinition -> this.export(formDefinition).stream())
+        .collect(toList());
+  }
+
+  private List<String> export(BriefcaseFormDefinition formDefinition) {
+    List<String> errors = new ArrayList<>();
+    Optional<File> pemFile = Optional.ofNullable(pemPrivateKeyFilePath.getText()).map(File::new).filter(File::exists);
+    if ((formDefinition.isFileEncryptedForm() || formDefinition.isFieldEncryptedForm()) && !pemFile.isPresent())
+      errors.add(formDefinition.getFormName() + " form requires is encrypted and you haven't defined a valid private key file location");
+    else
+      try {
+        ExportAction.export(
+            new File(txtExportDirectory.getText().trim()),
+            ExportType.CSV,
+            formDefinition,
+            pemFile.orElse(null),
+            terminationFuture,
+            pickStartDate.convert().getDateWithDefaultZone(),
+            pickEndDate.convert().getDateWithDefaultZone()
+        );
+      } catch (IOException ex) {
+        errors.add("Export of form " + formDefinition.getFormName() + " has failed: " + ex.getMessage());
+      }
+    return errors;
   }
 
   @EventSubscriber(eventClass = ExportProgressEvent.class)
