@@ -23,8 +23,6 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -32,9 +30,7 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
@@ -49,19 +45,12 @@ import org.opendatakit.briefcase.model.ExportProgressPercentageEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.ExportType;
-import org.opendatakit.briefcase.model.IFormDefinition;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
-import org.opendatakit.briefcase.ui.AbstractFileChooser;
 import org.opendatakit.briefcase.ui.ExportFolderChooser;
-import org.opendatakit.briefcase.ui.MessageStrings;
-import org.opendatakit.briefcase.ui.ODKOptionPane;
 import org.opendatakit.briefcase.ui.PrivateKeyFileChooser;
-import org.opendatakit.briefcase.ui.ScrollingStatusListDialog;
-import org.opendatakit.briefcase.ui.WrappedFileChooser;
-import org.opendatakit.briefcase.util.ExportAction;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
 public class ExportPanel extends JPanel {
@@ -70,11 +59,11 @@ public class ExportPanel extends JPanel {
 
   static final String TAB_NAME = "Export";
 
-  private final JTextField txtExportDirectory;
+  final JTextField txtExportDirectory;
 
-  private final JComboBox<ExportType> comboBoxExportType;
+  final JComboBox<ExportType> comboBoxExportType;
 
-  private final JComboBox<BriefcaseFormDefinition> comboBoxForm;
+  final JComboBox<BriefcaseFormDefinition> comboBoxForm;
 
   private final JButton btnChooseExportDirectory;
 
@@ -83,172 +72,18 @@ public class ExportPanel extends JPanel {
   private final DetailButton btnDetails;
   private final JButton btnExport;
   private final JButton btnCancel;
-  private final DatePicker pickStartDate;
-  private final DatePicker pickEndDate;
+  final DatePicker pickStartDate;
+  final DatePicker pickEndDate;
 
   private boolean exportStateActive = false;
-  private final TerminationFuture terminationFuture;
+  final TerminationFuture terminationFuture;
 
-  private final StringBuilder exportStatusList;
-  private final JTextField pemPrivateKeyFilePath;
+  final StringBuilder exportStatusList;
+  final JTextField pemPrivateKeyFilePath;
 
   private final JButton btnPemFileChooseButton;
 
-  class WrappedFileChooserActionListener implements ActionListener {
-    private final AbstractFileChooser afc;
-    private final JTextField textField;
-
-    WrappedFileChooserActionListener(AbstractFileChooser afc, JTextField textField) {
-      this.afc = afc;
-      this.textField = textField;
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      WrappedFileChooser wfc = new WrappedFileChooser(ExportPanel.this, afc);
-      String path = textField.getText();
-      if (path != null && path.trim().length() != 0) {
-        wfc.setSelectedFile(new File(path.trim()));
-      }
-      int retVal = wfc.showDialog();
-      if (retVal == JFileChooser.APPROVE_OPTION && wfc.getSelectedFile() != null) {
-        textField.setText(wfc.getSelectedFile().getAbsolutePath());
-        resetExport();
-      }
-      enableExportButton(); // likely disabled...
-    }
-  }
-
-  class FormSelectionListener implements ActionListener {
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      resetExport();
-      enableExportButton();
-    }
-  }
-
-  public class DetailButton extends JButton implements ActionListener {
-
-    private static final long serialVersionUID = -5106358166776020642L;
-
-    private IFormDefinition form;
-    private String dirName;
-    @SuppressWarnings("unused")
-    private ExportType type;
-
-    DetailButton() {
-      super(TAB_NAME + " Details...");
-      this.addActionListener(this);
-    }
-
-    void setContext() {
-      form = ((IFormDefinition) comboBoxForm.getSelectedItem());
-      type = (ExportType) comboBoxExportType.getSelectedItem();
-      File outputDir = new File(txtExportDirectory.getText());
-      dirName = outputDir.getAbsolutePath();
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      final String history = exportStatusList.toString();
-      if (history.length() == 0) {
-        setEnabled(false);
-        return;
-      }
-
-      try {
-        setEnabled(false);
-        ScrollingStatusListDialog.showExportDialog(JOptionPane.getFrameForComponent(this),
-            form, dirName, history);
-      } finally {
-        setEnabled(true);
-      }
-    }
-  }
-
-  /**
-   * Handle click-action for the "Export" button. Extracts the settings from
-   * the UI and invokes the relevant TransferAction to actually do the work.
-   */
-  class ExportActionListener implements ActionListener {
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-
-      String exportDir = txtExportDirectory.getText();
-      if (exportDir == null || exportDir.trim().length() == 0) {
-        ODKOptionPane.showErrorDialog(ExportPanel.this,
-            TAB_NAME + " directory was not specified.",
-            MessageStrings.INVALID_EXPORT_DIRECTORY);
-        return;
-      }
-      File exportDirectory = new File(exportDir.trim());
-      if (!exportDirectory.exists()) {
-        ODKOptionPane.showErrorDialog(ExportPanel.this,
-            MessageStrings.DIR_NOT_EXIST,
-            MessageStrings.INVALID_EXPORT_DIRECTORY);
-        return;
-      }
-      if (!exportDirectory.isDirectory()) {
-        ODKOptionPane.showErrorDialog(ExportPanel.this,
-            MessageStrings.DIR_NOT_DIRECTORY,
-            MessageStrings.INVALID_EXPORT_DIRECTORY);
-        return;
-      }
-      if (FileSystemUtils.isUnderODKFolder(exportDirectory)) {
-        ODKOptionPane.showErrorDialog(ExportPanel.this,
-            MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY,
-            MessageStrings.INVALID_EXPORT_DIRECTORY);
-        return;
-      } else if (isUnderBriefcaseFolder(exportDirectory)) {
-        ODKOptionPane.showErrorDialog(ExportPanel.this,
-            MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
-            MessageStrings.INVALID_EXPORT_DIRECTORY);
-        return;
-      }
-
-      if (comboBoxExportType.getSelectedIndex() == -1 || comboBoxForm.getSelectedIndex() == -1) {
-        return;
-      }
-
-      ExportType exportType = (ExportType) comboBoxExportType.getSelectedItem();
-      BriefcaseFormDefinition lfd = (BriefcaseFormDefinition) comboBoxForm.getSelectedItem();
-
-      File pemFile = null;
-      if (lfd.isFileEncryptedForm() || lfd.isFieldEncryptedForm()) {
-        pemFile = new File(pemPrivateKeyFilePath.getText());
-        if (!pemFile.exists()) {
-          ODKOptionPane.showErrorDialog(ExportPanel.this,
-              "Briefcase action failed: No PrivateKey file for encrypted form",
-              MessageStrings.ERROR_DIALOG_TITLE);
-          return;
-        }
-      }
-
-      Date fromDate = pickStartDate.convert().getDateWithDefaultZone();
-      Date toDate = pickEndDate.convert().getDateWithDefaultZone();
-      if (fromDate != null && toDate != null && fromDate.compareTo(toDate) > 0) {
-        ODKOptionPane.showErrorDialog(ExportPanel.this,
-            MessageStrings.INVALID_DATE_RANGE_MESSAGE,
-            MessageStrings.INVALID_DATE_RANGE_TITLE);
-        return;
-      }
-
-      // OK -- launch background task to do the export
-
-      try {
-        setActiveExportState(true);
-        ExportAction.export(exportDirectory, exportType, lfd, pemFile, terminationFuture, fromDate, toDate);
-      } catch (IOException ex) {
-        ODKOptionPane.showErrorDialog(ExportPanel.this,
-            "Briefcase action failed: " + ex.getMessage(), "Briefcase Action Failed");
-        setActiveExportState(true);
-      }
-    }
-  }
-
-  private void enableExportButton() {
+  void enableExportButton() {
     if (comboBoxForm.getSelectedIndex() == -1) {
       btnPemFileChooseButton.setEnabled(false);
       btnExport.setEnabled(false);
@@ -308,7 +143,7 @@ public class ExportPanel extends JPanel {
     JLabel lblForm = new JLabel("Form:");
     comboBoxForm = new JComboBox<>();
     updateComboBox();
-    comboBoxForm.addActionListener(new FormSelectionListener());
+    comboBoxForm.addActionListener(new FormSelectionListener(this));
 
     JLabel lblExportType = new JLabel(TAB_NAME + " Type:");
     comboBoxExportType = new JComboBox<>(ExportType.values());
@@ -322,7 +157,7 @@ public class ExportPanel extends JPanel {
 
     btnChooseExportDirectory = new JButton("Choose...");
     btnChooseExportDirectory.addActionListener(
-        new WrappedFileChooserActionListener(new ExportFolderChooser(this), txtExportDirectory));
+        new WrappedFileChooserActionListener(this, new ExportFolderChooser(this), txtExportDirectory));
 
     JLabel lblPemPrivateKey = new JLabel("PEM Private Key File:");
 
@@ -333,7 +168,7 @@ public class ExportPanel extends JPanel {
 
     btnPemFileChooseButton = new JButton("Choose...");
     btnPemFileChooseButton.addActionListener(
-        new WrappedFileChooserActionListener(new PrivateKeyFileChooser(this), pemPrivateKeyFilePath));
+        new WrappedFileChooserActionListener(this, new PrivateKeyFileChooser(this), pemPrivateKeyFilePath));
 
     JLabel lblDateFrom = new JLabel("Start Date (inclusive):");
     JLabel lblDateTo = new JLabel("End Date (exclusive):");
@@ -348,11 +183,11 @@ public class ExportPanel extends JPanel {
     progressBar.setVisible(false);
     progressBar.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-    btnDetails = new DetailButton();
+    btnDetails = new DetailButton(this);
     btnDetails.setEnabled(false);
 
     btnExport = new JButton(TAB_NAME);
-    btnExport.addActionListener(new ExportActionListener());
+    btnExport.addActionListener(new ExportActionListener(this));
     btnExport.setEnabled(false);
 
     btnCancel = new JButton("Cancel");
@@ -502,7 +337,7 @@ public class ExportPanel extends JPanel {
     }
   }
 
-  private void setActiveExportState(boolean active) {
+  void setActiveExportState(boolean active) {
     if (active) {
       // don't allow normal actions when we are transferring...
       comboBoxExportType.setEnabled(false);
@@ -541,7 +376,7 @@ public class ExportPanel extends JPanel {
     exportStateActive = active;
   }
 
-  private void resetExport() {
+  void resetExport() {
     exportStatusList.setLength(0);
     lblExporting.setText(" ");
     btnDetails.setEnabled(false);
