@@ -32,6 +32,7 @@ import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_EXIST;
 import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_DATE_RANGE_MESSAGE;
+import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.ui.export.FileChooser.directory;
 import static org.opendatakit.briefcase.ui.export.FileChooser.file;
@@ -134,8 +135,10 @@ public class ExportPanel extends JPanel {
 
     pickStartDate = createDatePicker();
     pickStartDate.addDateChangeListener(__ -> enableExportButton());
+    pickStartDate.addDateChangeListener(__ -> validateDate(pickStartDate));
     pickEndDate = createDatePicker();
     pickEndDate.addDateChangeListener(__ -> enableExportButton());
+    pickEndDate.addDateChangeListener(__ -> validateDate(pickEndDate));
 
     tableModel = new FormExportTableModel();
     tableModel.onSelectionChange(this::enableExportButton);
@@ -283,6 +286,15 @@ public class ExportPanel extends JPanel {
     return Optional.ofNullable(textField.getText())
         .filter(StringUtils::nullOrEmpty)
         .map(path -> Paths.get(path).toFile());
+  }
+
+  private void validateDate(DatePicker targetDatePicker) {
+    Date fromDate = pickStartDate.convert().getDateWithDefaultZone();
+    Date toDate = pickEndDate.convert().getDateWithDefaultZone();
+    if (fromDate != null && toDate != null && fromDate.compareTo(toDate) >= 0) {
+      showErrorDialog(this, INVALID_DATE_RANGE_MESSAGE, "Export configuration error");
+      targetDatePicker.clear();
+    }
   }
 
   /**
