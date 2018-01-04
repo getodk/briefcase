@@ -142,10 +142,15 @@ public class ExportPanel extends JPanel {
 
     tableModel = new FormExportTableModel();
     tableModel.onSelectionChange(this::enableExportButton);
+    tableModel.onSelectionChange(this::updateSelectAllButton);
+    tableModel.onSelectionChange(this::updateClearAllButton);
 
     btnSelectAll = new JButton("Select all");
+    btnSelectAll.addMouseListener(new MouseListenerBuilder().onClick(__ -> tableModel.checkAll()).build());
 
     btnClearAll = new JButton("Clear all");
+    btnClearAll.setVisible(false);
+    btnClearAll.addMouseListener(new MouseListenerBuilder().onClick(__ -> tableModel.uncheckAll()).build());
 
     JLabel lblFormsToTransfer = new JLabel("Forms to export:");
 
@@ -267,6 +272,14 @@ public class ExportPanel extends JPanel {
 
   void enableExportButton() {
     btnExport.setEnabled(getErrors().isEmpty());
+  }
+
+  private void updateClearAllButton() {
+    btnClearAll.setVisible(!tableModel.noneSelected());
+  }
+
+  private void updateSelectAllButton() {
+    btnSelectAll.setVisible(!tableModel.allSelected());
   }
 
   public void updateForms() {
