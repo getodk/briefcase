@@ -18,13 +18,18 @@ package org.opendatakit.briefcase.model;
 
 public class ExportProgressEvent {
   private final String text;
+  private final BriefcaseFormDefinition formDefinition;
 
-  public ExportProgressEvent(String text) {
+  public ExportProgressEvent(String text, BriefcaseFormDefinition formDefinition) {
     this.text = text;
+    this.formDefinition = formDefinition;
   }
 
   public String getText() {
     return text;
   }
 
+  public BriefcaseFormDefinition getFormDefinition() {
+    return formDefinition;
+  }
 }

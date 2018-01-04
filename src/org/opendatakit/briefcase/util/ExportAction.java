@@ -136,7 +136,7 @@ public class ExportAction {
         }
       }
       if ( !success ) {
-        EventBus.publish(new ExportProgressEvent(errorMsg));
+        EventBus.publish(new ExportProgressEvent(errorMsg, lfd));
         EventBus.publish(new ExportFailedEvent(lfd));
         return;
       }

@@ -141,7 +141,7 @@ public class Export {
         }
       }
       if (!success) {
-        EventBus.publish(new ExportProgressEvent(errorMsg));
+        EventBus.publish(new ExportProgressEvent(errorMsg, formDefinition));
         EventBus.publish(new ExportFailedEvent(formDefinition));
         return;
       }

@@ -18,11 +18,13 @@ package org.opendatakit.briefcase.model;
 
 
 public class ExportSucceededEvent {
+  private BriefcaseFormDefinition formDefinition;
 
-  @SuppressWarnings("unused")
-  private BriefcaseFormDefinition form;
+  public ExportSucceededEvent(BriefcaseFormDefinition formDefinition) {
+    this.formDefinition = formDefinition;
+  }
 
-  public ExportSucceededEvent(BriefcaseFormDefinition form) {
-    this.form = form;
+  public BriefcaseFormDefinition getFormDefinition() {
+    return formDefinition;
   }
 }

@@ -12,8 +12,14 @@ import java.util.stream.Collectors;
 import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.ExportFailedEvent;
+import org.opendatakit.briefcase.model.ExportProgressEvent;
+import org.opendatakit.briefcase.model.ExportSucceededEvent;
+import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatusEvent;
 
 class FormExportTableModel extends AbstractTableModel {
   private static final long serialVersionUID = 7108326237416622721L;
@@ -162,6 +168,46 @@ class FormExportTableModel extends AbstractTableModel {
       default:
         throw new IllegalStateException("unexpected column choice");
     }
+  }
+
+  @EventSubscriber(eventClass = FormStatusEvent.class)
+  public void onFormStatusEvent(FormStatusEvent event) {
+    findRow(event.getStatus()).ifPresent(row -> {
+      forms.get(row).setStatusString(event.getStatusString(), false);
+      fireTableRowsUpdated(row, row);
+    });
+  }
+
+  @EventSubscriber(eventClass = ExportProgressEvent.class)
+  public void onExportProgressEvent(ExportProgressEvent event) {
+    findRow(event.getFormDefinition()).ifPresent(row -> {
+      forms.get(row).setStatusString(event.getText(), false);
+      fireTableRowsUpdated(row, row);
+    });
+  }
+
+  @EventSubscriber(eventClass = ExportFailedEvent.class)
+  public void onExportFailedEvent(ExportFailedEvent event) {
+    findRow(event.getFormDefinition()).ifPresent(row -> {
+      forms.get(row).setStatusString("Failed.", false);
+      fireTableRowsUpdated(row, row);
+    });
+  }
+
+  @EventSubscriber(eventClass = ExportSucceededEvent.class)
+  public void onExportSucceededEvent(ExportSucceededEvent event) {
+    findRow(event.getFormDefinition()).ifPresent(row -> {
+      forms.get(row).setStatusString("Succeeded.", true);
+      fireTableRowsUpdated(row, row);
+    });
+  }
+
+  @EventSubscriber(eventClass = ExportSucceededWithErrorsEvent.class)
+  public void onExportSucceededWithErrorsEvent(ExportSucceededWithErrorsEvent event) {
+    findRow(event.getFormDefinition()).ifPresent(row -> {
+      forms.get(row).setStatusString("Succeeded, but with errors.", true);
+      fireTableRowsUpdated(row, row);
+    });
   }
 
 }

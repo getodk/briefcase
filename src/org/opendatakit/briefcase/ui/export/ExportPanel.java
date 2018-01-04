@@ -419,42 +419,4 @@ public class ExportPanel extends JPanel {
       }
     return errors;
   }
-
-  @EventSubscriber(eventClass = ExportProgressEvent.class)
-  public void progress(ExportProgressEvent event) {
-  }
-
-  @EventSubscriber(eventClass = ExportProgressPercentageEvent.class)
-  public void progressBar(ExportProgressPercentageEvent event) {
-  }
-
-  @EventSubscriber(eventClass = ExportFailedEvent.class)
-  public void failedCompletion(ExportFailedEvent event) {
-    setActiveExportState(false);
-  }
-
-  @EventSubscriber(eventClass = ExportSucceededEvent.class)
-  public void successfulCompletion(ExportSucceededEvent event) {
-    setActiveExportState(false);
-  }
-
-  @EventSubscriber(eventClass = ExportSucceededWithErrorsEvent.class)
-  public void successfulCompletionWithErrors(ExportSucceededWithErrorsEvent event) {
-    setActiveExportState(false);
-  }
-
-  @EventSubscriber(eventClass = TransferFailedEvent.class)
-  public void failedTransferCompletion(TransferFailedEvent event) {
-
-  }
-
-  @EventSubscriber(eventClass = TransferSucceededEvent.class)
-  public void successfulTransferCompletion(TransferSucceededEvent event) {
-
-  }
-
-  @EventSubscriber(eventClass = UpdatedBriefcaseFormDefinitionEvent.class)
-  public void briefcaseFormListChanges(UpdatedBriefcaseFormDefinitionEvent event) {
-
-  }
 }
