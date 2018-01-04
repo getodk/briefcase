@@ -17,6 +17,8 @@
 package org.opendatakit.briefcase.ui.export;
 
 import static java.lang.Short.MAX_VALUE;
+import static java.nio.file.Files.exists;
+import static java.nio.file.Files.isDirectory;
 import static java.util.stream.Collectors.toList;
 import static javax.swing.GroupLayout.Alignment.BASELINE;
 import static javax.swing.GroupLayout.Alignment.LEADING;
@@ -25,6 +27,11 @@ import static javax.swing.GroupLayout.DEFAULT_SIZE;
 import static javax.swing.GroupLayout.PREFERRED_SIZE;
 import static javax.swing.LayoutStyle.ComponentPlacement.RELATED;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
+import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE;
+import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY;
+import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_DIRECTORY;
+import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_EXIST;
+import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_DATE_RANGE_MESSAGE;
 import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.ui.export.FileChooser.directory;
 import static org.opendatakit.briefcase.ui.export.FileChooser.file;
@@ -33,7 +40,11 @@ import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 import com.github.lgooddatepicker.components.DatePicker;
 import java.awt.Component;
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -84,29 +95,6 @@ public class ExportPanel extends JPanel {
 
   final TerminationFuture terminationFuture;
 
-  void enableExportButton() {
-    String exportDir = txtExportDirectory.getText();
-    if (exportDir == null || exportDir.trim().length() == 0) {
-      btnExport.setEnabled(false);
-      return;
-    }
-
-    boolean enabled = true;
-    File exportDirectory = new File(exportDir.trim());
-    if (!exportDirectory.exists()) {
-      enabled = false;
-    }
-    if (!exportDirectory.isDirectory()) {
-      enabled = false;
-    }
-    if (FileSystemUtils.isUnderODKFolder(exportDirectory)) {
-      enabled = false;
-    } else if (isUnderBriefcaseFolder(exportDirectory)) {
-      enabled = false;
-    }
-    btnExport.setEnabled(enabled);
-  }
-
   public ExportPanel(TerminationFuture terminationFuture) {
     super();
     AnnotationProcessor.process(this);// if not using AOP
@@ -145,9 +133,12 @@ public class ExportPanel extends JPanel {
     JLabel lblDateTo = new JLabel("End Date (exclusive):");
 
     pickStartDate = createDatePicker();
+    pickStartDate.addDateChangeListener(__ -> enableExportButton());
     pickEndDate = createDatePicker();
+    pickEndDate.addDateChangeListener(__ -> enableExportButton());
 
     tableModel = new FormExportTableModel();
+    tableModel.onSelectionChange(this::enableExportButton);
 
     btnSelectAll = new JButton("Select all");
 
@@ -235,6 +226,46 @@ public class ExportPanel extends JPanel {
     setActiveExportState(exportStateActive);
   }
 
+  private List<String> getErrors() {
+    List<String> errors = new ArrayList<>();
+
+    String exportDirText = txtExportDirectory.getText().trim();
+    Path exportDir = Paths.get(exportDirText);
+
+    if (StringUtils.nullOrEmpty(exportDirText))
+      errors.add("Export directory was not specified.");
+
+    if (StringUtils.notEmpty(exportDirText) && !exists(exportDir))
+      errors.add(DIR_NOT_EXIST);
+
+    if (StringUtils.notEmpty(exportDirText) && exists(exportDir) && !isDirectory(exportDir))
+      errors.add(DIR_NOT_DIRECTORY);
+
+    if (exists(exportDir) && isDirectory(exportDir) && isUnderODKFolder(exportDir.toFile()))
+      errors.add(DIR_INSIDE_ODK_DEVICE_DIRECTORY);
+
+    if (exists(exportDir) && isDirectory(exportDir) && isUnderBriefcaseFolder(exportDir.toFile()))
+      errors.add(DIR_INSIDE_BRIEFCASE_STORAGE);
+
+    Date fromDate = pickStartDate.convert().getDateWithDefaultZone();
+    Date toDate = pickEndDate.convert().getDateWithDefaultZone();
+    if (fromDate != null && toDate == null)
+      errors.add("Missing date range end definition");
+    if (fromDate == null && toDate != null)
+      errors.add("Missing date range start definition");
+    if (fromDate != null && toDate != null && fromDate.compareTo(toDate) >= 0)
+      errors.add(INVALID_DATE_RANGE_MESSAGE);
+
+    if (tableModel.noneSelected())
+      errors.add("No form has been selected");
+
+    return errors;
+  }
+
+  void enableExportButton() {
+    btnExport.setEnabled(getErrors().isEmpty());
+  }
+
   public void updateForms() {
     tableModel.setForms(FileSystemUtils.getBriefcaseFormList().stream()
         .map(formDefinition -> new FormStatus(EXPORT, formDefinition))
@@ -250,7 +281,7 @@ public class ExportPanel extends JPanel {
 
   private Optional<File> fileFrom(JTextField textField) {
     return Optional.ofNullable(textField.getText())
-        .filter(StringUtils::isNotEmptyNotNull)
+        .filter(StringUtils::nullOrEmpty)
         .map(path -> Paths.get(path).toFile());
   }
 
