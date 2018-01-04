@@ -366,11 +366,17 @@ public class ExportPanel extends JPanel {
       // don't allow normal actions when we are transferring...
       btnChooseExportDirectory.setEnabled(false);
       btnPemFileChooseButton.setEnabled(false);
+      pickStartDate.setEnabled(false);
+      pickEndDate.setEnabled(false);
       btnExport.setEnabled(false);
       // reset the termination future so we can cancel activity
       terminationFuture.reset();
     } else {
       btnChooseExportDirectory.setEnabled(true);
+      btnPemFileChooseButton.setEnabled(true);
+      pickStartDate.setEnabled(true);
+      pickEndDate.setEnabled(true);
+      btnExport.setEnabled(true);
       // touch-up with real state...
       enableExportButton();
       // retain progress text (to display last export outcome)
