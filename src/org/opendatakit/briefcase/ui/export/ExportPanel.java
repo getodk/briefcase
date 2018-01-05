@@ -58,9 +58,11 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.RetrieveAvailableFormsSucceededEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.util.ExportAction;
 import org.opendatakit.briefcase.util.FileSystemUtils;
@@ -416,5 +418,10 @@ public class ExportPanel extends JPanel {
         errors.add("Export of form " + formDefinition.getFormName() + " has failed: " + ex.getMessage());
       }
     return errors;
+  }
+
+  @EventSubscriber(eventClass = RetrieveAvailableFormsSucceededEvent.class)
+  public void onRetrieveAvailableFormsSucceededEvent(RetrieveAvailableFormsSucceededEvent event) {
+    updateForms();
   }
 }
