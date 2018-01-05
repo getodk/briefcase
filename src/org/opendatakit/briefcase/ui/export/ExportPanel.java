@@ -62,8 +62,8 @@ import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.RetrieveAvailableFormsSucceededEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.util.ExportAction;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.StringUtils;
@@ -420,8 +420,8 @@ public class ExportPanel extends JPanel {
     return errors;
   }
 
-  @EventSubscriber(eventClass = RetrieveAvailableFormsSucceededEvent.class)
-  public void onRetrieveAvailableFormsSucceededEvent(RetrieveAvailableFormsSucceededEvent event) {
+  @EventSubscriber(eventClass = TransferSucceededEvent.class)
+  public void onTransferSucceededEvent(TransferSucceededEvent event) {
     updateForms();
   }
 }
