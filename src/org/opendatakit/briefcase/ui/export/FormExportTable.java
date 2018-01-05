@@ -21,6 +21,7 @@ import static org.opendatakit.briefcase.ui.export.FormExportTableModel.DETAIL_BU
 import static org.opendatakit.briefcase.ui.export.FormExportTableModel.FORM_NAME_COL;
 import static org.opendatakit.briefcase.ui.export.FormExportTableModel.HEADERS;
 import static org.opendatakit.briefcase.ui.export.FormExportTableModel.SELECTED_CHECKBOX_COL;
+import static org.opendatakit.briefcase.ui.export.FormExportTableModel.buildDetailButton;
 
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
@@ -48,7 +49,7 @@ class FormExportTable extends JTable {
         .getDefaultRenderer()
         .getTableCellRendererComponent(null, HEADERS[SELECTED_CHECKBOX_COL], false, false, 0, 0)
         .getPreferredSize();
-    Dimension buttonDims = new JButton(HEADERS[DETAIL_BUTTON_COL] + "...").getPreferredSize();
+    Dimension buttonDims = buildDetailButton(null).getPreferredSize();
 
     setRowHeight(buttonDims.height);
 

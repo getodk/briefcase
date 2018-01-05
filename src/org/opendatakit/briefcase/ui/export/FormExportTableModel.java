@@ -85,16 +85,19 @@ class FormExportTableModel extends AbstractTableModel {
     return Optional.empty();
   }
 
-  private static JButton buildDetailButton(FormStatus form) {
-    JButton button = new JButton(HEADERS[3]);
-    button.addActionListener(__ -> {
-      button.setEnabled(false);
-      try {
-        showDialog(getFrameForComponent(button), form.getFormDefinition(), form.getStatusHistory());
-      } finally {
-        button.setEnabled(true);
-      }
-    });
+  static JButton buildDetailButton(FormStatus form) {
+    JButton button = new JButton("Details...");
+    // Ugly hack to be able to use this factory in FormExportTable to compute its Dimension
+    if (form != null) {
+      button.addActionListener(__ -> {
+        button.setEnabled(false);
+        try {
+          showDialog(getFrameForComponent(button), form.getFormDefinition(), form.getStatusHistory());
+        } finally {
+          button.setEnabled(true);
+        }
+      });
+    }
     return button;
   }
 
