@@ -48,6 +48,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
+import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
 public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeListener {
@@ -190,7 +191,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
                 "" : briefcaseDirectory + File.separator + StorageLocation.BRIEFCASE_DIR);
 
         if (enabled) {
-            exportPanel.updateComboBox();
+            exportPanel.updateForms();
             uploadPanel.updateFormStatuses();
         }
 
