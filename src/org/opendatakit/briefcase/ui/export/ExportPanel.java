@@ -290,7 +290,7 @@ public class ExportPanel extends JPanel {
   }
 
   private void updateClearAllButton() {
-    btnClearAll.setVisible(!tableModel.noneSelected());
+    btnClearAll.setVisible(tableModel.allSelected());
   }
 
   private void updateSelectAllButton() {
