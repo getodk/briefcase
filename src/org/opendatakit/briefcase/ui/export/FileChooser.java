@@ -55,6 +55,14 @@ interface FileChooser {
     return fileChooser;
   }
 
+  /**
+   * Though the Mac-specific file chooser is very nice, it no longer functions on Oracle's Java 7.
+   * The issue is that the "apple.awt.fileDialogForDirectories" property is no longer supported in
+   * Java 7. See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7161437, where the issue is
+   * marked as resolved, but they seem only to have fixed it in JDK 8.
+   *
+   * @return true if Briefcase is running on Java7 on a Mac host
+   */
   static boolean isAWTRequired() {
     String javaVersion = System.getProperty("java.version");
     return (!((javaVersion.compareTo("1.7") >= 0) && javaVersion.compareTo("1.8") < 0)) && isMac();
