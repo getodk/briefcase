@@ -60,6 +60,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -71,6 +72,7 @@ import org.opendatakit.briefcase.util.StringUtils;
 public class ExportPanel extends JPanel {
 
   private static final long serialVersionUID = 7169316129011796197L;
+  private static final BriefcasePreferences PREFERENCES = BriefcasePreferences.forClass(ExportPanel.class);
 
   public static final String TAB_NAME = "Export";
 
@@ -106,6 +108,7 @@ public class ExportPanel extends JPanel {
     txtExportDirectory.setFocusable(false);
     txtExportDirectory.setEditable(false);
     txtExportDirectory.setColumns(10);
+    txtExportDirectory.setText(PREFERENCES.get("export_dir", ""));
 
     btnChooseExportDirectory = new JButton("Choose...");
     btnChooseExportDirectory.addActionListener(__ -> chooseLocation(directory(
@@ -113,7 +116,7 @@ public class ExportPanel extends JPanel {
         fileFrom(txtExportDirectory),
         f -> f.exists() && f.isDirectory() && !isUnderBriefcaseFolder(f) && !isUnderODKFolder(f),
         "Exclude Briefcase & ODK directories"
-    ), txtExportDirectory));
+    ), txtExportDirectory, "export_dir"));
 
     JLabel lblPemPrivateKey = new JLabel("PEM Private Key File:");
 
@@ -121,12 +124,13 @@ public class ExportPanel extends JPanel {
     pemPrivateKeyFilePath.setFocusable(false);
     pemPrivateKeyFilePath.setEditable(false);
     pemPrivateKeyFilePath.setColumns(10);
+    pemPrivateKeyFilePath.setText(PREFERENCES.get("pem_file", ""));
 
     btnPemFileChooseButton = new JButton("Choose...");
     btnPemFileChooseButton.addActionListener(__ -> chooseLocation(file(
         this,
         fileFrom(pemPrivateKeyFilePath)
-    ), pemPrivateKeyFilePath));
+    ), pemPrivateKeyFilePath, "pem_file"));
 
     JLabel lblDateFrom = new JLabel("Start Date (inclusive):");
     JLabel lblDateTo = new JLabel("End Date (exclusive):");
@@ -305,10 +309,11 @@ public class ExportPanel extends JPanel {
         .collect(toList()));
   }
 
-  private void chooseLocation(FileChooser fileChooser, JTextField locationField) {
+  private void chooseLocation(FileChooser fileChooser, JTextField locationField, String preferenceKey) {
     fileChooser.choose().ifPresent(file -> {
       locationField.setText(file.getAbsolutePath());
       updateExportButton();
+      PREFERENCES.put(preferenceKey, file.getAbsolutePath());
     });
   }
 
