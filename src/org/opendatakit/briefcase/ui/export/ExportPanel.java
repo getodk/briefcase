@@ -111,12 +111,11 @@ public class ExportPanel extends JPanel {
     txtExportDirectory.setText(PREFERENCES.get("export_dir", ""));
 
     btnChooseExportDirectory = new JButton("Choose...");
-    btnChooseExportDirectory.addActionListener(__ -> chooseLocation(directory(
-        this,
-        fileFrom(txtExportDirectory),
-        f -> f.exists() && f.isDirectory() && !isUnderBriefcaseFolder(f) && !isUnderODKFolder(f),
-        "Exclude Briefcase & ODK directories"
-    ), txtExportDirectory, "export_dir"));
+    btnChooseExportDirectory.addActionListener(__ -> getExportDirectoryChooser().choose().ifPresent(file -> {
+      txtExportDirectory.setText(file.getAbsolutePath());
+      updateExportButton();
+      PREFERENCES.put("export_dir", file.getAbsolutePath());
+    }));
 
     JLabel lblPemPrivateKey = new JLabel("PEM Private Key File:");
 
@@ -127,10 +126,11 @@ public class ExportPanel extends JPanel {
     pemPrivateKeyFilePath.setText(PREFERENCES.get("pem_file", ""));
 
     btnPemFileChooseButton = new JButton("Choose...");
-    btnPemFileChooseButton.addActionListener(__ -> chooseLocation(file(
-        this,
-        fileFrom(pemPrivateKeyFilePath)
-    ), pemPrivateKeyFilePath, "pem_file"));
+    btnPemFileChooseButton.addActionListener(__ -> getPemFileChooser().choose().ifPresent(file -> {
+      pemPrivateKeyFilePath.setText(file.getAbsolutePath());
+      updateExportButton();
+      PREFERENCES.put("pem_file", file.getAbsolutePath());
+    }));
 
     JLabel lblDateFrom = new JLabel("Start Date (inclusive):");
     JLabel lblDateTo = new JLabel("End Date (exclusive):");
@@ -253,6 +253,22 @@ public class ExportPanel extends JPanel {
     setLayout(groupLayout);
     updateForms();
     setActiveExportState(exportStateActive);
+  }
+
+  private FileChooser getExportDirectoryChooser() {
+    return directory(
+        this,
+        fileFrom(txtExportDirectory),
+        f -> f.exists() && f.isDirectory() && !isUnderBriefcaseFolder(f) && !isUnderODKFolder(f),
+        "Exclude Briefcase & ODK directories"
+    );
+  }
+
+  private FileChooser getPemFileChooser() {
+    return file(
+        this,
+        fileFrom(pemPrivateKeyFilePath)
+    );
   }
 
   private List<String> getErrors() {
