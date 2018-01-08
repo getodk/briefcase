@@ -74,7 +74,7 @@ public class ExportPanel extends JPanel {
 
   public static final String TAB_NAME = "Export";
 
-  private final JTextField txtExportDirectory;
+  final JTextField txtExportDirectory;
   private final JButton btnChooseExportDirectory;
 
   private final JTextField pemPrivateKeyFilePath;
@@ -152,10 +152,13 @@ public class ExportPanel extends JPanel {
 
     JLabel lblFormsToTransfer = new JLabel("Forms to export:");
 
-    JScrollPane scrollPane = new JScrollPane(new FormExportTable(tableModel));
+    FormExportTable formTable = new FormExportTable(tableModel);
+    formTable.setName("forms");
+    JScrollPane scrollPane = new JScrollPane(formTable);
     JSeparator separatorFormsList = new JSeparator();
 
     btnExport = new JButton("Export");
+    btnExport.setName("export");
     btnExport.setEnabled(false);
     btnExport.addActionListener(__ -> {
       List<String> configurationErrors = getErrors();
