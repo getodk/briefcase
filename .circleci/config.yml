@@ -4,15 +4,16 @@ jobs:
     working_directory: ~/src
     docker:
       - image: circleci/openjdk:latest
+    environment:
+      - DISPLAY: :99.0
     steps:
       - checkout
-      - restore_cache:
-          key: jars-{{ checksum "build.gradle" }}
       - run:
           name: Set up windowing environment
-          command: |
-            export DISPLAY=:99.0
-            Xvfb :99 -screen 0 1024x768x24 >/dev/null 2>&1 &
+          command: Xvfb :99 -screen 0 1024x768x24 >/dev/null 2>&1
+          background: true
+      - restore_cache:
+          key: jars-{{ checksum "build.gradle" }}
       - run: ./gradlew check test jar
       - save_cache:
           paths:
