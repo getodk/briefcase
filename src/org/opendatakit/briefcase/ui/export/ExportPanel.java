@@ -38,6 +38,7 @@ import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolde
 import static org.opendatakit.briefcase.ui.export.FileChooser.directory;
 import static org.opendatakit.briefcase.ui.export.FileChooser.file;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
+import static org.threeten.bp.format.DateTimeFormatter.ISO_DATE;
 
 import com.github.lgooddatepicker.components.DatePicker;
 import java.awt.Component;
@@ -68,11 +69,16 @@ import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.util.ExportAction;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.StringUtils;
+import org.threeten.bp.LocalDate;
 
 public class ExportPanel extends JPanel {
 
   private static final long serialVersionUID = 7169316129011796197L;
   private static final BriefcasePreferences PREFERENCES = BriefcasePreferences.forClass(ExportPanel.class);
+  private static final String EXPORT_DIR_PREF = "exportDir";
+  private static final String PEM_FILE_PREF = "pemFile";
+  private static final String EXPORT_START_DATE_PREF = "exportStartDate";
+  private static final String EXPORT_END_DATE_PREF = "exportEndDate";
 
   public static final String TAB_NAME = "Export";
 
@@ -108,13 +114,13 @@ public class ExportPanel extends JPanel {
     txtExportDirectory.setFocusable(false);
     txtExportDirectory.setEditable(false);
     txtExportDirectory.setColumns(10);
-    txtExportDirectory.setText(PREFERENCES.get("export_dir", ""));
+    txtExportDirectory.setText(PREFERENCES.get(EXPORT_DIR_PREF, ""));
 
     btnChooseExportDirectory = new JButton("Choose...");
     btnChooseExportDirectory.addActionListener(__ -> getExportDirectoryChooser().choose().ifPresent(file -> {
       txtExportDirectory.setText(file.getAbsolutePath());
       updateExportButton();
-      PREFERENCES.put("export_dir", file.getAbsolutePath());
+      PREFERENCES.put(EXPORT_DIR_PREF, file.getAbsolutePath());
     }));
 
     JLabel lblPemPrivateKey = new JLabel("PEM Private Key File:");
@@ -123,24 +129,28 @@ public class ExportPanel extends JPanel {
     pemPrivateKeyFilePath.setFocusable(false);
     pemPrivateKeyFilePath.setEditable(false);
     pemPrivateKeyFilePath.setColumns(10);
-    pemPrivateKeyFilePath.setText(PREFERENCES.get("pem_file", ""));
+    pemPrivateKeyFilePath.setText(PREFERENCES.get(PEM_FILE_PREF, ""));
 
     btnPemFileChooseButton = new JButton("Choose...");
     btnPemFileChooseButton.addActionListener(__ -> getPemFileChooser().choose().ifPresent(file -> {
       pemPrivateKeyFilePath.setText(file.getAbsolutePath());
       updateExportButton();
-      PREFERENCES.put("pem_file", file.getAbsolutePath());
+      PREFERENCES.put(PEM_FILE_PREF, file.getAbsolutePath());
     }));
 
     JLabel lblDateFrom = new JLabel("Start Date (inclusive):");
     JLabel lblDateTo = new JLabel("End Date (exclusive):");
 
     pickStartDate = createDatePicker();
+    pickStartDate.setDate(PREFERENCES.get(EXPORT_START_DATE_PREF, LocalDate::parse, null));
     pickStartDate.addDateChangeListener(__ -> updateExportButton());
     pickStartDate.addDateChangeListener(__ -> validateDate(pickStartDate));
+    pickStartDate.addDateChangeListener(event -> PREFERENCES.put(EXPORT_START_DATE_PREF, Optional.ofNullable(event.getNewDate()).map(ld -> ld.format(ISO_DATE)).orElse(null)));
     pickEndDate = createDatePicker();
+    pickEndDate.setDate(PREFERENCES.get(EXPORT_END_DATE_PREF, LocalDate::parse, null));
     pickEndDate.addDateChangeListener(__ -> updateExportButton());
     pickEndDate.addDateChangeListener(__ -> validateDate(pickEndDate));
+    pickEndDate.addDateChangeListener(event -> PREFERENCES.put(EXPORT_END_DATE_PREF, Optional.ofNullable(event.getNewDate()).map(ld -> ld.format(ISO_DATE)).orElse(null)));
 
     tableModel = new FormExportTableModel();
     tableModel.onSelectionChange(this::updateExportButton);
