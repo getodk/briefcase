@@ -35,4 +35,8 @@ public class StringUtils {
     public static boolean nullOrEmpty(String text) {
         return text == null || text.trim().length() == 0;
     }
+
+    public static String stripIllegalChars(String text) {
+        return text == null ? null : text.replaceAll("\\p{Punct}", "_").replaceAll("\\p{Space}", " ");
+    }
 }

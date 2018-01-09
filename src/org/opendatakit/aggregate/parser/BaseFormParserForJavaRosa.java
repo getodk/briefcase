@@ -53,8 +53,8 @@ import org.opendatakit.aggregate.exception.ODKIncompleteSubmissionData;
 import org.opendatakit.aggregate.exception.ODKIncompleteSubmissionData.Reason;
 import org.opendatakit.aggregate.form.XFormParameters;
 import org.opendatakit.briefcase.ui.StorageLocation;
+import org.opendatakit.briefcase.util.StringUtils;
 import org.opendatakit.common.utils.WebUtils;
-import org.opendatakit.common.web.constants.BasicConsts;
 
 /**
  * Parses an XML definition of an XForm based on java rosa types
@@ -672,7 +672,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
       }
     }
     // clean illegal characters from title
-    title = formTitle.replace(BasicConsts.FORWARDSLASH, BasicConsts.EMPTY_STRING);
+    title = StringUtils.stripIllegalChars(formTitle);
   }
 
   @SuppressWarnings("unused")
