@@ -81,13 +81,18 @@ public class BriefcasePreferences {
      * Associates the specified value with the specified key in this preference
      * node.
      *
+     * If the value is null, then the key is removed
+     *
      * @param key
      *          key with which the specified value is to be associated.
      * @param value
-     *          value to be associated with the specified key.
+     *          value to be associated with the specified key or null.
      */
     public void put(String key, String value) {
-        preferences.put(key, value);
+        if (value != null)
+            preferences.put(key, value);
+        else
+            remove(key);
     }
 
     /**
