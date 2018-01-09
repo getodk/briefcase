@@ -731,7 +731,7 @@ public class ExportToCsv implements ITransformFormAction {
   }
 
   private String safeFilename(String name) {
-    return name.replaceAll("\\p{Punct}", "_").replace("\\p{Space}", " ");
+    return StringUtils.stripIllegalChars(name);
   }
 
   private boolean processFormDefinition() {
