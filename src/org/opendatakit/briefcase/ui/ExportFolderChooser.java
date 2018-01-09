@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.ui;
 
+import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
+
 import java.awt.Container;
 import java.io.File;
 
@@ -24,14 +26,12 @@ import javax.swing.filechooser.FileFilter;
 
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
-import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
-
 /**
  * Class that ensures that a non-briefcase directory is chosen
  * @author mitchellsundt@gmail.com
  *
  */
-class ExportFolderChooser extends AbstractFileChooser {
+public class ExportFolderChooser extends AbstractFileChooser {
 
   /**
      *

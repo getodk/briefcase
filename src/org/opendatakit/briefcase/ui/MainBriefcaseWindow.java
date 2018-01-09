@@ -16,6 +16,23 @@
 
 package org.opendatakit.briefcase.ui;
 
+import java.awt.Component;
+import java.awt.EventQueue;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JTabbedPane;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -31,23 +48,8 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
+import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.FileSystemUtils;
-
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JTabbedPane;
-import javax.swing.UIManager;
-import javax.swing.WindowConstants;
-import java.awt.Component;
-import java.awt.EventQueue;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.Map;
 
 public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeListener {
     private static final String APP_NAME = "ODK Briefcase";
@@ -96,16 +98,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
     if (args.length == 0) {
 
-            EventQueue.invokeLater(new Runnable() {
-                public void run() {
-                    try {
-                        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                        MainBriefcaseWindow window = new MainBriefcaseWindow();
-                    } catch (Exception e) {
-                        log.error("failed to launch app", e);
-                    }
-                }
-            });
+            launchGUI();
         } else {
             Options options = addOptions();
             CommandLineParser parser = new DefaultParser();
@@ -178,6 +171,19 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         }
     }
 
+    public static void launchGUI() {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                    MainBriefcaseWindow window = new MainBriefcaseWindow();
+                } catch (Exception e) {
+                    log.error("failed to launch app", e);
+                }
+            }
+        });
+    }
+
     @Override
     public void setFullUIEnabled(boolean enabled) {
         final String briefcaseDirectory = BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull();
@@ -185,7 +191,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
                 "" : briefcaseDirectory + File.separator + StorageLocation.BRIEFCASE_DIR);
 
         if (enabled) {
-            exportPanel.updateComboBox();
+            exportPanel.updateForms();
             uploadPanel.updateFormStatuses();
         }
 

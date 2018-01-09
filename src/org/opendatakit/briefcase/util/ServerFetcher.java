@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.util;
 
+import static org.opendatakit.briefcase.util.WebUtils.MAX_CONNECTIONS_PER_ROUTE;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -53,8 +55,6 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
-
-import static org.opendatakit.briefcase.util.WebUtils.MAX_CONNECTIONS_PER_ROUTE;
 
 public class ServerFetcher {
 
@@ -282,14 +282,16 @@ public class ServerFetcher {
 
   private boolean downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd,
                                                 FormStatus fs) {
-    int submissionCount = 1, chunkCount = 1;
+    int submissionCount = 1;
+    int chunkCount = 1;
     boolean allSuccessful = true;
     RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
     ExecutorService execSvc = getFetchExecutorService();
     CompletionService<SubmissionChunk> chunkCompleter = new ExecutorCompletionService<>(execSvc);
     CompletionService<String> submissionCompleter = new ExecutorCompletionService<>(execSvc);
 
-    String oldWebsafeCursorString, websafeCursorString = "";
+    String oldWebsafeCursorString;
+    String websafeCursorString = "";
 
     chunkCompleter.submit(new SubmissionChunkDownload(fs, fd.getFormId(), websafeCursorString));
 
@@ -500,15 +502,11 @@ public class ServerFetcher {
       fo.write(submissionManifest.submissionXml);
       fo.close();
 
-      // if we get here and it was a legacy server (0.9.x), we don't
-      // actually know whether the submission was complete.  Otherwise,
       // if we get here, we know that this is a completed submission
       // (because it was in /view/submissionList) and that we safely
       // copied it into the storage area (because we didn't get any
       // exceptions).
-      if ( serverInfo.isOpenRosaServer() ) {
-        formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
-      }
+      formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
     } else {
       // create instance directory...
       File instanceDir = FileSystemUtils.assertFormSubmissionDirectory(formInstancesDir,
@@ -525,15 +523,11 @@ public class ServerFetcher {
       fo.write(submissionManifest.submissionXml);
       fo.close();
 
-      // if we get here and it was a legacy server (0.9.x), we don't
-      // actually know whether the submission was complete.  Otherwise,
       // if we get here, we know that this is a completed submission
       // (because it was in /view/submissionList) and that we safely
       // copied it into the storage area (because we didn't get any
       // exceptions).
-      if ( serverInfo.isOpenRosaServer() ) {
-        formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
-      }
+      formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
     }
 
   }

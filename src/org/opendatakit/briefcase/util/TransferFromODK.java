@@ -27,13 +27,13 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.EventBus;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
-import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.ParsingException;
+import org.opendatakit.briefcase.model.TerminationFuture;
 
 public class TransferFromODK implements ITransferFromSourceAction {
 

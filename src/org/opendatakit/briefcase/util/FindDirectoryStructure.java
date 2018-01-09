@@ -16,13 +16,13 @@
 
 package org.opendatakit.briefcase.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Originally written by Dylan.  Determines the mounts that have SD Cards attached.

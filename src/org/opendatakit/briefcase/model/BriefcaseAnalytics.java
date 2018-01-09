@@ -2,6 +2,7 @@ package org.opendatakit.briefcase.model;
 
 import com.brsanthu.googleanalytics.EventHit;
 import com.brsanthu.googleanalytics.GoogleAnalytics;
+
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
 
 /**

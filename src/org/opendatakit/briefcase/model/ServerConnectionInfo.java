@@ -19,25 +19,13 @@ package org.opendatakit.briefcase.model;
 public class ServerConnectionInfo {
 
   private String url;
-  private final String token; // for legacy ODK Aggregate 0.9.8 access
   private final String username;
   private final char[] password;
-  private final boolean isOpenRosaServer;
 
   public ServerConnectionInfo(String url, String username, char[] cs) {
     this.url = url;
     this.username = username;
     this.password = cs;
-    this.token = null;
-    this.isOpenRosaServer = true;
-  }
-
-  public ServerConnectionInfo(String url, String token) {
-    this.url = url;
-    this.token = token;
-    this.username = null;
-    this.password = null;
-    this.isOpenRosaServer = false;
   }
 
   public String getUrl() {
@@ -47,10 +35,6 @@ public class ServerConnectionInfo {
   public void setUrl(String url) {
     this.url = url;
   }
-
-  public String getToken() {
-    return token;
-  }
   
   public String getUsername() {
     return username;
@@ -58,10 +42,6 @@ public class ServerConnectionInfo {
 
   public char[] getPassword() {
     return password;
-  }
-
-  public boolean isOpenRosaServer() {
-    return isOpenRosaServer;
   }
 
   public boolean hasCredentials() {
