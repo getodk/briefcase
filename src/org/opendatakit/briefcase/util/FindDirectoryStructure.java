@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2012 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -26,7 +26,7 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * Originally written by Dylan.  Determines the mounts that have SD Cards attached.
- * 
+ *
  * @author the.dylan.price@gmail.com
  * @author mitchellsundt@gmail.com
  *
@@ -44,12 +44,17 @@ public class FindDirectoryStructure {
     String os = System.getProperty(PROPERTY_OS);
     return os.contains(OS_MAC);
   }
-  
+
+  public static boolean isUnix() {
+    String os = System.getProperty(PROPERTY_OS).toLowerCase();
+    return (os.contains("nix") || os.contains("nux") || os.contains("aix"));
+  }
+
   /**
    * Searches mounted drives for /odk/instances and returns a list of
    * positive results. Works for Windows, Mac, and Linux operating
    * systems.
-   * 
+   *
    * @return a {@link List} of {@link File}  containing matches of currently mounted file systems
    *         which contain the directoryStructureToSearchFor
    */
@@ -72,7 +77,7 @@ public class FindDirectoryStructure {
       File f = new File("/media", username);
       if (f.exists() && f.isDirectory()) {
         mountslist.add(f);
-      } 
+      }
 
       f = new File("/run/media", username);
       if (f.exists() && f.isDirectory()) {
@@ -92,11 +97,11 @@ public class FindDirectoryStructure {
     }
     return false;
   }
-  
+
   /**
    * Checks each given potential directory for existence of odk/instances
    * under it and returns a list of positive matches.
-   * 
+   *
    * @param mounts
    *          the potential mount points to check.
    * @param isDirectChild
@@ -122,7 +127,7 @@ public class FindDirectoryStructure {
               return f.isDirectory();
             }
           });
-          
+
           for ( File s : subdirs ) {
             if ( hasOdkInstancesDirectory(s) ) {
               candidates.add(s);

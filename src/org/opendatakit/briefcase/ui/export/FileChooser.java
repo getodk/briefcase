@@ -3,7 +3,7 @@ package org.opendatakit.briefcase.ui.export;
 import static javax.swing.JFileChooser.DIRECTORIES_ONLY;
 import static javax.swing.JFileChooser.FILES_ONLY;
 import static javax.swing.JFileChooser.OPEN_DIALOG;
-import static org.opendatakit.briefcase.util.FindDirectoryStructure.isMac;
+import static org.opendatakit.briefcase.util.FindDirectoryStructure.isUnix;
 
 import java.awt.Container;
 import java.awt.FileDialog;
@@ -23,17 +23,17 @@ interface FileChooser {
 
     JFileChooser fileChooser = buildFileChooser(initialLocation, "Choose a directory", DIRECTORIES_ONLY, fileFilter);
 
-    return isAWTRequired()
-        ? new NativeFileChooser(parent, buildFileDialog(parent, initialLocation, fileChooser), fileChooser, filter, filterDescription)
-        : new SwingFileChooser(parent, fileChooser, filter, filterDescription);
+    return isUnix()
+        ? new SwingFileChooser(parent, fileChooser, filter, filterDescription)
+        : new NativeFileChooser(parent, buildFileDialog(parent, initialLocation, fileChooser), fileChooser, filter, filterDescription);
   }
 
   static FileChooser file(Container parent, Optional<File> initialFile) {
     JFileChooser fileChooser = buildFileChooser(initialFile, "Choose a file", FILES_ONLY, Optional.empty());
 
-    return isAWTRequired()
-        ? new NativeFileChooser(parent, buildFileDialog(parent, initialFile, fileChooser), fileChooser, __ -> true, "")
-        : new SwingFileChooser(parent, fileChooser, f -> true, "");
+    return isUnix()
+        ? new SwingFileChooser(parent, fileChooser, f -> true, "")
+        : new NativeFileChooser(parent, buildFileDialog(parent, initialFile, fileChooser), fileChooser, __ -> true, "");
   }
 
   static FileDialog buildFileDialog(Container parent, Optional<File> initialLocation, JFileChooser fileChooser) {
@@ -53,19 +53,6 @@ interface FileChooser {
     fileFilter.ifPresent(fileChooser::setFileFilter);
     initialLocation.ifPresent(fileChooser::setSelectedFile);
     return fileChooser;
-  }
-
-  /**
-   * Though the Mac-specific file chooser is very nice, it no longer functions on Oracle's Java 7.
-   * The issue is that the "apple.awt.fileDialogForDirectories" property is no longer supported in
-   * Java 7. See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7161437, where the issue is
-   * marked as resolved, but they seem only to have fixed it in JDK 8.
-   *
-   * @return true if Briefcase is running on Java7 on a Mac host
-   */
-  static boolean isAWTRequired() {
-    String javaVersion = System.getProperty("java.version");
-    return (!((javaVersion.compareTo("1.7") >= 0) && javaVersion.compareTo("1.8") < 0)) && isMac();
   }
 
   static FileFilter createFileFilter(Predicate<File> predicate, String description) {
