@@ -32,6 +32,7 @@ public class StringUtilsTest {
         Pattern pattern = Pattern.compile("[\\t\\n\\x0B\\f\\r]");
         Matcher matcher = pattern.matcher(output);
         Assert.assertTrue(String.format("Input: %s, output: %s", input, output), !matcher.matches());
+        Assert.assertEquals("abcdef   ", output);
     }
 
     @Test
