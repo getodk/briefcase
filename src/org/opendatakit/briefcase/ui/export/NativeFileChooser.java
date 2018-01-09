@@ -13,14 +13,14 @@ import java.util.function.Predicate;
 import javax.swing.JFileChooser;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
 
-class AWTFileChooser implements FileChooser {
+class NativeFileChooser implements FileChooser {
   private Container parent;
   private final FileDialog fileDialog;
   private JFileChooser fileChooser;
   private Predicate<File> filter;
   private String filterDescription;
 
-  AWTFileChooser(Container parent, FileDialog fileDialog, JFileChooser fileChooser, Predicate<File> filter, String filterDescription) {
+  NativeFileChooser(Container parent, FileDialog fileDialog, JFileChooser fileChooser, Predicate<File> filter, String filterDescription) {
     this.parent = parent;
     this.fileDialog = fileDialog;
     this.fileChooser = fileChooser;
