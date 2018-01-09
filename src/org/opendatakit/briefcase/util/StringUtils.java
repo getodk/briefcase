@@ -37,6 +37,6 @@ public class StringUtils {
     }
 
     public static String stripIllegalChars(String text) {
-        return text == null ? null : text.replaceAll("\\p{Punct}", "_").replace("\\p{Space}", " ");
+        return text == null ? null : text.replaceAll("\\p{Punct}", "_").replaceAll("\\p{Space}", " ");
     }
 }
