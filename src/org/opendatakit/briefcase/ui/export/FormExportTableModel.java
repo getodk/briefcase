@@ -1,5 +1,8 @@
 package org.opendatakit.briefcase.ui.export;
 
+import static java.awt.Color.BLACK;
+import static java.awt.Color.DARK_GRAY;
+import static java.awt.Color.GREEN;
 import static javax.swing.JOptionPane.getFrameForComponent;
 import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
 
@@ -23,16 +26,19 @@ import org.opendatakit.briefcase.model.FormStatusEvent;
 
 class FormExportTableModel extends AbstractTableModel {
   private static final long serialVersionUID = 7108326237416622721L;
-  static final String[] HEADERS = new String[]{"Selected", "Form Name", "Export Status", "Detail"};
+  static final String[] HEADERS = new String[]{"Selected", "⚙", "Form Name", "Export Status", "Detail"};
 
   static final int SELECTED_CHECKBOX_COL = 0;
-  static final int FORM_NAME_COL = 1;
-  private static final int EXPORT_STATUS_COL = 2;
-  static final int DETAIL_BUTTON_COL = 3;
+  static final int OVERRIDE_CONF_COL = 1;
+  static final int FORM_NAME_COL = 2;
+  private static final int EXPORT_STATUS_COL = 3;
+  static final int DETAIL_BUTTON_COL = 4;
 
   private final List<Runnable> selectionChangeCallbacks = new ArrayList<>();
   private List<FormStatus> forms = new ArrayList<>();
   private Map<FormStatus, JButton> detailButtons = new HashMap<>();
+  private Map<FormStatus, JButton> confButtons = new HashMap<>();
+  private Map<FormStatus, ExportConfiguration> confs = new HashMap<>();
 
   FormExportTableModel() {
     super();
@@ -85,7 +91,7 @@ class FormExportTableModel extends AbstractTableModel {
     return Optional.empty();
   }
 
-  static JButton buildDetailButton(FormStatus form) {
+  JButton buildDetailButton(FormStatus form) {
     JButton button = new JButton("Details...");
     // Ugly hack to be able to use this factory in FormExportTable to compute its Dimension
     if (form != null) {
@@ -93,6 +99,36 @@ class FormExportTableModel extends AbstractTableModel {
         button.setEnabled(false);
         try {
           showDialog(getFrameForComponent(button), form.getFormDefinition(), form.getStatusHistory());
+        } finally {
+          button.setEnabled(true);
+        }
+      });
+    }
+    return button;
+  }
+
+  JButton buildOverrideConfButton(FormStatus form) {
+    JButton button = new JButton("⚙");
+    if (confs.containsKey(form))
+      button.setForeground(GREEN);
+    // Ugly hack to be able to use this factory in FormExportTable to compute its Dimension
+    if (form != null) {
+      button.addActionListener(__ -> {
+        button.setEnabled(false);
+        try {
+          ExportConfigurationDialog dialog = new ExportConfigurationDialog(
+              getFrameForComponent(button),
+              confs.computeIfAbsent(form, ___ -> ExportConfiguration.empty()),
+              () -> {
+                confs.remove(form);
+                button.setForeground(DARK_GRAY);
+              },
+              config -> {
+                confs.put(form, config);
+                button.setForeground(GREEN);
+              }
+          );
+          dialog.setVisible(true);
         } finally {
           button.setEnabled(true);
         }
@@ -123,6 +159,8 @@ class FormExportTableModel extends AbstractTableModel {
     switch (col) {
       case SELECTED_CHECKBOX_COL:
         return Boolean.class;
+      case OVERRIDE_CONF_COL:
+        return JButton.class;
       case FORM_NAME_COL:
         return String.class;
       case EXPORT_STATUS_COL:
@@ -162,12 +200,14 @@ class FormExportTableModel extends AbstractTableModel {
     switch (col) {
       case SELECTED_CHECKBOX_COL:
         return form.isSelected();
+      case OVERRIDE_CONF_COL:
+        return confButtons.computeIfAbsent(form, this::buildOverrideConfButton);
       case FORM_NAME_COL:
         return form.getFormName();
       case EXPORT_STATUS_COL:
         return form.getStatusString();
       case DETAIL_BUTTON_COL:
-        return detailButtons.computeIfAbsent(form, FormExportTableModel::buildDetailButton);
+        return detailButtons.computeIfAbsent(form, this::buildDetailButton);
       default:
         throw new IllegalStateException("unexpected column choice");
     }

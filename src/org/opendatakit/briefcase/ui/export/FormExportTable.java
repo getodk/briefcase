@@ -20,8 +20,8 @@ import static javax.swing.SortOrder.ASCENDING;
 import static org.opendatakit.briefcase.ui.export.FormExportTableModel.DETAIL_BUTTON_COL;
 import static org.opendatakit.briefcase.ui.export.FormExportTableModel.FORM_NAME_COL;
 import static org.opendatakit.briefcase.ui.export.FormExportTableModel.HEADERS;
+import static org.opendatakit.briefcase.ui.export.FormExportTableModel.OVERRIDE_CONF_COL;
 import static org.opendatakit.briefcase.ui.export.FormExportTableModel.SELECTED_CHECKBOX_COL;
-import static org.opendatakit.briefcase.ui.export.FormExportTableModel.buildDetailButton;
 
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
@@ -49,18 +49,23 @@ class FormExportTable extends JTable {
         .getDefaultRenderer()
         .getTableCellRendererComponent(null, HEADERS[SELECTED_CHECKBOX_COL], false, false, 0, 0)
         .getPreferredSize();
-    Dimension buttonDims = buildDetailButton(null).getPreferredSize();
+    Dimension detailButtonDims = tableModel.buildDetailButton(null).getPreferredSize();
+    Dimension overrideConfButtonDims = tableModel.buildOverrideConfButton(null).getPreferredSize();
 
-    setRowHeight(buttonDims.height);
+    setRowHeight(detailButtonDims.height);
 
     TableColumnModel columns = getColumnModel();
     columns.getColumn(SELECTED_CHECKBOX_COL).setMinWidth(checkboxDims.width);
     columns.getColumn(SELECTED_CHECKBOX_COL).setMaxWidth(checkboxDims.width);
     columns.getColumn(SELECTED_CHECKBOX_COL).setPreferredWidth(checkboxDims.width);
+    columns.getColumn(OVERRIDE_CONF_COL).setCellRenderer(cellWithButton());
+    columns.getColumn(OVERRIDE_CONF_COL).setMinWidth(overrideConfButtonDims.width + 5);
+    columns.getColumn(OVERRIDE_CONF_COL).setMaxWidth(overrideConfButtonDims.width + 5);
+    columns.getColumn(OVERRIDE_CONF_COL).setPreferredWidth(overrideConfButtonDims.width + 5);
     columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(cellWithButton());
-    columns.getColumn(DETAIL_BUTTON_COL).setMinWidth(buttonDims.width);
-    columns.getColumn(DETAIL_BUTTON_COL).setMaxWidth(buttonDims.width);
-    columns.getColumn(DETAIL_BUTTON_COL).setPreferredWidth(buttonDims.width);
+    columns.getColumn(DETAIL_BUTTON_COL).setMinWidth(detailButtonDims.width);
+    columns.getColumn(DETAIL_BUTTON_COL).setMaxWidth(detailButtonDims.width);
+    columns.getColumn(DETAIL_BUTTON_COL).setPreferredWidth(detailButtonDims.width);
 
     setFillsViewportHeight(true);
 
