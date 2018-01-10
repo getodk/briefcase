@@ -45,6 +45,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -73,6 +75,7 @@ public class ExportPanel extends JPanel {
   private static final long serialVersionUID = 7169316129011796197L;
 
   public static final String TAB_NAME = "Export";
+  private final ExportConfiguration defaultConf = ExportConfiguration.empty();
 
   private final JTextField txtExportDirectory;
   private final JButton btnChooseExportDirectory;
@@ -108,12 +111,12 @@ public class ExportPanel extends JPanel {
     txtExportDirectory.setColumns(10);
 
     btnChooseExportDirectory = new JButton("Choose...");
-    btnChooseExportDirectory.addActionListener(__ -> chooseLocation(directory(
-        this,
-        fileFrom(txtExportDirectory),
-        f -> f.exists() && f.isDirectory() && !isUnderBriefcaseFolder(f) && !isUnderODKFolder(f),
-        "Exclude Briefcase & ODK directories"
-    ), txtExportDirectory));
+    btnChooseExportDirectory.addActionListener(__ -> buildExportDirFileDialog().choose()
+        .ifPresent(file -> {
+          defaultConf.setExportDir(Paths.get(file.toURI()));
+          txtExportDirectory.setText(file.getAbsolutePath());
+          updateExportButton();
+        }));
 
     JLabel lblPemPrivateKey = new JLabel("PEM Private Key File:");
 
@@ -123,10 +126,12 @@ public class ExportPanel extends JPanel {
     pemPrivateKeyFilePath.setColumns(10);
 
     btnPemFileChooseButton = new JButton("Choose...");
-    btnPemFileChooseButton.addActionListener(__ -> chooseLocation(file(
-        this,
-        fileFrom(pemPrivateKeyFilePath)
-    ), pemPrivateKeyFilePath));
+    btnPemFileChooseButton.addActionListener(__ -> buildPemFileDialog().choose()
+        .ifPresent(file -> {
+          defaultConf.setPemFile(Paths.get(file.toURI()));
+          pemPrivateKeyFilePath.setText(file.getAbsolutePath());
+          updateExportButton();
+        }));
 
     JLabel lblDateFrom = new JLabel("Start Date (inclusive):");
     JLabel lblDateTo = new JLabel("End Date (exclusive):");
@@ -134,9 +139,19 @@ public class ExportPanel extends JPanel {
     pickStartDate = createDatePicker();
     pickStartDate.addDateChangeListener(__ -> updateExportButton());
     pickStartDate.addDateChangeListener(__ -> validateDate(pickStartDate));
+    pickStartDate.addDateChangeListener(event -> defaultConf.setDateRangeStart(LocalDate.of(
+        event.getNewDate().getYear(),
+        event.getNewDate().getMonthValue(),
+        event.getNewDate().getDayOfMonth()
+    )));
     pickEndDate = createDatePicker();
     pickEndDate.addDateChangeListener(__ -> updateExportButton());
     pickEndDate.addDateChangeListener(__ -> validateDate(pickEndDate));
+    pickEndDate.addDateChangeListener(event -> defaultConf.setDateRangeEnd(LocalDate.of(
+        event.getNewDate().getYear(),
+        event.getNewDate().getMonthValue(),
+        event.getNewDate().getDayOfMonth()
+    )));
 
     tableModel = new FormExportTableModel();
     tableModel.onSelectionChange(this::updateExportButton);
@@ -251,6 +266,22 @@ public class ExportPanel extends JPanel {
     setActiveExportState(exportStateActive);
   }
 
+  public FileChooser buildPemFileDialog() {
+    return file(
+        this,
+        fileFrom(pemPrivateKeyFilePath)
+    );
+  }
+
+  public FileChooser buildExportDirFileDialog() {
+    return directory(
+        this,
+        fileFrom(txtExportDirectory),
+        f -> f.exists() && f.isDirectory() && !isUnderBriefcaseFolder(f) && !isUnderODKFolder(f),
+        "Exclude Briefcase & ODK directories"
+    );
+  }
+
   private List<String> getErrors() {
     List<String> errors = new ArrayList<>();
 
@@ -303,13 +334,6 @@ public class ExportPanel extends JPanel {
     tableModel.setForms(FileSystemUtils.getBriefcaseFormList().stream()
         .map(formDefinition -> new FormStatus(EXPORT, formDefinition))
         .collect(toList()));
-  }
-
-  private void chooseLocation(FileChooser fileChooser, JTextField locationField) {
-    fileChooser.choose().ifPresent(file -> {
-      locationField.setText(file.getAbsolutePath());
-      updateExportButton();
-    });
   }
 
   private Optional<File> fileFrom(JTextField textField) {
@@ -400,19 +424,20 @@ public class ExportPanel extends JPanel {
 
   private List<String> export(BriefcaseFormDefinition formDefinition) {
     List<String> errors = new ArrayList<>();
-    Optional<File> pemFile = Optional.ofNullable(pemPrivateKeyFilePath.getText()).map(File::new).filter(File::exists);
+    ExportConfiguration conf = tableModel.getConf(formDefinition).orElse(defaultConf);
+    Optional<File> pemFile = conf.mapPemFile(Path::toFile).filter(File::exists);
     if ((formDefinition.isFileEncryptedForm() || formDefinition.isFieldEncryptedForm()) && !pemFile.isPresent())
       errors.add(formDefinition.getFormName() + " form requires is encrypted and you haven't defined a valid private key file location");
     else
       try {
         ExportAction.export(
-            new File(txtExportDirectory.getText().trim()),
+            conf.mapExportDir(Path::toFile).orElseThrow(() -> new RuntimeException("Wrong export configuration")),
             ExportType.CSV,
             formDefinition,
             pemFile.orElse(null),
             terminationFuture,
-            pickStartDate.convert().getDateWithDefaultZone(),
-            pickEndDate.convert().getDateWithDefaultZone()
+            conf.mapDateRangeStart((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null),
+            conf.mapDateRangeEnd((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null)
         );
       } catch (IOException ex) {
         errors.add("Export of form " + formDefinition.getFormName() + " has failed: " + ex.getMessage());

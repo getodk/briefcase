@@ -136,6 +136,13 @@ class FormExportTableModel extends AbstractTableModel {
     return button;
   }
 
+  Optional<ExportConfiguration> getConf(BriefcaseFormDefinition formDefinition) {
+    return confs.keySet().stream()
+        .filter(form -> form.getFormDefinition().equals(formDefinition))
+        .findFirst()
+        .map(confs::get);
+  }
+
   @Override
   public int getRowCount() {
     return forms.size();

@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class ExportConfiguration {
   private Optional<Path> exportDirectory;
@@ -98,6 +99,22 @@ public class ExportConfiguration {
 
   public boolean isValid() {
     return getErrors().isEmpty();
+  }
+
+  public <T> Optional<T> mapPemFile(Function<Path, T> mapper) {
+    return pemFile.map(mapper);
+  }
+
+  public <T> Optional<T> mapExportDir(Function<Path, T> mapper) {
+    return exportDirectory.map(mapper);
+  }
+
+  public <T> Optional<T> mapDateRangeStart(Function<LocalDate, T> mapper) {
+    return dateRangeStart.map(mapper);
+  }
+
+  public <T> Optional<T> mapDateRangeEnd(Function<LocalDate, T> mapper) {
+    return dateRangeEnd.map(mapper);
   }
 
   @Override
