@@ -11,11 +11,8 @@ import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -25,7 +22,7 @@ public class ExportConfiguration {
   private Optional<LocalDate> dateRangeStart;
   private Optional<LocalDate> dateRangeEnd;
 
-  public ExportConfiguration(Optional<Path> exportDirectory, Optional<Path> pemFile, Optional<LocalDate> dateRangeStart, Optional<LocalDate> dateRangeEnd) {
+  private ExportConfiguration(Optional<Path> exportDirectory, Optional<Path> pemFile, Optional<LocalDate> dateRangeStart, Optional<LocalDate> dateRangeEnd) {
     this.exportDirectory = exportDirectory;
     this.pemFile = pemFile;
     this.dateRangeStart = dateRangeStart;
@@ -36,16 +33,12 @@ public class ExportConfiguration {
     return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
-  public boolean isEmpty() {
-    return !exportDirectory.isPresent();
+  public void setDateRangeStart(LocalDate date) {
+    this.dateRangeStart = Optional.ofNullable(date);
   }
 
-  public void setDateRangeStart(Date date) {
-    this.dateRangeStart = Optional.ofNullable(date).map(input -> input.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
-  }
-
-  public void setDateRangeEnd(Date date) {
-    this.dateRangeEnd = Optional.ofNullable(date).map(input -> input.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+  public void setDateRangeEnd(LocalDate date) {
+    this.dateRangeEnd = Optional.ofNullable(date);
   }
 
   public boolean isDateRangeValid() {
@@ -68,40 +61,15 @@ public class ExportConfiguration {
     pemFile.ifPresent(consumer);
   }
 
-  @Override
-  public String toString() {
-    return "ExportConfiguration{" +
-        "exportDirectory=" + exportDirectory +
-        ", pemFile=" + pemFile +
-        ", dateRangeStart=" + dateRangeStart +
-        ", dateRangeEnd=" + dateRangeEnd +
-        '}';
+  public void ifDateRangeStartPresent(Consumer<LocalDate> consumer) {
+    dateRangeStart.ifPresent(consumer);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o)
-      return true;
-    if (o == null || getClass() != o.getClass())
-      return false;
-    ExportConfiguration that = (ExportConfiguration) o;
-    return Objects.equals(exportDirectory, that.exportDirectory) &&
-        Objects.equals(pemFile, that.pemFile) &&
-        Objects.equals(dateRangeStart, that.dateRangeStart) &&
-        Objects.equals(dateRangeEnd, that.dateRangeEnd);
+  public void ifDateRangeEndPresent(Consumer<LocalDate> consumer) {
+    dateRangeEnd.ifPresent(consumer);
   }
 
-  @Override
-  public int hashCode() {
-
-    return Objects.hash(exportDirectory, pemFile, dateRangeStart, dateRangeEnd);
-  }
-
-  public boolean isValid() {
-    return getErrors().isEmpty();
-  }
-
-  public List<String> getErrors() {
+  private List<String> getErrors() {
     List<String> errors = new ArrayList<>();
 
     if (!exportDirectory.isPresent())
@@ -119,12 +87,26 @@ public class ExportConfiguration {
     if (!exportDirectory.filter(path -> !isUnderBriefcaseFolder(path.toFile())).isPresent())
       errors.add(DIR_INSIDE_BRIEFCASE_STORAGE);
 
-    if (!dateRangeEnd.isPresent())
+    if (dateRangeStart.isPresent() && !dateRangeEnd.isPresent())
       errors.add("Missing date range end definition");
-    if (!dateRangeStart.isPresent())
+    if (!dateRangeStart.isPresent() && dateRangeEnd.isPresent())
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
       errors.add(INVALID_DATE_RANGE_MESSAGE);
     return errors;
+  }
+
+  public boolean isValid() {
+    return getErrors().isEmpty();
+  }
+
+  @Override
+  public String toString() {
+    return "ExportConfiguration{" +
+        "exportDirectory=" + exportDirectory +
+        ", pemFile=" + pemFile +
+        ", dateRangeStart=" + dateRangeStart +
+        ", dateRangeEnd=" + dateRangeEnd +
+        '}';
   }
 }

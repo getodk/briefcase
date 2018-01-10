@@ -1,6 +1,5 @@
 package org.opendatakit.briefcase.ui.export;
 
-import static java.awt.Color.BLACK;
 import static java.awt.Color.DARK_GRAY;
 import static java.awt.Color.GREEN;
 import static javax.swing.JOptionPane.getFrameForComponent;
@@ -116,7 +115,7 @@ class FormExportTableModel extends AbstractTableModel {
       button.addActionListener(__ -> {
         button.setEnabled(false);
         try {
-          ExportConfigurationDialog dialog = new ExportConfigurationDialog(
+          ExportConfigurationDialog dialog = ExportConfigurationDialog.from(
               getFrameForComponent(button),
               confs.computeIfAbsent(form, ___ -> ExportConfiguration.empty()),
               () -> {
@@ -128,7 +127,7 @@ class FormExportTableModel extends AbstractTableModel {
                 button.setForeground(GREEN);
               }
           );
-          dialog.setVisible(true);
+          dialog.open();
         } finally {
           button.setEnabled(true);
         }
