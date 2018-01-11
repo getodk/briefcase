@@ -16,11 +16,6 @@
 
 package org.opendatakit.briefcase.ui;
 
-import static java.lang.Short.*;
-import static javax.swing.GroupLayout.*;
-import static javax.swing.GroupLayout.Alignment.*;
-import static javax.swing.LayoutStyle.ComponentPlacement.*;
-
 import java.awt.Component;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -31,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
@@ -44,6 +40,7 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingUtilities;
+
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -64,12 +61,13 @@ import org.opendatakit.briefcase.util.TransferAction;
  * Pull forms and data to external locations.
  *
  * @author mitchellsundt@gmail.com
+ *
  */
 public class PullTransferPanel extends JPanel {
 
   /**
-   *
-   */
+    *
+    */
   private static final long serialVersionUID = -2192404551259501394L;
 
   public static final String TAB_NAME = "Pull";
@@ -158,7 +156,7 @@ public class PullTransferPanel extends JPanel {
         WrappedFileChooser fc = new WrappedFileChooser(PullTransferPanel.this,
             new ODKCollectFileChooser(PullTransferPanel.this));
         String filePath = txtOriginName.getText();
-        if (filePath != null && filePath.trim().length() != 0) {
+        if ( filePath != null && filePath.trim().length() != 0 ) {
           fc.setSelectedFile(new File(filePath.trim()));
         }
         int retVal = fc.showDialog();
@@ -226,10 +224,10 @@ public class PullTransferPanel extends JPanel {
     this.terminationFuture = terminationFuture;
     JLabel lblGetDataFrom = new JLabel(TAB_NAME + " data from:");
 
-    listOriginDataSource = new JComboBox<String>(new String[]{
+    listOriginDataSource = new JComboBox<String>(new String[] {
         EndPointType.AGGREGATE_1_0_CHOICE.toString(),
         EndPointType.MOUNTED_ODK_COLLECT_DEVICE_CHOICE.toString(),
-        EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.toString()});
+        EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.toString() });
     listOriginDataSource.addActionListener(new OriginSourceListener());
 
     lblOrigin = new JLabel("Origin:");
@@ -245,7 +243,7 @@ public class PullTransferPanel extends JPanel {
 
       @Override
       public void focusLost(FocusEvent e) {
-        if (txtOriginName.isEditable()) {
+        if ( txtOriginName.isEditable() ) {
           PullTransferPanel.this.updateFormStatuses();
         }
       }
@@ -272,82 +270,74 @@ public class PullTransferPanel extends JPanel {
     });
 
     formTransferTable = new FormTransferTable(
-        btnSelectOrClearAllForms, FormStatus.TransferType.GATHER, btnTransfer, btnCancel);
+            btnSelectOrClearAllForms, FormStatus.TransferType.GATHER, btnTransfer, btnCancel);
 
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
 
     JSeparator separatorFormsList = new JSeparator();
 
     GroupLayout groupLayout = new GroupLayout(this);
-
-    GroupLayout.ParallelGroup group1 = groupLayout.createParallelGroup(TRAILING)
-        .addComponent(lblOrigin)
-        .addComponent(lblGetDataFrom);
-
-    GroupLayout.SequentialGroup group6 = groupLayout.createSequentialGroup()
-        .addComponent(txtOriginName)
-        .addPreferredGap(RELATED)
-        .addComponent(btnOriginAction);
-
-    GroupLayout.ParallelGroup group2 = groupLayout.createParallelGroup(LEADING)
-        .addComponent(listOriginDataSource)
-        .addGroup(TRAILING, group6);
-
-    GroupLayout.SequentialGroup group3 = groupLayout.createSequentialGroup()
-        .addGroup(group1)
-        .addPreferredGap(RELATED)
-        .addGroup(group2);
-
-    GroupLayout.SequentialGroup group4 = groupLayout.createSequentialGroup()
-        .addComponent(btnSelectOrClearAllForms)
-        .addPreferredGap(RELATED)
-        .addComponent(lblDownloading);
-
-    GroupLayout.SequentialGroup group5 = groupLayout.createSequentialGroup()
-        .addPreferredGap(RELATED)
-        .addComponent(btnTransfer)
-        .addPreferredGap(RELATED)
-        .addComponent(btnCancel);
-
-    GroupLayout.ParallelGroup group = groupLayout.createParallelGroup(LEADING)
-        .addGroup(LEADING, group3)
-        .addComponent(separatorFormsList, DEFAULT_SIZE, PREFERRED_SIZE, MAX_VALUE)
-        .addComponent(lblFormsToTransfer)
-        .addComponent(scrollPane, PREFERRED_SIZE, PREFERRED_SIZE, MAX_VALUE)
-        .addGroup(group4)
-        .addGroup(TRAILING, group5);
-
-    GroupLayout.SequentialGroup hgroup = groupLayout
-        .createSequentialGroup()
-        .addContainerGap()
-        .addGroup(group)
-        .addContainerGap();
-
-    GroupLayout.SequentialGroup vgroup = groupLayout
+    groupLayout.setHorizontalGroup(groupLayout
         .createSequentialGroup()
         .addContainerGap()
         .addGroup(
-            groupLayout.createParallelGroup(BASELINE).addComponent(lblGetDataFrom)
+            groupLayout
+                .createParallelGroup(Alignment.LEADING)
+                // get-data and origin rows
+                .addGroup(
+                    Alignment.LEADING,
+                    // sequential -- 2 elements - label - widgets
+                    groupLayout
+                        .createSequentialGroup()
+                        .addGroup(
+                            groupLayout.createParallelGroup(Alignment.TRAILING)
+                                .addComponent(lblOrigin).addComponent(lblGetDataFrom))
+                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addGroup(
+                            groupLayout
+                                .createParallelGroup(Alignment.LEADING)
+                                .addComponent(listOriginDataSource)
+                                .addGroup(
+                                    Alignment.TRAILING,
+                                    groupLayout.createSequentialGroup().addComponent(txtOriginName)
+                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                        .addComponent(btnOriginAction))))
+                .addComponent(separatorFormsList, GroupLayout.DEFAULT_SIZE,
+                    GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
+                .addComponent(lblFormsToTransfer)
+                // scroll pane
+                .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
+                    Short.MAX_VALUE)
+                .addGroup(
+                    groupLayout.createSequentialGroup().addComponent(btnSelectOrClearAllForms)
+                        .addPreferredGap(ComponentPlacement.RELATED).addComponent(lblDownloading))
+                .addGroup(
+                    Alignment.TRAILING,
+                    groupLayout.createSequentialGroup().addPreferredGap(ComponentPlacement.RELATED)
+                        .addComponent(btnTransfer).addPreferredGap(ComponentPlacement.RELATED)
+                        .addComponent(btnCancel))).addContainerGap());
+    groupLayout.setVerticalGroup(groupLayout
+        .createSequentialGroup()
+        .addContainerGap()
+        .addGroup(
+            groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblGetDataFrom)
                 .addComponent(listOriginDataSource))
-        .addPreferredGap(RELATED)
+        .addPreferredGap(ComponentPlacement.RELATED)
         .addGroup(
-            groupLayout.createParallelGroup(BASELINE).addComponent(lblOrigin)
+            groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblOrigin)
                 .addComponent(txtOriginName).addComponent(btnOriginAction))
-        .addPreferredGap(RELATED)
-        .addComponent(separatorFormsList, PREFERRED_SIZE, PREFERRED_SIZE,
-            PREFERRED_SIZE)
-        .addPreferredGap(RELATED)
+        .addPreferredGap(ComponentPlacement.RELATED)
+        .addComponent(separatorFormsList, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
+            GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(ComponentPlacement.RELATED)
         .addComponent(lblFormsToTransfer)
-        .addPreferredGap(RELATED)
-        .addComponent(scrollPane, 200, PREFERRED_SIZE, MAX_VALUE)
-        .addPreferredGap(RELATED)
+        .addPreferredGap(ComponentPlacement.RELATED)
+        .addComponent(scrollPane, 200, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
+        .addPreferredGap(ComponentPlacement.RELATED)
         .addGroup(
-            groupLayout.createParallelGroup(BASELINE)
+            groupLayout.createParallelGroup(Alignment.BASELINE)
                 .addComponent(btnSelectOrClearAllForms).addComponent(lblDownloading)
-                .addComponent(btnTransfer).addComponent(btnCancel)).addContainerGap();
-
-    groupLayout.setHorizontalGroup(hgroup);
-    groupLayout.setVerticalGroup(vgroup);
+                .addComponent(btnTransfer).addComponent(btnCancel)).addContainerGap());
     setLayout(groupLayout);
 
     // and finally, set the initial selections in the combo boxes...
