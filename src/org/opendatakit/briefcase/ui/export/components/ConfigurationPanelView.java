@@ -1,4 +1,4 @@
-package org.opendatakit.briefcase.ui.export;
+package org.opendatakit.briefcase.ui.export.components;
 
 import static javax.swing.GroupLayout.Alignment.BASELINE;
 import static javax.swing.GroupLayout.Alignment.LEADING;
@@ -7,14 +7,11 @@ import static javax.swing.GroupLayout.PREFERRED_SIZE;
 import static javax.swing.LayoutStyle.ComponentPlacement.RELATED;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
-import static org.opendatakit.briefcase.ui.export.FileChooser.directory;
-import static org.opendatakit.briefcase.ui.export.FileChooser.file;
+import static org.opendatakit.briefcase.ui.reused.FileChooser.directory;
+import static org.opendatakit.briefcase.ui.reused.FileChooser.file;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 
 import com.github.lgooddatepicker.components.DatePicker;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.Window;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,35 +22,28 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.StringUtils;
 
-public class ExportConfigurationDialogView extends JDialog {
-  private final JTextField exportDirectoryField;
-  private final JTextField pemFileField;
-  private final DatePicker dateRangeStartField;
-  private final DatePicker dateRangeEndField;
-  private final JButton applyConfigButton;
-
+class ConfigurationPanelView extends JPanel {
+  protected final JTextField exportDirectoryField;
+  protected final JTextField pemFileField;
+  protected final DatePicker dateRangeStartField;
+  protected final DatePicker dateRangeEndField;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectDateRangeStartCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectDateRangeEndCallbacks = new ArrayList<>();
-  private final List<Runnable> onClickRemoveConfigCallbacks = new ArrayList<>();
-  private final List<Runnable> onClickApplyConfigCallbacks = new ArrayList<>();
+  private final JButton exportDirectoryButton;
+  private final JButton pemFileButton;
 
-  ExportConfigurationDialogView(Window app) {
-    super(app, "Form export configuration", ModalityType.DOCUMENT_MODAL);
-
-    setBounds(100, 100, 450, 234);
-    getContentPane().setLayout(new BorderLayout());
-
+  ConfigurationPanelView() {
     JLabel exportDirectoryLabel = new JLabel("Export Directory:");
-    JButton exportDirectoryButton = new JButton("Choose...");
+    exportDirectoryButton = new JButton("Choose...");
     exportDirectoryField = new JTextField();
     exportDirectoryField.setFocusable(false);
     exportDirectoryField.setEditable(false);
@@ -62,7 +52,7 @@ public class ExportConfigurationDialogView extends JDialog {
         .ifPresent(file -> setExportDir(Paths.get(file.toURI()))));
 
     JLabel pemFileLabel = new JLabel("PEM Private Key File:");
-    JButton pemFileButton = new JButton("Choose...");
+    pemFileButton = new JButton("Choose...");
     pemFileField = new JTextField();
     pemFileField.setFocusable(false);
     pemFileField.setEditable(false);
@@ -72,34 +62,26 @@ public class ExportConfigurationDialogView extends JDialog {
 
     JLabel dateRangeStartLabel = new JLabel("Start Date (inclusive):");
     dateRangeStartField = createDatePicker();
-    dateRangeStartField.addDateChangeListener(event -> onSelectDateRangeStartCallbacks.forEach(consumer -> consumer.accept(LocalDate.of(
-        event.getNewDate().getYear(),
-        event.getNewDate().getMonthValue(),
-        event.getNewDate().getDayOfMonth()
-    ))));
+    dateRangeStartField.addDateChangeListener(event -> {
+      if (event.getNewDate() != null)
+        setDateRangeStart(LocalDate.of(
+            event.getNewDate().getYear(),
+            event.getNewDate().getMonthValue(),
+            event.getNewDate().getDayOfMonth()
+        ));
+    });
     JLabel dateRangeEndLabel = new JLabel("End Date (exclusive):");
     dateRangeEndField = createDatePicker();
-    dateRangeEndField.addDateChangeListener(event -> onSelectDateRangeEndCallbacks.forEach(consumer -> consumer.accept(LocalDate.of(
-        event.getNewDate().getYear(),
-        event.getNewDate().getMonthValue(),
-        event.getNewDate().getDayOfMonth()
-    ))));
+    dateRangeEndField.addDateChangeListener(event -> {
+      if (event.getNewDate() != null)
+        setDateRangeEnd(LocalDate.of(
+            event.getNewDate().getYear(),
+            event.getNewDate().getMonthValue(),
+            event.getNewDate().getDayOfMonth()
+        ));
+    });
 
-    JButton removeConfigButton = new JButton("Remove");
-    removeConfigButton.setActionCommand("Remove");
-    removeConfigButton.addActionListener(__ -> onClickRemoveConfigCallbacks.forEach(Runnable::run));
-
-    applyConfigButton = new JButton("Apply");
-    applyConfigButton.setActionCommand("Apply");
-    applyConfigButton.addActionListener(__ -> onClickApplyConfigCallbacks.forEach(Runnable::run));
-
-    JButton cancelButton = new JButton("Cancel");
-    cancelButton.setActionCommand("Cancel");
-    cancelButton.addActionListener(__ -> closeDialog());
-
-    JPanel contentPanel = new JPanel();
-
-    GroupLayout groupLayout = new GroupLayout(contentPanel);
+    GroupLayout groupLayout = new GroupLayout(this);
 
     GroupLayout.ParallelGroup labels = groupLayout.createParallelGroup(LEADING)
         .addComponent(exportDirectoryLabel)
@@ -129,8 +111,7 @@ public class ExportConfigurationDialogView extends JDialog {
             ))
         .addContainerGap();
 
-    GroupLayout.ParallelGroup verticalGroup = groupLayout
-        .createParallelGroup(LEADING)
+    GroupLayout.ParallelGroup verticalGroup = groupLayout.createParallelGroup(LEADING)
         .addGroup(groupLayout.createSequentialGroup()
             .addContainerGap()
             .addGroup(groupLayout.createParallelGroup(BASELINE)
@@ -139,31 +120,27 @@ public class ExportConfigurationDialogView extends JDialog {
                 .addComponent(exportDirectoryField, DEFAULT_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
             )
             .addPreferredGap(RELATED)
-            .addGroup(groupLayout.createParallelGroup(BASELINE).addComponent(pemFileLabel).addComponent(pemFileField, DEFAULT_SIZE, PREFERRED_SIZE, PREFERRED_SIZE).addComponent(pemFileButton)).addPreferredGap(RELATED)
+            .addGroup(groupLayout.createParallelGroup(BASELINE)
+                .addComponent(pemFileLabel)
+                .addComponent(pemFileField, DEFAULT_SIZE, PREFERRED_SIZE, PREFERRED_SIZE)
+                .addComponent(pemFileButton)
+            )
             .addPreferredGap(RELATED)
-            .addGroup(groupLayout.createParallelGroup(BASELINE).addComponent(dateRangeStartLabel).addComponent(dateRangeStartField))
             .addPreferredGap(RELATED)
-            .addGroup(groupLayout.createParallelGroup(BASELINE).addComponent(dateRangeEndLabel).addComponent(dateRangeEndField))
+            .addGroup(groupLayout.createParallelGroup(BASELINE)
+                .addComponent(dateRangeStartLabel)
+                .addComponent(dateRangeStartField)
+            )
+            .addPreferredGap(RELATED)
+            .addGroup(groupLayout.createParallelGroup(BASELINE)
+                .addComponent(dateRangeEndLabel)
+                .addComponent(dateRangeEndField)
+            )
             .addContainerGap());
-
     groupLayout.setHorizontalGroup(horizontalGroup);
     groupLayout.setVerticalGroup(verticalGroup);
-    contentPanel.setLayout(groupLayout);
-    contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-
-    JPanel buttonPane = new JPanel();
-    buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-    buttonPane.add(cancelButton);
-    buttonPane.add(removeConfigButton);
-    buttonPane.add(applyConfigButton);
-
-    getRootPane().setDefaultButton(applyConfigButton);
-    getContentPane().add(contentPanel, BorderLayout.CENTER);
-    getContentPane().add(buttonPane, BorderLayout.SOUTH);
-  }
-
-  void closeDialog() {
-    setVisible(false);
+    setLayout(groupLayout);
+    setBorder(new EmptyBorder(5, 5, 5, 5));
   }
 
   void setExportDir(Path path) {
@@ -186,6 +163,7 @@ public class ExportConfigurationDialogView extends JDialog {
 
   void setDateRangeStart(LocalDate date) {
     dateRangeStartField.setDate(org.threeten.bp.LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
+    onSelectDateRangeStartCallbacks.forEach(consumer -> consumer.accept(date));
   }
 
   void onSelectDateRangeStart(Consumer<LocalDate> callback) {
@@ -198,6 +176,7 @@ public class ExportConfigurationDialogView extends JDialog {
 
   void setDateRangeEnd(LocalDate date) {
     dateRangeEndField.setDate(org.threeten.bp.LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
+    onSelectDateRangeEndCallbacks.forEach(consumer -> consumer.accept(date));
   }
 
   void onSelectDateRangeEnd(Consumer<LocalDate> callback) {
@@ -206,30 +185,6 @@ public class ExportConfigurationDialogView extends JDialog {
 
   public void clearDateRangeEnd() {
     dateRangeEndField.clear();
-  }
-
-  public void onClickRemoveConfig(Runnable callback) {
-    onClickRemoveConfigCallbacks.add(callback);
-  }
-
-  public void onClickApplyConfig(Runnable callback) {
-    onClickApplyConfigCallbacks.add(callback);
-  }
-
-  public void enableApplyConfig() {
-    applyConfigButton.setEnabled(true);
-  }
-
-  public void disableApplyConfig() {
-    applyConfigButton.setEnabled(false);
-  }
-
-  public void open() {
-    setVisible(true);
-  }
-
-  void showError(String message, String title) {
-    showErrorDialog(getOwner(), message, title);
   }
 
   private FileChooser buildPemFileDialog() {
@@ -264,5 +219,23 @@ public class ExportConfigurationDialogView extends JDialog {
     datePicker.getComponentDateTextField().setMargin(model.getMargin());
 
     return datePicker;
+  }
+
+  public void showError(String message, String title) {
+    showErrorDialog(this, message, title);
+  }
+
+  public void enableUI() {
+    exportDirectoryButton.setEnabled(true);
+    pemFileButton.setEnabled(true);
+    dateRangeStartField.setEnabled(true);
+    dateRangeEndField.setEnabled(true);
+  }
+
+  public void disableUI() {
+    exportDirectoryButton.setEnabled(false);
+    pemFileButton.setEnabled(false);
+    dateRangeStartField.setEnabled(false);
+    dateRangeEndField.setEnabled(false);
   }
 }

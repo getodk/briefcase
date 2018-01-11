@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -30,12 +31,29 @@ public class ExportConfiguration {
     this.dateRangeEnd = dateRangeEnd;
   }
 
-  static ExportConfiguration empty() {
+  public static ExportConfiguration empty() {
     return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+  }
+
+  public static ExportConfiguration copy(ExportConfiguration other) {
+    return new ExportConfiguration(
+        other.exportDirectory,
+        other.pemFile,
+        other.dateRangeStart,
+        other.dateRangeEnd
+    );
+  }
+
+  public Optional<LocalDate> getDateRangeStart() {
+    return dateRangeStart;
   }
 
   public void setDateRangeStart(LocalDate date) {
     this.dateRangeStart = Optional.ofNullable(date);
+  }
+
+  public Optional<LocalDate> getDateRangeEnd() {
+    return dateRangeEnd;
   }
 
   public void setDateRangeEnd(LocalDate date) {
@@ -101,6 +119,10 @@ public class ExportConfiguration {
     return getErrors().isEmpty();
   }
 
+  public boolean isEmpty() {
+    return !exportDirectory.isPresent();
+  }
+
   public <T> Optional<T> mapPemFile(Function<Path, T> mapper) {
     return pemFile.map(mapper);
   }
@@ -117,6 +139,14 @@ public class ExportConfiguration {
     return dateRangeEnd.map(mapper);
   }
 
+  public void clearDateRangeStart() {
+    dateRangeStart = Optional.empty();
+  }
+
+  public void clearDateRangeEnd() {
+    dateRangeEnd = Optional.empty();
+  }
+
   @Override
   public String toString() {
     return "ExportConfiguration{" +
@@ -125,5 +155,24 @@ public class ExportConfiguration {
         ", dateRangeStart=" + dateRangeStart +
         ", dateRangeEnd=" + dateRangeEnd +
         '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
+    ExportConfiguration that = (ExportConfiguration) o;
+    return Objects.equals(exportDirectory, that.exportDirectory) &&
+        Objects.equals(pemFile, that.pemFile) &&
+        Objects.equals(dateRangeStart, that.dateRangeStart) &&
+        Objects.equals(dateRangeEnd, that.dateRangeEnd);
+  }
+
+  @Override
+  public int hashCode() {
+
+    return Objects.hash(exportDirectory, pemFile, dateRangeStart, dateRangeEnd);
   }
 }
