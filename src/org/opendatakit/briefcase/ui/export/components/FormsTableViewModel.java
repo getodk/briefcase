@@ -137,6 +137,8 @@ class FormsTableViewModel extends AbstractTableModel {
   }
 
   @Override
+  // Suppressing next ParameterName checkstyle error becasue 'aValue' param triggers it by mistake
+  @SuppressWarnings("checkstyle:ParameterName")
   public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
     FormStatus form = forms.get(rowIndex);
     switch (columnIndex) {
