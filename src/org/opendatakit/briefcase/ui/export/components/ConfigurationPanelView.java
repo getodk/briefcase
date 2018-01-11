@@ -30,8 +30,8 @@ import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.StringUtils;
 
 class ConfigurationPanelView extends JPanel {
-  protected final JTextField exportDirectoryField;
-  protected final JTextField pemFileField;
+  private final JTextField exportDirectoryField;
+  private final JTextField pemFileField;
   protected final DatePicker dateRangeStartField;
   protected final DatePicker dateRangeEndField;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
@@ -225,17 +225,19 @@ class ConfigurationPanelView extends JPanel {
     showErrorDialog(this, message, title);
   }
 
-  public void enableUI() {
-    exportDirectoryButton.setEnabled(true);
-    pemFileButton.setEnabled(true);
-    dateRangeStartField.setEnabled(true);
-    dateRangeEndField.setEnabled(true);
-  }
-
-  public void disableUI() {
-    exportDirectoryButton.setEnabled(false);
-    pemFileButton.setEnabled(false);
-    dateRangeStartField.setEnabled(false);
-    dateRangeEndField.setEnabled(false);
+  @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+    if (enabled) {
+      exportDirectoryButton.setEnabled(true);
+      pemFileButton.setEnabled(true);
+      dateRangeStartField.setEnabled(true);
+      dateRangeEndField.setEnabled(true);
+    } else {
+      exportDirectoryButton.setEnabled(false);
+      pemFileButton.setEnabled(false);
+      dateRangeStartField.setEnabled(false);
+      dateRangeEndField.setEnabled(false);
+    }
   }
 }

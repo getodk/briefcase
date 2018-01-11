@@ -6,27 +6,27 @@ import java.util.function.Consumer;
 import javax.swing.JDialog;
 import org.opendatakit.briefcase.ui.export.ExportConfiguration;
 
-public class ExportConfigurationDialogView extends JDialog {
+class ConfigurationDialogView extends JDialog {
   private final ConfigurationPanel configurationComponent;
-  private final BottomPanel bottomPanel;
+  private final ConfigurationDialogBottomPanel configurationDialogBottomPanel;
 
-  ExportConfigurationDialogView(Window app, ExportConfiguration config) {
+  ConfigurationDialogView(Window app, ExportConfiguration config) {
     super(app, "Form export configuration", ModalityType.DOCUMENT_MODAL);
     setBounds(100, 100, 450, 250);
     getContentPane().setLayout(new BorderLayout());
     configurationComponent = ConfigurationPanel.from(config);
     configurationComponent.onChange(this::updateApplyConfigButton);
 
-    bottomPanel = new BottomPanel(configurationComponent);
-    bottomPanel.onCancel(this::closeDialog);
+    configurationDialogBottomPanel = new ConfigurationDialogBottomPanel(configurationComponent);
+    configurationDialogBottomPanel.onCancel(this::closeDialog);
 
     if (config.isEmpty())
-      bottomPanel.disableRemove();
+      configurationDialogBottomPanel.disableRemove();
 
-    getRootPane().setDefaultButton(bottomPanel.apply);
+    getRootPane().setDefaultButton(configurationDialogBottomPanel.getDefaultButton());
     setLayout(new BorderLayout());
     getContentPane().add(configurationComponent.getView(), BorderLayout.NORTH);
-    getContentPane().add(bottomPanel, BorderLayout.SOUTH);
+    getContentPane().add(configurationDialogBottomPanel, BorderLayout.SOUTH);
     updateApplyConfigButton();
   }
 
@@ -36,11 +36,11 @@ public class ExportConfigurationDialogView extends JDialog {
 
 
   public void onRemove(Runnable callback) {
-    bottomPanel.onRemove(callback);
+    configurationDialogBottomPanel.onRemove(callback);
   }
 
   public void onApply(Consumer<ExportConfiguration> callback) {
-    bottomPanel.onApply(callback);
+    configurationDialogBottomPanel.onApply(callback);
   }
 
   public void open() {
@@ -49,8 +49,8 @@ public class ExportConfigurationDialogView extends JDialog {
 
   private void updateApplyConfigButton() {
     if (configurationComponent.getConfiguration().isValid())
-      bottomPanel.enableApply();
+      configurationDialogBottomPanel.enableApply();
     else
-      bottomPanel.disableApply();
+      configurationDialogBottomPanel.disableApply();
   }
 }

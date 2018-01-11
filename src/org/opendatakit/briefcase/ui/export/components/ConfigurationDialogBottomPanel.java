@@ -8,15 +8,15 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import org.opendatakit.briefcase.ui.export.ExportConfiguration;
 
-public class BottomPanel extends JPanel {
+class ConfigurationDialogBottomPanel extends JPanel {
   private final JButton cancel;
   private final JButton remove;
-  public final JButton apply;
+  private final JButton apply;
   private final List<Runnable> onCancelCallbacks = new ArrayList<>();
   private final List<Runnable> onRemoveCallbacks = new ArrayList<>();
   private final List<Consumer<ExportConfiguration>> onApplyCallbacks = new ArrayList<>();
 
-  public BottomPanel(ConfigurationPanel configurationComponent) {
+  ConfigurationDialogBottomPanel(ConfigurationPanel configurationComponent) {
     super();
     remove = new JButton("Remove");
     remove.setActionCommand("Remove");
@@ -42,10 +42,6 @@ public class BottomPanel extends JPanel {
     add(right, BorderLayout.EAST);
   }
 
-  void enableRemove() {
-    remove.setEnabled(true);
-  }
-
   public void disableRemove() {
     remove.setEnabled(false);
   }
@@ -56,6 +52,10 @@ public class BottomPanel extends JPanel {
 
   public void disableApply() {
     apply.setEnabled(false);
+  }
+
+  public JButton getDefaultButton() {
+    return apply;
   }
 
   public void onCancel(Runnable callback) {

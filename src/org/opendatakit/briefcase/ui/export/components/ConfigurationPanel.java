@@ -64,16 +64,16 @@ public class ConfigurationPanel {
     onChangeCallbacks.add(callback);
   }
 
-  void triggerOnChange() {
+  private void triggerOnChange() {
     onChangeCallbacks.forEach(Runnable::run);
   }
 
   public void disable() {
-    view.disableUI();
+    view.setEnabled(false);
   }
 
   public void enable() {
-    view.enableUI();
+    view.setEnabled(true);
   }
 
   public boolean isValid() {

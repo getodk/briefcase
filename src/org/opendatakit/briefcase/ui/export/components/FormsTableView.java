@@ -1,27 +1,6 @@
-/*
- * Copyright (C) 2011 University of Washington.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
-
 package org.opendatakit.briefcase.ui.export.components;
 
 import static javax.swing.SortOrder.ASCENDING;
-import static org.opendatakit.briefcase.ui.export.components.FormExportTableModel.DETAIL_BUTTON_COL;
-import static org.opendatakit.briefcase.ui.export.components.FormExportTableModel.FORM_NAME_COL;
-import static org.opendatakit.briefcase.ui.export.components.FormExportTableModel.HEADERS;
-import static org.opendatakit.briefcase.ui.export.components.FormExportTableModel.OVERRIDE_CONF_COL;
-import static org.opendatakit.briefcase.ui.export.components.FormExportTableModel.SELECTED_CHECKBOX_COL;
 
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
@@ -34,15 +13,21 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.opendatakit.briefcase.ui.reused.MouseListenerBuilder;
 
-public class FormExportTable extends JTable {
-  private static final long serialVersionUID = 8511088963758308085L;
+public class FormsTableView extends JTable {
+  static final String[] HEADERS = new String[]{"Selected", "⚙", "Form Name", "Export Status", "Detail"};
+  static final Class[] TYPES = new Class[]{Boolean.class, JButton.class, String.class, String.class, JButton.class};
+  static final boolean[] EDITABLE_COLS = new boolean[]{true, false, false, false, false};
 
-  public FormExportTable(FormExportTableModel tableModel) {
-    super(tableModel);
-    AnnotationProcessor.process(this);
+  static final int SELECTED_CHECKBOX_COL = 0;
+  static final int OVERRIDE_CONF_COL = 1;
+  static final int FORM_NAME_COL = 2;
+  static final int EXPORT_STATUS_COL = 3;
+  static final int DETAIL_BUTTON_COL = 4;
+
+  FormsTableView(FormsTableViewModel model) {
+    super(model);
 
     addMouseListener(new MouseListenerBuilder().onClick(this::relayClickToButton).build());
 
@@ -50,8 +35,8 @@ public class FormExportTable extends JTable {
         .getDefaultRenderer()
         .getTableCellRendererComponent(null, HEADERS[SELECTED_CHECKBOX_COL], false, false, 0, 0)
         .getPreferredSize();
-    Dimension detailButtonDims = tableModel.buildDetailButton(null).getPreferredSize();
-    Dimension overrideConfButtonDims = tableModel.buildOverrideConfButton(null).getPreferredSize();
+    Dimension detailButtonDims = model.buildDetailButton(null).getPreferredSize();
+    Dimension overrideConfButtonDims = model.buildOverrideConfButton(null).getPreferredSize();
 
     setRowHeight(detailButtonDims.height);
 
@@ -70,9 +55,14 @@ public class FormExportTable extends JTable {
 
     setFillsViewportHeight(true);
 
-    TableRowSorter<FormExportTableModel> sorter = sortBy((FormExportTableModel) this.dataModel, FORM_NAME_COL, ASCENDING);
+    TableRowSorter<FormsTableViewModel> sorter = sortBy(getModel(), FORM_NAME_COL, ASCENDING);
     setRowSorter(sorter);
     sorter.sort();
+  }
+
+
+  void refresh() {
+    getModel().refresh();
   }
 
   private void relayClickToButton(MouseEvent event) {
@@ -84,6 +74,20 @@ public class FormExportTable extends JTable {
       if (value instanceof JButton)
         ((JButton) value).doClick();
     }
+  }
+
+  @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+    if (enabled)
+      getModel().enable();
+    else
+      getModel().disable();
+  }
+
+  @Override
+  public FormsTableViewModel getModel() {
+    return (FormsTableViewModel) super.getModel();
   }
 
   private static TableCellRenderer cellWithButton() {

@@ -4,11 +4,11 @@ import java.awt.Window;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.ui.export.ExportConfiguration;
 
-public class ExportConfigurationDialog {
-  private final ExportConfigurationDialogView view;
+class ConfigurationDialog {
+  private final ConfigurationDialogView view;
 
-  public ExportConfigurationDialog(Window app, ExportConfiguration config) {
-    view = new ExportConfigurationDialogView(app, config);
+  ConfigurationDialog(Window app, ExportConfiguration config) {
+    view = new ConfigurationDialogView(app, config);
     view.onRemove(view::closeDialog);
     view.onApply(__ -> view.closeDialog());
   }
