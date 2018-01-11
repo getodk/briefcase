@@ -24,8 +24,8 @@ public class ExportConfiguration {
   private Optional<LocalDate> dateRangeStart;
   private Optional<LocalDate> dateRangeEnd;
 
-  private ExportConfiguration(Optional<Path> exportDirectory, Optional<Path> pemFile, Optional<LocalDate> dateRangeStart, Optional<LocalDate> dateRangeEnd) {
-    this.exportDirectory = exportDirectory;
+  private ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> dateRangeStart, Optional<LocalDate> dateRangeEnd) {
+    this.exportDirectory = exportDir;
     this.pemFile = pemFile;
     this.dateRangeStart = dateRangeStart;
     this.dateRangeEnd = dateRangeEnd;
@@ -42,6 +42,14 @@ public class ExportConfiguration {
         other.dateRangeStart,
         other.dateRangeEnd
     );
+  }
+
+  public Optional<Path> getExportDir() {
+    return exportDirectory;
+  }
+
+  public Optional<Path> getPemFile() {
+    return pemFile;
   }
 
   public Optional<LocalDate> getDateRangeStart() {

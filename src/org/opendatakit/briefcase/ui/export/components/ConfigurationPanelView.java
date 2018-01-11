@@ -30,8 +30,8 @@ import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.StringUtils;
 
 class ConfigurationPanelView extends JPanel {
-  private final JTextField exportDirectoryField;
-  private final JTextField pemFileField;
+  protected final JTextField exportDirectoryField;
+  protected final JTextField pemFileField;
   protected final DatePicker dateRangeStartField;
   protected final DatePicker dateRangeEndField;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
@@ -63,22 +63,18 @@ class ConfigurationPanelView extends JPanel {
     JLabel dateRangeStartLabel = new JLabel("Start Date (inclusive):");
     dateRangeStartField = createDatePicker();
     dateRangeStartField.addDateChangeListener(event -> {
-      if (event.getNewDate() != null)
-        setDateRangeStart(LocalDate.of(
-            event.getNewDate().getYear(),
-            event.getNewDate().getMonthValue(),
-            event.getNewDate().getDayOfMonth()
-        ));
+      LocalDate date = event.getNewDate() != null
+          ? LocalDate.of(event.getNewDate().getYear(), event.getNewDate().getMonthValue(), event.getNewDate().getDayOfMonth())
+          : null;
+      onSelectDateRangeStartCallbacks.forEach(consumer -> consumer.accept(date));
     });
     JLabel dateRangeEndLabel = new JLabel("End Date (exclusive):");
     dateRangeEndField = createDatePicker();
     dateRangeEndField.addDateChangeListener(event -> {
-      if (event.getNewDate() != null)
-        setDateRangeEnd(LocalDate.of(
-            event.getNewDate().getYear(),
-            event.getNewDate().getMonthValue(),
-            event.getNewDate().getDayOfMonth()
-        ));
+      LocalDate date = event.getNewDate() != null
+          ? LocalDate.of(event.getNewDate().getYear(), event.getNewDate().getMonthValue(), event.getNewDate().getDayOfMonth())
+          : null;
+      onSelectDateRangeEndCallbacks.forEach(consumer -> consumer.accept(date));
     });
 
     GroupLayout groupLayout = new GroupLayout(this);
@@ -162,8 +158,8 @@ class ConfigurationPanelView extends JPanel {
   }
 
   void setDateRangeStart(LocalDate date) {
+    // Route the change through the date picker's date to avoid repeated set calls
     dateRangeStartField.setDate(org.threeten.bp.LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
-    onSelectDateRangeStartCallbacks.forEach(consumer -> consumer.accept(date));
   }
 
   void onSelectDateRangeStart(Consumer<LocalDate> callback) {
@@ -175,8 +171,8 @@ class ConfigurationPanelView extends JPanel {
   }
 
   void setDateRangeEnd(LocalDate date) {
+    // Route the change through the date picker's date to avoid repeated set calls
     dateRangeEndField.setDate(org.threeten.bp.LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
-    onSelectDateRangeEndCallbacks.forEach(consumer -> consumer.accept(date));
   }
 
   void onSelectDateRangeEnd(Consumer<LocalDate> callback) {
