@@ -13,11 +13,16 @@ public class FormsTable {
   private final FormsTableViewModel viewModel;
   private final ExportForms forms;
 
-  public FormsTable(ExportForms forms) {
-    this.viewModel = new FormsTableViewModel(forms);
-    this.view = new FormsTableView(viewModel);
+  FormsTable(ExportForms forms, FormsTableView view, FormsTableViewModel viewModel) {
+    this.viewModel = viewModel;
+    this.view = view;
     this.forms = forms;
     AnnotationProcessor.process(this);
+  }
+
+  public static FormsTable from(ExportForms forms) {
+    FormsTableViewModel viewModel = new FormsTableViewModel(forms);
+    return new FormsTable(forms, new FormsTableView(viewModel), viewModel);
   }
 
   public void onChange(Runnable callback) {
@@ -35,7 +40,7 @@ public class FormsTable {
   }
 
   public void refresh() {
-    view.refresh();
+    viewModel.refresh();
   }
 
   public FormsTableView getView() {
@@ -43,34 +48,34 @@ public class FormsTable {
   }
 
   public void enable() {
-    view.setEnabled(true);
+    viewModel.enable();
   }
 
   public void disable() {
-    view.setEnabled(false);
+    viewModel.disable();
   }
 
   @EventSubscriber(eventClass = ExportProgressEvent.class)
   public void onExportProgressEvent(ExportProgressEvent event) {
     forms.appendStatus(event.getFormDefinition(), event.getText(), false);
-    view.refresh();
+    viewModel.refresh();
   }
 
   @EventSubscriber(eventClass = ExportFailedEvent.class)
   public void onExportFailedEvent(ExportFailedEvent event) {
     forms.appendStatus(event.getFormDefinition(), "Failed.", false);
-    view.refresh();
+    viewModel.refresh();
   }
 
   @EventSubscriber(eventClass = ExportSucceededEvent.class)
   public void onExportSucceededEvent(ExportSucceededEvent event) {
     forms.appendStatus(event.getFormDefinition(), "Succeeded.", true);
-    view.refresh();
+    viewModel.refresh();
   }
 
   @EventSubscriber(eventClass = ExportSucceededWithErrorsEvent.class)
   public void onExportSucceededWithErrorsEvent(ExportSucceededWithErrorsEvent event) {
     forms.appendStatus(event.getFormDefinition(), "Succeeded, but with errors.", true);
-    view.refresh();
+    viewModel.refresh();
   }
 }

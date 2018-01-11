@@ -61,10 +61,6 @@ public class FormsTableView extends JTable {
   }
 
 
-  void refresh() {
-    getModel().refresh();
-  }
-
   private void relayClickToButton(MouseEvent event) {
     int column = getColumnModel().getColumnIndexAtX(event.getX());
     int row = event.getY() / getRowHeight();
@@ -74,15 +70,6 @@ public class FormsTableView extends JTable {
       if (value instanceof JButton)
         ((JButton) value).doClick();
     }
-  }
-
-  @Override
-  public void setEnabled(boolean enabled) {
-    super.setEnabled(enabled);
-    if (enabled)
-      getModel().enable();
-    else
-      getModel().disable();
   }
 
   @Override

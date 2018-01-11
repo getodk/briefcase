@@ -24,7 +24,7 @@ public class ExportPanelView extends JPanel {
     super();
     this.forms = forms;
     configurationPanel = ConfigurationPanel.from(initialDefaultConfiguration);
-    formsTable = new FormsTable(forms);
+    formsTable = FormsTable.from(forms);
     bottomPanel = new ExportPanelBottomPanel();
 
     configurationPanel.onChange(this::updateBottomPanel);
