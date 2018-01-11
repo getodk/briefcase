@@ -1,6 +1,5 @@
 package org.opendatakit.briefcase.ui.export.components;
 
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.nullValue;
