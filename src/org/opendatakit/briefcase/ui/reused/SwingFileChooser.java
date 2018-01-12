@@ -1,4 +1,4 @@
-package org.opendatakit.briefcase.ui.export;
+package org.opendatakit.briefcase.ui.reused;
 
 import static javax.swing.JFileChooser.APPROVE_OPTION;
 
