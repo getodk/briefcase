@@ -231,7 +231,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         addPane(PushTransferPanel.TAB_NAME, uploadPanel);
 
         exportPanel = new ExportPanel(exportTerminationFuture);
-        addPane(ExportPanel.TAB_NAME, exportPanel);
+        addPane(ExportPanel.TAB_NAME, exportPanel.getForm());
 
         settingsPanel = new SettingsPanel(this);
         addPane(SettingsPanel.TAB_NAME, settingsPanel);

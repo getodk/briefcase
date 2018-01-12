@@ -95,7 +95,7 @@ public class ExportConfiguration {
     endDate.ifPresent(consumer);
   }
 
-  List<String> getErrors() {
+  private List<String> getErrors() {
     List<String> errors = new ArrayList<>();
 
     if (!exportDir.isPresent())
