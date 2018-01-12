@@ -35,6 +35,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.opendatakit.briefcase.ui.reused.MouseListenerBuilder;
 
 class FormExportTable extends JTable {
   private static final long serialVersionUID = 8511088963758308085L;
