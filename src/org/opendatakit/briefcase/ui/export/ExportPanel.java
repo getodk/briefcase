@@ -53,7 +53,6 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
 import org.opendatakit.briefcase.ui.export.components.FormsTable;
-import org.opendatakit.briefcase.ui.export.components.FormsTableViewModel;
 import org.opendatakit.briefcase.ui.reused.MouseListenerBuilder;
 import org.opendatakit.briefcase.util.ExportAction;
 import org.opendatakit.briefcase.util.FileSystemUtils;
@@ -64,8 +63,6 @@ public class ExportPanel extends JPanel {
 
   public static final String TAB_NAME = "Export";
 
-  private final FormsTableViewModel tableModel;
-
   private final JButton btnSelectAll;
   private final JButton btnClearAll;
 
@@ -75,6 +72,8 @@ public class ExportPanel extends JPanel {
 
   private final TerminationFuture terminationFuture;
   private final ConfigurationPanel confPanel;
+  private final ExportForms forms;
+  private final FormsTable formsTable;
 
   public ExportPanel(TerminationFuture terminationFuture) {
     super();
@@ -85,21 +84,23 @@ public class ExportPanel extends JPanel {
     confPanel = ConfigurationPanel.from(ExportConfiguration.empty());
     confPanel.onChange(this::updateExportButton);
 
-    tableModel = new FormsTableViewModel();
-    tableModel.onSelectionChange(this::updateExportButton);
-    tableModel.onSelectionChange(this::updateSelectAllButton);
-    tableModel.onSelectionChange(this::updateClearAllButton);
+    forms = new ExportForms();
+    formsTable = FormsTable.from(forms);
+
+    formsTable.onChange(this::updateExportButton);
+    formsTable.onChange(this::updateSelectAllButton);
+    formsTable.onChange(this::updateClearAllButton);
 
     btnSelectAll = new JButton("Select all");
-    btnSelectAll.addMouseListener(new MouseListenerBuilder().onClick(__ -> tableModel.checkAll()).build());
+    btnSelectAll.addMouseListener(new MouseListenerBuilder().onClick(__ -> forms.selectAll()).build());
 
     btnClearAll = new JButton("Clear all");
     btnClearAll.setVisible(false);
-    btnClearAll.addMouseListener(new MouseListenerBuilder().onClick(__ -> tableModel.uncheckAll()).build());
+    btnClearAll.addMouseListener(new MouseListenerBuilder().onClick(__ -> forms.clearAll()).build());
 
     JLabel lblFormsToTransfer = new JLabel("Forms to export:");
 
-    JScrollPane scrollPane = new JScrollPane(new FormsTable(tableModel));
+    JScrollPane scrollPane = new JScrollPane(formsTable.getView());
     JSeparator separatorFormsList = new JSeparator();
 
     btnExport = new JButton("Export");
@@ -177,7 +178,7 @@ public class ExportPanel extends JPanel {
 
     errors.addAll(confPanel.getConfiguration().getErrors());
 
-    if (tableModel.noneSelected())
+    if (forms.noneSelected())
       errors.add("No form has been selected");
 
     return errors;
@@ -188,17 +189,18 @@ public class ExportPanel extends JPanel {
   }
 
   private void updateClearAllButton() {
-    btnClearAll.setVisible(tableModel.allSelected());
+    btnClearAll.setVisible(forms.allSelected());
   }
 
   private void updateSelectAllButton() {
-    btnSelectAll.setVisible(!tableModel.allSelected());
+    btnSelectAll.setVisible(!forms.allSelected());
   }
 
   public void updateForms() {
-    tableModel.setForms(FileSystemUtils.getBriefcaseFormList().stream()
+    forms.merge(FileSystemUtils.getBriefcaseFormList().stream()
         .map(formDefinition -> new FormStatus(EXPORT, formDefinition))
         .collect(toList()));
+    formsTable.refresh();
   }
 
   private void showErrors(List<String> errors, String headerText, String title) {
@@ -259,7 +261,7 @@ public class ExportPanel extends JPanel {
   }
 
   private List<String> export() {
-    return tableModel.getSelectedForms().parallelStream()
+    return forms.getSelectedForms().parallelStream()
         .peek(FormStatus::clearStatusHistory)
         .map(formStatus -> (BriefcaseFormDefinition) formStatus.getFormDefinition())
         .flatMap(formDefinition -> this.export(formDefinition).stream())
