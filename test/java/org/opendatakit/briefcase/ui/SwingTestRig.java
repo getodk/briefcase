@@ -22,8 +22,7 @@ public class SwingTestRig {
     try {
       BriefcasePreferences.setBriefcaseDirectoryProperty(Files.createTempDirectory("briefcase_test").toString());
       File briefcaseFolder = new StorageLocation().getBriefcaseFolder();
-      boolean mkdirs = briefcaseFolder.mkdirs();
-      if (mkdirs)
+      if (briefcaseFolder.mkdirs())
         log.info("Created test Briefcase storage folder at " + briefcaseFolder);
       else
         throw new RuntimeException("Can't create test Briefcase storage folder");
