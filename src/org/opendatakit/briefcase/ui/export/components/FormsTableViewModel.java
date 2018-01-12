@@ -1,4 +1,4 @@
-package org.opendatakit.briefcase.ui.export;
+package org.opendatakit.briefcase.ui.export.components;
 
 import static javax.swing.JOptionPane.getFrameForComponent;
 import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
@@ -21,7 +21,7 @@ import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 
-class FormExportTableModel extends AbstractTableModel {
+public class FormsTableViewModel extends AbstractTableModel {
   private static final long serialVersionUID = 7108326237416622721L;
   static final String[] HEADERS = new String[]{"Selected", "Form Name", "Export Status", "Detail"};
 
@@ -34,39 +34,39 @@ class FormExportTableModel extends AbstractTableModel {
   private List<FormStatus> forms = new ArrayList<>();
   private Map<FormStatus, JButton> detailButtons = new HashMap<>();
 
-  FormExportTableModel() {
+  public FormsTableViewModel() {
     super();
     AnnotationProcessor.process(this);
   }
 
-  void setForms(List<FormStatus> forms) {
+  public void setForms(List<FormStatus> forms) {
     this.forms = forms;
     fireTableDataChanged();
   }
 
-  List<FormStatus> getSelectedForms() {
+  public List<FormStatus> getSelectedForms() {
     return forms.stream().filter(FormStatus::isSelected).collect(Collectors.toList());
   }
 
-  boolean noneSelected() {
+  public boolean noneSelected() {
     return forms.stream().noneMatch(FormStatus::isSelected);
   }
 
-  boolean allSelected() {
+  public boolean allSelected() {
     return forms.stream().allMatch(FormStatus::isSelected);
   }
 
-  void checkAll() {
+  public void checkAll() {
     for (int row = 0; row < forms.size(); row++)
       setValueAt(true, row, 0);
   }
 
-  void uncheckAll() {
+  public void uncheckAll() {
     for (int row = 0; row < forms.size(); row++)
       setValueAt(false, row, 0);
   }
 
-  void onSelectionChange(Runnable callback) {
+  public void onSelectionChange(Runnable callback) {
     selectionChangeCallbacks.add(callback);
   }
 
@@ -167,7 +167,7 @@ class FormExportTableModel extends AbstractTableModel {
       case EXPORT_STATUS_COL:
         return form.getStatusString();
       case DETAIL_BUTTON_COL:
-        return detailButtons.computeIfAbsent(form, FormExportTableModel::buildDetailButton);
+        return detailButtons.computeIfAbsent(form, FormsTableViewModel::buildDetailButton);
       default:
         throw new IllegalStateException("unexpected column choice");
     }

@@ -52,6 +52,8 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
+import org.opendatakit.briefcase.ui.export.components.FormsTable;
+import org.opendatakit.briefcase.ui.export.components.FormsTableViewModel;
 import org.opendatakit.briefcase.ui.reused.MouseListenerBuilder;
 import org.opendatakit.briefcase.util.ExportAction;
 import org.opendatakit.briefcase.util.FileSystemUtils;
@@ -62,7 +64,7 @@ public class ExportPanel extends JPanel {
 
   public static final String TAB_NAME = "Export";
 
-  private final FormExportTableModel tableModel;
+  private final FormsTableViewModel tableModel;
 
   private final JButton btnSelectAll;
   private final JButton btnClearAll;
@@ -83,7 +85,7 @@ public class ExportPanel extends JPanel {
     confPanel = ConfigurationPanel.from(ExportConfiguration.empty());
     confPanel.onChange(this::updateExportButton);
 
-    tableModel = new FormExportTableModel();
+    tableModel = new FormsTableViewModel();
     tableModel.onSelectionChange(this::updateExportButton);
     tableModel.onSelectionChange(this::updateSelectAllButton);
     tableModel.onSelectionChange(this::updateClearAllButton);
@@ -97,7 +99,7 @@ public class ExportPanel extends JPanel {
 
     JLabel lblFormsToTransfer = new JLabel("Forms to export:");
 
-    JScrollPane scrollPane = new JScrollPane(new FormExportTable(tableModel));
+    JScrollPane scrollPane = new JScrollPane(new FormsTable(tableModel));
     JSeparator separatorFormsList = new JSeparator();
 
     btnExport = new JButton("Export");
