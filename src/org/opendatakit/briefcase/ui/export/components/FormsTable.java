@@ -39,6 +39,18 @@ public class FormsTable {
     viewModel.refresh();
   }
 
+  public boolean someSelected() {
+    return forms.someSelected();
+  }
+
+  public boolean allSelectedFormsHaveConfiguration() {
+    return forms.allSelectedFormsHaveConfiguration();
+  }
+
+  public boolean allSelected() {
+    return forms.allSelected();
+  }
+
   public void refresh() {
     viewModel.refresh();
   }

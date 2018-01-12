@@ -83,9 +83,10 @@ class FormsTableViewModel extends AbstractTableModel {
       button.addActionListener(__ -> {
         button.setEnabled(false);
         try {
-          ConfigurationDialog dialog = new ConfigurationDialog(getFrameForComponent(button), forms.getConfiguration(form));
+//          OldConfigurationDialog dialog = new OldConfigurationDialog(getFrameForComponent(button), forms.getConfiguration(form));
+          ConfigurationDialog dialog = ConfigurationDialog.from(forms.getConfiguration(form));
           dialog.onRemove(() -> removeConfiguration(form));
-          dialog.onApply(configuration -> applyConfiguration(form, configuration));
+          dialog.onOK(configuration -> applyConfiguration(form, configuration));
           dialog.open();
         } finally {
           button.setEnabled(true);

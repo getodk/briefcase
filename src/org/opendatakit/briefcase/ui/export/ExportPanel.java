@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import javax.swing.JPanel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -45,41 +46,40 @@ public class ExportPanel {
 
   private final TerminationFuture terminationFuture;
   private final ExportForms forms;
-  private final ExportPanelView view;
+  private final ExportPanelForm form;
 
   public ExportPanel(TerminationFuture terminationFuture) {
-    super();
     AnnotationProcessor.process(this);// if not using AOP
 
     this.terminationFuture = terminationFuture;
 
     forms = new ExportForms();
 
-    view = new ExportPanelView(forms, ExportConfiguration.empty());
-    view.onExport(defaultConfiguration -> new Thread(() -> {
+    form = ExportPanelForm.from(forms, ExportConfiguration.empty());
+    form.onExport(defaultConfiguration -> new Thread(() -> {
       List<String> errors = export(defaultConfiguration);
       if (!errors.isEmpty()) {
         String message = String.format("%s\n\n%s", "We have found some errors while performing the requested export actions:", errors.stream().map(e -> "- " + e).collect(joining("\n")));
-        showErrorDialog(view, message, "Export error report");
+        showErrorDialog(form, message, "Export error report");
       }
     }).start());
 
     updateForms();
   }
 
-  public ExportPanelView getView() {
-    return view;
+  public JPanel getForm() {
+    return form.container;
   }
 
   private List<String> export(ExportConfiguration defaultConfiguration) {
-    view.disableUI();
+    form.disableUI();
     terminationFuture.reset();
     List<String> errors = forms.getSelectedForms().parallelStream()
         .peek(FormStatus::clearStatusHistory)
         .map(formStatus -> (BriefcaseFormDefinition) formStatus.getFormDefinition())
         .flatMap(formDefinition -> this.export(defaultConfiguration, formDefinition).stream())
         .collect(toList());
-    view.enableUI();
+    form.enableUI();
     return errors;
   }
 
@@ -112,7 +112,7 @@ public class ExportPanel {
         .collect(toList());
 
     forms.merge(incomingForms);
-    view.refresh();
+    form.refresh();
   }
 
   @EventSubscriber(eventClass = TransferSucceededEvent.class)

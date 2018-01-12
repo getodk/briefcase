@@ -4,7 +4,6 @@ import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_BRIEFCASE_S
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_EXIST;
-import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_DATE_RANGE_MESSAGE;
 import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 
@@ -19,16 +18,16 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class ExportConfiguration {
-  private Optional<Path> exportDirectory;
+  private Optional<Path> exportDir;
   private Optional<Path> pemFile;
-  private Optional<LocalDate> dateRangeStart;
-  private Optional<LocalDate> dateRangeEnd;
+  private Optional<LocalDate> startDate;
+  private Optional<LocalDate> endDate;
 
-  private ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> dateRangeStart, Optional<LocalDate> dateRangeEnd) {
-    this.exportDirectory = exportDir;
+  private ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
+    this.exportDir = exportDir;
     this.pemFile = pemFile;
-    this.dateRangeStart = dateRangeStart;
-    this.dateRangeEnd = dateRangeEnd;
+    this.startDate = startDate;
+    this.endDate = endDate;
   }
 
   public static ExportConfiguration empty() {
@@ -37,43 +36,43 @@ public class ExportConfiguration {
 
   public static ExportConfiguration copy(ExportConfiguration other) {
     return new ExportConfiguration(
-        other.exportDirectory,
+        other.exportDir,
         other.pemFile,
-        other.dateRangeStart,
-        other.dateRangeEnd
+        other.startDate,
+        other.endDate
     );
   }
 
   public Optional<Path> getExportDir() {
-    return exportDirectory;
+    return exportDir;
   }
 
   public Optional<Path> getPemFile() {
     return pemFile;
   }
 
-  public Optional<LocalDate> getDateRangeStart() {
-    return dateRangeStart;
+  public Optional<LocalDate> getStartDate() {
+    return startDate;
   }
 
-  public void setDateRangeStart(LocalDate date) {
-    this.dateRangeStart = Optional.ofNullable(date);
+  public void setStartDate(LocalDate date) {
+    this.startDate = Optional.ofNullable(date);
   }
 
-  public Optional<LocalDate> getDateRangeEnd() {
-    return dateRangeEnd;
+  public Optional<LocalDate> getEndDate() {
+    return endDate;
   }
 
-  public void setDateRangeEnd(LocalDate date) {
-    this.dateRangeEnd = Optional.ofNullable(date);
+  public void setEndDate(LocalDate date) {
+    this.endDate = Optional.ofNullable(date);
   }
 
   public boolean isDateRangeValid() {
-    return !dateRangeStart.isPresent() || !dateRangeEnd.isPresent() || dateRangeStart.get().isBefore(dateRangeEnd.get());
+    return !startDate.isPresent() || !endDate.isPresent() || startDate.get().isBefore(endDate.get());
   }
 
   public void setExportDir(Path path) {
-    this.exportDirectory = Optional.ofNullable(path);
+    this.exportDir = Optional.ofNullable(path);
   }
 
   public void setPemFile(Path path) {
@@ -81,7 +80,7 @@ public class ExportConfiguration {
   }
 
   public void ifExportDirPresent(Consumer<Path> consumer) {
-    exportDirectory.ifPresent(consumer);
+    exportDir.ifPresent(consumer);
   }
 
   public void ifPemFilePresent(Consumer<Path> consumer) {
@@ -89,37 +88,37 @@ public class ExportConfiguration {
   }
 
   public void ifDateRangeStartPresent(Consumer<LocalDate> consumer) {
-    dateRangeStart.ifPresent(consumer);
+    startDate.ifPresent(consumer);
   }
 
   public void ifDateRangeEndPresent(Consumer<LocalDate> consumer) {
-    dateRangeEnd.ifPresent(consumer);
+    endDate.ifPresent(consumer);
   }
 
   private List<String> getErrors() {
     List<String> errors = new ArrayList<>();
 
-    if (!exportDirectory.isPresent())
+    if (!exportDir.isPresent())
       errors.add("Export directory was not specified.");
 
-    if (!exportDirectory.filter(path -> Files.exists(path)).isPresent())
+    if (!exportDir.filter(path -> Files.exists(path)).isPresent())
       errors.add(DIR_NOT_EXIST);
 
-    if (!exportDirectory.filter(path -> Files.isDirectory(path)).isPresent())
+    if (!exportDir.filter(path -> Files.isDirectory(path)).isPresent())
       errors.add(DIR_NOT_DIRECTORY);
 
-    if (!exportDirectory.filter(path -> !isUnderODKFolder(path.toFile())).isPresent())
+    if (!exportDir.filter(path -> !isUnderODKFolder(path.toFile())).isPresent())
       errors.add(DIR_INSIDE_ODK_DEVICE_DIRECTORY);
 
-    if (!exportDirectory.filter(path -> !isUnderBriefcaseFolder(path.toFile())).isPresent())
+    if (!exportDir.filter(path -> !isUnderBriefcaseFolder(path.toFile())).isPresent())
       errors.add(DIR_INSIDE_BRIEFCASE_STORAGE);
 
-    if (dateRangeStart.isPresent() && !dateRangeEnd.isPresent())
+    if (startDate.isPresent() && !endDate.isPresent())
       errors.add("Missing date range end definition");
-    if (!dateRangeStart.isPresent() && dateRangeEnd.isPresent())
+    if (!startDate.isPresent() && endDate.isPresent())
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
-      errors.add(INVALID_DATE_RANGE_MESSAGE);
+      errors.add("Invalid date range: \"From\" date must be before \"To\" date.");
     return errors;
   }
 
@@ -128,7 +127,7 @@ public class ExportConfiguration {
   }
 
   public boolean isEmpty() {
-    return !exportDirectory.isPresent();
+    return !exportDir.isPresent();
   }
 
   public <T> Optional<T> mapPemFile(Function<Path, T> mapper) {
@@ -136,32 +135,32 @@ public class ExportConfiguration {
   }
 
   public <T> Optional<T> mapExportDir(Function<Path, T> mapper) {
-    return exportDirectory.map(mapper);
+    return exportDir.map(mapper);
   }
 
   public <T> Optional<T> mapDateRangeStart(Function<LocalDate, T> mapper) {
-    return dateRangeStart.map(mapper);
+    return startDate.map(mapper);
   }
 
   public <T> Optional<T> mapDateRangeEnd(Function<LocalDate, T> mapper) {
-    return dateRangeEnd.map(mapper);
+    return endDate.map(mapper);
   }
 
-  public void clearDateRangeStart() {
-    dateRangeStart = Optional.empty();
+  public void clearStartDate() {
+    startDate = Optional.empty();
   }
 
-  public void clearDateRangeEnd() {
-    dateRangeEnd = Optional.empty();
+  public void clearEndDate() {
+    endDate = Optional.empty();
   }
 
   @Override
   public String toString() {
     return "ExportConfiguration{" +
-        "exportDirectory=" + exportDirectory +
+        "exportDir=" + exportDir +
         ", pemFile=" + pemFile +
-        ", dateRangeStart=" + dateRangeStart +
-        ", dateRangeEnd=" + dateRangeEnd +
+        ", startDate=" + startDate +
+        ", endDate=" + endDate +
         '}';
   }
 
@@ -172,15 +171,15 @@ public class ExportConfiguration {
     if (o == null || getClass() != o.getClass())
       return false;
     ExportConfiguration that = (ExportConfiguration) o;
-    return Objects.equals(exportDirectory, that.exportDirectory) &&
+    return Objects.equals(exportDir, that.exportDir) &&
         Objects.equals(pemFile, that.pemFile) &&
-        Objects.equals(dateRangeStart, that.dateRangeStart) &&
-        Objects.equals(dateRangeEnd, that.dateRangeEnd);
+        Objects.equals(startDate, that.startDate) &&
+        Objects.equals(endDate, that.endDate);
   }
 
   @Override
   public int hashCode() {
 
-    return Objects.hash(exportDirectory, pemFile, dateRangeStart, dateRangeEnd);
+    return Objects.hash(exportDir, pemFile, startDate, endDate);
   }
 }

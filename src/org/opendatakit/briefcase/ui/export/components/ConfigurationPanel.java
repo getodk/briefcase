@@ -1,7 +1,5 @@
 package org.opendatakit.briefcase.ui.export.components;
 
-import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_DATE_RANGE_MESSAGE;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.opendatakit.briefcase.ui.export.ExportConfiguration;
@@ -9,51 +7,41 @@ import org.opendatakit.briefcase.ui.export.ExportConfiguration;
 public class ConfigurationPanel {
   private final ExportConfiguration configuration;
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
-  private final ConfigurationPanelView view;
+  private final ConfigurationPanelForm form;
 
-  ConfigurationPanel(ExportConfiguration initialConfiguration, ConfigurationPanelView view) {
-    this.view = view;
+  ConfigurationPanel(ExportConfiguration initialConfiguration, ConfigurationPanelForm form) {
+    this.form = form;
     configuration = ExportConfiguration.copy(initialConfiguration);
 
-    configuration.ifExportDirPresent(view::setExportDir);
-    configuration.ifPemFilePresent(view::setPemFile);
-    configuration.ifDateRangeStartPresent(view::setDateRangeStart);
-    configuration.ifDateRangeEndPresent(view::setDateRangeEnd);
+    configuration.ifExportDirPresent(form::setExportDir);
+    configuration.ifPemFilePresent(form::setPemFile);
+    configuration.ifDateRangeStartPresent(form::setStartDate);
+    configuration.ifDateRangeEndPresent(form::setEndDate);
 
-    view.onSelectExportDir(path -> {
+    form.onSelectExportDir(path -> {
       configuration.setExportDir(path);
       triggerOnChange();
     });
-    view.onSelectPemFile(path -> {
+    form.onSelectPemFile(path -> {
       configuration.setPemFile(path);
       triggerOnChange();
     });
-    view.onSelectDateRangeStart(date -> {
-      configuration.setDateRangeStart(date);
-      if (!configuration.isDateRangeValid()) {
-        view.showError(INVALID_DATE_RANGE_MESSAGE, "Export configuration error");
-        view.clearDateRangeStart();
-        configuration.clearDateRangeStart();
-      } else
-        triggerOnChange();
+    form.onSelectDateRangeStart(date -> {
+      configuration.setStartDate(date);
+      triggerOnChange();
     });
-    view.onSelectDateRangeEnd(date -> {
-      configuration.setDateRangeEnd(date);
-      if (!configuration.isDateRangeValid()) {
-        view.showError(INVALID_DATE_RANGE_MESSAGE, "Export configuration error");
-        view.clearDateRangeEnd();
-        configuration.clearDateRangeEnd();
-      } else
-        triggerOnChange();
+    form.onSelectDateRangeEnd(date -> {
+      configuration.setEndDate(date);
+      triggerOnChange();
     });
   }
 
   public static ConfigurationPanel from(ExportConfiguration config) {
-    return new ConfigurationPanel(config, new ConfigurationPanelView());
+    return new ConfigurationPanel(config, new ConfigurationPanelForm());
   }
 
-  public ConfigurationPanelView getView() {
-    return view;
+  public ConfigurationPanelForm getForm() {
+    return form;
   }
 
   public ExportConfiguration getConfiguration() {
@@ -68,12 +56,12 @@ public class ConfigurationPanel {
     onChangeCallbacks.forEach(Runnable::run);
   }
 
-  public void disable() {
-    view.setEnabled(false);
+  public void enable() {
+    form.setEnabled(true);
   }
 
-  public void enable() {
-    view.setEnabled(true);
+  public void disable() {
+    form.setEnabled(false);
   }
 
   public boolean isValid() {

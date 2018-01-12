@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
