@@ -185,7 +185,10 @@ public class ExportPanel extends JPanel {
   }
 
   private void updateExportButton() {
-    btnExport.setEnabled(getErrors().isEmpty());
+    if (forms.someSelected() && (!confPanel.getConfiguration().isEmpty() || forms.allSelectedFormsHaveConfiguration()))
+      btnExport.setEnabled(true);
+    else
+      btnExport.setEnabled(false);
   }
 
   private void updateClearAllButton() {
@@ -270,7 +273,7 @@ public class ExportPanel extends JPanel {
 
   private List<String> export(BriefcaseFormDefinition formDefinition) {
     List<String> errors = new ArrayList<>();
-    ExportConfiguration configuration = confPanel.getConfiguration();
+    ExportConfiguration configuration = forms.getConfiguration(formDefinition).orElse(confPanel.getConfiguration());
     Optional<File> pemFile = configuration.mapPemFile(Path::toFile).filter(File::exists);
     if ((formDefinition.isFileEncryptedForm() || formDefinition.isFieldEncryptedForm()) && !pemFile.isPresent())
       errors.add(formDefinition.getFormName() + " form requires is encrypted and you haven't defined a valid private key file location");

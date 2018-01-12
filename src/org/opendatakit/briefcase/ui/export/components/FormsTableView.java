@@ -16,14 +16,15 @@ import javax.swing.table.TableRowSorter;
 import org.opendatakit.briefcase.ui.reused.MouseListenerBuilder;
 
 public class FormsTableView extends JTable {
-  static final String[] HEADERS = new String[]{"Selected", "Form Name", "Export Status", "Detail"};
-  static final Class[] TYPES = new Class[]{Boolean.class, String.class, String.class, JButton.class};
-  static final boolean[] EDITABLE_COLS = new boolean[]{true, false, false, false};
+  static final String[] HEADERS = new String[]{"Selected", "⚙", "Form Name", "Export Status", "Detail"};
+  static final Class[] TYPES = new Class[]{Boolean.class, JButton.class, String.class, String.class, JButton.class};
+  static final boolean[] EDITABLE_COLS = new boolean[]{true, false, false, false, false};
 
   static final int SELECTED_CHECKBOX_COL = 0;
-  static final int FORM_NAME_COL = 1;
-  static final int EXPORT_STATUS_COL = 2;
-  static final int DETAIL_BUTTON_COL = 3;
+  static final int OVERRIDE_CONF_COL = 1;
+  static final int FORM_NAME_COL = 2;
+  static final int EXPORT_STATUS_COL = 3;
+  static final int DETAIL_BUTTON_COL = 4;
 
   FormsTableView(FormsTableViewModel model) {
     super(model);
@@ -35,6 +36,7 @@ public class FormsTableView extends JTable {
         .getTableCellRendererComponent(null, HEADERS[SELECTED_CHECKBOX_COL], false, false, 0, 0)
         .getPreferredSize();
     Dimension detailButtonDims = model.buildDetailButton(null).getPreferredSize();
+    Dimension overrideConfButtonDims = model.buildOverrideConfButton(null).getPreferredSize();
 
     setRowHeight(detailButtonDims.height);
 
@@ -42,6 +44,10 @@ public class FormsTableView extends JTable {
     columns.getColumn(SELECTED_CHECKBOX_COL).setMinWidth(checkboxDims.width);
     columns.getColumn(SELECTED_CHECKBOX_COL).setMaxWidth(checkboxDims.width);
     columns.getColumn(SELECTED_CHECKBOX_COL).setPreferredWidth(checkboxDims.width);
+    columns.getColumn(OVERRIDE_CONF_COL).setCellRenderer(cellWithButton());
+    columns.getColumn(OVERRIDE_CONF_COL).setMinWidth(overrideConfButtonDims.width + 5);
+    columns.getColumn(OVERRIDE_CONF_COL).setMaxWidth(overrideConfButtonDims.width + 5);
+    columns.getColumn(OVERRIDE_CONF_COL).setPreferredWidth(overrideConfButtonDims.width + 5);
     columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(cellWithButton());
     columns.getColumn(DETAIL_BUTTON_COL).setMinWidth(detailButtonDims.width);
     columns.getColumn(DETAIL_BUTTON_COL).setMaxWidth(detailButtonDims.width);
