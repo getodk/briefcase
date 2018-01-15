@@ -4,6 +4,7 @@ import static javax.swing.JFileChooser.DIRECTORIES_ONLY;
 import static javax.swing.JFileChooser.FILES_ONLY;
 import static javax.swing.JFileChooser.OPEN_DIALOG;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.isUnix;
+import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
 
 import java.awt.Container;
 import java.awt.Dialog;
@@ -25,7 +26,7 @@ public interface FileChooser {
 
     JFileChooser fileChooser = buildFileChooser(initialLocation, "Choose a directory", DIRECTORIES_ONLY, fileFilter);
 
-    return isUnix()
+    return isUnix() || isWindows()
         ? new SwingFileChooser(parent, fileChooser, filter, filterDescription)
         : new NativeFileChooser(parent, buildFileDialog(parent, initialLocation, fileChooser), fileChooser, filter, filterDescription);
   }
@@ -33,7 +34,7 @@ public interface FileChooser {
   static FileChooser file(Container parent, Optional<File> initialFile) {
     JFileChooser fileChooser = buildFileChooser(initialFile, "Choose a file", FILES_ONLY, Optional.empty());
 
-    return isUnix()
+    return isUnix() || isWindows()
         ? new SwingFileChooser(parent, fileChooser, f -> true, "")
         : new NativeFileChooser(parent, buildFileDialog(parent, initialFile, fileChooser), fileChooser, __ -> true, "");
   }
