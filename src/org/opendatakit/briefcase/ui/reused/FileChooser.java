@@ -6,8 +6,10 @@ import static javax.swing.JFileChooser.OPEN_DIALOG;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.isUnix;
 
 import java.awt.Container;
+import java.awt.Dialog;
 import java.awt.FileDialog;
 import java.awt.Frame;
+import java.awt.Window;
 import java.io.File;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -38,7 +40,10 @@ public interface FileChooser {
 
   static FileDialog buildFileDialog(Container parent, Optional<File> initialLocation, JFileChooser fileChooser) {
     System.setProperty("apple.awt.fileDialogForDirectories", fileChooser.getFileSelectionMode() == DIRECTORIES_ONLY ? "true" : "false");
-    FileDialog fileDialog = new FileDialog((Frame) SwingUtilities.getWindowAncestor(parent), fileChooser.getDialogTitle());
+    Window windowAncestor = SwingUtilities.getWindowAncestor(parent);
+    FileDialog fileDialog = windowAncestor instanceof Frame
+        ? new FileDialog((Frame) windowAncestor, fileChooser.getDialogTitle())
+        : new FileDialog((Dialog) windowAncestor, fileChooser.getDialogTitle());
     if (fileChooser.getFileSelectionMode() == DIRECTORIES_ONLY)
       fileDialog.setFilenameFilter((dir, name) -> new File(dir, name).isDirectory());
     initialLocation.ifPresent(file -> fileDialog.setFile(file.getAbsolutePath()));
