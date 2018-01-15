@@ -77,7 +77,10 @@ public class ExportPanel {
     form.onExport(() -> new Thread(() -> {
       List<String> errors = export(confPanel.getConfiguration());
       if (!errors.isEmpty()) {
-        String message = String.format("%s\n\n%s", "We have found some errors while performing the requested export actions:", errors.stream().map(e -> "- " + e).collect(joining("\n")));
+        String message = String.format(
+            "%s\n\n%s", "We have found some errors while performing the requested export actions:",
+            errors.stream().map(e -> "- " + e).collect(joining("\n"))
+        );
         showErrorDialog(form, message, "Export error report");
       }
     }).start());
@@ -102,7 +105,7 @@ public class ExportPanel {
     List<String> errors = forms.getSelectedForms().parallelStream()
         .peek(FormStatus::clearStatusHistory)
         .map(formStatus -> (BriefcaseFormDefinition) formStatus.getFormDefinition())
-        .flatMap(formDefinition -> this.export(defaultConfiguration, formDefinition).stream())
+        .flatMap(formDefinition -> export(defaultConfiguration, formDefinition).stream())
         .collect(toList());
     form.enableUI();
     return errors;
@@ -130,7 +133,6 @@ public class ExportPanel {
       }
     return errors;
   }
-
 
 
   @EventSubscriber(eventClass = FormStatusEvent.class)

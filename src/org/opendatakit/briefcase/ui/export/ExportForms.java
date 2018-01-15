@@ -22,13 +22,13 @@ public class ExportForms {
 
   public ExportForms(List<FormStatus> forms) {
     this.forms = forms;
-    refreshIndex();
+    rebuildIndex();
   }
 
 
   public void merge(List<FormStatus> forms) {
     this.forms.addAll(forms.stream().filter(form -> !this.formsIndex.containsKey(form.getFormDefinition().getFormId())).collect(toList()));
-    refreshIndex();
+    rebuildIndex();
   }
 
   public int size() {
@@ -96,7 +96,7 @@ public class ExportForms {
         .orElseThrow(() -> new RuntimeException("Form " + formDefinition.getFormName() + " " + formDefinition.getFormId() + " not found"));
   }
 
-  private void refreshIndex() {
-    this.formsIndex = this.forms.stream().collect(toMap(form -> form.getFormDefinition().getFormId(), form -> form));
+  private void rebuildIndex() {
+    formsIndex = forms.stream().collect(toMap(form -> form.getFormDefinition().getFormId(), form -> form));
   }
 }
