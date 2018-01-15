@@ -17,7 +17,7 @@ public class ExportForms {
   private Map<String, FormStatus> formsIndex = new HashMap<>();
 
   ExportForms() {
-    this.forms = new ArrayList<>();
+    forms = new ArrayList<>();
   }
 
   public ExportForms(List<FormStatus> forms) {
@@ -27,7 +27,7 @@ public class ExportForms {
 
 
   public void merge(List<FormStatus> forms) {
-    this.forms.addAll(forms.stream().filter(form -> !this.formsIndex.containsKey(form.getFormDefinition().getFormId())).collect(toList()));
+    forms.addAll(forms.stream().filter(form -> !formsIndex.containsKey(form.getFormDefinition().getFormId())).collect(toList()));
     rebuildIndex();
   }
 
