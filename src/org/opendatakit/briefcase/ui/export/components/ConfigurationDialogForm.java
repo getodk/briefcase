@@ -31,7 +31,7 @@ public class ConfigurationDialogForm extends JDialog {
     setContentPane(dialog);
     setModal(true);
     getRootPane().setDefaultButton(okButton);
-    setBounds(0, 0, 450, 250);
+    pack();
     setLocationRelativeTo(null);
     setTitle("Export configuration");
 
