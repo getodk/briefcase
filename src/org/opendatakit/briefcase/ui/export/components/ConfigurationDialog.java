@@ -28,7 +28,6 @@ public class ConfigurationDialog {
   static ConfigurationDialog from(ExportConfiguration configuration) {
     ConfigurationPanel confPanel = ConfigurationPanel.from(configuration);
     ConfigurationDialogForm form = new ConfigurationDialogForm(confPanel.getForm());
-    form.setBounds(100, 100, 450, 250);
     return new ConfigurationDialog(form, confPanel);
   }
 
