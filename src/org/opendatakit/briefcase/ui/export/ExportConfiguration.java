@@ -23,6 +23,10 @@ import java.util.function.Function;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 
 public class ExportConfiguration {
+  private static final String EXPORT_DIR = "exportDir";
+  private static final String PEM_FILE = "pemFile";
+  private static final String START_DATE = "startDate";
+  private static final String END_DATE = "endDate";
   private Optional<Path> exportDir;
   private Optional<Path> pemFile;
   private Optional<LocalDate> startDate;
@@ -41,21 +45,34 @@ public class ExportConfiguration {
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
     return new ExportConfiguration(
-        prefs.nullSafeGet("exportDir").map(Paths::get),
-        prefs.nullSafeGet("pemFile").map(Paths::get),
-        prefs.nullSafeGet("startDate").map(LocalDate::parse),
-        prefs.nullSafeGet("endDate").map(LocalDate::parse)
+        prefs.nullSafeGet(EXPORT_DIR).map(Paths::get),
+        prefs.nullSafeGet(PEM_FILE).map(Paths::get),
+        prefs.nullSafeGet(START_DATE).map(LocalDate::parse),
+        prefs.nullSafeGet(END_DATE).map(LocalDate::parse)
+    );
+  }
+
+  public static ExportConfiguration load(BriefcasePreferences prefs, String keyPrefix) {
+    return new ExportConfiguration(
+        prefs.nullSafeGet(keyPrefix + EXPORT_DIR).map(Paths::get),
+        prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get),
+        prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse),
+        prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse)
     );
   }
 
   public Map<String, String> asMap() {
+    return asMap("");
+  }
+
+  public Map<String, String> asMap(String keyPrefix) {
     // This should be a stream of tuples that's reduces into a
     // map but we'll have to wait for that
     HashMap<String, String> map = new HashMap<>();
-    exportDir.ifPresent(value -> map.put("exportDir", value.toString()));
-    pemFile.ifPresent(value -> map.put("pemFile", value.toString()));
-    startDate.ifPresent(value -> map.put("startDate", value.format(DateTimeFormatter.BASIC_ISO_DATE)));
-    endDate.ifPresent(value -> map.put("endDate", value.format(DateTimeFormatter.BASIC_ISO_DATE)));
+    exportDir.ifPresent(value -> map.put(keyPrefix + EXPORT_DIR, value.toString()));
+    pemFile.ifPresent(value -> map.put(keyPrefix + PEM_FILE, value.toString()));
+    startDate.ifPresent(value -> map.put(keyPrefix + START_DATE, value.format(DateTimeFormatter.ISO_DATE)));
+    endDate.ifPresent(value -> map.put(keyPrefix + END_DATE, value.format(DateTimeFormatter.ISO_DATE)));
     return map;
   }
 
