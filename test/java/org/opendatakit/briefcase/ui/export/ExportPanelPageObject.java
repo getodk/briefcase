@@ -1,6 +1,5 @@
 package org.opendatakit.briefcase.ui.export;
 
-
 import static org.opendatakit.briefcase.ui.export.components.FormsTableView.SELECTED_CHECKBOX_COL;
 
 import java.nio.file.Paths;
