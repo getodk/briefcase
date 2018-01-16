@@ -16,7 +16,9 @@
 
 package org.opendatakit.briefcase.model;
 import java.security.Security;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.prefs.Preferences;
 
 import org.apache.http.HttpHost;
@@ -78,16 +80,43 @@ public class BriefcasePreferences {
     }
 
     /**
+     * Returns the value associated with the specified key in this preference
+     * node mapped by a function that takes a String and returns a value of type T.
+     * Returns the specified default if there is no value associated with
+     * the key, or the backing store is inaccessible.
+     *
+     * @param key
+     *          key whose associated value is to be returned.
+     * @param mapper
+     *          function that takes a String and returns a value of type T
+     * @param defaultValue
+     *          the value to be returned in the event that this preference node
+     *          has no value associated with key.
+     * @param <T>
+     *          type of the output of this method
+     * @return the value associated with key, or defaultValue if no value is associated
+     *         with key, mapped with the mapper function, or the backing store is inaccessible.
+     */
+    public <T> T get(String key, Function<String,T> mapper, T defaultValue) {
+      return Optional.ofNullable(preferences.get(key, null)).map(mapper).orElse(defaultValue);
+    }
+
+    /**
      * Associates the specified value with the specified key in this preference
      * node.
+     *
+     * If the value is null, then the key is removed
      *
      * @param key
      *          key with which the specified value is to be associated.
      * @param value
-     *          value to be associated with the specified key.
+     *          value to be associated with the specified key or null.
      */
     public void put(String key, String value) {
-        preferences.put(key, value);
+        if (value != null)
+            preferences.put(key, value);
+        else
+            remove(key);
     }
 
     /**
