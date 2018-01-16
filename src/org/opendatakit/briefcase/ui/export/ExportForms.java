@@ -26,11 +26,10 @@ public class ExportForms {
     // This should be a simple Map filtering block but we'll have to wait for Vavr.io
 
     Map<FormStatus, ExportConfiguration> configurations = new HashMap<>();
-    forms.forEach(form -> {
-      ExportConfiguration configuration = ExportConfiguration.load(preferences, "custom_" + form.getFormName() + "_");
-      if (!configuration.isEmpty() && configuration.isValid())
-        configurations.put(form, configuration);
-    });
+    forms.forEach(form -> configurations.put(
+        form,
+        ExportConfiguration.load(preferences, "custom_" + form.getFormName() + "_")
+    ));
     return new ExportForms(
         forms,
         configurations
