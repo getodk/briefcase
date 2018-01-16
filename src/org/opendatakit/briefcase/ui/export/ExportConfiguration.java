@@ -9,13 +9,18 @@ import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 
 public class ExportConfiguration {
   private Optional<Path> exportDir;
@@ -32,6 +37,26 @@ public class ExportConfiguration {
 
   public static ExportConfiguration empty() {
     return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+  }
+
+  public static ExportConfiguration load(BriefcasePreferences prefs) {
+    return new ExportConfiguration(
+        prefs.nullSafeGet("exportDir").map(Paths::get),
+        prefs.nullSafeGet("pemFile").map(Paths::get),
+        prefs.nullSafeGet("startDate").map(LocalDate::parse),
+        prefs.nullSafeGet("endDate").map(LocalDate::parse)
+    );
+  }
+
+  public Map<String, String> asMap() {
+    // This should be a stream of tuples that's reduces into a
+    // map but we'll have to wait for that
+    HashMap<String, String> map = new HashMap<>();
+    exportDir.ifPresent(value -> map.put("exportDir", value.toString()));
+    pemFile.ifPresent(value -> map.put("pemFile", value.toString()));
+    startDate.ifPresent(value -> map.put("startDate", value.format(DateTimeFormatter.BASIC_ISO_DATE)));
+    endDate.ifPresent(value -> map.put("endDate", value.format(DateTimeFormatter.BASIC_ISO_DATE)));
+    return map;
   }
 
   public static ExportConfiguration copy(ExportConfiguration other) {

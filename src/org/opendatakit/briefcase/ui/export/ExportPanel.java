@@ -26,6 +26,7 @@ import javax.swing.JPanel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -40,18 +41,21 @@ public class ExportPanel {
   private final ExportForms forms;
   final ExportPanelForm form;
 
-  public ExportPanel(TerminationFuture terminationFuture) {
+  public ExportPanel(TerminationFuture terminationFuture, BriefcasePreferences preferences) {
     AnnotationProcessor.process(this);// if not using AOP
 
     this.terminationFuture = terminationFuture;
 
     forms = new ExportForms();
 
-    ConfigurationPanel confPanel = ConfigurationPanel.from(ExportConfiguration.empty());
+    ConfigurationPanel confPanel = ConfigurationPanel.from(ExportConfiguration.load(preferences));
 
     form = ExportPanelForm.from(forms, confPanel);
 
     form.onChange(() -> {
+      if (confPanel.isValid())
+        preferences.putAll(confPanel.getConfiguration().asMap());
+
       if (forms.someSelected() && (confPanel.isValid() || forms.allSelectedFormsHaveConfiguration()))
         form.enableExport();
       else

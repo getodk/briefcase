@@ -10,6 +10,8 @@ import org.assertj.swing.data.TableCell;
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.fixture.JButtonFixture;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.InMemoryPreferences;
 import org.opendatakit.briefcase.model.TerminationFuture;
 
 class ExportPanelPageObject {
@@ -22,7 +24,7 @@ class ExportPanelPageObject {
   }
 
   static ExportPanelPageObject setUp(Robot robot) {
-    ExportPanel exportPanel = GuiActionRunner.execute(() -> new ExportPanel(new TerminationFuture()));
+    ExportPanel exportPanel = GuiActionRunner.execute(() -> new ExportPanel(new TerminationFuture(), new BriefcasePreferences(InMemoryPreferences.empty())));
     JFrame testFrame = GuiActionRunner.execute(() -> {
       JFrame f = new JFrame();
       f.add(exportPanel.getForm());

@@ -48,6 +48,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
+import org.opendatakit.briefcase.ui.export.ExportConfiguration;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
@@ -230,7 +231,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         uploadPanel = new PushTransferPanel(transferTerminationFuture);
         addPane(PushTransferPanel.TAB_NAME, uploadPanel);
 
-        exportPanel = new ExportPanel(exportTerminationFuture);
+        exportPanel = new ExportPanel(exportTerminationFuture, BriefcasePreferences.forClass(ExportConfiguration.class));
         addPane(ExportPanel.TAB_NAME, exportPanel.getForm());
 
         settingsPanel = new SettingsPanel(this);
