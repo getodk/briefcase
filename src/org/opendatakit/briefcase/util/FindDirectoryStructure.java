@@ -50,6 +50,11 @@ public class FindDirectoryStructure {
     return (os.contains("nix") || os.contains("nux") || os.contains("aix"));
   }
 
+  public static boolean isWindows() {
+    String os = System.getProperty(PROPERTY_OS).toLowerCase();
+    return os.contains("windows");
+  }
+
   /**
    * Searches mounted drives for /odk/instances and returns a list of
    * positive results. Works for Windows, Mac, and Linux operating

@@ -21,9 +21,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -39,6 +45,7 @@ import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
+import org.opendatakit.briefcase.ui.export.ExportConfiguration;
 
 public class ExportAction {
 
@@ -48,6 +55,8 @@ public class ExportAction {
   static final String UTF_8 = "UTF-8";
 
   private static ExecutorService backgroundExecutorService = Executors.newCachedThreadPool();
+
+
 
   private static class TransformFormRunnable implements Runnable {
     ITransformFormAction action;
@@ -150,5 +159,27 @@ public class ExportAction {
     }
 
     backgroundRun(action);
+  }
+
+  public static List<String> export(BriefcaseFormDefinition formDefinition, ExportConfiguration configuration, TerminationFuture terminationFuture) {
+    List<String> errors = new ArrayList<>();
+    Optional<File> pemFile = configuration.mapPemFile(Path::toFile).filter(File::exists);
+    if ((formDefinition.isFileEncryptedForm() || formDefinition.isFieldEncryptedForm()) && !pemFile.isPresent())
+      errors.add(formDefinition.getFormName() + " form is encrypted");
+    else
+      try {
+        export(
+            configuration.mapExportDir(Path::toFile).orElseThrow(() -> new RuntimeException("Wrong export configuration")),
+            ExportType.CSV,
+            formDefinition,
+            pemFile.orElse(null),
+            terminationFuture,
+            configuration.mapStartDate((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null),
+            configuration.mapEndDate((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null)
+        );
+      } catch (IOException ex) {
+        errors.add("Export of form " + formDefinition.getFormName() + " has failed: " + ex.getMessage());
+      }
+    return errors;
   }
 }

@@ -1,27 +1,6 @@
-/*
- * Copyright (C) 2011 University of Washington.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
-
-package org.opendatakit.briefcase.ui.export;
+package org.opendatakit.briefcase.ui.export.components;
 
 import static javax.swing.SortOrder.ASCENDING;
-import static org.opendatakit.briefcase.ui.export.FormExportTableModel.DETAIL_BUTTON_COL;
-import static org.opendatakit.briefcase.ui.export.FormExportTableModel.FORM_NAME_COL;
-import static org.opendatakit.briefcase.ui.export.FormExportTableModel.HEADERS;
-import static org.opendatakit.briefcase.ui.export.FormExportTableModel.SELECTED_CHECKBOX_COL;
-import static org.opendatakit.briefcase.ui.export.FormExportTableModel.buildDetailButton;
 
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
@@ -34,14 +13,22 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.opendatakit.briefcase.ui.reused.MouseListenerBuilder;
 
-class FormExportTable extends JTable {
-  private static final long serialVersionUID = 8511088963758308085L;
+public class FormsTableView extends JTable {
+  static final String[] HEADERS = new String[]{"Selected", "⚙", "Form Name", "Export Status", "Detail"};
+  static final Class[] TYPES = new Class[]{Boolean.class, JButton.class, String.class, String.class, JButton.class};
+  static final boolean[] EDITABLE_COLS = new boolean[]{true, false, false, false, false};
 
-  FormExportTable(FormExportTableModel tableModel) {
-    super(tableModel);
-    AnnotationProcessor.process(this);
+  public static final int SELECTED_CHECKBOX_COL = 0;
+  static final int OVERRIDE_CONF_COL = 1;
+  static final int FORM_NAME_COL = 2;
+  static final int EXPORT_STATUS_COL = 3;
+  static final int DETAIL_BUTTON_COL = 4;
+
+  FormsTableView(FormsTableViewModel model) {
+    super(model);
+    setName("forms");
 
     addMouseListener(new MouseListenerBuilder().onClick(this::relayClickToButton).build());
 
@@ -49,25 +36,31 @@ class FormExportTable extends JTable {
         .getDefaultRenderer()
         .getTableCellRendererComponent(null, HEADERS[SELECTED_CHECKBOX_COL], false, false, 0, 0)
         .getPreferredSize();
-    Dimension buttonDims = buildDetailButton(null).getPreferredSize();
+    Dimension detailButtonDims = model.buildDetailButton(null).getPreferredSize();
+    Dimension overrideConfButtonDims = model.buildOverrideConfButton(null).getPreferredSize();
 
-    setRowHeight(buttonDims.height);
+    setRowHeight(detailButtonDims.height);
 
     TableColumnModel columns = getColumnModel();
     columns.getColumn(SELECTED_CHECKBOX_COL).setMinWidth(checkboxDims.width);
     columns.getColumn(SELECTED_CHECKBOX_COL).setMaxWidth(checkboxDims.width);
     columns.getColumn(SELECTED_CHECKBOX_COL).setPreferredWidth(checkboxDims.width);
+    columns.getColumn(OVERRIDE_CONF_COL).setCellRenderer(cellWithButton());
+    columns.getColumn(OVERRIDE_CONF_COL).setMinWidth(overrideConfButtonDims.width + 5);
+    columns.getColumn(OVERRIDE_CONF_COL).setMaxWidth(overrideConfButtonDims.width + 5);
+    columns.getColumn(OVERRIDE_CONF_COL).setPreferredWidth(overrideConfButtonDims.width + 5);
     columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(cellWithButton());
-    columns.getColumn(DETAIL_BUTTON_COL).setMinWidth(buttonDims.width);
-    columns.getColumn(DETAIL_BUTTON_COL).setMaxWidth(buttonDims.width);
-    columns.getColumn(DETAIL_BUTTON_COL).setPreferredWidth(buttonDims.width);
+    columns.getColumn(DETAIL_BUTTON_COL).setMinWidth(detailButtonDims.width);
+    columns.getColumn(DETAIL_BUTTON_COL).setMaxWidth(detailButtonDims.width);
+    columns.getColumn(DETAIL_BUTTON_COL).setPreferredWidth(detailButtonDims.width);
 
     setFillsViewportHeight(true);
 
-    TableRowSorter<FormExportTableModel> sorter = sortBy((FormExportTableModel) this.dataModel, FORM_NAME_COL, ASCENDING);
+    TableRowSorter<FormsTableViewModel> sorter = sortBy(getModel(), FORM_NAME_COL, ASCENDING);
     setRowSorter(sorter);
     sorter.sort();
   }
+
 
   private void relayClickToButton(MouseEvent event) {
     int column = getColumnModel().getColumnIndexAtX(event.getX());
@@ -78,6 +71,11 @@ class FormExportTable extends JTable {
       if (value instanceof JButton)
         ((JButton) value).doClick();
     }
+  }
+
+  @Override
+  public FormsTableViewModel getModel() {
+    return (FormsTableViewModel) super.getModel();
   }
 
   private static TableCellRenderer cellWithButton() {

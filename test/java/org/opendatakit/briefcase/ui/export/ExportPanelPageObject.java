@@ -1,7 +1,8 @@
 package org.opendatakit.briefcase.ui.export;
 
-import static org.opendatakit.briefcase.ui.export.FormExportTableModel.SELECTED_CHECKBOX_COL;
+import static org.opendatakit.briefcase.ui.export.components.FormsTableView.SELECTED_CHECKBOX_COL;
 
+import java.nio.file.Paths;
 import javax.swing.JFrame;
 import org.assertj.swing.core.MouseButton;
 import org.assertj.swing.core.Robot;
@@ -24,7 +25,7 @@ class ExportPanelPageObject {
     ExportPanel exportPanel = GuiActionRunner.execute(() -> new ExportPanel(new TerminationFuture()));
     JFrame testFrame = GuiActionRunner.execute(() -> {
       JFrame f = new JFrame();
-      f.add(exportPanel);
+      f.add(exportPanel.getForm());
       return f;
     });
     FrameFixture window = new FrameFixture(robot, testFrame);
@@ -36,7 +37,7 @@ class ExportPanelPageObject {
   }
 
   void setExportDirectory(String value) {
-    GuiActionRunner.execute(() -> exportPanel.txtExportDirectory.setText(value));
+    GuiActionRunner.execute(() -> exportPanel.form.confPanel.form.setExportDir(Paths.get(value)));
   }
 
   void selectFormATRow(int row) {

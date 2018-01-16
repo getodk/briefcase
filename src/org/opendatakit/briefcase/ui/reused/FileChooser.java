@@ -1,13 +1,16 @@
-package org.opendatakit.briefcase.ui.export;
+package org.opendatakit.briefcase.ui.reused;
 
 import static javax.swing.JFileChooser.DIRECTORIES_ONLY;
 import static javax.swing.JFileChooser.FILES_ONLY;
 import static javax.swing.JFileChooser.OPEN_DIALOG;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.isUnix;
+import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
 
 import java.awt.Container;
+import java.awt.Dialog;
 import java.awt.FileDialog;
 import java.awt.Frame;
+import java.awt.Window;
 import java.io.File;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -15,7 +18,7 @@ import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 
-interface FileChooser {
+public interface FileChooser {
   Optional<File> choose();
 
   static FileChooser directory(Container parent, Optional<File> initialLocation, Predicate<File> filter, String filterDescription) {
@@ -23,7 +26,7 @@ interface FileChooser {
 
     JFileChooser fileChooser = buildFileChooser(initialLocation, "Choose a directory", DIRECTORIES_ONLY, fileFilter);
 
-    return isUnix()
+    return isUnix() || isWindows()
         ? new SwingFileChooser(parent, fileChooser, filter, filterDescription)
         : new NativeFileChooser(parent, buildFileDialog(parent, initialLocation, fileChooser), fileChooser, filter, filterDescription);
   }
@@ -31,14 +34,17 @@ interface FileChooser {
   static FileChooser file(Container parent, Optional<File> initialFile) {
     JFileChooser fileChooser = buildFileChooser(initialFile, "Choose a file", FILES_ONLY, Optional.empty());
 
-    return isUnix()
+    return isUnix() || isWindows()
         ? new SwingFileChooser(parent, fileChooser, f -> true, "")
         : new NativeFileChooser(parent, buildFileDialog(parent, initialFile, fileChooser), fileChooser, __ -> true, "");
   }
 
   static FileDialog buildFileDialog(Container parent, Optional<File> initialLocation, JFileChooser fileChooser) {
     System.setProperty("apple.awt.fileDialogForDirectories", fileChooser.getFileSelectionMode() == DIRECTORIES_ONLY ? "true" : "false");
-    FileDialog fileDialog = new FileDialog((Frame) SwingUtilities.getWindowAncestor(parent), fileChooser.getDialogTitle());
+    Window windowAncestor = SwingUtilities.getWindowAncestor(parent);
+    FileDialog fileDialog = windowAncestor instanceof Frame
+        ? new FileDialog((Frame) windowAncestor, fileChooser.getDialogTitle())
+        : new FileDialog((Dialog) windowAncestor, fileChooser.getDialogTitle());
     if (fileChooser.getFileSelectionMode() == DIRECTORIES_ONLY)
       fileDialog.setFilenameFilter((dir, name) -> new File(dir, name).isDirectory());
     initialLocation.ifPresent(file -> fileDialog.setFile(file.getAbsolutePath()));

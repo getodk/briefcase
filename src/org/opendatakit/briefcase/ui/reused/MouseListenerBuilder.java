@@ -1,4 +1,4 @@
-package org.opendatakit.briefcase.ui.export;
+package org.opendatakit.briefcase.ui.reused;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;

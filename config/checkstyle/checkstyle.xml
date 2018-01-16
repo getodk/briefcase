@@ -16,6 +16,8 @@
 
     <property name="fileExtensions" value="java, properties, xml"/>
 
+    <module name="SuppressWarningsFilter" />
+
     <module name="FileTabCharacter">
         <property name="eachLine" value="true"/>
     </module>
@@ -27,6 +29,7 @@
     </module>
 
     <module name="TreeWalker">
+        <module name="SuppressWarningsHolder" />
     	<!-- ODK-specific additions -->
         <module name="IllegalImport" />
         <module name="RedundantImport" />
