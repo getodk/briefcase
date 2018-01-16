@@ -355,14 +355,6 @@ public class ExportPanel extends JPanel {
         .collect(toList()));
   }
 
-  private void chooseLocation(FileChooser fileChooser, JTextField locationField, String preferenceKey) {
-    fileChooser.choose().ifPresent(file -> {
-      locationField.setText(file.getAbsolutePath());
-      updateExportButton();
-      PREFERENCES.put(preferenceKey, file.getAbsolutePath());
-    });
-  }
-
   private Optional<File> fileFrom(JTextField textField) {
     return Optional.ofNullable(textField.getText())
         .filter(StringUtils::nullOrEmpty)
