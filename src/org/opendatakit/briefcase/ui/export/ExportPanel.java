@@ -22,7 +22,6 @@ import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 
 import java.util.List;
-import javax.swing.JPanel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -76,7 +75,7 @@ public class ExportPanel {
             "%s\n\n%s", "We have found some errors while performing the requested export actions:",
             errors.stream().map(e -> "- " + e).collect(joining("\n"))
         );
-        showErrorDialog(form, message, "Export error report");
+        showErrorDialog(form.getContainer(), message, "Export error report");
       }
     }).start());
 
@@ -90,8 +89,8 @@ public class ExportPanel {
     form.refresh();
   }
 
-  public JPanel getForm() {
-    return form.container;
+  public ExportPanelForm getForm() {
+    return form;
   }
 
   private List<String> export(ExportConfiguration defaultConfiguration) {

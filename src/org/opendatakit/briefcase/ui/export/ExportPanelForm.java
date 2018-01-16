@@ -16,12 +16,12 @@ import org.opendatakit.briefcase.ui.export.components.FormsTable;
 import org.opendatakit.briefcase.ui.export.components.FormsTableView;
 
 @SuppressWarnings("checkstyle:MethodName")
-public class ExportPanelForm extends JComponent {
-  final ConfigurationPanel confPanel;
+public class ExportPanelForm {
+  private final ConfigurationPanel confPanel;
   private final FormsTable formsTable;
-  JPanel container;
-  private ConfigurationPanelForm confPanelForm;
-  private FormsTableView formsTableForm;
+  private final ConfigurationPanelForm confPanelForm;
+  private final FormsTableView formsTableForm;
+  private JPanel container;
   private JLabel formsTableLabel;
   private JSeparator formsTableSeparator;
   private JPanel actions;
@@ -52,6 +52,14 @@ public class ExportPanelForm extends JComponent {
     );
   }
 
+  public JPanel getContainer() {
+    return container;
+  }
+
+  public ConfigurationPanel getConfPanel() {
+    return confPanel;
+  }
+
   void onExport(Runnable callback) {
     exportButton.addActionListener(__ -> callback.run());
   }
@@ -79,7 +87,6 @@ public class ExportPanelForm extends JComponent {
     clearAllButton.setVisible(false);
   }
 
-  @Override
   public void setEnabled(boolean enabled) {
     if (enabled) {
       enableUI();

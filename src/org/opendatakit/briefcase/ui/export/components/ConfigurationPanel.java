@@ -7,7 +7,7 @@ import org.opendatakit.briefcase.ui.export.ExportConfiguration;
 public class ConfigurationPanel {
   private final ExportConfiguration configuration;
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
-  public final ConfigurationPanelForm form;
+  private final ConfigurationPanelForm form;
 
   ConfigurationPanel(ExportConfiguration initialConfiguration, ConfigurationPanelForm form) {
     this.form = form;

@@ -30,17 +30,17 @@ import org.opendatakit.briefcase.util.StringUtils;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ConfigurationPanelForm extends JComponent {
+  protected final DatePicker startDateField;
+  protected final DatePicker endDateField;
   protected JTextField exportDirField;
   protected JTextField pemFileField;
-  protected DatePicker startDateField;
-  protected DatePicker endDateField;
   private JButton exportDirButton;
   private JButton pemFileButton;
   private JLabel exportDirLabel;
   private JLabel pemFileLabel;
   private JLabel startDateLabel;
   private JLabel endDateLabel;
-  public JPanel container;
+  private JPanel container;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
@@ -222,6 +222,7 @@ public class ConfigurationPanelForm extends JComponent {
     container.add(endDateLabel, gbc);
     exportDirField = new JTextField();
     exportDirField.setEditable(false);
+    exportDirField.setName("exportDir");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 0;

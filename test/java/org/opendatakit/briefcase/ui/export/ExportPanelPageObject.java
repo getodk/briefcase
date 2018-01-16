@@ -27,7 +27,7 @@ class ExportPanelPageObject {
     ExportPanel exportPanel = GuiActionRunner.execute(() -> new ExportPanel(new TerminationFuture(), new BriefcasePreferences(InMemoryPreferences.empty())));
     JFrame testFrame = GuiActionRunner.execute(() -> {
       JFrame f = new JFrame();
-      f.add(exportPanel.getForm());
+      f.add(exportPanel.getForm().getContainer());
       return f;
     });
     FrameFixture window = new FrameFixture(robot, testFrame);
@@ -39,7 +39,7 @@ class ExportPanelPageObject {
   }
 
   void setExportDirectory(String value) {
-    GuiActionRunner.execute(() -> exportPanel.form.confPanel.form.setExportDir(Paths.get(value)));
+    GuiActionRunner.execute(() -> exportPanel.getForm().getConfPanel().getForm().setExportDir(Paths.get(value)));
   }
 
   void selectFormATRow(int row) {
