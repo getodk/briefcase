@@ -38,7 +38,7 @@ public class ExportPanel {
 
   private final TerminationFuture terminationFuture;
   private final ExportForms forms;
-  private final ExportPanelForm form;
+  final ExportPanelForm form;
 
   public ExportPanel(TerminationFuture terminationFuture) {
     AnnotationProcessor.process(this);// if not using AOP

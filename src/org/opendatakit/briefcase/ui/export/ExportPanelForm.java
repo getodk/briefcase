@@ -17,7 +17,7 @@ import org.opendatakit.briefcase.ui.export.components.FormsTableView;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportPanelForm extends JComponent {
-  private final ConfigurationPanel confPanel;
+  final ConfigurationPanel confPanel;
   private final FormsTable formsTable;
   JPanel container;
   private ConfigurationPanelForm confPanelForm;
@@ -184,6 +184,7 @@ public class ExportPanelForm extends JComponent {
     gbc.fill = GridBagConstraints.BOTH;
     actions.add(rightActions, gbc);
     exportButton = new JButton();
+    exportButton.setName("export");
     exportButton.setText("Export");
     rightActions.add(exportButton);
     final JPanel spacer2 = new JPanel();

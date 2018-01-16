@@ -20,7 +20,7 @@ public class FormsTableView extends JTable {
   static final Class[] TYPES = new Class[]{Boolean.class, JButton.class, String.class, String.class, JButton.class};
   static final boolean[] EDITABLE_COLS = new boolean[]{true, false, false, false, false};
 
-  static final int SELECTED_CHECKBOX_COL = 0;
+  public static final int SELECTED_CHECKBOX_COL = 0;
   static final int OVERRIDE_CONF_COL = 1;
   static final int FORM_NAME_COL = 2;
   static final int EXPORT_STATUS_COL = 3;
@@ -28,6 +28,7 @@ public class FormsTableView extends JTable {
 
   FormsTableView(FormsTableViewModel model) {
     super(model);
+    setName("forms");
 
     addMouseListener(new MouseListenerBuilder().onClick(this::relayClickToButton).build());
 

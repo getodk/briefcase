@@ -92,7 +92,7 @@ public class ConfigurationPanelForm extends JComponent {
     }
   }
 
-  void setExportDir(Path path) {
+  public void setExportDir(Path path) {
     exportDirField.setText(path.toString());
     onSelectExportDirCallbacks.forEach(consumer -> consumer.accept(path));
   }

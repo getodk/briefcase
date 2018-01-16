@@ -76,6 +76,7 @@
               <component id="74e1" class="javax.swing.JButton" binding="exportButton">
                 <constraints/>
                 <properties>
+                  <name value="export"/>
                   <text value="Export"/>
                 </properties>
               </component>
