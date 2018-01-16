@@ -27,7 +27,7 @@ public class ExportForms {
 
 
   public void merge(List<FormStatus> forms) {
-    forms.addAll(forms.stream().filter(form -> !formsIndex.containsKey(form.getFormDefinition().getFormId())).collect(toList()));
+    this.forms.addAll(forms.stream().filter(form -> !formsIndex.containsKey(form.getFormDefinition().getFormId())).collect(toList()));
     rebuildIndex();
   }
 
