@@ -38,22 +38,26 @@ public class ExportPanel {
 
   private final TerminationFuture terminationFuture;
   private final ExportForms forms;
-  final ExportPanelForm form;
+  private final ExportPanelForm form;
 
   public ExportPanel(TerminationFuture terminationFuture, BriefcasePreferences preferences) {
     AnnotationProcessor.process(this);// if not using AOP
 
     this.terminationFuture = terminationFuture;
 
-    forms = new ExportForms();
-
     ConfigurationPanel confPanel = ConfigurationPanel.from(ExportConfiguration.load(preferences));
+
+    forms = ExportForms.load(getFormsFromStorage(), preferences);
 
     form = ExportPanelForm.from(forms, confPanel);
 
     form.onChange(() -> {
       if (confPanel.isValid())
         preferences.putAll(confPanel.getConfiguration().asMap());
+
+      forms.getValidConfigurations().forEach((form, configuration) ->
+          preferences.putAll(configuration.asMap("custom_" + form.getFormName() + "_"))
+      );
 
       if (forms.someSelected() && (confPanel.isValid() || forms.allSelectedFormsHaveConfiguration()))
         form.enableExport();
@@ -78,15 +82,17 @@ public class ExportPanel {
         showErrorDialog(form.getContainer(), message, "Export error report");
       }
     }).start());
-
-    updateForms();
   }
 
   public void updateForms() {
-    forms.merge(FileSystemUtils.getBriefcaseFormList().stream()
-        .map(formDefinition -> new FormStatus(EXPORT, formDefinition))
-        .collect(toList()));
+    forms.merge(getFormsFromStorage());
     form.refresh();
+  }
+
+  private List<FormStatus> getFormsFromStorage() {
+    return FileSystemUtils.getBriefcaseFormList().stream()
+        .map(formDefinition -> new FormStatus(EXPORT, formDefinition))
+        .collect(toList());
   }
 
   public ExportPanelForm getForm() {

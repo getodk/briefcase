@@ -16,7 +16,7 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 
 class ExportPanelPageObject {
   private final ExportPanel exportPanel;
-  private FrameFixture window;
+  private final FrameFixture window;
 
   private ExportPanelPageObject(ExportPanel exportPanel, FrameFixture window) {
     this.exportPanel = exportPanel;

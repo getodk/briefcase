@@ -3,28 +3,39 @@ package org.opendatakit.briefcase.ui.export;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 
 public class ExportForms {
   private final List<FormStatus> forms;
-  private final Map<FormStatus, ExportConfiguration> configurations = new HashMap<>();
+  private final Map<FormStatus, ExportConfiguration> configurations;
   private Map<String, FormStatus> formsIndex = new HashMap<>();
 
-  ExportForms() {
-    forms = new ArrayList<>();
-  }
-
-  public ExportForms(List<FormStatus> forms) {
+  public ExportForms(List<FormStatus> forms, Map<FormStatus, ExportConfiguration> configurations) {
     this.forms = forms;
+    this.configurations = configurations;
     rebuildIndex();
   }
 
+  public static ExportForms load(List<FormStatus> forms, BriefcasePreferences preferences) {
+    // This should be a simple Map filtering block but we'll have to wait for Vavr.io
+
+    Map<FormStatus, ExportConfiguration> configurations = new HashMap<>();
+    forms.forEach(form -> {
+      ExportConfiguration configuration = ExportConfiguration.load(preferences, "custom_" + form.getFormName() + "_");
+      if (!configuration.isEmpty() && configuration.isValid())
+        configurations.put(form, configuration);
+    });
+    return new ExportForms(
+        forms,
+        configurations
+    );
+  }
 
   public void merge(List<FormStatus> forms) {
     this.forms.addAll(forms.stream().filter(form -> !formsIndex.containsKey(form.getFormDefinition().getFormId())).collect(toList()));
@@ -98,5 +109,11 @@ public class ExportForms {
 
   private void rebuildIndex() {
     formsIndex = forms.stream().collect(toMap(form -> form.getFormDefinition().getFormId(), form -> form));
+  }
+
+  public Map<FormStatus, ExportConfiguration> getValidConfigurations() {
+    return configurations.entrySet().stream()
+        .filter(entry -> !entry.getValue().isEmpty() && entry.getValue().isValid())
+        .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 }
