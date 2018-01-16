@@ -191,6 +191,7 @@ public class ExportPanelForm {
     gbc.fill = GridBagConstraints.BOTH;
     actions.add(rightActions, gbc);
     exportButton = new JButton();
+    exportButton.setEnabled(false);
     exportButton.setName("export");
     exportButton.setText("Export");
     rightActions.add(exportButton);
