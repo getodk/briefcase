@@ -3,6 +3,7 @@ package org.opendatakit.briefcase.ui.export;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,11 +15,13 @@ import org.opendatakit.briefcase.model.FormStatus;
 public class ExportForms {
   private final List<FormStatus> forms;
   private final Map<FormStatus, ExportConfiguration> configurations;
+  private final Map<FormStatus, LocalDateTime> lastExportDates;
   private Map<String, FormStatus> formsIndex = new HashMap<>();
 
-  public ExportForms(List<FormStatus> forms, Map<FormStatus, ExportConfiguration> configurations) {
+  public ExportForms(List<FormStatus> forms, Map<FormStatus, ExportConfiguration> configurations, Map<FormStatus, LocalDateTime> lastExportDates) {
     this.forms = forms;
     this.configurations = configurations;
+    this.lastExportDates = lastExportDates;
     rebuildIndex();
   }
 
@@ -32,7 +35,8 @@ public class ExportForms {
     ));
     return new ExportForms(
         forms,
-        configurations
+        configurations,
+        new HashMap<>()
     );
   }
 
@@ -98,7 +102,12 @@ public class ExportForms {
   }
 
   public void appendStatus(BriefcaseFormDefinition formDefinition, String statusUpdate, boolean successful) {
-    getForm(formDefinition).setStatusString(statusUpdate, successful);
+    FormStatus form = getForm(formDefinition);
+    form.setStatusString(statusUpdate, successful);
+    if (successful) {
+      LocalDateTime exportDate = LocalDateTime.now();
+      lastExportDates.put(form, exportDate);
+    }
   }
 
   private FormStatus getForm(BriefcaseFormDefinition formDefinition) {
@@ -114,5 +123,9 @@ public class ExportForms {
     return configurations.entrySet().stream()
         .filter(entry -> !entry.getValue().isEmpty() && entry.getValue().isValid())
         .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  public Optional<LocalDateTime> getLastExportDateTime(FormStatus form) {
+    return Optional.ofNullable(lastExportDates.get(form));
   }
 }

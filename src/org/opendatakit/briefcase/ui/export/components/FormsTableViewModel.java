@@ -2,13 +2,14 @@ package org.opendatakit.briefcase.ui.export.components;
 
 import static java.awt.Color.DARK_GRAY;
 import static java.awt.Color.GREEN;
+import static java.time.format.DateTimeFormatter.ofLocalizedDateTime;
+import static java.time.format.FormatStyle.SHORT;
 import static javax.swing.JOptionPane.getFrameForComponent;
 import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
 import static org.opendatakit.briefcase.ui.export.components.FormsTableView.EDITABLE_COLS;
 import static org.opendatakit.briefcase.ui.export.components.FormsTableView.HEADERS;
 import static org.opendatakit.briefcase.ui.export.components.FormsTableView.TYPES;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -118,7 +119,9 @@ class FormsTableViewModel extends AbstractTableModel {
       case FormsTableView.EXPORT_STATUS_COL:
         return form.getStatusString();
       case FormsTableView.LAST_EXPORT_COL:
-        return LocalDate.now();
+        return forms.getLastExportDateTime(form)
+            .map(dateTime -> dateTime.format(ofLocalizedDateTime(SHORT, SHORT)))
+            .orElse("Not exported yet");
       case FormsTableView.DETAIL_BUTTON_COL:
         return detailButtons.computeIfAbsent(form, this::buildDetailButton);
       default:
