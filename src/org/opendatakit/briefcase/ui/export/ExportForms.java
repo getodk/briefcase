@@ -20,14 +20,14 @@ public class ExportForms {
   private static final String CUSTOM_CONF_PREFIX = "custom_";
   private final List<FormStatus> forms;
   private final Map<FormStatus, ExportConfiguration> configurations;
-  private final Map<FormStatus, LocalDateTime> lastExportDates;
+  private final Map<FormStatus, LocalDateTime> lastExportDateTimes;
   private final List<BiConsumer<FormStatus, LocalDateTime>> onSuccessfulExportCallbacks = new ArrayList<>();
   private Map<String, FormStatus> formsIndex = new HashMap<>();
 
-  public ExportForms(List<FormStatus> forms, Map<FormStatus, ExportConfiguration> configurations, Map<FormStatus, LocalDateTime> lastExportDates) {
+  public ExportForms(List<FormStatus> forms, Map<FormStatus, ExportConfiguration> configurations, Map<FormStatus, LocalDateTime> lastExportDateTimes) {
     this.forms = forms;
     this.configurations = configurations;
-    this.lastExportDates = lastExportDates;
+    this.lastExportDateTimes = lastExportDateTimes;
     rebuildIndex();
   }
 
@@ -35,25 +35,25 @@ public class ExportForms {
     // This should be a simple Map filtering block but we'll have to wait for Vavr.io
 
     Map<FormStatus, ExportConfiguration> configurations = new HashMap<>();
-    Map<FormStatus, LocalDateTime> exportDates = new HashMap<>();
+    Map<FormStatus, LocalDateTime> lastExportDateTimes = new HashMap<>();
     forms.forEach(form -> {
       configurations.put(form, ExportConfiguration.load(preferences, buildCustomConfPrefix(form)));
-      preferences.nullSafeGet(buildExportDatePrefix(form))
-          .map(LocalDateTime::parse).ifPresent(dateTime -> exportDates.put(form, dateTime));
+      preferences.nullSafeGet(buildExportDateTimePrefix(form))
+          .map(LocalDateTime::parse).ifPresent(dateTime -> lastExportDateTimes.put(form, dateTime));
     });
     return new ExportForms(
         forms,
         configurations,
-        exportDates
+        lastExportDateTimes
     );
   }
 
-  static String buildExportDatePrefix(FormStatus form) {
+  static String buildExportDateTimePrefix(FormStatus form) {
     IFormDefinition formDefinition = form.getFormDefinition();
-    return buildExportDatePrefix(formDefinition);
+    return buildExportDateTimePrefix(formDefinition);
   }
 
-  public static String buildExportDatePrefix(IFormDefinition formDefinition) {
+  public static String buildExportDateTimePrefix(IFormDefinition formDefinition) {
     return EXPORT_DATE_PREFIX + formDefinition.getFormId();
   }
 
@@ -127,18 +127,9 @@ public class ExportForms {
     form.setStatusString(statusUpdate, successful);
     if (successful) {
       LocalDateTime exportDate = LocalDateTime.now();
-      lastExportDates.put(form, exportDate);
+      lastExportDateTimes.put(form, exportDate);
       onSuccessfulExportCallbacks.forEach(callback -> callback.accept(form, exportDate));
     }
-  }
-
-  private FormStatus getForm(BriefcaseFormDefinition formDefinition) {
-    return Optional.ofNullable(formsIndex.get(formDefinition.getFormId()))
-        .orElseThrow(() -> new RuntimeException("Form " + formDefinition.getFormName() + " " + formDefinition.getFormId() + " not found"));
-  }
-
-  private void rebuildIndex() {
-    formsIndex = forms.stream().collect(toMap(form -> form.getFormDefinition().getFormId(), form -> form));
   }
 
   public Map<FormStatus, ExportConfiguration> getValidConfigurations() {
@@ -148,10 +139,19 @@ public class ExportForms {
   }
 
   public Optional<LocalDateTime> getLastExportDateTime(FormStatus form) {
-    return Optional.ofNullable(lastExportDates.get(form));
+    return Optional.ofNullable(lastExportDateTimes.get(form));
   }
 
   public void onSuccessfulExport(BiConsumer<FormStatus, LocalDateTime> callback) {
     onSuccessfulExportCallbacks.add(callback);
+  }
+
+  private FormStatus getForm(BriefcaseFormDefinition formDefinition) {
+    return Optional.ofNullable(formsIndex.get(formDefinition.getFormId()))
+        .orElseThrow(() -> new RuntimeException("Form " + formDefinition.getFormName() + " " + formDefinition.getFormId() + " not found"));
+  }
+
+  private void rebuildIndex() {
+    formsIndex = forms.stream().collect(toMap(form -> form.getFormDefinition().getFormId(), form -> form));
   }
 }

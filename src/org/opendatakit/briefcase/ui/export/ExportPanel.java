@@ -22,7 +22,7 @@ import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 import static org.opendatakit.briefcase.ui.export.ExportForms.buildCustomConfPrefix;
-import static org.opendatakit.briefcase.ui.export.ExportForms.buildExportDatePrefix;
+import static org.opendatakit.briefcase.ui.export.ExportForms.buildExportDateTimePrefix;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -52,8 +52,8 @@ public class ExportPanel {
     ConfigurationPanel confPanel = ConfigurationPanel.from(ExportConfiguration.load(preferences));
 
     forms = ExportForms.load(getFormsFromStorage(), preferences);
-    forms.onSuccessfulExport((FormStatus form, LocalDateTime exportDate) ->
-        preferences.put(buildExportDatePrefix(form), exportDate.format(ISO_DATE_TIME))
+    forms.onSuccessfulExport((FormStatus form, LocalDateTime exportDateTime) ->
+        preferences.put(ExportForms.buildExportDateTimePrefix(form), exportDateTime.format(ISO_DATE_TIME))
     );
 
     form = ExportPanelForm.from(forms, confPanel);
