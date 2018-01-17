@@ -13,6 +13,7 @@ import java.util.function.BiConsumer;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.IFormDefinition;
 
 public class ExportForms {
   private static final String EXPORT_DATE_PREFIX = "export_date_";
@@ -48,7 +49,12 @@ public class ExportForms {
   }
 
   static String buildExportDatePrefix(FormStatus form) {
-    return EXPORT_DATE_PREFIX + form.getFormDefinition().getFormId();
+    IFormDefinition formDefinition = form.getFormDefinition();
+    return buildExportDatePrefix(formDefinition);
+  }
+
+  public static String buildExportDatePrefix(IFormDefinition formDefinition) {
+    return EXPORT_DATE_PREFIX + formDefinition.getFormId();
   }
 
   static String buildCustomConfPrefix(FormStatus form) {

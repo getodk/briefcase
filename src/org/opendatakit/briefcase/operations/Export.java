@@ -1,8 +1,10 @@
 package org.opendatakit.briefcase.operations;
 
+import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.operations.Common.bootCache;
+import static org.opendatakit.briefcase.ui.export.ExportForms.buildExportDatePrefix;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,6 +16,7 @@ import java.security.PrivateKey;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -23,9 +26,11 @@ import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.ExportToCsv;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.common.cli.Operation;
@@ -153,5 +158,6 @@ public class Export {
     LOGGER.info("exporting to : " + dir.getAbsolutePath());
     ExportToCsv exp = new ExportToCsv(dir, formDefinition, terminationFuture, fileName, exportMedia, overwrite, startDateString, endDateString);
     exp.doAction();
+    BriefcasePreferences.forClass(ExportPanel.class).put(buildExportDatePrefix(formDefinition), LocalDateTime.now().format(ISO_DATE_TIME));
   }
 }
