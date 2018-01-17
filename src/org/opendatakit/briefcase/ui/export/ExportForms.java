@@ -15,6 +15,8 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 
 public class ExportForms {
+  private static final String EXPORT_DATE_PREFIX = "export_date_";
+  private static final String CUSTOM_CONF_PREFIX = "custom_";
   private final List<FormStatus> forms;
   private final Map<FormStatus, ExportConfiguration> configurations;
   private final Map<FormStatus, LocalDateTime> lastExportDates;
@@ -34,19 +36,23 @@ public class ExportForms {
     Map<FormStatus, ExportConfiguration> configurations = new HashMap<>();
     Map<FormStatus, LocalDateTime> exportDates = new HashMap<>();
     forms.forEach(form -> {
-      configurations.put(
-          form,
-          ExportConfiguration.load(preferences, "custom_" + form.getFormName() + "_")
-      );
-      Optional<LocalDateTime> exportDate = preferences.nullSafeGet("export_date_" + form.getFormDefinition().getFormId())
-          .map(LocalDateTime::parse);
-      exportDate.ifPresent(dateTime -> exportDates.put(form, dateTime));
+      configurations.put(form, ExportConfiguration.load(preferences, buildCustomConfPrefix(form)));
+      preferences.nullSafeGet(buildExportDatePrefix(form))
+          .map(LocalDateTime::parse).ifPresent(dateTime -> exportDates.put(form, dateTime));
     });
     return new ExportForms(
         forms,
         configurations,
         exportDates
     );
+  }
+
+  static String buildExportDatePrefix(FormStatus form) {
+    return EXPORT_DATE_PREFIX + form.getFormDefinition().getFormId();
+  }
+
+  static String buildCustomConfPrefix(FormStatus form) {
+    return CUSTOM_CONF_PREFIX + form.getFormName() + "_";
   }
 
   public void merge(List<FormStatus> forms) {

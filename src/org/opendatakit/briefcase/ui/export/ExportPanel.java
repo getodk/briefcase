@@ -21,6 +21,8 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
+import static org.opendatakit.briefcase.ui.export.ExportForms.buildCustomConfPrefix;
+import static org.opendatakit.briefcase.ui.export.ExportForms.buildExportDatePrefix;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -51,7 +53,7 @@ public class ExportPanel {
 
     forms = ExportForms.load(getFormsFromStorage(), preferences);
     forms.onSuccessfulExport((FormStatus form, LocalDateTime exportDate) ->
-        preferences.put("export_date_" + form.getFormDefinition().getFormId(), exportDate.format(ISO_DATE_TIME))
+        preferences.put(buildExportDatePrefix(form), exportDate.format(ISO_DATE_TIME))
     );
 
     form = ExportPanelForm.from(forms, confPanel);
@@ -61,7 +63,7 @@ public class ExportPanel {
         preferences.putAll(confPanel.getConfiguration().asMap());
 
       forms.getValidConfigurations().forEach((form, configuration) ->
-          preferences.putAll(configuration.asMap("custom_" + form.getFormName() + "_"))
+          preferences.putAll(configuration.asMap(buildCustomConfPrefix(form)))
       );
 
       if (forms.someSelected() && (confPanel.isValid() || forms.allSelectedFormsHaveConfiguration()))
