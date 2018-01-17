@@ -16,11 +16,13 @@
 
 package org.opendatakit.briefcase.ui.export;
 
+import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
@@ -48,6 +50,9 @@ public class ExportPanel {
     ConfigurationPanel confPanel = ConfigurationPanel.from(ExportConfiguration.load(preferences));
 
     forms = ExportForms.load(getFormsFromStorage(), preferences);
+    forms.onSuccessfulExport((FormStatus form, LocalDateTime exportDate) ->
+        preferences.put("export_date_" + form.getFormDefinition().getFormId(), exportDate.format(ISO_DATE_TIME))
+    );
 
     form = ExportPanelForm.from(forms, confPanel);
 

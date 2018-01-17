@@ -4,10 +4,12 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -16,6 +18,7 @@ public class ExportForms {
   private final List<FormStatus> forms;
   private final Map<FormStatus, ExportConfiguration> configurations;
   private final Map<FormStatus, LocalDateTime> lastExportDates;
+  private final List<BiConsumer<FormStatus, LocalDateTime>> onSuccessfulExportCallbacks = new ArrayList<>();
   private Map<String, FormStatus> formsIndex = new HashMap<>();
 
   public ExportForms(List<FormStatus> forms, Map<FormStatus, ExportConfiguration> configurations, Map<FormStatus, LocalDateTime> lastExportDates) {
@@ -29,14 +32,20 @@ public class ExportForms {
     // This should be a simple Map filtering block but we'll have to wait for Vavr.io
 
     Map<FormStatus, ExportConfiguration> configurations = new HashMap<>();
-    forms.forEach(form -> configurations.put(
-        form,
-        ExportConfiguration.load(preferences, "custom_" + form.getFormName() + "_")
-    ));
+    Map<FormStatus, LocalDateTime> exportDates = new HashMap<>();
+    forms.forEach(form -> {
+      configurations.put(
+          form,
+          ExportConfiguration.load(preferences, "custom_" + form.getFormName() + "_")
+      );
+      Optional<LocalDateTime> exportDate = preferences.nullSafeGet("export_date_" + form.getFormDefinition().getFormId())
+          .map(LocalDateTime::parse);
+      exportDate.ifPresent(dateTime -> exportDates.put(form, dateTime));
+    });
     return new ExportForms(
         forms,
         configurations,
-        new HashMap<>()
+        exportDates
     );
   }
 
@@ -107,6 +116,7 @@ public class ExportForms {
     if (successful) {
       LocalDateTime exportDate = LocalDateTime.now();
       lastExportDates.put(form, exportDate);
+      onSuccessfulExportCallbacks.forEach(callback -> callback.accept(form, exportDate));
     }
   }
 
@@ -127,5 +137,9 @@ public class ExportForms {
 
   public Optional<LocalDateTime> getLastExportDateTime(FormStatus form) {
     return Optional.ofNullable(lastExportDates.get(form));
+  }
+
+  public void onSuccessfulExport(BiConsumer<FormStatus, LocalDateTime> callback) {
+    onSuccessfulExportCallbacks.add(callback);
   }
 }
