@@ -35,15 +35,9 @@ public class FormsTableView extends JTable {
 
     addMouseListener(new MouseListenerBuilder().onClick(this::relayClickToButton).build());
 
-    Dimension checkboxDims = getTableHeader()
-        .getDefaultRenderer()
-        .getTableCellRendererComponent(null, HEADERS[SELECTED_CHECKBOX_COL], false, false, 0, 0)
-        .getPreferredSize();
+    Dimension checkboxDims = getHeaderDimension(HEADERS[SELECTED_CHECKBOX_COL]);
     Dimension detailButtonDims = model.buildDetailButton(null).getPreferredSize();
-    Dimension lastExportDims = getTableHeader()
-        .getDefaultRenderer()
-        .getTableCellRendererComponent(null, HEADERS[LAST_EXPORT_COL], false, false, 0, 0)
-        .getPreferredSize();
+    Dimension lastExportDims = getHeaderDimension(HEADERS[LAST_EXPORT_COL]);
     Dimension overrideConfButtonDims = model.buildOverrideConfButton(null).getPreferredSize();
 
     setRowHeight(detailButtonDims.height);
@@ -69,6 +63,13 @@ public class FormsTableView extends JTable {
     TableRowSorter<FormsTableViewModel> sorter = sortBy(getModel(), FORM_NAME_COL, ASCENDING);
     setRowSorter(sorter);
     sorter.sort();
+  }
+
+  private Dimension getHeaderDimension(String header) {
+    return getTableHeader()
+        .getDefaultRenderer()
+        .getTableCellRendererComponent(null, header, false, false, 0, 0)
+        .getPreferredSize();
   }
 
 
