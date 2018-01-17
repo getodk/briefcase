@@ -8,6 +8,7 @@ import static org.opendatakit.briefcase.ui.export.components.FormsTableView.EDIT
 import static org.opendatakit.briefcase.ui.export.components.FormsTableView.HEADERS;
 import static org.opendatakit.briefcase.ui.export.components.FormsTableView.TYPES;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -116,6 +117,8 @@ class FormsTableViewModel extends AbstractTableModel {
         return form.getFormName();
       case FormsTableView.EXPORT_STATUS_COL:
         return form.getStatusString();
+      case FormsTableView.LAST_EXPORT_COL:
+        return LocalDate.now();
       case FormsTableView.DETAIL_BUTTON_COL:
         return detailButtons.computeIfAbsent(form, this::buildDetailButton);
       default:
