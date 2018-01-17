@@ -22,7 +22,6 @@ import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 import static org.opendatakit.briefcase.ui.export.ExportForms.buildCustomConfPrefix;
-import static org.opendatakit.briefcase.ui.export.ExportForms.buildExportDateTimePrefix;
 
 import java.time.LocalDateTime;
 import java.util.List;
