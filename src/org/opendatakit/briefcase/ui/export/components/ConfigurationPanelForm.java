@@ -9,6 +9,7 @@ import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 import com.github.lgooddatepicker.components.DatePicker;
 import com.github.lgooddatepicker.zinternaltools.DateChangeEvent;
 import java.awt.Component;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -30,17 +31,19 @@ import org.opendatakit.briefcase.util.StringUtils;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ConfigurationPanelForm extends JComponent {
+  public JPanel container;
   protected JTextField exportDirField;
   protected JTextField pemFileField;
   protected DatePicker startDateField;
   protected DatePicker endDateField;
   private JButton exportDirButton;
-  private JButton pemFileButton;
   private JLabel exportDirLabel;
   private JLabel pemFileLabel;
   private JLabel startDateLabel;
   private JLabel endDateLabel;
-  public JPanel container;
+  private JPanel pemFileButtons;
+  private JButton pemFileChooseButton;
+  private JButton pemFileClearButton;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
@@ -54,9 +57,10 @@ public class ConfigurationPanelForm extends JComponent {
     exportDirButton.addActionListener(__ ->
         buildExportDirDialog().choose().ifPresent(file -> setExportDir(Paths.get(file.toURI())))
     );
-    pemFileButton.addActionListener(__ ->
+    pemFileChooseButton.addActionListener(__ ->
         buildPemFileDialog().choose().ifPresent(file -> setPemFile(Paths.get(file.toURI())))
     );
+    pemFileClearButton.addActionListener(__ -> clearPemFile());
     startDateField.addDateChangeListener(event -> {
       if (!isDateRangeValid()) {
         showError("Invalid date range: \"From\" date must be before \"To\" date.", "Export configuration error");
@@ -100,6 +104,15 @@ public class ConfigurationPanelForm extends JComponent {
   void setPemFile(Path path) {
     pemFileField.setText(path.toString());
     onSelectPemFileCallbacks.forEach(consumer -> consumer.accept(path));
+    pemFileChooseButton.setVisible(false);
+    pemFileClearButton.setVisible(true);
+  }
+
+  private void clearPemFile() {
+    pemFileField.setText(null);
+    onSelectPemFileCallbacks.forEach(consumer -> consumer.accept(null));
+    pemFileChooseButton.setVisible(true);
+    pemFileClearButton.setVisible(false);
   }
 
   void setStartDate(LocalDate date) {
@@ -259,13 +272,6 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(exportDirButton, gbc);
-    pemFileButton = new JButton();
-    pemFileButton.setText("Choose...");
-    gbc = new GridBagConstraints();
-    gbc.gridx = 3;
-    gbc.gridy = 1;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(pemFileButton, gbc);
     final JPanel spacer1 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
@@ -290,6 +296,21 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.gridy = 3;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(spacer4, gbc);
+    pemFileButtons = new JPanel();
+    pemFileButtons.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+    gbc = new GridBagConstraints();
+    gbc.gridx = 3;
+    gbc.gridy = 1;
+    gbc.fill = GridBagConstraints.BOTH;
+    container.add(pemFileButtons, gbc);
+    pemFileChooseButton = new JButton();
+    pemFileChooseButton.setText("Choose...");
+    pemFileChooseButton.setVisible(true);
+    pemFileButtons.add(pemFileChooseButton);
+    pemFileClearButton = new JButton();
+    pemFileClearButton.setText("Clear");
+    pemFileClearButton.setVisible(false);
+    pemFileButtons.add(pemFileClearButton);
   }
 
   /**
