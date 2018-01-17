@@ -65,10 +65,10 @@ class FormsTableViewModel extends AbstractTableModel {
   JButton buildOverrideConfButton(FormStatus form) {
     JButton button = new JButton("⚙");
     button.setEnabled(false);
-    if (forms.hasConfiguration(form))
-      button.setForeground(GREEN);
     // Ugly hack to be able to use this factory in FormExportTable to compute its Dimension
     if (form != null) {
+      if (forms.hasConfiguration(form))
+        button.setForeground(GREEN);
       button.addActionListener(__ -> {
         button.setEnabled(false);
         try {

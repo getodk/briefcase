@@ -158,6 +158,6 @@ public class Export {
     LOGGER.info("exporting to : " + dir.getAbsolutePath());
     ExportToCsv exp = new ExportToCsv(dir, formDefinition, terminationFuture, fileName, exportMedia, overwrite, startDateString, endDateString);
     exp.doAction();
-    BriefcasePreferences.forClass(ExportPanel.class).put(buildExportDateTimePrefix(formDefinition), LocalDateTime.now().format(ISO_DATE_TIME));
+    BriefcasePreferences.forClass(ExportPanel.class).put(buildExportDateTimePrefix(formDefinition.getFormId()), LocalDateTime.now().format(ISO_DATE_TIME));
   }
 }

@@ -52,8 +52,8 @@ public class ExportPanel {
     ConfigurationPanel confPanel = ConfigurationPanel.from(ExportConfiguration.load(preferences));
 
     forms = ExportForms.load(getFormsFromStorage(), preferences);
-    forms.onSuccessfulExport((FormStatus form, LocalDateTime exportDateTime) ->
-        preferences.put(ExportForms.buildExportDateTimePrefix(form), exportDateTime.format(ISO_DATE_TIME))
+    forms.onSuccessfulExport((String formId, LocalDateTime exportDateTime) ->
+        preferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME))
     );
 
     form = ExportPanelForm.from(forms, confPanel);
@@ -62,8 +62,8 @@ public class ExportPanel {
       if (confPanel.isValid())
         preferences.putAll(confPanel.getConfiguration().asMap());
 
-      forms.getValidConfigurations().forEach((form, configuration) ->
-          preferences.putAll(configuration.asMap(buildCustomConfPrefix(form)))
+      forms.getValidConfigurations().forEach((formId, configuration) ->
+          preferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
       );
 
       if (forms.someSelected() && (confPanel.isValid() || forms.allSelectedFormsHaveConfiguration()))
