@@ -74,7 +74,7 @@ public class ExportForms {
   }
 
   public boolean hasConfiguration(FormStatus form) {
-    return configurations.containsKey(getFormId(form));
+    return configurations.containsKey(getFormId(form)) && configurations.get(getFormId(form)).isValid();
   }
 
   public ExportConfiguration getConfiguration(FormStatus form) {
