@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import org.bushe.swing.event.EventBus;
@@ -27,7 +28,7 @@ import org.opendatakit.briefcase.util.BadFormDefinition;
 public class FormsTableTest {
   @Test
   public void can_select_all_forms() {
-    ExportForms forms = new ExportForms(IntStream.range(0, 10).boxed().map(this::uncheckedFormStatusFactory).collect(toList()));
+    ExportForms forms = new ExportForms(IntStream.range(0, 10).boxed().map(this::uncheckedFormStatusFactory).collect(toList()), new HashMap<>());
     TestFormsTableViewModel viewModel = new TestFormsTableViewModel(forms);
     FormsTable formsTable = new FormsTable(forms, new TestFormsTableView(viewModel), viewModel);
 
@@ -40,7 +41,7 @@ public class FormsTableTest {
 
   @Test
   public void can_clear_selection_of_forms() {
-    ExportForms forms = new ExportForms(IntStream.range(0, 10).boxed().map(this::uncheckedFormStatusFactory).collect(toList()));
+    ExportForms forms = new ExportForms(IntStream.range(0, 10).boxed().map(this::uncheckedFormStatusFactory).collect(toList()), new HashMap<>());
     TestFormsTableViewModel viewModel = new TestFormsTableViewModel(forms);
     FormsTable formsTable = new FormsTable(forms, new TestFormsTableView(viewModel), viewModel);
     formsTable.selectAll();
@@ -54,7 +55,7 @@ public class FormsTableTest {
   @Ignore
   public void appends_to_a_forms_status_history_when_export_events_are_sent() {
     FormStatus theForm = uncheckedFormStatusFactory(1);
-    ExportForms forms = new ExportForms(Collections.singletonList(theForm));
+    ExportForms forms = new ExportForms(Collections.singletonList(theForm), new HashMap<>());
     TestFormsTableViewModel viewModel = new TestFormsTableViewModel(forms);
     new FormsTable(forms, new TestFormsTableView(viewModel), viewModel);
 

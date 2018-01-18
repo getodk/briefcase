@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.model;
 import java.security.Security;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.prefs.Preferences;
 
@@ -48,7 +50,11 @@ public class BriefcasePreferences {
 
     private final Preferences preferences;
 
-    private BriefcasePreferences(Class<?> node, PreferenceScope scope) {
+  public BriefcasePreferences(Preferences preferences) {
+    this.preferences = preferences;
+  }
+
+  private BriefcasePreferences(Class<?> node, PreferenceScope scope) {
         this.preferences = scope.preferenceFactory(node);
     }
 
@@ -78,16 +84,45 @@ public class BriefcasePreferences {
     }
 
     /**
+     * Returns an Optional instance with the value associated with the specified key
+     * in this preference node or an Optional.empty() if no value is associated with key,
+     * or the backing store is inaccessible.
+     *
+     * @param key
+     *          key whose associated value is to be returned.
+     * @return an Optional instance with the value associated with key, or Optional.empty()
+     *         if no value is associated with key, or the backing store is inaccessible.
+     */
+    public Optional<String> nullSafeGet(String key) {
+        return Optional.ofNullable(get(key, null));
+    }
+
+    /**
      * Associates the specified value with the specified key in this preference
      * node.
+     *
+     * If the value is null, then the key is removed
      *
      * @param key
      *          key with which the specified value is to be associated.
      * @param value
-     *          value to be associated with the specified key.
+     *          value to be associated with the specified key or null.
      */
     public void put(String key, String value) {
-        preferences.put(key, value);
+        if (value != null)
+            preferences.put(key, value);
+        else
+            remove(key);
+    }
+
+    /**
+     * Associates the specified key/value map in this preference node.
+     *
+     * @param keyValues
+     *          map of keys and values to ve associated.
+     */
+    public void putAll(Map<String,String> keyValues) {
+        keyValues.forEach(this::put);
     }
 
     /**

@@ -52,6 +52,7 @@
         </constraints>
         <properties>
           <editable value="false"/>
+          <name value="exportDir"/>
         </properties>
       </component>
       <component id="d6296" class="javax.swing.JTextField" binding="pemFileField">

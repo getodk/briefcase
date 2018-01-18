@@ -10,11 +10,13 @@ import org.assertj.swing.data.TableCell;
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.fixture.JButtonFixture;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.InMemoryPreferences;
 import org.opendatakit.briefcase.model.TerminationFuture;
 
 class ExportPanelPageObject {
   private final ExportPanel exportPanel;
-  private FrameFixture window;
+  private final FrameFixture window;
 
   private ExportPanelPageObject(ExportPanel exportPanel, FrameFixture window) {
     this.exportPanel = exportPanel;
@@ -22,10 +24,10 @@ class ExportPanelPageObject {
   }
 
   static ExportPanelPageObject setUp(Robot robot) {
-    ExportPanel exportPanel = GuiActionRunner.execute(() -> new ExportPanel(new TerminationFuture()));
+    ExportPanel exportPanel = GuiActionRunner.execute(() -> new ExportPanel(new TerminationFuture(), new BriefcasePreferences(InMemoryPreferences.empty())));
     JFrame testFrame = GuiActionRunner.execute(() -> {
       JFrame f = new JFrame();
-      f.add(exportPanel.getForm());
+      f.add(exportPanel.getForm().getContainer());
       return f;
     });
     FrameFixture window = new FrameFixture(robot, testFrame);
@@ -37,7 +39,7 @@ class ExportPanelPageObject {
   }
 
   void setExportDirectory(String value) {
-    GuiActionRunner.execute(() -> exportPanel.form.confPanel.form.setExportDir(Paths.get(value)));
+    GuiActionRunner.execute(() -> exportPanel.getForm().getConfPanel().getForm().setExportDir(Paths.get(value)));
   }
 
   void selectFormATRow(int row) {
