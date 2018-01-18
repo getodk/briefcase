@@ -16,11 +16,14 @@
 
 package org.opendatakit.briefcase.ui.export;
 
+import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
+import static org.opendatakit.briefcase.ui.export.ExportForms.buildCustomConfPrefix;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
@@ -48,6 +51,9 @@ public class ExportPanel {
     ConfigurationPanel confPanel = ConfigurationPanel.from(ExportConfiguration.load(preferences));
 
     forms = ExportForms.load(getFormsFromStorage(), preferences);
+    forms.onSuccessfulExport((String formId, LocalDateTime exportDateTime) ->
+        preferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME))
+    );
 
     form = ExportPanelForm.from(forms, confPanel);
 
@@ -55,8 +61,8 @@ public class ExportPanel {
       if (confPanel.isValid())
         preferences.putAll(confPanel.getConfiguration().asMap());
 
-      forms.getValidConfigurations().forEach((form, configuration) ->
-          preferences.putAll(configuration.asMap("custom_" + form.getFormName() + "_"))
+      forms.getValidConfigurations().forEach((formId, configuration) ->
+          preferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
       );
 
       if (forms.someSelected() && (confPanel.isValid() || forms.allSelectedFormsHaveConfiguration()))

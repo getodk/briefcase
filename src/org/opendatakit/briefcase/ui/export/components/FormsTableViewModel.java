@@ -2,6 +2,8 @@ package org.opendatakit.briefcase.ui.export.components;
 
 import static java.awt.Color.DARK_GRAY;
 import static java.awt.Color.GREEN;
+import static java.time.format.DateTimeFormatter.ofLocalizedDateTime;
+import static java.time.format.FormatStyle.SHORT;
 import static javax.swing.JOptionPane.getFrameForComponent;
 import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
 import static org.opendatakit.briefcase.ui.export.components.FormsTableView.EDITABLE_COLS;
@@ -63,10 +65,10 @@ class FormsTableViewModel extends AbstractTableModel {
   JButton buildOverrideConfButton(FormStatus form) {
     JButton button = new JButton("⚙");
     button.setEnabled(false);
-    if (forms.hasConfiguration(form))
-      button.setForeground(GREEN);
     // Ugly hack to be able to use this factory in FormExportTable to compute its Dimension
     if (form != null) {
+      if (forms.hasConfiguration(form))
+        button.setForeground(GREEN);
       button.addActionListener(__ -> {
         button.setEnabled(false);
         try {
@@ -116,6 +118,10 @@ class FormsTableViewModel extends AbstractTableModel {
         return form.getFormName();
       case FormsTableView.EXPORT_STATUS_COL:
         return form.getStatusString();
+      case FormsTableView.LAST_EXPORT_COL:
+        return forms.getLastExportDateTime(form)
+            .map(dateTime -> dateTime.format(ofLocalizedDateTime(SHORT, SHORT)))
+            .orElse("Not exported yet");
       case FormsTableView.DETAIL_BUTTON_COL:
         return detailButtons.computeIfAbsent(form, this::buildDetailButton);
       default:
