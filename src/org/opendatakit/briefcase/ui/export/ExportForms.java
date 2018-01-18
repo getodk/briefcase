@@ -58,7 +58,8 @@ public class ExportForms {
   }
 
   public Optional<ExportConfiguration> getConfiguration(BriefcaseFormDefinition formDefinition) {
-    return Optional.ofNullable(configurations.get(getForm(formDefinition)));
+    return Optional.ofNullable(configurations.get(getForm(formDefinition)))
+        .filter(ExportConfiguration::isValid);
   }
 
   public void removeConfiguration(FormStatus form) {
