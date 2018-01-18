@@ -13,9 +13,12 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.opendatakit.briefcase.ui.reused.MouseListenerBuilder;
 
 public class FormsTableView extends JTable {
+  private static final Log LOG = LogFactory.getLog(FormsTableView.class);
   static final String[] HEADERS = new String[]{"Selected", "⚙", "Form Name", "Export Status", "Detail"};
   static final Class[] TYPES = new Class[]{Boolean.class, JButton.class, String.class, String.class, JButton.class};
   static final boolean[] EDITABLE_COLS = new boolean[]{true, false, false, false, false};
@@ -80,10 +83,15 @@ public class FormsTableView extends JTable {
 
   private static TableCellRenderer cellWithButton() {
     return (table, value, isSelected, hasFocus, row, column) -> {
-      JButton button = (JButton) value;
-      button.setOpaque(true);
-      button.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
-      return button;
+      if (value == null) {
+        LOG.error("TableCellRenderer for button columns has received a null value");
+        return null;
+      } else {
+        JButton button = (JButton) value;
+        button.setOpaque(true);
+        button.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+        return button;
+      }
     };
   }
 
