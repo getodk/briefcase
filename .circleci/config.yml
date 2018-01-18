@@ -14,7 +14,7 @@ jobs:
           background: true
       - restore_cache:
           key: jars-{{ checksum "build.gradle" }}
-      - run: ./gradlew check test jar
+      - run: ./gradlew check jar
       - save_cache:
           paths:
             - ~/.gradle
