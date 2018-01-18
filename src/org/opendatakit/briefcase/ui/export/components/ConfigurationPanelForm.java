@@ -53,6 +53,8 @@ public class ConfigurationPanelForm extends JComponent {
     startDateField = createDatePicker();
     endDateField = createDatePicker();
     $$$setupUI$$$();
+    startDateField.getSettings().setGapBeforeButtonPixels(0);
+    endDateField.getSettings().setGapBeforeButtonPixels(0);
 
     exportDirButton.addActionListener(__ ->
         buildExportDirDialog().choose().ifPresent(file -> setExportDir(Paths.get(file.toURI())))
