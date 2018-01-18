@@ -300,7 +300,7 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(spacer4, gbc);
     pemFileButtons = new JPanel();
-    pemFileButtons.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+    pemFileButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
     gbc = new GridBagConstraints();
     gbc.gridx = 3;
     gbc.gridy = 1;
