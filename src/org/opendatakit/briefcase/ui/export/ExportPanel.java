@@ -22,10 +22,10 @@ import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 
 import java.util.List;
-import javax.swing.JPanel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -38,20 +38,27 @@ public class ExportPanel {
 
   private final TerminationFuture terminationFuture;
   private final ExportForms forms;
-  final ExportPanelForm form;
+  private final ExportPanelForm form;
 
-  public ExportPanel(TerminationFuture terminationFuture) {
+  public ExportPanel(TerminationFuture terminationFuture, BriefcasePreferences preferences) {
     AnnotationProcessor.process(this);// if not using AOP
 
     this.terminationFuture = terminationFuture;
 
-    forms = new ExportForms();
+    ConfigurationPanel confPanel = ConfigurationPanel.from(ExportConfiguration.load(preferences));
 
-    ConfigurationPanel confPanel = ConfigurationPanel.from(ExportConfiguration.empty());
+    forms = ExportForms.load(getFormsFromStorage(), preferences);
 
     form = ExportPanelForm.from(forms, confPanel);
 
     form.onChange(() -> {
+      if (confPanel.isValid())
+        preferences.putAll(confPanel.getConfiguration().asMap());
+
+      forms.getValidConfigurations().forEach((form, configuration) ->
+          preferences.putAll(configuration.asMap("custom_" + form.getFormName() + "_"))
+      );
+
       if (forms.someSelected() && (confPanel.isValid() || forms.allSelectedFormsHaveConfiguration()))
         form.enableExport();
       else
@@ -72,22 +79,24 @@ public class ExportPanel {
             "%s\n\n%s", "We have found some errors while performing the requested export actions:",
             errors.stream().map(e -> "- " + e).collect(joining("\n"))
         );
-        showErrorDialog(form, message, "Export error report");
+        showErrorDialog(form.getContainer(), message, "Export error report");
       }
     }).start());
-
-    updateForms();
   }
 
   public void updateForms() {
-    forms.merge(FileSystemUtils.getBriefcaseFormList().stream()
-        .map(formDefinition -> new FormStatus(EXPORT, formDefinition))
-        .collect(toList()));
+    forms.merge(getFormsFromStorage());
     form.refresh();
   }
 
-  public JPanel getForm() {
-    return form.container;
+  private List<FormStatus> getFormsFromStorage() {
+    return FileSystemUtils.getBriefcaseFormList().stream()
+        .map(formDefinition -> new FormStatus(EXPORT, formDefinition))
+        .collect(toList());
+  }
+
+  public ExportPanelForm getForm() {
+    return form;
   }
 
   private List<String> export(ExportConfiguration defaultConfiguration) {
