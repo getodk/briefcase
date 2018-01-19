@@ -28,7 +28,6 @@ public class ExportConfiguration {
   private static final String PEM_FILE = "pemFile";
   private static final String START_DATE = "startDate";
   private static final String END_DATE = "endDate";
-  private static final ExportConfiguration EMPTY_CONFIGURATION = new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   private Optional<Path> exportDir;
   private Optional<Path> pemFile;
   private Optional<LocalDate> startDate;
@@ -42,7 +41,7 @@ public class ExportConfiguration {
   }
 
   public static ExportConfiguration empty() {
-    return EMPTY_CONFIGURATION;
+    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
@@ -202,7 +201,10 @@ public class ExportConfiguration {
   }
 
   public boolean isEmpty() {
-    return this.equals(EMPTY_CONFIGURATION);
+    return !exportDir.isPresent()
+        && !pemFile.isPresent()
+        && !startDate.isPresent()
+        && !endDate.isPresent();
   }
 
   public boolean isValid() {
