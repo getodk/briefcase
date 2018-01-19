@@ -35,7 +35,6 @@ class FormsTableViewModel extends AbstractTableModel {
   }
 
   void refresh() {
-    confButtons.forEach((form, button) -> button.setEnabled(form.isSelected()));
     detailButtons.forEach((form, button) -> button.setEnabled(!form.getStatusHistory().isEmpty()));
     fireTableDataChanged();
     triggerChange();
@@ -64,7 +63,6 @@ class FormsTableViewModel extends AbstractTableModel {
 
   JButton buildOverrideConfButton(FormStatus form) {
     JButton button = new JButton("⚙");
-    button.setEnabled(false);
     // Ugly hack to be able to use this factory in FormExportTable to compute its Dimension
     if (form != null) {
       if (forms.hasConfiguration(form))
@@ -138,7 +136,6 @@ class FormsTableViewModel extends AbstractTableModel {
       case FormsTableView.SELECTED_CHECKBOX_COL:
         Boolean isSelected = (Boolean) aValue;
         form.setSelected(isSelected);
-        confButtons.get(form).setEnabled(isSelected);
         triggerChange();
         break;
       case FormsTableView.EXPORT_STATUS_COL:
