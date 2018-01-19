@@ -24,7 +24,6 @@ import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 import static org.opendatakit.briefcase.ui.export.ExportForms.buildCustomConfPrefix;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
