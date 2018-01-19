@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ public class ExportConfiguration {
   private static final String PEM_FILE = "pemFile";
   private static final String START_DATE = "startDate";
   private static final String END_DATE = "endDate";
+  private static final ExportConfiguration EMPTY_CONFIGURATION = new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   private Optional<Path> exportDir;
   private Optional<Path> pemFile;
   private Optional<LocalDate> startDate;
@@ -40,7 +42,7 @@ public class ExportConfiguration {
   }
 
   public static ExportConfiguration empty() {
-    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    return EMPTY_CONFIGURATION;
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
@@ -58,6 +60,15 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get),
         prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse)
+    );
+  }
+
+  public static List<String> keys(String keyPrefix) {
+    return Arrays.asList(
+        keyPrefix + EXPORT_DIR,
+        keyPrefix + PEM_FILE,
+        keyPrefix + START_DATE,
+        keyPrefix + END_DATE
     );
   }
 
@@ -161,15 +172,45 @@ public class ExportConfiguration {
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
       errors.add("Invalid date range: \"From\" date must be before \"To\" date.");
+
     return errors;
+  }
+
+  private List<String> getCustomConfErrors() {
+    List<String> errors = new ArrayList<>();
+
+    if (exportDir.isPresent() && !exportDir.filter(path -> Files.exists(path)).isPresent())
+      errors.add(DIR_NOT_EXIST);
+
+    if (exportDir.isPresent() && !exportDir.filter(path -> Files.isDirectory(path)).isPresent())
+      errors.add(DIR_NOT_DIRECTORY);
+
+    if (exportDir.isPresent() && !exportDir.filter(path -> !isUnderODKFolder(path.toFile())).isPresent())
+      errors.add(DIR_INSIDE_ODK_DEVICE_DIRECTORY);
+
+    if (exportDir.isPresent() && !exportDir.filter(path -> !isUnderBriefcaseFolder(path.toFile())).isPresent())
+      errors.add(DIR_INSIDE_BRIEFCASE_STORAGE);
+
+    if (startDate.isPresent() && !endDate.isPresent())
+      errors.add("Missing date range end definition");
+    if (!startDate.isPresent() && endDate.isPresent())
+      errors.add("Missing date range start definition");
+    if (!isDateRangeValid())
+      errors.add("Invalid date range: \"From\" date must be before \"To\" date.");
+
+    return errors;
+  }
+
+  public boolean isEmpty() {
+    return this.equals(EMPTY_CONFIGURATION);
   }
 
   public boolean isValid() {
     return getErrors().isEmpty();
   }
 
-  public boolean isEmpty() {
-    return !exportDir.isPresent();
+  public boolean isValidAsCustomConf() {
+    return getCustomConfErrors().isEmpty();
   }
 
   public <T> Optional<T> mapPemFile(Function<Path, T> mapper) {

@@ -24,6 +24,7 @@ import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 import static org.opendatakit.briefcase.ui.export.ExportForms.buildCustomConfPrefix;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
@@ -59,10 +60,17 @@ public class ExportPanel {
     form = ExportPanelForm.from(forms, confPanel);
 
     form.onChange(() -> {
+      // Put default conf
       if (confPanel.isValid())
         preferences.putAll(confPanel.getConfiguration().asMap());
 
-      forms.getValidConfigurations().forEach((formId, configuration) ->
+      // Clean all custom confs
+      forms.forEach(formId ->
+          preferences.removeAll(ExportConfiguration.keys(buildCustomConfPrefix(formId)))
+      );
+
+      // Put custom confs
+      forms.getCustomConfigurations().forEach((formId, configuration) ->
           preferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
       );
 
@@ -112,7 +120,7 @@ public class ExportPanel {
     List<String> errors = forms.getSelectedForms().parallelStream()
         .peek(FormStatus::clearStatusHistory)
         .map(formStatus -> (BriefcaseFormDefinition) formStatus.getFormDefinition())
-        .flatMap(formDefinition -> ExportAction.export(formDefinition, forms.getConfiguration(formDefinition), terminationFuture).stream())
+        .flatMap(formDefinition -> ExportAction.export(formDefinition, forms.getConfiguration(formDefinition.getFormId()), terminationFuture).stream())
         .collect(toList());
     form.enableUI();
     return errors;

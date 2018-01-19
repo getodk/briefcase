@@ -33,7 +33,6 @@
               <component id="e7465" class="javax.swing.JButton" binding="okButton">
                 <constraints/>
                 <properties>
-                  <enabled value="false"/>
                   <text value="OK"/>
                 </properties>
               </component>

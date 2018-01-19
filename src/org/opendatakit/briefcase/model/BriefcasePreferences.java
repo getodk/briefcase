@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.model;
 import java.security.Security;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -134,6 +135,17 @@ public class BriefcasePreferences {
      */
     public void remove(String key) {
         preferences.remove(key);
+    }
+
+    /**
+     * Removes all the values associated with the specified key list in this preference
+     * node, if any.
+     *
+     * @param keys
+     *          keys whose mappings are to be removed from the preference node.
+     */
+    public void removeAll(List<String> keys) {
+      keys.forEach(this::remove);
     }
 
     public static void setBriefcaseDirectoryProperty(String value) {

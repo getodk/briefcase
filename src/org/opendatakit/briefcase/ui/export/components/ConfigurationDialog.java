@@ -12,14 +12,11 @@ public class ConfigurationDialog {
     this.form = form;
     this.confPanel = confPanel;
 
-    if (confPanel.isValid())
-      form.enableOK();
-
     if (!confPanel.isEmpty())
       form.enableRemove();
 
     confPanel.onChange(() -> {
-      if (this.confPanel.getConfiguration().isValid())
+      if (!this.confPanel.getConfiguration().isEmpty() && this.confPanel.getConfiguration().isValidAsCustomConf())
         form.enableOK();
       else
         form.disableOK();

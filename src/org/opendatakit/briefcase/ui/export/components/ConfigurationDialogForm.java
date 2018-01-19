@@ -121,7 +121,6 @@ public class ConfigurationDialogForm extends JDialog {
     removeButton.setText("Remove");
     rightActions.add(removeButton);
     okButton = new JButton();
-    okButton.setEnabled(false);
     okButton.setText("OK");
     rightActions.add(okButton);
     leftActions = new JPanel();

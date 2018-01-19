@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.operations.Export;
 
 public class ExportForms {
   private static final String EXPORT_DATE_PREFIX = "export_date_";
@@ -40,9 +40,12 @@ public class ExportForms {
     Map<String, LocalDateTime> lastExportDateTimes = new HashMap<>();
     forms.forEach(form -> {
       String formId = getFormId(form);
-      configurations.put(formId, ExportConfiguration.load(preferences, buildCustomConfPrefix(formId)));
+      ExportConfiguration load = ExportConfiguration.load(preferences, buildCustomConfPrefix(formId));
+      if (!load.isEmpty())
+        configurations.put(formId, load);
       preferences.nullSafeGet(buildExportDateTimePrefix(formId))
-          .map(LocalDateTime::parse).ifPresent(dateTime -> lastExportDateTimes.put(formId, dateTime));
+          .map(LocalDateTime::parse)
+          .ifPresent(dateTime -> lastExportDateTimes.put(formId, dateTime));
     });
     return new ExportForms(
         forms,
@@ -77,16 +80,24 @@ public class ExportForms {
     return forms.get(rowIndex);
   }
 
+  public void forEach(Consumer<String> callback) {
+    forms.stream().map(ExportForms::getFormId).forEach(callback);
+  }
+
   public boolean hasConfiguration(FormStatus form) {
-    return customConfigurations.containsKey(getFormId(form)) && customConfigurations.get(getFormId(form)).isValid();
+    return customConfigurations.containsKey(getFormId(form));
   }
 
   public Optional<ExportConfiguration> getCustomConfiguration(FormStatus form) {
     return Optional.ofNullable(customConfigurations.get(getFormId(form)));
   }
 
-  public ExportConfiguration getConfiguration(BriefcaseFormDefinition formDefinition) {
-    return Optional.ofNullable(customConfigurations.get(formDefinition.getFormId()))
+  public Map<String, ExportConfiguration> getCustomConfigurations() {
+    return customConfigurations;
+  }
+
+  public ExportConfiguration getConfiguration(String formId) {
+    return Optional.ofNullable(customConfigurations.get(formId))
         .orElse(ExportConfiguration.empty())
         .fallingBackTo(defaultConfiguration);
   }
@@ -97,6 +108,13 @@ public class ExportForms {
 
   public void putConfiguration(FormStatus form, ExportConfiguration configuration) {
     customConfigurations.put(getFormId(form), configuration);
+  }
+
+  public boolean allSelectedFormsHaveConfiguration() {
+    return getSelectedForms().stream()
+        .map(ExportForms::getFormId)
+        .map(this::getConfiguration)
+        .allMatch(ExportConfiguration::isValid);
   }
 
   public void selectAll() {
@@ -123,12 +141,6 @@ public class ExportForms {
     return forms.stream().noneMatch(FormStatus::isSelected);
   }
 
-  public boolean allSelectedFormsHaveConfiguration() {
-    return getSelectedForms().stream()
-        .map(ExportForms::getFormId)
-        .allMatch(formId -> customConfigurations.containsKey(formId) && !customConfigurations.get(formId).isEmpty());
-  }
-
   public void appendStatus(BriefcaseFormDefinition formDefinition, String statusUpdate, boolean successful) {
     FormStatus form = getForm(formDefinition);
     form.setStatusString(statusUpdate, successful);
@@ -138,12 +150,6 @@ public class ExportForms {
       lastExportDateTimes.put(formId, exportDate);
       onSuccessfulExportCallbacks.forEach(callback -> callback.accept(formId, exportDate));
     }
-  }
-
-  public Map<String, ExportConfiguration> getValidConfigurations() {
-    return customConfigurations.entrySet().stream()
-        .filter(entry -> !entry.getValue().isEmpty() && entry.getValue().isValid())
-        .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   public Optional<LocalDateTime> getLastExportDateTime(FormStatus form) {
