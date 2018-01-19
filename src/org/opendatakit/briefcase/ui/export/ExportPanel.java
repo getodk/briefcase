@@ -48,9 +48,10 @@ public class ExportPanel {
 
     this.terminationFuture = terminationFuture;
 
-    ConfigurationPanel confPanel = ConfigurationPanel.from(ExportConfiguration.load(preferences));
+    ExportConfiguration defaultConfiguration = ExportConfiguration.load(preferences);
+    ConfigurationPanel confPanel = ConfigurationPanel.from(defaultConfiguration);
 
-    forms = ExportForms.load(getFormsFromStorage(), preferences);
+    forms = ExportForms.load(defaultConfiguration, getFormsFromStorage(), preferences);
     forms.onSuccessfulExport((String formId, LocalDateTime exportDateTime) ->
         preferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME))
     );
@@ -79,7 +80,7 @@ public class ExportPanel {
 
 
     form.onExport(() -> new Thread(() -> {
-      List<String> errors = export(confPanel.getConfiguration());
+      List<String> errors = export();
       if (!errors.isEmpty()) {
         String message = String.format(
             "%s\n\n%s", "We have found some errors while performing the requested export actions:",
@@ -105,13 +106,13 @@ public class ExportPanel {
     return form;
   }
 
-  private List<String> export(ExportConfiguration defaultConfiguration) {
+  private List<String> export() {
     form.disableUI();
     terminationFuture.reset();
     List<String> errors = forms.getSelectedForms().parallelStream()
         .peek(FormStatus::clearStatusHistory)
         .map(formStatus -> (BriefcaseFormDefinition) formStatus.getFormDefinition())
-        .flatMap(formDefinition -> ExportAction.export(formDefinition, forms.getConfiguration(formDefinition).orElse(defaultConfiguration), terminationFuture).stream())
+        .flatMap(formDefinition -> ExportAction.export(formDefinition, forms.getConfiguration(formDefinition), terminationFuture).stream())
         .collect(toList());
     form.enableUI();
     return errors;

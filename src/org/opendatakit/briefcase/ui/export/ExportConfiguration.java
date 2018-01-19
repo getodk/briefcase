@@ -32,7 +32,7 @@ public class ExportConfiguration {
   private Optional<LocalDate> startDate;
   private Optional<LocalDate> endDate;
 
-  private ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
+  ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
     this.exportDir = exportDir;
     this.pemFile = pemFile;
     this.startDate = startDate;
@@ -188,6 +188,15 @@ public class ExportConfiguration {
     return endDate.map(mapper);
   }
 
+  public ExportConfiguration fallingBackTo(ExportConfiguration fallbackConfiguration) {
+    return new ExportConfiguration(
+        exportDir.isPresent() ? exportDir : fallbackConfiguration.exportDir,
+        pemFile.isPresent() ? pemFile : fallbackConfiguration.pemFile,
+        startDate.isPresent() ? startDate : fallbackConfiguration.startDate,
+        endDate.isPresent() ? endDate : fallbackConfiguration.endDate
+    );
+  }
+
   @Override
   public String toString() {
     return "ExportConfiguration{" +
@@ -213,7 +222,6 @@ public class ExportConfiguration {
 
   @Override
   public int hashCode() {
-
     return Objects.hash(exportDir, pemFile, startDate, endDate);
   }
 }

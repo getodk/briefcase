@@ -72,9 +72,9 @@ class FormsTableViewModel extends AbstractTableModel {
       button.addActionListener(__ -> {
         button.setEnabled(false);
         try {
-          ConfigurationDialog dialog = ConfigurationDialog.from(forms.getConfiguration(form));
+          ConfigurationDialog dialog = ConfigurationDialog.from(forms.getCustomConfiguration(form));
           dialog.onRemove(() -> removeConfiguration(form));
-          dialog.onOK(configuration -> applyConfiguration(form, configuration));
+          dialog.onOK(configuration -> putConfiguration(form, configuration));
           dialog.open();
         } finally {
           button.setEnabled(true);
@@ -84,8 +84,8 @@ class FormsTableViewModel extends AbstractTableModel {
     return button;
   }
 
-  private void applyConfiguration(FormStatus form, ExportConfiguration configuration) {
-    forms.setConfiguration(form, configuration);
+  private void putConfiguration(FormStatus form, ExportConfiguration configuration) {
+    forms.putConfiguration(form, configuration);
     confButtons.get(form).setForeground(GREEN);
     triggerChange();
   }
