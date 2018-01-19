@@ -3,6 +3,7 @@ plugins {
     id 'checkstyle'
     id 'de.fuerstenau.buildconfig' version '1.1.8'
     id 'idea'
+    id 'jacoco'
 }
 
 repositories {
@@ -63,6 +64,13 @@ dependencies {
 
     runtime group: 'org.slf4j', name: 'jcl-over-slf4j', version: '1.7.5'
     runtime group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.5'
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled true
+    }
 }
 
 // Required to use fileExtensions property in checkstyle file
