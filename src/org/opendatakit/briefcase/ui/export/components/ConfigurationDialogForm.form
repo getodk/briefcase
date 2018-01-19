@@ -23,11 +23,11 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="fe9a8" class="javax.swing.JButton" binding="removeButton">
+              <component id="fe9a8" class="javax.swing.JButton" binding="clearAllButton">
                 <constraints/>
                 <properties>
                   <enabled value="false"/>
-                  <text value="Remove"/>
+                  <text value="Clear All"/>
                 </properties>
               </component>
               <component id="e7465" class="javax.swing.JButton" binding="okButton">

@@ -19,7 +19,7 @@ public class ConfigurationDialogForm extends JDialog {
   private JPanel dialog;
   private JButton okButton;
   private JButton cancelButton;
-  private JButton removeButton;
+  private JButton clearAllButton;
   private JPanel rightActions;
   private JPanel leftActions;
   private JPanel actions;
@@ -36,7 +36,7 @@ public class ConfigurationDialogForm extends JDialog {
     setTitle("Override export configuration");
 
     okButton.addActionListener(e -> dispose());
-    removeButton.addActionListener(e -> dispose());
+    clearAllButton.addActionListener(e -> dispose());
     cancelButton.addActionListener(e -> dispose());
 
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -51,7 +51,7 @@ public class ConfigurationDialogForm extends JDialog {
   }
 
   public void onRemove(Runnable callback) {
-    removeButton.addActionListener(__ -> callback.run());
+    clearAllButton.addActionListener(__ -> callback.run());
   }
 
   public void onOK(Runnable callback) {
@@ -67,7 +67,7 @@ public class ConfigurationDialogForm extends JDialog {
   }
 
   public void enableRemove() {
-    removeButton.setEnabled(true);
+    clearAllButton.setEnabled(true);
   }
 
   @Override
@@ -116,10 +116,10 @@ public class ConfigurationDialogForm extends JDialog {
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
     actions.add(rightActions, gbc);
-    removeButton = new JButton();
-    removeButton.setEnabled(false);
-    removeButton.setText("Remove");
-    rightActions.add(removeButton);
+    clearAllButton = new JButton();
+    clearAllButton.setEnabled(false);
+    clearAllButton.setText("Clear All");
+    rightActions.add(clearAllButton);
     okButton = new JButton();
     okButton.setText("OK");
     rightActions.add(okButton);
