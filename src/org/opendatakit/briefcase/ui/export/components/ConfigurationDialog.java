@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 
 public class ConfigurationDialog {
-  private final ConfigurationDialogForm form;
+  final ConfigurationDialogForm form;
   private final ConfigurationPanel confPanel;
 
   ConfigurationDialog(ConfigurationDialogForm form, ConfigurationPanel confPanel) {
