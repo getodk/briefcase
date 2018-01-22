@@ -19,9 +19,9 @@ package org.opendatakit.briefcase.ui.export;
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
-import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -17,8 +17,8 @@ import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
 import org.opendatakit.briefcase.export.ExportConfiguration;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.export.ExportForms;
+import org.opendatakit.briefcase.model.FormStatus;
 
 public class FormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();

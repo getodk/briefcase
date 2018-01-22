@@ -1,10 +1,10 @@
 package org.opendatakit.briefcase.operations;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
+import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePrefix;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.operations.Common.bootCache;
-import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePrefix;
 
 import java.io.BufferedReader;
 import java.io.File;
