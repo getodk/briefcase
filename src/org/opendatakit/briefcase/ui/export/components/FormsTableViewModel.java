@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
+import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.ui.export.ExportConfiguration;
 import org.opendatakit.briefcase.ui.export.ExportForms;
 
 class FormsTableViewModel extends AbstractTableModel {

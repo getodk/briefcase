@@ -1,4 +1,4 @@
-package org.opendatakit.briefcase.ui.export;
+package org.opendatakit.briefcase.export;
 
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY;

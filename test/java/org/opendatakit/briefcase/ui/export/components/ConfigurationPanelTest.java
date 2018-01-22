@@ -13,7 +13,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
-import org.opendatakit.briefcase.ui.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportConfiguration;
 
 public class ConfigurationPanelTest {
   @Test

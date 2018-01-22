@@ -45,7 +45,7 @@ import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
-import org.opendatakit.briefcase.ui.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportConfiguration;
 
 public class ExportAction {
 
