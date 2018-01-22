@@ -59,11 +59,14 @@ public class ExportPanel {
     form = ExportPanelForm.from(forms, confPanel);
 
     form.onChange(() -> {
+      // Clean all default conf keys
+      preferences.removeAll(ExportConfiguration.keys());
+
       // Put default conf
       if (confPanel.isValid())
         preferences.putAll(confPanel.getConfiguration().asMap());
 
-      // Clean all custom confs
+      // Clean all custom conf keys
       forms.forEach(formId ->
           preferences.removeAll(ExportConfiguration.keys(buildCustomConfPrefix(formId)))
       );

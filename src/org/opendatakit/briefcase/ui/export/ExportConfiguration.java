@@ -62,6 +62,10 @@ public class ExportConfiguration {
     );
   }
 
+  public static List<String> keys() {
+    return keys("");
+  }
+
   public static List<String> keys(String keyPrefix) {
     return Arrays.asList(
         keyPrefix + EXPORT_DIR,
