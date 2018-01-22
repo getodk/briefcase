@@ -7,7 +7,7 @@ public class ConfigurationDialog {
   private final ConfigurationDialogForm form;
   private final ConfigurationPanel confPanel;
 
-  private ConfigurationDialog(ConfigurationDialogForm form, ConfigurationPanel confPanel) {
+  ConfigurationDialog(ConfigurationDialogForm form, ConfigurationPanel confPanel) {
     this.form = form;
     this.confPanel = confPanel;
 

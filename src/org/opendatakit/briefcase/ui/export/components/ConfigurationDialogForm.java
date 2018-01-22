@@ -17,9 +17,9 @@ import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 @SuppressWarnings("checkstyle:MethodName")
 public class ConfigurationDialogForm extends JDialog {
   private JPanel dialog;
-  private JButton okButton;
+  protected JButton okButton;
   private JButton cancelButton;
-  private JButton removeButton;
+  protected JButton removeButton;
   private JPanel rightActions;
   private JPanel leftActions;
   private JPanel actions;
