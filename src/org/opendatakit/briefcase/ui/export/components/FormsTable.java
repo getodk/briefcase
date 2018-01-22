@@ -47,6 +47,10 @@ public class FormsTable {
     return view;
   }
 
+  public FormsTableViewModel getViewModel() {
+    return viewModel;
+  }
+
   @EventSubscriber(eventClass = ExportProgressEvent.class)
   public void onExportProgressEvent(ExportProgressEvent event) {
     forms.appendStatus(event.getFormDefinition(), event.getText(), false);

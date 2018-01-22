@@ -43,31 +43,27 @@ public class ExportPanel {
 
   private final TerminationFuture terminationFuture;
   private final ExportForms forms;
-  private final ExportPanelForm form;
+  final ExportPanelForm form;
 
-  public ExportPanel(TerminationFuture terminationFuture, BriefcasePreferences preferences) {
+  public ExportPanel(TerminationFuture terminationFuture, ExportForms forms, ExportPanelForm form, BriefcasePreferences preferences) {
+    this.terminationFuture = terminationFuture;
+    this.forms = forms;
+    this.form = form;
     AnnotationProcessor.process(this);// if not using AOP
 
-    this.terminationFuture = terminationFuture;
-
-    ConfigurationPanel confPanel = ConfigurationPanel.from(ExportConfiguration.load(preferences));
-
-    forms = ExportForms.load(getFormsFromStorage(), preferences);
     forms.onSuccessfulExport((String formId, LocalDateTime exportDateTime) ->
         preferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME))
     );
 
-    form = ExportPanelForm.from(forms, confPanel);
-
     form.onChange(() -> {
-      if (confPanel.isValid())
-        preferences.putAll(confPanel.getConfiguration().asMap());
+      if (form.getConfPanel().isValid())
+        preferences.putAll(form.getConfPanel().getConfiguration().asMap());
 
       forms.getValidConfigurations().forEach((formId, configuration) ->
           preferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
       );
 
-      if (forms.someSelected() && (confPanel.isValid() || forms.allSelectedFormsHaveConfiguration()))
+      if (forms.someSelected() && (form.getConfPanel().isValid() || forms.allSelectedFormsHaveConfiguration()))
         form.enableExport();
       else
         form.disableExport();
@@ -81,7 +77,7 @@ public class ExportPanel {
 
 
     form.onExport(() -> new Thread(() -> {
-      List<String> errors = export(confPanel.getConfiguration());
+      List<String> errors = export(form.getConfPanel().getConfiguration());
       if (!errors.isEmpty()) {
         String message = String.format(
             "%s\n\n%s", "We have found some errors while performing the requested export actions:",
@@ -92,12 +88,18 @@ public class ExportPanel {
     }).start());
   }
 
+  public static ExportPanel from(TerminationFuture terminationFuture, BriefcasePreferences preferences) {
+    ExportForms forms = ExportForms.load(getFormsFromStorage(), preferences);
+    ExportPanelForm form = ExportPanelForm.from(forms, ConfigurationPanel.from(ExportConfiguration.load(preferences)));
+    return new ExportPanel(terminationFuture, forms, form, preferences);
+  }
+
   public void updateForms() {
     forms.merge(getFormsFromStorage());
     form.refresh();
   }
 
-  private List<FormStatus> getFormsFromStorage() {
+  private static List<FormStatus> getFormsFromStorage() {
     return FileSystemUtils.getBriefcaseFormList().stream()
         .map(formDefinition -> new FormStatus(EXPORT, formDefinition))
         .collect(toList());

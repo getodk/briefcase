@@ -30,7 +30,7 @@ public class ExportPanelForm {
   private JPanel rightActions;
   private JButton selectAllButton;
   private JButton clearAllButton;
-  private JButton exportButton;
+  JButton exportButton;
   private boolean exporting;
 
   private ExportPanelForm(ConfigurationPanel confPanel, FormsTable formsTable) {
@@ -59,6 +59,10 @@ public class ExportPanelForm {
 
   public ConfigurationPanel getConfPanel() {
     return confPanel;
+  }
+
+  public FormsTable getFormsTable() {
+    return formsTable;
   }
 
   void onExport(Runnable callback) {
