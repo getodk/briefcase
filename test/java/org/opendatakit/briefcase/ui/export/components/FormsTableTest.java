@@ -22,7 +22,7 @@ import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.ui.export.ExportForms;
+import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.util.BadFormDefinition;
 
 public class FormsTableTest {

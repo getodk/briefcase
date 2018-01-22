@@ -1,4 +1,4 @@
-package org.opendatakit.briefcase.ui.export;
+package org.opendatakit.briefcase.export;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -10,10 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
-import org.opendatakit.briefcase.export.ExportConfiguration;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.IFormDefinition;
 
 public class ExportForms {
   private static final String EXPORT_DATE_PREFIX = "export_date_";
@@ -29,6 +28,10 @@ public class ExportForms {
     this.configurations = configurations;
     this.lastExportDateTimes = lastExportDateTimes;
     rebuildIndex();
+  }
+
+  public static ExportForms empty() {
+    return new ExportForms(new ArrayList<>(), new HashMap<>(), new HashMap<>());
   }
 
   public static ExportForms load(List<FormStatus> forms, BriefcasePreferences preferences) {
@@ -49,15 +52,19 @@ public class ExportForms {
     );
   }
 
+  private static String getFormId(IFormDefinition formDefinition) {
+    return formDefinition.getFormId();
+  }
+
   private static String getFormId(FormStatus form) {
-    return form.getFormDefinition().getFormId();
+    return getFormId(form.getFormDefinition());
   }
 
   public static String buildExportDateTimePrefix(String formId) {
     return EXPORT_DATE_PREFIX + formId;
   }
 
-  static String buildCustomConfPrefix(String formId) {
+  public static String buildCustomConfPrefix(String formId) {
     return CUSTOM_CONF_PREFIX + formId + "_";
   }
 
@@ -78,13 +85,12 @@ public class ExportForms {
     return configurations.containsKey(getFormId(form)) && configurations.get(getFormId(form)).isValid();
   }
 
-  public ExportConfiguration getConfiguration(FormStatus form) {
-    return configurations.computeIfAbsent(getFormId(form), ___ -> ExportConfiguration.empty());
+  public Optional<ExportConfiguration> getConfiguration(FormStatus form) {
+    return Optional.ofNullable(configurations.get(getFormId(form)));
   }
 
-  public Optional<ExportConfiguration> getConfiguration(BriefcaseFormDefinition formDefinition) {
-    return Optional.ofNullable(configurations.get(formDefinition.getFormId()))
-        .filter(ExportConfiguration::isValid);
+  public Optional<ExportConfiguration> getConfiguration(IFormDefinition formDefinition) {
+    return Optional.ofNullable(configurations.get(getFormId(formDefinition)));
   }
 
   public void removeConfiguration(FormStatus form) {
@@ -125,7 +131,7 @@ public class ExportForms {
         .allMatch(formId -> configurations.containsKey(formId) && !configurations.get(formId).isEmpty());
   }
 
-  public void appendStatus(BriefcaseFormDefinition formDefinition, String statusUpdate, boolean successful) {
+  public void appendStatus(IFormDefinition formDefinition, String statusUpdate, boolean successful) {
     FormStatus form = getForm(formDefinition);
     form.setStatusString(statusUpdate, successful);
     if (successful) {
@@ -150,11 +156,8 @@ public class ExportForms {
     onSuccessfulExportCallbacks.add(callback);
   }
 
-  private FormStatus getForm(BriefcaseFormDefinition formDefinition) {
-    return getForm(formDefinition.getFormId());
-  }
-
-  private FormStatus getForm(String formId) {
+  private FormStatus getForm(IFormDefinition formDefinition) {
+    String formId = getFormId(formDefinition);
     return Optional.ofNullable(formsIndex.get(formId))
         .orElseThrow(() -> new RuntimeException("Form with form ID " + formId + " not found"));
   }

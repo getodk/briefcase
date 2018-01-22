@@ -6,7 +6,7 @@ import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
-import org.opendatakit.briefcase.ui.export.ExportForms;
+import org.opendatakit.briefcase.export.ExportForms;
 
 public class FormsTable {
   private final FormsTableView view;

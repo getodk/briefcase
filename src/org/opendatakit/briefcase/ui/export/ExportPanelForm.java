@@ -10,6 +10,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanelForm;
 import org.opendatakit.briefcase.ui.export.components.FormsTable;

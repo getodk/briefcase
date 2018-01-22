@@ -18,7 +18,7 @@ import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.ui.export.ExportForms;
+import org.opendatakit.briefcase.export.ExportForms;
 
 class FormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
@@ -72,7 +72,7 @@ class FormsTableViewModel extends AbstractTableModel {
       button.addActionListener(__ -> {
         button.setEnabled(false);
         try {
-          ConfigurationDialog dialog = ConfigurationDialog.from(forms.getConfiguration(form));
+          ConfigurationDialog dialog = ConfigurationDialog.from(forms.getConfiguration(form).orElse(ExportConfiguration.empty()));
           dialog.onRemove(() -> removeConfiguration(form));
           dialog.onOK(configuration -> applyConfiguration(form, configuration));
           dialog.open();
