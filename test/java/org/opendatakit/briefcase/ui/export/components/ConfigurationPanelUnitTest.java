@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 
-public class ConfigurationPanelTest {
+public class ConfigurationPanelUnitTest {
   @Test
   public void it_wires_UI_fields_to_the_model() {
     ExportConfiguration expectedConfiguration = ExportConfiguration.empty();

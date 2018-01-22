@@ -25,7 +25,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.util.BadFormDefinition;
 
-public class FormsTableTest {
+public class FormsTableUnitTest {
   @Test
   public void can_select_all_forms() {
     ExportForms forms = new ExportForms(IntStream.range(0, 10).boxed().map(this::uncheckedFormStatusFactory).collect(toList()), new HashMap<>(), new HashMap<>());
