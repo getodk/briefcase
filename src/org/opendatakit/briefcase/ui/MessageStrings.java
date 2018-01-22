@@ -42,7 +42,6 @@ public class MessageStrings {
   public static final String INVALID_EXPORT_DIRECTORY =
       "Invalid " + EXPORT_DIRECTORY;
   public static final String INVALID_DATE_RANGE_MESSAGE = "Invalid date range: Start date must be before End date.";
-  public static final String INVALID_DATE_RANGE_TITLE = "Invalid Date Range";
   public static final String INVALID_DIRECTORY =
       "Invalid Directory";
   public static final String INVALID_PEM_FILE =
