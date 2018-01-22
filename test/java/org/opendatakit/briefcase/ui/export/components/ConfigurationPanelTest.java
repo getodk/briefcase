@@ -135,6 +135,14 @@ public class ConfigurationPanelTest {
     private boolean errorShown = false;
     private boolean enabled;
 
+    TestConfigurationPanelPanelView() {
+      super(false);
+    }
+
+    TestConfigurationPanelPanelView(boolean clearableExportDir) {
+      super(clearableExportDir);
+    }
+
     @Override
     protected void showError(String message, String title) {
       errorShown = true;

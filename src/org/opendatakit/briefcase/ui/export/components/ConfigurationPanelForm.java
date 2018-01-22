@@ -36,7 +36,7 @@ public class ConfigurationPanelForm extends JComponent {
   protected final DatePicker endDateField;
   protected JTextField exportDirField;
   protected JTextField pemFileField;
-  private JButton exportDirButton;
+  private JButton exportDirChooseButton;
   private JLabel exportDirLabel;
   private JLabel pemFileLabel;
   private JLabel startDateLabel;
@@ -44,21 +44,26 @@ public class ConfigurationPanelForm extends JComponent {
   private JPanel pemFileButtons;
   private JButton pemFileChooseButton;
   private JButton pemFileClearButton;
+  private JPanel exportDirButtons;
+  private JButton exportDirCleanButton;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectEndDateCallbacks = new ArrayList<>();
+  private boolean clearableExportDir;
 
-  ConfigurationPanelForm() {
+  ConfigurationPanelForm(boolean clearableExportDir) {
+    this.clearableExportDir = clearableExportDir;
     startDateField = createDatePicker();
     endDateField = createDatePicker();
     $$$setupUI$$$();
     startDateField.getSettings().setGapBeforeButtonPixels(0);
     endDateField.getSettings().setGapBeforeButtonPixels(0);
 
-    exportDirButton.addActionListener(__ ->
+    exportDirChooseButton.addActionListener(__ ->
         buildExportDirDialog().choose().ifPresent(file -> setExportDir(Paths.get(file.toURI())))
     );
+    exportDirCleanButton.addActionListener(__ -> clearExportDir());
     pemFileChooseButton.addActionListener(__ ->
         buildPemFileDialog().choose().ifPresent(file -> setPemFile(Paths.get(file.toURI())))
     );
@@ -101,6 +106,19 @@ public class ConfigurationPanelForm extends JComponent {
   public void setExportDir(Path path) {
     exportDirField.setText(path.toString());
     onSelectExportDirCallbacks.forEach(consumer -> consumer.accept(path));
+    if (clearableExportDir) {
+      exportDirChooseButton.setVisible(false);
+      exportDirCleanButton.setVisible(true);
+    }
+  }
+
+  private void clearExportDir() {
+    exportDirField.setText(null);
+    onSelectExportDirCallbacks.forEach(consumer -> consumer.accept(null));
+    if (clearableExportDir) {
+      exportDirChooseButton.setVisible(true);
+      exportDirCleanButton.setVisible(false);
+    }
   }
 
   void setPemFile(Path path) {
@@ -268,13 +286,6 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(endDateField, gbc);
-    exportDirButton = new JButton();
-    exportDirButton.setText("Choose...");
-    gbc = new GridBagConstraints();
-    gbc.gridx = 3;
-    gbc.gridy = 0;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(exportDirButton, gbc);
     final JPanel spacer1 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
@@ -314,6 +325,21 @@ public class ConfigurationPanelForm extends JComponent {
     pemFileClearButton.setText("Clear");
     pemFileClearButton.setVisible(false);
     pemFileButtons.add(pemFileClearButton);
+    exportDirButtons = new JPanel();
+    exportDirButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    gbc = new GridBagConstraints();
+    gbc.gridx = 3;
+    gbc.gridy = 0;
+    gbc.fill = GridBagConstraints.BOTH;
+    container.add(exportDirButtons, gbc);
+    exportDirChooseButton = new JButton();
+    exportDirChooseButton.setText("Choose...");
+    exportDirChooseButton.setVisible(true);
+    exportDirButtons.add(exportDirChooseButton);
+    exportDirCleanButton = new JButton();
+    exportDirCleanButton.setText("Clear");
+    exportDirCleanButton.setVisible(false);
+    exportDirButtons.add(exportDirCleanButton);
   }
 
   /**

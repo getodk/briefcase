@@ -24,7 +24,7 @@ public class ConfigurationDialog {
   }
 
   static ConfigurationDialog from(Optional<ExportConfiguration> configuration) {
-    ConfigurationPanel confPanel = ConfigurationPanel.from(configuration.orElse(ExportConfiguration.empty()));
+    ConfigurationPanel confPanel = ConfigurationPanel.from(configuration.orElse(ExportConfiguration.empty()), true);
     ConfigurationDialogForm form = new ConfigurationDialogForm(confPanel.getForm());
     return new ConfigurationDialog(form, confPanel);
   }

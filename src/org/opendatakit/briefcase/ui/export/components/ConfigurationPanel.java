@@ -36,8 +36,8 @@ public class ConfigurationPanel {
     });
   }
 
-  public static ConfigurationPanel from(ExportConfiguration config) {
-    return new ConfigurationPanel(config, new ConfigurationPanelForm());
+  public static ConfigurationPanel from(ExportConfiguration config, boolean cleanableExportDir) {
+    return new ConfigurationPanel(config, new ConfigurationPanelForm(cleanableExportDir));
   }
 
   public ConfigurationPanelForm getForm() {

@@ -49,7 +49,7 @@ public class ExportPanel {
     this.terminationFuture = terminationFuture;
 
     ExportConfiguration defaultConfiguration = ExportConfiguration.load(preferences);
-    ConfigurationPanel confPanel = ConfigurationPanel.from(defaultConfiguration);
+    ConfigurationPanel confPanel = ConfigurationPanel.from(defaultConfiguration, false);
 
     forms = ExportForms.load(defaultConfiguration, getFormsFromStorage(), preferences);
     forms.onSuccessfulExport((String formId, LocalDateTime exportDateTime) ->
