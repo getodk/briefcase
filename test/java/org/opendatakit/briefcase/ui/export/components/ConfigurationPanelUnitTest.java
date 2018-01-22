@@ -60,7 +60,7 @@ public class ConfigurationPanelUnitTest {
     view.setEndDate(LocalDate.of(2018, 1, 1));
 
     assertThat(view.errorShown, is(true));
-    assertThat(view.endDateField.getDate(), nullValue());
+    assertThat(view.endDatePicker.getDate(), nullValue());
     assertThat(panel.getConfiguration().getEndDate(), is(Optional.empty()));
   }
 
@@ -74,7 +74,7 @@ public class ConfigurationPanelUnitTest {
     view.setStartDate(LocalDate.of(2019, 1, 1));
 
     assertThat(view.errorShown, is(true));
-    assertThat(view.startDateField.getDate(), nullValue());
+    assertThat(view.startDatePicker.getDate(), nullValue());
     assertThat(configurationPanel.getConfiguration().getStartDate(), is(Optional.empty()));
   }
 
@@ -155,17 +155,17 @@ public class ConfigurationPanelUnitTest {
 
     public LocalDate getDateRangeStart() {
       return LocalDate.of(
-          startDateField.getDate().getYear(),
-          startDateField.getDate().getMonthValue(),
-          startDateField.getDate().getDayOfMonth()
+          startDatePicker.getDate().getYear(),
+          startDatePicker.getDate().getMonthValue(),
+          startDatePicker.getDate().getDayOfMonth()
       );
     }
 
     public LocalDate getDateRangeEnd() {
       return LocalDate.of(
-          endDateField.getDate().getYear(),
-          endDateField.getDate().getMonthValue(),
-          endDateField.getDate().getDayOfMonth()
+          endDatePicker.getDate().getYear(),
+          endDatePicker.getDate().getMonthValue(),
+          endDatePicker.getDate().getDayOfMonth()
       );
     }
   }
