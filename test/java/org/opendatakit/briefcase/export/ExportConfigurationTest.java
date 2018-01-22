@@ -145,8 +145,8 @@ public class ExportConfigurationTest {
 
     emptyConfig.ifExportDirPresent(value -> fail());
     emptyConfig.ifPemFilePresent(value -> fail());
-    emptyConfig.ifDateRangeStartPresent(value -> fail());
-    emptyConfig.ifDateRangeEndPresent(value -> fail());
+    emptyConfig.ifStartDatePresent(value -> fail());
+    emptyConfig.ifEndDatePresent(value -> fail());
 
     assertThat(validConfig.mapExportDir(Object::toString), isPresent());
     assertThat(validConfig.mapPemFile(Object::toString), isPresent());
@@ -156,8 +156,8 @@ public class ExportConfigurationTest {
     AtomicInteger count = new AtomicInteger(0);
     validConfig.ifExportDirPresent(value -> count.incrementAndGet());
     validConfig.ifPemFilePresent(value -> count.incrementAndGet());
-    validConfig.ifDateRangeStartPresent(value -> count.incrementAndGet());
-    validConfig.ifDateRangeEndPresent(value -> count.incrementAndGet());
+    validConfig.ifStartDatePresent(value -> count.incrementAndGet());
+    validConfig.ifEndDatePresent(value -> count.incrementAndGet());
     assertThat(count.get(), is(4));
   }
 

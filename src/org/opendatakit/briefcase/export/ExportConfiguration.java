@@ -129,11 +129,11 @@ public class ExportConfiguration {
     pemFile.ifPresent(consumer);
   }
 
-  public void ifDateRangeStartPresent(Consumer<LocalDate> consumer) {
+  public void ifStartDatePresent(Consumer<LocalDate> consumer) {
     startDate.ifPresent(consumer);
   }
 
-  public void ifDateRangeEndPresent(Consumer<LocalDate> consumer) {
+  public void ifEndDatePresent(Consumer<LocalDate> consumer) {
     endDate.ifPresent(consumer);
   }
 

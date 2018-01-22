@@ -15,8 +15,8 @@ public class ConfigurationPanel {
 
     configuration.ifExportDirPresent(form::setExportDir);
     configuration.ifPemFilePresent(form::setPemFile);
-    configuration.ifDateRangeStartPresent(form::setStartDate);
-    configuration.ifDateRangeEndPresent(form::setEndDate);
+    configuration.ifStartDatePresent(form::setStartDate);
+    configuration.ifEndDatePresent(form::setEndDate);
 
     form.onSelectExportDir(path -> {
       configuration.setExportDir(path);
