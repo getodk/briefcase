@@ -41,7 +41,7 @@ public class MessageStrings {
       "Invalid " + BRIEFCASE_STORAGE_LOCATION;
   public static final String INVALID_EXPORT_DIRECTORY =
       "Invalid " + EXPORT_DIRECTORY;
-  public static final String INVALID_DATE_RANGE_MESSAGE = "Invalid date range: \"From\" date must be before \"To\" date.";
+  public static final String INVALID_DATE_RANGE_MESSAGE = "Invalid date range: Start date must be before End date.";
   public static final String INVALID_DATE_RANGE_TITLE = "Invalid Date Range";
   public static final String INVALID_DIRECTORY =
       "Invalid Directory";
