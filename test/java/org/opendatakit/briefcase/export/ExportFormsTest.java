@@ -126,7 +126,7 @@ public class ExportFormsTest {
   }
 
   @Test
-  public void when_there_is_a_status_history_update_thats_been_successul_it_registers_an_export_date() {
+  public void when_there_is_a_status_history_update_thats_been_successful_it_registers_an_export_date() {
     ExportForms forms = new ExportForms(buildFormStatusList(10), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
 

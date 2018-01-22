@@ -33,7 +33,7 @@ public class ExportPanelUnitTest {
     initialDefaultConf = ExportConfiguration.empty();
     ConfigurationPanel confPanel = ConfigurationPanel.from(initialDefaultConf);
     new ExportPanel(
-      new TerminationFuture(),
+        new TerminationFuture(),
         forms,
         ExportPanelForm.from(forms, confPanel),
         prefs

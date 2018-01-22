@@ -66,6 +66,4 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     component.acceptErrorDialog();
     assertThat(component.endDateField(), is(empty()));
   }
-
-
 }

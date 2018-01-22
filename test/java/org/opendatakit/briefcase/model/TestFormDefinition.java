@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.opendatakit.briefcase.util.BadFormDefinition;
 
 public class TestFormDefinition extends BriefcaseFormDefinition {
-  private static AtomicInteger idSeq = new AtomicInteger(1);
   private static final File formDir;
   private static final File formFile;
 
