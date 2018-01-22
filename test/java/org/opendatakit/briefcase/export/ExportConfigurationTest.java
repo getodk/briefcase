@@ -71,7 +71,7 @@ public class ExportConfigurationTest {
 
   @Test
   public void knows_how_to_clone_an_instance() {
-    ExportConfiguration clonedConfig = ExportConfiguration.copy(validConfig);
+    ExportConfiguration clonedConfig = validConfig.clone();
     assertThat(clonedConfig == validConfig, is(false));
     assertThat(clonedConfig, is(validConfig));
     // Pump the coverage up making the test go through the getters as well

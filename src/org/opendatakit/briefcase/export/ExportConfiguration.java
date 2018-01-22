@@ -76,12 +76,12 @@ public class ExportConfiguration {
     return map;
   }
 
-  public static ExportConfiguration copy(ExportConfiguration other) {
+  public ExportConfiguration clone() {
     return new ExportConfiguration(
-        other.exportDir,
-        other.pemFile,
-        other.startDate,
-        other.endDate
+        exportDir,
+        pemFile,
+        startDate,
+        endDate
     );
   }
 
