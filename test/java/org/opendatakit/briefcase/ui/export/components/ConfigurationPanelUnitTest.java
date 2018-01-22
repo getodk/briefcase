@@ -1,5 +1,6 @@
 package org.opendatakit.briefcase.ui.export.components;
 
+import static com.github.npathai.hamcrestopt.OptionalMatchers.isEmpty;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -7,10 +8,8 @@ import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
@@ -23,7 +22,7 @@ public class ConfigurationPanelUnitTest {
     expectedConfiguration.setPemFile(Paths.get("/some/file.pem"));
     expectedConfiguration.setStartDate(LocalDate.of(2018, 1, 1));
     expectedConfiguration.setEndDate(LocalDate.of(2019, 1, 1));
-    TestConfigurationPanelPanelView view = new TestConfigurationPanelPanelView();
+    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm();
     ConfigurationPanel panel = new ConfigurationPanel(ExportConfiguration.empty(), view);
 
     view.setExportDir(expectedConfiguration.getExportDir().get());
@@ -41,7 +40,7 @@ public class ConfigurationPanelUnitTest {
     initialConfiguration.setPemFile(Paths.get("/some/file.pem"));
     initialConfiguration.setStartDate(LocalDate.of(2018, 1, 1));
     initialConfiguration.setEndDate(LocalDate.of(2019, 1, 1));
-    TestConfigurationPanelPanelView view = new TestConfigurationPanelPanelView();
+    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm();
     new ConfigurationPanel(initialConfiguration, view);
 
     assertThat(view.getExportDir(), is(initialConfiguration.getExportDir().get()));
@@ -52,7 +51,7 @@ public class ConfigurationPanelUnitTest {
 
   @Test
   public void shows_an_error_and_resets_the_field_when_the_UI_tries_to_set_a_date_range_end_that_is_before_its_start() {
-    TestConfigurationPanelPanelView view = new TestConfigurationPanelPanelView();
+    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm();
     ConfigurationPanel panel = new ConfigurationPanel(ExportConfiguration.empty(), view);
     view.setStartDate(LocalDate.of(2019, 1, 1));
 
@@ -61,12 +60,12 @@ public class ConfigurationPanelUnitTest {
 
     assertThat(view.errorShown, is(true));
     assertThat(view.endDatePicker.getDate(), nullValue());
-    assertThat(panel.getConfiguration().getEndDate(), is(Optional.empty()));
+    assertThat(panel.getConfiguration().getEndDate(), isEmpty());
   }
 
   @Test
   public void shows_an_error_and_resets_the_field_when_the_UI_tries_to_set_a_date_range_start_that_is_after_its_end() {
-    TestConfigurationPanelPanelView view = new TestConfigurationPanelPanelView();
+    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm();
     ConfigurationPanel configurationPanel = new ConfigurationPanel(ExportConfiguration.empty(), view);
     view.setEndDate(LocalDate.of(2018, 1, 1));
 
@@ -75,12 +74,12 @@ public class ConfigurationPanelUnitTest {
 
     assertThat(view.errorShown, is(true));
     assertThat(view.startDatePicker.getDate(), nullValue());
-    assertThat(configurationPanel.getConfiguration().getStartDate(), is(Optional.empty()));
+    assertThat(configurationPanel.getConfiguration().getStartDate(), isEmpty());
   }
 
   @Test
   public void it_can_be_disabled() {
-    TestConfigurationPanelPanelView view = new TestConfigurationPanelPanelView();
+    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm();
     ConfigurationPanel configurationPanel = new ConfigurationPanel(ExportConfiguration.empty(), view);
     // ensure that it's enabled
     configurationPanel.enable();
@@ -92,7 +91,7 @@ public class ConfigurationPanelUnitTest {
 
   @Test
   public void it_can_be_enabled() {
-    TestConfigurationPanelPanelView view = new TestConfigurationPanelPanelView();
+    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm();
     ConfigurationPanel configurationPanel = new ConfigurationPanel(ExportConfiguration.empty(), view);
     // ensure that it's disabled
     configurationPanel.disable();
@@ -104,7 +103,7 @@ public class ConfigurationPanelUnitTest {
 
   @Test
   public void knows_if_its_configuration_model_is_valid() throws IOException {
-    TestConfigurationPanelPanelView view = new TestConfigurationPanelPanelView();
+    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm();
     ConfigurationPanel configurationPanel = new ConfigurationPanel(ExportConfiguration.empty(), view);
 
     // An empty configuration is not valid by default
@@ -119,7 +118,7 @@ public class ConfigurationPanelUnitTest {
   @Test
   public void broadcasts_changes() {
     final AtomicInteger counter = new AtomicInteger(0);
-    TestConfigurationPanelPanelView view = new TestConfigurationPanelPanelView();
+    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm();
     ConfigurationPanel panel = new ConfigurationPanel(ExportConfiguration.empty(), view);
     panel.onChange(counter::incrementAndGet);
 
@@ -131,42 +130,4 @@ public class ConfigurationPanelUnitTest {
     assertThat(counter.get(), is(4));
   }
 
-  static class TestConfigurationPanelPanelView extends ConfigurationPanelForm {
-    private boolean errorShown = false;
-    private boolean enabled;
-
-    @Override
-    protected void showError(String message, String title) {
-      errorShown = true;
-    }
-
-    @Override
-    public void setEnabled(boolean enabled) {
-      this.enabled = enabled;
-    }
-
-    public Path getExportDir() {
-      return Paths.get(exportDirField.getText());
-    }
-
-    public Path getPemFile() {
-      return Paths.get(pemFileField.getText());
-    }
-
-    public LocalDate getDateRangeStart() {
-      return LocalDate.of(
-          startDatePicker.getDate().getYear(),
-          startDatePicker.getDate().getMonthValue(),
-          startDatePicker.getDate().getDayOfMonth()
-      );
-    }
-
-    public LocalDate getDateRangeEnd() {
-      return LocalDate.of(
-          endDatePicker.getDate().getYear(),
-          endDatePicker.getDate().getMonthValue(),
-          endDatePicker.getDate().getDayOfMonth()
-      );
-    }
-  }
 }
