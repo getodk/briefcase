@@ -15,7 +15,7 @@ public class ConfigurationDialogUnitTest {
 
   @Test
   public void the_ok_and_remove_buttons_are_disabled_by_default() {
-    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm();
+    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm(false);
 
     FakeConfigurationDialogForm dialogForm = new FakeConfigurationDialogForm(confPanelForm);
 
@@ -27,21 +27,8 @@ public class ConfigurationDialogUnitTest {
   }
 
   @Test
-  public void the_dialog_enables_the_ok_button_if_it_receives_a_valid_initial_configuration() throws IOException {
-    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm();
-
-    FakeConfigurationDialogForm dialogForm = new FakeConfigurationDialogForm(confPanelForm);
-
-    ExportConfiguration configuration = ExportConfiguration.empty();
-    configuration.setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()));
-    new ConfigurationDialog(dialogForm, new ConfigurationPanel(configuration, confPanelForm));
-
-    assertThat(dialogForm.okEnabled, is(true));
-  }
-
-  @Test
   public void the_dialog_enables_the_remove_button_if_it_receives_a_non_empty_initial_configuration() throws IOException {
-    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm();
+    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm(false);
 
     FakeConfigurationDialogForm dialogForm = new FakeConfigurationDialogForm(confPanelForm);
 
@@ -54,7 +41,7 @@ public class ConfigurationDialogUnitTest {
 
   @Test
   public void the_dialog_enables_the_ok_button_when_the_user_sets_a_valid_configuration() throws IOException {
-    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm();
+    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm(false);
 
     FakeConfigurationDialogForm dialogForm = new FakeConfigurationDialogForm(confPanelForm);
 
@@ -69,7 +56,7 @@ public class ConfigurationDialogUnitTest {
 
   @Test
   public void the_dialog_disables_the_ok_button_if_the_configuration_stops_being_valid() throws IOException {
-    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm();
+    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm(false);
 
     FakeConfigurationDialogForm dialogForm = new FakeConfigurationDialogForm(confPanelForm);
 
@@ -85,7 +72,7 @@ public class ConfigurationDialogUnitTest {
 
   @Test
   public void it_lets_third_parties_react_to_ok() throws IOException {
-    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm();
+    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm(false);
 
     FakeConfigurationDialogForm dialogForm = new FakeConfigurationDialogForm(confPanelForm);
 

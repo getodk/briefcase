@@ -8,6 +8,10 @@ class FakeConfigurationPanelForm extends ConfigurationPanelForm {
   public boolean errorShown = false;
   public boolean enabled;
 
+  FakeConfigurationPanelForm(boolean clearableExportDir) {
+    super(clearableExportDir);
+  }
+
   @Override
   protected void showError(String message, String title) {
     errorShown = true;

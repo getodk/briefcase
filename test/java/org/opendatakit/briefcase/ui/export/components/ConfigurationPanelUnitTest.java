@@ -22,7 +22,7 @@ public class ConfigurationPanelUnitTest {
     expectedConfiguration.setPemFile(Paths.get("/some/file.pem"));
     expectedConfiguration.setStartDate(LocalDate.of(2018, 1, 1));
     expectedConfiguration.setEndDate(LocalDate.of(2019, 1, 1));
-    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm();
+    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm(false);
     ConfigurationPanel panel = new ConfigurationPanel(ExportConfiguration.empty(), view);
 
     view.setExportDir(expectedConfiguration.getExportDir().get());
@@ -40,7 +40,7 @@ public class ConfigurationPanelUnitTest {
     initialConfiguration.setPemFile(Paths.get("/some/file.pem"));
     initialConfiguration.setStartDate(LocalDate.of(2018, 1, 1));
     initialConfiguration.setEndDate(LocalDate.of(2019, 1, 1));
-    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm();
+    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm(false);
     new ConfigurationPanel(initialConfiguration, view);
 
     assertThat(view.getExportDir(), is(initialConfiguration.getExportDir().get()));
@@ -51,7 +51,7 @@ public class ConfigurationPanelUnitTest {
 
   @Test
   public void shows_an_error_and_resets_the_field_when_the_UI_tries_to_set_a_date_range_end_that_is_before_its_start() {
-    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm();
+    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm(false);
     ConfigurationPanel panel = new ConfigurationPanel(ExportConfiguration.empty(), view);
     view.setStartDate(LocalDate.of(2019, 1, 1));
 
@@ -65,7 +65,7 @@ public class ConfigurationPanelUnitTest {
 
   @Test
   public void shows_an_error_and_resets_the_field_when_the_UI_tries_to_set_a_date_range_start_that_is_after_its_end() {
-    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm();
+    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm(false);
     ConfigurationPanel configurationPanel = new ConfigurationPanel(ExportConfiguration.empty(), view);
     view.setEndDate(LocalDate.of(2018, 1, 1));
 
@@ -79,7 +79,7 @@ public class ConfigurationPanelUnitTest {
 
   @Test
   public void it_can_be_disabled() {
-    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm();
+    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm(false);
     ConfigurationPanel configurationPanel = new ConfigurationPanel(ExportConfiguration.empty(), view);
     // ensure that it's enabled
     configurationPanel.enable();
@@ -91,7 +91,7 @@ public class ConfigurationPanelUnitTest {
 
   @Test
   public void it_can_be_enabled() {
-    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm();
+    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm(false);
     ConfigurationPanel configurationPanel = new ConfigurationPanel(ExportConfiguration.empty(), view);
     // ensure that it's disabled
     configurationPanel.disable();
@@ -103,7 +103,7 @@ public class ConfigurationPanelUnitTest {
 
   @Test
   public void knows_if_its_configuration_model_is_valid() throws IOException {
-    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm();
+    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm(false);
     ConfigurationPanel configurationPanel = new ConfigurationPanel(ExportConfiguration.empty(), view);
 
     // An empty configuration is not valid by default
@@ -118,7 +118,7 @@ public class ConfigurationPanelUnitTest {
   @Test
   public void broadcasts_changes() {
     final AtomicInteger counter = new AtomicInteger(0);
-    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm();
+    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm(false);
     ConfigurationPanel panel = new ConfigurationPanel(ExportConfiguration.empty(), view);
     panel.onChange(counter::incrementAndGet);
 

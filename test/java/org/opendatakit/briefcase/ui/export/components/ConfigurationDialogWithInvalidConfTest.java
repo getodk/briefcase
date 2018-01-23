@@ -19,9 +19,8 @@ public class ConfigurationDialogWithInvalidConfTest extends AssertJSwingJUnitTes
   }
 
   @Test
-  public void ok_and_remove_buttons_are_disabled_with_an_invalid_initial_configuration() {
-    assertThat(dialog.okButton(), is(not(enabled())));
-    assertThat(dialog.removeButton(), is(not(enabled())));
+  public void clearAll_button_is_disabled_with_an_invalid_initial_configuration() {
+    assertThat(dialog.clearAllButton(), is(not(enabled())));
   }
 
 }

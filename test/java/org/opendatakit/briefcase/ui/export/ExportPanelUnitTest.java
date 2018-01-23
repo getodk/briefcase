@@ -29,9 +29,9 @@ public class ExportPanelUnitTest {
   @Test
   public void saves_to_user_preferences_changes_on_the_default_configuration() throws IOException {
     BriefcasePreferences prefs = new BriefcasePreferences(InMemoryPreferences.empty());
-    ExportForms forms = load(new ArrayList<>(), prefs);
     initialDefaultConf = ExportConfiguration.empty();
-    ConfigurationPanel confPanel = ConfigurationPanel.from(initialDefaultConf);
+    ExportForms forms = load(initialDefaultConf, new ArrayList<>(), prefs);
+    ConfigurationPanel confPanel = ConfigurationPanel.from(initialDefaultConf, false);
     new ExportPanel(
         new TerminationFuture(),
         forms,
@@ -49,9 +49,9 @@ public class ExportPanelUnitTest {
   public void saves_to_user_preferences_changes_on_a_custom_configuration() throws IOException {
     BriefcasePreferences prefs = new BriefcasePreferences(InMemoryPreferences.empty());
     List<FormStatus> formsList = FormStatusBuilder.buildFormStatusList(10);
-    ExportForms forms = load(formsList, prefs);
     initialDefaultConf = ExportConfiguration.empty();
-    ConfigurationPanel confPanel = ConfigurationPanel.from(initialDefaultConf);
+    ExportForms forms = load(initialDefaultConf, formsList, prefs);
+    ConfigurationPanel confPanel = ConfigurationPanel.from(initialDefaultConf, false);
     ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, confPanel);
     new ExportPanel(
         new TerminationFuture(),
@@ -68,7 +68,7 @@ public class ExportPanelUnitTest {
 
     assertThat(ExportConfiguration.load(prefs, buildCustomConfPrefix(formId)).getExportDir(), isEmpty());
 
-    forms.setConfiguration(form, conf);
+    forms.putConfiguration(form, conf);
     exportPanelForm.getFormsTable().getViewModel().triggerChange();
 
     assertThat(ExportConfiguration.load(prefs, buildCustomConfPrefix(formId)).getExportDir(), isPresent());
@@ -78,9 +78,9 @@ public class ExportPanelUnitTest {
   public void saves_to_user_preferences_the_last_successful_export_date_for_a_form() {
     BriefcasePreferences prefs = new BriefcasePreferences(InMemoryPreferences.empty());
     List<FormStatus> formsList = FormStatusBuilder.buildFormStatusList(10);
-    ExportForms forms = load(formsList, prefs);
     initialDefaultConf = ExportConfiguration.empty();
-    ConfigurationPanel confPanel = ConfigurationPanel.from(initialDefaultConf);
+    ExportForms forms = load(initialDefaultConf, formsList, prefs);
+    ConfigurationPanel confPanel = ConfigurationPanel.from(initialDefaultConf, false);
     new ExportPanel(
         new TerminationFuture(),
         forms,

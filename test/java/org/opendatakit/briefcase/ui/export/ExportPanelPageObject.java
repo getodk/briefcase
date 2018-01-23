@@ -49,6 +49,6 @@ class ExportPanelPageObject {
   }
 
   JButton exportButton() {
-    return component.form.exportButton;
+    return component.getForm().exportButton;
   }
 }

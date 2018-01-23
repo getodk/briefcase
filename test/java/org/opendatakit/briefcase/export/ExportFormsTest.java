@@ -2,8 +2,8 @@ package org.opendatakit.briefcase.export;
 
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isEmpty;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
-import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAndIs;
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -41,7 +41,7 @@ public class ExportFormsTest {
 
   @Test
   public void can_merge_an_incoming_list_of_forms() {
-    ExportForms forms = new ExportForms(new ArrayList<>(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(new ArrayList<>(), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
     assertThat(forms.size(), is(0));
     int expectedSize = 10;
 
@@ -52,21 +52,21 @@ public class ExportFormsTest {
 
   @Test
   public void manages_a_forms_configuration() {
-    ExportForms forms = new ExportForms(buildFormStatusList(2), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(2), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
     FormStatus firstForm = forms.get(0);
     FormStatus secondForm = forms.get(1);
 
     assertThat(forms.hasConfiguration(firstForm), is(false));
 
-    forms.setConfiguration(firstForm, VALID_CONFIGURATION);
+    forms.putConfiguration(firstForm, VALID_CONFIGURATION);
 
     assertThat(forms.hasConfiguration(firstForm), is(true));
-    assertThat(forms.getConfiguration(firstForm), isPresentAndIs(VALID_CONFIGURATION));
-    assertThat(forms.getConfiguration(firstForm.getFormDefinition()), isPresentAndIs(VALID_CONFIGURATION));
+    assertThat(forms.getConfiguration(firstForm.getFormDefinition().getFormId()), is(VALID_CONFIGURATION));
+    assertThat(forms.getConfiguration(firstForm.getFormDefinition().getFormId()), is(VALID_CONFIGURATION));
 
-    forms.setConfiguration(secondForm, INVALID_CONFIGURATION);
-    assertThat(forms.getValidConfigurations().values(), Matchers.hasSize(1));
-    assertThat(forms.getValidConfigurations().values(), Matchers.contains(VALID_CONFIGURATION));
+    forms.putConfiguration(secondForm, INVALID_CONFIGURATION);
+    assertThat(forms.getCustomConfigurations().values(), hasSize(2));
+    assertThat(forms.getCustomConfigurations().values(), contains(VALID_CONFIGURATION, INVALID_CONFIGURATION));
 
     forms.removeConfiguration(firstForm);
 
@@ -75,7 +75,7 @@ public class ExportFormsTest {
 
   @Test
   public void manages_forms_selection() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
     assertThat(forms.getSelectedForms(), hasSize(0));
     assertThat(forms.allSelected(), is(false));
     assertThat(forms.noneSelected(), is(true));
@@ -102,20 +102,20 @@ public class ExportFormsTest {
 
   @Test
   public void knows_if_all_selected_forms_have_a_valid_configuration() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
     form.setSelected(true);
 
     assertThat(forms.allSelectedFormsHaveConfiguration(), is(false));
 
-    forms.setConfiguration(form, VALID_CONFIGURATION);
+    forms.putConfiguration(form, VALID_CONFIGURATION);
 
     assertThat(forms.allSelectedFormsHaveConfiguration(), is(true));
   }
 
   @Test
   public void appends_status_history_on_forms() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
     forms.appendStatus(form.getFormDefinition(), "some status update", false);
     forms.appendStatus(form.getFormDefinition(), "some more lines", false);
@@ -127,7 +127,7 @@ public class ExportFormsTest {
 
   @Test
   public void when_there_is_a_status_history_update_thats_been_successful_it_registers_an_export_date() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
 
     assertThat(forms.getLastExportDateTime(form), isEmpty());
@@ -140,7 +140,7 @@ public class ExportFormsTest {
   @Test
   public void it_lets_a_third_party_react_to_successful_exports() {
     AtomicInteger count = new AtomicInteger(0);
-    ExportForms forms = new ExportForms(buildFormStatusList(10), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
     forms.onSuccessfulExport((form, exportDateTime) -> {
       if (form.equals(forms.get(0).getFormDefinition().getFormId()))
         count.incrementAndGet();
@@ -161,10 +161,10 @@ public class ExportFormsTest {
     prefs.putAll(VALID_CONFIGURATION.asMap(buildCustomConfPrefix(formId)));
     prefs.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME));
 
-    ExportForms forms = ExportForms.load(formsList, prefs);
+    ExportForms forms = ExportForms.load(ExportConfiguration.empty(), formsList, prefs);
 
     assertThat(forms.size(), is(10));
-    assertThat(forms.getConfiguration(form), isPresent());
+    assertThat(forms.hasConfiguration(form), is(true));
     assertThat(forms.getLastExportDateTime(form), isPresent());
   }
 }

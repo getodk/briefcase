@@ -4,6 +4,7 @@ import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_BRIEFCASE_S
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_EXIST;
+import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_DATE_RANGE_MESSAGE;
 import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 
@@ -13,6 +14,7 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +34,7 @@ public class ExportConfiguration {
   private Optional<LocalDate> startDate;
   private Optional<LocalDate> endDate;
 
-  private ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
+  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
     this.exportDir = exportDir;
     this.pemFile = pemFile;
     this.startDate = startDate;
@@ -58,6 +60,19 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get),
         prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse)
+    );
+  }
+
+  public static List<String> keys() {
+    return keys("");
+  }
+
+  public static List<String> keys(String keyPrefix) {
+    return Arrays.asList(
+        keyPrefix + EXPORT_DIR,
+        keyPrefix + PEM_FILE,
+        keyPrefix + START_DATE,
+        keyPrefix + END_DATE
     );
   }
 
@@ -160,16 +175,48 @@ public class ExportConfiguration {
     if (!startDate.isPresent() && endDate.isPresent())
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
-      errors.add("Invalid date range: \"From\" date must be before \"To\" date.");
+      errors.add(INVALID_DATE_RANGE_MESSAGE);
     return errors;
+  }
+
+  private List<String> getCustomConfErrors() {
+    List<String> errors = new ArrayList<>();
+
+    if (exportDir.isPresent() && !exportDir.filter(path -> Files.exists(path)).isPresent())
+      errors.add(DIR_NOT_EXIST);
+
+    if (exportDir.isPresent() && !exportDir.filter(path -> Files.isDirectory(path)).isPresent())
+      errors.add(DIR_NOT_DIRECTORY);
+
+    if (exportDir.isPresent() && !exportDir.filter(path -> !isUnderODKFolder(path.toFile())).isPresent())
+      errors.add(DIR_INSIDE_ODK_DEVICE_DIRECTORY);
+
+    if (exportDir.isPresent() && !exportDir.filter(path -> !isUnderBriefcaseFolder(path.toFile())).isPresent())
+      errors.add(DIR_INSIDE_BRIEFCASE_STORAGE);
+
+    if (startDate.isPresent() && !endDate.isPresent())
+      errors.add("Missing date range end definition");
+    if (!startDate.isPresent() && endDate.isPresent())
+      errors.add("Missing date range start definition");
+    if (!isDateRangeValid())
+      errors.add(INVALID_DATE_RANGE_MESSAGE);
+
+    return errors;
+  }
+
+  public boolean isEmpty() {
+    return !exportDir.isPresent()
+        && !pemFile.isPresent()
+        && !startDate.isPresent()
+        && !endDate.isPresent();
   }
 
   public boolean isValid() {
     return getErrors().isEmpty();
   }
 
-  public boolean isEmpty() {
-    return !exportDir.isPresent();
+  public boolean isValidAsCustomConf() {
+    return getCustomConfErrors().isEmpty();
   }
 
   public <T> Optional<T> mapPemFile(Function<Path, T> mapper) {
@@ -186,6 +233,15 @@ public class ExportConfiguration {
 
   public <T> Optional<T> mapEndDate(Function<LocalDate, T> mapper) {
     return endDate.map(mapper);
+  }
+
+  public ExportConfiguration fallingBackTo(ExportConfiguration fallbackConfiguration) {
+    return new ExportConfiguration(
+        exportDir.isPresent() ? exportDir : fallbackConfiguration.exportDir,
+        pemFile.isPresent() ? pemFile : fallbackConfiguration.pemFile,
+        startDate.isPresent() ? startDate : fallbackConfiguration.startDate,
+        endDate.isPresent() ? endDate : fallbackConfiguration.endDate
+    );
   }
 
   @Override
@@ -213,7 +269,6 @@ public class ExportConfiguration {
 
   @Override
   public int hashCode() {
-
     return Objects.hash(exportDir, pemFile, startDate, endDate);
   }
 }

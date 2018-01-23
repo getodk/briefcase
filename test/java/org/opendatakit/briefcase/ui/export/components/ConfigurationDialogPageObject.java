@@ -5,6 +5,7 @@ import static org.opendatakit.briefcase.ui.SwingTestRig.uncheckedSleep;
 
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
+import java.util.Optional;
 import javax.swing.JButton;
 import org.assertj.swing.core.Robot;
 import org.assertj.swing.edt.GuiActionRunner;
@@ -21,7 +22,7 @@ class ConfigurationDialogPageObject {
   }
 
   static ConfigurationDialogPageObject setUp(Robot robot, ExportConfiguration configuration) {
-    ConfigurationDialog dialog = execute(() -> ConfigurationDialog.from(configuration));
+    ConfigurationDialog dialog = execute(() -> ConfigurationDialog.from(Optional.ofNullable(configuration)));
     DialogFixture fixture = new DialogFixture(robot, dialog.form);
     return new ConfigurationDialogPageObject(dialog, fixture);
   }
@@ -34,12 +35,8 @@ class ConfigurationDialogPageObject {
     return component.form;
   }
 
-  public JButton okButton() {
-    return component.form.okButton;
-  }
-
-  public JButton removeButton() {
-    return component.form.removeButton;
+  public JButton clearAllButton() {
+    return component.form.clearAllButton;
   }
 
   public void clickOnOk() {
@@ -48,7 +45,7 @@ class ConfigurationDialogPageObject {
   }
 
   public void clickOnRemove() {
-    click(component.form.removeButton);
+    click(component.form.clearAllButton);
     uncheckedSleep(50);
   }
 

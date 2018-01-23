@@ -44,7 +44,7 @@ class ConfigurationPanelPageObject {
   }
 
   static ConfigurationPanelPageObject setUp(Robot robot) {
-    ConfigurationPanel configurationPanel = execute(() -> ConfigurationPanel.from(ExportConfiguration.empty()));
+    ConfigurationPanel configurationPanel = execute(() -> ConfigurationPanel.from(ExportConfiguration.empty(), false));
     JFrame testFrame = execute(() -> {
       JFrame f = new JFrame();
       f.add(configurationPanel.getForm().container);
@@ -63,7 +63,7 @@ class ConfigurationPanelPageObject {
   }
 
   public JButton chooseExportDirButton() {
-    return component.form.exportDirButton;
+    return component.form.exportDirChooseButton;
   }
 
   public JButton clearPemFileButton() {
@@ -212,7 +212,7 @@ class ConfigurationPanelPageObject {
   }
 
   public void clickChooseExportDirButton() {
-    click(component.form.exportDirButton);
+    click(component.form.exportDirChooseButton);
     uncheckedSleep(50);
   }
 

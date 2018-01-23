@@ -16,7 +16,7 @@ class FakeConfigurationDialogForm extends ConfigurationDialogForm {
   }
 
   void clickRemove() {
-    Arrays.asList(removeButton.getActionListeners()).forEach(al -> al.actionPerformed(new ActionEvent(this, 1, "something")));
+    Arrays.asList(clearAllButton.getActionListeners()).forEach(al -> al.actionPerformed(new ActionEvent(this, 1, "something")));
   }
 
   @Override

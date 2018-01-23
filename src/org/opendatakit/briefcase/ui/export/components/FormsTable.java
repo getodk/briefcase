@@ -59,19 +59,19 @@ public class FormsTable {
 
   @EventSubscriber(eventClass = ExportFailedEvent.class)
   public void onExportFailedEvent(ExportFailedEvent event) {
-    forms.appendStatus(event.getFormDefinition(), "Failed.", false);
+    forms.appendStatus(event.getFormDefinition(), "Failed", false);
     viewModel.refresh();
   }
 
   @EventSubscriber(eventClass = ExportSucceededEvent.class)
   public void onExportSucceededEvent(ExportSucceededEvent event) {
-    forms.appendStatus(event.getFormDefinition(), "Succeeded.", true);
+    forms.appendStatus(event.getFormDefinition(), "Succeeded", true);
     viewModel.refresh();
   }
 
   @EventSubscriber(eventClass = ExportSucceededWithErrorsEvent.class)
   public void onExportSucceededWithErrorsEvent(ExportSucceededWithErrorsEvent event) {
-    forms.appendStatus(event.getFormDefinition(), "Succeeded, but with errors.", true);
+    forms.appendStatus(event.getFormDefinition(), "Succeeded, but with errors", true);
     viewModel.refresh();
   }
 }

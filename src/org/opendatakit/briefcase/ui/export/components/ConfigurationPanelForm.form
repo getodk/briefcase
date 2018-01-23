@@ -80,15 +80,6 @@
         </constraints>
         <properties/>
       </component>
-      <component id="79d1c" class="javax.swing.JButton" binding="exportDirButton">
-        <constraints>
-          <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
-        </constraints>
-        <properties>
-          <text value="Choose..."/>
-        </properties>
-      </component>
       <hspacer id="2c121">
         <constraints>
           <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
@@ -129,6 +120,30 @@
             </properties>
           </component>
           <component id="78a85" class="javax.swing.JButton" binding="pemFileClearButton">
+            <constraints/>
+            <properties>
+              <text value="Clear"/>
+              <visible value="false"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+      <grid id="82189" binding="exportDirButtons" layout-manager="FlowLayout" hgap="0" vgap="0" flow-align="0">
+        <constraints>
+          <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="79d1c" class="javax.swing.JButton" binding="exportDirChooseButton">
+            <constraints/>
+            <properties>
+              <text value="Choose..."/>
+              <visible value="true"/>
+            </properties>
+          </component>
+          <component id="8f2f8" class="javax.swing.JButton" binding="exportDirCleanButton">
             <constraints/>
             <properties>
               <text value="Clear"/>
