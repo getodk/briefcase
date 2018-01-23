@@ -19,7 +19,7 @@ public class ExportForms {
   private static final String EXPORT_DATE_PREFIX = "export_date_";
   private static final String CUSTOM_CONF_PREFIX = "custom_";
   private final List<FormStatus> forms;
-  private final ExportConfiguration defaultConfiguration;
+  private ExportConfiguration defaultConfiguration;
   private final Map<String, ExportConfiguration> customConfigurations;
   private final Map<String, LocalDateTime> lastExportDateTimes;
   private final List<BiConsumer<String, LocalDateTime>> onSuccessfulExportCallbacks = new ArrayList<>();
@@ -94,6 +94,10 @@ public class ExportForms {
 
   public Map<String, ExportConfiguration> getCustomConfigurations() {
     return customConfigurations;
+  }
+
+  public void updateDefaultConfiguration(ExportConfiguration configuration) {
+    defaultConfiguration = configuration;
   }
 
   public ExportConfiguration getConfiguration(String formId) {

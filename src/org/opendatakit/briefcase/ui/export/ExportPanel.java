@@ -52,6 +52,11 @@ public class ExportPanel {
     ConfigurationPanel confPanel = ConfigurationPanel.from(defaultConfiguration, false);
 
     forms = ExportForms.load(defaultConfiguration, getFormsFromStorage(), preferences);
+
+    confPanel.onChange(() -> {
+      forms.updateDefaultConfiguration(confPanel.getConfiguration());
+    });
+
     forms.onSuccessfulExport((String formId, LocalDateTime exportDateTime) ->
         preferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME))
     );
