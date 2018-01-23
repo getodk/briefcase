@@ -1,4 +1,4 @@
-package org.opendatakit.briefcase.ui.export;
+package org.opendatakit.briefcase.export;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -11,9 +11,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.IFormDefinition;
 
 public class ExportForms {
   private static final String EXPORT_DATE_PREFIX = "export_date_";
@@ -63,7 +63,7 @@ public class ExportForms {
     return EXPORT_DATE_PREFIX + formId;
   }
 
-  static String buildCustomConfPrefix(String formId) {
+  public static String buildCustomConfPrefix(String formId) {
     return CUSTOM_CONF_PREFIX + formId + "_";
   }
 
@@ -145,7 +145,7 @@ public class ExportForms {
     return forms.stream().noneMatch(FormStatus::isSelected);
   }
 
-  public void appendStatus(BriefcaseFormDefinition formDefinition, String statusUpdate, boolean successful) {
+  public void appendStatus(IFormDefinition formDefinition, String statusUpdate, boolean successful) {
     FormStatus form = getForm(formDefinition);
     form.setStatusString(statusUpdate, successful);
     if (successful) {
@@ -164,7 +164,7 @@ public class ExportForms {
     onSuccessfulExportCallbacks.add(callback);
   }
 
-  private FormStatus getForm(BriefcaseFormDefinition formDefinition) {
+  private FormStatus getForm(IFormDefinition formDefinition) {
     return getForm(formDefinition.getFormId());
   }
 

@@ -1,36 +1,28 @@
 package org.opendatakit.briefcase.ui.export.components;
 
-import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
+import static org.opendatakit.briefcase.model.FormStatusBuilder.buildFormStatus;
+import static org.opendatakit.briefcase.model.FormStatusBuilder.buildFormStatusList;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
 import org.bushe.swing.event.EventBus;
 import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.ui.export.ExportConfiguration;
-import org.opendatakit.briefcase.ui.export.ExportForms;
-import org.opendatakit.briefcase.util.BadFormDefinition;
 
-public class FormsTableTest {
-
+public class FormsTableUnitTest {
   @Test
   public void can_select_all_forms() {
-    ExportForms forms = new ExportForms(IntStream.range(0, 10).boxed().map(this::uncheckedFormStatusFactory).collect(toList()), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
     TestFormsTableViewModel viewModel = new TestFormsTableViewModel(forms);
     FormsTable formsTable = new FormsTable(forms, new TestFormsTableView(viewModel), viewModel);
 
@@ -43,7 +35,7 @@ public class FormsTableTest {
 
   @Test
   public void can_clear_selection_of_forms() {
-    ExportForms forms = new ExportForms(IntStream.range(0, 10).boxed().map(this::uncheckedFormStatusFactory).collect(toList()), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
     TestFormsTableViewModel viewModel = new TestFormsTableViewModel(forms);
     FormsTable formsTable = new FormsTable(forms, new TestFormsTableView(viewModel), viewModel);
     formsTable.selectAll();
@@ -56,7 +48,7 @@ public class FormsTableTest {
   @Test
   @Ignore
   public void appends_to_a_forms_status_history_when_export_events_are_sent() {
-    FormStatus theForm = uncheckedFormStatusFactory(1);
+    FormStatus theForm = buildFormStatus(1);
     ExportForms forms = new ExportForms(Collections.singletonList(theForm), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
     TestFormsTableViewModel viewModel = new TestFormsTableViewModel(forms);
     new FormsTable(forms, new TestFormsTableView(viewModel), viewModel);
@@ -71,65 +63,6 @@ public class FormsTableTest {
     assertThat(theForm.getStatusHistory(), Matchers.containsString("Failed."));
     assertThat(theForm.getStatusHistory(), Matchers.containsString("Succeeded."));
     assertThat(theForm.getStatusHistory(), Matchers.containsString("Succeeded, but with errors."));
-  }
-
-  private FormStatus uncheckedFormStatusFactory(Integer n) {
-    try {
-      return new FormStatus(EXPORT, new TestFormDefinition(n));
-    } catch (Throwable t) {
-      throw new RuntimeException(t);
-    }
-  }
-
-  private static class TestFormDefinition extends BriefcaseFormDefinition {
-    private static AtomicInteger idSeq = new AtomicInteger(1);
-    private static final File formDir;
-    private static final File formFile;
-
-    static {
-      try {
-        Path dir = Files.createTempDirectory("briefcase_test");
-        Path sourceFile = Paths.get(TestFormDefinition.class.getResource("/basic.xml").toURI());
-        Path file = dir.resolve("form.xml");
-        Files.copy(sourceFile, file);
-        formDir = dir.toFile();
-        formFile = file.toFile();
-      } catch (Throwable t) {
-        throw new RuntimeException(t);
-      }
-    }
-
-    private final int id;
-
-    private TestFormDefinition() throws BadFormDefinition {
-      super(formDir, formFile);
-      id = idSeq.getAndIncrement();
-    }
-
-    TestFormDefinition(int id) throws BadFormDefinition {
-      super(formDir, formFile);
-      this.id = id;
-    }
-
-    @Override
-    public LocationType getFormLocation() {
-      return LocationType.LOCAL;
-    }
-
-    @Override
-    public String getFormName() {
-      return "Form #" + id;
-    }
-
-    @Override
-    public String getFormId() {
-      return "" + id;
-    }
-
-    @Override
-    public String getVersionString() {
-      return "1";
-    }
   }
 
   private class TestFormsTableView extends FormsTableView {

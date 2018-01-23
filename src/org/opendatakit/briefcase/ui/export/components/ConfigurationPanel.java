@@ -2,21 +2,21 @@ package org.opendatakit.briefcase.ui.export.components;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.opendatakit.briefcase.ui.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportConfiguration;
 
 public class ConfigurationPanel {
   private final ExportConfiguration configuration;
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
-  private final ConfigurationPanelForm form;
+  final ConfigurationPanelForm form;
 
   ConfigurationPanel(ExportConfiguration initialConfiguration, ConfigurationPanelForm form) {
     this.form = form;
-    configuration = ExportConfiguration.copy(initialConfiguration);
+    configuration = initialConfiguration.copy();
 
     configuration.ifExportDirPresent(form::setExportDir);
     configuration.ifPemFilePresent(form::setPemFile);
-    configuration.ifDateRangeStartPresent(form::setStartDate);
-    configuration.ifDateRangeEndPresent(form::setEndDate);
+    configuration.ifStartDatePresent(form::setStartDate);
+    configuration.ifEndDatePresent(form::setEndDate);
 
     form.onSelectExportDir(path -> {
       configuration.setExportDir(path);

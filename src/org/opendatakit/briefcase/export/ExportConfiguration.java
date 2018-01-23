@@ -1,4 +1,4 @@
-package org.opendatakit.briefcase.ui.export;
+package org.opendatakit.briefcase.export;
 
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY;
@@ -34,7 +34,7 @@ public class ExportConfiguration {
   private Optional<LocalDate> startDate;
   private Optional<LocalDate> endDate;
 
-  ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
+  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
     this.exportDir = exportDir;
     this.pemFile = pemFile;
     this.startDate = startDate;
@@ -91,12 +91,12 @@ public class ExportConfiguration {
     return map;
   }
 
-  public static ExportConfiguration copy(ExportConfiguration other) {
+  public ExportConfiguration copy() {
     return new ExportConfiguration(
-        other.exportDir,
-        other.pemFile,
-        other.startDate,
-        other.endDate
+        exportDir,
+        pemFile,
+        startDate,
+        endDate
     );
   }
 
@@ -144,11 +144,11 @@ public class ExportConfiguration {
     pemFile.ifPresent(consumer);
   }
 
-  public void ifDateRangeStartPresent(Consumer<LocalDate> consumer) {
+  public void ifStartDatePresent(Consumer<LocalDate> consumer) {
     startDate.ifPresent(consumer);
   }
 
-  public void ifDateRangeEndPresent(Consumer<LocalDate> consumer) {
+  public void ifEndDatePresent(Consumer<LocalDate> consumer) {
     endDate.ifPresent(consumer);
   }
 

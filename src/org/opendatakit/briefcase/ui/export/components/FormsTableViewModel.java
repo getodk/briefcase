@@ -16,11 +16,11 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
+import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.ui.export.ExportConfiguration;
-import org.opendatakit.briefcase.ui.export.ExportForms;
 
-class FormsTableViewModel extends AbstractTableModel {
+public class FormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
   private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
   private final Map<FormStatus, JButton> confButtons = new HashMap<>();
@@ -40,7 +40,7 @@ class FormsTableViewModel extends AbstractTableModel {
     triggerChange();
   }
 
-  private void triggerChange() {
+  public void triggerChange() {
     onChangeCallbacks.forEach(Runnable::run);
   }
 

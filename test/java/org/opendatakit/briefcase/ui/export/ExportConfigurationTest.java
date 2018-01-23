@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Optional;
 import org.junit.Test;
+import org.opendatakit.briefcase.export.ExportConfiguration;
 
 public class ExportConfigurationTest {
   @Test

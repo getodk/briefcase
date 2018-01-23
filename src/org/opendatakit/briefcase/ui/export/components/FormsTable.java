@@ -2,11 +2,11 @@ package org.opendatakit.briefcase.ui.export.components;
 
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
-import org.opendatakit.briefcase.ui.export.ExportForms;
 
 public class FormsTable {
   private final FormsTableView view;
@@ -45,6 +45,10 @@ public class FormsTable {
 
   public FormsTableView getView() {
     return view;
+  }
+
+  public FormsTableViewModel getViewModel() {
+    return viewModel;
   }
 
   @EventSubscriber(eventClass = ExportProgressEvent.class)

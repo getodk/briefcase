@@ -75,14 +75,14 @@ jacocoTestReport {
 
 // Required to use fileExtensions property in checkstyle file
 checkstyle {
-    toolVersion = '7.6.1' 
+    toolVersion = '7.6.1'
 }
 
-ant.condition(property: 'os', value: 'windows') { 
-    os(family: 'windows') 
+ant.condition(property: 'os', value: 'windows') {
+    os(family: 'windows')
 }
-ant.condition(property: 'os', value: 'unix' ) { 
-    os(family: 'unix') 
+ant.condition(property: 'os', value: 'unix' ) {
+    os(family: 'unix')
 }
 
 // Use the result of git describe --tags --dirty as the version name
@@ -124,7 +124,7 @@ jar {
     archiveName = baseName + ' ' + version + '.jar'
     from configurations.runtime.collect { it }
 
-    // A single-click Java app requires a flat jar or class loader. 
+    // A single-click Java app requires a flat jar or class loader.
     // Fat/Flat/uber/shadow jars won't work because BouncyCastle is signed.
     // Eclipse's Jar-in-Jar loader is the most maintained.
     // https://git.eclipse.org/c/jdt/eclipse.jdt.ui.git/plain/org.eclipse.jdt.ui/jar-in-jar-loader.zip

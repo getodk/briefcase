@@ -19,14 +19,16 @@ package org.opendatakit.briefcase.ui.export;
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
-import static org.opendatakit.briefcase.ui.export.ExportForms.buildCustomConfPrefix;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -43,33 +45,27 @@ public class ExportPanel {
   private final ExportForms forms;
   private final ExportPanelForm form;
 
-  public ExportPanel(TerminationFuture terminationFuture, BriefcasePreferences preferences) {
+  public ExportPanel(TerminationFuture terminationFuture, ExportForms forms, ExportPanelForm form, BriefcasePreferences preferences) {
+    this.terminationFuture = terminationFuture;
+    this.forms = forms;
+    this.form = form;
     AnnotationProcessor.process(this);// if not using AOP
 
-    this.terminationFuture = terminationFuture;
-
-    ExportConfiguration defaultConfiguration = ExportConfiguration.load(preferences);
-    ConfigurationPanel confPanel = ConfigurationPanel.from(defaultConfiguration, false);
-
-    forms = ExportForms.load(defaultConfiguration, getFormsFromStorage(), preferences);
-
-    confPanel.onChange(() -> {
-      forms.updateDefaultConfiguration(confPanel.getConfiguration());
-    });
+    form.getConfPanel().onChange(() ->
+        forms.updateDefaultConfiguration(form.getConfPanel().getConfiguration())
+    );
 
     forms.onSuccessfulExport((String formId, LocalDateTime exportDateTime) ->
         preferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME))
     );
-
-    form = ExportPanelForm.from(forms, confPanel);
 
     form.onChange(() -> {
       // Clean all default conf keys
       preferences.removeAll(ExportConfiguration.keys());
 
       // Put default conf
-      if (confPanel.isValid())
-        preferences.putAll(confPanel.getConfiguration().asMap());
+      if (form.getConfPanel().isValid())
+        preferences.putAll(form.getConfPanel().getConfiguration().asMap());
 
       // Clean all custom conf keys
       forms.forEach(formId ->
@@ -81,7 +77,7 @@ public class ExportPanel {
           preferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
       );
 
-      if (forms.someSelected() && (confPanel.isValid() || forms.allSelectedFormsHaveConfiguration()))
+      if (forms.someSelected() && (form.getConfPanel().isValid() || forms.allSelectedFormsHaveConfiguration()))
         form.enableExport();
       else
         form.disableExport();
@@ -106,12 +102,25 @@ public class ExportPanel {
     }).start());
   }
 
+  public static ExportPanel from(TerminationFuture terminationFuture, BriefcasePreferences preferences) {
+    ExportConfiguration defaultConfiguration = ExportConfiguration.load(preferences);
+    ConfigurationPanel confPanel = ConfigurationPanel.from(defaultConfiguration, false);
+    ExportForms forms = ExportForms.load(defaultConfiguration, getFormsFromStorage(), preferences);
+    ExportPanelForm form = ExportPanelForm.from(forms, confPanel);
+    return new ExportPanel(
+        terminationFuture,
+        forms,
+        form,
+        preferences
+    );
+  }
+
   public void updateForms() {
     forms.merge(getFormsFromStorage());
     form.refresh();
   }
 
-  private List<FormStatus> getFormsFromStorage() {
+  private static List<FormStatus> getFormsFromStorage() {
     return FileSystemUtils.getBriefcaseFormList().stream()
         .map(formDefinition -> new FormStatus(EXPORT, formDefinition))
         .collect(toList());

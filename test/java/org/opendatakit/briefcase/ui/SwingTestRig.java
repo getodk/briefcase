@@ -47,6 +47,14 @@ public class SwingTestRig {
     FileSystemUtils.createFormCacheInBriefcaseFolder();
   }
 
+  public static void uncheckedSleep(int millis) {
+    try {
+      Thread.sleep(millis);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   private static URI uncheckedURLtoURI(URL url) {
     try {
       return url.toURI();
