@@ -12,11 +12,11 @@ public class GenericUIMatchers {
     return new BaseMatcher<Object>() {
       @Override
       public boolean matches(Object item) {
-        if (item != null && item instanceof DialogFixture)
+        if (item instanceof DialogFixture)
           return ((DialogFixture) item).target().isVisible();
-        if (item != null && item instanceof JDialog)
+        if (item instanceof JDialog)
           return ((JDialog) item).isVisible();
-        if (item != null && item instanceof JFileChooserFixture)
+        if (item instanceof JFileChooserFixture)
           return ((JFileChooserFixture) item).target().isVisible();
         throw new RuntimeException("Invalid matcher for " + item);
       }
