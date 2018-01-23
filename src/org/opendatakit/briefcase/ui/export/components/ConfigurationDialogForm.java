@@ -33,7 +33,7 @@ public class ConfigurationDialogForm extends JDialog {
     getRootPane().setDefaultButton(okButton);
     pack();
     setLocationRelativeTo(null);
-    setTitle("Override export configuration");
+    setTitle("Override Export Configuration");
 
     okButton.addActionListener(e -> dispose());
     clearAllButton.addActionListener(e -> dispose());
