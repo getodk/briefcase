@@ -5,6 +5,7 @@ import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 import static javax.swing.KeyStroke.getKeyStroke;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -31,6 +32,10 @@ public class ConfigurationDialogForm extends JDialog {
     setContentPane(dialog);
     setModal(true);
     getRootPane().setDefaultButton(okButton);
+    form.exportDirField.setPreferredSize(new Dimension(350, 26));
+    form.pemFileField.setPreferredSize(new Dimension(350, 26));
+    form.startDatePicker.getComponentDateTextField().setPreferredSize(new Dimension(350, 26));
+    form.endDatePicker.getComponentDateTextField().setPreferredSize(new Dimension(350, 26));
     pack();
     setLocationRelativeTo(null);
     setTitle("Override Export Configuration");
