@@ -14,6 +14,13 @@ public class ConfigurationDialog {
 
     if (!confPanel.isEmpty())
       form.enableRemove();
+
+    confPanel.onChange(() -> {
+      if (this.confPanel.getConfiguration().isValidAsCustomConf())
+        form.enableOK();
+      else
+        form.disableOK();
+    });
   }
 
   static ConfigurationDialog from(Optional<ExportConfiguration> configuration) {

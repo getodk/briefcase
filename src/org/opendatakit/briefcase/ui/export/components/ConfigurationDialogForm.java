@@ -58,6 +58,14 @@ public class ConfigurationDialogForm extends JDialog {
     okButton.addActionListener(__ -> callback.run());
   }
 
+  public void enableOK() {
+    okButton.setEnabled(true);
+  }
+
+  public void disableOK() {
+    okButton.setEnabled(false);
+  }
+
   public void enableRemove() {
     clearAllButton.setEnabled(true);
   }
