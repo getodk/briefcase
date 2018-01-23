@@ -4,7 +4,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.opendatakit.briefcase.util.BadFormDefinition;
 
 public class TestFormDefinition extends BriefcaseFormDefinition {
