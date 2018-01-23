@@ -1,7 +1,5 @@
 package org.opendatakit.briefcase.ui.export.components;
 
-import static java.awt.Color.DARK_GRAY;
-import static java.awt.Color.GREEN;
 import static java.time.format.DateTimeFormatter.ofLocalizedDateTime;
 import static java.time.format.FormatStyle.SHORT;
 import static javax.swing.JOptionPane.getFrameForComponent;
@@ -14,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -25,6 +24,8 @@ class FormsTableViewModel extends AbstractTableModel {
   private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
   private final Map<FormStatus, JButton> confButtons = new HashMap<>();
   private final ExportForms forms;
+  private ImageIcon SETTINGS_ICON = new ImageIcon(FormsTableViewModel.class.getClassLoader().getResource("ic_settings_black_24dp_1x.png"));
+  private ImageIcon DONE_ICON = new ImageIcon(FormsTableViewModel.class.getClassLoader().getResource("ic_done_black_24dp_1x.png"));
 
   FormsTableViewModel(ExportForms forms) {
     this.forms = forms;
@@ -63,12 +64,13 @@ class FormsTableViewModel extends AbstractTableModel {
   }
 
   JButton buildOverrideConfButton(FormStatus form) {
-    JButton button = new JButton("⚙");
+    JButton button = new JButton();
     button.setEnabled(false);
+    button.setIcon(SETTINGS_ICON);
     // Ugly hack to be able to use this factory in FormExportTable to compute its Dimension
     if (form != null) {
       if (forms.hasConfiguration(form))
-        button.setForeground(GREEN);
+        button.setIcon(DONE_ICON);
       button.addActionListener(__ -> {
         button.setEnabled(false);
         try {
@@ -86,13 +88,13 @@ class FormsTableViewModel extends AbstractTableModel {
 
   private void applyConfiguration(FormStatus form, ExportConfiguration configuration) {
     forms.setConfiguration(form, configuration);
-    confButtons.get(form).setForeground(GREEN);
+    confButtons.get(form).setIcon(DONE_ICON);
     triggerChange();
   }
 
   private void removeConfiguration(FormStatus form) {
     forms.removeConfiguration(form);
-    confButtons.get(form).setForeground(DARK_GRAY);
+    confButtons.get(form).setIcon(SETTINGS_ICON);
     triggerChange();
   }
 
