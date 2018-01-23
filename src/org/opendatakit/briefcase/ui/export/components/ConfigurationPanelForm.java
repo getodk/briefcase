@@ -26,6 +26,8 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+
+import org.opendatakit.briefcase.ui.MessageStrings;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.StringUtils;
 
@@ -65,14 +67,14 @@ public class ConfigurationPanelForm extends JComponent {
     pemFileClearButton.addActionListener(__ -> clearPemFile());
     startDateField.addDateChangeListener(event -> {
       if (!isDateRangeValid()) {
-        showError("Invalid date range: \"From\" date must be before \"To\" date.", "Export configuration error");
+        showError(MessageStrings.INVALID_DATE_RANGE_MESSAGE, "Export configuration error");
         startDateField.clear();
       } else
         onSelectStartDateCallbacks.forEach(consumer -> consumer.accept(extractDate(event)));
     });
     endDateField.addDateChangeListener(event -> {
       if (!isDateRangeValid()) {
-        showError("Invalid date range: \"From\" date must be before \"To\" date.", "Export configuration error");
+        showError(MessageStrings.INVALID_DATE_RANGE_MESSAGE, "Export configuration error");
         endDateField.clear();
       } else
         onSelectEndDateCallbacks.forEach(consumer -> consumer.accept(extractDate(event)));

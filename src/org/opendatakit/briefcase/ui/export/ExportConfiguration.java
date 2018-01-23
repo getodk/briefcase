@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.ui.MessageStrings;
 
 public class ExportConfiguration {
   private static final String EXPORT_DIR = "exportDir";
@@ -160,7 +161,7 @@ public class ExportConfiguration {
     if (!startDate.isPresent() && endDate.isPresent())
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
-      errors.add("Invalid date range: \"From\" date must be before \"To\" date.");
+      errors.add(MessageStrings.INVALID_DATE_RANGE_MESSAGE);
     return errors;
   }
 
