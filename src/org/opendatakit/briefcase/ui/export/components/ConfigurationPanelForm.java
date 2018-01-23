@@ -26,62 +26,69 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+
+import org.opendatakit.briefcase.ui.MessageStrings;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.StringUtils;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ConfigurationPanelForm extends JComponent {
   public JPanel container;
-  protected final DatePicker startDateField;
-  protected final DatePicker endDateField;
+  protected final DatePicker startDatePicker;
+  protected final DatePicker endDatePicker;
   protected JTextField exportDirField;
   protected JTextField pemFileField;
-  private JButton exportDirButton;
+  protected JButton exportDirChooseButton;
   private JLabel exportDirLabel;
   private JLabel pemFileLabel;
   private JLabel startDateLabel;
   private JLabel endDateLabel;
   private JPanel pemFileButtons;
-  private JButton pemFileChooseButton;
-  private JButton pemFileClearButton;
+  protected JButton pemFileChooseButton;
+  protected JButton pemFileClearButton;
+  private JPanel exportDirButtons;
+  private JButton exportDirCleanButton;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectEndDateCallbacks = new ArrayList<>();
+  private boolean clearableExportDir;
 
-  ConfigurationPanelForm() {
-    startDateField = createDatePicker();
-    endDateField = createDatePicker();
+  ConfigurationPanelForm(boolean clearableExportDir) {
+    this.clearableExportDir = clearableExportDir;
+    startDatePicker = createDatePicker();
+    endDatePicker = createDatePicker();
     $$$setupUI$$$();
-    startDateField.getSettings().setGapBeforeButtonPixels(0);
-    endDateField.getSettings().setGapBeforeButtonPixels(0);
+    startDatePicker.getSettings().setGapBeforeButtonPixels(0);
+    endDatePicker.getSettings().setGapBeforeButtonPixels(0);
 
-    exportDirButton.addActionListener(__ ->
+    exportDirChooseButton.addActionListener(__ ->
         buildExportDirDialog().choose().ifPresent(file -> setExportDir(Paths.get(file.toURI())))
     );
+    exportDirCleanButton.addActionListener(__ -> clearExportDir());
     pemFileChooseButton.addActionListener(__ ->
         buildPemFileDialog().choose().ifPresent(file -> setPemFile(Paths.get(file.toURI())))
     );
     pemFileClearButton.addActionListener(__ -> clearPemFile());
-    startDateField.addDateChangeListener(event -> {
+    startDatePicker.addDateChangeListener(event -> {
       if (!isDateRangeValid()) {
-        showError("Invalid date range: \"From\" date must be before \"To\" date.", "Export configuration error");
-        startDateField.clear();
+        showError(MessageStrings.INVALID_DATE_RANGE_MESSAGE, "Export configuration error");
+        startDatePicker.clear();
       } else
         onSelectStartDateCallbacks.forEach(consumer -> consumer.accept(extractDate(event)));
     });
-    endDateField.addDateChangeListener(event -> {
+    endDatePicker.addDateChangeListener(event -> {
       if (!isDateRangeValid()) {
-        showError("Invalid date range: \"From\" date must be before \"To\" date.", "Export configuration error");
-        endDateField.clear();
+        showError(MessageStrings.INVALID_DATE_RANGE_MESSAGE, "Export configuration error");
+        endDatePicker.clear();
       } else
         onSelectEndDateCallbacks.forEach(consumer -> consumer.accept(extractDate(event)));
     });
   }
 
   private boolean isDateRangeValid() {
-    org.threeten.bp.LocalDate startDate = startDateField.getDate();
-    org.threeten.bp.LocalDate endDate = endDateField.getDate();
+    org.threeten.bp.LocalDate startDate = startDatePicker.getDate();
+    org.threeten.bp.LocalDate endDate = endDatePicker.getDate();
     return startDate == null || endDate == null || startDate.isBefore(endDate);
   }
 
@@ -101,6 +108,19 @@ public class ConfigurationPanelForm extends JComponent {
   public void setExportDir(Path path) {
     exportDirField.setText(path.toString());
     onSelectExportDirCallbacks.forEach(consumer -> consumer.accept(path));
+    if (clearableExportDir) {
+      exportDirChooseButton.setVisible(false);
+      exportDirCleanButton.setVisible(true);
+    }
+  }
+
+  private void clearExportDir() {
+    exportDirField.setText(null);
+    onSelectExportDirCallbacks.forEach(consumer -> consumer.accept(null));
+    if (clearableExportDir) {
+      exportDirChooseButton.setVisible(true);
+      exportDirCleanButton.setVisible(false);
+    }
   }
 
   void setPemFile(Path path) {
@@ -119,12 +139,12 @@ public class ConfigurationPanelForm extends JComponent {
 
   void setStartDate(LocalDate date) {
     // Route the change through the date picker's date to avoid repeated set calls
-    startDateField.setDate(org.threeten.bp.LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
+    startDatePicker.setDate(org.threeten.bp.LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
   }
 
   void setEndDate(LocalDate date) {
     // Route the change through the date picker's date to avoid repeated set calls
-    endDateField.setDate(org.threeten.bp.LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
+    endDatePicker.setDate(org.threeten.bp.LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
   }
 
   void onSelectExportDir(Consumer<Path> callback) {
@@ -260,21 +280,14 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.gridwidth = 2;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(startDateField, gbc);
+    container.add(startDatePicker, gbc);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 3;
     gbc.gridwidth = 2;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(endDateField, gbc);
-    exportDirButton = new JButton();
-    exportDirButton.setText("Choose...");
-    gbc = new GridBagConstraints();
-    gbc.gridx = 3;
-    gbc.gridy = 0;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(exportDirButton, gbc);
+    container.add(endDatePicker, gbc);
     final JPanel spacer1 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
@@ -314,6 +327,21 @@ public class ConfigurationPanelForm extends JComponent {
     pemFileClearButton.setText("Clear");
     pemFileClearButton.setVisible(false);
     pemFileButtons.add(pemFileClearButton);
+    exportDirButtons = new JPanel();
+    exportDirButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    gbc = new GridBagConstraints();
+    gbc.gridx = 3;
+    gbc.gridy = 0;
+    gbc.fill = GridBagConstraints.BOTH;
+    container.add(exportDirButtons, gbc);
+    exportDirChooseButton = new JButton();
+    exportDirChooseButton.setText("Choose...");
+    exportDirChooseButton.setVisible(true);
+    exportDirButtons.add(exportDirChooseButton);
+    exportDirCleanButton = new JButton();
+    exportDirCleanButton.setText("Clear");
+    exportDirCleanButton.setVisible(false);
+    exportDirButtons.add(exportDirCleanButton);
   }
 
   /**

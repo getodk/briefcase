@@ -1,32 +1,30 @@
 package org.opendatakit.briefcase.ui.export.components;
 
+import java.util.Optional;
 import java.util.function.Consumer;
-import org.opendatakit.briefcase.ui.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportConfiguration;
 
 public class ConfigurationDialog {
-  private final ConfigurationDialogForm form;
+  final ConfigurationDialogForm form;
   private final ConfigurationPanel confPanel;
 
-  private ConfigurationDialog(ConfigurationDialogForm form, ConfigurationPanel confPanel) {
+  ConfigurationDialog(ConfigurationDialogForm form, ConfigurationPanel confPanel) {
     this.form = form;
     this.confPanel = confPanel;
-
-    if (confPanel.isValid())
-      form.enableOK();
 
     if (!confPanel.isEmpty())
       form.enableRemove();
 
     confPanel.onChange(() -> {
-      if (this.confPanel.getConfiguration().isValid())
+      if (this.confPanel.getConfiguration().isValidAsCustomConf())
         form.enableOK();
       else
         form.disableOK();
     });
   }
 
-  static ConfigurationDialog from(ExportConfiguration configuration) {
-    ConfigurationPanel confPanel = ConfigurationPanel.from(configuration);
+  static ConfigurationDialog from(Optional<ExportConfiguration> configuration) {
+    ConfigurationPanel confPanel = ConfigurationPanel.from(configuration.orElse(ExportConfiguration.empty()), true);
     ConfigurationDialogForm form = new ConfigurationDialogForm(confPanel.getForm());
     return new ConfigurationDialog(form, confPanel);
   }

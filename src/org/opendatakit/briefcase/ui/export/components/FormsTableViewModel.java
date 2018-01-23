@@ -15,11 +15,11 @@ import java.util.Map;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
+import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.ui.export.ExportConfiguration;
-import org.opendatakit.briefcase.ui.export.ExportForms;
 
-class FormsTableViewModel extends AbstractTableModel {
+public class FormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
   private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
   private final Map<FormStatus, JButton> confButtons = new HashMap<>();
@@ -36,13 +36,12 @@ class FormsTableViewModel extends AbstractTableModel {
   }
 
   void refresh() {
-    confButtons.forEach((form, button) -> button.setEnabled(form.isSelected()));
     detailButtons.forEach((form, button) -> button.setEnabled(!form.getStatusHistory().isEmpty()));
     fireTableDataChanged();
     triggerChange();
   }
 
-  private void triggerChange() {
+  public void triggerChange() {
     onChangeCallbacks.forEach(Runnable::run);
   }
 
@@ -65,7 +64,6 @@ class FormsTableViewModel extends AbstractTableModel {
 
   JButton buildOverrideConfButton(FormStatus form) {
     JButton button = new JButton();
-    button.setEnabled(false);
     button.setIcon(SETTINGS_ICON);
     // Ugly hack to be able to use this factory in FormExportTable to compute its Dimension
     if (form != null) {
@@ -74,9 +72,14 @@ class FormsTableViewModel extends AbstractTableModel {
       button.addActionListener(__ -> {
         button.setEnabled(false);
         try {
-          ConfigurationDialog dialog = ConfigurationDialog.from(forms.getConfiguration(form));
+          ConfigurationDialog dialog = ConfigurationDialog.from(forms.getCustomConfiguration(form));
           dialog.onRemove(() -> removeConfiguration(form));
-          dialog.onOK(configuration -> applyConfiguration(form, configuration));
+          dialog.onOK(configuration -> {
+            if (configuration.isEmpty())
+              removeConfiguration(form);
+            else
+              putConfiguration(form, configuration);
+          });
           dialog.open();
         } finally {
           button.setEnabled(true);
@@ -86,8 +89,8 @@ class FormsTableViewModel extends AbstractTableModel {
     return button;
   }
 
-  private void applyConfiguration(FormStatus form, ExportConfiguration configuration) {
-    forms.setConfiguration(form, configuration);
+  private void putConfiguration(FormStatus form, ExportConfiguration configuration) {
+    forms.putConfiguration(form, configuration);
     confButtons.get(form).setIcon(DONE_ICON);
     triggerChange();
   }
@@ -140,7 +143,6 @@ class FormsTableViewModel extends AbstractTableModel {
       case FormsTableView.SELECTED_CHECKBOX_COL:
         Boolean isSelected = (Boolean) aValue;
         form.setSelected(isSelected);
-        confButtons.get(form).setEnabled(isSelected);
         triggerChange();
         break;
       case FormsTableView.EXPORT_STATUS_COL:

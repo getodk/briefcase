@@ -230,7 +230,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         uploadPanel = new PushTransferPanel(transferTerminationFuture);
         addPane(PushTransferPanel.TAB_NAME, uploadPanel);
 
-        exportPanel = new ExportPanel(exportTerminationFuture, BriefcasePreferences.forClass(ExportPanel.class));
+        exportPanel = ExportPanel.from(exportTerminationFuture, BriefcasePreferences.forClass(ExportPanel.class));
         addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
 
         settingsPanel = new SettingsPanel(this);

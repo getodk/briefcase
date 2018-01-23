@@ -32,11 +32,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
+import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
@@ -45,7 +45,6 @@ import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.ExportType;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
-import org.opendatakit.briefcase.ui.export.ExportConfiguration;
 
 public class ExportAction {
 
@@ -55,7 +54,6 @@ public class ExportAction {
   static final String UTF_8 = "UTF-8";
 
   private static ExecutorService backgroundExecutorService = Executors.newCachedThreadPool();
-
 
 
   private static class TransformFormRunnable implements Runnable {
@@ -73,7 +71,7 @@ public class ExportAction {
         if (allSuccessful) {
           if (action.totalFilesSkipped() == FilesSkipped.SOME) {
             EventBus.publish(new ExportSucceededWithErrorsEvent(
-                    action.getFormDefinition()));
+                action.getFormDefinition()));
           } else if (action.totalFilesSkipped() == FilesSkipped.ALL) {
             // None of the instances were exported
             EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
@@ -103,32 +101,32 @@ public class ExportAction {
 
       String errorMsg = null;
       boolean success = false;
-      for (;;) /* this only executes once... */ {
+      for (; ; ) /* this only executes once... */ {
         try {
           BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(pemFile), "UTF-8"));
           PEMReader rdr = new PEMReader(br);
           Object o = rdr.readObject();
           try {
             rdr.close();
-          } catch ( IOException e ) {
+          } catch (IOException e) {
             // ignore.
           }
-          if ( o == null ) {
+          if (o == null) {
             ODKOptionPane.showErrorDialog(null,
                 errorMsg = "The supplied file is not in PEM format.",
                 "Invalid RSA Private Key");
             break;
           }
           PrivateKey privKey;
-          if ( o instanceof KeyPair ) {
+          if (o instanceof KeyPair) {
             KeyPair kp = (KeyPair) o;
             privKey = kp.getPrivate();
-          } else if ( o instanceof PrivateKey ) {
+          } else if (o instanceof PrivateKey) {
             privKey = (PrivateKey) o;
           } else {
             privKey = null;
           }
-          if ( privKey == null ) {
+          if (privKey == null) {
             ODKOptionPane.showErrorDialog(null,
                 errorMsg = "The supplied file does not contain a private key.",
                 "Invalid RSA Private Key");
@@ -144,7 +142,7 @@ public class ExportAction {
           break;
         }
       }
-      if ( !success ) {
+      if (!success) {
         EventBus.publish(new ExportProgressEvent(errorMsg, lfd));
         EventBus.publish(new ExportFailedEvent(lfd));
         return;
