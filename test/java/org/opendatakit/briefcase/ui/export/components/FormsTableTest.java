@@ -22,13 +22,15 @@ import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.ui.export.ExportConfiguration;
 import org.opendatakit.briefcase.ui.export.ExportForms;
 import org.opendatakit.briefcase.util.BadFormDefinition;
 
 public class FormsTableTest {
+
   @Test
   public void can_select_all_forms() {
-    ExportForms forms = new ExportForms(IntStream.range(0, 10).boxed().map(this::uncheckedFormStatusFactory).collect(toList()), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(IntStream.range(0, 10).boxed().map(this::uncheckedFormStatusFactory).collect(toList()), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
     TestFormsTableViewModel viewModel = new TestFormsTableViewModel(forms);
     FormsTable formsTable = new FormsTable(forms, new TestFormsTableView(viewModel), viewModel);
 
@@ -41,7 +43,7 @@ public class FormsTableTest {
 
   @Test
   public void can_clear_selection_of_forms() {
-    ExportForms forms = new ExportForms(IntStream.range(0, 10).boxed().map(this::uncheckedFormStatusFactory).collect(toList()), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(IntStream.range(0, 10).boxed().map(this::uncheckedFormStatusFactory).collect(toList()), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
     TestFormsTableViewModel viewModel = new TestFormsTableViewModel(forms);
     FormsTable formsTable = new FormsTable(forms, new TestFormsTableView(viewModel), viewModel);
     formsTable.selectAll();
@@ -55,7 +57,7 @@ public class FormsTableTest {
   @Ignore
   public void appends_to_a_forms_status_history_when_export_events_are_sent() {
     FormStatus theForm = uncheckedFormStatusFactory(1);
-    ExportForms forms = new ExportForms(Collections.singletonList(theForm), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(Collections.singletonList(theForm), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
     TestFormsTableViewModel viewModel = new TestFormsTableViewModel(forms);
     new FormsTable(forms, new TestFormsTableView(viewModel), viewModel);
 
