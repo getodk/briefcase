@@ -76,7 +76,7 @@ public class ExportConfiguration {
     return map;
   }
 
-  public ExportConfiguration clone() {
+  public ExportConfiguration copy() {
     return new ExportConfiguration(
         exportDir,
         pemFile,

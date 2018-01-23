@@ -11,7 +11,7 @@ public class ConfigurationPanel {
 
   ConfigurationPanel(ExportConfiguration initialConfiguration, ConfigurationPanelForm form) {
     this.form = form;
-    configuration = initialConfiguration.clone();
+    configuration = initialConfiguration.copy();
 
     configuration.ifExportDirPresent(form::setExportDir);
     configuration.ifPemFilePresent(form::setPemFile);
