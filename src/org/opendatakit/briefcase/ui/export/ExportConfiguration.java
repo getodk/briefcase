@@ -4,6 +4,7 @@ import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_BRIEFCASE_S
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_EXIST;
+import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_DATE_RANGE_MESSAGE;
 import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 
@@ -174,8 +175,7 @@ public class ExportConfiguration {
     if (!startDate.isPresent() && endDate.isPresent())
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
-      errors.add("Invalid date range: \"From\" date must be before \"To\" date.");
-
+      errors.add(INVALID_DATE_RANGE_MESSAGE);
     return errors;
   }
 
@@ -199,7 +199,7 @@ public class ExportConfiguration {
     if (!startDate.isPresent() && endDate.isPresent())
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
-      errors.add("Invalid date range: \"From\" date must be before \"To\" date.");
+      errors.add(INVALID_DATE_RANGE_MESSAGE);
 
     return errors;
   }

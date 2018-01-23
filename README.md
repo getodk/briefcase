@@ -2,6 +2,7 @@
 ![Platform](https://img.shields.io/badge/platform-Java-blue.svg)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Build status](https://circleci.com/gh/opendatakit/briefcase.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/opendatakit/briefcase)
+[![codecov.io](https://codecov.io/github/opendatakit/briefcase/branch/master/graph/badge.svg)](https://codecov.io/github/opendatakit/briefcase)
 [![Slack status](http://slack.opendatakit.org/badge.svg)](http://slack.opendatakit.org)
 
 ODK Briefcase is a desktop application that can locally store survey results gathered with [ODK Collect](https://opendatakit.org/use/collect). It can also be used to make local copies and CSV exports of data from [ODK Aggregate](https://opendatakit.org/use/aggregate/) (or compatible servers) and push data to those servers.   
