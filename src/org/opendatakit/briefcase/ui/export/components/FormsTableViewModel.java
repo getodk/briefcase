@@ -1,7 +1,7 @@
 package org.opendatakit.briefcase.ui.export.components;
 
 import static java.awt.Color.DARK_GRAY;
-import static java.awt.Color.GREEN;
+import static java.awt.Color.LIGHT_GRAY;
 import static java.time.format.DateTimeFormatter.ofLocalizedDateTime;
 import static java.time.format.FormatStyle.SHORT;
 import static javax.swing.JOptionPane.getFrameForComponent;
@@ -10,6 +10,7 @@ import static org.opendatakit.briefcase.ui.export.components.FormsTableView.EDIT
 import static org.opendatakit.briefcase.ui.export.components.FormsTableView.HEADERS;
 import static org.opendatakit.briefcase.ui.export.components.FormsTableView.TYPES;
 
+import java.awt.Font;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,12 +20,15 @@ import javax.swing.table.AbstractTableModel;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.util.FontUtils;
 
 public class FormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
   private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
   private final Map<FormStatus, JButton> confButtons = new HashMap<>();
   private final ExportForms forms;
+
+  private static final Font ic_settings = FontUtils.getCustomFont("ic_settings.ttf", 16f);
 
   FormsTableViewModel(ExportForms forms) {
     this.forms = forms;
@@ -62,11 +66,19 @@ public class FormsTableViewModel extends AbstractTableModel {
   }
 
   JButton buildOverrideConfButton(FormStatus form) {
-    JButton button = new JButton("⚙");
+
+    // Use custom fonts instead of png for easier scaling
+    JButton button = new JButton("\uE900"); // custom font that overrides  with a ⚙️
+    button.setFont(ic_settings);
+
     // Ugly hack to be able to use this factory in FormExportTable to compute its Dimension
     if (form != null) {
-      if (forms.hasConfiguration(form))
-        button.setForeground(GREEN);
+      if (forms.hasConfiguration(form)) {
+        button.setForeground(DARK_GRAY);
+      } else {
+        button.setForeground(LIGHT_GRAY);
+      }
+
       button.addActionListener(__ -> {
         button.setEnabled(false);
         try {
@@ -89,13 +101,13 @@ public class FormsTableViewModel extends AbstractTableModel {
 
   private void putConfiguration(FormStatus form, ExportConfiguration configuration) {
     forms.putConfiguration(form, configuration);
-    confButtons.get(form).setForeground(GREEN);
+    confButtons.get(form).setForeground(DARK_GRAY);
     triggerChange();
   }
 
   private void removeConfiguration(FormStatus form) {
     forms.removeConfiguration(form);
-    confButtons.get(form).setForeground(DARK_GRAY);
+    confButtons.get(form).setForeground(LIGHT_GRAY);
     triggerChange();
   }
 

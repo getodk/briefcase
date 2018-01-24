@@ -17,7 +17,7 @@ import javax.swing.table.TableRowSorter;
 import org.opendatakit.briefcase.ui.reused.MouseListenerBuilder;
 
 public class FormsTableView extends JTable {
-  static final String[] HEADERS = new String[]{"Selected", "⚙", "Form Name", "Export Status", "Last Export", "Detail"};
+  static final String[] HEADERS = new String[]{"Selected", "Configure", "Form Name", "Export Status", "Last Export", "Detail"};
   static final Class[] TYPES = new Class[]{Boolean.class, JButton.class, String.class, String.class, String.class, JButton.class};
   static final boolean[] EDITABLE_COLS = new boolean[]{true, false, false, false, false, false};
 
