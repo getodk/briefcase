@@ -193,8 +193,6 @@ public class PushTransferPanel extends JPanel {
     btnDestinationAction = new JButton("Choose...");
     btnDestinationAction.addActionListener(new DestinationActionListener());
 
-    JLabel lblFormsToTransfer = new JLabel("Forms to " + TAB_NAME + ":");
-
     btnSelectOrClearAllForms = new JButton("Select all");
 
     lblUploading = new JLabel(UPLOADING_DOT_ETC);
@@ -214,8 +212,6 @@ public class PushTransferPanel extends JPanel {
             btnSelectOrClearAllForms, FormStatus.TransferType.UPLOAD, btnTransfer, btnCancel);
 
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
-
-    JSeparator separatorFormsList = new JSeparator();
 
     GroupLayout groupLayout = new GroupLayout(this);
     groupLayout.setHorizontalGroup(groupLayout
@@ -244,9 +240,6 @@ public class PushTransferPanel extends JPanel {
                                         .addComponent(txtDestinationName)
                                         .addPreferredGap(ComponentPlacement.RELATED)
                                         .addComponent(btnDestinationAction))))
-                .addComponent(separatorFormsList, GroupLayout.DEFAULT_SIZE,
-                    GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
-                .addComponent(lblFormsToTransfer)
                 // scroll pane
                 .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
                     Short.MAX_VALUE)
@@ -268,11 +261,6 @@ public class PushTransferPanel extends JPanel {
         .addGroup(
             groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblDestination)
                 .addComponent(txtDestinationName).addComponent(btnDestinationAction))
-        .addPreferredGap(ComponentPlacement.RELATED)
-        .addComponent(separatorFormsList, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
-            GroupLayout.PREFERRED_SIZE)
-        .addPreferredGap(ComponentPlacement.RELATED)
-        .addComponent(lblFormsToTransfer)
         .addPreferredGap(ComponentPlacement.RELATED)
         .addComponent(scrollPane, 200, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
         .addPreferredGap(ComponentPlacement.RELATED)
