@@ -252,8 +252,6 @@ public class PullTransferPanel extends JPanel {
     btnOriginAction = new JButton("Choose...");
     btnOriginAction.addActionListener(new OriginActionListener());
 
-    JLabel lblFormsToTransfer = new JLabel("Forms to " + TAB_NAME + ":");
-
     btnSelectOrClearAllForms = new JButton("Select all");
 
     lblDownloading = new JLabel(DOWNLOADING_DOT_ETC);
@@ -273,8 +271,6 @@ public class PullTransferPanel extends JPanel {
             btnSelectOrClearAllForms, FormStatus.TransferType.GATHER, btnTransfer, btnCancel);
 
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
-
-    JSeparator separatorFormsList = new JSeparator();
 
     GroupLayout groupLayout = new GroupLayout(this);
     groupLayout.setHorizontalGroup(groupLayout
@@ -302,9 +298,6 @@ public class PullTransferPanel extends JPanel {
                                     groupLayout.createSequentialGroup().addComponent(txtOriginName)
                                         .addPreferredGap(ComponentPlacement.RELATED)
                                         .addComponent(btnOriginAction))))
-                .addComponent(separatorFormsList, GroupLayout.DEFAULT_SIZE,
-                    GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
-                .addComponent(lblFormsToTransfer)
                 // scroll pane
                 .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
                     Short.MAX_VALUE)
@@ -326,11 +319,6 @@ public class PullTransferPanel extends JPanel {
         .addGroup(
             groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblOrigin)
                 .addComponent(txtOriginName).addComponent(btnOriginAction))
-        .addPreferredGap(ComponentPlacement.RELATED)
-        .addComponent(separatorFormsList, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
-            GroupLayout.PREFERRED_SIZE)
-        .addPreferredGap(ComponentPlacement.RELATED)
-        .addComponent(lblFormsToTransfer)
         .addPreferredGap(ComponentPlacement.RELATED)
         .addComponent(scrollPane, 200, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
         .addPreferredGap(ComponentPlacement.RELATED)
