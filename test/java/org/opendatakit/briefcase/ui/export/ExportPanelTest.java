@@ -4,9 +4,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.ui.SwingTestRig.classPath;
-import static org.opendatakit.briefcase.ui.SwingTestRig.createCache;
+import static org.opendatakit.briefcase.ui.SwingTestRig.createInMemoryCache;
 import static org.opendatakit.briefcase.ui.SwingTestRig.installFormsFrom;
-import static org.opendatakit.briefcase.ui.SwingTestRig.prepareBriefcaseStorageFolder;
 import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.enabled;
 
 import java.io.IOException;
@@ -20,9 +19,8 @@ public class ExportPanelTest extends AssertJSwingJUnitTestCase {
 
   @BeforeClass
   public static void init() {
-    prepareBriefcaseStorageFolder();
+    createInMemoryCache();
     installFormsFrom(classPath("/exportPanelTest/forms"));
-    createCache();
   }
 
   @Override

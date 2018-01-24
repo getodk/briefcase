@@ -1,6 +1,7 @@
 package org.opendatakit.briefcase.ui;
 
-import java.io.File;
+import static org.opendatakit.briefcase.util.FileSystemUtils.getMd5Hash;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -10,41 +11,35 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.util.BadFormDefinition;
 import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.briefcase.util.InMemoryFormCache;
 
 public class SwingTestRig {
-  private static final Log log = LogFactory.getLog(SwingTestRig.class);
-
-  public static void prepareBriefcaseStorageFolder() {
-    try {
-      BriefcasePreferences.setBriefcaseDirectoryProperty(Files.createTempDirectory("briefcase_test").toString());
-      File briefcaseFolder = new StorageLocation().getBriefcaseFolder();
-      if (briefcaseFolder.mkdirs())
-        log.info("Created test Briefcase storage folder at " + briefcaseFolder);
-      else
-        throw new RuntimeException("Can't create test Briefcase storage folder");
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
 
   public static void installFormsFrom(Path path) {
-    Path briefcaseStorageFolder = Paths.get(new StorageLocation().getBriefcaseFolder().toURI());
-    uncheckedWalk(path).forEach(sourcePath -> uncheckedCopy(
-        sourcePath,
-        briefcaseStorageFolder.resolve(path.getParent().relativize(sourcePath))
-    ));
+    uncheckedWalk(path).forEach(sourcePath -> {
+      BriefcaseFormDefinition briefcaseFormDefinition = readForm(path, sourcePath);
+      FileSystemUtils.formCache.putFormFileMd5Hash(sourcePath.toString(), getMd5Hash(sourcePath.toFile()));
+      FileSystemUtils.formCache.putFormFileFormDefinition(sourcePath.toString(), briefcaseFormDefinition);
+    });
+  }
+
+  private static BriefcaseFormDefinition readForm(Path path, Path sourcePath) {
+    try {
+      return new BriefcaseFormDefinition(path.toFile(), sourcePath.toFile());
+    } catch (BadFormDefinition badFormDefinition) {
+      throw new RuntimeException(badFormDefinition);
+    }
   }
 
   public static Path classPath(String location) {
     return Paths.get(uncheckedURLtoURI(SwingTestRig.class.getResource(location)));
   }
 
-  public static void createCache() {
-    FileSystemUtils.createFormCacheInBriefcaseFolder();
+  public static void createInMemoryCache() {
+    FileSystemUtils.formCache = new InMemoryFormCache();
   }
 
   public static void uncheckedSleep(int millis) {
@@ -65,7 +60,7 @@ public class SwingTestRig {
 
   private static Stream<Path> uncheckedWalk(Path path) {
     try {
-      return Files.walk(path);
+      return Files.walk(path).filter(p -> Files.isRegularFile(p));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
