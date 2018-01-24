@@ -1,7 +1,7 @@
 package org.opendatakit.briefcase.ui.export.components;
 
 import static java.awt.Color.DARK_GRAY;
-import static java.awt.Color.GREEN;
+import static java.awt.Color.LIGHT_GRAY;
 import static java.time.format.DateTimeFormatter.ofLocalizedDateTime;
 import static java.time.format.FormatStyle.SHORT;
 import static javax.swing.JOptionPane.getFrameForComponent;
@@ -19,6 +19,7 @@ import javax.swing.table.AbstractTableModel;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.util.FontUtils;
 
 public class FormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
@@ -62,11 +63,15 @@ public class FormsTableViewModel extends AbstractTableModel {
   }
 
   JButton buildOverrideConfButton(FormStatus form) {
-    JButton button = new JButton("⚙");
+
+    // Use custom fonts instead of png for easier scaling
+    JButton button = new JButton("\uE900"); // custom font that overrides  with a ⚙️
+    button.setFont(FontUtils.getCustomFont("ic_settings.ttf", 16f));
+
     // Ugly hack to be able to use this factory in FormExportTable to compute its Dimension
     if (form != null) {
       if (forms.hasConfiguration(form))
-        button.setForeground(GREEN);
+        button.setForeground(DARK_GRAY);
       button.addActionListener(__ -> {
         button.setEnabled(false);
         try {
@@ -89,13 +94,13 @@ public class FormsTableViewModel extends AbstractTableModel {
 
   private void putConfiguration(FormStatus form, ExportConfiguration configuration) {
     forms.putConfiguration(form, configuration);
-    confButtons.get(form).setForeground(GREEN);
+    confButtons.get(form).setForeground(DARK_GRAY);
     triggerChange();
   }
 
   private void removeConfiguration(FormStatus form) {
     forms.removeConfiguration(form);
-    confButtons.get(form).setForeground(DARK_GRAY);
+    confButtons.get(form).setForeground(LIGHT_GRAY);
     triggerChange();
   }
 
