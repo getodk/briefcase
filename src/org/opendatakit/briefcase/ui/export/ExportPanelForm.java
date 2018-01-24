@@ -38,8 +38,6 @@ public class ExportPanelForm {
   private final ConfigurationPanelForm confPanelForm;
   private final FormsTableView formsTableForm;
   private JPanel container;
-  private JLabel formsTableLabel;
-  private JSeparator formsTableSeparator;
   private JPanel actions;
   private JPanel leftActions;
   private JPanel rightActions;
@@ -163,19 +161,6 @@ public class ExportPanelForm {
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(confPanelForm.$$$getRootComponent$$$(), gbc);
-    formsTableSeparator = new JSeparator();
-    gbc = new GridBagConstraints();
-    gbc.gridx = 1;
-    gbc.gridy = 3;
-    gbc.fill = GridBagConstraints.BOTH;
-    container.add(formsTableSeparator, gbc);
-    formsTableLabel = new JLabel();
-    formsTableLabel.setText("Forms to export:");
-    gbc = new GridBagConstraints();
-    gbc.gridx = 1;
-    gbc.gridy = 4;
-    gbc.anchor = GridBagConstraints.WEST;
-    container.add(formsTableLabel, gbc);
     actions = new JPanel();
     actions.setLayout(new GridBagLayout());
     gbc = new GridBagConstraints();
