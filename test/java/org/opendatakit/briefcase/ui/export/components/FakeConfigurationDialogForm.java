@@ -30,7 +30,7 @@ class FakeConfigurationDialogForm extends ConfigurationDialogForm {
   }
 
   @Override
-  public void enableRemove() {
+  public void enableClearAll() {
     removeEnabled = true;
   }
 }

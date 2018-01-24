@@ -4,6 +4,7 @@ import static org.assertj.swing.edt.GuiActionRunner.execute;
 import static org.opendatakit.briefcase.ui.SwingTestRig.uncheckedSleep;
 
 import java.awt.event.ActionEvent;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
 import javax.swing.JButton;
@@ -39,6 +40,10 @@ class ConfigurationDialogPageObject {
     return component.form.clearAllButton;
   }
 
+  public JButton okButton() {
+    return component.form.okButton;
+  }
+
   public void clickOnOk() {
     click(component.form.okButton);
     uncheckedSleep(50);
@@ -52,6 +57,14 @@ class ConfigurationDialogPageObject {
   public void clickOnCancel() {
     click(component.form.cancelButton);
     uncheckedSleep(50);
+  }
+
+  public void setSomeExportDir() {
+    GuiActionRunner.execute(() -> component.getConfPanel().form.setExportDir(Paths.get("/some/dir")));
+  }
+
+  public void clearExportDir() {
+    GuiActionRunner.execute(() -> component.getConfPanel().form.clearExportDir());
   }
 
   private void click(JButton button) {

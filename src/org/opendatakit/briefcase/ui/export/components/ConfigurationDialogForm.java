@@ -71,8 +71,12 @@ public class ConfigurationDialogForm extends JDialog {
     okButton.setEnabled(false);
   }
 
-  public void enableRemove() {
+  public void enableClearAll() {
     clearAllButton.setEnabled(true);
+  }
+
+  public void disableClearAll() {
+    clearAllButton.setEnabled(false);
   }
 
   @Override

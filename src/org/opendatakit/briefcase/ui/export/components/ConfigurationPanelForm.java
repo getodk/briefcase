@@ -114,7 +114,7 @@ public class ConfigurationPanelForm extends JComponent {
     }
   }
 
-  private void clearExportDir() {
+  void clearExportDir() {
     exportDirField.setText(null);
     onSelectExportDirCallbacks.forEach(consumer -> consumer.accept(null));
     if (clearableExportDir) {

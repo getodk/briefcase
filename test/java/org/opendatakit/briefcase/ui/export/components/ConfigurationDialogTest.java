@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.ui.matchers.GenericUIMatchers.visible;
+import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.enabled;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -30,6 +31,43 @@ public class ConfigurationDialogTest extends AssertJSwingJUnitTestCase {
   protected void onSetUp() {
   }
 
+  @Test
+  public void ok_button_is_enabled_with_an_empty_initial_configuration() {
+    page = ConfigurationDialogPageObject.setUp(robot(), ExportConfiguration.empty());
+    page.show();
+    assertThat(page.okButton(), is(enabled()));
+  }
+
+  @Test
+  public void ok_button_is_enabled_with_a_non_empty_initial_configuration() {
+    page = ConfigurationDialogPageObject.setUp(robot(), CONFIGURATION);
+    page.show();
+    assertThat(page.okButton(), is(enabled()));
+  }
+
+  @Test
+  public void clear_all_button_is_disabled_with_an_empty_initial_configuration() {
+    page = ConfigurationDialogPageObject.setUp(robot(), ExportConfiguration.empty());
+    page.show();
+    assertThat(page.clearAllButton(), is(not(enabled())));
+  }
+
+  @Test
+  public void clear_all_button_is_enabled_with_a_non_empty_initial_configuration() {
+    page = ConfigurationDialogPageObject.setUp(robot(), CONFIGURATION);
+    page.show();
+    assertThat(page.clearAllButton(), is(enabled()));
+  }
+
+  @Test
+  public void clear_all_button_is_enabled_when_the_configuration_is_not_empty() {
+    page = ConfigurationDialogPageObject.setUp(robot(), ExportConfiguration.empty());
+    page.show();
+    page.setSomeExportDir();
+    assertThat(page.clearAllButton(), is(enabled()));
+    page.clearExportDir();
+    assertThat(page.clearAllButton(), is(not(enabled())));
+  }
 
   @Test
   public void ok_button_closes_the_dialog() {
