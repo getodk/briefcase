@@ -7,31 +7,31 @@ import java.util.Map;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 
 public class InMemoryFormCache implements FormCacheable {
-  private final Map<String, String> hashes = new HashMap<>();
-  private final Map<String, BriefcaseFormDefinition> forms = new HashMap<>();
+  private final Map<String, String> hashesByFormName = new HashMap<>();
+  private final Map<String, BriefcaseFormDefinition> formsByName = new HashMap<>();
 
   @Override
   public String getFormFileMd5Hash(String filePath) {
-    return hashes.get(filePath);
+    return hashesByFormName.get(filePath);
   }
 
   @Override
   public void putFormFileMd5Hash(String filePath, String md5Hash) {
-    hashes.put(filePath, md5Hash);
+    hashesByFormName.put(filePath, md5Hash);
   }
 
   @Override
   public BriefcaseFormDefinition getFormFileFormDefinition(String filePath) {
-    return forms.get(filePath);
+    return formsByName.get(filePath);
   }
 
   @Override
   public void putFormFileFormDefinition(String filePath, BriefcaseFormDefinition definition) {
-    forms.put(filePath, definition);
+    formsByName.put(filePath, definition);
   }
 
   @Override
   public List<BriefcaseFormDefinition> getForms() {
-    return new ArrayList<>(forms.values());
+    return new ArrayList<>(formsByName.values());
   }
 }
