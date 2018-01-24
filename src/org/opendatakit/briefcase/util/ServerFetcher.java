@@ -138,7 +138,7 @@ public class ServerFetcher {
       FormStatus fs = formsToTransfer.get(i);
 
       if ( isCancelled() ) {
-        fs.setStatusString("aborted. Skipping fetch of form and submissions...", true);
+        fs.setStatusString("Aborted. Skipping fetch of form and submissions...", true);
         EventBus.publish(new FormStatusEvent(fs));
         return false;
       }
