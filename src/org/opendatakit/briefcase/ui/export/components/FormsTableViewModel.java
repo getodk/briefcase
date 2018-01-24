@@ -10,6 +10,7 @@ import static org.opendatakit.briefcase.ui.export.components.FormsTableView.EDIT
 import static org.opendatakit.briefcase.ui.export.components.FormsTableView.HEADERS;
 import static org.opendatakit.briefcase.ui.export.components.FormsTableView.TYPES;
 
+import java.awt.Font;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +27,8 @@ public class FormsTableViewModel extends AbstractTableModel {
   private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
   private final Map<FormStatus, JButton> confButtons = new HashMap<>();
   private final ExportForms forms;
+
+  private static final Font ic_settings = FontUtils.getCustomFont("ic_settings.ttf", 16f);
 
   FormsTableViewModel(ExportForms forms) {
     this.forms = forms;
@@ -66,7 +69,7 @@ public class FormsTableViewModel extends AbstractTableModel {
 
     // Use custom fonts instead of png for easier scaling
     JButton button = new JButton("\uE900"); // custom font that overrides  with a ⚙️
-    button.setFont(FontUtils.getCustomFont("ic_settings.ttf", 16f));
+    button.setFont(ic_settings);
 
     // Ugly hack to be able to use this factory in FormExportTable to compute its Dimension
     if (form != null) {
