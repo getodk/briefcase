@@ -14,7 +14,7 @@ import org.opendatakit.briefcase.export.ExportConfiguration;
 public class ConfigurationDialogUnitTest {
 
   @Test
-  public void the_ok_and_remove_buttons_are_disabled_by_default() {
+  public void the_ok_and_clear_all_buttons_are_disabled_by_default() {
     FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm(false);
 
     FakeConfigurationDialogForm dialogForm = new FakeConfigurationDialogForm(confPanelForm);

@@ -13,9 +13,14 @@ public class ConfigurationDialog {
     this.confPanel = confPanel;
 
     if (!confPanel.isEmpty())
-      form.enableRemove();
+      form.enableClearAll();
 
     confPanel.onChange(() -> {
+      if (!confPanel.getConfiguration().isEmpty())
+        form.enableClearAll();
+      else
+        form.disableClearAll();
+
       if (this.confPanel.getConfiguration().isValidAsCustomConf())
         form.enableOK();
       else
@@ -39,5 +44,9 @@ public class ConfigurationDialog {
 
   public void open() {
     form.open();
+  }
+
+  public ConfigurationPanel getConfPanel() {
+    return confPanel;
   }
 }
