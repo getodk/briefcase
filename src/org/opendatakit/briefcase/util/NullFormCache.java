@@ -1,5 +1,6 @@
 package org.opendatakit.briefcase.util;
 
+import java.util.List;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 
 /** Until the storage location is set, there is no place for the cache file. This class allows avoiding null checks. */
@@ -22,5 +23,10 @@ public class NullFormCache implements FormCacheble {
     @Override
     public void putFormFileFormDefinition(String filePath, BriefcaseFormDefinition definition) {
         throw new UnsupportedOperationException("putFormFileFormDefinition");
+    }
+
+    @Override
+    public List<BriefcaseFormDefinition> getForms() {
+        throw new UnsupportedOperationException("getForms");
     }
 }

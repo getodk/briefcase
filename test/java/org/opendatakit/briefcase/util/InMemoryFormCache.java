@@ -1,6 +1,8 @@
 package org.opendatakit.briefcase.util;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 
@@ -26,5 +28,10 @@ public class InMemoryFormCache implements FormCacheble {
   @Override
   public void putFormFileFormDefinition(String filePath, BriefcaseFormDefinition definition) {
     forms.put(filePath, definition);
+  }
+
+  @Override
+  public List<BriefcaseFormDefinition> getForms() {
+    return new ArrayList<>(forms.values());
   }
 }
