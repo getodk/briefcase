@@ -70,8 +70,12 @@ public class FormsTableViewModel extends AbstractTableModel {
 
     // Ugly hack to be able to use this factory in FormExportTable to compute its Dimension
     if (form != null) {
-      if (forms.hasConfiguration(form))
+      if (forms.hasConfiguration(form)) {
         button.setForeground(DARK_GRAY);
+      } else {
+        button.setForeground(LIGHT_GRAY);
+      }
+
       button.addActionListener(__ -> {
         button.setEnabled(false);
         try {
