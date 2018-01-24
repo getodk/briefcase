@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 
-public class InMemoryFormCache implements FormCacheble {
+public class InMemoryFormCache implements FormCacheable {
   private final Map<String, String> hashes = new HashMap<>();
   private final Map<String, BriefcaseFormDefinition> forms = new HashMap<>();
 

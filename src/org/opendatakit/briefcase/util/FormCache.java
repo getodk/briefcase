@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 
-public class FormCache implements FormCacheble {
+public class FormCache implements FormCacheable {
     private final File cacheFile;
     private Map<String, String> pathToMd5Map = new HashMap<>();
     private Map<String, BriefcaseFormDefinition> pathToDefinitionMap = new HashMap<>();
