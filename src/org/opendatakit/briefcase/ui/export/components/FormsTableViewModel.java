@@ -20,7 +20,7 @@ import javax.swing.table.AbstractTableModel;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.util.FontUtils;
+import org.opendatakit.briefcase.ui.reused.FontUtils;
 
 public class FormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();

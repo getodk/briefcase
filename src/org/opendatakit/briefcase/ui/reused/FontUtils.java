@@ -1,4 +1,4 @@
-package org.opendatakit.briefcase.util;
+package org.opendatakit.briefcase.ui.reused;
 
 import java.awt.Font;
 import java.awt.FontFormatException;
