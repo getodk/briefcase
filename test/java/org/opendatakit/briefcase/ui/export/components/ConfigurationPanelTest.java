@@ -2,12 +2,15 @@ package org.opendatakit.briefcase.ui.export.components;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.empty;
 import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.visible;
 
 import java.time.LocalDate;
+
 import net.java.openjdk.cacio.ctc.junit.CacioFESTRunner;
+import org.assertj.swing.fixture.JFileChooserFixture;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +36,9 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   @Test
   public void pem_file_button_opens_a_file_dialog() {
     component.clickChoosePemFileButton();
-    assertThat(component.fileDialog(2000), is(GenericUIMatchers.visible()));
+    JFileChooserFixture fileDialog = component.fileDialog(2000);
+    assertNotNull(fileDialog);
+    assertThat(fileDialog, is(GenericUIMatchers.visible()));
     component.cancelFileDialog();
   }
 
