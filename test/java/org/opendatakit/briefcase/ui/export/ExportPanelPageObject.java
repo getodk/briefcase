@@ -39,7 +39,11 @@ class ExportPanelPageObject {
   }
 
   static ExportPanelPageObject setUp(Robot robot) {
-    ExportPanel exportPanel = GuiActionRunner.execute(() -> ExportPanel.from(new TerminationFuture(), new BriefcasePreferences(InMemoryPreferences.empty())));
+    ExportPanel exportPanel = GuiActionRunner.execute(() -> {
+      ExportPanel ep = ExportPanel.from(new TerminationFuture(), new BriefcasePreferences(InMemoryPreferences.empty()));
+      ep.updateForms();
+      return ep;
+    });
     JFrame testFrame = GuiActionRunner.execute(() -> {
       JFrame f = new JFrame();
       f.add(exportPanel.getForm().getContainer());

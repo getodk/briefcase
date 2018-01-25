@@ -6,12 +6,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 
-public class FormCache implements FormCacheble {
+public class FormCache implements FormCacheable {
     private final File cacheFile;
     private Map<String, String> pathToMd5Map = new HashMap<>();
     private Map<String, BriefcaseFormDefinition> pathToDefinitionMap = new HashMap<>();
@@ -67,5 +68,10 @@ public class FormCache implements FormCacheble {
     @Override
     public void putFormFileFormDefinition(String filePath, BriefcaseFormDefinition definition) {
         pathToDefinitionMap.put(filePath, definition);
+    }
+
+    @Override
+    public List<BriefcaseFormDefinition> getForms() {
+        return new ArrayList<>(pathToDefinitionMap.values());
     }
 }

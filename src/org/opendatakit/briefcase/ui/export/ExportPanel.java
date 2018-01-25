@@ -120,7 +120,7 @@ public class ExportPanel {
   }
 
   private static List<FormStatus> getFormsFromStorage() {
-    return FileSystemUtils.getBriefcaseFormList().stream()
+    return FileSystemUtils.formCache.getForms().stream()
         .map(formDefinition -> new FormStatus(EXPORT, formDefinition))
         .collect(toList());
   }
