@@ -87,8 +87,8 @@ public class ConfigurationPanelForm extends JComponent {
   }
 
   private boolean isDateRangeValid() {
-    org.threeten.bp.LocalDate startDate = startDatePicker.getDate();
-    org.threeten.bp.LocalDate endDate = endDatePicker.getDate();
+    LocalDate startDate = startDatePicker.getDate();
+    LocalDate endDate = endDatePicker.getDate();
     return startDate == null || endDate == null || startDate.isBefore(endDate);
   }
 
@@ -139,12 +139,12 @@ public class ConfigurationPanelForm extends JComponent {
 
   void setStartDate(LocalDate date) {
     // Route the change through the date picker's date to avoid repeated set calls
-    startDatePicker.setDate(org.threeten.bp.LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
+    startDatePicker.setDate(LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
   }
 
   void setEndDate(LocalDate date) {
     // Route the change through the date picker's date to avoid repeated set calls
-    endDatePicker.setDate(org.threeten.bp.LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
+    endDatePicker.setDate(LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
   }
 
   void onSelectExportDir(Consumer<Path> callback) {
