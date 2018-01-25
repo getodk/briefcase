@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
@@ -36,11 +35,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingUtilities;
-
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -61,13 +58,12 @@ import org.opendatakit.briefcase.util.TransferAction;
  * Pull forms and data to external locations.
  *
  * @author mitchellsundt@gmail.com
- *
  */
 public class PullTransferPanel extends JPanel {
 
   /**
-    *
-    */
+   *
+   */
   private static final long serialVersionUID = -2192404551259501394L;
 
   public static final String TAB_NAME = "Pull";
@@ -156,7 +152,7 @@ public class PullTransferPanel extends JPanel {
         WrappedFileChooser fc = new WrappedFileChooser(PullTransferPanel.this,
             new ODKCollectFileChooser(PullTransferPanel.this));
         String filePath = txtOriginName.getText();
-        if ( filePath != null && filePath.trim().length() != 0 ) {
+        if (filePath != null && filePath.trim().length() != 0) {
           fc.setSelectedFile(new File(filePath.trim()));
         }
         int retVal = fc.showDialog();
@@ -224,10 +220,10 @@ public class PullTransferPanel extends JPanel {
     this.terminationFuture = terminationFuture;
     JLabel lblGetDataFrom = new JLabel(TAB_NAME + " data from:");
 
-    listOriginDataSource = new JComboBox<String>(new String[] {
+    listOriginDataSource = new JComboBox<String>(new String[]{
         EndPointType.AGGREGATE_1_0_CHOICE.toString(),
         EndPointType.MOUNTED_ODK_COLLECT_DEVICE_CHOICE.toString(),
-        EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.toString() });
+        EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.toString()});
     listOriginDataSource.addActionListener(new OriginSourceListener());
 
     lblOrigin = new JLabel("Origin:");
@@ -243,7 +239,7 @@ public class PullTransferPanel extends JPanel {
 
       @Override
       public void focusLost(FocusEvent e) {
-        if ( txtOriginName.isEditable() ) {
+        if (txtOriginName.isEditable()) {
           PullTransferPanel.this.updateFormStatuses();
         }
       }
@@ -268,7 +264,7 @@ public class PullTransferPanel extends JPanel {
     });
 
     formTransferTable = new FormTransferTable(
-            btnSelectOrClearAllForms, FormStatus.TransferType.GATHER, btnTransfer, btnCancel);
+        btnSelectOrClearAllForms, FormStatus.TransferType.GATHER, btnTransfer, btnCancel);
 
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
 
@@ -442,12 +438,12 @@ public class PullTransferPanel extends JPanel {
     // remember state...
     transferStateActive = active;
   }
-  
+
   private EndPointType getSelectedEndPointType() {
     String strSelection = (String) listOriginDataSource.getSelectedItem();
     return EndPointType.fromString(strSelection);
   }
-  
+
   private ServerConnectionInfo initServerInfoWithPreferences(EndPointType type) {
     ServerConnectionInfo connectionInfo = null;
     if (type == EndPointType.AGGREGATE_1_0_CHOICE) {

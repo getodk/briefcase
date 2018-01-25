@@ -64,6 +64,7 @@ public class FormsTableViewModel extends AbstractTableModel {
     onChangeCallbacks.forEach(Runnable::run);
   }
 
+  @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
   JButton buildDetailButton(FormStatus form) {
     // Use custom fonts instead of png for easier scaling
     JButton button = new JButton("\uE900");
@@ -81,6 +82,7 @@ public class FormsTableViewModel extends AbstractTableModel {
     return button;
   }
 
+  @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
   JButton buildOverrideConfButton(FormStatus form) {
     // Use custom fonts instead of png for easier scaling
     JButton button = new JButton("\uE900");
