@@ -20,10 +20,13 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.enabled;
 
+import net.java.openjdk.cacio.ctc.junit.CacioFESTRunner;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 
+@RunWith(CacioFESTRunner.class)
 public class ConfigurationDialogWithInvalidConfTest extends AssertJSwingJUnitTestCase {
   private ConfigurationDialogPageObject dialog;
 

@@ -121,7 +121,7 @@ class ConfigurationPanelPageObject {
     // us to manage some wait times between actions involving appearing/disappearing
     // dialogs.
     invokeLater(() -> component.form.setEndDate(someDate));
-    uncheckedSleep(50);
+    uncheckedSleep(500);
   }
 
   private DialogFixture errorDialog() {
@@ -178,9 +178,17 @@ class ConfigurationPanelPageObject {
     // Implicitly, we're going to use this method while waiting for some
     // GUI element to be ready and waiting 100 millis by default is safer
     // (in my experience)
+    final int SLEEP_MS = 100;
+    final int MAX_ATTEMPTS = 2000 / SLEEP_MS;
+    int attempts = 0;
     do {
-      uncheckedSleep(100);
-    } while (!condition.get());
+      uncheckedSleep(SLEEP_MS);
+    } while (!condition.get() && ++attempts < MAX_ATTEMPTS);
+    if (attempts >= MAX_ATTEMPTS) {
+      StackTraceElement s = Thread.currentThread().getStackTrace()[2];
+      System.err.printf("Gave up waiting for %s at %s %s %d\n",
+          condition, s.getClassName(), s.getMethodName(), s.getLineNumber());
+    }
   }
 
   private void uncheckedSleep(int millis) {
