@@ -50,22 +50,20 @@ public class FormsTableView extends JTable {
     addMouseListener(new MouseListenerBuilder().onClick(this::relayClickToButton).build());
 
     Dimension selectedCheckboxDims = getHeaderDimension(HEADERS[SELECTED_CHECKBOX_COL]);
-    Dimension overrideConfButtonDims = model.buildOverrideConfButton(null).getPreferredSize();
     Dimension formNameDims = getHeaderDimension(HEADERS[FORM_NAME_COL]);
     Dimension exportStatusDims = getHeaderDimension(HEADERS[EXPORT_STATUS_COL]);
     Dimension lastExportDims = getHeaderDimension(HEADERS[LAST_EXPORT_COL]);
-    Dimension detailButtonDims = model.buildDetailButton(null).getPreferredSize();
 
-    setRowHeight(detailButtonDims.height);
+    setRowHeight(28);
 
     TableColumnModel columns = getColumnModel();
     columns.getColumn(SELECTED_CHECKBOX_COL).setMinWidth(selectedCheckboxDims.width + 25);
     columns.getColumn(SELECTED_CHECKBOX_COL).setMaxWidth(selectedCheckboxDims.width + 25);
     columns.getColumn(SELECTED_CHECKBOX_COL).setPreferredWidth(selectedCheckboxDims.width + 25);
     columns.getColumn(OVERRIDE_CONF_COL).setCellRenderer(cellWithButton());
-    columns.getColumn(OVERRIDE_CONF_COL).setMinWidth(overrideConfButtonDims.width + 15);
-    columns.getColumn(OVERRIDE_CONF_COL).setMaxWidth(overrideConfButtonDims.width + 15);
-    columns.getColumn(OVERRIDE_CONF_COL).setPreferredWidth(overrideConfButtonDims.width + 15);
+    columns.getColumn(OVERRIDE_CONF_COL).setMinWidth(40);
+    columns.getColumn(OVERRIDE_CONF_COL).setMaxWidth(40);
+    columns.getColumn(OVERRIDE_CONF_COL).setPreferredWidth(40);
     columns.getColumn(FORM_NAME_COL).setMinWidth(formNameDims.width + 25);
     columns.getColumn(FORM_NAME_COL).setPreferredWidth(formNameDims.width + 25);
     columns.getColumn(EXPORT_STATUS_COL).setMinWidth(exportStatusDims.width + 25);
@@ -73,9 +71,9 @@ public class FormsTableView extends JTable {
     columns.getColumn(LAST_EXPORT_COL).setMinWidth(lastExportDims.width + 25);
     columns.getColumn(LAST_EXPORT_COL).setPreferredWidth(lastExportDims.width + 25);
     columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(cellWithButton());
-    columns.getColumn(DETAIL_BUTTON_COL).setMinWidth(detailButtonDims.width);
-    columns.getColumn(DETAIL_BUTTON_COL).setMaxWidth(detailButtonDims.width);
-    columns.getColumn(DETAIL_BUTTON_COL).setPreferredWidth(detailButtonDims.width);
+    columns.getColumn(DETAIL_BUTTON_COL).setMinWidth(40);
+    columns.getColumn(DETAIL_BUTTON_COL).setMaxWidth(40);
+    columns.getColumn(DETAIL_BUTTON_COL).setPreferredWidth(40);
 
     setFillsViewportHeight(true);
 

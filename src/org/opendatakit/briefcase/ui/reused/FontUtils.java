@@ -39,10 +39,8 @@ public class FontUtils {
             customFont = Font.createFont(Font.TRUETYPE_FONT, file).deriveFont(size);
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, file));
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (FontFormatException e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
         }
         return customFont;
 
