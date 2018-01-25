@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.ui;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -46,6 +47,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatus.TransferType;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsSucceededEvent;
+import org.opendatakit.briefcase.ui.reused.FontUtils;
 
 public class FormTransferTable extends JTable {
 
@@ -53,6 +55,7 @@ public class FormTransferTable extends JTable {
      *
      */
   private static final long serialVersionUID = 8511088963758308085L;
+  private static final Font ic_receipt = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
   
   public class JTableButtonRenderer implements TableCellRenderer {
     @Override public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
@@ -113,7 +116,9 @@ public class FormTransferTable extends JTable {
     final FormStatus status;
     
     DetailButton(FormStatus status) {
-      super(LABEL);
+      super("\uE900");
+      // Use custom fonts instead of png for easier scaling
+      this.setFont(ic_receipt); // custom font that overrides  with a receipt icon
       this.status = status;
       this.addActionListener(this);
       log.debug("creating details button");
@@ -336,17 +341,12 @@ public class FormTransferTable extends JTable {
     columns.getColumn(2).setMinWidth(pullPushStatusDims.width + 25);
     columns.getColumn(2).setPreferredWidth(pullPushStatusDims.width + 25);
 
-    // create a detail button (that we'll throw away)
-    // so we can get the needed column and row dimensions.
-    comp = new DetailButton(null);
-    int buttonWidth = comp.getPreferredSize().width;
-    int buttonHeight = comp.getPreferredSize().height;
-    columns.getColumn(FormTransferTableModel.BUTTON_COLUMN).setMinWidth(buttonWidth + 20);
-    columns.getColumn(FormTransferTableModel.BUTTON_COLUMN).setMaxWidth(buttonWidth + 20);
-    columns.getColumn(FormTransferTableModel.BUTTON_COLUMN).setPreferredWidth(buttonWidth + 20);
+    columns.getColumn(FormTransferTableModel.BUTTON_COLUMN).setMinWidth(40);
+    columns.getColumn(FormTransferTableModel.BUTTON_COLUMN).setMaxWidth(40);
+    columns.getColumn(FormTransferTableModel.BUTTON_COLUMN).setPreferredWidth(40);
     
     // set the row height to be big enough to include a button and have space above and below it
-    setRowHeight(buttonHeight); // btn used is arbitrary...
+    setRowHeight(28); // btn used is arbitrary...
 
     // and scale the others to be wider...
     columns.getColumn(1).setPreferredWidth(5 * headerWidth);
