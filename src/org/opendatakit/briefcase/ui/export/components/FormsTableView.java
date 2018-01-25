@@ -31,7 +31,7 @@ import javax.swing.table.TableRowSorter;
 import org.opendatakit.briefcase.ui.reused.MouseListenerBuilder;
 
 public class FormsTableView extends JTable {
-  static final String[] HEADERS = new String[]{"Selected", "Configure", "Form Name", "Export Status", "Last Export", "Detail"};
+  static final String[] HEADERS = new String[]{"", "", "Form Name", "Export Status", "Last Export", ""};
   static final Class[] TYPES = new Class[]{Boolean.class, JButton.class, String.class, String.class, String.class, JButton.class};
   static final boolean[] EDITABLE_COLS = new boolean[]{true, false, false, false, false, false};
 
@@ -48,7 +48,6 @@ public class FormsTableView extends JTable {
 
     addMouseListener(new MouseListenerBuilder().onClick(this::relayClickToButton).build());
 
-    Dimension selectedCheckboxDims = getHeaderDimension(HEADERS[SELECTED_CHECKBOX_COL]);
     Dimension formNameDims = getHeaderDimension(HEADERS[FORM_NAME_COL]);
     Dimension exportStatusDims = getHeaderDimension(HEADERS[EXPORT_STATUS_COL]);
     Dimension lastExportDims = getHeaderDimension(HEADERS[LAST_EXPORT_COL]);
@@ -56,9 +55,9 @@ public class FormsTableView extends JTable {
     setRowHeight(28);
 
     TableColumnModel columns = getColumnModel();
-    columns.getColumn(SELECTED_CHECKBOX_COL).setMinWidth(selectedCheckboxDims.width + 25);
-    columns.getColumn(SELECTED_CHECKBOX_COL).setMaxWidth(selectedCheckboxDims.width + 25);
-    columns.getColumn(SELECTED_CHECKBOX_COL).setPreferredWidth(selectedCheckboxDims.width + 25);
+    columns.getColumn(SELECTED_CHECKBOX_COL).setMinWidth(40);
+    columns.getColumn(SELECTED_CHECKBOX_COL).setMaxWidth(40);
+    columns.getColumn(SELECTED_CHECKBOX_COL).setPreferredWidth(40);
     columns.getColumn(OVERRIDE_CONF_COL).setCellRenderer(cellWithButton());
     columns.getColumn(OVERRIDE_CONF_COL).setMinWidth(40);
     columns.getColumn(OVERRIDE_CONF_COL).setMaxWidth(40);

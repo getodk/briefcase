@@ -65,10 +65,11 @@ public class FormsTableViewModel extends AbstractTableModel {
   }
 
   @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
-  JButton buildDetailButton(FormStatus form) {
+  private JButton buildDetailButton(FormStatus form) {
     // Use custom fonts instead of png for easier scaling
     JButton button = new JButton("\uE900");
     button.setFont(ic_receipt); // custom font that overrides  with a receipt icon
+    button.setToolTipText("View this form's status history");
 
     button.setEnabled(false);
     button.addActionListener(__ -> {
@@ -83,10 +84,11 @@ public class FormsTableViewModel extends AbstractTableModel {
   }
 
   @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
-  JButton buildOverrideConfButton(FormStatus form) {
+  private JButton buildOverrideConfButton(FormStatus form) {
     // Use custom fonts instead of png for easier scaling
     JButton button = new JButton("\uE900");
     button.setFont(ic_settings); // custom font that overrides  with a gear icon
+    button.setToolTipText("Override the export configuration for this form");
 
     button.setForeground(forms.hasConfiguration(form) ? DARK_GRAY : LIGHT_GRAY);
     button.addActionListener(__ -> {
@@ -187,6 +189,5 @@ public class FormsTableViewModel extends AbstractTableModel {
   public boolean isCellEditable(int rowIndex, int columnIndex) {
     return EDITABLE_COLS[columnIndex];
   }
-
 
 }
