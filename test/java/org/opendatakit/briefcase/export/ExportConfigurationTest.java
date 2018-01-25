@@ -24,6 +24,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -178,7 +179,7 @@ public class ExportConfigurationTest {
 
   @Test
   public void toString_hashCode_and_equals_for_coverage() {
-    assertThat(validConfig.toString(), Matchers.containsString("some/dir"));
+    assertThat(validConfig.toString(), Matchers.containsString("some" + File.separator + "dir"));
     assertThat(validConfig.toString(), Matchers.containsString("some_key.pem"));
     assertThat(validConfig.toString(), Matchers.containsString("2018"));
     assertThat(validConfig.toString(), Matchers.containsString("2020"));
