@@ -120,6 +120,7 @@ public class FormTransferTable extends JTable {
       super("\uE900");
       // Use custom fonts instead of png for easier scaling
       this.setFont(ic_receipt); // custom font that overrides  with a receipt icon
+      this.setToolTipText("View this form's status history");
       this.status = status;
       this.addActionListener(this);
       log.debug("creating details button");
@@ -157,8 +158,9 @@ public class FormTransferTable extends JTable {
       super();
       AnnotationProcessor.process(this);// if not using AOP
 
-      this.columnNames = new String[]{"Selected", "Form Name", ((transferType == TransferType.UPLOAD) ?
-          PushTransferPanel.TAB_NAME : PullTransferPanel.TAB_NAME) + " Status", DetailButton.LABEL};
+      // For some reason, I can't set an empty string for the first col's header text
+      this.columnNames = new String[]{" ", "Form Name", ((transferType == TransferType.UPLOAD) ?
+          PushTransferPanel.TAB_NAME : PullTransferPanel.TAB_NAME) + " Status", ""};
 
       this.btnSelectOrClearAllForms = btnSelectOrClearAllForms;
       this.transferType = transferType;
