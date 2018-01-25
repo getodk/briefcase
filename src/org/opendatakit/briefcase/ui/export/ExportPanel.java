@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 University of Washington.
+ * Copyright (C) 2018 Nafundi
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -13,7 +13,6 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package org.opendatakit.briefcase.ui.export;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
