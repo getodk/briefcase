@@ -7,10 +7,13 @@ import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.empty;
 import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.visible;
 
 import java.time.LocalDate;
+import net.java.openjdk.cacio.ctc.junit.CacioFESTRunner;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.opendatakit.briefcase.ui.matchers.GenericUIMatchers;
 
+@RunWith(CacioFESTRunner.class)
 public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   private ConfigurationPanelPageObject component;
 

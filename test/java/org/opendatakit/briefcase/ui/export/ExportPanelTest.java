@@ -11,10 +11,13 @@ import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.enabled;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import net.java.openjdk.cacio.ctc.junit.CacioFESTRunner;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+@RunWith(CacioFESTRunner.class)
 public class ExportPanelTest extends AssertJSwingJUnitTestCase {
   private ExportPanelPageObject page;
 

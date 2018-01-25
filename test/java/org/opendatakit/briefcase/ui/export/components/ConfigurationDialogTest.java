@@ -9,10 +9,13 @@ import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.enabled;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import net.java.openjdk.cacio.ctc.junit.CacioFESTRunner;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 
+@RunWith(CacioFESTRunner.class)
 public class ConfigurationDialogTest extends AssertJSwingJUnitTestCase {
   private static ExportConfiguration CONFIGURATION;
 
