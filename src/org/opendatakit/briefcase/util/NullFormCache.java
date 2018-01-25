@@ -1,5 +1,6 @@
 package org.opendatakit.briefcase.util;
 
+import java.util.Collections;
 import java.util.List;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 
@@ -27,6 +28,6 @@ public class NullFormCache implements FormCacheable {
 
     @Override
     public List<BriefcaseFormDefinition> getForms() {
-        throw new UnsupportedOperationException("getForms");
+        return Collections.emptyList();
     }
 }
