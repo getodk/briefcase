@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -32,7 +33,6 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.border.EmptyBorder;
 
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -64,7 +64,7 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
   private JButton okButton;
 
   private JButton cancelButton;
-  
+
   private TerminationFuture terminationFuture = new TerminationFuture();
 
   /**
@@ -74,28 +74,33 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
     super(app, "Aggregate v1.x Server Connection", ModalityType.DOCUMENT_MODAL);
     serverInfo = oldInfo;
     this.asTarget = asTarget;
-    setBounds(100, 100, 450, 234);
+    //setBounds(100, 100, 450, 234);
     getContentPane().setLayout(new BorderLayout());
-    contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+    //contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
     getContentPane().add(contentPanel, BorderLayout.CENTER);
     JLabel lblUrl = new JLabel(URL_LABEL);
 
     textUrlField = new JTextField();
-    textUrlField.setColumns(10);
+    textUrlField.setMinimumSize(new Dimension(450,26));
+    textUrlField.setPreferredSize(new Dimension(450,26));
 
     JLabel lblUsername = new JLabel(USERNAME_LABEL);
 
     textUsernameField = new JTextField();
     textUsernameField.setColumns(10);
+    textUsernameField.setMinimumSize(new Dimension(450,26));
+    textUsernameField.setPreferredSize(new Dimension(450,26));
 
     JLabel lblPassword = new JLabel(PASSWORD_LABEL);
 
     textPasswordField = new JPasswordField();
     textPasswordField.setColumns(10);
-    
+    textPasswordField.setMinimumSize(new Dimension(450,26));
+    textPasswordField.setPreferredSize(new Dimension(450,26));
+
     JLabel lblOdkAggregateUsernamePassword = new JLabel(ODK_AGGREGATE_USERNAME_PASSSWORD_LABEL);
     JLabel lblOdkAggregateUsernamePassword2 = new JLabel(ODK_AGGREGATE_USERNAME_PASSSWORD_LABEL2);
-    
+
     GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
     gl_contentPanel.setHorizontalGroup(gl_contentPanel
         .createSequentialGroup()
@@ -173,6 +178,9 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
       textUsernameField.setText(serverInfo.getUsername());
       textPasswordField.setText(new String(serverInfo.getPassword()));
     }
+
+    pack();
+    setLocationRelativeTo(null);
   }
 
   public ServerConnectionInfo getServerInfo() {
@@ -200,14 +208,14 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
         paint(getGraphics());
         terminationFuture.reset();
         ServerConnectionTest backgroundAction = new ServerConnectionTest(info, terminationFuture, asTarget);
-  
+
         backgroundAction.run();
         isSuccessful = backgroundAction.isSuccessful();
         errorString = backgroundAction.getErrorReason();
       } finally {
         setCursor(saved);
       }
-      
+
       if ( isSuccessful ) {
         serverInfo = info;
         this.setVisible(false);
@@ -223,7 +231,7 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
         okButton.setEnabled(true);
         cancelButton.setEnabled(true);
       }
-      
+
     } else {
       // cancel...
       terminationFuture.markAsCancelled(new TransferAbortEvent("User cancels connection."));
