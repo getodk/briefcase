@@ -18,12 +18,10 @@ package org.opendatakit.briefcase.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
@@ -33,7 +31,6 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
-
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
@@ -42,8 +39,8 @@ import org.opendatakit.briefcase.util.ServerConnectionTest;
 public class ServerConnectionDialog extends JDialog implements ActionListener {
 
   /**
-     *
-     */
+   *
+   */
   private static final long serialVersionUID = -6224121510693483027L;
 
   private static final String PASSWORD_LABEL = "Password:";
@@ -81,22 +78,16 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
     JLabel lblUrl = new JLabel(URL_LABEL);
 
     textUrlField = new JTextField();
-    textUrlField.setMinimumSize(new Dimension(450,26));
-    textUrlField.setPreferredSize(new Dimension(450,26));
 
     JLabel lblUsername = new JLabel(USERNAME_LABEL);
 
     textUsernameField = new JTextField();
     textUsernameField.setColumns(10);
-    textUsernameField.setMinimumSize(new Dimension(450,26));
-    textUsernameField.setPreferredSize(new Dimension(450,26));
 
     JLabel lblPassword = new JLabel(PASSWORD_LABEL);
 
     textPasswordField = new JPasswordField();
     textPasswordField.setColumns(10);
-    textPasswordField.setMinimumSize(new Dimension(450,26));
-    textPasswordField.setPreferredSize(new Dimension(450,26));
 
     JLabel lblOdkAggregateUsernamePassword = new JLabel(ODK_AGGREGATE_USERNAME_PASSSWORD_LABEL);
     JLabel lblOdkAggregateUsernamePassword2 = new JLabel(ODK_AGGREGATE_USERNAME_PASSSWORD_LABEL2);
@@ -106,23 +97,23 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
         .createSequentialGroup()
         .addContainerGap()
         .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-          .addGroup(
-              gl_contentPanel.createSequentialGroup()
-                  .addGroup(
-                      gl_contentPanel.createParallelGroup(Alignment.TRAILING).addComponent(lblUrl)
-                          .addComponent(lblUsername).addComponent(lblPassword))
-                  .addPreferredGap(ComponentPlacement.RELATED)
-                  .addGroup(
-                      gl_contentPanel
-                          .createParallelGroup(Alignment.LEADING)
-                          .addComponent(textUrlField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-                              Short.MAX_VALUE)
-                          .addComponent(textUsernameField, GroupLayout.PREFERRED_SIZE,
-                              GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                          .addComponent(textPasswordField, GroupLayout.PREFERRED_SIZE,
-                              GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-          .addComponent(lblOdkAggregateUsernamePassword)
-          .addComponent(lblOdkAggregateUsernamePassword2))
+            .addGroup(
+                gl_contentPanel.createSequentialGroup()
+                    .addGroup(
+                        gl_contentPanel.createParallelGroup(Alignment.TRAILING).addComponent(lblUrl)
+                            .addComponent(lblUsername).addComponent(lblPassword))
+                    .addPreferredGap(ComponentPlacement.RELATED)
+                    .addGroup(
+                        gl_contentPanel
+                            .createParallelGroup(Alignment.LEADING)
+                            .addComponent(textUrlField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                                Short.MAX_VALUE)
+                            .addComponent(textUsernameField, GroupLayout.PREFERRED_SIZE,
+                                GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(textPasswordField, GroupLayout.PREFERRED_SIZE,
+                                GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+            .addComponent(lblOdkAggregateUsernamePassword)
+            .addComponent(lblOdkAggregateUsernamePassword2))
         .addContainerGap());
 
     gl_contentPanel.setVerticalGroup(gl_contentPanel
@@ -216,7 +207,7 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
         setCursor(saved);
       }
 
-      if ( isSuccessful ) {
+      if (isSuccessful) {
         serverInfo = info;
         this.setVisible(false);
       } else {
