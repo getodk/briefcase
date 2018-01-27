@@ -59,9 +59,9 @@ public class Export {
   private static final Param<String> FILE = Param.arg("file", "export_filename", "Filename for export operation");
   private static final Param<Date> START = Param.arg("start", "export_start_date", "Export start date", Export::toDate);
   private static final Param<Date> END = Param.arg("end", "export_end_date", "Export end date", Export::toDate);
-  private static final Param<Void> EXCLUDE_MEDIA = Param.flag("exme", "exclude_media_export", "Exclude media in export");
-  private static final Param<Void> OVERWRITE = Param.flag("ow", "overwrite_csv_export", "Overwrite files during export");
-  private static final Param<String> PEM_FILE = Param.arg("pem", "pem_file", "PEM file for form decryption");
+  private static final Param<Void> EXCLUDE_MEDIA = Param.flag("em", "exclude_media_export", "Exclude media in export");
+  private static final Param<Void> OVERWRITE = Param.flag("oc", "overwrite_csv_export", "Overwrite files during export");
+  private static final Param<String> PEM_FILE = Param.arg("pf", "pem_file", "PEM file for form decryption");
 
   public static Date toDate(String s) {
     try {

@@ -27,7 +27,7 @@ class Common {
   private static final Log LOGGER = LogFactory.getLog(Common.class);
 
   static final Param<String> STORAGE_DIR = Param.arg("sd", "storage_directory", "Briefcase storage directory");
-  static final Param<String> FORM_ID = Param.arg("f", "form_id", "Form ID");
+  static final Param<String> FORM_ID = Param.arg("id", "form_id", "Form ID");
 
   static void bootCache(String storageDir) {
     BriefcasePreferences.setBriefcaseDirectoryProperty(storageDir);
