@@ -23,7 +23,6 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
@@ -31,10 +30,8 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
-
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -56,7 +53,6 @@ import org.opendatakit.briefcase.util.TransferAction;
  * Push forms and data to external locations.
  *
  * @author mitchellsundt@gmail.com
- *
  */
 public class PushTransferPanel extends JPanel {
 
@@ -181,7 +177,7 @@ public class PushTransferPanel extends JPanel {
     JLabel lblSendDataTo = new JLabel(TAB_NAME + " data to:");
 
     listDestinationDataSink = new JComboBox<String>(
-        new String[] { EndPointType.AGGREGATE_1_0_CHOICE.toString() });
+        new String[]{EndPointType.AGGREGATE_1_0_CHOICE.toString()});
 
     listDestinationDataSink.addActionListener(new DestinationSinkListener());
 
@@ -192,8 +188,6 @@ public class PushTransferPanel extends JPanel {
 
     btnDestinationAction = new JButton("Choose...");
     btnDestinationAction.addActionListener(new DestinationActionListener());
-
-    JLabel lblFormsToTransfer = new JLabel("Forms to " + TAB_NAME + ":");
 
     btnSelectOrClearAllForms = new JButton("Select all");
 
@@ -211,11 +205,9 @@ public class PushTransferPanel extends JPanel {
     });
 
     formTransferTable = new FormTransferTable(
-            btnSelectOrClearAllForms, FormStatus.TransferType.UPLOAD, btnTransfer, btnCancel);
+        btnSelectOrClearAllForms, FormStatus.TransferType.UPLOAD, btnTransfer, btnCancel);
 
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
-
-    JSeparator separatorFormsList = new JSeparator();
 
     GroupLayout groupLayout = new GroupLayout(this);
     groupLayout.setHorizontalGroup(groupLayout
@@ -244,9 +236,6 @@ public class PushTransferPanel extends JPanel {
                                         .addComponent(txtDestinationName)
                                         .addPreferredGap(ComponentPlacement.RELATED)
                                         .addComponent(btnDestinationAction))))
-                .addComponent(separatorFormsList, GroupLayout.DEFAULT_SIZE,
-                    GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
-                .addComponent(lblFormsToTransfer)
                 // scroll pane
                 .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
                     Short.MAX_VALUE)
@@ -268,11 +257,6 @@ public class PushTransferPanel extends JPanel {
         .addGroup(
             groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblDestination)
                 .addComponent(txtDestinationName).addComponent(btnDestinationAction))
-        .addPreferredGap(ComponentPlacement.RELATED)
-        .addComponent(separatorFormsList, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
-            GroupLayout.PREFERRED_SIZE)
-        .addPreferredGap(ComponentPlacement.RELATED)
-        .addComponent(lblFormsToTransfer)
         .addPreferredGap(ComponentPlacement.RELATED)
         .addComponent(scrollPane, 200, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
         .addPreferredGap(ComponentPlacement.RELATED)
@@ -352,12 +336,12 @@ public class PushTransferPanel extends JPanel {
     // remember state...
     transferStateActive = active;
   }
-  
+
   private EndPointType getSelectedEndPointType() {
     String strSelection = (String) listDestinationDataSink.getSelectedItem();
     return EndPointType.fromString(strSelection);
   }
-  
+
   private ServerConnectionInfo initServerInfoWithPreferences() {
     String url = PREFERENCES.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
     String username = PREFERENCES.get(BriefcasePreferences.USERNAME, "");

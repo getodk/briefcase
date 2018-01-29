@@ -44,6 +44,7 @@ public class FormsTableViewModel extends AbstractTableModel {
   private final ExportForms forms;
 
   private static final Font ic_settings = FontUtils.getCustomFont("ic_settings.ttf", 16f);
+  private static final Font ic_receipt = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
 
   FormsTableViewModel(ExportForms forms) {
     this.forms = forms;
@@ -63,49 +64,49 @@ public class FormsTableViewModel extends AbstractTableModel {
     onChangeCallbacks.forEach(Runnable::run);
   }
 
-  JButton buildDetailButton(FormStatus form) {
-    JButton button = new JButton("Details...");
+  @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
+  private JButton buildDetailButton(FormStatus form) {
+    // Use custom fonts instead of png for easier scaling
+    JButton button = new JButton("\uE900");
+    button.setFont(ic_receipt); // custom font that overrides  with a receipt icon
+    button.setToolTipText("View this form's status history");
+
     button.setEnabled(false);
-    // Ugly hack to be able to use this factory in FormExportTable to compute its Dimension
-    if (form != null) {
-      button.addActionListener(__ -> {
-        button.setEnabled(false);
-        try {
-          showDialog(getFrameForComponent(button), form.getFormDefinition(), form.getStatusHistory());
-        } finally {
-          button.setEnabled(true);
-        }
-      });
-    }
+    button.addActionListener(__ -> {
+      button.setEnabled(false);
+      try {
+        showDialog(getFrameForComponent(button), form.getFormDefinition(), form.getStatusHistory());
+      } finally {
+        button.setEnabled(true);
+      }
+    });
     return button;
   }
 
-  JButton buildOverrideConfButton(FormStatus form) {
-
+  @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
+  private JButton buildOverrideConfButton(FormStatus form) {
     // Use custom fonts instead of png for easier scaling
-    JButton button = new JButton("\uE900"); // custom font that overrides  with a ⚙️
-    button.setFont(ic_settings);
+    JButton button = new JButton("\uE900");
+    button.setFont(ic_settings); // custom font that overrides  with a gear icon
+    button.setToolTipText("Override the export configuration for this form");
 
-    // Ugly hack to be able to use this factory in FormExportTable to compute its Dimension
-    if (form != null) {
-      button.setForeground(forms.hasConfiguration(form) ? DARK_GRAY : LIGHT_GRAY);
-      button.addActionListener(__ -> {
-        button.setEnabled(false);
-        try {
-          ConfigurationDialog dialog = ConfigurationDialog.from(forms.getCustomConfiguration(form));
-          dialog.onRemove(() -> removeConfiguration(form));
-          dialog.onOK(configuration -> {
-            if (configuration.isEmpty())
-              removeConfiguration(form);
-            else
-              putConfiguration(form, configuration);
-          });
-          dialog.open();
-        } finally {
-          button.setEnabled(true);
-        }
-      });
-    }
+    button.setForeground(forms.hasConfiguration(form) ? DARK_GRAY : LIGHT_GRAY);
+    button.addActionListener(__ -> {
+      button.setEnabled(false);
+      try {
+        ConfigurationDialog dialog = ConfigurationDialog.from(forms.getCustomConfiguration(form));
+        dialog.onRemove(() -> removeConfiguration(form));
+        dialog.onOK(configuration -> {
+          if (configuration.isEmpty())
+            removeConfiguration(form);
+          else
+            putConfiguration(form, configuration);
+        });
+        dialog.open();
+      } finally {
+        button.setEnabled(true);
+      }
+    });
     return button;
   }
 
@@ -188,6 +189,5 @@ public class FormsTableViewModel extends AbstractTableModel {
   public boolean isCellEditable(int rowIndex, int columnIndex) {
     return EDITABLE_COLS[columnIndex];
   }
-
 
 }
