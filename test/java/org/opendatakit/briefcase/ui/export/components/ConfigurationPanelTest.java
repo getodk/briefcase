@@ -17,6 +17,7 @@ package org.opendatakit.briefcase.ui.export.components;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.empty;
 import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.visible;
@@ -68,20 +69,14 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   }
 
   @Test
-  public void shows_error_and_clears_field_after_inserting_an_invalid_start_date() {
-    component.setEndDate(LocalDate.of(2018, 1, 1));
-    component.setStartDate(LocalDate.of(2020, 1, 1));
-    assertThat(component.errorDialog(500), is(GenericUIMatchers.visible()));
-    component.acceptErrorDialog();
-    assertThat(component.startDateField(), is(empty()));
+  public void cannot_insert_an_end_date_before_the_set_start_date() {
+    component.setStartDate(LocalDate.of(2017, 1, 30));
+    assertFalse(component.endDatePicker().isDateAllowed(LocalDate.of(2017, 1, 28)));
   }
 
   @Test
-  public void shows_error_and_clears_field_after_inserting_an_invalid_end_date() {
-    component.setStartDate(LocalDate.of(2020, 1, 1));
-    component.setEndDate(LocalDate.of(2018, 1, 1));
-    assertThat(component.errorDialog(500), is(GenericUIMatchers.visible()));
-    component.acceptErrorDialog();
-    assertThat(component.endDateField(), is(empty()));
+  public void cannot_insert_a_start_date_after_the_set_end_date() {
+    component.setEndDate(LocalDate.of(2017,1,25));
+    assertFalse(component.startDatePicker().isDateAllowed(LocalDate.of(2017,1,27)));
   }
 }

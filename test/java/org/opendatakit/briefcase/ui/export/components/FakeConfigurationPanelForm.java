@@ -28,11 +28,6 @@ class FakeConfigurationPanelForm extends ConfigurationPanelForm {
   }
 
   @Override
-  protected void showError(String message, String title) {
-    errorShown = true;
-  }
-
-  @Override
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
   }

@@ -15,14 +15,13 @@
  */
 package org.opendatakit.briefcase.ui.export.components;
 
-import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.directory;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.file;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 
 import com.github.lgooddatepicker.components.DatePicker;
-import com.github.lgooddatepicker.zinternaltools.DateChangeEvent;
+
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -42,7 +41,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import org.opendatakit.briefcase.ui.MessageStrings;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.StringUtils;
 
@@ -89,28 +87,16 @@ public class ConfigurationPanelForm extends JComponent {
         buildPemFileDialog().choose().ifPresent(file -> setPemFile(Paths.get(file.toURI())))
     );
     pemFileClearButton.addActionListener(__ -> clearPemFile());
-    startDatePicker.addDateChangeListener(event -> {
-      if (!isDateRangeValid()) {
-        startDatePicker.closePopup();
-        startDatePicker.clear();
-        showError(MessageStrings.INVALID_DATE_RANGE_MESSAGE, "Export configuration error");
-      } else
-        onSelectStartDateCallbacks.forEach(consumer -> consumer.accept(extractDate(event)));
-    });
-    endDatePicker.addDateChangeListener(event -> {
-      if (!isDateRangeValid()) {
-        endDatePicker.closePopup();
-        endDatePicker.clear();
-        showError(MessageStrings.INVALID_DATE_RANGE_MESSAGE, "Export configuration error");
-      } else
-        onSelectEndDateCallbacks.forEach(consumer -> consumer.accept(extractDate(event)));
-    });
-  }
 
-  private boolean isDateRangeValid() {
-    LocalDate startDate = startDatePicker.getDate();
-    LocalDate endDate = endDatePicker.getDate();
-    return startDate == null || endDate == null || startDate.isBefore(endDate);
+    startDatePicker.addDateChangeListener(event -> {
+      endDatePicker.getSettings().setDateRangeLimits(event.getNewDate(), null);
+      onSelectStartDateCallbacks.forEach(consumer -> consumer.accept(event.getNewDate()));
+    });
+
+    endDatePicker.addDateChangeListener(event -> {
+      startDatePicker.getSettings().setDateRangeLimits(null, event.getNewDate());
+      onSelectEndDateCallbacks.forEach(consumer -> consumer.accept(event.getNewDate()));
+    });
   }
 
   @Override
@@ -184,10 +170,6 @@ public class ConfigurationPanelForm extends JComponent {
     onSelectEndDateCallbacks.add(callback);
   }
 
-  protected void showError(String message, String title) {
-    showErrorDialog(container, message, title);
-  }
-
   private void createUIComponents() {
     // Custom creation of components occurs inside the constructor
   }
@@ -226,14 +208,6 @@ public class ConfigurationPanelForm extends JComponent {
     return Optional.ofNullable(textField.getText())
         .filter(StringUtils::nullOrEmpty)
         .map(path -> Paths.get(path).toFile());
-  }
-
-  private static LocalDate extractDate(DateChangeEvent event) {
-    return event.getNewDate() != null ? LocalDate.of(
-        event.getNewDate().getYear(),
-        event.getNewDate().getMonthValue(),
-        event.getNewDate().getDayOfMonth()
-    ) : null;
   }
 
   /**

@@ -15,10 +15,8 @@
  */
 package org.opendatakit.briefcase.ui.export.components;
 
-import static com.github.npathai.hamcrestopt.OptionalMatchers.isEmpty;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
@@ -62,34 +60,6 @@ public class ConfigurationPanelUnitTest {
     assertThat(view.getPemFile(), is(initialConfiguration.getPemFile().get()));
     assertThat(view.getDateRangeStart(), is(initialConfiguration.getStartDate().get()));
     assertThat(view.getDateRangeEnd(), is(initialConfiguration.getEndDate().get()));
-  }
-
-  @Test
-  public void shows_an_error_and_resets_the_field_when_the_UI_tries_to_set_a_date_range_end_that_is_before_its_start() {
-    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm(false);
-    ConfigurationPanel panel = new ConfigurationPanel(ExportConfiguration.empty(), view);
-    view.setStartDate(LocalDate.of(2019, 1, 1));
-
-    // Trigger the error
-    view.setEndDate(LocalDate.of(2018, 1, 1));
-
-    assertThat(view.errorShown, is(true));
-    assertThat(view.endDatePicker.getDate(), nullValue());
-    assertThat(panel.getConfiguration().getEndDate(), isEmpty());
-  }
-
-  @Test
-  public void shows_an_error_and_resets_the_field_when_the_UI_tries_to_set_a_date_range_start_that_is_after_its_end() {
-    FakeConfigurationPanelForm view = new FakeConfigurationPanelForm(false);
-    ConfigurationPanel configurationPanel = new ConfigurationPanel(ExportConfiguration.empty(), view);
-    view.setEndDate(LocalDate.of(2018, 1, 1));
-
-    // Trigger the error
-    view.setStartDate(LocalDate.of(2019, 1, 1));
-
-    assertThat(view.errorShown, is(true));
-    assertThat(view.startDatePicker.getDate(), nullValue());
-    assertThat(configurationPanel.getConfiguration().getStartDate(), isEmpty());
   }
 
   @Test
