@@ -66,18 +66,18 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
    * appear.
    */
   public static void showDialog(Frame frame, IFormDefinition form, String statusHtml) {
-    ScrollingStatusListDialog dialog = new ScrollingStatusListDialog(frame, "Detailed Status:",
-        "Detailed Transfer Status for ", form, statusHtml);
+    ScrollingStatusListDialog dialog = new ScrollingStatusListDialog(frame,
+        "Detailed Status for ", form, statusHtml);
     dialog.setVisible(true);
   }
   
   public static void showExportDialog(Frame frame, IFormDefinition form, String dirName, String statusHtml) {
-    ScrollingStatusListDialog dialog = new ScrollingStatusListDialog(frame,"Export Directory: " + dirName,
+    ScrollingStatusListDialog dialog = new ScrollingStatusListDialog(frame,
         "Export Details for ", form, statusHtml);
     dialog.setVisible(true);
   }
 
-  private ScrollingStatusListDialog(Frame frame, String labelText, String title, IFormDefinition form, String statusHtml) {
+  private ScrollingStatusListDialog(Frame frame, String title, IFormDefinition form, String statusHtml) {
     super(frame, title + form.getFormName(), true);
     this.form = form;
     AnnotationProcessor.process(this);
@@ -101,9 +101,6 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
     // Lay out the label and scroll pane from top to bottom.
     JPanel listPane = new JPanel();
     listPane.setLayout(new BoxLayout(listPane, BoxLayout.PAGE_AXIS));
-    JLabel label = new JLabel(labelText);
-    label.setLabelFor(editorScrollPane);
-    listPane.add(label);
     listPane.add(Box.createRigidArea(new Dimension(0, 5)));
     listPane.add(editorScrollPane);
     listPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
