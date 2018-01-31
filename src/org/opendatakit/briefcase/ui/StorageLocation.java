@@ -40,7 +40,7 @@ public class StorageLocation {
      * @param errorParentWindow the parent window of error dialogs
      * @param uiStateChangeListener an object whose setFullUIEnabled method is to be called
      */
-    void establishBriefcaseStorageLocation(Window errorParentWindow, UiStateChangeListener uiStateChangeListener) {
+    public void establishBriefcaseStorageLocation(Window errorParentWindow, UiStateChangeListener uiStateChangeListener) {
         String briefcaseDir = briefcasePreferences.getBriefcaseDirectoryOrNull();
         boolean enableUi = false;
 

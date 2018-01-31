@@ -49,6 +49,7 @@ import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
+import org.opendatakit.briefcase.ui.settings.SettingsPanel;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
 public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeListener {
@@ -56,14 +57,14 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BriefcasePreferences.VERSION;
     private final ImageIcon imageIcon = new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png"));
 
-    JFrame frame;
+    public JFrame frame;
     private PushTransferPanel uploadPanel;
     private ExportPanel exportPanel;
     private SettingsPanel settingsPanel;
     private final TerminationFuture exportTerminationFuture = new TerminationFuture();
     private final TerminationFuture transferTerminationFuture = new TerminationFuture();
-    final BriefcaseAnalytics briefcaseAnalytics = new BriefcaseAnalytics();
-    final StorageLocation storageLocation;
+    public final BriefcaseAnalytics briefcaseAnalytics = new BriefcaseAnalytics();
+    public final StorageLocation storageLocation;
 
     public static final String AGGREGATE_URL = "aggregate_url";
     public static final String DATE_FORMAT = "yyyy/MM/dd";

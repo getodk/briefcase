@@ -79,5 +79,5 @@ public class MessageStrings {
           "features of this software. Use of this information will always follow the ODK\n" +
           "Community Privacy Policy.";
 
-  static final String TRACKING_CONSENT = "Gather anonymous usage data";
+  public static final String TRACKING_CONSENT = "Gather anonymous usage data";
 }
