@@ -19,6 +19,7 @@ package org.opendatakit.briefcase.ui;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -121,6 +122,7 @@ public class FormTransferTable extends JTable {
       // Use custom fonts instead of png for easier scaling
       this.setFont(ic_receipt); // custom font that overrides  with a receipt icon
       this.setToolTipText("View this form's status history");
+      this.setMargin(new Insets(0,0,0,0));
       this.status = status;
       this.addActionListener(this);
       log.debug("creating details button");

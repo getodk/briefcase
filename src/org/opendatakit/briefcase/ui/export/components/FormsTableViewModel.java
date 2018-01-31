@@ -26,6 +26,7 @@ import static org.opendatakit.briefcase.ui.export.components.FormsTableView.HEAD
 import static org.opendatakit.briefcase.ui.export.components.FormsTableView.TYPES;
 
 import java.awt.Font;
+import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -70,6 +71,7 @@ public class FormsTableViewModel extends AbstractTableModel {
     JButton button = new JButton("\uE900");
     button.setFont(ic_receipt); // custom font that overrides  with a receipt icon
     button.setToolTipText("View this form's status history");
+    button.setMargin(new Insets(0, 0, 0, 0));
 
     button.setEnabled(false);
     button.addActionListener(__ -> {
@@ -89,6 +91,7 @@ public class FormsTableViewModel extends AbstractTableModel {
     JButton button = new JButton("\uE900");
     button.setFont(ic_settings); // custom font that overrides  with a gear icon
     button.setToolTipText("Override the export configuration for this form");
+    button.setMargin(new Insets(0, 0, 0, 0));
 
     button.setForeground(forms.hasConfiguration(form) ? DARK_GRAY : LIGHT_GRAY);
     button.addActionListener(__ -> {
