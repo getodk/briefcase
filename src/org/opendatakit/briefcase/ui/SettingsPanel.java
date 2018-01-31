@@ -1,4 +1,4 @@
-package org.opendatakit.briefcase.ui.settings;
+package org.opendatakit.briefcase.ui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,11 +17,6 @@ import javax.swing.event.ChangeListener;
 import org.apache.http.HttpHost;
 import org.opendatakit.briefcase.model.BriefcaseAnalytics;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.ui.BriefcaseFolderChooser;
-import org.opendatakit.briefcase.ui.JIntegerSpinner;
-import org.opendatakit.briefcase.ui.MainBriefcaseWindow;
-import org.opendatakit.briefcase.ui.MessageStrings;
-import org.opendatakit.briefcase.ui.WrappedFileChooser;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.StringUtils;
 
@@ -37,7 +32,7 @@ public class SettingsPanel extends JPanel {
   private final JCheckBox chkTrackingConsent = new JCheckBox(MessageStrings.TRACKING_CONSENT);
   private final JCheckBox chkStorePasswordsConsent = new JCheckBox("Store passwords (unsafe)");
 
-  public SettingsPanel(final MainBriefcaseWindow parentWindow) {
+  SettingsPanel(final MainBriefcaseWindow parentWindow) {
     txtBriefcaseDir.setFocusable(false);
     txtBriefcaseDir.setEditable(false);
     txtBriefcaseDir.setColumns(50);
@@ -98,7 +93,12 @@ public class SettingsPanel extends JPanel {
     chkStorePasswordsConsent.setSelected(BriefcasePreferences.getStorePasswordsConsentProperty());
     chkStorePasswordsConsent.addActionListener(e -> {
       if (e.getSource() == chkStorePasswordsConsent) {
-        BriefcasePreferences.setStorePasswordsConsentProperty(chkStorePasswordsConsent.isSelected());
+        boolean isSelected = chkStorePasswordsConsent.isSelected();
+        BriefcasePreferences.setStorePasswordsConsentProperty(isSelected);
+        if (!isSelected) {
+          PullTransferPanel.PREFERENCES.remove(BriefcasePreferences.PASSWORD);
+          PushTransferPanel.PREFERENCES.remove(BriefcasePreferences.PASSWORD);
+        }
       }
     });
 
@@ -182,7 +182,7 @@ public class SettingsPanel extends JPanel {
     }
   }
 
-  public JTextField getTxtBriefcaseDir() {
+  JTextField getTxtBriefcaseDir() {
     return txtBriefcaseDir;
   }
 

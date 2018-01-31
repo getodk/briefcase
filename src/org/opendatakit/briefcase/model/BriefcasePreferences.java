@@ -35,6 +35,7 @@ public class BriefcasePreferences {
     public static final String VERSION = BuildConfig.VERSION;
     public static final String GOOGLE_TRACKING_ID = BuildConfig.GOOGLE_TRACKING_ID;
     public static final String USERNAME = "username";
+    public static final String PASSWORD = "password";
     public static final String AGGREGATE_1_0_URL = "url_1_0";
 
     private static final String BRIEFCASE_DIR_PROPERTY = "briefcaseDir";

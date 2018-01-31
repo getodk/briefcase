@@ -26,7 +26,7 @@ import javax.swing.filechooser.FileFilter;
 
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
-public class BriefcaseFolderChooser extends AbstractFileChooser {
+class BriefcaseFolderChooser extends AbstractFileChooser {
 
     private final Container parentWindow;
     private static final long serialVersionUID = 7687033156045655297L;
@@ -65,7 +65,7 @@ public class BriefcaseFolderChooser extends AbstractFileChooser {
         }
     }
 
-    public BriefcaseFolderChooser(Container parentWindow) {
+    BriefcaseFolderChooser(Container parentWindow) {
         super();
         this.parentWindow = parentWindow;
         setDialogTitle("Choose " + MessageStrings.BRIEFCASE_STORAGE_LOCATION);
