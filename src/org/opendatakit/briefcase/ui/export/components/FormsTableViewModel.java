@@ -56,7 +56,7 @@ public class FormsTableViewModel extends AbstractTableModel {
   }
 
   void refresh() {
-    detailButtons.forEach((form, button) -> button.setEnabled(!form.getStatusHistory().isEmpty()));
+    detailButtons.forEach((form, button) -> button.setForeground(form.getStatusHistory().isEmpty() ? LIGHT_GRAY : DARK_GRAY));
     fireTableDataChanged();
     triggerChange();
   }
@@ -73,14 +73,10 @@ public class FormsTableViewModel extends AbstractTableModel {
     button.setToolTipText("View this form's status history");
     button.setMargin(new Insets(0, 0, 0, 0));
 
-    button.setEnabled(false);
+    button.setForeground(LIGHT_GRAY);
     button.addActionListener(__ -> {
-      button.setEnabled(false);
-      try {
+      if (!form.getStatusHistory().isEmpty())
         showDialog(getFrameForComponent(button), form.getFormDefinition(), form.getStatusHistory());
-      } finally {
-        button.setEnabled(true);
-      }
     });
     return button;
   }
@@ -95,20 +91,15 @@ public class FormsTableViewModel extends AbstractTableModel {
 
     button.setForeground(forms.hasConfiguration(form) ? DARK_GRAY : LIGHT_GRAY);
     button.addActionListener(__ -> {
-      button.setEnabled(false);
-      try {
-        ConfigurationDialog dialog = ConfigurationDialog.from(forms.getCustomConfiguration(form));
-        dialog.onRemove(() -> removeConfiguration(form));
-        dialog.onOK(configuration -> {
-          if (configuration.isEmpty())
-            removeConfiguration(form);
-          else
-            putConfiguration(form, configuration);
-        });
-        dialog.open();
-      } finally {
-        button.setEnabled(true);
-      }
+      ConfigurationDialog dialog = ConfigurationDialog.from(forms.getCustomConfiguration(form));
+      dialog.onRemove(() -> removeConfiguration(form));
+      dialog.onOK(configuration -> {
+        if (configuration.isEmpty())
+          removeConfiguration(form);
+        else
+          putConfiguration(form, configuration);
+      });
+      dialog.open();
     });
     return button;
   }
