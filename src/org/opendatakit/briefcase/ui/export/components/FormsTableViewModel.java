@@ -56,7 +56,7 @@ public class FormsTableViewModel extends AbstractTableModel {
   }
 
   void refresh() {
-    detailButtons.forEach((form, button) -> button.setForeground(form.getStatusHistory().isEmpty() ? LIGHT_GRAY : DARK_GRAY));
+    detailButtons.forEach(this::updateDetailButton);
     fireTableDataChanged();
     triggerChange();
   }
@@ -89,7 +89,7 @@ public class FormsTableViewModel extends AbstractTableModel {
     button.setToolTipText("Override the export configuration for this form");
     button.setMargin(new Insets(0, 0, 0, 0));
 
-    button.setForeground(forms.hasConfiguration(form) ? DARK_GRAY : LIGHT_GRAY);
+    updateConfButton(form, button);
     button.addActionListener(__ -> {
       ConfigurationDialog dialog = ConfigurationDialog.from(forms.getCustomConfiguration(form));
       dialog.onRemove(() -> removeConfiguration(form));
@@ -106,14 +106,22 @@ public class FormsTableViewModel extends AbstractTableModel {
 
   private void putConfiguration(FormStatus form, ExportConfiguration configuration) {
     forms.putConfiguration(form, configuration);
-    confButtons.get(form).setForeground(DARK_GRAY);
+    updateConfButton(form, confButtons.get(form));
     triggerChange();
   }
 
   private void removeConfiguration(FormStatus form) {
     forms.removeConfiguration(form);
-    confButtons.get(form).setForeground(LIGHT_GRAY);
+    updateConfButton(form, confButtons.get(form));
     triggerChange();
+  }
+
+  private void updateDetailButton(FormStatus form, JButton button) {
+    button.setForeground(form.getStatusHistory().isEmpty() ? LIGHT_GRAY : DARK_GRAY);
+  }
+
+  private void updateConfButton(FormStatus form, JButton button) {
+    button.setForeground(forms.hasConfiguration(form) ? DARK_GRAY : LIGHT_GRAY);
   }
 
   @Override
