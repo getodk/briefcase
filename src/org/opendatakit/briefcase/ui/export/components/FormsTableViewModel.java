@@ -56,7 +56,7 @@ public class FormsTableViewModel extends AbstractTableModel {
   }
 
   void refresh() {
-    detailButtons.forEach((form, button) -> button.setEnabled(!form.getStatusHistory().isEmpty()));
+    detailButtons.forEach(this::updateDetailButton);
     fireTableDataChanged();
     triggerChange();
   }
@@ -73,14 +73,10 @@ public class FormsTableViewModel extends AbstractTableModel {
     button.setToolTipText("View this form's status history");
     button.setMargin(new Insets(0, 0, 0, 0));
 
-    button.setEnabled(false);
+    button.setForeground(LIGHT_GRAY);
     button.addActionListener(__ -> {
-      button.setEnabled(false);
-      try {
+      if (!form.getStatusHistory().isEmpty())
         showDialog(getFrameForComponent(button), form.getFormDefinition(), form.getStatusHistory());
-      } finally {
-        button.setEnabled(true);
-      }
     });
     return button;
   }
@@ -93,36 +89,39 @@ public class FormsTableViewModel extends AbstractTableModel {
     button.setToolTipText("Override the export configuration for this form");
     button.setMargin(new Insets(0, 0, 0, 0));
 
-    button.setForeground(forms.hasConfiguration(form) ? DARK_GRAY : LIGHT_GRAY);
+    updateConfButton(form, button);
     button.addActionListener(__ -> {
-      button.setEnabled(false);
-      try {
-        ConfigurationDialog dialog = ConfigurationDialog.from(forms.getCustomConfiguration(form));
-        dialog.onRemove(() -> removeConfiguration(form));
-        dialog.onOK(configuration -> {
-          if (configuration.isEmpty())
-            removeConfiguration(form);
-          else
-            putConfiguration(form, configuration);
-        });
-        dialog.open();
-      } finally {
-        button.setEnabled(true);
-      }
+      ConfigurationDialog dialog = ConfigurationDialog.from(forms.getCustomConfiguration(form));
+      dialog.onRemove(() -> removeConfiguration(form));
+      dialog.onOK(configuration -> {
+        if (configuration.isEmpty())
+          removeConfiguration(form);
+        else
+          putConfiguration(form, configuration);
+      });
+      dialog.open();
     });
     return button;
   }
 
   private void putConfiguration(FormStatus form, ExportConfiguration configuration) {
     forms.putConfiguration(form, configuration);
-    confButtons.get(form).setForeground(DARK_GRAY);
+    updateConfButton(form, confButtons.get(form));
     triggerChange();
   }
 
   private void removeConfiguration(FormStatus form) {
     forms.removeConfiguration(form);
-    confButtons.get(form).setForeground(LIGHT_GRAY);
+    updateConfButton(form, confButtons.get(form));
     triggerChange();
+  }
+
+  private void updateDetailButton(FormStatus form, JButton button) {
+    button.setForeground(form.getStatusHistory().isEmpty() ? LIGHT_GRAY : DARK_GRAY);
+  }
+
+  private void updateConfButton(FormStatus form, JButton button) {
+    button.setForeground(forms.hasConfiguration(form) ? DARK_GRAY : LIGHT_GRAY);
   }
 
   @Override
