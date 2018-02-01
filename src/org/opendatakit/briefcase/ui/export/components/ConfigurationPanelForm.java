@@ -91,15 +91,17 @@ public class ConfigurationPanelForm extends JComponent {
     pemFileClearButton.addActionListener(__ -> clearPemFile());
     startDatePicker.addDateChangeListener(event -> {
       if (!isDateRangeValid()) {
-        showError(MessageStrings.INVALID_DATE_RANGE_MESSAGE, "Export configuration error");
+        startDatePicker.closePopup();
         startDatePicker.clear();
+        showError(MessageStrings.INVALID_DATE_RANGE_MESSAGE, "Export configuration error");
       } else
         onSelectStartDateCallbacks.forEach(consumer -> consumer.accept(extractDate(event)));
     });
     endDatePicker.addDateChangeListener(event -> {
       if (!isDateRangeValid()) {
-        showError(MessageStrings.INVALID_DATE_RANGE_MESSAGE, "Export configuration error");
+        endDatePicker.closePopup();
         endDatePicker.clear();
+        showError(MessageStrings.INVALID_DATE_RANGE_MESSAGE, "Export configuration error");
       } else
         onSelectEndDateCallbacks.forEach(consumer -> consumer.accept(extractDate(event)));
     });
