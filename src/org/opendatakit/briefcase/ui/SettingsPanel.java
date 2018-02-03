@@ -30,7 +30,7 @@ public class SettingsPanel extends JPanel {
   private final JSpinner spinPort = new JIntegerSpinner(8080, 0, 65535, 1);
   private final JCheckBox chkParallel = new JCheckBox(MessageStrings.PARALLEL_PULLS);
   private final JCheckBox chkTrackingConsent = new JCheckBox(MessageStrings.TRACKING_CONSENT);
-  private final JCheckBox chkStorePasswordsConsent = new JCheckBox("Store passwords (unsafe)");
+  private final JCheckBox chkStorePasswordsConsent = new JCheckBox("Remember passwords (unencrypted)");
 
   SettingsPanel(final MainBriefcaseWindow parentWindow) {
     txtBriefcaseDir.setFocusable(false);
