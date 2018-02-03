@@ -61,7 +61,7 @@ public class PushTransferPanel extends JPanel {
   public static final String TAB_NAME = "Push";
 
   private static final String UPLOADING_DOT_ETC = "Uploading..........";
-  private static final BriefcasePreferences PREFERENCES =
+  static final BriefcasePreferences PREFERENCES =
       BriefcasePreferences.forClass(PushTransferPanel.class);
 
   private JComboBox<String> listDestinationDataSink;
@@ -122,8 +122,10 @@ public class PushTransferPanel extends JPanel {
         if (d.isSuccessful()) {
           destinationServerInfo = d.getServerInfo();
           txtDestinationName.setText(destinationServerInfo.getUrl());
-          PREFERENCES.put(BriefcasePreferences.USERNAME, destinationServerInfo.getUsername());
           PREFERENCES.put(BriefcasePreferences.AGGREGATE_1_0_URL, destinationServerInfo.getUrl());
+          PREFERENCES.put(BriefcasePreferences.USERNAME, destinationServerInfo.getUsername());
+          if (BriefcasePreferences.getStorePasswordsConsentProperty())
+            PREFERENCES.put(BriefcasePreferences.PASSWORD, new String(destinationServerInfo.getPassword()));
         }
       } else {
         throw new IllegalStateException("unexpected case");
@@ -345,7 +347,10 @@ public class PushTransferPanel extends JPanel {
   private ServerConnectionInfo initServerInfoWithPreferences() {
     String url = PREFERENCES.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
     String username = PREFERENCES.get(BriefcasePreferences.USERNAME, "");
-    return new ServerConnectionInfo(url, username, new char[0]);
+    char[] password = BriefcasePreferences.getStorePasswordsConsentProperty()
+        ? PREFERENCES.get(BriefcasePreferences.PASSWORD, "").toCharArray()
+        : new char[0];
+    return new ServerConnectionInfo(url, username, password);
   }
 
   @EventSubscriber(eventClass = TransferFailedEvent.class)

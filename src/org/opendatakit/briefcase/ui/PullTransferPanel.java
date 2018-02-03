@@ -69,7 +69,7 @@ public class PullTransferPanel extends JPanel {
   public static final String TAB_NAME = "Pull";
 
   private static final String DOWNLOADING_DOT_ETC = "Downloading..........";
-  private static final BriefcasePreferences PREFERENCES =
+  static final BriefcasePreferences PREFERENCES =
       BriefcasePreferences.forClass(PullTransferPanel.class);
 
   private JComboBox<String> listOriginDataSource;
@@ -143,8 +143,10 @@ public class PullTransferPanel extends JPanel {
         if (d.isSuccessful()) {
           originServerInfo = d.getServerInfo();
           txtOriginName.setText(originServerInfo.getUrl());
-          PREFERENCES.put(BriefcasePreferences.USERNAME, originServerInfo.getUsername());
           PREFERENCES.put(BriefcasePreferences.AGGREGATE_1_0_URL, originServerInfo.getUrl());
+          PREFERENCES.put(BriefcasePreferences.USERNAME, originServerInfo.getUsername());
+          if (BriefcasePreferences.getStorePasswordsConsentProperty())
+            PREFERENCES.put(BriefcasePreferences.PASSWORD, new String(originServerInfo.getPassword()));
           PullTransferPanel.this.updateFormStatuses();
         }
       } else if (EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.equals(selection)) {
@@ -449,7 +451,8 @@ public class PullTransferPanel extends JPanel {
     if (type == EndPointType.AGGREGATE_1_0_CHOICE) {
       String url = PREFERENCES.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
       String username = PREFERENCES.get(BriefcasePreferences.USERNAME, "");
-      connectionInfo = new ServerConnectionInfo(url, username, new char[0]);
+      char[] password = BriefcasePreferences.getStorePasswordsConsentProperty() ? PREFERENCES.get(BriefcasePreferences.PASSWORD, "").toCharArray() : new char[0];
+      connectionInfo = new ServerConnectionInfo(url, username, password);
     } // There are no preferences needed for the other types.
 
     return connectionInfo;
