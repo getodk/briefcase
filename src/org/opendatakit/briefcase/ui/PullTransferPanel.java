@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.ui;
 
+import static java.util.stream.Collectors.toList;
+
 import java.awt.Component;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -469,6 +471,13 @@ public class PullTransferPanel extends JPanel {
   @EventSubscriber(eventClass = TransferSucceededEvent.class)
   public void successfulCompletion(TransferSucceededEvent event) {
     setActiveTransferState(false);
+    if (BriefcasePreferences.getStorePasswordsConsentProperty()) {
+      event.formsToTransfer.forEach(form -> {
+        appPreferences.put(String.format("%s_pull_settings_url", form.getFormName()), event.transferSettings.getUrl());
+        appPreferences.put(String.format("%s_pull_settings_username", form.getFormName()), event.transferSettings.getUsername());
+        appPreferences.put(String.format("%s_pull_settings_password", form.getFormName()), String.valueOf(event.transferSettings.getPassword()));
+      });
+    }
   }
 
   @EventSubscriber(eventClass = FormStatusEvent.class)
@@ -485,5 +494,9 @@ public class PullTransferPanel extends JPanel {
   @EventSubscriber(eventClass = RemoveSavePasswordConsent.class)
   public void onRemoveSavePasswordConsent(RemoveSavePasswordConsent event) {
     tabPreferences.remove(BriefcasePreferences.PASSWORD);
+    appPreferences.removeAll(appPreferences.keys().stream().filter((String key) -> key.endsWith("_pull_settings_url")
+        || key.endsWith("_pull_settings_username")
+        || key.endsWith("_pull_settings_password")).peek(System.out::println).collect(toList()));
   }
+
 }

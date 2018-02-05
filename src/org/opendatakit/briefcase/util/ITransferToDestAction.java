@@ -16,10 +16,14 @@
 
 package org.opendatakit.briefcase.util;
 
+import org.opendatakit.briefcase.model.ServerConnectionInfo;
+
 interface ITransferToDestAction {
   /**
    * 
    * @return true if successful, false if there were one or more problems
    */
   boolean doAction();
+
+  ServerConnectionInfo getTransferSettings();
 }

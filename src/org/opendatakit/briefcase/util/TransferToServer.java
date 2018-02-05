@@ -40,4 +40,9 @@ public class TransferToServer implements ITransferToDestAction {
     
     return uploader.uploadFormAndSubmissionFiles( formsToTransfer);
   }
+
+  @Override
+  public ServerConnectionInfo getTransferSettings() {
+    return destServerInfo;
+  }
 }

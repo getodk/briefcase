@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
+import jdk.internal.dynalink.support.RuntimeContextLinkRequestImpl;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,6 +34,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
+import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 
 public class TransferFromODK implements ITransferFromSourceAction {
@@ -352,5 +354,11 @@ public class TransferFromODK implements ITransferFromSourceAction {
   @Override
   public boolean isSourceDeletable() {
     return true;
+  }
+
+  @Override
+  public ServerConnectionInfo getTransferSettings() {
+    // TODO Solve this break on Liskov's Substitution Principle
+    throw new RuntimeException("This source has no transfer settings");
   }
 }
