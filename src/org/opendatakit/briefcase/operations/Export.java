@@ -56,7 +56,7 @@ public class Export {
   private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd");
   private static final Param<Void> EXPORT = Param.flag("e", "export", "Export a form");
   private static final Param<String> EXPORT_DIR = Param.arg("ed", "export_directory", "Export directory");
-  private static final Param<String> FILE = Param.arg("file", "export_filename", "Filename for export operation");
+  private static final Param<String> FILE = Param.arg("f", "export_filename", "Filename for export operation");
   private static final Param<Date> START = Param.arg("start", "export_start_date", "Export start date", Export::toDate);
   private static final Param<Date> END = Param.arg("end", "export_end_date", "Export end date", Export::toDate);
   private static final Param<Void> EXCLUDE_MEDIA = Param.flag("em", "exclude_media_export", "Exclude media in export");
