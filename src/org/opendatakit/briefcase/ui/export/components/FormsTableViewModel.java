@@ -25,6 +25,7 @@ import static org.opendatakit.briefcase.ui.export.components.FormsTableView.EDIT
 import static org.opendatakit.briefcase.ui.export.components.FormsTableView.HEADERS;
 import static org.opendatakit.briefcase.ui.export.components.FormsTableView.TYPES;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.Insets;
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.ui.reused.FontUtils;
 
 public class FormsTableViewModel extends AbstractTableModel {
+  private static final Color NO_CONF_OVERRIDE_COLOR = new Color(0, 128, 0);
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
   private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
   private final Map<FormStatus, JButton> confButtons = new HashMap<>();
@@ -121,7 +123,7 @@ public class FormsTableViewModel extends AbstractTableModel {
   }
 
   private void updateConfButton(FormStatus form, JButton button) {
-    button.setForeground(forms.hasConfiguration(form) ? DARK_GRAY : LIGHT_GRAY);
+    button.setForeground(forms.hasConfiguration(form) ? NO_CONF_OVERRIDE_COLOR : DARK_GRAY);
   }
 
   @Override
