@@ -32,7 +32,7 @@ import org.opendatakit.common.cli.Param;
 
 public class ImportFromODK {
 
-  private static final Param<Void> IMPORT = Param.flag("i", "import-odk", "Import from ODK");
+  private static final Param<Void> IMPORT = Param.flag("pc", "pull_collect", "Pull from Collect");
   private static final Param<String> ODK_DIR = Param.arg("od", "odk_directory", "ODK directory");
 
   public static final Operation IMPORT_FROM_ODK = Operation.of(
