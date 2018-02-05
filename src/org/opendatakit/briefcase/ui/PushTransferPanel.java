@@ -39,6 +39,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.EndPointType;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.RemoveSavePasswordConsent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -61,8 +62,7 @@ public class PushTransferPanel extends JPanel {
   public static final String TAB_NAME = "Push";
 
   private static final String UPLOADING_DOT_ETC = "Uploading..........";
-  static final BriefcasePreferences PREFERENCES =
-      BriefcasePreferences.forClass(PushTransferPanel.class);
+  private final BriefcasePreferences tabPreferences;
 
   private JComboBox<String> listDestinationDataSink;
   private JButton btnDestinationAction;
@@ -122,10 +122,10 @@ public class PushTransferPanel extends JPanel {
         if (d.isSuccessful()) {
           destinationServerInfo = d.getServerInfo();
           txtDestinationName.setText(destinationServerInfo.getUrl());
-          PREFERENCES.put(BriefcasePreferences.AGGREGATE_1_0_URL, destinationServerInfo.getUrl());
-          PREFERENCES.put(BriefcasePreferences.USERNAME, destinationServerInfo.getUsername());
+          tabPreferences.put(BriefcasePreferences.AGGREGATE_1_0_URL, destinationServerInfo.getUrl());
+          tabPreferences.put(BriefcasePreferences.USERNAME, destinationServerInfo.getUsername());
           if (BriefcasePreferences.getStorePasswordsConsentProperty())
-            PREFERENCES.put(BriefcasePreferences.PASSWORD, new String(destinationServerInfo.getPassword()));
+            tabPreferences.put(BriefcasePreferences.PASSWORD, new String(destinationServerInfo.getPassword()));
         }
       } else {
         throw new IllegalStateException("unexpected case");
@@ -171,8 +171,9 @@ public class PushTransferPanel extends JPanel {
    *
    * @param txtBriefcaseDir
    */
-  public PushTransferPanel(TerminationFuture terminationFuture) {
+  public PushTransferPanel(TerminationFuture terminationFuture, BriefcasePreferences tabPreferences) {
     super();
+    this.tabPreferences = tabPreferences;
     AnnotationProcessor.process(this);// if not using AOP
     this.terminationFuture = terminationFuture;
 
@@ -345,10 +346,10 @@ public class PushTransferPanel extends JPanel {
   }
 
   private ServerConnectionInfo initServerInfoWithPreferences() {
-    String url = PREFERENCES.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
-    String username = PREFERENCES.get(BriefcasePreferences.USERNAME, "");
+    String url = tabPreferences.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
+    String username = tabPreferences.get(BriefcasePreferences.USERNAME, "");
     char[] password = BriefcasePreferences.getStorePasswordsConsentProperty()
-        ? PREFERENCES.get(BriefcasePreferences.PASSWORD, "").toCharArray()
+        ? tabPreferences.get(BriefcasePreferences.PASSWORD, "").toCharArray()
         : new char[0];
     return new ServerConnectionInfo(url, username, password);
   }
@@ -377,5 +378,10 @@ public class PushTransferPanel extends JPanel {
   @EventSubscriber(eventClass = UpdatedBriefcaseFormDefinitionEvent.class)
   public void briefcaseFormListChanges(UpdatedBriefcaseFormDefinitionEvent event) {
     updateFormStatuses();
+  }
+
+  @EventSubscriber(eventClass = RemoveSavePasswordConsent.class)
+  public void onRemoveSavePasswordConsent(RemoveSavePasswordConsent event) {
+    tabPreferences.remove(BriefcasePreferences.PASSWORD);
   }
 }
