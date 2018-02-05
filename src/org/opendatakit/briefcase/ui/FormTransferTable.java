@@ -16,6 +16,9 @@
 
 package org.opendatakit.briefcase.ui;
 
+import static java.awt.Color.DARK_GRAY;
+import static java.awt.Color.LIGHT_GRAY;
+
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -122,7 +125,8 @@ public class FormTransferTable extends JTable {
       // Use custom fonts instead of png for easier scaling
       this.setFont(ic_receipt); // custom font that overrides  with a receipt icon
       this.setToolTipText("View this form's status history");
-      this.setMargin(new Insets(0,0,0,0));
+      this.setForeground(LIGHT_GRAY);
+      this.setMargin(new Insets(0, 0, 0, 0));
       this.status = status;
       this.addActionListener(this);
       log.debug("creating details button");
@@ -382,6 +386,13 @@ public class FormTransferTable extends JTable {
     if (event.getTransferType() == model.getTransferType()) {
       setFormStatusList(event.getFormsToTransfer());
     }
+  }
+
+  @EventSubscriber(eventClass = FormStatusEvent.class)
+  public void onFormStatusEvent(FormStatusEvent event) {
+    ((FormTransferTableModel) dataModel).buttonMap.forEach((form, button) ->
+        button.setForeground(form.getStatusHistory().isEmpty() ? LIGHT_GRAY : DARK_GRAY)
+    );
   }
 
   public List<FormStatus> getSelectedForms() {
