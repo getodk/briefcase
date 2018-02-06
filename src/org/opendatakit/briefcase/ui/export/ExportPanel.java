@@ -151,14 +151,16 @@ public class ExportPanel {
         .parallelStream()
         .forEach(form -> {
           String formId = form.getFormDefinition().getFormId();
-          forms.getTransferSettings(formId).ifPresent(sci -> NewTransferAction.transferServerToBriefcase(
-              sci,
-              terminationFuture,
-              Collections.singletonList(form)
-          ));
+          ExportConfiguration configuration = forms.getConfiguration(formId);
+          if (configuration.getPullBefore().orElse(false))
+            forms.getTransferSettings(formId).ifPresent(sci -> NewTransferAction.transferServerToBriefcase(
+                sci,
+                terminationFuture,
+                Collections.singletonList(form)
+            ));
           NewExportAction.export(
               (BriefcaseFormDefinition) form.getFormDefinition(),
-              forms.getConfiguration(formId),
+              configuration,
               terminationFuture
           );
         });
