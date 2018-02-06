@@ -19,27 +19,35 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.empty;
+import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.contains;
+import static org.opendatakit.briefcase.ui.matchers.DatePickerMatchers.empty;
+import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.enabled;
+import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.selected;
 import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.visible;
 
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.ui.matchers.DatePickerMatchers;
 import org.opendatakit.briefcase.ui.matchers.GenericUIMatchers;
+import org.opendatakit.briefcase.ui.matchers.SwingMatchers;
 
 public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   private ConfigurationPanelPageObject component;
 
   @Override
   protected void onSetUp() {
-    component = ConfigurationPanelPageObject.setUp(robot());
-    component.show();
+    // component creation is made on each test to allow different scenarios
   }
 
   @Test
   @Ignore
   public void export_dir_button_opens_a_file_dialog() {
+    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), false);
+    component.show();
     component.clickChooseExportDirButton();
     assertThat(component.fileDialog(2000), is(GenericUIMatchers.visible()));
     component.cancelFileDialog();
@@ -48,6 +56,8 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   @Test
   @Ignore
   public void pem_file_button_opens_a_file_dialog() {
+    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), false);
+    component.show();
     component.clickChoosePemFileButton();
     assertThat(component.fileDialog(2000), is(GenericUIMatchers.visible()));
     component.cancelFileDialog();
@@ -55,28 +65,115 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void only_the_pem_file_choose_button_is_visible_initially() {
+    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), false);
+    component.show();
     assertThat(component.choosePemFileButton(), is(visible()));
     assertThat(component.clearPemFileButton(), is(not(visible())));
   }
 
   @Test
   public void choose_pem_file_button_is_swapped_for_a_clean_button_that_cleans_the_field() {
+    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), false);
+    component.show();
     component.setSomePemFile();
     assertThat(component.choosePemFileButton(), is(not(visible())));
     assertThat(component.clearPemFileButton(), is(visible()));
     component.clickClearPemFileButton();
-    assertThat(component.pemFileField(), is(empty()));
+    assertThat(component.pemFileField(), is(SwingMatchers.empty()));
   }
 
   @Test
   public void cannot_insert_an_end_date_before_the_set_start_date() {
+    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), false);
+    component.show();
     component.setStartDate(LocalDate.of(2017, 1, 30));
-    assertFalse(component.endDatePicker().isDateAllowed(LocalDate.of(2017, 1, 28)));
+    assertFalse(component.endDateField().isDateAllowed(LocalDate.of(2017, 1, 28)));
   }
 
   @Test
   public void cannot_insert_a_start_date_after_the_set_end_date() {
+    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), false);
+    component.show();
     component.setEndDate(LocalDate.of(2017,1,25));
-    assertFalse(component.startDatePicker().isDateAllowed(LocalDate.of(2017,1,27)));
+    assertFalse(component.startDateField().isDateAllowed(LocalDate.of(2017,1,27)));
+  }
+
+  @Test
+  public void inherit_pull_before_export_is_not_visible_when_not_overriding_conf() {
+    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), false);
+    component.show();
+    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), false);
+    component.show();
+    assertThat(component.pullBeforeInheritField(), is(not(visible())));
+  }
+
+  @Test
+  public void inherit_pull_before_export_is_visible_when_overriding_conf() {
+    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), true);
+    component.show();
+    assertThat(component.pullBeforeInheritField(), is(visible()));
+  }
+
+  @Test
+  public void clicking_on_pull_before_resets_inherit_checkbox() {
+    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), true);
+    component.show();
+    component.setPullBeforeInherit(true);
+    component.setPullBefore(true);
+    assertThat(component.pullBeforeInheritField(), is(not(selected())));
+  }
+
+  @Test
+  public void clicking_on_inherit_resets_pull_before_checkbox() {
+    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), true);
+    component.show();
+    component.setPullBefore(true);
+    component.setPullBeforeInherit(true);
+    assertThat(component.pullBeforeField(), is(not(selected())));
+  }
+
+  @Test
+  public void it_loads_values_from_the_initial_configuration() {
+    ExportConfiguration expectedConfiguration = ExportConfiguration.empty();
+    expectedConfiguration.setExportDir(Paths.get("/some/path"));
+    expectedConfiguration.setPemFile(Paths.get("/some/file.pem"));
+    expectedConfiguration.setStartDate(LocalDate.of(2018, 1, 1));
+    expectedConfiguration.setEndDate(LocalDate.of(2019, 1, 1));
+    expectedConfiguration.setPullBefore(true);
+    component = ConfigurationPanelPageObject.setUp(robot(), expectedConfiguration, true);
+    component.show();
+    assertThat(component.exportDirField(), contains(expectedConfiguration.getExportDir().get().toString()));
+    assertThat(component.pemFileField(), contains(expectedConfiguration.getPemFile().get().toString()));
+    assertThat(component.startDateField().getDate(), is(expectedConfiguration.getStartDate().get()));
+    assertThat(component.endDateField().getDate(), is(expectedConfiguration.getEndDate().get()));
+    assertThat(component.pullBeforeField(), is(selected()));
+    assertThat(component.pullBeforeInheritField(), is(not(selected())));
+  }
+
+  @Test
+  public void it_can_be_disabled() {
+    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), true);
+    component.show();
+    component.disable();
+    assertThat(component.exportDirField(), is(not(enabled())));
+    assertThat(component.pemFileField(), is(not(enabled())));
+    assertThat(component.startDateField(), is(not(enabled())));
+    assertThat(component.endDateField(), is(not(enabled())));
+    assertThat(component.pullBeforeField(), is(not(enabled())));
+    assertThat(component.pullBeforeInheritField(), is(not(enabled())));
+  }
+
+  @Test
+  public void it_can_be_enabled() {
+    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), true);
+    component.show();
+    component.disable();
+    component.enable();
+    assertThat(component.exportDirField(), is(enabled()));
+    assertThat(component.pemFileField(), is(enabled()));
+    assertThat(component.startDateField(), is(enabled()));
+    assertThat(component.endDateField(), is(enabled()));
+    assertThat(component.pullBeforeField(), is(enabled()));
+    assertThat(component.pullBeforeInheritField(), is(enabled()));
   }
 }

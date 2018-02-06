@@ -32,6 +32,8 @@ public class ConfigurationPanel {
     configuration.ifPemFilePresent(form::setPemFile);
     configuration.ifStartDatePresent(form::setStartDate);
     configuration.ifEndDatePresent(form::setEndDate);
+    configuration.ifPullBeforePresent(form::setPullBefore);
+    configuration.ifPullBeforeNotPresent(form::setPullBeforeInherit);
 
     form.onSelectExportDir(path -> {
       configuration.setExportDir(path);
@@ -49,10 +51,15 @@ public class ConfigurationPanel {
       configuration.setEndDate(date);
       triggerOnChange();
     });
+    form.onChangePullBefore((pullBefore, inherit) -> {
+      Boolean value = !inherit ? pullBefore : null;
+      configuration.setPullBefore(value);
+      triggerOnChange();
+    });
   }
 
-  public static ConfigurationPanel from(ExportConfiguration config, boolean cleanableExportDir) {
-    return new ConfigurationPanel(config, new ConfigurationPanelForm(cleanableExportDir));
+  public static ConfigurationPanel from(ExportConfiguration initialConfiguration, boolean isOverridePanel) {
+    return new ConfigurationPanel(initialConfiguration, new ConfigurationPanelForm(isOverridePanel));
   }
 
   public ConfigurationPanelForm getForm() {

@@ -34,8 +34,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -61,14 +63,17 @@ public class ConfigurationPanelForm extends JComponent {
   protected JButton pemFileClearButton;
   private JPanel exportDirButtons;
   private JButton exportDirCleanButton;
+  JCheckBox pullBeforeField;
+  JCheckBox pullBeforeInheritField;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectEndDateCallbacks = new ArrayList<>();
-  private boolean clearableExportDir;
+  private final List<BiConsumer<Boolean, Boolean>> onChangePullBeforeCallbacks = new ArrayList<>();
+  private boolean isOverridePanel;
 
-  ConfigurationPanelForm(boolean clearableExportDir) {
-    this.clearableExportDir = clearableExportDir;
+  ConfigurationPanelForm(boolean isOverridePanel) {
+    this.isOverridePanel = isOverridePanel;
     startDatePicker = createDatePicker();
     endDatePicker = createDatePicker();
     $$$setupUI$$$();
@@ -78,6 +83,7 @@ public class ConfigurationPanelForm extends JComponent {
     endDatePicker.getSettings().setGapBeforeButtonPixels(0);
     endDatePicker.getComponentDateTextField().setPreferredSize(exportDirField.getPreferredSize());
     endDatePicker.getComponentToggleCalendarButton().setPreferredSize(exportDirChooseButton.getPreferredSize());
+    pullBeforeInheritField.setVisible(isOverridePanel);
 
     exportDirChooseButton.addActionListener(__ ->
         buildExportDirDialog().choose().ifPresent(file -> setExportDir(Paths.get(file.toURI())))
@@ -97,6 +103,15 @@ public class ConfigurationPanelForm extends JComponent {
       startDatePicker.getSettings().setDateRangeLimits(null, event.getNewDate());
       onSelectEndDateCallbacks.forEach(consumer -> consumer.accept(event.getNewDate()));
     });
+    pullBeforeField.addActionListener(__ -> {
+      pullBeforeInheritField.setSelected(false);
+      triggerChangePullBefore();
+    });
+    pullBeforeInheritField.addActionListener(__ -> {
+      if (pullBeforeInheritField.isSelected())
+        pullBeforeField.setSelected(false);
+      triggerChangePullBefore();
+    });
   }
 
   @Override
@@ -115,7 +130,7 @@ public class ConfigurationPanelForm extends JComponent {
   public void setExportDir(Path path) {
     exportDirField.setText(path.toString());
     onSelectExportDirCallbacks.forEach(consumer -> consumer.accept(path));
-    if (clearableExportDir) {
+    if (isOverridePanel) {
       exportDirChooseButton.setVisible(false);
       exportDirCleanButton.setVisible(true);
     }
@@ -124,7 +139,7 @@ public class ConfigurationPanelForm extends JComponent {
   void clearExportDir() {
     exportDirField.setText(null);
     onSelectExportDirCallbacks.forEach(consumer -> consumer.accept(null));
-    if (clearableExportDir) {
+    if (isOverridePanel) {
       exportDirChooseButton.setVisible(true);
       exportDirCleanButton.setVisible(false);
     }
@@ -154,6 +169,16 @@ public class ConfigurationPanelForm extends JComponent {
     endDatePicker.setDate(LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
   }
 
+  void setPullBefore(boolean value) {
+    pullBeforeField.setSelected(value);
+    pullBeforeInheritField.setSelected(false);
+  }
+
+  void setPullBeforeInherit() {
+    pullBeforeField.setSelected(false);
+    pullBeforeInheritField.setSelected(true);
+  }
+
   void onSelectExportDir(Consumer<Path> callback) {
     onSelectExportDirCallbacks.add(callback);
   }
@@ -168,6 +193,10 @@ public class ConfigurationPanelForm extends JComponent {
 
   void onSelectDateRangeEnd(Consumer<LocalDate> callback) {
     onSelectEndDateCallbacks.add(callback);
+  }
+
+  void onChangePullBefore(BiConsumer<Boolean, Boolean> callback) {
+    onChangePullBeforeCallbacks.add(callback);
   }
 
   private void createUIComponents() {
@@ -208,6 +237,10 @@ public class ConfigurationPanelForm extends JComponent {
     return Optional.ofNullable(textField.getText())
         .filter(StringUtils::nullOrEmpty)
         .map(path -> Paths.get(path).toFile());
+  }
+
+  private void triggerChangePullBefore() {
+    onChangePullBeforeCallbacks.forEach(callback -> callback.accept(pullBeforeField.isSelected(), pullBeforeInheritField.isSelected()));
   }
 
   /**
@@ -256,6 +289,7 @@ public class ConfigurationPanelForm extends JComponent {
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 0;
+    gbc.gridwidth = 3;
     gbc.weightx = 1.0;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -265,6 +299,7 @@ public class ConfigurationPanelForm extends JComponent {
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 1;
+    gbc.gridwidth = 3;
     gbc.weightx = 1.0;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -272,14 +307,14 @@ public class ConfigurationPanelForm extends JComponent {
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 2;
-    gbc.gridwidth = 2;
+    gbc.gridwidth = 4;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(startDatePicker, gbc);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 3;
-    gbc.gridwidth = 2;
+    gbc.gridwidth = 4;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(endDatePicker, gbc);
@@ -310,7 +345,7 @@ public class ConfigurationPanelForm extends JComponent {
     pemFileButtons = new JPanel();
     pemFileButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
     gbc = new GridBagConstraints();
-    gbc.gridx = 3;
+    gbc.gridx = 5;
     gbc.gridy = 1;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(pemFileButtons, gbc);
@@ -325,7 +360,7 @@ public class ConfigurationPanelForm extends JComponent {
     exportDirButtons = new JPanel();
     exportDirButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
     gbc = new GridBagConstraints();
-    gbc.gridx = 3;
+    gbc.gridx = 5;
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(exportDirButtons, gbc);
@@ -337,6 +372,28 @@ public class ConfigurationPanelForm extends JComponent {
     exportDirCleanButton.setText("Clear");
     exportDirCleanButton.setVisible(false);
     exportDirButtons.add(exportDirCleanButton);
+    pullBeforeField = new JCheckBox();
+    pullBeforeField.setText("Pull before export");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 4;
+    gbc.anchor = GridBagConstraints.WEST;
+    container.add(pullBeforeField, gbc);
+    pullBeforeInheritField = new JCheckBox();
+    pullBeforeInheritField.setSelected(false);
+    pullBeforeInheritField.setText("(don't override)");
+    pullBeforeInheritField.setVisible(false);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 4;
+    gbc.gridy = 4;
+    gbc.anchor = GridBagConstraints.WEST;
+    container.add(pullBeforeInheritField, gbc);
+    final JPanel spacer5 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 3;
+    gbc.gridy = 4;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(spacer5, gbc);
   }
 
   /**

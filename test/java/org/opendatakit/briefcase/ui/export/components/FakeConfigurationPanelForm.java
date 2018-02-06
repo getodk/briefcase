@@ -23,8 +23,8 @@ class FakeConfigurationPanelForm extends ConfigurationPanelForm {
   public boolean errorShown = false;
   public boolean enabled;
 
-  FakeConfigurationPanelForm(boolean clearableExportDir) {
-    super(clearableExportDir);
+  FakeConfigurationPanelForm(boolean isOverridePanel) {
+    super(isOverridePanel);
   }
 
   @Override
@@ -54,5 +54,9 @@ class FakeConfigurationPanelForm extends ConfigurationPanelForm {
         endDatePicker.getDate().getMonthValue(),
         endDatePicker.getDate().getDayOfMonth()
     );
+  }
+
+  public Boolean getPullBefore() {
+    return pullBeforeField.isSelected();
   }
 }

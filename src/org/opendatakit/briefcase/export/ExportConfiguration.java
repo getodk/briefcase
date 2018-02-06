@@ -44,20 +44,23 @@ public class ExportConfiguration {
   private static final String PEM_FILE = "pemFile";
   private static final String START_DATE = "startDate";
   private static final String END_DATE = "endDate";
+  private static final String PULL_BEFORE = "pullBefore";
   private Optional<Path> exportDir;
   private Optional<Path> pemFile;
   private Optional<LocalDate> startDate;
   private Optional<LocalDate> endDate;
+  private Optional<Boolean> pullBefore;
 
-  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
+  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore) {
     this.exportDir = exportDir;
     this.pemFile = pemFile;
     this.startDate = startDate;
     this.endDate = endDate;
+    this.pullBefore = pullBefore;
   }
 
   public static ExportConfiguration empty() {
-    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
@@ -65,7 +68,8 @@ public class ExportConfiguration {
         prefs.nullSafeGet(EXPORT_DIR).map(Paths::get),
         prefs.nullSafeGet(PEM_FILE).map(Paths::get),
         prefs.nullSafeGet(START_DATE).map(LocalDate::parse),
-        prefs.nullSafeGet(END_DATE).map(LocalDate::parse)
+        prefs.nullSafeGet(END_DATE).map(LocalDate::parse),
+        prefs.nullSafeGet(PULL_BEFORE).map(Boolean::valueOf)
     );
   }
 
@@ -74,7 +78,8 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + EXPORT_DIR).map(Paths::get),
         prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get),
         prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse),
-        prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse)
+        prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse),
+        prefs.nullSafeGet(keyPrefix + PULL_BEFORE).map(Boolean::valueOf)
     );
   }
 
@@ -87,7 +92,8 @@ public class ExportConfiguration {
         keyPrefix + EXPORT_DIR,
         keyPrefix + PEM_FILE,
         keyPrefix + START_DATE,
-        keyPrefix + END_DATE
+        keyPrefix + END_DATE,
+        keyPrefix + PULL_BEFORE
     );
   }
 
@@ -103,6 +109,7 @@ public class ExportConfiguration {
     pemFile.ifPresent(value -> map.put(keyPrefix + PEM_FILE, value.toString()));
     startDate.ifPresent(value -> map.put(keyPrefix + START_DATE, value.format(DateTimeFormatter.ISO_DATE)));
     endDate.ifPresent(value -> map.put(keyPrefix + END_DATE, value.format(DateTimeFormatter.ISO_DATE)));
+    pullBefore.ifPresent(value -> map.put(keyPrefix + PULL_BEFORE, value.toString()));
     return map;
   }
 
@@ -111,7 +118,8 @@ public class ExportConfiguration {
         exportDir,
         pemFile,
         startDate,
-        endDate
+        endDate,
+        pullBefore
     );
   }
 
@@ -135,8 +143,16 @@ public class ExportConfiguration {
     return endDate;
   }
 
+  public Optional<Boolean> getPullBefore() {
+    return pullBefore;
+  }
+
   public void setEndDate(LocalDate date) {
     this.endDate = Optional.ofNullable(date);
+  }
+
+  public void setPullBefore(Boolean value) {
+    this.pullBefore = Optional.ofNullable(value);
   }
 
   private boolean isDateRangeValid() {
@@ -165,6 +181,15 @@ public class ExportConfiguration {
 
   public void ifEndDatePresent(Consumer<LocalDate> consumer) {
     endDate.ifPresent(consumer);
+  }
+
+  public void ifPullBeforePresent(Consumer<Boolean> consumer) {
+    pullBefore.ifPresent(consumer);
+  }
+
+  public void ifPullBeforeNotPresent(Runnable runnable) {
+    if (!pullBefore.isPresent())
+      runnable.run();
   }
 
   private List<String> getErrors() {
@@ -223,7 +248,8 @@ public class ExportConfiguration {
     return !exportDir.isPresent()
         && !pemFile.isPresent()
         && !startDate.isPresent()
-        && !endDate.isPresent();
+        && !endDate.isPresent()
+        && !pullBefore.isPresent();
   }
 
   public boolean isValid() {
@@ -259,7 +285,8 @@ public class ExportConfiguration {
         exportDir.isPresent() ? exportDir : fallbackConfiguration.exportDir,
         pemFile.isPresent() ? pemFile : fallbackConfiguration.pemFile,
         startDate.isPresent() ? startDate : fallbackConfiguration.startDate,
-        endDate.isPresent() ? endDate : fallbackConfiguration.endDate
+        endDate.isPresent() ? endDate : fallbackConfiguration.endDate,
+        pullBefore.isPresent() ? pullBefore : fallbackConfiguration.pullBefore
     );
   }
 
@@ -270,6 +297,7 @@ public class ExportConfiguration {
         ", pemFile=" + pemFile +
         ", startDate=" + startDate +
         ", endDate=" + endDate +
+        ", pullBefore=" + pullBefore +
         '}';
   }
 
@@ -283,11 +311,12 @@ public class ExportConfiguration {
     return Objects.equals(exportDir, that.exportDir) &&
         Objects.equals(pemFile, that.pemFile) &&
         Objects.equals(startDate, that.startDate) &&
-        Objects.equals(endDate, that.endDate);
+        Objects.equals(endDate, that.endDate) &&
+        Objects.equals(pullBefore, that.pullBefore);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(exportDir, pemFile, startDate, endDate);
+    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore);
   }
 }

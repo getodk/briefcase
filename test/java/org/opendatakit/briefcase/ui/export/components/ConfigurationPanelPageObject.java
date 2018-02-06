@@ -28,10 +28,12 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.function.Supplier;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 import org.assertj.swing.core.Robot;
+import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.exception.ComponentLookupException;
 import org.assertj.swing.exception.WaitTimedOutError;
 import org.assertj.swing.fixture.DialogFixture;
@@ -59,8 +61,8 @@ class ConfigurationPanelPageObject {
     this.fixture = fixture;
   }
 
-  static ConfigurationPanelPageObject setUp(Robot robot) {
-    ConfigurationPanel configurationPanel = execute(() -> ConfigurationPanel.from(ExportConfiguration.empty(), false));
+  static ConfigurationPanelPageObject setUp(Robot robot, ExportConfiguration initialConfiguration, boolean isOverridePanel) {
+    ConfigurationPanel configurationPanel = execute(() -> ConfigurationPanel.from(initialConfiguration, isOverridePanel));
     JFrame testFrame = execute(() -> {
       JFrame f = new JFrame();
       f.add(configurationPanel.getForm().container);
@@ -72,6 +74,14 @@ class ConfigurationPanelPageObject {
 
   void show() {
     fixture.show();
+  }
+
+  void disable() {
+    GuiActionRunner.execute(component::disable);
+  }
+
+  void enable() {
+    GuiActionRunner.execute(component::enable);
   }
 
   public JButton choosePemFileButton() {
@@ -86,16 +96,28 @@ class ConfigurationPanelPageObject {
     return component.form.pemFileClearButton;
   }
 
+  public JTextComponent exportDirField() {
+    return component.form.exportDirField;
+  }
+
   public JTextComponent pemFileField() {
     return component.form.pemFileField;
   }
 
-  public DatePicker startDatePicker() {
+  public DatePicker startDateField() {
     return component.form.startDatePicker;
   }
 
-  public DatePicker endDatePicker() {
+  public DatePicker endDateField() {
     return component.form.endDatePicker;
+  }
+
+  public JCheckBox pullBeforeField() {
+    return component.form.pullBeforeField;
+  }
+
+  public JCheckBox pullBeforeInheritField() {
+    return component.form.pullBeforeInheritField;
   }
 
   public void setSomePemFile() {
@@ -122,6 +144,24 @@ class ConfigurationPanelPageObject {
     // us to manage some wait times between actions involving appearing/disappearing
     // dialogs.
     invokeLater(() -> component.form.setEndDate(someDate));
+    uncheckedSleep(50);
+  }
+
+  public void setPullBefore(boolean value) {
+    invokeLater(() -> {
+      JCheckBox field = component.form.pullBeforeField;
+      field.setSelected(value);
+      Arrays.asList(field.getActionListeners()).forEach(al -> al.actionPerformed(new ActionEvent(field, 1, "")));
+    });
+    uncheckedSleep(50);
+  }
+
+  public void setPullBeforeInherit(boolean value) {
+    invokeLater(() -> {
+      JCheckBox field = component.form.pullBeforeInheritField;
+      field.setSelected(value);
+      Arrays.asList(field.getActionListeners()).forEach(al -> al.actionPerformed(new ActionEvent(field, 1, "")));
+    });
     uncheckedSleep(50);
   }
 
