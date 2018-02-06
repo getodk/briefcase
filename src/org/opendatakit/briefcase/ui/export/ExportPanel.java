@@ -37,6 +37,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.transfer.NewTransferAction;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
 import org.opendatakit.briefcase.util.FileSystemUtils;
@@ -117,7 +118,7 @@ public class ExportPanel {
 
   public static ExportPanel from(TerminationFuture terminationFuture, BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Executor backgroundExecutor) {
     ExportConfiguration defaultConfiguration = ExportConfiguration.load(exportPreferences);
-    ConfigurationPanel confPanel = ConfigurationPanel.from(defaultConfiguration, false);
+    ConfigurationPanel confPanel = ConfigurationPanel.from(defaultConfiguration, false, false);
     ExportForms forms = ExportForms.load(defaultConfiguration, getFormsFromStorage(), exportPreferences, appPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, confPanel);
     return new ExportPanel(
@@ -170,5 +171,11 @@ public class ExportPanel {
   @EventSubscriber(eventClass = FormStatusEvent.class)
   public void onFormStatusEvent(FormStatusEvent event) {
     updateForms();
+  }
+
+  @EventSubscriber(eventClass = TransferSucceededEvent.class)
+  public void successfulCompletion(TransferSucceededEvent event) {
+    if (BriefcasePreferences.getStorePasswordsConsentProperty())
+      event.formsToTransfer.forEach(form -> forms.putTransferSettings(form, event.transferSettings));
   }
 }

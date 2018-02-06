@@ -58,8 +58,8 @@ public class ConfigurationPanel {
     });
   }
 
-  public static ConfigurationPanel from(ExportConfiguration initialConfiguration, boolean isOverridePanel) {
-    return new ConfigurationPanel(initialConfiguration, new ConfigurationPanelForm(isOverridePanel));
+  public static ConfigurationPanel from(ExportConfiguration initialConfiguration, boolean isOverridePanel, boolean offerPullBefore) {
+    return new ConfigurationPanel(initialConfiguration, new ConfigurationPanelForm(isOverridePanel, offerPullBefore));
   }
 
   public ConfigurationPanelForm getForm() {

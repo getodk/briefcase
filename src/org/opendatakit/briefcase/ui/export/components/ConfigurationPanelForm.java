@@ -65,6 +65,7 @@ public class ConfigurationPanelForm extends JComponent {
   private JButton exportDirCleanButton;
   JCheckBox pullBeforeField;
   JCheckBox pullBeforeInheritField;
+  private JLabel pullBeforeHintLabel;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
@@ -72,7 +73,7 @@ public class ConfigurationPanelForm extends JComponent {
   private final List<BiConsumer<Boolean, Boolean>> onChangePullBeforeCallbacks = new ArrayList<>();
   private boolean isOverridePanel;
 
-  ConfigurationPanelForm(boolean isOverridePanel) {
+  ConfigurationPanelForm(boolean isOverridePanel, boolean offerPullBefore) {
     this.isOverridePanel = isOverridePanel;
     startDatePicker = createDatePicker();
     endDatePicker = createDatePicker();
@@ -83,7 +84,11 @@ public class ConfigurationPanelForm extends JComponent {
     endDatePicker.getSettings().setGapBeforeButtonPixels(0);
     endDatePicker.getComponentDateTextField().setPreferredSize(exportDirField.getPreferredSize());
     endDatePicker.getComponentToggleCalendarButton().setPreferredSize(exportDirChooseButton.getPreferredSize());
+    pullBeforeField.setText(isOverridePanel ? pullBeforeField.getText() : pullBeforeField.getText() + " (where available)");
+    pullBeforeField.setEnabled(!isOverridePanel || offerPullBefore);
     pullBeforeInheritField.setVisible(isOverridePanel);
+    pullBeforeInheritField.setEnabled(offerPullBefore);
+    pullBeforeHintLabel.setVisible(isOverridePanel && !offerPullBefore);
 
     exportDirChooseButton.addActionListener(__ ->
         buildExportDirDialog().choose().ifPresent(file -> setExportDir(Paths.get(file.toURI())))
@@ -394,6 +399,14 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.gridy = 4;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(spacer5, gbc);
+    pullBeforeHintLabel = new JLabel();
+    pullBeforeHintLabel.setText("Pull this form again to be able to pull it before exporting it");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 5;
+    gbc.gridwidth = 4;
+    gbc.anchor = GridBagConstraints.WEST;
+    container.add(pullBeforeHintLabel, gbc);
   }
 
   /**

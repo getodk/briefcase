@@ -30,7 +30,7 @@ public class ConfigurationDialogUnitTest {
 
   @Test
   public void the_ok_and_clear_all_buttons_are_disabled_by_default() {
-    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm(false);
+    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm(false, true);
 
     FakeConfigurationDialogForm dialogForm = new FakeConfigurationDialogForm(confPanelForm);
 
@@ -43,7 +43,7 @@ public class ConfigurationDialogUnitTest {
 
   @Test
   public void the_dialog_enables_the_remove_button_if_it_receives_a_non_empty_initial_configuration() throws IOException {
-    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm(false);
+    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm(false, true);
 
     FakeConfigurationDialogForm dialogForm = new FakeConfigurationDialogForm(confPanelForm);
 
@@ -56,7 +56,7 @@ public class ConfigurationDialogUnitTest {
 
   @Test
   public void the_dialog_enables_the_ok_button_when_the_user_sets_a_valid_configuration() throws IOException {
-    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm(false);
+    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm(false, true);
 
     FakeConfigurationDialogForm dialogForm = new FakeConfigurationDialogForm(confPanelForm);
 
@@ -71,7 +71,7 @@ public class ConfigurationDialogUnitTest {
 
   @Test
   public void the_dialog_disables_the_ok_button_if_the_configuration_stops_being_valid() throws IOException {
-    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm(false);
+    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm(false, true);
 
     FakeConfigurationDialogForm dialogForm = new FakeConfigurationDialogForm(confPanelForm);
 
@@ -87,7 +87,7 @@ public class ConfigurationDialogUnitTest {
 
   @Test
   public void it_lets_third_parties_react_to_ok() throws IOException {
-    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm(false);
+    FakeConfigurationPanelForm confPanelForm = new FakeConfigurationPanelForm(false, true);
 
     FakeConfigurationDialogForm dialogForm = new FakeConfigurationDialogForm(confPanelForm);
 

@@ -23,8 +23,8 @@ class FakeConfigurationPanelForm extends ConfigurationPanelForm {
   public boolean errorShown = false;
   public boolean enabled;
 
-  FakeConfigurationPanelForm(boolean isOverridePanel) {
-    super(isOverridePanel);
+  FakeConfigurationPanelForm(boolean isOverridePanel, boolean offerPullBefore) {
+    super(isOverridePanel, offerPullBefore);
   }
 
   @Override

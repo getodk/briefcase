@@ -93,7 +93,7 @@ public class FormsTableViewModel extends AbstractTableModel {
 
     updateConfButton(form, button);
     button.addActionListener(__ -> {
-      ConfigurationDialog dialog = ConfigurationDialog.from(forms.getCustomConfiguration(form));
+      ConfigurationDialog dialog = ConfigurationDialog.from(forms.getCustomConfiguration(form), forms.hasTransferSettings(form));
       dialog.onRemove(() -> removeConfiguration(form));
       dialog.onOK(configuration -> {
         if (configuration.isEmpty())

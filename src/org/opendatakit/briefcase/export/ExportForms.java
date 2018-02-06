@@ -147,8 +147,16 @@ public class ExportForms {
     customConfigurations.put(getFormId(form), configuration);
   }
 
+  public boolean hasTransferSettings(FormStatus form) {
+    return transferSettings.containsKey(form.getFormDefinition().getFormId());
+  }
+
   public Optional<ServerConnectionInfo> getTransferSettings(String formId) {
     return Optional.ofNullable(transferSettings.get(formId));
+  }
+
+  public void putTransferSettings(FormStatus form, ServerConnectionInfo transferSettings) {
+    this.transferSettings.put(getFormId(form), transferSettings);
   }
 
   public boolean allSelectedFormsHaveConfiguration() {
