@@ -39,8 +39,8 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.util.ErrorsOr;
 import org.opendatakit.briefcase.util.ExportToCsv;
 
-public class NewExportAction {
-  private static final Log log = LogFactory.getLog(NewExportAction.class);
+public class ExportAction {
+  private static final Log log = LogFactory.getLog(ExportAction.class);
 
   private static Optional<PrivateKey> extractPrivateKey(Object o) {
     if (o instanceof KeyPair)
@@ -67,10 +67,11 @@ public class NewExportAction {
   }
 
   public static void export(BriefcaseFormDefinition formDefinition, ExportConfiguration configuration, TerminationFuture terminationFuture) {
-    if (formDefinition.isFileEncryptedForm() || formDefinition.isFieldEncryptedForm())
+    if (formDefinition.isFileEncryptedForm() || formDefinition.isFieldEncryptedForm()) {
       formDefinition.setPrivateKey(readPemFile(configuration.getPemFile()
           .orElseThrow(() -> new RuntimeException("PEM file not present"))
       ).get());
+    }
     ExportToCsv action = new ExportToCsv(
         configuration.getExportDir().orElseThrow(() -> new RuntimeException("Export dir not present")).toFile(),
         formDefinition,

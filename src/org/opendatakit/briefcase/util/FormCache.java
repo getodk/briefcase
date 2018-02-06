@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 
 public class FormCache implements FormCacheable {
@@ -74,5 +75,12 @@ public class FormCache implements FormCacheable {
     @Override
     public List<BriefcaseFormDefinition> getForms() {
         return new ArrayList<>(pathToDefinitionMap.values());
+    }
+
+    @Override
+    public Optional<BriefcaseFormDefinition> getForm(String formName) {
+        return pathToDefinitionMap.values().stream()
+            .filter(formDefinition -> formDefinition.getFormName().equals(formName))
+            .findFirst();
     }
 }

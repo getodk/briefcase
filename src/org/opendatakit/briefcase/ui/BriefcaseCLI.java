@@ -77,12 +77,9 @@ public class BriefcaseCLI {
       export(
           storageDir,
           formid,
-          fileName,
           exportPath,
           Optional.ofNullable(startDateString).map(Export::toDate).orElse(null),
           Optional.ofNullable(endDateString).map(Export::toDate).orElse(null),
-          exportMedia,
-          overwrite,
           Optional.ofNullable(pemKeyFile)
       );
     }
