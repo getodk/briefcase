@@ -52,7 +52,8 @@ public class ExportPanelUnitTest {
         new TerminationFuture(),
         forms,
         ExportPanelForm.from(forms, confPanel),
-        exportPreferences
+        exportPreferences,
+        Runnable::run
     );
 
     assertThat(ExportConfiguration.load(exportPreferences).getExportDir(), isEmpty());
@@ -74,7 +75,8 @@ public class ExportPanelUnitTest {
         new TerminationFuture(),
         forms,
         exportPanelForm,
-        exportPreferences
+        exportPreferences,
+        Runnable::run
     );
 
     FormStatus form = formsList.get(0);
@@ -103,7 +105,8 @@ public class ExportPanelUnitTest {
         new TerminationFuture(),
         forms,
         ExportPanelForm.from(forms, confPanel),
-        exportPreferences
+        exportPreferences,
+        Runnable::run
     );
 
     FormStatus form = formsList.get(0);

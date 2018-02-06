@@ -49,6 +49,7 @@ import org.opendatakit.briefcase.model.DocumentDescription;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.IFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
@@ -61,7 +62,7 @@ public class ServerFetcher {
   private static final Log log = LogFactory.getLog(ServerFetcher.class);
 
   private static final String MD5_COLON_PREFIX = "md5:";
-  
+
   private static final int MAX_ENTRIES = 100;
 
   ServerConnectionInfo serverInfo;
@@ -143,7 +144,7 @@ public class ServerFetcher {
         return false;
       }
 
-      RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
+      RemoteFormDefinition fd = getRemoteFormDefinition(fs);
       fs.setStatusString("Fetching form definition", true);
       EventBus.publish(new FormStatusEvent(fs));
       try {
@@ -250,6 +251,21 @@ public class ServerFetcher {
     return allSuccessful;
   }
 
+  public RemoteFormDefinition getRemoteFormDefinition(FormStatus fs) {
+    IFormDefinition formDefinition = fs.getFormDefinition();
+    if (formDefinition instanceof RemoteFormDefinition)
+      return (RemoteFormDefinition) formDefinition;
+    if (formDefinition instanceof BriefcaseFormDefinition)
+      return new RemoteFormDefinition(
+          formDefinition.getFormName(),
+          formDefinition.getFormId(),
+          formDefinition.getVersionString(),
+          serverInfo.getUrl() + "/formXml?formId=" + formDefinition.getFormId(),
+          null // we only need the manifest URL to download the form's definition
+      );
+    throw new IllegalArgumentException("Transformation to RemoteFormDefinition from " + fs.getClass() + " is not supported");
+  }
+
   public static class SubmissionChunk {
     final String websafeCursorString;
     final List<String> uriList;
@@ -285,7 +301,7 @@ public class ServerFetcher {
     int submissionCount = 1;
     int chunkCount = 1;
     boolean allSuccessful = true;
-    RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
+    RemoteFormDefinition fd = getRemoteFormDefinition(fs);
     ExecutorService execSvc = getFetchExecutorService();
     CompletionService<SubmissionChunk> chunkCompleter = new ExecutorCompletionService<>(execSvc);
     CompletionService<String> submissionCompleter = new ExecutorCompletionService<>(execSvc);
@@ -545,7 +561,7 @@ public class ServerFetcher {
   }
 
   private String downloadManifestAndMediaFiles(File mediaDir, FormStatus fs) {
-    RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
+    RemoteFormDefinition fd = getRemoteFormDefinition(fs);
     if (fd.getManifestUrl() == null)
       return null;
     fs.setStatusString("Fetching form manifest", true);

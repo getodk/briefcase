@@ -250,6 +250,10 @@ public class ExportConfiguration {
     return endDate.map(mapper);
   }
 
+  public boolean isPemFilePresent() {
+    return pemFile.isPresent();
+  }
+
   public ExportConfiguration fallingBackTo(ExportConfiguration fallbackConfiguration) {
     return new ExportConfiguration(
         exportDir.isPresent() ? exportDir : fallbackConfiguration.exportDir,
