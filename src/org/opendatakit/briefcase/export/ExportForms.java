@@ -29,6 +29,7 @@ import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.IFormDefinition;
+import org.opendatakit.briefcase.model.ServerConnectionInfo;
 
 public class ExportForms {
   private static final String EXPORT_DATE_PREFIX = "export_date_";
@@ -37,28 +38,31 @@ public class ExportForms {
   private ExportConfiguration defaultConfiguration;
   private final Map<String, ExportConfiguration> customConfigurations;
   private final Map<String, LocalDateTime> lastExportDateTimes;
+  private final Map<String, ServerConnectionInfo> transferSettings;
   private final List<BiConsumer<String, LocalDateTime>> onSuccessfulExportCallbacks = new ArrayList<>();
   private Map<String, FormStatus> formsIndex = new HashMap<>();
 
-  public ExportForms(List<FormStatus> forms, ExportConfiguration defaultConfiguration, Map<String, ExportConfiguration> configurations, Map<String, LocalDateTime> lastExportDateTimes) {
+  public ExportForms(List<FormStatus> forms, ExportConfiguration defaultConfiguration, Map<String, ExportConfiguration> configurations, Map<String, LocalDateTime> lastExportDateTimes, Map<String, ServerConnectionInfo> transferSettings) {
     this.forms = forms;
     this.defaultConfiguration = defaultConfiguration;
     this.customConfigurations = configurations;
     this.lastExportDateTimes = lastExportDateTimes;
+    this.transferSettings = transferSettings;
     rebuildIndex();
   }
 
-  public static ExportForms load(ExportConfiguration defaultConfiguration, List<FormStatus> forms, BriefcasePreferences preferences) {
+  public static ExportForms load(ExportConfiguration defaultConfiguration, List<FormStatus> forms, BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences) {
     // This should be a simple Map filtering block but we'll have to wait for Vavr.io
 
     Map<String, ExportConfiguration> configurations = new HashMap<>();
     Map<String, LocalDateTime> lastExportDateTimes = new HashMap<>();
+    Map<String, ServerConnectionInfo> transferSettings = new HashMap<>();
     forms.forEach(form -> {
       String formId = getFormId(form);
-      ExportConfiguration load = ExportConfiguration.load(preferences, buildCustomConfPrefix(formId));
+      ExportConfiguration load = ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId));
       if (!load.isEmpty())
         configurations.put(formId, load);
-      preferences.nullSafeGet(buildExportDateTimePrefix(formId))
+      exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId))
           .map(LocalDateTime::parse)
           .ifPresent(dateTime -> lastExportDateTimes.put(formId, dateTime));
     });
@@ -66,7 +70,8 @@ public class ExportForms {
         forms,
         defaultConfiguration,
         configurations,
-        lastExportDateTimes
+        lastExportDateTimes,
+        transferSettings
     );
   }
 
@@ -127,6 +132,10 @@ public class ExportForms {
 
   public void putConfiguration(FormStatus form, ExportConfiguration configuration) {
     customConfigurations.put(getFormId(form), configuration);
+  }
+
+  public Optional<ServerConnectionInfo> getTransferSettings(String formId) {
+    return Optional.ofNullable(transferSettings.get(formId));
   }
 
   public boolean allSelectedFormsHaveConfiguration() {

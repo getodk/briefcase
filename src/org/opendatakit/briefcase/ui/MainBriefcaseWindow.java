@@ -213,6 +213,8 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
      * Create the application.
      */
     private MainBriefcaseWindow() {
+        BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
+
         briefcaseAnalytics.trackStartup();
 
         frame = new JFrame();
@@ -224,13 +226,13 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
         frame.setContentPane(tabbedPane);
 
-        PullTransferPanel gatherPanel = new PullTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PullTransferPanel.class), BriefcasePreferences.appScoped());
+        PullTransferPanel gatherPanel = new PullTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PullTransferPanel.class), appPreferences);
         addPane(PullTransferPanel.TAB_NAME, gatherPanel);
 
         uploadPanel = new PushTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PushTransferPanel.class));
         addPane(PushTransferPanel.TAB_NAME, uploadPanel);
 
-        exportPanel = ExportPanel.from(exportTerminationFuture, BriefcasePreferences.forClass(ExportPanel.class));
+        exportPanel = ExportPanel.from(exportTerminationFuture, BriefcasePreferences.forClass(ExportPanel.class), appPreferences);
         addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
 
         settingsPanel = new SettingsPanel(this);

@@ -101,16 +101,16 @@ public class ExportPanel {
     }).start());
   }
 
-  public static ExportPanel from(TerminationFuture terminationFuture, BriefcasePreferences preferences) {
-    ExportConfiguration defaultConfiguration = ExportConfiguration.load(preferences);
+  public static ExportPanel from(TerminationFuture terminationFuture, BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences) {
+    ExportConfiguration defaultConfiguration = ExportConfiguration.load(exportPreferences);
     ConfigurationPanel confPanel = ConfigurationPanel.from(defaultConfiguration, false);
-    ExportForms forms = ExportForms.load(defaultConfiguration, getFormsFromStorage(), preferences);
+    ExportForms forms = ExportForms.load(defaultConfiguration, getFormsFromStorage(), exportPreferences, appPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, confPanel);
     return new ExportPanel(
         terminationFuture,
         forms,
         form,
-        preferences
+        exportPreferences
     );
   }
 
