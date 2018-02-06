@@ -19,6 +19,7 @@ import static javax.swing.SwingUtilities.invokeLater;
 import static org.assertj.swing.edt.GuiActionRunner.execute;
 import static org.assertj.swing.timing.Timeout.timeout;
 
+import com.github.lgooddatepicker.components.DatePicker;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -89,12 +90,12 @@ class ConfigurationPanelPageObject {
     return component.form.pemFileField;
   }
 
-  public JTextComponent startDateField() {
-    return component.form.startDatePicker.getComponentDateTextField();
+  public DatePicker startDatePicker() {
+    return component.form.startDatePicker;
   }
 
-  public JTextComponent endDateField() {
-    return component.form.endDatePicker.getComponentDateTextField();
+  public DatePicker endDatePicker() {
+    return component.form.endDatePicker;
   }
 
   public void setSomePemFile() {
@@ -124,10 +125,6 @@ class ConfigurationPanelPageObject {
     uncheckedSleep(50);
   }
 
-  private DialogFixture errorDialog() {
-    return errorDialog(50);
-  }
-
   public DialogFixture errorDialog(int timeoutMillis) {
     // Similar to buttonByName(name) or textFieldByName(name), we won't
     // throw when exhausting the timeout for obtaining a dialog and we will
@@ -154,14 +151,6 @@ class ConfigurationPanelPageObject {
     } catch (WaitTimedOutError e) {
       return null;
     }
-  }
-
-  public void acceptErrorDialog() {
-    // We need to be sure that the dialog is rendered before trying to click its button
-    waitFor(() -> errorDialog(500) != null && errorDialog().button() != null);
-    errorDialog().button().click();
-    // We wait for the dialog to disappear before handing over the thread
-    waitFor(() -> errorDialog() == null);
   }
 
   public void cancelFileDialog() {
