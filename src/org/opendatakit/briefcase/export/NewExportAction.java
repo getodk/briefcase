@@ -56,7 +56,7 @@ public class NewExportAction {
       Optional<Object> o = Optional.ofNullable(rdr.readObject());
       if (!o.isPresent())
         return ErrorsOr.errors("The supplied file is not in PEM format.");
-      Optional<PrivateKey> pk = extractPrivateKey(o);
+      Optional<PrivateKey> pk = extractPrivateKey(o.get());
       if (!pk.isPresent())
         return ErrorsOr.errors("The supplied file does not contain a private key.");
       return ErrorsOr.some(pk.get());

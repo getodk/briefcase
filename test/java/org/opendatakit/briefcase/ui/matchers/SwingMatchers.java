@@ -15,7 +15,6 @@
  */
 package org.opendatakit.briefcase.ui.matchers;
 
-import com.github.lgooddatepicker.components.DatePicker;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.text.JTextComponent;

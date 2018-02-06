@@ -20,7 +20,6 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.contains;
-import static org.opendatakit.briefcase.ui.matchers.DatePickerMatchers.empty;
 import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.enabled;
 import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.selected;
 import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.visible;
@@ -31,7 +30,6 @@ import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
-import org.opendatakit.briefcase.ui.matchers.DatePickerMatchers;
 import org.opendatakit.briefcase.ui.matchers.GenericUIMatchers;
 import org.opendatakit.briefcase.ui.matchers.SwingMatchers;
 
@@ -94,8 +92,8 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   public void cannot_insert_a_start_date_after_the_set_end_date() {
     component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), false);
     component.show();
-    component.setEndDate(LocalDate.of(2017,1,25));
-    assertFalse(component.startDateField().isDateAllowed(LocalDate.of(2017,1,27)));
+    component.setEndDate(LocalDate.of(2017, 1, 25));
+    assertFalse(component.startDateField().isDateAllowed(LocalDate.of(2017, 1, 27)));
   }
 
   @Test
