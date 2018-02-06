@@ -65,9 +65,9 @@ public class ExportForms {
       exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId))
           .map(LocalDateTime::parse)
           .ifPresent(dateTime -> lastExportDateTimes.put(formId, dateTime));
-      String urlKey = String.format("%s_pull_settings_url", form.getFormName());
-      String usernameKey = String.format("%s_pull_settings_username", form.getFormName());
-      String passwordKey = String.format("%s_pull_settings_password", form.getFormName());
+      String urlKey = String.format("%s_pull_settings_url", formId);
+      String usernameKey = String.format("%s_pull_settings_username", formId);
+      String passwordKey = String.format("%s_pull_settings_password", formId);
       if (appPreferences.hasKey(urlKey) && appPreferences.hasKey(usernameKey) && appPreferences.hasKey(passwordKey))
         transferSettings.put(formId, new ServerConnectionInfo(
             appPreferences.nullSafeGet(urlKey)

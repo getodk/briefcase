@@ -473,9 +473,9 @@ public class PullTransferPanel extends JPanel {
     setActiveTransferState(false);
     if (BriefcasePreferences.getStorePasswordsConsentProperty()) {
       event.formsToTransfer.forEach(form -> {
-        appPreferences.put(String.format("%s_pull_settings_url", form.getFormName()), event.transferSettings.getUrl());
-        appPreferences.put(String.format("%s_pull_settings_username", form.getFormName()), event.transferSettings.getUsername());
-        appPreferences.put(String.format("%s_pull_settings_password", form.getFormName()), String.valueOf(event.transferSettings.getPassword()));
+        appPreferences.put(String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()), event.transferSettings.getUrl());
+        appPreferences.put(String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()), event.transferSettings.getUsername());
+        appPreferences.put(String.format("%s_pull_settings_password", form.getFormDefinition().getFormId()), String.valueOf(event.transferSettings.getPassword()));
       });
     }
   }

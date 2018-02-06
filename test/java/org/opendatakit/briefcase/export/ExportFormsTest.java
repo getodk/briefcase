@@ -199,9 +199,9 @@ public class ExportFormsTest {
     List<FormStatus> formsList = Arrays.asList(formWithTransferSettings, formWithoutTransferSettings);
     BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
-    appPreferences.put(String.format("%s_pull_settings_url", formWithTransferSettings.getFormName()), expectedTransferSettings.getUrl());
-    appPreferences.put(String.format("%s_pull_settings_username", formWithTransferSettings.getFormName()), expectedTransferSettings.getUsername());
-    appPreferences.put(String.format("%s_pull_settings_password", formWithTransferSettings.getFormName()), String.valueOf(expectedTransferSettings.getPassword()));
+    appPreferences.put(String.format("%s_pull_settings_url", formWithTransferSettings.getFormDefinition().getFormId()), expectedTransferSettings.getUrl());
+    appPreferences.put(String.format("%s_pull_settings_username", formWithTransferSettings.getFormDefinition().getFormId()), expectedTransferSettings.getUsername());
+    appPreferences.put(String.format("%s_pull_settings_password", formWithTransferSettings.getFormDefinition().getFormId()), String.valueOf(expectedTransferSettings.getPassword()));
 
     ExportForms forms = ExportForms.load(ExportConfiguration.empty(), formsList, exportPreferences, appPreferences);
 
