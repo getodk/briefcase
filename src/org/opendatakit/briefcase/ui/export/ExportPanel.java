@@ -89,16 +89,7 @@ public class ExportPanel {
     });
 
 
-    form.onExport(() -> new Thread(() -> {
-      List<String> errors = export();
-      if (!errors.isEmpty()) {
-        String message = String.format(
-            "%s\n\n%s", "We have found some errors while performing the requested export actions:",
-            errors.stream().map(e -> "- " + e).collect(joining("\n"))
-        );
-        showErrorDialog(form.getContainer(), message, "Export error report");
-      }
-    }).start());
+    form.onExport(() -> new Thread(this::export).start());
   }
 
   public static ExportPanel from(TerminationFuture terminationFuture, BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences) {
