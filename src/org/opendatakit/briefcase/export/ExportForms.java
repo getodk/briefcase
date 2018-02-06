@@ -65,6 +65,19 @@ public class ExportForms {
       exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId))
           .map(LocalDateTime::parse)
           .ifPresent(dateTime -> lastExportDateTimes.put(formId, dateTime));
+      String urlKey = String.format("%s_pull_settings_url", form.getFormName());
+      String usernameKey = String.format("%s_pull_settings_username", form.getFormName());
+      String passwordKey = String.format("%s_pull_settings_password", form.getFormName());
+      if (appPreferences.hasKey(urlKey) && appPreferences.hasKey(usernameKey) && appPreferences.hasKey(passwordKey))
+        transferSettings.put(formId, new ServerConnectionInfo(
+            appPreferences.nullSafeGet(urlKey)
+                .orElseThrow(() -> new RuntimeException("Null value saved for " + urlKey)),
+            appPreferences.nullSafeGet(usernameKey)
+                .orElseThrow(() -> new RuntimeException("Null value saved for " + usernameKey)),
+            appPreferences.nullSafeGet(passwordKey)
+                .orElseThrow(() -> new RuntimeException("Null value saved for " + passwordKey)).toCharArray()
+        ));
+
     });
     return new ExportForms(
         forms,

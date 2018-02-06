@@ -296,4 +296,8 @@ public class BriefcasePreferences {
     }
   }
 
+  public boolean hasKey(String key) {
+    return keys().contains(key);
+  }
+
 }
