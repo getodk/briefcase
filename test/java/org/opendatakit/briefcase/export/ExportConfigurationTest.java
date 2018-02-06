@@ -17,6 +17,7 @@ package org.opendatakit.briefcase.export;
 
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isEmpty;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
+import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAndIs;
 import static java.nio.file.Files.createTempDirectory;
 import static java.nio.file.Files.write;
 import static org.hamcrest.Matchers.is;
@@ -30,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -186,5 +188,35 @@ public class ExportConfigurationTest {
     assertThat(validConfig.hashCode(), is(notNullValue()));
     assertThat(validConfig.equals(null), is(false));
     assertThat(validConfig, is(validConfig));
+  }
+  @Test
+  public void can_produce_a_new_configuration_that_falls_back_to_another_configuration() {
+    ExportConfiguration baseConf = new ExportConfiguration(
+        Optional.of(Paths.get("/some/path")),
+        Optional.of(Paths.get("/some/file.pem")),
+        Optional.of(LocalDate.of(2018, 1, 1)),
+        Optional.of(LocalDate.of(2020, 1, 1))
+    );
+
+    ExportConfiguration testConf = ExportConfiguration.empty();
+    assertThat(testConf.fallingBackTo(baseConf), is(baseConf));
+
+    testConf.setExportDir(Paths.get("/some/other/path"));
+    assertThat(testConf.fallingBackTo(baseConf).getExportDir(), isPresentAndIs(Paths.get("/some/other/path")));
+    assertThat(testConf.fallingBackTo(baseConf).getPemFile(), is(baseConf.getPemFile()));
+    assertThat(testConf.fallingBackTo(baseConf).getStartDate(), is(baseConf.getStartDate()));
+    assertThat(testConf.fallingBackTo(baseConf).getEndDate(), is(baseConf.getEndDate()));
+
+    testConf.setPemFile(Paths.get("/some/other/file.pem"));
+    assertThat(testConf.fallingBackTo(baseConf).getPemFile(), isPresentAndIs(Paths.get("/some/other/file.pem")));
+    assertThat(testConf.fallingBackTo(baseConf).getStartDate(), is(baseConf.getStartDate()));
+    assertThat(testConf.fallingBackTo(baseConf).getEndDate(), is(baseConf.getEndDate()));
+
+    testConf.setStartDate(LocalDate.of(2019, 1, 1));
+    assertThat(testConf.fallingBackTo(baseConf).getStartDate(), isPresentAndIs(LocalDate.of(2019, 1, 1)));
+    assertThat(testConf.fallingBackTo(baseConf).getEndDate(), is(baseConf.getEndDate()));
+
+    testConf.setEndDate(LocalDate.of(2021, 1, 1));
+    assertThat(testConf.fallingBackTo(baseConf), is(testConf));
   }
 }
