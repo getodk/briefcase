@@ -21,6 +21,7 @@ import static org.opendatakit.briefcase.ui.reused.FileChooser.file;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 
 import com.github.lgooddatepicker.components.DatePicker;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -84,6 +85,7 @@ public class ConfigurationPanelForm extends JComponent {
     endDatePicker.getSettings().setGapBeforeButtonPixels(0);
     endDatePicker.getComponentDateTextField().setPreferredSize(exportDirField.getPreferredSize());
     endDatePicker.getComponentToggleCalendarButton().setPreferredSize(exportDirChooseButton.getPreferredSize());
+    pullBeforeHintPanel.setBackground(new Color(255, 255, 255, 0));
     mode.decorate(pullBeforeField, pullBeforeInheritField, pullBeforeHintPanel);
 
     exportDirChooseButton.addActionListener(__ ->
