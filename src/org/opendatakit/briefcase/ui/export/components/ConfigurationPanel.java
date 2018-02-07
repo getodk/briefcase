@@ -58,8 +58,18 @@ public class ConfigurationPanel {
     });
   }
 
-  public static ConfigurationPanel from(ExportConfiguration initialConfiguration, boolean isOverridePanel, boolean offerPullBefore) {
-    return new ConfigurationPanel(initialConfiguration, new ConfigurationPanelForm(isOverridePanel, offerPullBefore));
+  public static ConfigurationPanel overridePanel(ExportConfiguration initialConfiguration, boolean hasTransferSettings, boolean savePasswordsConsent) {
+    return new ConfigurationPanel(
+        initialConfiguration,
+        ConfigurationPanelForm.overridePanel(hasTransferSettings, savePasswordsConsent)
+    );
+  }
+
+  public static ConfigurationPanel defaultPanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent) {
+    return new ConfigurationPanel(
+        initialConfiguration,
+        ConfigurationPanelForm.defaultPanel(savePasswordsConsent)
+    );
   }
 
   public ConfigurationPanelForm getForm() {
@@ -92,5 +102,13 @@ public class ConfigurationPanel {
 
   public boolean isEmpty() {
     return configuration.isEmpty();
+  }
+
+  public void savePasswordsConsentGiven() {
+    form.changeMode(true);
+  }
+
+  public void savePasswordsConsentRevoked() {
+    form.changeMode(false);
   }
 }

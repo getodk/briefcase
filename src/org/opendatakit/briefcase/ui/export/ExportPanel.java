@@ -120,7 +120,7 @@ public class ExportPanel {
 
   public static ExportPanel from(TerminationFuture terminationFuture, BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Executor backgroundExecutor) {
     ExportConfiguration defaultConfiguration = ExportConfiguration.load(exportPreferences);
-    ConfigurationPanel confPanel = ConfigurationPanel.from(defaultConfiguration, false, false);
+    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(defaultConfiguration, BriefcasePreferences.getStorePasswordsConsentProperty());
     ExportForms forms = ExportForms.load(defaultConfiguration, getFormsFromStorage(), exportPreferences, appPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, confPanel);
     return new ExportPanel(
@@ -184,10 +184,12 @@ public class ExportPanel {
   @EventSubscriber(eventClass = SavePasswordsConsentGiven.class)
   public void onSavePasswordsConsentGiven(SavePasswordsConsentGiven event) {
     forms.flushTransferSettings();
+    form.getConfPanel().savePasswordsConsentGiven();
   }
 
   @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
   public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
     forms.flushTransferSettings();
+    form.getConfPanel().savePasswordsConsentRevoked();
   }
 }

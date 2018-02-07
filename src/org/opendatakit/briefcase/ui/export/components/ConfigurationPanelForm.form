@@ -178,13 +178,20 @@
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
       </hspacer>
-      <component id="b4cfe" class="javax.swing.JLabel" binding="pullBeforeHintLabel">
+      <component id="6925f" class="javax.swing.JTextPane" binding="pullBeforeHintPanel">
         <constraints>
-          <grid row="5" column="2" row-span="1" col-span="4" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="5" column="2" row-span="1" col-span="3" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <preferred-size width="150" height="50"/>
+          </grid>
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
         <properties>
-          <text value="Pull this form again to be able to pull it before exporting it"/>
+          <autoscrolls value="false"/>
+          <editable value="false"/>
+          <focusCycleRoot value="false"/>
+          <focusable value="false"/>
+          <preferredSize width="350" height="72"/>
+          <text value="Some hint will be shown here"/>
         </properties>
       </component>
     </children>

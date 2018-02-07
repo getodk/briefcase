@@ -24,7 +24,7 @@ class FakeConfigurationPanelForm extends ConfigurationPanelForm {
   public boolean enabled;
 
   FakeConfigurationPanelForm(boolean isOverridePanel, boolean offerPullBefore) {
-    super(isOverridePanel, offerPullBefore);
+    super(isOverridePanel ? Mode.overridePanel(offerPullBefore, true): Mode.defaultPanel(true));
   }
 
   @Override

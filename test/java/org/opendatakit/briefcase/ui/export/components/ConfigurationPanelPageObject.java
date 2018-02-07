@@ -62,7 +62,10 @@ class ConfigurationPanelPageObject {
   }
 
   static ConfigurationPanelPageObject setUp(Robot robot, ExportConfiguration initialConfiguration, boolean isOverridePanel) {
-    ConfigurationPanel configurationPanel = execute(() -> ConfigurationPanel.from(initialConfiguration, isOverridePanel, true));
+    ConfigurationPanel configurationPanel = execute(() -> isOverridePanel
+        ? ConfigurationPanel.overridePanel(initialConfiguration, true, true)
+        : ConfigurationPanel.defaultPanel(initialConfiguration, true)
+    );
     JFrame testFrame = execute(() -> {
       JFrame f = new JFrame();
       f.add(configurationPanel.getForm().container);
