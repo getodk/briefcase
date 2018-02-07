@@ -453,7 +453,7 @@ public class ConfigurationPanelForm extends JComponent {
     }
 
     void decorate(JCheckBox pullBeforeField, JCheckBox pullBeforeInheritField, JTextPane textpanel) {
-      pullBeforeField.setText(isOverridePanel ? pullBeforeField.getText() + " (where available)" : pullBeforeField.getText());
+      pullBeforeField.setText(isOverridePanel ? pullBeforeField.getText() :  pullBeforeField.getText() + " (where available)");
       pullBeforeField.setEnabled(savePasswordsConsent && hasTransferSettings);
       pullBeforeInheritField.setVisible(isOverridePanel);
       pullBeforeInheritField.setEnabled(savePasswordsConsent && hasTransferSettings);
