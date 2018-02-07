@@ -221,4 +221,8 @@ public class ExportForms {
   private void rebuildIndex() {
     formsIndex = forms.stream().collect(toMap(ExportForms::getFormId, form -> form));
   }
+
+  public void flushTransferSettings() {
+    transferSettings.clear();
+  }
 }

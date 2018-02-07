@@ -1,4 +1,4 @@
 package org.opendatakit.briefcase.model;
 
-public class RemoveSavePasswordConsent {
+public class SavePasswordsConsentGiven {
 }

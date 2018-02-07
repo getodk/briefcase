@@ -36,6 +36,8 @@ import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.SavePasswordsConsentGiven;
+import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.transfer.NewTransferAction;
@@ -177,5 +179,15 @@ public class ExportPanel {
   public void successfulCompletion(TransferSucceededEvent event) {
     if (BriefcasePreferences.getStorePasswordsConsentProperty())
       event.formsToTransfer.forEach(form -> forms.putTransferSettings(form, event.transferSettings));
+  }
+
+  @EventSubscriber(eventClass = SavePasswordsConsentGiven.class)
+  public void onSavePasswordsConsentGiven(SavePasswordsConsentGiven event) {
+    forms.flushTransferSettings();
+  }
+
+  @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
+  public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
+    forms.flushTransferSettings();
   }
 }

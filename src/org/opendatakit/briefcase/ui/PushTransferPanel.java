@@ -39,8 +39,8 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.EndPointType;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.RemoveSavePasswordConsent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
+import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
@@ -380,8 +380,8 @@ public class PushTransferPanel extends JPanel {
     updateFormStatuses();
   }
 
-  @EventSubscriber(eventClass = RemoveSavePasswordConsent.class)
-  public void onRemoveSavePasswordConsent(RemoveSavePasswordConsent event) {
+  @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
+  public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
     tabPreferences.remove(BriefcasePreferences.PASSWORD);
   }
 }

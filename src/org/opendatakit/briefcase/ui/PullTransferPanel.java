@@ -47,8 +47,8 @@ import org.opendatakit.briefcase.model.EndPointType;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
-import org.opendatakit.briefcase.model.RemoveSavePasswordConsent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
+import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
@@ -464,12 +464,12 @@ public class PullTransferPanel extends JPanel {
   }
 
   @EventSubscriber(eventClass = TransferFailedEvent.class)
-  public void failedCompletion(TransferFailedEvent event) {
+  public void onTransferFailedEvent(TransferFailedEvent event) {
     setActiveTransferState(false);
   }
 
   @EventSubscriber(eventClass = TransferSucceededEvent.class)
-  public void successfulCompletion(TransferSucceededEvent event) {
+  public void onTransferSucceededEvent(TransferSucceededEvent event) {
     setActiveTransferState(false);
     if (BriefcasePreferences.getStorePasswordsConsentProperty()) {
       event.formsToTransfer.forEach(form -> {
@@ -481,22 +481,24 @@ public class PullTransferPanel extends JPanel {
   }
 
   @EventSubscriber(eventClass = FormStatusEvent.class)
-  public void updateDetailedStatus(FormStatusEvent fse) {
+  public void onFormStatusEvent(FormStatusEvent fse) {
     updateDownloadingLabel();
   }
 
   @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
-  public void formsAvailableFromServer(RetrieveAvailableFormsFailedEvent event) {
+  public void onRetrieveAvailableFormsFailedEvent(RetrieveAvailableFormsFailedEvent event) {
     ODKOptionPane.showErrorDialog(PullTransferPanel.this,
         "Accessing the server failed with error: " + event.getReason(), "Accessing Server Failed");
   }
 
-  @EventSubscriber(eventClass = RemoveSavePasswordConsent.class)
-  public void onRemoveSavePasswordConsent(RemoveSavePasswordConsent event) {
+  @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
+  public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
     tabPreferences.remove(BriefcasePreferences.PASSWORD);
-    appPreferences.removeAll(appPreferences.keys().stream().filter((String key) -> key.endsWith("_pull_settings_url")
-        || key.endsWith("_pull_settings_username")
-        || key.endsWith("_pull_settings_password")).peek(System.out::println).collect(toList()));
+    appPreferences.removeAll(appPreferences.keys().stream().filter((String key) ->
+        key.endsWith("_pull_settings_url")
+            || key.endsWith("_pull_settings_username")
+            || key.endsWith("_pull_settings_password")
+    ).collect(toList()));
   }
 
 }
