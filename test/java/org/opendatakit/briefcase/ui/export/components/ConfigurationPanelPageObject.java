@@ -34,13 +34,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 import org.assertj.swing.core.Robot;
 import org.assertj.swing.edt.GuiActionRunner;
-import org.assertj.swing.exception.ComponentLookupException;
 import org.assertj.swing.exception.WaitTimedOutError;
-import org.assertj.swing.fixture.DialogFixture;
 import org.assertj.swing.fixture.FrameFixture;
-import org.assertj.swing.fixture.JButtonFixture;
 import org.assertj.swing.fixture.JFileChooserFixture;
-import org.assertj.swing.fixture.JTextComponentFixture;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 
 class ConfigurationPanelPageObject {
@@ -64,8 +60,7 @@ class ConfigurationPanelPageObject {
   static ConfigurationPanelPageObject setUp(Robot robot, ExportConfiguration initialConfiguration, boolean isOverridePanel) {
     ConfigurationPanel configurationPanel = execute(() -> isOverridePanel
         ? ConfigurationPanel.overridePanel(initialConfiguration, true, true)
-        : ConfigurationPanel.defaultPanel(initialConfiguration, true)
-    );
+        : ConfigurationPanel.defaultPanel(initialConfiguration, true));
     JFrame testFrame = execute(() -> {
       JFrame f = new JFrame();
       f.add(configurationPanel.getForm().container);
@@ -128,6 +123,11 @@ class ConfigurationPanelPageObject {
     execute(() -> component.form.setPemFile(pemFile));
   }
 
+  public void setSomeExportDir() {
+    Path exportDir = TEST_FOLDER.resolve("some_dir");
+    execute(() -> component.form.setExportDir(exportDir));
+  }
+
   public void setStartDate(LocalDate someDate) {
     // GUI actions launched with GuiActionRunner.execute(...) will block the thread
     // until their completion. This is problematic when the action launches a modal
@@ -139,6 +139,10 @@ class ConfigurationPanelPageObject {
     uncheckedSleep(50);
   }
 
+  public void setSomeStartDate() {
+    execute(() -> component.form.setStartDate(LocalDate.of(2018, 2, 1)));
+  }
+
   public void setEndDate(LocalDate someDate) {
     // GUI actions launched with GuiActionRunner.execute(...) will block the thread
     // until their completion. This is problematic when the action launches a modal
@@ -148,6 +152,10 @@ class ConfigurationPanelPageObject {
     // dialogs.
     invokeLater(() -> component.form.setEndDate(someDate));
     uncheckedSleep(50);
+  }
+
+  public void setSomeEndDate() {
+    execute(() -> component.form.setEndDate(LocalDate.of(2018, 3, 1)));
   }
 
   public void setPullBefore(boolean value) {
@@ -166,18 +174,6 @@ class ConfigurationPanelPageObject {
       Arrays.asList(field.getActionListeners()).forEach(al -> al.actionPerformed(new ActionEvent(field, 1, "")));
     });
     uncheckedSleep(50);
-  }
-
-  public DialogFixture errorDialog(int timeoutMillis) {
-    // Similar to buttonByName(name) or textFieldByName(name), we won't
-    // throw when exhausting the timeout for obtaining a dialog and we will
-    // return a null instead, which is more suitable for our SwingMatchers
-    // and for expressing intent in our tests
-    try {
-      return fixture.dialog(timeout(timeoutMillis));
-    } catch (WaitTimedOutError e) {
-      return null;
-    }
   }
 
   private JFileChooserFixture fileDialog() {
@@ -224,40 +220,6 @@ class ConfigurationPanelPageObject {
     }
   }
 
-  private JButtonFixture buttonByName(String name) {
-    // The Swing test driver will produce a ComponentLookupException on
-    // unexpected situations like when a component is merely not visible
-    // (even if the component has been created and attached to the layout)
-    // In order to be used along with Hamcrest matchers, when the driver
-    // can't find an element, it's better to not throw and return a null
-    // instead. Matchers can make simple null-checks and when this is
-    // used on the test, NPEs are totally acceptable because we expect
-    // the test to fail if we need to click some element that it's not
-    // there.
-    try {
-      return fixture.button(name);
-    } catch (ComponentLookupException e) {
-      return null;
-    }
-  }
-
-  private JTextComponentFixture textFieldByName(String name) {
-    // The Swing test driver will produce a ComponentLookupException on
-    // unexpected situations like when a component is merely not visible
-    // (even if the component has been created and attached to the layout)
-    // In order to be used along with Hamcrest matchers, when the driver
-    // can't find an element, it's better to not throw and return a null
-    // instead. Matchers can make simple null-checks and when this is
-    // used on the test, NPEs are totally acceptable because we expect
-    // the test to fail if we need to click some element that it's not
-    // there.
-    try {
-      return fixture.textBox(name);
-    } catch (ComponentLookupException e) {
-      return null;
-    }
-  }
-
   public void clickChooseExportDirButton() {
     click(component.form.exportDirChooseButton);
     uncheckedSleep(50);
@@ -271,6 +233,14 @@ class ConfigurationPanelPageObject {
   public void clickClearPemFileButton() {
     click(component.form.pemFileClearButton);
     uncheckedSleep(50);
+  }
+
+  public ExportConfiguration getConfiguration() {
+    return component.getConfiguration();
+  }
+
+  public void onChange(Runnable callback) {
+    component.onChange(callback);
   }
 
   private void click(JButton button) {

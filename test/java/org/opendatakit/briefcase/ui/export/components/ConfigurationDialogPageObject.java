@@ -82,6 +82,14 @@ class ConfigurationDialogPageObject {
     GuiActionRunner.execute(() -> component.getConfPanel().form.clearExportDir());
   }
 
+  public void onOK(Runnable callback) {
+    component.onOK(__ -> callback.run());
+  }
+
+  public void onRemove(Runnable callback) {
+    component.onRemove(callback::run);
+  }
+
   private void click(JButton button) {
     GuiActionRunner.execute(() -> Arrays.asList(button.getActionListeners()).forEach(al -> al.actionPerformed(new ActionEvent(button, 1, ""))));
   }

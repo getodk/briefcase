@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.ui.export.components;
 
+import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertFalse;
@@ -26,7 +27,9 @@ import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.visible;
 
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
+import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
@@ -173,5 +176,36 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     assertThat(component.endDateField(), is(enabled()));
     assertThat(component.pullBeforeField(), is(enabled()));
     assertThat(component.pullBeforeInheritField(), is(enabled()));
+  }
+
+  @Test
+  public void it_wires_UI_fields_to_the_model() {
+    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), true);
+    component.show();
+
+    component.setSomePemFile();
+    component.setSomeExportDir();
+    component.setSomeStartDate();
+    component.setSomeEndDate();
+    ExportConfiguration conf = component.getConfiguration();
+    assertThat(conf.getExportDir(), isPresent());
+    assertThat(conf.getPemFile(), isPresent());
+    assertThat(conf.getStartDate(), isPresent());
+    assertThat(conf.getEndDate(), isPresent());
+  }
+
+  @Test
+  public void broadcasts_changes() {
+    final AtomicInteger counter = new AtomicInteger(0);
+    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), true);
+    component.show();
+    component.onChange(counter::incrementAndGet);
+
+    component.setSomePemFile();
+    component.setSomeExportDir();
+    component.setSomeStartDate();
+    component.setSomeEndDate();
+
+    assertThat(counter.get(), CoreMatchers.is(4));
   }
 }
