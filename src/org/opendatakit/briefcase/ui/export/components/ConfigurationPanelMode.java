@@ -47,11 +47,12 @@ class ConfigurationPanelMode {
     pullBeforeOverrideField.setVisible(isOverridePanel);
     pullBeforeOverrideField.setEnabled(savePasswordsConsent && hasTransferSettings);
     textpanel.setVisible(isOverridePanel && (!savePasswordsConsent || !hasTransferSettings));
-    textpanel.setText(!savePasswordsConsent
-        ? "You can't pull before exporting forms until you give your consent to store passwords on the Settings panel"
-        : !hasTransferSettings
-        ? "Please, pull this form once again to be able to check these checkboxes"
-        : "");
+    textpanel.setText(savePasswordsConsent
+        ? hasTransferSettings
+        ? ""
+        : "Requires Remember passwords in Settings"
+        : "Requires manually pulling the form once"
+    );
 
   }
 
