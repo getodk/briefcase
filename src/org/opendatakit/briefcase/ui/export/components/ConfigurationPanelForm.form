@@ -2,7 +2,7 @@
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="org.opendatakit.briefcase.ui.export.components.ConfigurationPanelForm">
   <grid id="27dc6" binding="container" layout-manager="GridBagLayout">
     <constraints>
-      <xy x="20" y="20" width="647" height="400"/>
+      <xy x="20" y="20" width="545" height="400"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -45,7 +45,7 @@
       </component>
       <component id="6ae2" class="javax.swing.JTextField" binding="exportDirField">
         <constraints>
-          <grid row="0" column="2" row-span="1" col-span="3" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+          <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
           </grid>
           <gridbag weightx="1.0" weighty="0.0"/>
@@ -57,7 +57,7 @@
       </component>
       <component id="d6296" class="javax.swing.JTextField" binding="pemFileField">
         <constraints>
-          <grid row="1" column="2" row-span="1" col-span="3" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+          <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
           </grid>
           <gridbag weightx="1.0" weighty="0.0"/>
@@ -68,14 +68,14 @@
       </component>
       <component id="79c27" class="com.github.lgooddatepicker.components.DatePicker" binding="startDatePicker" custom-create="true">
         <constraints>
-          <grid row="2" column="2" row-span="1" col-span="4" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="2" column="2" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
           <gridbag weightx="1.0" weighty="0.0"/>
         </constraints>
         <properties/>
       </component>
       <component id="1a5b1" class="com.github.lgooddatepicker.components.DatePicker" binding="endDatePicker" custom-create="true">
         <constraints>
-          <grid row="3" column="2" row-span="1" col-span="4" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="2" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
           <gridbag weightx="1.0" weighty="0.0"/>
         </constraints>
         <properties/>
@@ -104,83 +104,18 @@
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
       </hspacer>
-      <grid id="e840f" binding="pemFileButtons" layout-manager="FlowLayout" hgap="0" vgap="0" flow-align="0">
-        <constraints>
-          <grid row="1" column="5" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
-        </constraints>
-        <properties/>
-        <border type="none"/>
-        <children>
-          <component id="97f45" class="javax.swing.JButton" binding="pemFileChooseButton">
-            <constraints/>
-            <properties>
-              <text value="Choose..."/>
-              <visible value="true"/>
-            </properties>
-          </component>
-          <component id="78a85" class="javax.swing.JButton" binding="pemFileClearButton">
-            <constraints/>
-            <properties>
-              <text value="Clear"/>
-              <visible value="false"/>
-            </properties>
-          </component>
-        </children>
-      </grid>
-      <grid id="82189" binding="exportDirButtons" layout-manager="FlowLayout" hgap="0" vgap="0" flow-align="0">
-        <constraints>
-          <grid row="0" column="5" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
-        </constraints>
-        <properties/>
-        <border type="none"/>
-        <children>
-          <component id="79d1c" class="javax.swing.JButton" binding="exportDirChooseButton">
-            <constraints/>
-            <properties>
-              <text value="Choose..."/>
-              <visible value="true"/>
-            </properties>
-          </component>
-          <component id="8f2f8" class="javax.swing.JButton" binding="exportDirCleanButton">
-            <constraints/>
-            <properties>
-              <text value="Clear"/>
-              <visible value="false"/>
-            </properties>
-          </component>
-        </children>
-      </grid>
       <component id="4d9bd" class="javax.swing.JCheckBox" binding="pullBeforeField">
         <constraints>
-          <grid row="4" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="5" column="2" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
         <properties>
           <text value="Pull before export"/>
         </properties>
       </component>
-      <component id="d4f1c" class="javax.swing.JCheckBox" binding="pullBeforeInheritField">
-        <constraints>
-          <grid row="4" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
-        </constraints>
-        <properties>
-          <selected value="false"/>
-          <text value="(don't override)"/>
-          <visible value="false"/>
-        </properties>
-      </component>
-      <hspacer id="62726">
-        <constraints>
-          <grid row="4" column="3" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
-        </constraints>
-      </hspacer>
       <component id="6925f" class="javax.swing.JTextPane" binding="pullBeforeHintPanel">
         <constraints>
-          <grid row="5" column="2" row-span="1" col-span="3" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+          <grid row="7" column="2" row-span="1" col-span="2" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="50"/>
           </grid>
           <gridbag weightx="0.0" weighty="0.0"/>
@@ -194,6 +129,82 @@
           <text value="Some hint will be shown here"/>
         </properties>
       </component>
+      <component id="9a017" class="javax.swing.JComboBox" binding="pullBeforeOverrideField" custom-create="true">
+        <constraints>
+          <grid row="6" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+        <properties/>
+      </component>
+      <vspacer id="a5f3a">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="3" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </vspacer>
+      <component id="443be" class="javax.swing.JLabel" binding="pullBeforeOverrideLabel">
+        <constraints>
+          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+        <properties>
+          <text value="Pull before export"/>
+        </properties>
+      </component>
+      <hspacer id="7e212">
+        <constraints>
+          <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </hspacer>
+      <grid id="82189" binding="exportDirButtons" layout-manager="FlowLayout" hgap="0" vgap="0" flow-align="0">
+        <constraints>
+          <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="8f2f8" class="javax.swing.JButton" binding="exportDirCleanButton">
+            <constraints/>
+            <properties>
+              <text value="Clear"/>
+              <visible value="false"/>
+            </properties>
+          </component>
+          <component id="79d1c" class="javax.swing.JButton" binding="exportDirChooseButton">
+            <constraints/>
+            <properties>
+              <text value="Choose..."/>
+              <visible value="true"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+      <grid id="e840f" binding="pemFileButtons" layout-manager="FlowLayout" hgap="0" vgap="0" flow-align="0">
+        <constraints>
+          <grid row="1" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="78a85" class="javax.swing.JButton" binding="pemFileClearButton">
+            <constraints/>
+            <properties>
+              <text value="Clear"/>
+              <visible value="false"/>
+            </properties>
+          </component>
+          <component id="97f45" class="javax.swing.JButton" binding="pemFileChooseButton">
+            <constraints/>
+            <properties>
+              <text value="Choose..."/>
+              <visible value="true"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
     </children>
   </grid>
 </form>

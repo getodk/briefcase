@@ -15,7 +15,9 @@
  */
 package org.opendatakit.briefcase.ui.matchers;
 
+import java.util.Objects;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.text.JTextComponent;
 import org.hamcrest.Description;
@@ -23,6 +25,25 @@ import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 
 public class SwingMatchers {
+
+  public static <T> Matcher<JComboBox<T>> hasSelectedItem(T item) {
+    return new TypeSafeMatcher<JComboBox<T>>() {
+      @Override
+      protected boolean matchesSafely(JComboBox<T> component) {
+        return component != null && Objects.equals(component.getSelectedItem(), item);
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("has selected item ").appendValue(item);
+      }
+
+      @Override
+      protected void describeMismatchSafely(JComboBox<T> item, Description mismatchDescription) {
+        mismatchDescription.appendText("actual selected item is ").appendValue(item.getSelectedItem());
+      }
+    };
+  }
 
   public static Matcher<JCheckBox> selected() {
     return new TypeSafeMatcher<JCheckBox>() {

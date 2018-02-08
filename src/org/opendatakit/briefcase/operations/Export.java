@@ -95,7 +95,8 @@ public class Export {
         pemFileLocation.map(Paths::get),
         Optional.ofNullable(startDateString).map(date -> date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()),
         Optional.ofNullable(endDateString).map(date -> date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()),
-        Optional.of(false)
+        Optional.of(false),
+        Optional.empty()
     );
 
     List<String> errors = validateConfiguration(formDefinition, exportConfiguration);

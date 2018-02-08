@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
@@ -38,6 +39,7 @@ import org.assertj.swing.exception.WaitTimedOutError;
 import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.fixture.JFileChooserFixture;
 import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
 
 class ConfigurationPanelPageObject {
   private static Path TEST_FOLDER;
@@ -114,8 +116,8 @@ class ConfigurationPanelPageObject {
     return component.form.pullBeforeField;
   }
 
-  public JCheckBox pullBeforeInheritField() {
-    return component.form.pullBeforeInheritField;
+  public JComboBox<PullBeforeOverrideOption> pullBeforeOverrideField() {
+    return component.form.pullBeforeOverrideField;
   }
 
   public void setSomePemFile() {
@@ -167,10 +169,10 @@ class ConfigurationPanelPageObject {
     uncheckedSleep(50);
   }
 
-  public void setPullBeforeInherit(boolean value) {
+  public void setPullBeforeOverride(PullBeforeOverrideOption option) {
     invokeLater(() -> {
-      JCheckBox field = component.form.pullBeforeInheritField;
-      field.setSelected(value);
+      JComboBox<PullBeforeOverrideOption> field = component.form.pullBeforeOverrideField;
+      field.setSelectedItem(option);
       Arrays.asList(field.getActionListeners()).forEach(al -> al.actionPerformed(new ActionEvent(field, 1, "")));
     });
     uncheckedSleep(50);

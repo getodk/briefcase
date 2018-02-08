@@ -155,7 +155,7 @@ public class ExportPanel {
         .forEach(form -> {
           String formId = form.getFormDefinition().getFormId();
           ExportConfiguration configuration = forms.getConfiguration(formId);
-          if (configuration.getPullBefore().orElse(false))
+          if (configuration.resolvePullBefore())
             forms.getTransferSettings(formId).ifPresent(sci -> NewTransferAction.transferServerToBriefcase(
                 sci,
                 terminationFuture,

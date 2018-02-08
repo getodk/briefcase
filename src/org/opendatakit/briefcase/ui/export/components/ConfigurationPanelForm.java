@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.ui.export.components;
 
+import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.INHERIT;
 import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.directory;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.file;
@@ -35,15 +36,16 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.StringUtils;
 
@@ -65,19 +67,23 @@ public class ConfigurationPanelForm extends JComponent {
   private JPanel exportDirButtons;
   private JButton exportDirCleanButton;
   JCheckBox pullBeforeField;
-  JCheckBox pullBeforeInheritField;
+  JComboBox<PullBeforeOverrideOption> pullBeforeOverrideField;
   private JTextPane pullBeforeHintPanel;
+  private JLabel pullBeforeOverrideLabel;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectEndDateCallbacks = new ArrayList<>();
-  private final List<BiConsumer<Boolean, Boolean>> onChangePullBeforeCallbacks = new ArrayList<>();
-  private final Mode mode;
+  private final List<Consumer<Boolean>> onChangePullBeforeCallbacks = new ArrayList<>();
+  private final List<Consumer<PullBeforeOverrideOption>> onChangePullBeforeOverrideCallbacks = new ArrayList<>();
+  private final ConfigurationPanelMode mode;
 
-  protected ConfigurationPanelForm(Mode mode) {
+  protected ConfigurationPanelForm(ConfigurationPanelMode mode) {
     this.mode = mode;
     startDatePicker = createDatePicker();
     endDatePicker = createDatePicker();
+    pullBeforeOverrideField = new JComboBox<>(PullBeforeOverrideOption.values());
+    pullBeforeOverrideField.setSelectedItem(INHERIT);
     $$$setupUI$$$();
     startDatePicker.getSettings().setGapBeforeButtonPixels(0);
     startDatePicker.getComponentDateTextField().setPreferredSize(exportDirField.getPreferredSize());
@@ -86,7 +92,7 @@ public class ConfigurationPanelForm extends JComponent {
     endDatePicker.getComponentDateTextField().setPreferredSize(exportDirField.getPreferredSize());
     endDatePicker.getComponentToggleCalendarButton().setPreferredSize(exportDirChooseButton.getPreferredSize());
     pullBeforeHintPanel.setBackground(new Color(255, 255, 255, 0));
-    mode.decorate(pullBeforeField, pullBeforeInheritField, pullBeforeHintPanel);
+    mode.decorate(pullBeforeField, pullBeforeOverrideLabel, pullBeforeOverrideField, pullBeforeHintPanel);
 
     exportDirChooseButton.addActionListener(__ ->
         buildExportDirDialog().choose().ifPresent(file -> setExportDir(Paths.get(file.toURI())))
@@ -106,23 +112,16 @@ public class ConfigurationPanelForm extends JComponent {
       startDatePicker.getSettings().setDateRangeLimits(null, event.getNewDate());
       onSelectEndDateCallbacks.forEach(consumer -> consumer.accept(event.getNewDate()));
     });
-    pullBeforeField.addActionListener(__ -> {
-      pullBeforeInheritField.setSelected(false);
-      triggerChangePullBefore();
-    });
-    pullBeforeInheritField.addActionListener(__ -> {
-      if (pullBeforeInheritField.isSelected())
-        pullBeforeField.setSelected(false);
-      triggerChangePullBefore();
-    });
+    pullBeforeField.addActionListener(__ -> triggerChangePullBefore());
+    pullBeforeOverrideField.addActionListener(__ -> triggerChangePullBeforeOverride());
   }
 
   public static ConfigurationPanelForm overridePanel(boolean hasTransferSettings, boolean savePasswordsConsent) {
-    return new ConfigurationPanelForm(Mode.overridePanel(hasTransferSettings, savePasswordsConsent));
+    return new ConfigurationPanelForm(ConfigurationPanelMode.overridePanel(hasTransferSettings, savePasswordsConsent));
   }
 
   public static ConfigurationPanelForm defaultPanel(boolean hasTransferSettings) {
-    return new ConfigurationPanelForm(Mode.defaultPanel(hasTransferSettings));
+    return new ConfigurationPanelForm(ConfigurationPanelMode.defaultPanel(hasTransferSettings));
   }
 
   @Override
@@ -182,12 +181,10 @@ public class ConfigurationPanelForm extends JComponent {
 
   void setPullBefore(boolean value) {
     pullBeforeField.setSelected(value);
-    pullBeforeInheritField.setSelected(false);
   }
 
-  void setPullBeforeInherit() {
-    pullBeforeField.setSelected(false);
-    pullBeforeInheritField.setSelected(true);
+  void setPullBeforeOverride(PullBeforeOverrideOption value) {
+    pullBeforeOverrideField.setSelectedItem(value);
   }
 
   void onSelectExportDir(Consumer<Path> callback) {
@@ -206,13 +203,17 @@ public class ConfigurationPanelForm extends JComponent {
     onSelectEndDateCallbacks.add(callback);
   }
 
-  void onChangePullBefore(BiConsumer<Boolean, Boolean> callback) {
+  void onChangePullBefore(Consumer<Boolean> callback) {
     onChangePullBeforeCallbacks.add(callback);
+  }
+
+  void onChangePullBeforeOverride(Consumer<PullBeforeOverrideOption> callback) {
+    onChangePullBeforeOverrideCallbacks.add(callback);
   }
 
   void changeMode(boolean savePasswordsConsent) {
     mode.setSavePasswordsConsent(savePasswordsConsent);
-    mode.decorate(pullBeforeField, pullBeforeInheritField, pullBeforeHintPanel);
+    mode.decorate(pullBeforeField, pullBeforeOverrideLabel, pullBeforeOverrideField, pullBeforeHintPanel);
   }
 
   private void createUIComponents() {
@@ -256,8 +257,13 @@ public class ConfigurationPanelForm extends JComponent {
   }
 
   private void triggerChangePullBefore() {
-    onChangePullBeforeCallbacks.forEach(callback -> callback.accept(pullBeforeField.isSelected(), pullBeforeInheritField.isSelected()));
+    onChangePullBeforeCallbacks.forEach(callback -> callback.accept(pullBeforeField.isSelected()));
   }
+
+  private void triggerChangePullBeforeOverride() {
+    onChangePullBeforeOverrideCallbacks.forEach(callback -> callback.accept((PullBeforeOverrideOption) pullBeforeOverrideField.getSelectedItem()));
+  }
+
 
   /**
    * Method generated by IntelliJ IDEA GUI Designer
@@ -305,7 +311,6 @@ public class ConfigurationPanelForm extends JComponent {
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 0;
-    gbc.gridwidth = 3;
     gbc.weightx = 1.0;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -315,7 +320,6 @@ public class ConfigurationPanelForm extends JComponent {
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 1;
-    gbc.gridwidth = 3;
     gbc.weightx = 1.0;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -323,14 +327,14 @@ public class ConfigurationPanelForm extends JComponent {
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 2;
-    gbc.gridwidth = 4;
+    gbc.gridwidth = 2;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(startDatePicker, gbc);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 3;
-    gbc.gridwidth = 4;
+    gbc.gridwidth = 2;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(endDatePicker, gbc);
@@ -358,58 +362,14 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.gridy = 3;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(spacer4, gbc);
-    pemFileButtons = new JPanel();
-    pemFileButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    gbc = new GridBagConstraints();
-    gbc.gridx = 5;
-    gbc.gridy = 1;
-    gbc.fill = GridBagConstraints.BOTH;
-    container.add(pemFileButtons, gbc);
-    pemFileChooseButton = new JButton();
-    pemFileChooseButton.setText("Choose...");
-    pemFileChooseButton.setVisible(true);
-    pemFileButtons.add(pemFileChooseButton);
-    pemFileClearButton = new JButton();
-    pemFileClearButton.setText("Clear");
-    pemFileClearButton.setVisible(false);
-    pemFileButtons.add(pemFileClearButton);
-    exportDirButtons = new JPanel();
-    exportDirButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    gbc = new GridBagConstraints();
-    gbc.gridx = 5;
-    gbc.gridy = 0;
-    gbc.fill = GridBagConstraints.BOTH;
-    container.add(exportDirButtons, gbc);
-    exportDirChooseButton = new JButton();
-    exportDirChooseButton.setText("Choose...");
-    exportDirChooseButton.setVisible(true);
-    exportDirButtons.add(exportDirChooseButton);
-    exportDirCleanButton = new JButton();
-    exportDirCleanButton.setText("Clear");
-    exportDirCleanButton.setVisible(false);
-    exportDirButtons.add(exportDirCleanButton);
     pullBeforeField = new JCheckBox();
     pullBeforeField.setText("Pull before export");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 4;
+    gbc.gridy = 5;
+    gbc.gridwidth = 2;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(pullBeforeField, gbc);
-    pullBeforeInheritField = new JCheckBox();
-    pullBeforeInheritField.setSelected(false);
-    pullBeforeInheritField.setText("(don't override)");
-    pullBeforeInheritField.setVisible(false);
-    gbc = new GridBagConstraints();
-    gbc.gridx = 4;
-    gbc.gridy = 4;
-    gbc.anchor = GridBagConstraints.WEST;
-    container.add(pullBeforeInheritField, gbc);
-    final JPanel spacer5 = new JPanel();
-    gbc = new GridBagConstraints();
-    gbc.gridx = 3;
-    gbc.gridy = 4;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(spacer5, gbc);
     pullBeforeHintPanel = new JTextPane();
     pullBeforeHintPanel.setAutoscrolls(false);
     pullBeforeHintPanel.setEditable(false);
@@ -419,10 +379,66 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeHintPanel.setText("Some hint will be shown here");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 5;
-    gbc.gridwidth = 3;
+    gbc.gridy = 7;
+    gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(pullBeforeHintPanel, gbc);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 6;
+    gbc.anchor = GridBagConstraints.WEST;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(pullBeforeOverrideField, gbc);
+    final JPanel spacer5 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 4;
+    gbc.gridwidth = 3;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    container.add(spacer5, gbc);
+    pullBeforeOverrideLabel = new JLabel();
+    pullBeforeOverrideLabel.setText("Pull before export");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 6;
+    gbc.anchor = GridBagConstraints.WEST;
+    container.add(pullBeforeOverrideLabel, gbc);
+    final JPanel spacer6 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 1;
+    gbc.gridy = 6;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(spacer6, gbc);
+    exportDirButtons = new JPanel();
+    exportDirButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    gbc = new GridBagConstraints();
+    gbc.gridx = 3;
+    gbc.gridy = 0;
+    gbc.fill = GridBagConstraints.BOTH;
+    container.add(exportDirButtons, gbc);
+    exportDirCleanButton = new JButton();
+    exportDirCleanButton.setText("Clear");
+    exportDirCleanButton.setVisible(false);
+    exportDirButtons.add(exportDirCleanButton);
+    exportDirChooseButton = new JButton();
+    exportDirChooseButton.setText("Choose...");
+    exportDirChooseButton.setVisible(true);
+    exportDirButtons.add(exportDirChooseButton);
+    pemFileButtons = new JPanel();
+    pemFileButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    gbc = new GridBagConstraints();
+    gbc.gridx = 3;
+    gbc.gridy = 1;
+    gbc.fill = GridBagConstraints.BOTH;
+    container.add(pemFileButtons, gbc);
+    pemFileClearButton = new JButton();
+    pemFileClearButton.setText("Clear");
+    pemFileClearButton.setVisible(false);
+    pemFileButtons.add(pemFileClearButton);
+    pemFileChooseButton = new JButton();
+    pemFileChooseButton.setText("Choose...");
+    pemFileChooseButton.setVisible(true);
+    pemFileButtons.add(pemFileChooseButton);
   }
 
   /**
@@ -430,48 +446,5 @@ public class ConfigurationPanelForm extends JComponent {
    */
   public JComponent $$$getRootComponent$$$() {
     return container;
-  }
-
-
-  static class Mode {
-    private final boolean isOverridePanel;
-    private final boolean hasTransferSettings;
-    private boolean savePasswordsConsent;
-
-    Mode(boolean isOverridePanel, boolean hasTransferSettings, boolean savePasswordsConsent) {
-      this.isOverridePanel = isOverridePanel;
-      this.hasTransferSettings = hasTransferSettings;
-      this.savePasswordsConsent = savePasswordsConsent;
-    }
-
-    static Mode overridePanel(boolean hasTransferSettings, boolean savePasswordsConsent) {
-      return new Mode(true, hasTransferSettings, savePasswordsConsent);
-    }
-
-    static Mode defaultPanel(boolean savePasswordsConsent) {
-      return new Mode(false, true, savePasswordsConsent);
-    }
-
-    void decorate(JCheckBox pullBeforeField, JCheckBox pullBeforeInheritField, JTextPane textpanel) {
-      pullBeforeField.setText(isOverridePanel ? pullBeforeField.getText() :  pullBeforeField.getText() + " (where available)");
-      pullBeforeField.setEnabled(savePasswordsConsent && hasTransferSettings);
-      pullBeforeInheritField.setVisible(isOverridePanel);
-      pullBeforeInheritField.setEnabled(savePasswordsConsent && hasTransferSettings);
-      textpanel.setVisible(!savePasswordsConsent || !hasTransferSettings);
-      textpanel.setText(!savePasswordsConsent
-          ? "You can't pull before exporting forms until you give your consent to store passwords on the Settings panel"
-          : !hasTransferSettings
-          ? "Please, pull this form once again to be able to check these checkboxes"
-          : "");
-
-    }
-
-    boolean isExportDirCleanable() {
-      return isOverridePanel;
-    }
-
-    void setSavePasswordsConsent(boolean savePasswordsConsent) {
-      this.savePasswordsConsent = savePasswordsConsent;
-    }
   }
 }

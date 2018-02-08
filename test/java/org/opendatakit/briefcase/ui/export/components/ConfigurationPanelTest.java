@@ -20,8 +20,10 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.PULL;
 import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.contains;
 import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.enabled;
+import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.hasSelectedItem;
 import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.selected;
 import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.visible;
 
@@ -100,37 +102,19 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   }
 
   @Test
-  public void inherit_pull_before_export_is_not_visible_when_not_overriding_conf() {
+  public void override_pull_before_export_is_not_visible_when_not_overriding_conf() {
     component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), false);
     component.show();
     component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), false);
     component.show();
-    assertThat(component.pullBeforeInheritField(), is(not(visible())));
+    assertThat(component.pullBeforeOverrideField(), is(not(visible())));
   }
 
   @Test
-  public void inherit_pull_before_export_is_visible_when_overriding_conf() {
+  public void override_pull_before_export_is_visible_when_overriding_conf() {
     component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), true);
     component.show();
-    assertThat(component.pullBeforeInheritField(), is(visible()));
-  }
-
-  @Test
-  public void clicking_on_pull_before_resets_inherit_checkbox() {
-    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), true);
-    component.show();
-    component.setPullBeforeInherit(true);
-    component.setPullBefore(true);
-    assertThat(component.pullBeforeInheritField(), is(not(selected())));
-  }
-
-  @Test
-  public void clicking_on_inherit_resets_pull_before_checkbox() {
-    component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), true);
-    component.show();
-    component.setPullBefore(true);
-    component.setPullBeforeInherit(true);
-    assertThat(component.pullBeforeField(), is(not(selected())));
+    assertThat(component.pullBeforeOverrideField(), is(visible()));
   }
 
   @Test
@@ -141,6 +125,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     expectedConfiguration.setStartDate(LocalDate.of(2018, 1, 1));
     expectedConfiguration.setEndDate(LocalDate.of(2019, 1, 1));
     expectedConfiguration.setPullBefore(true);
+    expectedConfiguration.setPullBeforeOverride(PULL);
     component = ConfigurationPanelPageObject.setUp(robot(), expectedConfiguration, true);
     component.show();
     assertThat(component.exportDirField(), contains(expectedConfiguration.getExportDir().get().toString()));
@@ -148,7 +133,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     assertThat(component.startDateField().getDate(), is(expectedConfiguration.getStartDate().get()));
     assertThat(component.endDateField().getDate(), is(expectedConfiguration.getEndDate().get()));
     assertThat(component.pullBeforeField(), is(selected()));
-    assertThat(component.pullBeforeInheritField(), is(not(selected())));
+    assertThat(component.pullBeforeOverrideField(), hasSelectedItem(PULL));
   }
 
   @Test
@@ -161,7 +146,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     assertThat(component.startDateField(), is(not(enabled())));
     assertThat(component.endDateField(), is(not(enabled())));
     assertThat(component.pullBeforeField(), is(not(enabled())));
-    assertThat(component.pullBeforeInheritField(), is(not(enabled())));
+    assertThat(component.pullBeforeOverrideField(), is(not(enabled())));
   }
 
   @Test
@@ -175,7 +160,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     assertThat(component.startDateField(), is(enabled()));
     assertThat(component.endDateField(), is(enabled()));
     assertThat(component.pullBeforeField(), is(enabled()));
-    assertThat(component.pullBeforeInheritField(), is(enabled()));
+    assertThat(component.pullBeforeOverrideField(), is(enabled()));
   }
 
   @Test

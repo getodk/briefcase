@@ -17,6 +17,7 @@ package org.opendatakit.briefcase.ui.export.components;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 
 public class ConfigurationPanel {
@@ -33,7 +34,7 @@ public class ConfigurationPanel {
     configuration.ifStartDatePresent(form::setStartDate);
     configuration.ifEndDatePresent(form::setEndDate);
     configuration.ifPullBeforePresent(form::setPullBefore);
-    configuration.ifPullBeforeNotPresent(form::setPullBeforeInherit);
+    configuration.ifPullBeforeOverridePresent(form::setPullBeforeOverride);
 
     form.onSelectExportDir(path -> {
       configuration.setExportDir(path);
@@ -51,9 +52,12 @@ public class ConfigurationPanel {
       configuration.setEndDate(date);
       triggerOnChange();
     });
-    form.onChangePullBefore((pullBefore, inherit) -> {
-      Boolean value = !inherit ? pullBefore : null;
-      configuration.setPullBefore(value);
+    form.onChangePullBefore(pullBefore -> {
+      configuration.setPullBefore(pullBefore);
+      triggerOnChange();
+    });
+    form.onChangePullBeforeOverride(pullBeforeOverrideOption -> {
+      configuration.setPullBeforeOverride(pullBeforeOverrideOption);
       triggerOnChange();
     });
   }
