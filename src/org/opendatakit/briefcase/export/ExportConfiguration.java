@@ -185,6 +185,20 @@ public class ExportConfiguration {
     return this;
   }
 
+  /**
+   * Resolves if we need to pull forms depending on the pullBefore and pullBeforeOverride
+   * settings with the following algorithm:
+   * <ul>
+   * <li>if the pullBeforeOverride Optional holds a {@link PullBeforeOverrideOption} value
+   * different than {@link PullBeforeOverrideOption#INHERIT}, then it returns its associated
+   * boolean value</li>
+   * <li>if the pullBefore Optional holds a Boolean value, then it returns it.</li>
+   * <li>otherwise, it returns false</li>
+   * </ul>
+   * See the tests on ExportConfigurationTests to see all the specific cases.
+   *
+   * @return true if the algorithm resolves that we need to pull forms, false otherwise
+   */
   public boolean resolvePullBefore() {
     return Stream.of(
         pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).flatMap(PullBeforeOverrideOption::asBoolean),
