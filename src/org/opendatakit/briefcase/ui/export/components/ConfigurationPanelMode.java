@@ -40,7 +40,7 @@ class ConfigurationPanelMode {
   }
 
   void decorate(JCheckBox pullBeforeField, JLabel pullBeforeOverrideLabel, JComboBox pullBeforeOverrideField, JTextPane textpanel) {
-    pullBeforeField.setText("Pull before export" + (savePasswordsConsent ? "" : "(Requires Remember passwords in Settings)"));
+    pullBeforeField.setText("Pull before export" + (savePasswordsConsent ? "" : " (Requires Remember passwords in Settings)"));
     pullBeforeField.setVisible(!isOverridePanel);
     pullBeforeField.setEnabled(savePasswordsConsent && hasTransferSettings);
     pullBeforeOverrideLabel.setVisible(isOverridePanel);

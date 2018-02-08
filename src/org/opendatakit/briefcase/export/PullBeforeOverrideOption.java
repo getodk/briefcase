@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public enum PullBeforeOverrideOption {
-  INHERIT("Use defaults", null), PULL("Pull before export", true), DONT_PULL("Do not pull before export", false);
+  INHERIT("Use default", null), PULL("Pull before export", true), DONT_PULL("Do not pull before export", false);
 
   private final String label;
   private final Optional<Boolean> value;
