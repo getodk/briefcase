@@ -21,11 +21,11 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.PULL;
-import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.contains;
-import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.enabled;
-import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.hasSelectedItem;
-import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.selected;
-import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.visible;
+import static org.opendatakit.briefcase.matchers.SwingMatchers.contains;
+import static org.opendatakit.briefcase.matchers.SwingMatchers.enabled;
+import static org.opendatakit.briefcase.matchers.SwingMatchers.hasSelectedItem;
+import static org.opendatakit.briefcase.matchers.SwingMatchers.selected;
+import static org.opendatakit.briefcase.matchers.SwingMatchers.visible;
 
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -35,8 +35,8 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
-import org.opendatakit.briefcase.ui.matchers.GenericUIMatchers;
-import org.opendatakit.briefcase.ui.matchers.SwingMatchers;
+import org.opendatakit.briefcase.matchers.GenericUIMatchers;
+import org.opendatakit.briefcase.matchers.SwingMatchers;
 
 public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   private ConfigurationPanelPageObject component;

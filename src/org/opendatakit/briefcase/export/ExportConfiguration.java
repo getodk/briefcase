@@ -139,20 +139,50 @@ public class ExportConfiguration {
     return exportDir;
   }
 
+  public ExportConfiguration setExportDir(Path path) {
+    this.exportDir = Optional.ofNullable(path);
+    return this;
+  }
+
   public Optional<Path> getPemFile() {
     return pemFile;
+  }
+
+  public ExportConfiguration setPemFile(Path path) {
+    this.pemFile = Optional.ofNullable(path);
+    return this;
+  }
+
+  public boolean isPemFilePresent() {
+    return pemFile.isPresent();
   }
 
   public Optional<LocalDate> getStartDate() {
     return startDate;
   }
 
-  public void setStartDate(LocalDate date) {
+  public ExportConfiguration setStartDate(LocalDate date) {
     this.startDate = Optional.ofNullable(date);
+    return this;
   }
 
   public Optional<LocalDate> getEndDate() {
     return endDate;
+  }
+
+  public ExportConfiguration setEndDate(LocalDate date) {
+    this.endDate = Optional.ofNullable(date);
+    return this;
+  }
+
+  public ExportConfiguration setPullBefore(Boolean value) {
+    this.pullBefore = Optional.ofNullable(value);
+    return this;
+  }
+
+  public ExportConfiguration setPullBeforeOverride(PullBeforeOverrideOption value) {
+    this.pullBeforeOverride = Optional.ofNullable(value);
+    return this;
   }
 
   public boolean resolvePullBefore() {
@@ -162,28 +192,8 @@ public class ExportConfiguration {
     ).filter(Optional::isPresent).map(Optional::get).findFirst().orElse(false);
   }
 
-  public void setEndDate(LocalDate date) {
-    this.endDate = Optional.ofNullable(date);
-  }
-
-  public void setPullBefore(Boolean value) {
-    this.pullBefore = Optional.ofNullable(value);
-  }
-
-  public void setPullBeforeOverride(PullBeforeOverrideOption value) {
-    this.pullBeforeOverride = Optional.ofNullable(value);
-  }
-
   private boolean isDateRangeValid() {
     return !startDate.isPresent() || !endDate.isPresent() || startDate.get().isBefore(endDate.get());
-  }
-
-  public void setExportDir(Path path) {
-    this.exportDir = Optional.ofNullable(path);
-  }
-
-  public void setPemFile(Path path) {
-    this.pemFile = Optional.ofNullable(path);
   }
 
   public void ifExportDirPresent(Consumer<Path> consumer) {
@@ -295,12 +305,8 @@ public class ExportConfiguration {
     return endDate.map(mapper);
   }
 
-  public boolean isPemFilePresent() {
-    return pemFile.isPresent();
-  }
-
   public ExportConfiguration fallingBackTo(ExportConfiguration defaultConfiguration) {
-    ExportConfiguration exportConfiguration = new ExportConfiguration(
+    return new ExportConfiguration(
         exportDir.isPresent() ? exportDir : defaultConfiguration.exportDir,
         pemFile.isPresent() ? pemFile : defaultConfiguration.pemFile,
         startDate.isPresent() ? startDate : defaultConfiguration.startDate,
@@ -308,7 +314,6 @@ public class ExportConfiguration {
         pullBefore.isPresent() ? pullBefore : defaultConfiguration.pullBefore,
         pullBeforeOverride.isPresent() ? pullBeforeOverride : defaultConfiguration.pullBeforeOverride
     );
-    return exportConfiguration;
   }
 
   @Override

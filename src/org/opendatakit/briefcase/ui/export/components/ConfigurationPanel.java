@@ -17,7 +17,6 @@ package org.opendatakit.briefcase.ui.export.components;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 
 public class ConfigurationPanel {

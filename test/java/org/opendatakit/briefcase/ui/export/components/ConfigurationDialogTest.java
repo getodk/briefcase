@@ -18,8 +18,8 @@ package org.opendatakit.briefcase.ui.export.components;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.ui.matchers.GenericUIMatchers.visible;
-import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.enabled;
+import static org.opendatakit.briefcase.matchers.GenericUIMatchers.visible;
+import static org.opendatakit.briefcase.matchers.SwingMatchers.enabled;
 
 import java.io.IOException;
 import java.nio.file.Files;
