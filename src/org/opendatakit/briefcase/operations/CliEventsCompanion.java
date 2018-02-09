@@ -29,7 +29,7 @@ import org.opendatakit.briefcase.model.TransferSucceededEvent;
  */
 class CliEventsCompanion {
   static void attach(Log log) {
-    on(ExportProgressEvent.class, (ExportProgressEvent event) -> {
+    on(ExportProgressEvent.class, event -> {
       if (event.getText().contains("Cause:")) {
         log.warn(event.getText());
         System.err.println(event.getText());
@@ -39,22 +39,22 @@ class CliEventsCompanion {
       }
     });
 
-    on(ExportSucceededEvent.class, (ExportSucceededEvent event) -> {
+    on(ExportSucceededEvent.class, event -> {
       log.info("Succeeded.");
       System.out.println("Succeeded.");
     });
 
-    on(TransferSucceededEvent.class, (TransferSucceededEvent event) -> {
+    on(TransferSucceededEvent.class, event -> {
       log.info("Transfer Succeeded");
       System.out.println("Transfer Succeeded");
     });
 
-    on(FormStatusEvent.class, (FormStatusEvent fse) -> {
+    on(FormStatusEvent.class, fse -> {
       log.info(fse.getStatusString());
       System.out.println(fse.getStatusString());
     });
 
-    on(StartPullEvent.class, (StartPullEvent event) -> {
+    on(StartPullEvent.class, event -> {
       log.info("Start pull form " + event.form.getFormName());
       System.out.println("Start pull form " + event.form.getFormName());
     });
