@@ -67,26 +67,33 @@ public class BriefcaseCLI {
     String odkDir = mCommandline.getOptionValue(MainBriefcaseWindow.ODK_DIR);
     String pemKeyFile = mCommandline.getOptionValue(MainBriefcaseWindow.PEM_FILE);
 
-    if (odkDir != null) {
-      importODK(storageDir, odkDir);
-    } else if (server != null) {
-      pullFormFromAggregate(storageDir, formid, username, password, server);
-    }
+    try {
+      if (odkDir != null) {
+        importODK(storageDir, odkDir);
+      } else if (server != null) {
+        pullFormFromAggregate(storageDir, formid, username, password, server);
+      }
 
-    if (exportPath != null) {
-      export(
-          storageDir,
-          formid,
-          fileName,
-          exportPath,
-          Optional.ofNullable(startDateString).map(Export::toDate).orElse(null),
-          Optional.ofNullable(endDateString).map(Export::toDate).orElse(null),
-          exportMedia,
-          overwrite,
-          Optional.ofNullable(pemKeyFile)
-      );
+      if (exportPath != null) {
+        export(
+            storageDir,
+            formid,
+            fileName,
+            exportPath,
+            Optional.ofNullable(startDateString).map(Export::toDate).orElse(null),
+            Optional.ofNullable(endDateString).map(Export::toDate).orElse(null),
+            exportMedia,
+            overwrite,
+            Optional.ofNullable(pemKeyFile)
+        );
+      }
+    } catch (Throwable t) {
+      System.err.println("Briefcase unexpected error. Please review the logs and contact maintainers on the following URLs:");
+      System.err.println("\thttps://opendatakit.slack.com/messages/C374LNDK9/");
+      System.err.println("\thttps://forum.opendatakit.org/c/support");
+      log.error(t);
+      System.exit(1);
     }
-
   }
 
   @EventSubscriber(eventClass = ExportProgressEvent.class)
