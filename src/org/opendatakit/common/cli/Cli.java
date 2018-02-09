@@ -161,8 +161,10 @@ public class Cli {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
     Cli cli = (Cli) o;
     return Objects.equals(requiredOperations, cli.requiredOperations) &&
         Objects.equals(operations, cli.operations) &&

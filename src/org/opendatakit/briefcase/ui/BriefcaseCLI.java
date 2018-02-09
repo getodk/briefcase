@@ -57,13 +57,13 @@ public class BriefcaseCLI {
     String pemKeyFile = mCommandline.getOptionValue(MainBriefcaseWindow.PEM_FILE);
 
     try {
-      if (odkDir != null) {
+      if (odkDir != null)
         importODK(storageDir, Paths.get(odkDir));
-      } else if (server != null) {
-        pullFormFromAggregate(storageDir, formid, username, password, server);
-      }
 
-      if (exportPath != null) {
+      if (odkDir == null && server != null)
+        pullFormFromAggregate(storageDir, formid, username, password, server);
+
+      if (exportPath != null)
         export(
             storageDir,
             formid,
@@ -72,7 +72,6 @@ public class BriefcaseCLI {
             Optional.ofNullable(endDateString).map(LocalDate::parse),
             Optional.ofNullable(pemKeyFile).map(Paths::get)
         );
-      }
     } catch (Throwable t) {
       System.err.println("Briefcase unexpected error. Please review the logs and contact maintainers on the following URLs:");
       System.err.println("\thttps://opendatakit.slack.com/messages/C374LNDK9/");
