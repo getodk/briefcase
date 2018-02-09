@@ -63,14 +63,14 @@ class ConfigurationPanelPageObject {
 
   static ConfigurationPanelPageObject setUp(Robot robot, ExportConfiguration initialConfiguration, boolean isOverridePanel, boolean hasTransferSettings, boolean savePasswordsConsent) {
     return isOverridePanel
-        ? setUpOverridePanel(robot, initialConfiguration, hasTransferSettings, savePasswordsConsent)
-        : setUpDefaultPanel(robot, initialConfiguration, savePasswordsConsent);
+        ? setUpOverridePanel(robot, initialConfiguration, savePasswordsConsent, hasTransferSettings)
+        : setUpDefaultPanel(robot, initialConfiguration, savePasswordsConsent, hasTransferSettings);
   }
 
 
-  static ConfigurationPanelPageObject setUpDefaultPanel(Robot robot, ExportConfiguration initialConfiguration, boolean savePasswordsConsent) {
+  static ConfigurationPanelPageObject setUpDefaultPanel(Robot robot, ExportConfiguration initialConfiguration, boolean savePasswordsConsent, boolean hasTransferSettings) {
     return execute(() -> {
-      ConfigurationPanel configurationPanel = ConfigurationPanel.defaultPanel(initialConfiguration, savePasswordsConsent);
+      ConfigurationPanel configurationPanel = ConfigurationPanel.defaultPanel(initialConfiguration, savePasswordsConsent, hasTransferSettings);
       JFrame testFrame = new JFrame();
       testFrame.add(configurationPanel.getForm().container);
       FrameFixture window = new FrameFixture(robot, testFrame);
@@ -78,9 +78,9 @@ class ConfigurationPanelPageObject {
     });
   }
 
-  static ConfigurationPanelPageObject setUpOverridePanel(Robot robot, ExportConfiguration initialConfiguration, boolean hasTransferSettings, boolean savePasswordsConsent) {
+  static ConfigurationPanelPageObject setUpOverridePanel(Robot robot, ExportConfiguration initialConfiguration, boolean savePasswordsConsent, boolean hasTransferSettings) {
     return execute(() -> {
-      ConfigurationPanel configurationPanel = ConfigurationPanel.overridePanel(initialConfiguration, hasTransferSettings, savePasswordsConsent);
+      ConfigurationPanel configurationPanel = ConfigurationPanel.overridePanel(initialConfiguration, savePasswordsConsent, hasTransferSettings);
       JFrame testFrame = new JFrame();
       testFrame.add(configurationPanel.getForm().container);
       FrameFixture window = new FrameFixture(robot, testFrame);

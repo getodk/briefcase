@@ -49,7 +49,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   @Test
   @Ignore
   public void export_dir_button_opens_a_file_dialog() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
     component.show();
     component.clickChooseExportDirButton();
     assertThat(component.fileDialog(2000), is(GenericUIMatchers.visible()));
@@ -59,7 +59,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   @Test
   @Ignore
   public void pem_file_button_opens_a_file_dialog() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
     component.show();
     component.clickChoosePemFileButton();
     assertThat(component.fileDialog(2000), is(GenericUIMatchers.visible()));
@@ -68,7 +68,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void only_the_pem_file_choose_button_is_visible_initially() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
     component.show();
     assertThat(component.choosePemFileButton(), is(visible()));
     assertThat(component.clearPemFileButton(), is(not(visible())));
@@ -76,7 +76,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void choose_pem_file_button_is_swapped_for_a_clean_button_that_cleans_the_field() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
     component.show();
     component.setSomePemFile();
     assertThat(component.choosePemFileButton(), is(not(visible())));
@@ -87,7 +87,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void cannot_insert_an_end_date_before_the_set_start_date() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
     component.show();
     component.setStartDate(LocalDate.of(2017, 1, 30));
     assertFalse(component.endDateField().isDateAllowed(LocalDate.of(2017, 1, 28)));
@@ -95,7 +95,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void cannot_insert_a_start_date_after_the_set_end_date() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
     component.show();
     component.setEndDate(LocalDate.of(2017, 1, 25));
     assertFalse(component.startDateField().isDateAllowed(LocalDate.of(2017, 1, 27)));
@@ -109,7 +109,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     expectedConfiguration.setStartDate(LocalDate.of(2018, 1, 1));
     expectedConfiguration.setEndDate(LocalDate.of(2019, 1, 1));
     expectedConfiguration.setPullBefore(true);
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), expectedConfiguration, true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), expectedConfiguration, true, true);
     component.show();
     assertThat(component.exportDirField(), containsText(expectedConfiguration.getExportDir().get().toString()));
     assertThat(component.pemFileField(), containsText(expectedConfiguration.getPemFile().get().toString()));
@@ -120,7 +120,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void default_panel_can_be_disabled() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
     component.show();
     component.disable();
     assertThat(component.exportDirField(), is(not(enabled())));
@@ -132,7 +132,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void default_panel_can_be_enabled() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
     component.show();
     component.disable();
     component.enable();
@@ -145,7 +145,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void default_panel_wires_UI_fields_to_the_model() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
     component.show();
 
     component.setSomePemFile();
@@ -164,7 +164,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   @Test
   public void default_panel_broadcasts_changes() {
     final AtomicInteger counter = new AtomicInteger(0);
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
     component.show();
     component.onChange(counter::incrementAndGet);
 

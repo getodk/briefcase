@@ -61,17 +61,17 @@ public class ConfigurationPanel {
     });
   }
 
-  public static ConfigurationPanel overridePanel(ExportConfiguration initialConfiguration, boolean hasTransferSettings, boolean savePasswordsConsent) {
+  public static ConfigurationPanel overridePanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent, boolean hasTransferSettings) {
     return new ConfigurationPanel(
         initialConfiguration,
-        ConfigurationPanelForm.overridePanel(hasTransferSettings, savePasswordsConsent)
+        ConfigurationPanelForm.overridePanel(savePasswordsConsent, hasTransferSettings)
     );
   }
 
-  public static ConfigurationPanel defaultPanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent) {
+  public static ConfigurationPanel defaultPanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent, boolean hasTransferSettings) {
     return new ConfigurationPanel(
         initialConfiguration,
-        ConfigurationPanelForm.defaultPanel(savePasswordsConsent)
+        ConfigurationPanelForm.defaultPanel(savePasswordsConsent, hasTransferSettings)
     );
   }
 

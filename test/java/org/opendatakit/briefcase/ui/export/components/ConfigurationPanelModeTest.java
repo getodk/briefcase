@@ -43,10 +43,10 @@ public class ConfigurationPanelModeTest extends AssertJSwingJUnitTestCase {
   @Parameterized.Parameters(name = "{0}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-        {"Default - No save password", Scenario.defaultPanel(false, false).defaultField(true, false, REQUIRE_SAVE_PASSWORDS)},
-        {"Default - No save password (redundant)", Scenario.defaultPanel(false, true).defaultField(true, false, REQUIRE_SAVE_PASSWORDS)},
-        {"Default - No transfer settings", Scenario.defaultPanel(true, false).defaultField(true, true, "")},
-        {"Default - All requirements met", Scenario.defaultPanel(true, true).defaultField(true, true, "")},
+        {"Default - No save password", Scenario.defaultPanel(false, false).defaultField(true, false).hint(true, REQUIRE_SAVE_PASSWORDS)},
+        {"Default - No save password (redundant)", Scenario.defaultPanel(false, true).defaultField(true, false).hint(true, REQUIRE_SAVE_PASSWORDS)},
+        {"Default - No transfer settings", Scenario.defaultPanel(true, false).defaultField(true, true).hint(true, REQUIRE_PULL_TEXT)},
+        {"Default - All requirements met", Scenario.defaultPanel(true, true).defaultField(true, true).hint(true, REQUIRE_PULL_TEXT)},
         {"Override - No save password", Scenario.overridePanel(false, false).overrideField(true, false).hint(true, REQUIRE_SAVE_PASSWORDS)},
         {"Override - No save password (redundant)", Scenario.overridePanel(false, true).overrideField(true, false).hint(true, REQUIRE_SAVE_PASSWORDS)},
         {"Override - No transfer settings", Scenario.overridePanel(true, false).overrideField(true, false).hint(true, REQUIRE_PULL_TEXT)},
@@ -66,10 +66,8 @@ public class ConfigurationPanelModeTest extends AssertJSwingJUnitTestCase {
 
     // Pull Before checkbox assertions
     assertThat(component.pullBeforeField(), scenario.defaultFieldVisible ? is(visible()) : is(not(visible())));
-    if (scenario.defaultFieldVisible) {
+    if (scenario.defaultFieldVisible)
       assertThat(component.pullBeforeField(), scenario.defaultFieldEnabled ? is(enabled()) : is(not(enabled())));
-      assertThat(component.pullBeforeField(), containsText(scenario.defaultFieldExtraText));
-    }
 
     // Pull Before Override label & combo box assertions
     assertThat(component.pullBeforeOverrideLabel(), scenario.overrideFieldVisible ? is(visible()) : is(not(visible())));
@@ -89,7 +87,6 @@ public class ConfigurationPanelModeTest extends AssertJSwingJUnitTestCase {
     private final boolean hasTransferSettings;
     private boolean defaultFieldVisible;
     private boolean defaultFieldEnabled;
-    private String defaultFieldExtraText;
     private boolean overrideFieldVisible;
     private boolean overrideFieldEnabled;
     private boolean hintVisible;
@@ -103,19 +100,17 @@ public class ConfigurationPanelModeTest extends AssertJSwingJUnitTestCase {
 
     static Scenario overridePanel(boolean savePasswords, boolean hasTransferSettings) {
       return new Scenario(true, savePasswords, hasTransferSettings)
-          .defaultField(false, false, "");
+          .defaultField(false, false);
     }
 
     static Scenario defaultPanel(boolean savePasswords, boolean hasTransferSettings) {
       return new Scenario(false, savePasswords, hasTransferSettings)
-          .overrideField(false, false)
-          .hint(false, "");
+          .overrideField(false, false);
     }
 
-    Scenario defaultField(boolean visible, boolean enabled, String extraText) {
+    Scenario defaultField(boolean visible, boolean enabled) {
       this.defaultFieldVisible = visible;
       this.defaultFieldEnabled = enabled;
-      this.defaultFieldExtraText = extraText;
       return this;
     }
 

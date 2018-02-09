@@ -24,7 +24,6 @@ import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 import com.github.lgooddatepicker.components.DatePicker;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -116,12 +115,12 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeOverrideField.addActionListener(__ -> triggerChangePullBeforeOverride());
   }
 
-  public static ConfigurationPanelForm overridePanel(boolean hasTransferSettings, boolean savePasswordsConsent) {
-    return new ConfigurationPanelForm(ConfigurationPanelMode.overridePanel(hasTransferSettings, savePasswordsConsent));
+  public static ConfigurationPanelForm overridePanel(boolean savePasswordsConsent, boolean hasTransferSettings) {
+    return new ConfigurationPanelForm(ConfigurationPanelMode.overridePanel(savePasswordsConsent, hasTransferSettings));
   }
 
-  public static ConfigurationPanelForm defaultPanel(boolean hasTransferSettings) {
-    return new ConfigurationPanelForm(ConfigurationPanelMode.defaultPanel(hasTransferSettings));
+  public static ConfigurationPanelForm defaultPanel(boolean savePasswordsConsent, boolean hasTransferSettings) {
+    return new ConfigurationPanelForm(ConfigurationPanelMode.defaultPanel(savePasswordsConsent, hasTransferSettings));
   }
 
   @Override
@@ -375,7 +374,6 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeHintPanel.setEditable(false);
     pullBeforeHintPanel.setFocusCycleRoot(false);
     pullBeforeHintPanel.setFocusable(false);
-    pullBeforeHintPanel.setPreferredSize(new Dimension(350, 72));
     pullBeforeHintPanel.setText("Some hint will be shown here");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
@@ -403,12 +401,6 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.gridy = 6;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(pullBeforeOverrideLabel, gbc);
-    final JPanel spacer6 = new JPanel();
-    gbc = new GridBagConstraints();
-    gbc.gridx = 1;
-    gbc.gridy = 6;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(spacer6, gbc);
     exportDirButtons = new JPanel();
     exportDirButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
     gbc = new GridBagConstraints();

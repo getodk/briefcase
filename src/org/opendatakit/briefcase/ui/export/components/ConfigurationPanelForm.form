@@ -125,7 +125,6 @@
           <editable value="false"/>
           <focusCycleRoot value="false"/>
           <focusable value="false"/>
-          <preferredSize width="350" height="72"/>
           <text value="Some hint will be shown here"/>
         </properties>
       </component>
@@ -151,12 +150,6 @@
           <text value="Pull before export"/>
         </properties>
       </component>
-      <hspacer id="7e212">
-        <constraints>
-          <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
-        </constraints>
-      </hspacer>
       <grid id="82189" binding="exportDirButtons" layout-manager="FlowLayout" hgap="0" vgap="0" flow-align="0">
         <constraints>
           <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>

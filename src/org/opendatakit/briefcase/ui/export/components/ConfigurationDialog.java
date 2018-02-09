@@ -44,7 +44,7 @@ public class ConfigurationDialog {
   }
 
   static ConfigurationDialog from(Optional<ExportConfiguration> configuration, boolean hasTransferSettings, boolean savePasswordsConsent) {
-    ConfigurationPanel confPanel = ConfigurationPanel.overridePanel(configuration.orElse(ExportConfiguration.empty()), hasTransferSettings, savePasswordsConsent);
+    ConfigurationPanel confPanel = ConfigurationPanel.overridePanel(configuration.orElse(ExportConfiguration.empty()), savePasswordsConsent, hasTransferSettings);
     ConfigurationDialogForm form = new ConfigurationDialogForm(confPanel.getForm());
     return new ConfigurationDialog(form, confPanel);
   }

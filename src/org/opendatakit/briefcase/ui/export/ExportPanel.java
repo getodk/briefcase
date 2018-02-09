@@ -120,7 +120,7 @@ public class ExportPanel {
 
   public static ExportPanel from(TerminationFuture terminationFuture, BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Executor backgroundExecutor) {
     ExportConfiguration defaultConfiguration = ExportConfiguration.load(exportPreferences);
-    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(defaultConfiguration, BriefcasePreferences.getStorePasswordsConsentProperty());
+    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(defaultConfiguration, BriefcasePreferences.getStorePasswordsConsentProperty(), true);
     ExportForms forms = ExportForms.load(defaultConfiguration, getFormsFromStorage(), exportPreferences, appPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, confPanel);
     return new ExportPanel(

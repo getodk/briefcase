@@ -24,33 +24,32 @@ class ConfigurationPanelMode {
   static final String REQUIRE_PULL_TEXT = "Requires manually pulling the form once";
   static final String REQUIRE_SAVE_PASSWORDS = "Requires Remember passwords in Settings";
   private final boolean isOverridePanel;
-  private final boolean hasTransferSettings;
   private boolean savePasswordsConsent;
+  private final boolean hasTransferSettings;
 
-  private ConfigurationPanelMode(boolean isOverridePanel, boolean hasTransferSettings, boolean savePasswordsConsent) {
+  private ConfigurationPanelMode(boolean isOverridePanel, boolean savePasswordsConsent, boolean hasTransferSettings) {
     this.isOverridePanel = isOverridePanel;
-    this.hasTransferSettings = hasTransferSettings;
     this.savePasswordsConsent = savePasswordsConsent;
+    this.hasTransferSettings = hasTransferSettings;
   }
 
-  static ConfigurationPanelMode overridePanel(boolean hasTransferSettings, boolean savePasswordsConsent) {
-    return new ConfigurationPanelMode(true, hasTransferSettings, savePasswordsConsent);
+  static ConfigurationPanelMode overridePanel(boolean savePasswordsConsent, boolean hasTransferSettings) {
+    return new ConfigurationPanelMode(true, savePasswordsConsent, hasTransferSettings);
   }
 
-  static ConfigurationPanelMode defaultPanel(boolean savePasswordsConsent) {
-    return new ConfigurationPanelMode(false, true, savePasswordsConsent);
+  static ConfigurationPanelMode defaultPanel(boolean savePasswordsConsent, boolean hasTransferSettings) {
+    return new ConfigurationPanelMode(false, savePasswordsConsent, hasTransferSettings);
   }
 
   void decorate(JCheckBox pullBeforeField, JLabel pullBeforeOverrideLabel, JComboBox pullBeforeOverrideField, JTextPane textpanel) {
     pullBeforeField.setVisible(!isOverridePanel);
-    pullBeforeField.setEnabled(savePasswordsConsent && hasTransferSettings);
-    pullBeforeField.setText("Pull before export" + (savePasswordsConsent ? "" : " (" + REQUIRE_SAVE_PASSWORDS + ")"));
+    pullBeforeField.setEnabled(savePasswordsConsent && (!isOverridePanel || hasTransferSettings));
     pullBeforeOverrideLabel.setVisible(isOverridePanel);
     pullBeforeOverrideField.setVisible(isOverridePanel);
     pullBeforeOverrideField.setEnabled(savePasswordsConsent && hasTransferSettings);
-    textpanel.setVisible(isOverridePanel && (!savePasswordsConsent || !hasTransferSettings));
+    textpanel.setVisible(!savePasswordsConsent || !hasTransferSettings || !isOverridePanel);
     textpanel.setText(savePasswordsConsent
-        ? hasTransferSettings
+        ? hasTransferSettings && isOverridePanel
         ? ""
         : REQUIRE_PULL_TEXT
         : REQUIRE_SAVE_PASSWORDS
