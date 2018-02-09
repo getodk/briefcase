@@ -16,6 +16,10 @@
 
 package org.opendatakit.briefcase.util;
 
+import static org.opendatakit.briefcase.util.FilesSkipped.ALL;
+import static org.opendatakit.briefcase.util.FilesSkipped.NONE;
+import static org.opendatakit.briefcase.util.FilesSkipped.SOME;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
@@ -23,10 +27,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.file.Path;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.util.Optional;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.NoSuchPaddingException;
@@ -52,11 +60,15 @@ import org.kxml2.kdom.Element;
 import org.kxml2.kdom.Node;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.CryptoException;
+import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportProgressPercentageEvent;
+import org.opendatakit.briefcase.model.ExportSucceededEvent;
+import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.operations.ExportException;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
 
 public class ExportToCsv implements ITransformFormAction {
@@ -997,5 +1009,51 @@ public class ExportToCsv implements ITransformFormAction {
     } else {
      return FilesSkipped.SOME;
     }
+  }
+
+  public static void export(Path exportDir, BriefcaseFormDefinition formDefinition, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
+    log.info("exporting to : " + exportDir);
+    ExportToCsv action = new ExportToCsv(
+        exportDir.toFile(),
+        formDefinition,
+        new TerminationFuture(),
+        startDate.map((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null),
+        endDate.map((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null)
+    );
+    try {
+      boolean allSuccessful = action.doAction();
+      if (allSuccessful) {
+        if (action.allSkipped()) {
+          EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
+          throw new ExportException(formDefinition.getFormId(), "None of the instances where exported");
+        }
+
+        if (action.someSkipped())
+          EventBus.publish(new ExportSucceededWithErrorsEvent(action.getFormDefinition()));
+
+        if (action.noneSkipped())
+          EventBus.publish(new ExportSucceededEvent(action.getFormDefinition()));
+      }
+
+      if (!allSuccessful) {
+        EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
+        throw new ExportException(formDefinition.getFormId(), "Export failure");
+      }
+    } catch (Throwable t) {
+      EventBus.publish(new ExportFailedEvent(formDefinition));
+      throw new ExportException(formDefinition.getFormId(), "Export failure");
+    }
+  }
+
+  private boolean noneSkipped() {
+    return totalFilesSkipped() == NONE;
+  }
+
+  private boolean someSkipped() {
+    return totalFilesSkipped() == SOME;
+  }
+
+  private boolean allSkipped() {
+    return totalFilesSkipped() == ALL;
   }
 }
