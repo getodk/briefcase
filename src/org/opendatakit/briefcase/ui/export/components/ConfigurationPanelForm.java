@@ -20,6 +20,8 @@ import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolde
 import static org.opendatakit.briefcase.ui.reused.FileChooser.directory;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.file;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
+import static org.opendatakit.briefcase.util.FindDirectoryStructure.isMac;
+import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
 
 import com.github.lgooddatepicker.components.DatePicker;
 import java.awt.Color;
@@ -92,6 +94,10 @@ public class ConfigurationPanelForm extends JComponent {
     endDatePicker.getComponentToggleCalendarButton().setPreferredSize(exportDirChooseButton.getPreferredSize());
     pullBeforeHintPanel.setBackground(new Color(255, 255, 255, 0));
     mode.decorate(pullBeforeField, pullBeforeOverrideLabel, pullBeforeOverrideField, pullBeforeHintPanel);
+    GridBagLayout layout = (GridBagLayout) container.getLayout();
+    GridBagConstraints constraints = layout.getConstraints(pullBeforeHintPanel);
+    constraints.insets = new Insets(0, isMac() ? 6 : isWindows() ? 2 : 0, 0, 0);
+    layout.setConstraints(pullBeforeHintPanel, constraints);
 
     exportDirChooseButton.addActionListener(__ ->
         buildExportDirDialog().choose().ifPresent(file -> setExportDir(Paths.get(file.toURI())))
