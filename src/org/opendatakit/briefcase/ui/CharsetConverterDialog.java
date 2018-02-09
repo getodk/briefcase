@@ -62,7 +62,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -373,11 +372,9 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
     SwingUtilities.invokeLater(new Runnable() {
       @Override
       public void run() {
-        File file = new File(filePath);
-        BufferedReader bufferedReader = null;
-        try {
-          bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(file), getCharsetName()));
-          List<String> lines = new ArrayList<String>();
+        try (BufferedReader bufferedReader =
+                     new BufferedReader(new InputStreamReader(new FileInputStream(filePath), getCharsetName()))) {
+          List<String> lines = new ArrayList<>();
           int N = 100;
           String line;
           int c = 0;
@@ -394,8 +391,6 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
                   ex.getMessage(),
                   "Error reading file...", JOptionPane.ERROR_MESSAGE);
         } finally {
-          IOUtils.closeQuietly(bufferedReader);
-
           pleaseWaitWindow.setVisible(false);
           pleaseWaitWindow.dispose();
         }
