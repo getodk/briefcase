@@ -15,6 +15,8 @@
  */
 package org.opendatakit.briefcase.operations;
 
+import static java.util.Comparator.naturalOrder;
+
 import java.util.List;
 import java.util.stream.Stream;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -24,28 +26,28 @@ import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
 
-public class CleanPreferences {
+public class ClearPreferences {
 
-  private static Param<Void> CLEAN = Param.flag("c", "clean-prefs", "Clean saved preferences");
+  private static Param<Void> CLEAR = Param.flag("c", "clear_prefs", "Clear saved preferences");
 
-  public static Operation CLEAN_PREFS = Operation.of(CLEAN, __ -> clean());
+  public static Operation CLEAR_PREFS = Operation.of(CLEAR, __ -> clear());
 
-  private static void clean() {
+  private static void clear() {
     flush(BriefcasePreferences.appScoped());
     Stream.of(
         PullTransferPanel.class,
         PushTransferPanel.class,
         ExportPanel.class
     ).map(BriefcasePreferences::forClass)
-        .forEach(CleanPreferences::flush);
+        .forEach(ClearPreferences::flush);
   }
 
   private static void flush(BriefcasePreferences appPreferences) {
-    System.out.println("Cleaning saved keys on " + appPreferences.node);
+    System.out.println("Clearing saved keys on " + appPreferences.node);
     List<String> keys = appPreferences.keys();
     appPreferences.removeAll(keys);
-    System.out.println("Removed keys:");
-    keys.forEach(key -> System.out.println("\t-" + key));
+    keys.sort(naturalOrder());
+    keys.forEach(key -> System.out.println("  " + key));
   }
 
 }
