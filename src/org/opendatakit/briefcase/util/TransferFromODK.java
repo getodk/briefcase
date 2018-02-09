@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -34,6 +35,7 @@ import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.TransferFailedEvent;
 
 public class TransferFromODK implements ITransferFromSourceAction {
 
@@ -352,5 +354,13 @@ public class TransferFromODK implements ITransferFromSourceAction {
   @Override
   public boolean isSourceDeletable() {
     return true;
+  }
+
+  public static void pull(Path odk, List<FormStatus> forms) {
+    TransferFromODK action = new TransferFromODK(odk.toFile(), new TerminationFuture(), forms);
+    if (!action.doAction()) {
+      EventBus.publish(new TransferFailedEvent(false, forms));
+      throw new TransferFromODKException(odk, forms);
+    }
   }
 }
