@@ -85,7 +85,7 @@ public class BriefcasePreferences {
    * @param defaultValue the value to be returned in the event that this preference node
    *                     has no value associated with key.
    * @return the value associated with key, or defaultValue if no value is associated
-   * with key, or the backing store is inaccessible.
+   *         with key, or the backing store is inaccessible.
    */
   public String get(String key, String defaultValue) {
     return preferences.get(key, defaultValue);
@@ -98,7 +98,7 @@ public class BriefcasePreferences {
    *
    * @param key key whose associated value is to be returned.
    * @return an Optional instance with the value associated with key, or Optional.empty()
-   * if no value is associated with key, or the backing store is inaccessible.
+   *         if no value is associated with key, or the backing store is inaccessible.
    */
   public Optional<String> nullSafeGet(String key) {
     return Optional.ofNullable(get(key, null));
