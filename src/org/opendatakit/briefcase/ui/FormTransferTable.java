@@ -362,7 +362,7 @@ public class FormTransferTable extends JTable {
     sorter.sort();
   }
 
-  private class FormNameColumnTableRowSorter extends TableRowSorter {
+  private class FormNameColumnTableRowSorter extends TableRowSorter<TableModel> {
 
     private final List<RowSorter.SortKey> sortKeys = new ArrayList<>(1);
 
