@@ -369,31 +369,26 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
 
     final Window pleaseWaitWindow = ODKOptionPane.showMessageDialog(this, "Creating preview, please wait...");
 
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        try (BufferedReader bufferedReader =
-                     new BufferedReader(new InputStreamReader(new FileInputStream(filePath), getCharsetName()))) {
-          List<String> lines = new ArrayList<>();
-          int N = 100;
-          String line;
-          int c = 0;
-          while ((line = bufferedReader.readLine()) != null && c < N) {
-            lines.add(line);
-          }
-
-          previewArea.setText(join(lines, LINE_SEPARATOR));
-          previewArea.setCaretPosition(0);
-
-        } catch (Exception ex) {
-          log.error("failed to create preview", ex);
-          JOptionPane.showMessageDialog(CharsetConverterDialog.this,
-                  ex.getMessage(),
-                  "Error reading file...", JOptionPane.ERROR_MESSAGE);
-        } finally {
-          pleaseWaitWindow.setVisible(false);
-          pleaseWaitWindow.dispose();
+    SwingUtilities.invokeLater(() -> {
+      try (BufferedReader bufferedReader =
+                   new BufferedReader(new InputStreamReader(new FileInputStream(filePath), getCharsetName()))) {
+        List<String> lines = new ArrayList<>();
+        String line;
+        while ((line = bufferedReader.readLine()) != null) {
+          lines.add(line);
         }
+
+        previewArea.setText(join(lines, LINE_SEPARATOR));
+        previewArea.setCaretPosition(0);
+
+      } catch (Exception ex) {
+        log.error("failed to create preview", ex);
+        JOptionPane.showMessageDialog(CharsetConverterDialog.this,
+                ex.getMessage(),
+                "Error reading file...", JOptionPane.ERROR_MESSAGE);
+      } finally {
+        pleaseWaitWindow.setVisible(false);
+        pleaseWaitWindow.dispose();
       }
     });
   }
