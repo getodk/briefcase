@@ -17,13 +17,14 @@ public class FormCache implements FormCacheable {
     private Map<String, String> pathToMd5Map = new HashMap<>();
     private Map<String, BriefcaseFormDefinition> pathToDefinitionMap = new HashMap<>();
 
+    @SuppressWarnings("unchecked")
     public FormCache(File storagePath) {
         cacheFile = new File(storagePath, "cache.ser");
         if (cacheFile.exists() && cacheFile.canRead()) {
             try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(cacheFile))) {
                 pathToMd5Map = (Map) objectInputStream.readObject();
                 pathToDefinitionMap = (Map) objectInputStream.readObject();
-            } catch (IOException | ClassNotFoundException e) {
+            } catch (IOException | ClassNotFoundException | ClassCastException e) {
                 e.printStackTrace();
             }
         }
