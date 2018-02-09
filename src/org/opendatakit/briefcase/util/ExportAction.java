@@ -21,16 +21,22 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
+import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
@@ -49,6 +55,7 @@ public class ExportAction {
 
   private static ExecutorService backgroundExecutorService = Executors.newCachedThreadPool();
 
+
   private static class TransformFormRunnable implements Runnable {
     ITransformFormAction action;
 
@@ -64,7 +71,7 @@ public class ExportAction {
         if (allSuccessful) {
           if (action.totalFilesSkipped() == FilesSkipped.SOME) {
             EventBus.publish(new ExportSucceededWithErrorsEvent(
-                    action.getFormDefinition()));
+                action.getFormDefinition()));
           } else if (action.totalFilesSkipped() == FilesSkipped.ALL) {
             // None of the instances were exported
             EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
@@ -94,32 +101,32 @@ public class ExportAction {
 
       String errorMsg = null;
       boolean success = false;
-      for (;;) /* this only executes once... */ {
+      for (; ; ) /* this only executes once... */ {
         try {
           BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(pemFile), "UTF-8"));
           PEMReader rdr = new PEMReader(br);
           Object o = rdr.readObject();
           try {
             rdr.close();
-          } catch ( IOException e ) {
+          } catch (IOException e) {
             // ignore.
           }
-          if ( o == null ) {
+          if (o == null) {
             ODKOptionPane.showErrorDialog(null,
                 errorMsg = "The supplied file is not in PEM format.",
                 "Invalid RSA Private Key");
             break;
           }
           PrivateKey privKey;
-          if ( o instanceof KeyPair ) {
+          if (o instanceof KeyPair) {
             KeyPair kp = (KeyPair) o;
             privKey = kp.getPrivate();
-          } else if ( o instanceof PrivateKey ) {
+          } else if (o instanceof PrivateKey) {
             privKey = (PrivateKey) o;
           } else {
             privKey = null;
           }
-          if ( privKey == null ) {
+          if (privKey == null) {
             ODKOptionPane.showErrorDialog(null,
                 errorMsg = "The supplied file does not contain a private key.",
                 "Invalid RSA Private Key");
@@ -135,8 +142,8 @@ public class ExportAction {
           break;
         }
       }
-      if ( !success ) {
-        EventBus.publish(new ExportProgressEvent(errorMsg));
+      if (!success) {
+        EventBus.publish(new ExportProgressEvent(errorMsg, lfd));
         EventBus.publish(new ExportFailedEvent(lfd));
         return;
       }
@@ -150,5 +157,27 @@ public class ExportAction {
     }
 
     backgroundRun(action);
+  }
+
+  public static List<String> export(BriefcaseFormDefinition formDefinition, ExportConfiguration configuration, TerminationFuture terminationFuture) {
+    List<String> errors = new ArrayList<>();
+    Optional<File> pemFile = configuration.mapPemFile(Path::toFile).filter(File::exists);
+    if ((formDefinition.isFileEncryptedForm() || formDefinition.isFieldEncryptedForm()) && !pemFile.isPresent())
+      errors.add(formDefinition.getFormName() + " form is encrypted");
+    else
+      try {
+        export(
+            configuration.mapExportDir(Path::toFile).orElseThrow(() -> new RuntimeException("Wrong export configuration")),
+            ExportType.CSV,
+            formDefinition,
+            pemFile.orElse(null),
+            terminationFuture,
+            configuration.mapStartDate((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null),
+            configuration.mapEndDate((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null)
+        );
+      } catch (IOException ex) {
+        errors.add("Export of form " + formDefinition.getFormName() + " has failed: " + ex.getMessage());
+      }
+    return errors;
   }
 }

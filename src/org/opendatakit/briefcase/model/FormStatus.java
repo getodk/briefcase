@@ -21,7 +21,7 @@ public class FormStatus {
 
   public static final int STATUS_HISTORY_MAX_BYTES = 1024 * 1024;
 
-  public enum TransferType { GATHER, UPLOAD };
+  public enum TransferType { GATHER, UPLOAD, EXPORT };
   private final TransferType transferType;
   private boolean isSelected = false;
   private IFormDefinition form;

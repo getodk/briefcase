@@ -37,10 +37,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
@@ -143,16 +143,11 @@ public class MainFormUploaderWindow {
       d.setVisible(true);
       if (d.isSuccessful()) {
         ServerConnectionInfo info = d.getServerInfo();
-        if (info.isOpenRosaServer()) {
-          destinationServerInfo = d.getServerInfo();
-          txtDestinationName.setText(destinationServerInfo.getUrl());
-          setUploadFormEnabled(true);
-          lblUploading.setText("");
-          btnDetails.setEnabled(false);
-        } else {
-          ODKOptionPane.showErrorDialog(MainFormUploaderWindow.this.frame,
-              "Server is not an ODK Aggregate 1.0 server", "Invalid Server URL");
-        }
+        destinationServerInfo = d.getServerInfo();
+        txtDestinationName.setText(destinationServerInfo.getUrl());
+        setUploadFormEnabled(true);
+        lblUploading.setText("");
+        btnDetails.setEnabled(false);
       }
     }
 
@@ -221,13 +216,13 @@ public class MainFormUploaderWindow {
 
   @EventSubscriber(eventClass = TransferFailedEvent.class)
   public void failedCompletion(TransferFailedEvent event) {
-    lblUploading.setText("Failed!");
+    lblUploading.setText("Failed.");
     setActiveTransferState(false);
   }
 
   @EventSubscriber(eventClass = TransferSucceededEvent.class)
   public void successfulCompletion(TransferSucceededEvent event) {
-    lblUploading.setText("Succeeded!");
+    lblUploading.setText("Succeeded.");
     setActiveTransferState(false);
   }
   

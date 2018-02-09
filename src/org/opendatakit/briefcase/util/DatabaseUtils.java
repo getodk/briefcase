@@ -16,9 +16,11 @@
 
 package org.opendatakit.briefcase.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.opendatakit.briefcase.model.FileSystemException;
+import static org.opendatakit.briefcase.util.FileSystemUtils.INSTANCE_DIR;
+import static org.opendatakit.briefcase.util.FileSystemUtils.SMALLSQL_JDBC_PREFIX;
+import static org.opendatakit.briefcase.util.FileSystemUtils.getFormDatabaseUrl;
+import static org.opendatakit.briefcase.util.FileSystemUtils.isFormRelativeInstancePath;
+import static org.opendatakit.briefcase.util.FileSystemUtils.makeRelative;
 
 import java.io.File;
 import java.sql.Connection;
@@ -30,11 +32,9 @@ import java.sql.Statement;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.opendatakit.briefcase.util.FileSystemUtils.INSTANCE_DIR;
-import static org.opendatakit.briefcase.util.FileSystemUtils.SMALLSQL_JDBC_PREFIX;
-import static org.opendatakit.briefcase.util.FileSystemUtils.getFormDatabaseUrl;
-import static org.opendatakit.briefcase.util.FileSystemUtils.isFormRelativeInstancePath;
-import static org.opendatakit.briefcase.util.FileSystemUtils.makeRelative;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.opendatakit.briefcase.model.FileSystemException;
 
 /**
  * This class abstracts all the functionality of the instance-tracking

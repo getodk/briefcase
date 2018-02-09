@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.util;
 
+import static org.opendatakit.briefcase.util.WebUtils.MAX_CONNECTIONS_PER_ROUTE;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -54,8 +56,6 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 
-import static org.opendatakit.briefcase.util.WebUtils.MAX_CONNECTIONS_PER_ROUTE;
-
 public class ServerFetcher {
 
   private static final Log log = LogFactory.getLog(ServerFetcher.class);
@@ -68,14 +68,14 @@ public class ServerFetcher {
 
   private TerminationFuture terminationFuture;
 
-  public static String SUCCESS_STATUS = "SUCCESS!";
-  public static String FAILED_STATUS = "FAILED.";
+  public static String SUCCESS_STATUS = "Success.";
+  public static String FAILED_STATUS = "Failed.";
 
   public static class FormListException extends Exception {
 
     /**
-		 *
-		 */
+         *
+         */
     private static final long serialVersionUID = -2443850446028219296L;
 
     FormListException(String message) {
@@ -86,8 +86,8 @@ public class ServerFetcher {
   public static class SubmissionListException extends Exception {
 
     /**
-		 *
-		 */
+         *
+         */
     private static final long serialVersionUID = 8707375089373674335L;
 
     SubmissionListException(String message) {
@@ -98,8 +98,8 @@ public class ServerFetcher {
   public static class SubmissionDownloadException extends Exception {
 
     /**
-		 *
-		 */
+         *
+         */
     private static final long serialVersionUID = 8717375089373674335L;
 
     SubmissionDownloadException(String message) {
@@ -109,8 +109,8 @@ public class ServerFetcher {
 
   public static class DownloadException extends Exception {
     /**
-		 *
-		 */
+         *
+         */
     private static final long serialVersionUID = 3142210034175698950L;
 
     DownloadException(String message) {
@@ -138,7 +138,7 @@ public class ServerFetcher {
       FormStatus fs = formsToTransfer.get(i);
 
       if ( isCancelled() ) {
-        fs.setStatusString("aborted. Skipping fetch of form and submissions...", true);
+        fs.setStatusString("Aborted. Skipping fetch of form and submissions...", true);
         EventBus.publish(new FormStatusEvent(fs));
         return false;
       }
@@ -282,14 +282,16 @@ public class ServerFetcher {
 
   private boolean downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd,
                                                 FormStatus fs) {
-    int submissionCount = 1, chunkCount = 1;
+    int submissionCount = 1;
+    int chunkCount = 1;
     boolean allSuccessful = true;
     RemoteFormDefinition fd = (RemoteFormDefinition) fs.getFormDefinition();
     ExecutorService execSvc = getFetchExecutorService();
-    CompletionService<SubmissionChunk> chunkCompleter = new ExecutorCompletionService(execSvc);
-    CompletionService<String> submissionCompleter = new ExecutorCompletionService(execSvc);
+    CompletionService<SubmissionChunk> chunkCompleter = new ExecutorCompletionService<>(execSvc);
+    CompletionService<String> submissionCompleter = new ExecutorCompletionService<>(execSvc);
 
-    String oldWebsafeCursorString, websafeCursorString = "";
+    String oldWebsafeCursorString;
+    String websafeCursorString = "";
 
     chunkCompleter.submit(new SubmissionChunkDownload(fs, fd.getFormId(), websafeCursorString));
 
@@ -346,7 +348,7 @@ public class ServerFetcher {
           } catch (InterruptedException | ExecutionException e) {
             log.error("failure during submission download", e);
             allSuccessful = false;
-            fs.setStatusString("SUBMISSION NOT RETRIEVED: " + e.getMessage(), false);
+            fs.setStatusString("Submission not retrieved: " + e.getMessage(), false);
             EventBus.publish(new FormStatusEvent(fs));
             // but try to get the next one...
           }
@@ -390,11 +392,11 @@ public class ServerFetcher {
         AggregateUtils.DocumentFetchResult fetchResult = AggregateUtils.getXmlDocument(fullUrl, serverInfo, false, submissionChunkDescription, null);
         return XmlManipulationUtils.parseSubmissionDownloadListResponse(fetchResult.doc);
       } catch (XmlDocumentFetchException e) {
-        fs.setStatusString("NOT ALL SUBMISSIONS RETRIEVED: Error fetching list of submissions: " + e.getMessage(), false);
+        fs.setStatusString("Not all submissions retrieved: Error fetching list of submissions: " + e.getMessage(), false);
         EventBus.publish(new FormStatusEvent(fs));
         throw e;
       } catch (ParsingException e) {
-        fs.setStatusString("NOT ALL SUBMISSIONS RETRIEVED: Error parsing the list of submissions: " + e.getMessage(), false);
+        fs.setStatusString("Not all submissions retrieved: Error parsing the list of submissions: " + e.getMessage(), false);
         EventBus.publish(new FormStatusEvent(fs));
         throw e;
       }
@@ -500,15 +502,11 @@ public class ServerFetcher {
       fo.write(submissionManifest.submissionXml);
       fo.close();
 
-      // if we get here and it was a legacy server (0.9.x), we don't
-      // actually know whether the submission was complete.  Otherwise,
       // if we get here, we know that this is a completed submission
       // (because it was in /view/submissionList) and that we safely
       // copied it into the storage area (because we didn't get any
       // exceptions).
-      if ( serverInfo.isOpenRosaServer() ) {
-        formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
-      }
+      formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
     } else {
       // create instance directory...
       File instanceDir = FileSystemUtils.assertFormSubmissionDirectory(formInstancesDir,
@@ -525,15 +523,11 @@ public class ServerFetcher {
       fo.write(submissionManifest.submissionXml);
       fo.close();
 
-      // if we get here and it was a legacy server (0.9.x), we don't
-      // actually know whether the submission was complete.  Otherwise,
       // if we get here, we know that this is a completed submission
       // (because it was in /view/submissionList) and that we safely
       // copied it into the storage area (because we didn't get any
       // exceptions).
-      if ( serverInfo.isOpenRosaServer() ) {
-        formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
-      }
+      formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
     }
 
   }

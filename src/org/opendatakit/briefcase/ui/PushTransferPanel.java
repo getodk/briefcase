@@ -23,7 +23,6 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
@@ -31,11 +30,8 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
-
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -57,20 +53,15 @@ import org.opendatakit.briefcase.util.TransferAction;
  * Push forms and data to external locations.
  *
  * @author mitchellsundt@gmail.com
- *
  */
 public class PushTransferPanel extends JPanel {
 
-  /**
-	 *
-	 */
   private static final long serialVersionUID = -2192404551259501394L;
 
   public static final String TAB_NAME = "Push";
-  public static int TAB_POSITION = -1;
 
   private static final String UPLOADING_DOT_ETC = "Uploading..........";
-  private static final BriefcasePreferences PREFERENCES =
+  static final BriefcasePreferences PREFERENCES =
       BriefcasePreferences.forClass(PushTransferPanel.class);
 
   private JComboBox<String> listDestinationDataSink;
@@ -87,8 +78,6 @@ public class PushTransferPanel extends JPanel {
 
   private boolean transferStateActive = false;
   private TerminationFuture terminationFuture;
-
-  private ArrayList<Component> navOrder = new ArrayList<Component>();
 
   /**
    * UI changes related to the selection of the destination location from
@@ -131,16 +120,12 @@ public class PushTransferPanel extends JPanel {
             (Window) PushTransferPanel.this.getTopLevelAncestor(), destinationServerInfo, true);
         d.setVisible(true);
         if (d.isSuccessful()) {
-          ServerConnectionInfo info = d.getServerInfo();
-          if (info.isOpenRosaServer()) {
-            destinationServerInfo = d.getServerInfo();
-            txtDestinationName.setText(destinationServerInfo.getUrl());
-            PREFERENCES.put(BriefcasePreferences.USERNAME, destinationServerInfo.getUsername());
-            PREFERENCES.put(BriefcasePreferences.AGGREGATE_1_0_URL, destinationServerInfo.getUrl());
-          } else {
-            ODKOptionPane.showErrorDialog(PushTransferPanel.this,
-                "Server is not an ODK Aggregate 1.0 server", "Invalid Server URL");
-          }
+          destinationServerInfo = d.getServerInfo();
+          txtDestinationName.setText(destinationServerInfo.getUrl());
+          PREFERENCES.put(BriefcasePreferences.AGGREGATE_1_0_URL, destinationServerInfo.getUrl());
+          PREFERENCES.put(BriefcasePreferences.USERNAME, destinationServerInfo.getUsername());
+          if (BriefcasePreferences.getStorePasswordsConsentProperty())
+            PREFERENCES.put(BriefcasePreferences.PASSWORD, new String(destinationServerInfo.getPassword()));
         }
       } else {
         throw new IllegalStateException("unexpected case");
@@ -194,7 +179,7 @@ public class PushTransferPanel extends JPanel {
     JLabel lblSendDataTo = new JLabel(TAB_NAME + " data to:");
 
     listDestinationDataSink = new JComboBox<String>(
-        new String[] { EndPointType.AGGREGATE_1_0_CHOICE.toString() });
+        new String[]{EndPointType.AGGREGATE_1_0_CHOICE.toString()});
 
     listDestinationDataSink.addActionListener(new DestinationSinkListener());
 
@@ -205,8 +190,6 @@ public class PushTransferPanel extends JPanel {
 
     btnDestinationAction = new JButton("Choose...");
     btnDestinationAction.addActionListener(new DestinationActionListener());
-
-    JLabel lblFormsToTransfer = new JLabel("Forms to " + TAB_NAME + ":");
 
     btnSelectOrClearAllForms = new JButton("Select all");
 
@@ -224,11 +207,9 @@ public class PushTransferPanel extends JPanel {
     });
 
     formTransferTable = new FormTransferTable(
-            btnSelectOrClearAllForms, FormStatus.TransferType.UPLOAD, btnTransfer, btnCancel);
+        btnSelectOrClearAllForms, FormStatus.TransferType.UPLOAD, btnTransfer, btnCancel);
 
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
-
-    JSeparator separatorFormsList = new JSeparator();
 
     GroupLayout groupLayout = new GroupLayout(this);
     groupLayout.setHorizontalGroup(groupLayout
@@ -257,9 +238,6 @@ public class PushTransferPanel extends JPanel {
                                         .addComponent(txtDestinationName)
                                         .addPreferredGap(ComponentPlacement.RELATED)
                                         .addComponent(btnDestinationAction))))
-                .addComponent(separatorFormsList, GroupLayout.DEFAULT_SIZE,
-                    GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
-                .addComponent(lblFormsToTransfer)
                 // scroll pane
                 .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
                     Short.MAX_VALUE)
@@ -282,11 +260,6 @@ public class PushTransferPanel extends JPanel {
             groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblDestination)
                 .addComponent(txtDestinationName).addComponent(btnDestinationAction))
         .addPreferredGap(ComponentPlacement.RELATED)
-        .addComponent(separatorFormsList, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
-            GroupLayout.PREFERRED_SIZE)
-        .addPreferredGap(ComponentPlacement.RELATED)
-        .addComponent(lblFormsToTransfer)
-        .addPreferredGap(ComponentPlacement.RELATED)
         .addComponent(scrollPane, 200, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
         .addPreferredGap(ComponentPlacement.RELATED)
         .addGroup(
@@ -301,25 +274,13 @@ public class PushTransferPanel extends JPanel {
     // and update the list of forms...
     updateFormStatuses();
     setActiveTransferState(transferStateActive);
-
-    navOrder.add(listDestinationDataSink);
-    navOrder.add(txtDestinationName);
-    navOrder.add(btnDestinationAction);
-    navOrder.add(btnSelectOrClearAllForms);
-    navOrder.add(btnTransfer);
-    navOrder.add(btnCancel);
-  }
-
-  public ArrayList<Component> getTraversalOrdering() {
-    return navOrder;
   }
 
   @Override
   public void setEnabled(boolean enabled) {
     super.setEnabled(enabled);
-    Component[] com = this.getComponents();
-    for (int a = 0; a < com.length; a++) {
-      com[a].setEnabled(enabled);
+    for (Component aCom : this.getComponents()) {
+      aCom.setEnabled(enabled);
     }
     if (enabled) {
       // and then update the widgets based upon the transfer state
@@ -347,19 +308,7 @@ public class PushTransferPanel extends JPanel {
     lblUploading.setText(text);
   }
 
-  private void setTabEnabled(boolean active) {
-    JTabbedPane pane = (JTabbedPane) getParent();
-    if ( pane != null ) {
-      for ( int i = 0 ; i < pane.getTabCount() ; ++i ) {
-        if ( i != TAB_POSITION ) {
-          pane.setEnabledAt(i, active);
-        }
-      }
-    }
-  }
-
   private void setActiveTransferState(boolean active) {
-    setTabEnabled(!active);
     if (active) {
       // don't allow normal actions when we are transferring...
       listDestinationDataSink.setEnabled(false);
@@ -389,16 +338,19 @@ public class PushTransferPanel extends JPanel {
     // remember state...
     transferStateActive = active;
   }
-  
+
   private EndPointType getSelectedEndPointType() {
     String strSelection = (String) listDestinationDataSink.getSelectedItem();
     return EndPointType.fromString(strSelection);
   }
-  
+
   private ServerConnectionInfo initServerInfoWithPreferences() {
     String url = PREFERENCES.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
     String username = PREFERENCES.get(BriefcasePreferences.USERNAME, "");
-    return new ServerConnectionInfo(url, username, new char[0]);
+    char[] password = BriefcasePreferences.getStorePasswordsConsentProperty()
+        ? PREFERENCES.get(BriefcasePreferences.PASSWORD, "").toCharArray()
+        : new char[0];
+    return new ServerConnectionInfo(url, username, password);
   }
 
   @EventSubscriber(eventClass = TransferFailedEvent.class)

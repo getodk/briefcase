@@ -62,8 +62,6 @@ import org.xmlpull.v1.XmlPullParser;
 
 public class AggregateUtils {
 
-  private static final String BRIEFCASE_APP_TOKEN_PARAMETER = "briefcaseAppToken";
-
   private static final Log log = LogFactory.getLog(AggregateUtils.class);
 
   private static final CharSequence HTTP_CONTENT_TYPE_TEXT_XML = "text/xml";
@@ -115,27 +113,15 @@ public class AggregateUtils {
       throw e;
     }
 
-    // get shared HttpContext so that authentication and cookies are retained.
-    HttpClientContext localContext = serverInfo.getHttpContext();
+    HttpClient httpclient = WebUtils.createHttpClient();
 
-    HttpClient httpclient = serverInfo.getHttpClient();
+    // get shared HttpContext so that authentication and cookies are retained.
+    HttpClientContext localContext = WebUtils.getHttpContext();
 
     // set up request...
     HttpGet req = WebUtils.createOpenRosaHttpGet(u);
 
-    if (serverInfo.getUsername() != null && serverInfo.getUsername().length() != 0) {
-      if (!WebUtils.hasCredentials(localContext, serverInfo.getUsername(), u.getHost())) {
-        WebUtils.clearAllCredentials(localContext);
-        WebUtils.addCredentials(localContext, serverInfo.getUsername(), serverInfo.getPassword(),
-            u.getHost());
-      }
-    } else {
-      WebUtils.clearAllCredentials(localContext);
-    }
-
-    if (!serverInfo.isOpenRosaServer()) {
-      req.addHeader(BRIEFCASE_APP_TOKEN_PARAMETER, serverInfo.getToken());
-    }
+    WebUtils.setCredentials(localContext, serverInfo, u);
 
     HttpResponse response = null;
     // try
@@ -198,15 +184,6 @@ public class AggregateUtils {
       throw new XmlDocumentFetchException(msg);
     }
 
-    HttpClient httpClient = serverInfo.getHttpClient();
-
-    // get shared HttpContext so that authentication and cookies are retained.
-    HttpClientContext localContext = serverInfo.getHttpContext();
-    if (localContext == null) {
-      localContext = WebUtils.createHttpContext();
-      serverInfo.setHttpContext(localContext);
-    }
-
     // set up request...
     HttpGet req = WebUtils.createOpenRosaHttpGet(u);
 
@@ -248,27 +225,14 @@ public class AggregateUtils {
       DocumentDescription description, 
       ResponseAction action) throws XmlDocumentFetchException {
 
-    HttpClient httpClient = serverInfo.getHttpClient();
+    HttpClient httpClient = WebUtils.createHttpClient();
 
     // get shared HttpContext so that authentication and cookies are retained.
-    HttpClientContext localContext = serverInfo.getHttpContext();
+    HttpClientContext localContext = WebUtils.getHttpContext();
 
-    URI u = request.getURI();
+    URI uri = request.getURI();
 
-    if (serverInfo.getUsername() != null && serverInfo.getUsername().length() != 0) {
-      if (alwaysResetCredentials
-          || !WebUtils.hasCredentials(localContext, serverInfo.getUsername(), u.getHost())) {
-        WebUtils.clearAllCredentials(localContext);
-        WebUtils.addCredentials(localContext, serverInfo.getUsername(), serverInfo.getPassword(),
-            u.getHost());
-      }
-    } else {
-      WebUtils.clearAllCredentials(localContext);
-    }
-
-    if (!serverInfo.isOpenRosaServer()) {
-      request.addHeader(BRIEFCASE_APP_TOKEN_PARAMETER, serverInfo.getToken());
-    }
+    WebUtils.setCredentials(localContext, serverInfo, uri, alwaysResetCredentials);
 
     if ( description.isCancelled() ) {
       throw new XmlDocumentFetchException("Transfer of " + description.getDocumentDescriptionType() + " aborted.");
@@ -298,26 +262,26 @@ public class AggregateUtils {
 
         if (statusCode == 400) {
           ex = new XmlDocumentFetchException(description.getFetchDocFailed() + webError + " while accessing: "
-              + u.toString() + "\nPlease verify that the " + description.getDocumentDescriptionType()
+              + uri.toString() + "\nPlease verify that the " + description.getDocumentDescriptionType()
               + " that is being uploaded is well-formed.");
         } else {
           ex = new XmlDocumentFetchException(
               description.getFetchDocFailed()
                   + webError
                   + " while accessing: "
-                  + u.toString()
+                  + uri.toString()
                   + "\nPlease verify that the URL, your user credentials and your permissions are all correct.");
         }
       } else if (entity == null) {
-        log.warn("No entity body returned from: " + u.toString() + " is not text/xml");
+        log.warn("No entity body returned from: " + uri.toString() + " is not text/xml");
         ex = new XmlDocumentFetchException(description.getFetchDocFailed()
-            + " Server unexpectedly returned no content while accessing: " + u.toString());
+            + " Server unexpectedly returned no content while accessing: " + uri.toString());
       } else if (!(lcContentType.contains(HTTP_CONTENT_TYPE_TEXT_XML) || lcContentType
           .contains(HTTP_CONTENT_TYPE_APPLICATION_XML))) {
         log.warn("ContentType: " + entity.getContentType().getValue() + "returned from: "
-            + u.toString() + " is not text/xml");
+            + uri.toString() + " is not text/xml");
         ex = new XmlDocumentFetchException(description.getFetchDocFailed()
-            + "A non-XML document was returned while accessing: " + u.toString()
+            + "A non-XML document was returned while accessing: " + uri.toString()
             + "\nA network login screen may be interfering with the transmission to the server.");
       }
 
@@ -359,7 +323,7 @@ public class AggregateUtils {
         }
       } catch (Exception e) {
         log.warn("Parsing failed with " + e.getMessage(), e);
-        throw new XmlDocumentFetchException(description.getFetchDocFailed() + " while accessing: " + u.toString());
+        throw new XmlDocumentFetchException(description.getFetchDocFailed() + " while accessing: " + uri.toString());
       }
 
       // examine header fields...
@@ -394,7 +358,7 @@ public class AggregateUtils {
         try {
           URL url = new URL(locations[0].getValue());
           URI uNew = url.toURI();
-          if (u.getHost().equalsIgnoreCase(uNew.getHost())) {
+          if (uri.getHost().equalsIgnoreCase(uNew.getHost())) {
             // trust the server to tell us a new location
             // ... and possibly to use https instead.
             String fullUrl = url.toExternalForm();
@@ -466,32 +430,16 @@ public class AggregateUtils {
       throw new TransmissionException(msg);
     }
 
-    HttpClient httpClient = serverInfo.getHttpClient();
+    HttpClient httpClient = WebUtils.createHttpClient();
 
     // get shared HttpContext so that authentication and cookies are retained.
-    HttpClientContext localContext = serverInfo.getHttpContext();
-    if (localContext == null) {
-      localContext = WebUtils.createHttpContext();
-      serverInfo.setHttpContext(localContext);
-    }
+    HttpClientContext localContext = WebUtils.getHttpContext();
 
-    if (serverInfo.getUsername() != null && serverInfo.getUsername().length() != 0) {
-      if (!WebUtils.hasCredentials(localContext, serverInfo.getUsername(), u.getHost())) {
-        WebUtils.clearAllCredentials(localContext);
-        WebUtils.addCredentials(localContext, serverInfo.getUsername(), serverInfo.getPassword(),
-            u.getHost());
-      }
-    } else {
-      WebUtils.clearAllCredentials(localContext);
-    }
+    WebUtils.setCredentials(localContext, serverInfo, u);
 
     {
       // we need to issue a head request
       HttpHead httpHead = WebUtils.createOpenRosaHttpHead(u);
-
-      if (!serverInfo.isOpenRosaServer()) {
-        httpHead.addHeader(BRIEFCASE_APP_TOKEN_PARAMETER, serverInfo.getToken());
-      }
 
       // prepare response
       HttpResponse response = null;
@@ -500,16 +448,9 @@ public class AggregateUtils {
         int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode == 204) {
           Header[] openRosaVersions = response.getHeaders(WebUtils.OPEN_ROSA_VERSION_HEADER);
-          if (openRosaVersions != null && openRosaVersions.length != 0) {
-            if (!serverInfo.isOpenRosaServer()) {
-              String msg = "Url: " + u.toString()
-                  + " is for an ODK Aggregate 1.0 or higher (OpenRosa compliant) server!";
-              log.warn(msg);
-              throw new TransmissionException(msg);
-            }
-          } else if (serverInfo.isOpenRosaServer()) {
+          if (openRosaVersions == null || openRosaVersions.length == 0) {
             String msg = "Url: " + u.toString()
-                + " is for an ODK Aggregate 0.9x or earlier (non-OpenRosa compliant) server!";
+                    + ", header missing: " + WebUtils.OPEN_ROSA_VERSION_HEADER;
             log.warn(msg);
             throw new TransmissionException(msg);
           }

@@ -16,6 +16,9 @@
 
 package org.opendatakit.briefcase.model;
 import java.security.Security;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.prefs.Preferences;
 
@@ -32,15 +35,15 @@ public class BriefcasePreferences {
     public static final String VERSION = BuildConfig.VERSION;
     public static final String GOOGLE_TRACKING_ID = BuildConfig.GOOGLE_TRACKING_ID;
     public static final String USERNAME = "username";
-    public static final String TOKEN = "token";
+    public static final String PASSWORD = "password";
     public static final String AGGREGATE_1_0_URL = "url_1_0";
-    public static final String AGGREGATE_0_9_X_URL = "url_0_9_X";
 
     private static final String BRIEFCASE_DIR_PROPERTY = "briefcaseDir";
     private static final String BRIEFCASE_PROXY_HOST_PROPERTY = "briefcaseProxyHost";
     private static final String BRIEFCASE_PROXY_PORT_PROPERTY = "briefcaseProxyPort";
     private static final String BRIEFCASE_PARALLEL_PULLS_PROPERTY = "briefcaseParallelPulls";
     private static final String BRIEFCASE_TRACKING_CONSENT_PROPERTY = "briefcaseTrackingConsent";
+    private static final String BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY = "briefcaseStorePasswordsConsent";
     private static final String BRIEFCASE_UNIQUE_USER_ID_PROPERTY = "uniqueUserID";
 
     static {
@@ -50,7 +53,11 @@ public class BriefcasePreferences {
 
     private final Preferences preferences;
 
-    private BriefcasePreferences(Class<?> node, PreferenceScope scope) {
+  public BriefcasePreferences(Preferences preferences) {
+    this.preferences = preferences;
+  }
+
+  private BriefcasePreferences(Class<?> node, PreferenceScope scope) {
         this.preferences = scope.preferenceFactory(node);
     }
 
@@ -80,16 +87,45 @@ public class BriefcasePreferences {
     }
 
     /**
+     * Returns an Optional instance with the value associated with the specified key
+     * in this preference node or an Optional.empty() if no value is associated with key,
+     * or the backing store is inaccessible.
+     *
+     * @param key
+     *          key whose associated value is to be returned.
+     * @return an Optional instance with the value associated with key, or Optional.empty()
+     *         if no value is associated with key, or the backing store is inaccessible.
+     */
+    public Optional<String> nullSafeGet(String key) {
+        return Optional.ofNullable(get(key, null));
+    }
+
+    /**
      * Associates the specified value with the specified key in this preference
      * node.
+     *
+     * If the value is null, then the key is removed
      *
      * @param key
      *          key with which the specified value is to be associated.
      * @param value
-     *          value to be associated with the specified key.
+     *          value to be associated with the specified key or null.
      */
     public void put(String key, String value) {
-        preferences.put(key, value);
+        if (value != null)
+            preferences.put(key, value);
+        else
+            remove(key);
+    }
+
+    /**
+     * Associates the specified key/value map in this preference node.
+     *
+     * @param keyValues
+     *          map of keys and values to ve associated.
+     */
+    public void putAll(Map<String,String> keyValues) {
+        keyValues.forEach(this::put);
     }
 
     /**
@@ -103,21 +139,31 @@ public class BriefcasePreferences {
         preferences.remove(key);
     }
 
+    /**
+     * Removes all the values associated with the specified key list in this preference
+     * node, if any.
+     *
+     * @param keys
+     *          keys whose mappings are to be removed from the preference node.
+     */
+    public void removeAll(List<String> keys) {
+      keys.forEach(this::remove);
+    }
+
     public static void setBriefcaseDirectoryProperty(String value) {
         if (value == null) {
             Preference.APPLICATION_SCOPED.remove(BRIEFCASE_DIR_PROPERTY);
         } else {
-            Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_DIR_PROPERTY, value);
+            Preference.APPLICATION_SCOPED.put(BRIEFCASE_DIR_PROPERTY, value);
         }
     }
 
-    public static String getBriefcaseDirectoryIfSet() {
-        return Preference.APPLICATION_SCOPED.get(BriefcasePreferences.BRIEFCASE_DIR_PROPERTY, null);
+    public String getBriefcaseDirectoryOrNull() {
+        return get(BRIEFCASE_DIR_PROPERTY, null);
     }
 
-    public static String getBriefcaseDirectoryProperty() {
-        return Preference.APPLICATION_SCOPED.get(BriefcasePreferences.BRIEFCASE_DIR_PROPERTY,
-                System.getProperty("user.home"));
+    public String getBriefcaseDirectoryOrUserHome() {
+        return get(BRIEFCASE_DIR_PROPERTY, System.getProperty("user.home"));
     }
 
     public static void setBriefcaseProxyProperty(HttpHost value) {
@@ -125,8 +171,8 @@ public class BriefcasePreferences {
             Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PROXY_HOST_PROPERTY);
             Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PROXY_PORT_PROPERTY);
         } else {
-            Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_PROXY_HOST_PROPERTY, value.getHostName());
-            Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_PROXY_PORT_PROPERTY, new Integer(value.getPort()).toString());
+            Preference.APPLICATION_SCOPED.put(BRIEFCASE_PROXY_HOST_PROPERTY, value.getHostName());
+            Preference.APPLICATION_SCOPED.put(BRIEFCASE_PROXY_PORT_PROPERTY, Integer.toString(value.getPort()));
         }
     }
 
@@ -134,13 +180,13 @@ public class BriefcasePreferences {
         if (value == null) {
             Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PARALLEL_PULLS_PROPERTY);
         } else {
-            Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_PARALLEL_PULLS_PROPERTY, value.toString());
+            Preference.APPLICATION_SCOPED.put(BRIEFCASE_PARALLEL_PULLS_PROPERTY, value.toString());
         }
     }
 
     public static Boolean getBriefcaseParallelPullsProperty() {
         return Boolean.valueOf(
-                Preference.APPLICATION_SCOPED.get(BriefcasePreferences.BRIEFCASE_PARALLEL_PULLS_PROPERTY, Boolean.FALSE.toString())
+                Preference.APPLICATION_SCOPED.get(BRIEFCASE_PARALLEL_PULLS_PROPERTY, Boolean.FALSE.toString())
         );
     }
 
@@ -175,12 +221,15 @@ public class BriefcasePreferences {
                 new BriefcasePreferences(BriefcasePreferences.class, PreferenceScope.APPLICATION);
     }
 
+    public static BriefcasePreferences appScoped() {
+        return Preference.APPLICATION_SCOPED;
+    }
+
     public static HttpHost getBriefCaseProxyConnection() {
-        String host = Preference.APPLICATION_SCOPED.get(
-                BriefcasePreferences.BRIEFCASE_PROXY_HOST_PROPERTY,null);
+        String host = Preference.APPLICATION_SCOPED.get(BRIEFCASE_PROXY_HOST_PROPERTY,null);
         if (host != null) {
             Integer port = Integer.parseInt(Preference.APPLICATION_SCOPED.get(
-                    BriefcasePreferences.BRIEFCASE_PROXY_PORT_PROPERTY,"0"));
+                    BRIEFCASE_PROXY_PORT_PROPERTY,"0"));
             return new HttpHost(host, port);
         }
         return null;
@@ -191,7 +240,7 @@ public class BriefcasePreferences {
      * @param value (required) the boolean value representing the user's decision.
      */
     public static void setBriefcaseTrackingConsentProperty(boolean value) {
-        Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY, Boolean.valueOf(value).toString());
+        setBooleanProperty(BRIEFCASE_TRACKING_CONSENT_PROPERTY, value);
     }
 
     /**
@@ -199,8 +248,23 @@ public class BriefcasePreferences {
      * @return the boolean representation of the user's consent to being tracked.
      */
     public static boolean getBriefcaseTrackingConsentProperty() {
-        return Boolean.valueOf(Preference.APPLICATION_SCOPED.get(
-                BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY, Boolean.FALSE.toString()));
+        return getBooleanProperty(BRIEFCASE_TRACKING_CONSENT_PROPERTY);
+    }
+
+    public static boolean getStorePasswordsConsentProperty() {
+        return getBooleanProperty(BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY);
+    }
+
+    public static void setStorePasswordsConsentProperty(boolean value) {
+        setBooleanProperty(BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY, value);
+    }
+
+    private static void setBooleanProperty(String key, boolean value) {
+        Preference.APPLICATION_SCOPED.put(key, Boolean.valueOf(value).toString());
+    }
+
+    private static boolean getBooleanProperty(String key) {
+        return Boolean.valueOf(Preference.APPLICATION_SCOPED.get(key, Boolean.FALSE.toString()));
     }
 
     /**
@@ -210,10 +274,10 @@ public class BriefcasePreferences {
      */
     public static String getUniqueUserID() {
         String defaultUuidValue = "UUID missing, defaulting to this message";
-        String uniqueUserID = Preference.APPLICATION_SCOPED.get(BriefcasePreferences.BRIEFCASE_UNIQUE_USER_ID_PROPERTY, defaultUuidValue);
+        String uniqueUserID = Preference.APPLICATION_SCOPED.get(BRIEFCASE_UNIQUE_USER_ID_PROPERTY, defaultUuidValue);
         if ( uniqueUserID.equals(defaultUuidValue)) {
-            Preference.APPLICATION_SCOPED.put(BriefcasePreferences.BRIEFCASE_UNIQUE_USER_ID_PROPERTY, UUID.randomUUID().toString());
+            Preference.APPLICATION_SCOPED.put(BRIEFCASE_UNIQUE_USER_ID_PROPERTY, UUID.randomUUID().toString());
         }
-        return Preference.APPLICATION_SCOPED.get(BriefcasePreferences.BRIEFCASE_UNIQUE_USER_ID_PROPERTY, defaultUuidValue);
+        return Preference.APPLICATION_SCOPED.get(BRIEFCASE_UNIQUE_USER_ID_PROPERTY, defaultUuidValue);
     }
 }

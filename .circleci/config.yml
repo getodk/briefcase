@@ -1,0 +1,31 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/work
+    docker:
+      - image: circleci/openjdk:latest
+    environment:
+      - DISPLAY: :99.0
+    steps:
+      - checkout
+      - run:
+          name: Set up windowing environment
+          command: Xvfb :99 -screen 0 1024x768x24 >/dev/null 2>&1
+          background: true
+      - restore_cache:
+          key: jars-{{ checksum "build.gradle" }}
+      - run: ./gradlew check jacocoTestReport jar
+      - run: bash <(curl -s https://codecov.io/bash)
+      - save_cache:
+          paths:
+            - ~/.gradle
+            - ~/work/.gradle
+          key: jars-{{ checksum "build.gradle" }}
+      - store_artifacts:
+          path: build/reports
+          destination: reports
+      - store_artifacts:
+          path: build/libs
+          destination: libs
+      - store_test_results:
+          path: build/test-results

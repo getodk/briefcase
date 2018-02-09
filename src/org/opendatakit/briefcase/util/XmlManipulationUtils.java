@@ -16,6 +16,20 @@
 
 package org.opendatakit.briefcase.util;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,25 +45,12 @@ import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.MetadataUpdateException;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.briefcase.util.ServerFetcher.MediaFile;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionChunk;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionManifest;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 public class XmlManipulationUtils {
 
@@ -263,7 +264,7 @@ public class XmlManipulationUtils {
         try {
             return BadXMLFixer.fixBadXML(submission);
         } catch (CannotFixXMLException e1) {
-            File debugFileLocation = new File(FileSystemUtils.getBriefcaseFolder(), "debug");
+            File debugFileLocation = new File(new StorageLocation().getBriefcaseFolder(), "debug");
             try {
                 if (!debugFileLocation.exists()) {
                     FileUtils.forceMkdir(debugFileLocation);

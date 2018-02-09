@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.ui;
 
+import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
+
 import java.awt.Container;
 import java.io.File;
 
@@ -26,13 +28,7 @@ import org.opendatakit.briefcase.util.FileSystemUtils;
 
 final class ODKCollectFileChooser extends AbstractFileChooser {
 
-  /**
-	 * 
-	 */
   private final Container parentWindow;
-  /**
-	 * 
-	 */
   private static final long serialVersionUID = 8457430037255302153L;
 
   @Override
@@ -77,7 +73,7 @@ final class ODKCollectFileChooser extends AbstractFileChooser {
       ODKOptionPane.showErrorDialog(parentWindow,
           MessageStrings.DIR_NOT_DIRECTORY,
           MessageStrings.INVALID_ODK_DIRECTORY);
-    } else if (FileSystemUtils.isUnderBriefcaseFolder(f)) {
+    } else if (isUnderBriefcaseFolder(f)) {
       ODKOptionPane.showErrorDialog(parentWindow,
           MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE,
           MessageStrings.INVALID_ODK_DIRECTORY);
