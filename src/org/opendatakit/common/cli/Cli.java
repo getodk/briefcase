@@ -31,6 +31,7 @@ import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 
 /**
  * <p>Cli is a command line adapter. It helps define executable operations and their
@@ -100,11 +101,15 @@ public class Cli {
 
       if (executedOperations.isEmpty())
         otherwiseRunnables.forEach(Runnable::run);
+    } catch (BriefcaseException e) {
+      System.err.println("Error: " + e.message);
+      log.error("Error", e);
+      System.exit(1);
     } catch (Throwable t) {
       System.err.println("Briefcase unexpected error. Please review the logs and contact maintainers on the following URLs:");
       System.err.println("\thttps://opendatakit.slack.com/messages/C374LNDK9/");
       System.err.println("\thttps://forum.opendatakit.org/c/support");
-      log.error("Unexpected error", t);
+      log.error("Error", t);
       System.exit(1);
     }
   }

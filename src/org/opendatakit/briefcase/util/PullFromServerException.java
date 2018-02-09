@@ -13,7 +13,16 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.operations;
+package org.opendatakit.briefcase.util;
 
-public class ServerConnectionTestFailedEvent {
+import static java.util.stream.Collectors.joining;
+
+import java.util.List;
+import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+
+public class PullFromServerException extends BriefcaseException {
+  public PullFromServerException(List<FormStatus> forms) {
+    super("Failure pulling forms from server. FormIds: " + forms.stream().map(f -> f.getFormDefinition().getFormId()).collect(joining(", ")));
+  }
 }

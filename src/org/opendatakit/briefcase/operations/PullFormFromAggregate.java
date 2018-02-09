@@ -62,10 +62,8 @@ public class PullFormFromAggregate {
         .filter(f -> f.getFormDefinition().getFormId().equals(formid))
         .findFirst();
 
-    if (!maybeForm.isPresent()) {
-      EventBus.publish(new FormNotFoundEvent(formid));
+    if (!maybeForm.isPresent())
       throw new FormNotFoundException(formid);
-    }
 
     FormStatus form = maybeForm.get();
     EventBus.publish(new StartPullEvent(form));

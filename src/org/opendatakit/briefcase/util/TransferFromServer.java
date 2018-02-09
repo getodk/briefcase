@@ -18,7 +18,6 @@ package org.opendatakit.briefcase.util;
 
 import java.util.Arrays;
 import java.util.List;
-
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
@@ -33,7 +32,7 @@ public class TransferFromServer implements ITransferFromSourceAction {
   final List<FormStatus> formsToTransfer;
 
   public TransferFromServer(ServerConnectionInfo originServerInfo,
-      TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) {
+                            TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) {
     this.originServerInfo = originServerInfo;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
@@ -61,13 +60,11 @@ public class TransferFromServer implements ITransferFromSourceAction {
       if (allSuccessful)
         EventBus.publish(new TransferSucceededEvent(false, formList));
 
-      if (!allSuccessful) {
-        EventBus.publish(new TransferFailedEvent(false, formList));
-        throw new TransferFromServerException(transferSettings, formList);
-      }
+      if (!allSuccessful)
+        throw new PullFromServerException(formList);
     } catch (Exception e) {
       EventBus.publish(new TransferFailedEvent(false, formList));
-      throw new TransferFromServerException(transferSettings, formList);
+      throw new PullFromServerException(formList);
     }
   }
 }

@@ -39,8 +39,8 @@ import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.ExportToCsv;
 import org.opendatakit.briefcase.util.FileSystemUtils;
@@ -79,30 +79,22 @@ public class Export {
         .filter(form -> form.getFormId().equals(formid))
         .findFirst();
 
-    if (!maybeFormDefinition.isPresent()) {
-      EventBus.publish(new FormNotFoundEvent(formid));
+    if (!maybeFormDefinition.isPresent())
       throw new FormNotFoundException(formid);
-    }
 
     BriefcaseFormDefinition formDefinition = maybeFormDefinition.get();
 
     if (formDefinition.isFileEncryptedForm() || formDefinition.isFieldEncryptedForm()) {
-      if (!pemFile.isPresent()) {
-        EventBus.publish(new WrongExportConfigurationEvent(formid, "Missing pem file configuration"));
-        throw new ExportException(formid, "Missing pem file configuration");
-      }
+      if (!pemFile.isPresent())
+        throw new BriefcaseException("Missing pem file configuration");
 
-      if (!Files.exists(pemFile.get())) {
-        EventBus.publish(new WrongExportConfigurationEvent(formid, "Pem file doesn't exist"));
-        throw new ExportException(formid, "Missing pem file configuration");
-      }
+      if (!Files.exists(pemFile.get()))
+        throw new BriefcaseException("Missing pem file configuration");
 
       try (PEMReader rdr = new PEMReader(new BufferedReader(new InputStreamReader(Files.newInputStream(pemFile.get()), "UTF-8")))) {
         Optional<Object> o = Optional.ofNullable(rdr.readObject());
-        if (!o.isPresent()) {
-          EventBus.publish(new WrongExportConfigurationEvent(formid, "Can't parse Pem file"));
-          throw new ExportException(formid, "Can't parse Pem file");
-        }
+        if (!o.isPresent())
+          throw new BriefcaseException("Can't parse Pem file");
 
         Optional<PrivateKey> privKey;
         if (o.get() instanceof KeyPair) {
@@ -113,16 +105,13 @@ public class Export {
           privKey = Optional.empty();
         }
 
-        if (!privKey.isPresent()) {
-          EventBus.publish(new WrongExportConfigurationEvent(formid, "No private key found on Pem file"));
-          throw new ExportException(formid, "No private key found on Pem file");
-        }
+        if (!privKey.isPresent())
+          throw new BriefcaseException("No private key found on Pem file");
 
         formDefinition.setPrivateKey(privKey.get());
         EventBus.publish(new ExportProgressEvent("Successfully parsed Pem file", formDefinition));
       } catch (IOException e) {
-        EventBus.publish(new ExportFailedEvent(formDefinition));
-        throw new ExportException(formid, "Can't parse Pem file");
+        throw new BriefcaseException("Can't parse Pem file");
       }
     }
 

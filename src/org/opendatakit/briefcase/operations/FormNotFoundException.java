@@ -15,10 +15,11 @@
  */
 package org.opendatakit.briefcase.operations;
 
-public class FormNotFoundException extends RuntimeException {
-  private final String formId;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+
+public class FormNotFoundException extends BriefcaseException {
 
   public FormNotFoundException(String formId) {
-    this.formId = formId;
+    super("Form with formId " + formId + " not found");
   }
 }

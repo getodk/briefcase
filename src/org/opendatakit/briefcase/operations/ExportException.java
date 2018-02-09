@@ -15,12 +15,16 @@
  */
 package org.opendatakit.briefcase.operations;
 
-public class ExportException extends RuntimeException {
-  private final String formid;
-  private final String message;
+import org.opendatakit.briefcase.model.IFormDefinition;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 
-  public ExportException(String formid, String message) {
-    this.formid = formid;
-    this.message = message;
+public class ExportException extends BriefcaseException {
+
+  public ExportException(IFormDefinition formDefinition) {
+    super("Failure exporting form with formId " + formDefinition.getFormId());
+  }
+
+  public ExportException(IFormDefinition formDefinition, String cause) {
+    super("Failure exporting form with formId " + formDefinition.getFormId() + ". Cause: " + cause);
   }
 }

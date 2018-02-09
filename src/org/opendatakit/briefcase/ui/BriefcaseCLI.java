@@ -28,6 +28,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 
 /**
  * Command line interface contributed by Nafundi
@@ -72,11 +73,15 @@ public class BriefcaseCLI {
             Optional.ofNullable(endDateString).map(LocalDate::parse),
             Optional.ofNullable(pemKeyFile).map(Paths::get)
         );
+    } catch (BriefcaseException e) {
+      System.err.println("Error: " + e.message);
+      log.error("Error", e);
+      System.exit(1);
     } catch (Throwable t) {
-      System.err.println("Briefcase unexpected error. Please review the logs and contact maintainers on the following URLs:");
+      System.err.println("Unexpected error. Please review the logs and contact maintainers on the following URLs:");
       System.err.println("\thttps://opendatakit.slack.com/messages/C374LNDK9/");
       System.err.println("\thttps://forum.opendatakit.org/c/support");
-      log.error(t);
+      log.error("Error", t);
       System.exit(1);
     }
   }

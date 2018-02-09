@@ -15,10 +15,11 @@
  */
 package org.opendatakit.briefcase.operations;
 
-public class RetrieveAvailableFormsException extends RuntimeException {
-  private final Throwable cause;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+
+public class RetrieveAvailableFormsException extends BriefcaseException {
 
   public RetrieveAvailableFormsException(Throwable cause) {
-    this.cause = cause;
+    super("Failure to retrieve remote forms. Cause " + cause.getMessage());
   }
 }

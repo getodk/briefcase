@@ -13,14 +13,16 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.operations;
+package org.opendatakit.briefcase.util;
 
-public class WrongExportConfigurationEvent {
-  private final String formId;
-  public final String cause;
+import static java.util.stream.Collectors.joining;
 
-  public WrongExportConfigurationEvent(String formId, String cause) {
-    this.formId = formId;
-    this.cause = cause;
+import java.util.List;
+import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+
+public class PullFromODKException extends BriefcaseException {
+  public PullFromODKException(List<FormStatus> forms) {
+    super("Failure pulling forms from ODK. FormIds: " + forms.stream().map(f -> f.getFormDefinition().getFormId()).collect(joining(", ")));
   }
 }

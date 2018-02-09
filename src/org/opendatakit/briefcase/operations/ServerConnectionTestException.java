@@ -15,12 +15,11 @@
  */
 package org.opendatakit.briefcase.operations;
 
-import org.opendatakit.briefcase.model.ServerConnectionInfo;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 
-public class ServerConnectionTestException extends RuntimeException {
-  private final ServerConnectionInfo transferSettings;
+public class ServerConnectionTestException extends BriefcaseException {
 
-  public ServerConnectionTestException(ServerConnectionInfo transferSettings) {
-    this.transferSettings = transferSettings;
+  public ServerConnectionTestException() {
+    super("Server connection test failure. Check the connection settings (url, username & password) and the server status");
   }
 }
