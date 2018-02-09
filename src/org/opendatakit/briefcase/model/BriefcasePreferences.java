@@ -15,11 +15,15 @@
  */
 
 package org.opendatakit.briefcase.model;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.security.Security;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import org.apache.http.HttpHost;
@@ -52,12 +56,14 @@ public class BriefcasePreferences {
     }
 
     private final Preferences preferences;
+    public Class<?> node;
 
-  public BriefcasePreferences(Preferences preferences) {
-    this.preferences = preferences;
-  }
+    public BriefcasePreferences(Preferences preferences) {
+      this.preferences = preferences;
+    }
 
-  private BriefcasePreferences(Class<?> node, PreferenceScope scope) {
+    private BriefcasePreferences(Class<?> node, PreferenceScope scope) {
+        this.node = node;
         this.preferences = scope.preferenceFactory(node);
     }
 
@@ -163,7 +169,11 @@ public class BriefcasePreferences {
     }
 
     public String getBriefcaseDirectoryOrUserHome() {
-        return get(BRIEFCASE_DIR_PROPERTY, System.getProperty("user.home"));
+      try {
+        return get(BRIEFCASE_DIR_PROPERTY, Files.createTempDirectory("briefcase").toString());
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
 
     public static void setBriefcaseProxyProperty(HttpHost value) {
@@ -279,5 +289,17 @@ public class BriefcasePreferences {
             Preference.APPLICATION_SCOPED.put(BRIEFCASE_UNIQUE_USER_ID_PROPERTY, UUID.randomUUID().toString());
         }
         return Preference.APPLICATION_SCOPED.get(BRIEFCASE_UNIQUE_USER_ID_PROPERTY, defaultUuidValue);
+    }
+
+    public List<String> keys() {
+      try {
+        return Arrays.asList(preferences.keys());
+      } catch (BackingStoreException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    public boolean hasKey(String key) {
+      return keys().contains(key);
     }
 }
