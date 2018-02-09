@@ -70,24 +70,10 @@ public class SwingMatchers {
       protected boolean matchesSafely(JComponent item) {
         return item != null && item.isVisible();
       }
-    };
-  }
-
-  public static Matcher<JTextComponent> contains(String expectedText) {
-    return new TypeSafeMatcher<JTextComponent>() {
-      @Override
-      protected boolean matchesSafely(JTextComponent item) {
-        return item != null && item.getText().contains(expectedText);
-      }
 
       @Override
-      public void describeTo(Description description) {
-        description.appendText("contains " + expectedText);
-      }
-
-      @Override
-      protected void describeMismatchSafely(JTextComponent item, Description mismatchDescription) {
-        mismatchDescription.appendText("actual value '" + item.getText() + "' doesn't contain '" + expectedText + "'");
+      protected void describeMismatchSafely(JComponent item, Description mismatchDescription) {
+        mismatchDescription.appendText("not visible");
       }
     };
   }

@@ -31,6 +31,8 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 import org.assertj.swing.core.Robot;
@@ -59,17 +61,31 @@ class ConfigurationPanelPageObject {
     this.fixture = fixture;
   }
 
-  static ConfigurationPanelPageObject setUp(Robot robot, ExportConfiguration initialConfiguration, boolean isOverridePanel) {
-    ConfigurationPanel configurationPanel = execute(() -> isOverridePanel
-        ? ConfigurationPanel.overridePanel(initialConfiguration, true, true)
-        : ConfigurationPanel.defaultPanel(initialConfiguration, true));
-    JFrame testFrame = execute(() -> {
-      JFrame f = new JFrame();
-      f.add(configurationPanel.getForm().container);
-      return f;
+  static ConfigurationPanelPageObject setUp(Robot robot, ExportConfiguration initialConfiguration, boolean isOverridePanel, boolean hasTransferSettings, boolean savePasswordsConsent) {
+    return isOverridePanel
+        ? setUpOverridePanel(robot, initialConfiguration, hasTransferSettings, savePasswordsConsent)
+        : setUpDefaultPanel(robot, initialConfiguration, savePasswordsConsent);
+  }
+
+
+  static ConfigurationPanelPageObject setUpDefaultPanel(Robot robot, ExportConfiguration initialConfiguration, boolean savePasswordsConsent) {
+    return execute(() -> {
+      ConfigurationPanel configurationPanel = ConfigurationPanel.defaultPanel(initialConfiguration, savePasswordsConsent);
+      JFrame testFrame = new JFrame();
+      testFrame.add(configurationPanel.getForm().container);
+      FrameFixture window = new FrameFixture(robot, testFrame);
+      return new ConfigurationPanelPageObject(configurationPanel, window);
     });
-    FrameFixture window = new FrameFixture(robot, testFrame);
-    return new ConfigurationPanelPageObject(configurationPanel, window);
+  }
+
+  static ConfigurationPanelPageObject setUpOverridePanel(Robot robot, ExportConfiguration initialConfiguration, boolean hasTransferSettings, boolean savePasswordsConsent) {
+    return execute(() -> {
+      ConfigurationPanel configurationPanel = ConfigurationPanel.overridePanel(initialConfiguration, hasTransferSettings, savePasswordsConsent);
+      JFrame testFrame = new JFrame();
+      testFrame.add(configurationPanel.getForm().container);
+      FrameFixture window = new FrameFixture(robot, testFrame);
+      return new ConfigurationPanelPageObject(configurationPanel, window);
+    });
   }
 
   void show() {
@@ -116,8 +132,16 @@ class ConfigurationPanelPageObject {
     return component.form.pullBeforeField;
   }
 
+  public JLabel pullBeforeOverrideLabel() {
+    return component.form.pullBeforeOverrideLabel;
+  }
+
   public JComboBox<PullBeforeOverrideOption> pullBeforeOverrideField() {
     return component.form.pullBeforeOverrideField;
+  }
+
+  public JTextPane pullBeforeHintPanel() {
+    return component.form.pullBeforeHintPanel;
   }
 
   public void setSomePemFile() {

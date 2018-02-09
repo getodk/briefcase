@@ -21,6 +21,8 @@ import javax.swing.JLabel;
 import javax.swing.JTextPane;
 
 class ConfigurationPanelMode {
+  static final String REQUIRE_PULL_TEXT = "Requires manually pulling the form once";
+  static final String REQUIRE_SAVE_PASSWORDS = "Requires Remember passwords in Settings";
   private final boolean isOverridePanel;
   private final boolean hasTransferSettings;
   private boolean savePasswordsConsent;
@@ -40,9 +42,9 @@ class ConfigurationPanelMode {
   }
 
   void decorate(JCheckBox pullBeforeField, JLabel pullBeforeOverrideLabel, JComboBox pullBeforeOverrideField, JTextPane textpanel) {
-    pullBeforeField.setText("Pull before export" + (savePasswordsConsent ? "" : " (Requires Remember passwords in Settings)"));
     pullBeforeField.setVisible(!isOverridePanel);
     pullBeforeField.setEnabled(savePasswordsConsent && hasTransferSettings);
+    pullBeforeField.setText("Pull before export" + (savePasswordsConsent ? "" : " (" + REQUIRE_SAVE_PASSWORDS + ")"));
     pullBeforeOverrideLabel.setVisible(isOverridePanel);
     pullBeforeOverrideField.setVisible(isOverridePanel);
     pullBeforeOverrideField.setEnabled(savePasswordsConsent && hasTransferSettings);
@@ -50,8 +52,8 @@ class ConfigurationPanelMode {
     textpanel.setText(savePasswordsConsent
         ? hasTransferSettings
         ? ""
-        : "Requires Remember passwords in Settings"
-        : "Requires manually pulling the form once"
+        : REQUIRE_PULL_TEXT
+        : REQUIRE_SAVE_PASSWORDS
     );
 
   }

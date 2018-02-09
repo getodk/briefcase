@@ -68,8 +68,8 @@ public class ConfigurationPanelForm extends JComponent {
   private JButton exportDirCleanButton;
   JCheckBox pullBeforeField;
   JComboBox<PullBeforeOverrideOption> pullBeforeOverrideField;
-  private JTextPane pullBeforeHintPanel;
-  private JLabel pullBeforeOverrideLabel;
+  JTextPane pullBeforeHintPanel;
+  JLabel pullBeforeOverrideLabel;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();

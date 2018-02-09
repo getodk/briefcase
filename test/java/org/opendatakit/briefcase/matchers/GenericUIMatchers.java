@@ -15,7 +15,11 @@
  */
 package org.opendatakit.briefcase.matchers;
 
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import org.assertj.swing.fixture.DialogFixture;
 import org.assertj.swing.fixture.JFileChooserFixture;
 import org.hamcrest.BaseMatcher;
@@ -39,6 +43,40 @@ public class GenericUIMatchers {
       @Override
       public void describeTo(Description description) {
         description.appendText("visible");
+      }
+    };
+  }
+
+  public static Matcher<Object> containsText(String expectedText) {
+    return new BaseMatcher<Object>() {
+      @Override
+      public boolean matches(Object item) {
+        if (item instanceof JTextField)
+          return ((JTextField) item).getText().contains(expectedText);
+        if (item instanceof JLabel)
+          return ((JLabel) item).getText().contains(expectedText);
+        if (item instanceof JTextPane)
+          return ((JTextPane) item).getText().contains(expectedText);
+        if (item instanceof JCheckBox)
+          return ((JCheckBox) item).getText().contains(expectedText);
+        throw new RuntimeException("Invalid matcher for " + item);
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("a component containing text ").appendValue(expectedText);
+      }
+
+      @Override
+      public void describeMismatch(Object item, Description description) {
+        if (item instanceof JTextField)
+          description.appendText("a component containing text ").appendValue(((JTextField) item).getText());
+        if (item instanceof JLabel)
+          description.appendText("a component containing text ").appendValue(((JLabel) item).getText());
+        if (item instanceof JTextPane)
+          description.appendText("a component containing text ").appendValue(((JTextPane) item).getText());
+        if (item instanceof JCheckBox)
+          description.appendText("a component containing text ").appendValue(((JCheckBox) item).getText());
       }
     };
   }

@@ -175,9 +175,17 @@ public class ExportConfiguration {
     return this;
   }
 
+  public Optional<Boolean> getPullBefore() {
+    return pullBefore;
+  }
+
   public ExportConfiguration setPullBefore(Boolean value) {
     this.pullBefore = Optional.ofNullable(value);
     return this;
+  }
+
+  public Optional<PullBeforeOverrideOption> getPullBeforeOverride() {
+    return pullBeforeOverride;
   }
 
   public ExportConfiguration setPullBeforeOverride(PullBeforeOverrideOption value) {
