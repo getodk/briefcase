@@ -20,13 +20,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.IFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
+import org.opendatakit.briefcase.operations.RetrieveAvailableFormsException;
 
 public class RetrieveAvailableFormsFromServer {
   final ServerConnectionInfo originServerInfo;
@@ -51,4 +54,14 @@ public class RetrieveAvailableFormsFromServer {
     return formStatuses;
   }
 
+  public static List<FormStatus> get(ServerConnectionInfo transferSettings) {
+    RetrieveAvailableFormsFromServer action = new RetrieveAvailableFormsFromServer(transferSettings, new TerminationFuture());
+    try {
+      action.doAction();
+      return action.formStatuses;
+    } catch (ParsingException | XmlDocumentFetchException e) {
+      EventBus.publish(new RetrieveAvailableFormsFailedEvent(FormStatus.TransferType.GATHER, e));
+      throw new RetrieveAvailableFormsException(e);
+    }
+  }
 }

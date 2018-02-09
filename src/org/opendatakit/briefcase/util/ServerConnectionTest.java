@@ -16,9 +16,12 @@
 
 package org.opendatakit.briefcase.util;
 
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
+import org.opendatakit.briefcase.operations.ServerConnectionTestException;
+import org.opendatakit.briefcase.operations.ServerConnectionTestFailedEvent;
 
 public class ServerConnectionTest implements Runnable {
   private final ServerConnectionInfo info;
@@ -27,13 +30,22 @@ public class ServerConnectionTest implements Runnable {
   
   private String errorReason = null;
   private boolean isSuccessful = false;
-  
+
   public ServerConnectionTest(ServerConnectionInfo info, TerminationFuture terminationFuture, boolean asTarget) {
     this.info = info;
     this.terminationFuture = terminationFuture;
     this.asTarget = asTarget;
   }
-  
+
+  public static void testPull(ServerConnectionInfo transferSettings) {
+    ServerConnectionTest test = new ServerConnectionTest(transferSettings, new TerminationFuture(), false);
+    test.run();
+    if (!test.isSuccessful()) {
+      EventBus.publish(new ServerConnectionTestFailedEvent());
+      throw new ServerConnectionTestException(transferSettings);
+    }
+  }
+
   @Override
   public void run() {
     try {
@@ -56,5 +68,4 @@ public class ServerConnectionTest implements Runnable {
   public boolean isSuccessful() {
     return isSuccessful;
   }
-  
 }
