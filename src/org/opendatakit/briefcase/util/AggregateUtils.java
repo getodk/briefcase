@@ -483,7 +483,7 @@ public class AggregateUtils {
             }
           } else {
             String msg = "The url: " + u.toString()
-                + " is not Aggregate 1.0 - status code on Head request: " + statusCode;
+                + " is not ODK Aggregate - status code on Head request: " + statusCode;
             log.warn(msg);
             throw new TransmissionException(msg);
           }
@@ -503,7 +503,7 @@ public class AggregateUtils {
             }
           }
           String msg = "The username or password may be incorrect or the url: " + u.toString()
-              + " is not Aggregate 1.0 - status code on Head request: " + statusCode;
+              + " is not ODK Aggregate - status code on Head request: " + statusCode;
           log.warn(msg);
           throw new TransmissionException(msg);
         }
