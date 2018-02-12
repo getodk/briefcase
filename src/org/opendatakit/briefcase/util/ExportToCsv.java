@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.util;
 
+import static java.time.ZoneId.systemDefault;
 import static org.opendatakit.briefcase.util.FilesSkipped.ALL;
 import static org.opendatakit.briefcase.util.FilesSkipped.NONE;
 import static org.opendatakit.briefcase.util.FilesSkipped.SOME;
@@ -33,7 +34,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -83,8 +83,8 @@ public class ExportToCsv implements ITransformFormAction {
   private final File outputDir;
   private final BriefcaseFormDefinition briefcaseLfd;
   private final String baseFilename;
-  private final boolean exportMedia; // true by default?
-  private final boolean overwrite; // false by default?
+  private final boolean exportMedia;
+  private final boolean overwrite;
   private final Date startDate;
   private final Date endDate;
   private final File outputMediaDir;
@@ -93,7 +93,7 @@ public class ExportToCsv implements ITransformFormAction {
     this.terminationFuture = terminationFuture;
     this.outputDir = outputDir;
     this.briefcaseLfd = briefcaseLfd;
-    this.baseFilename = stripCSVExtension(baseFilename);
+    this.baseFilename = stripCsvExtension(baseFilename);
     this.exportMedia = exportMedia;
     this.overwrite = overwrite;
     this.startDate = startDate;
@@ -102,7 +102,7 @@ public class ExportToCsv implements ITransformFormAction {
   }
 
 
-  private String stripCSVExtension(String filename) {
+  private String stripCsvExtension(String filename) {
     // Strip .csv, it gets added later
     return filename.endsWith(".csv") ? filename.substring(0, filename.length() - 4) : filename;
   }
@@ -1008,10 +1008,12 @@ public class ExportToCsv implements ITransformFormAction {
     ExportToCsv action = new ExportToCsv(
         new TerminationFuture(),
         exportDir.toFile(),
-        formDefinition, baseFilename,
+        formDefinition,
+        baseFilename,
         exportMedia,
-        overwriteFiles, startDate.map((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null),
-        endDate.map((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null)
+        overwriteFiles,
+        startDate.map(ld -> Date.from(ld.atStartOfDay(systemDefault()).toInstant())).orElse(null),
+        endDate.map(ld -> Date.from(ld.atStartOfDay(systemDefault()).toInstant())).orElse(null)
     );
     try {
       boolean allSuccessful = action.doAction();
