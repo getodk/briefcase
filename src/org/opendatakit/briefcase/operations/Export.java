@@ -75,43 +75,32 @@ public class Export {
       Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END)
   );
 
-  public static void export(String storageDir, String formid, Path exportPath, String baseFilename, boolean includeMediaFiles, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> pemFile) {
+  public static void export(String storageDir, String formid, Path exportPath, String baseFilename, boolean includeMediaFiles, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
     CliEventsCompanion.attach(log);
     bootCache(storageDir);
     Optional<BriefcaseFormDefinition> maybeFormDefinition = FileSystemUtils.getBriefcaseFormList().stream()
         .filter(form -> form.getFormId().equals(formid))
         .findFirst();
 
-    if (!maybeFormDefinition.isPresent())
-      throw new FormNotFoundException(formid);
-
-    BriefcaseFormDefinition formDefinition = maybeFormDefinition.get();
+    BriefcaseFormDefinition formDefinition = maybeFormDefinition.orElseThrow(() -> new FormNotFoundException(formid));
 
     if (formDefinition.isFileEncryptedForm() || formDefinition.isFieldEncryptedForm()) {
-      if (!pemFile.isPresent())
-        throw new BriefcaseException("Missing pem file configuration");
+      Path pemFile = maybePemFile
+          .filter(Files::exists)
+          .orElseThrow(() -> new BriefcaseException("Missing pem file configuration"));
 
-      if (!Files.exists(pemFile.get()))
-        throw new BriefcaseException("Missing pem file configuration");
-
-      try (PEMReader rdr = new PEMReader(new BufferedReader(new InputStreamReader(Files.newInputStream(pemFile.get()), "UTF-8")))) {
-        Optional<Object> o = Optional.ofNullable(rdr.readObject());
-        if (!o.isPresent())
-          throw new BriefcaseException("Can't parse Pem file");
+      try (PEMReader rdr = new PEMReader(new BufferedReader(new InputStreamReader(Files.newInputStream(pemFile), "UTF-8")))) {
+        Object o = Optional.ofNullable(rdr.readObject()).orElseThrow(() -> new BriefcaseException("Can't parse Pem file"));
 
         Optional<PrivateKey> privKey;
-        if (o.get() instanceof KeyPair) {
-          privKey = Optional.of(((KeyPair) o.get()).getPrivate());
-        } else if (o.get() instanceof PrivateKey) {
-          privKey = Optional.of((PrivateKey) o.get());
-        } else {
+        if (o instanceof KeyPair)
+          privKey = Optional.of(((KeyPair) o).getPrivate());
+        else if (o instanceof PrivateKey)
+          privKey = Optional.of((PrivateKey) o);
+        else
           privKey = Optional.empty();
-        }
 
-        if (!privKey.isPresent())
-          throw new BriefcaseException("No private key found on Pem file");
-
-        formDefinition.setPrivateKey(privKey.get());
+        formDefinition.setPrivateKey(privKey.orElseThrow(() -> new BriefcaseException("No private key found on Pem file")));
         EventBus.publish(new ExportProgressEvent("Successfully parsed Pem file", formDefinition));
       } catch (IOException e) {
         throw new BriefcaseException("Can't parse Pem file");
