@@ -68,7 +68,7 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
    * Create the dialog.
    */
   public ServerConnectionDialog(Window app, ServerConnectionInfo oldInfo, boolean asTarget) {
-    super(app, "Aggregate v1.x Server Connection", ModalityType.DOCUMENT_MODAL);
+    super(app, "ODK Aggregate Server Connection", ModalityType.DOCUMENT_MODAL);
     serverInfo = oldInfo;
     this.asTarget = asTarget;
     //setBounds(100, 100, 450, 234);
