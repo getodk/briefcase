@@ -74,42 +74,37 @@ public class ExportToCsv implements ITransformFormAction {
 
   private static final Log log = LogFactory.getLog(ExportToCsv.class);
 
-  File outputDir;
-  File outputMediaDir;
-  String baseFilename;
-  BriefcaseFormDefinition briefcaseLfd;
-  TerminationFuture terminationFuture;
-  Map<TreeElement, OutputStreamWriter> fileMap = new HashMap<TreeElement, OutputStreamWriter>();
-  Map<String, String> fileHashMap = new HashMap<String, String>();
-
-  boolean exportMedia = true;
-  Date startDate;
-  Date endDate;
-  boolean overwrite = false;
   int totalFilesSkipped = 0;
   int totalInstances = 0;
   int processedInstances = 0;
+  private final Map<TreeElement, OutputStreamWriter> fileMap = new HashMap<TreeElement, OutputStreamWriter>();
+  private final Map<String, String> fileHashMap = new HashMap<String, String>();
+  private final TerminationFuture terminationFuture;
+  private final File outputDir;
+  private final BriefcaseFormDefinition briefcaseLfd;
+  private final String baseFilename;
+  private final boolean exportMedia; // true by default?
+  private final boolean overwrite; // false by default?
+  private final Date startDate;
+  private final Date endDate;
+  private final File outputMediaDir;
 
-
-  public ExportToCsv(File outputDir, BriefcaseFormDefinition lfd, TerminationFuture terminationFuture, Date start, Date end) {
-    this(outputDir, lfd, terminationFuture, lfd.getFormName(), true, false, start, end);
-  }
-
-  public ExportToCsv(File outputDir, BriefcaseFormDefinition lfd, TerminationFuture terminationFuture, String filename, boolean exportMedia, Boolean overwrite, Date start, Date end) {
-    this.outputDir = outputDir;
-    this.outputMediaDir = new File(outputDir, MEDIA_DIR);
-    this.briefcaseLfd = lfd;
+  ExportToCsv(TerminationFuture terminationFuture, File outputDir, BriefcaseFormDefinition briefcaseLfd, String baseFilename, boolean exportMedia, boolean overwrite, Date startDate, Date endDate) {
     this.terminationFuture = terminationFuture;
-
-    // Strip .csv, it gets added later
-    if (filename.endsWith(".csv")) {
-      filename = filename.substring(0, filename.length() - 4);
-    }
-    this.baseFilename = filename;
+    this.outputDir = outputDir;
+    this.briefcaseLfd = briefcaseLfd;
+    this.baseFilename = stripCSVExtension(baseFilename);
     this.exportMedia = exportMedia;
     this.overwrite = overwrite;
-    this.startDate = start;
-    this.endDate = end;
+    this.startDate = startDate;
+    this.endDate = endDate;
+    this.outputMediaDir = new File(outputDir, MEDIA_DIR);
+  }
+
+
+  private String stripCSVExtension(String filename) {
+    // Strip .csv, it gets added later
+    return filename.endsWith(".csv") ? filename.substring(0, filename.length() - 4) : filename;
   }
 
   @Override
@@ -1008,13 +1003,14 @@ public class ExportToCsv implements ITransformFormAction {
     }
   }
 
-  public static void export(Path exportDir, BriefcaseFormDefinition formDefinition, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
+  public static void export(Path exportDir, BriefcaseFormDefinition formDefinition, String baseFilename, boolean exportMedia, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
     log.info("exporting to : " + exportDir);
     ExportToCsv action = new ExportToCsv(
-        exportDir.toFile(),
-        formDefinition,
         new TerminationFuture(),
-        startDate.map((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null),
+        exportDir.toFile(),
+        formDefinition, baseFilename,
+        exportMedia,
+        overwriteFiles, startDate.map((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null),
         endDate.map((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null)
     );
     try {

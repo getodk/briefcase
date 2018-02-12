@@ -64,6 +64,9 @@ public class Export {
           args.get(STORAGE_DIR),
           args.get(FORM_ID),
           args.get(EXPORT_DIR),
+          args.get(FILE),
+          !args.has(EXCLUDE_MEDIA),
+          args.has(OVERWRITE),
           args.getOptional(START),
           args.getOptional(END),
           args.getOptional(PEM_FILE)
@@ -72,7 +75,7 @@ public class Export {
       Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END)
   );
 
-  public static void export(String storageDir, String formid, Path exportPath, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> pemFile) {
+  public static void export(String storageDir, String formid, Path exportPath, String baseFilename, boolean includeMediaFiles, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> pemFile) {
     CliEventsCompanion.attach(log);
     bootCache(storageDir);
     Optional<BriefcaseFormDefinition> maybeFormDefinition = FileSystemUtils.getBriefcaseFormList().stream()
@@ -116,7 +119,7 @@ public class Export {
     }
 
     System.out.println("Exporting form " + formDefinition.getFormName() + " (" + formDefinition.getFormId() + ") to: " + exportPath);
-    ExportToCsv.export(exportPath, formDefinition, startDate, endDate);
+    ExportToCsv.export(exportPath, formDefinition, baseFilename, includeMediaFiles, overwriteFiles, startDate, endDate);
 
     BriefcasePreferences.forClass(ExportPanel.class).put(buildExportDateTimePrefix(formDefinition.getFormId()), LocalDateTime.now().format(ISO_DATE_TIME));
   }

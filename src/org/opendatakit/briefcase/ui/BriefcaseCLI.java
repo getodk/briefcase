@@ -51,9 +51,13 @@ public class BriefcaseCLI {
     String server = mCommandline.getOptionValue(MainBriefcaseWindow.AGGREGATE_URL);
     String formid = mCommandline.getOptionValue(MainBriefcaseWindow.FORM_ID);
     String storageDir = mCommandline.getOptionValue(MainBriefcaseWindow.STORAGE_DIRECTORY);
+    String fileName = mCommandline.getOptionValue(MainBriefcaseWindow.EXPORT_FILENAME);
     String exportPath = mCommandline.getOptionValue(MainBriefcaseWindow.EXPORT_DIRECTORY);
     String startDateString = mCommandline.getOptionValue(MainBriefcaseWindow.EXPORT_START_DATE);
     String endDateString = mCommandline.getOptionValue(MainBriefcaseWindow.EXPORT_END_DATE);
+    // note that we invert incoming value
+    boolean exportMedia = !mCommandline.hasOption(MainBriefcaseWindow.EXCLUDE_MEDIA_EXPORT);
+    boolean overwrite = mCommandline.hasOption(MainBriefcaseWindow.OVERWRITE_CSV_EXPORT);
     String odkDir = mCommandline.getOptionValue(MainBriefcaseWindow.ODK_DIR);
     String pemKeyFile = mCommandline.getOptionValue(MainBriefcaseWindow.PEM_FILE);
 
@@ -69,6 +73,9 @@ public class BriefcaseCLI {
             storageDir,
             formid,
             Paths.get(exportPath),
+            fileName,
+            exportMedia,
+            overwrite,
             Optional.ofNullable(startDateString).map(LocalDate::parse),
             Optional.ofNullable(endDateString).map(LocalDate::parse),
             Optional.ofNullable(pemKeyFile).map(Paths::get)

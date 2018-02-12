@@ -151,7 +151,7 @@ public class ExportAction {
 
     ITransformFormAction action;
     if (outputType == ExportType.CSV) {
-      action = new ExportToCsv(outputDir, lfd, terminationFuture, start, end);
+      action = new ExportToCsv(terminationFuture, outputDir, lfd, lfd.getFormName(), true, false, start, end);
     } else {
       throw new IllegalStateException("outputType not recognized");
     }
