@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -35,6 +36,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
@@ -119,6 +121,17 @@ public final class WebUtils {
             threadSafeContext.set(httpContext);
         }
         return httpContext;
+    }
+
+    /**
+     * Resets the context clearing cookies and aith parameters and residual information
+     * from previous requests
+     */
+    public static void resetHttpContext() {
+      getHttpContext().getCookieStore().clear();
+      getHttpContext().getTargetAuthState().reset();
+      Optional.ofNullable(getHttpContext().getAuthCache()).ifPresent(AuthCache::clear);
+      getHttpContext().getCredentialsProvider().clear();
     }
 
     /**
