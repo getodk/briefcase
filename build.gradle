@@ -64,6 +64,7 @@ dependencies {
     runtime group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
     compile group: 'org.slf4j', name: 'jcl-over-slf4j', version: '1.7.25'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+    compile 'io.sentry:sentry-logback:1.6.8'
 }
 
 jacocoTestReport {
@@ -107,12 +108,20 @@ def getVersionName = { ->
     }
 }
 
+String getValue(String key, String defaultValue) {
+    if (this.hasProperty(key))
+        return this.getProperty(key)
+    else
+        return defaultValue
+}
+
 buildConfig {
     appName = 'ODK Briefcase'
     version = getVersionName()
     clsName = 'BuildConfig'
     packageName = 'org.opendatakit.briefcase.buildconfig'
     buildConfigField 'String', 'GOOGLE_TRACKING_ID', "UA-91951913-3"
+    buildConfigField 'String', 'SENTRY_DSN', getValue("sentryDsn", "https://531468590e934cccaa362619d1e36875:d64357fe6703441fba198d614cf3413e@sentry.io/285891")
 }
 
 mainClassName = 'org.opendatakit.briefcase.Launcher'
