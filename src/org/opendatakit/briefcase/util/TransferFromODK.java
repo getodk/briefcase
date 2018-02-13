@@ -23,8 +23,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.FileSystemException;
@@ -37,7 +37,7 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 
 public class TransferFromODK implements ITransferFromSourceAction {
 
-  private static final Log log = LogFactory.getLog(TransferFromODK.class);
+  private static final Logger log = LoggerFactory.getLogger(TransferFromODK.class);
 
   final File odkOriginDir;
   final TerminationFuture terminationFuture;

@@ -31,8 +31,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.javarosa.core.io.Std;
 import org.javarosa.core.model.DataBinding;
 import org.javarosa.core.model.FormDef;
@@ -67,7 +67,7 @@ import org.opendatakit.common.utils.WebUtils;
 public class BaseFormParserForJavaRosa implements Serializable {
 
   private static final String LEADING_QUESTION_XML_PATTERN = "^[^<]*<\\s*\\?\\s*xml.*";
-  private static final Log log = LogFactory.getLog(BaseFormParserForJavaRosa.class.getName());
+  private static final Logger log = LoggerFactory.getLogger(BaseFormParserForJavaRosa.class.getName());
 
   /**
    * Classes needed to serialize objects. Need to put anything from JR in here.

@@ -32,8 +32,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.opendatakit.briefcase.export.ExportAction;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -45,7 +45,7 @@ import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
 
 public class Export {
-  private static final Log LOGGER = LogFactory.getLog(Export.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Export.class);
   private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd");
   private static final Param<Void> EXPORT = Param.flag("e", "export", "Export a form");
   private static final Param<String> EXPORT_DIR = Param.arg("ed", "export_directory", "Export directory");

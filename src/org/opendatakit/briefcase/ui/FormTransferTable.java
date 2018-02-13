@@ -41,8 +41,8 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -114,7 +114,7 @@ public class FormTransferTable extends JTable {
      *
      */
     private static final long serialVersionUID = -5106458166776020642L;
-    private static final Log log = LogFactory.getLog(DetailButton.class);
+    private static final Logger log = LoggerFactory.getLogger(DetailButton.class);
     public static final String LABEL = "Detail";
 
     final FormStatus status;
@@ -145,7 +145,7 @@ public class FormTransferTable extends JTable {
 
     public static final int BUTTON_COLUMN = 3;
 
-    private static final Log log = LogFactory.getLog(FormTransferTableModel.class);
+    private static final Logger log = LoggerFactory.getLogger(FormTransferTableModel.class);
 
     final String[] columnNames;
     final JButton btnSelectOrClearAllForms;

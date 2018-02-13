@@ -24,14 +24,14 @@ import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 
 public class MainClearBriefcasePreferencesWindow {
 
   private static final String CLEAR_PREFERENCES_VERSION = "ODK ClearBriefcasePreferences - " + BriefcasePreferences.VERSION;
-  private static final Log log = LogFactory.getLog(MainClearBriefcasePreferencesWindow.class);
+  private static final Logger log = LoggerFactory.getLogger(MainClearBriefcasePreferencesWindow.class);
 
   /**
    * Launch the application.

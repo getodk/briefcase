@@ -8,8 +8,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FileSystemException;
 
@@ -18,7 +18,7 @@ public class StorageLocation {
     static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
     static final String README_TXT = "readme.txt";
     private final BriefcasePreferences briefcasePreferences;
-    private static final Log log = LogFactory.getLog(StorageLocation.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(StorageLocation.class.getName());
 
     public StorageLocation() {
         briefcasePreferences = BriefcasePreferences.appScoped();

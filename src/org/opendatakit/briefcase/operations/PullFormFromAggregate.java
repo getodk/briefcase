@@ -22,8 +22,8 @@ import static org.opendatakit.briefcase.operations.Common.bootCache;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
@@ -36,7 +36,7 @@ import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
 
 public class PullFormFromAggregate {
-  private static final Log LOGGER = LogFactory.getLog(PullFormFromAggregate.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(PullFormFromAggregate.class);
   private static final Param<Void> PULL_AGGREGATE = Param.flag("pa", "pull_aggregate", "Pull form from an Aggregate instance");
   private static final Param<String> ODK_USERNAME = Param.arg("u", "odk_username", "ODK Username");
   private static final Param<String> ODK_PASSWORD = Param.arg("p", "odk_password", "ODK Password");

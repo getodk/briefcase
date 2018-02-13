@@ -42,8 +42,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
 import org.opendatakit.briefcase.model.BriefcaseAnalytics;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -84,7 +84,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     public static final String VERSION = "version";
     public static final String PEM_FILE = "pem_file";
 
-    private static final Log log = LogFactory.getLog(BaseFormParserForJavaRosa.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(BaseFormParserForJavaRosa.class.getName());
 
     private final JTabbedPane tabbedPane;
     /** A map from each pane to its index in the JTabbedPane */

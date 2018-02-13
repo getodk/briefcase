@@ -62,8 +62,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -75,7 +75,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
    *
    */
   private static final long serialVersionUID = -5321396641987129789L;
-  private static final Log log = LogFactory.getLog(CharsetConverterDialog.class);
+  private static final Logger log = LoggerFactory.getLogger(CharsetConverterDialog.class);
 
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 

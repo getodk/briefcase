@@ -28,13 +28,13 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.opendatakit.briefcase.model.CryptoException;
 
 public class EncryptionInformation {
 
-  private static final Log log = LogFactory.getLog(EncryptionInformation.class);
+  private static final Logger log = LoggerFactory.getLogger(EncryptionInformation.class);
   
   private CipherFactory cipherFactory;
   

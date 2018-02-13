@@ -26,8 +26,8 @@ import java.io.Serializable;
 import java.security.PrivateKey;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.bushe.swing.event.EventBus;
 import org.javarosa.core.model.instance.TreeElement;
 import org.opendatakit.aggregate.exception.ODKIncompleteSubmissionData;
@@ -38,7 +38,7 @@ import org.opendatakit.briefcase.util.JavaRosaParserWrapper;
 
 public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
 
-  private static final Log log = LogFactory.getLog(BriefcaseFormDefinition.class);
+  private static final Logger log = LoggerFactory.getLogger(BriefcaseFormDefinition.class);
   private final File formFolder;
   private final File revisedFormFile;
   private boolean needsMediaUpdate = false;

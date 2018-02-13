@@ -27,8 +27,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.opendatakit.briefcase.model.CryptoException;
 
 /**
@@ -40,7 +40,7 @@ import org.opendatakit.briefcase.model.CryptoException;
  */
 public final class CipherFactory {
 
-  private static final Log log = LogFactory.getLog(CipherFactory.class);
+  private static final Logger log = LoggerFactory.getLogger(CipherFactory.class);
   private static final String SYMMETRIC_ALGORITHM = "AES/CFB/PKCS5Padding";
   private static final int IV_BYTE_LENGTH = 16;
 

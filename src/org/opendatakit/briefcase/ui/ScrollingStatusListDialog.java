@@ -32,8 +32,8 @@ import javax.swing.JScrollPane;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
@@ -44,7 +44,7 @@ import org.opendatakit.briefcase.model.IFormDefinition;
 
 public class ScrollingStatusListDialog extends JDialog implements ActionListener {
   private static final long serialVersionUID = 3565952263140071560L;
-  private static final Log LOG = LogFactory.getLog(ScrollingStatusListDialog.class.getName());
+  private static final Logger LOG = LoggerFactory.getLogger(ScrollingStatusListDialog.class.getName());
 
   private final JEditorPane editorArea;
   private final IFormDefinition form;
