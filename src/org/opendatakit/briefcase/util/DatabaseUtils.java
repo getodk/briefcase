@@ -31,10 +31,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Set;
 import java.util.TreeSet;
-
+import org.opendatakit.briefcase.model.FileSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.opendatakit.briefcase.model.FileSystemException;
 
 /**
  * This class abstracts all the functionality of the instance-tracking

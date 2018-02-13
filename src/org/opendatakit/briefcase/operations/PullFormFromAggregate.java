@@ -22,8 +22,6 @@ import static org.opendatakit.briefcase.operations.Common.bootCache;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
@@ -34,6 +32,8 @@ import org.opendatakit.briefcase.util.ServerConnectionTest;
 import org.opendatakit.briefcase.util.TransferFromServer;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PullFormFromAggregate {
   private static final Logger LOGGER = LoggerFactory.getLogger(PullFormFromAggregate.class);

@@ -30,9 +30,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.javarosa.core.io.Std;
 import org.javarosa.core.model.DataBinding;
 import org.javarosa.core.model.FormDef;
@@ -55,6 +52,8 @@ import org.opendatakit.aggregate.form.XFormParameters;
 import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.briefcase.util.StringUtils;
 import org.opendatakit.common.utils.WebUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Parses an XML definition of an XForm based on java rosa types

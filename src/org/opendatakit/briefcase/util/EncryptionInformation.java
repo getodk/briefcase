@@ -21,16 +21,14 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-
 import org.apache.commons.codec.binary.Base64;
+import org.opendatakit.briefcase.model.CryptoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.opendatakit.briefcase.model.CryptoException;
 
 public class EncryptionInformation {
 

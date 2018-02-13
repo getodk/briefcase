@@ -38,9 +38,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -56,6 +53,8 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ServerFetcher {
 

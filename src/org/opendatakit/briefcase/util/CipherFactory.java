@@ -21,15 +21,13 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-
+import org.opendatakit.briefcase.model.CryptoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.opendatakit.briefcase.model.CryptoException;
 
 /**
  * Handles the initialization of Cipher objects for the decryption of submission

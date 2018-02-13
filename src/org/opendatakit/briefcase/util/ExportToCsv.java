@@ -35,15 +35,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.NoSuchPaddingException;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.bushe.swing.event.EventBus;
 import org.javarosa.core.model.instance.AbstractTreeElement;
 import org.javarosa.core.model.instance.TreeElement;
@@ -58,6 +54,8 @@ import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExportToCsv implements ITransformFormAction {
 

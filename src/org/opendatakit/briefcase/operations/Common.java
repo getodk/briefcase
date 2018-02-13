@@ -16,12 +16,12 @@
 package org.opendatakit.briefcase.operations;
 
 import java.io.File;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.common.cli.Param;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class Common {
   private static final Logger LOGGER = LoggerFactory.getLogger(Common.class);

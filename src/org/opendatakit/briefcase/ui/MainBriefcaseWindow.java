@@ -34,7 +34,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -42,8 +41,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
 import org.opendatakit.briefcase.model.BriefcaseAnalytics;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -52,6 +49,8 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeListener {
     private static final String APP_NAME = "ODK Briefcase";

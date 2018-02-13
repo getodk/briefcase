@@ -23,8 +23,6 @@ import static org.opendatakit.briefcase.operations.PullFormFromAggregate.pullFor
 
 import java.util.Optional;
 import org.apache.commons.cli.CommandLine;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
@@ -35,6 +33,8 @@ import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.operations.Export;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Command line interface contributed by Nafundi

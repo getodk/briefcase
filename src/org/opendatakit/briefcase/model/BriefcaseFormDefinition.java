@@ -24,10 +24,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.security.PrivateKey;
-
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.bushe.swing.event.EventBus;
 import org.javarosa.core.model.instance.TreeElement;
 import org.opendatakit.aggregate.exception.ODKIncompleteSubmissionData;
@@ -35,6 +32,8 @@ import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa.DifferenceResu
 import org.opendatakit.briefcase.util.BadFormDefinition;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.JavaRosaParserWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
 

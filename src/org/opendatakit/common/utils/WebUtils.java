@@ -23,13 +23,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.javarosa.core.model.utils.DateUtils;
 import org.opendatakit.common.web.constants.HtmlConsts;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Useful methods for parsing boolean and date values and formatting dates.

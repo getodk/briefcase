@@ -19,14 +19,12 @@ package org.opendatakit.briefcase.ui;
 import java.awt.EventQueue;
 import java.awt.Image;
 import java.awt.Toolkit;
-
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
-
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
 
 public class MainClearBriefcasePreferencesWindow {
 

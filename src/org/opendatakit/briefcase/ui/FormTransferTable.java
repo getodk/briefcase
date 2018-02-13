@@ -41,8 +41,6 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -50,6 +48,8 @@ import org.opendatakit.briefcase.model.FormStatus.TransferType;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsSucceededEvent;
 import org.opendatakit.briefcase.ui.reused.FontUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FormTransferTable extends JTable {
 

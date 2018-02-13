@@ -36,16 +36,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-
 import org.apache.commons.codec.binary.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.javarosa.xform.parse.XFormParser;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
@@ -57,6 +53,8 @@ import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileSystemUtils {
 

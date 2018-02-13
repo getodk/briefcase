@@ -25,10 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -44,6 +41,8 @@ import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 import org.opendatakit.briefcase.util.AggregateUtils.DocumentFetchResult;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionChunk;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ServerUploader {
 

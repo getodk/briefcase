@@ -29,10 +29,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.javarosa.xform.parse.XFormParser;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.io.KXmlSerializer;
@@ -49,6 +46,8 @@ import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.briefcase.util.ServerFetcher.MediaFile;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionChunk;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionManifest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 

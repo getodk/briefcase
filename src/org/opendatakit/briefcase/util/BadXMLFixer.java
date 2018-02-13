@@ -18,14 +18,13 @@ package org.opendatakit.briefcase.util;
 
 import java.io.File;
 import java.io.IOException;
-
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.model.CannotFixXMLException;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.ParsingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
