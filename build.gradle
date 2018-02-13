@@ -121,7 +121,7 @@ buildConfig {
     clsName = 'BuildConfig'
     packageName = 'org.opendatakit.briefcase.buildconfig'
     buildConfigField 'String', 'GOOGLE_TRACKING_ID', "UA-91951913-3"
-    buildConfigField 'String', 'SENTRY_DSN', getValue("sentryDsn", "https://531468590e934cccaa362619d1e36875:d64357fe6703441fba198d614cf3413e@sentry.io/285891")
+    buildConfigField 'String', 'SENTRY_DSN', getValue("sentryDsn", "https://b6f023a5f17e44d9a46447f8827e2a41:1b1f33d68b1b4404b85cd627563d37f9@sentry.io/287258")
 }
 
 mainClassName = 'org.opendatakit.briefcase.Launcher'
