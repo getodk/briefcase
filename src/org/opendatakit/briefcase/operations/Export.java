@@ -32,8 +32,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.opendatakit.briefcase.export.ExportAction;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -43,6 +41,8 @@ import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Export {
   private static final Logger LOGGER = LoggerFactory.getLogger(Export.class);
