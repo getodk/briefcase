@@ -152,6 +152,7 @@ public class ExportPanel {
     terminationFuture.reset();
     forms.getSelectedForms()
         .parallelStream()
+        .peek(FormStatus::clearStatusHistory)
         .forEach(form -> {
           String formId = form.getFormDefinition().getFormId();
           ExportConfiguration configuration = forms.getConfiguration(formId);
