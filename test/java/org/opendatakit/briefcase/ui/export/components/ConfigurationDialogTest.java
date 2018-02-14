@@ -18,12 +18,13 @@ package org.opendatakit.briefcase.ui.export.components;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.ui.matchers.GenericUIMatchers.visible;
-import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.enabled;
+import static org.opendatakit.briefcase.matchers.GenericUIMatchers.visible;
+import static org.opendatakit.briefcase.matchers.SwingMatchers.enabled;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
@@ -106,5 +107,29 @@ public class ConfigurationDialogTest extends AssertJSwingJUnitTestCase {
     page.show();
     page.clickOnCancel();
     assertThat(page.dialog(), is(not(visible())));
+  }
+
+  @Test
+  public void it_lets_third_parties_react_to_the_ok_button() {
+    AtomicBoolean okClicked = new AtomicBoolean(false);
+
+    page = ConfigurationDialogPageObject.setUp(robot(), CONFIGURATION);
+    page.show();
+    page.onOK(() -> okClicked.set(true));
+
+    page.clickOnOk();
+    assertThat(okClicked.get(), is(true));
+  }
+
+  @Test
+  public void it_lets_third_parties_react_to_the_remove_button() {
+    AtomicBoolean removeClicked = new AtomicBoolean(false);
+
+    page = ConfigurationDialogPageObject.setUp(robot(), CONFIGURATION);
+    page.show();
+    page.onRemove(() -> removeClicked.set(true));
+
+    page.clickOnRemove();
+    assertThat(removeClicked.get(), is(true));
   }
 }

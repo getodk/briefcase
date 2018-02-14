@@ -998,4 +998,16 @@ public class ExportToCsv implements ITransformFormAction {
      return FilesSkipped.SOME;
     }
   }
+
+  public boolean noneSkipped() {
+    return totalFilesSkipped == 0 || totalInstances == 0;
+  }
+
+  public boolean someSkipped() {
+    return totalInstances > 0 && totalFilesSkipped > 0 && totalFilesSkipped < totalInstances;
+  }
+
+  public boolean allSkipped() {
+    return totalInstances > 0 && totalFilesSkipped == totalInstances;
+  }
 }

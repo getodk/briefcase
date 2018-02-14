@@ -26,6 +26,8 @@ import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -87,6 +89,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     private final JTabbedPane tabbedPane;
     /** A map from each pane to its index in the JTabbedPane */
     private final Map<Component, Integer> paneToIndexMap = new HashMap<>();
+    private static final ExecutorService BACKGROUND_EXECUTOR = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 2);
 
   /**
    * Launch the application.
@@ -213,6 +216,8 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
      * Create the application.
      */
     private MainBriefcaseWindow() {
+        BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
+
         briefcaseAnalytics.trackStartup();
 
         frame = new JFrame();
@@ -224,13 +229,13 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
         frame.setContentPane(tabbedPane);
 
-        PullTransferPanel gatherPanel = new PullTransferPanel(transferTerminationFuture);
+        PullTransferPanel gatherPanel = new PullTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PullTransferPanel.class), appPreferences);
         addPane(PullTransferPanel.TAB_NAME, gatherPanel);
 
-        uploadPanel = new PushTransferPanel(transferTerminationFuture);
+        uploadPanel = new PushTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PushTransferPanel.class));
         addPane(PushTransferPanel.TAB_NAME, uploadPanel);
 
-        exportPanel = ExportPanel.from(exportTerminationFuture, BriefcasePreferences.forClass(ExportPanel.class));
+        exportPanel = ExportPanel.from(exportTerminationFuture, BriefcasePreferences.forClass(ExportPanel.class), appPreferences, BACKGROUND_EXECUTOR);
         addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
 
         settingsPanel = new SettingsPanel(this);

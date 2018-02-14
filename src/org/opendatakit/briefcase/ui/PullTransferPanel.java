@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.ui;
 
+import static java.util.stream.Collectors.toList;
+
 import java.awt.Component;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -46,6 +48,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
+import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
@@ -70,8 +73,8 @@ public class PullTransferPanel extends JPanel {
   public static final String TAB_NAME = "Pull";
 
   private static final String DOWNLOADING_DOT_ETC = "Downloading..........";
-  static final BriefcasePreferences PREFERENCES =
-      BriefcasePreferences.forClass(PullTransferPanel.class);
+  private final BriefcasePreferences tabPreferences;
+  private final BriefcasePreferences appPreferences;
 
   private JComboBox<String> listOriginDataSource;
   private JButton btnOriginAction;
@@ -146,10 +149,10 @@ public class PullTransferPanel extends JPanel {
           WebUtils.resetHttpContext();
           originServerInfo = d.getServerInfo();
           txtOriginName.setText(originServerInfo.getUrl());
-          PREFERENCES.put(BriefcasePreferences.AGGREGATE_1_0_URL, originServerInfo.getUrl());
-          PREFERENCES.put(BriefcasePreferences.USERNAME, originServerInfo.getUsername());
+          tabPreferences.put(BriefcasePreferences.AGGREGATE_1_0_URL, originServerInfo.getUrl());
+          tabPreferences.put(BriefcasePreferences.USERNAME, originServerInfo.getUsername());
           if (BriefcasePreferences.getStorePasswordsConsentProperty())
-            PREFERENCES.put(BriefcasePreferences.PASSWORD, new String(originServerInfo.getPassword()));
+            tabPreferences.put(BriefcasePreferences.PASSWORD, new String(originServerInfo.getPassword()));
           PullTransferPanel.this.updateFormStatuses();
         } else {
           if (!BriefcasePreferences.getStorePasswordsConsentProperty()) {
@@ -225,8 +228,10 @@ public class PullTransferPanel extends JPanel {
     }
   }
 
-  public PullTransferPanel(TerminationFuture terminationFuture) {
+  public PullTransferPanel(TerminationFuture terminationFuture, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences) {
     super();
+    this.tabPreferences = tabPreferences;
+    this.appPreferences = appPreferences;
     AnnotationProcessor.process(this);// if not using AOP
     this.terminationFuture = terminationFuture;
     JLabel lblGetDataFrom = new JLabel(TAB_NAME + " data from:");
@@ -458,9 +463,9 @@ public class PullTransferPanel extends JPanel {
   private ServerConnectionInfo initServerInfoWithPreferences(EndPointType type) {
     ServerConnectionInfo connectionInfo = null;
     if (type == EndPointType.AGGREGATE_1_0_CHOICE) {
-      String url = PREFERENCES.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
-      String username = PREFERENCES.get(BriefcasePreferences.USERNAME, "");
-      char[] password = BriefcasePreferences.getStorePasswordsConsentProperty() ? PREFERENCES.get(BriefcasePreferences.PASSWORD, "").toCharArray() : new char[0];
+      String url = tabPreferences.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
+      String username = tabPreferences.get(BriefcasePreferences.USERNAME, "");
+      char[] password = BriefcasePreferences.getStorePasswordsConsentProperty() ? tabPreferences.get(BriefcasePreferences.PASSWORD, "").toCharArray() : new char[0];
       connectionInfo = new ServerConnectionInfo(url, username, password);
     } // There are no preferences needed for the other types.
 
@@ -468,24 +473,41 @@ public class PullTransferPanel extends JPanel {
   }
 
   @EventSubscriber(eventClass = TransferFailedEvent.class)
-  public void failedCompletion(TransferFailedEvent event) {
+  public void onTransferFailedEvent(TransferFailedEvent event) {
     setActiveTransferState(false);
   }
 
   @EventSubscriber(eventClass = TransferSucceededEvent.class)
-  public void successfulCompletion(TransferSucceededEvent event) {
+  public void onTransferSucceededEvent(TransferSucceededEvent event) {
     setActiveTransferState(false);
+    if (BriefcasePreferences.getStorePasswordsConsentProperty()) {
+      event.formsToTransfer.forEach(form -> {
+        appPreferences.put(String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()), event.transferSettings.getUrl());
+        appPreferences.put(String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()), event.transferSettings.getUsername());
+        appPreferences.put(String.format("%s_pull_settings_password", form.getFormDefinition().getFormId()), String.valueOf(event.transferSettings.getPassword()));
+      });
+    }
   }
 
   @EventSubscriber(eventClass = FormStatusEvent.class)
-  public void updateDetailedStatus(FormStatusEvent fse) {
+  public void onFormStatusEvent(FormStatusEvent fse) {
     updateDownloadingLabel();
   }
 
   @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
-  public void formsAvailableFromServer(RetrieveAvailableFormsFailedEvent event) {
+  public void onRetrieveAvailableFormsFailedEvent(RetrieveAvailableFormsFailedEvent event) {
     ODKOptionPane.showErrorDialog(PullTransferPanel.this,
         "Accessing the server failed with error: " + event.getReason(), "Accessing Server Failed");
+  }
+
+  @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
+  public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
+    tabPreferences.remove(BriefcasePreferences.PASSWORD);
+    appPreferences.removeAll(appPreferences.keys().stream().filter((String key) ->
+        key.endsWith("_pull_settings_url")
+            || key.endsWith("_pull_settings_username")
+            || key.endsWith("_pull_settings_password")
+    ).collect(toList()));
   }
 
 }

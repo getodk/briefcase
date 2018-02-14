@@ -37,7 +37,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 public class FormsTableUnitTest {
   @Test
   public void can_select_all_forms() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     TestFormsTableViewModel viewModel = new TestFormsTableViewModel(forms);
     FormsTable formsTable = new FormsTable(forms, new TestFormsTableView(viewModel), viewModel);
 
@@ -50,7 +50,7 @@ public class FormsTableUnitTest {
 
   @Test
   public void can_clear_selection_of_forms() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     TestFormsTableViewModel viewModel = new TestFormsTableViewModel(forms);
     FormsTable formsTable = new FormsTable(forms, new TestFormsTableView(viewModel), viewModel);
     formsTable.selectAll();
@@ -64,7 +64,7 @@ public class FormsTableUnitTest {
   @Ignore
   public void appends_to_a_forms_status_history_when_export_events_are_sent() {
     FormStatus theForm = buildFormStatus(1);
-    ExportForms forms = new ExportForms(Collections.singletonList(theForm), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(Collections.singletonList(theForm), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     TestFormsTableViewModel viewModel = new TestFormsTableViewModel(forms);
     new FormsTable(forms, new TestFormsTableView(viewModel), viewModel);
 

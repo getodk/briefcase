@@ -48,4 +48,9 @@ public class TransferFromServer implements ITransferFromSourceAction {
     return false;
   }
 
+  @Override
+  public ServerConnectionInfo getTransferSettings() {
+    return originServerInfo;
+  }
+
 }

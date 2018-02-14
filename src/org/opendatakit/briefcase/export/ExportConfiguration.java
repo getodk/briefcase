@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.export;
 
+import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.INHERIT;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_DIRECTORY;
@@ -37,6 +38,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 
 public class ExportConfiguration {
@@ -44,20 +47,27 @@ public class ExportConfiguration {
   private static final String PEM_FILE = "pemFile";
   private static final String START_DATE = "startDate";
   private static final String END_DATE = "endDate";
+  private static final String PULL_BEFORE = "pullBefore";
+  private static final String PULL_BEFORE_OVERRIDE = "pullBeforeOverride";
+  private static final Predicate<PullBeforeOverrideOption> ALL_EXCEPT_INHERIT = value -> value != INHERIT;
   private Optional<Path> exportDir;
   private Optional<Path> pemFile;
   private Optional<LocalDate> startDate;
   private Optional<LocalDate> endDate;
+  private Optional<Boolean> pullBefore;
+  private Optional<PullBeforeOverrideOption> pullBeforeOverride;
 
-  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
+  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride) {
     this.exportDir = exportDir;
     this.pemFile = pemFile;
     this.startDate = startDate;
     this.endDate = endDate;
+    this.pullBefore = pullBefore;
+    this.pullBeforeOverride = pullBeforeOverride;
   }
 
   public static ExportConfiguration empty() {
-    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
@@ -65,7 +75,9 @@ public class ExportConfiguration {
         prefs.nullSafeGet(EXPORT_DIR).map(Paths::get),
         prefs.nullSafeGet(PEM_FILE).map(Paths::get),
         prefs.nullSafeGet(START_DATE).map(LocalDate::parse),
-        prefs.nullSafeGet(END_DATE).map(LocalDate::parse)
+        prefs.nullSafeGet(END_DATE).map(LocalDate::parse),
+        prefs.nullSafeGet(PULL_BEFORE).map(Boolean::valueOf),
+        prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from)
     );
   }
 
@@ -74,7 +86,9 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + EXPORT_DIR).map(Paths::get),
         prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get),
         prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse),
-        prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse)
+        prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse),
+        prefs.nullSafeGet(keyPrefix + PULL_BEFORE).map(Boolean::valueOf),
+        prefs.nullSafeGet(keyPrefix + PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from)
     );
   }
 
@@ -87,7 +101,9 @@ public class ExportConfiguration {
         keyPrefix + EXPORT_DIR,
         keyPrefix + PEM_FILE,
         keyPrefix + START_DATE,
-        keyPrefix + END_DATE
+        keyPrefix + END_DATE,
+        keyPrefix + PULL_BEFORE,
+        keyPrefix + PULL_BEFORE_OVERRIDE
     );
   }
 
@@ -103,6 +119,8 @@ public class ExportConfiguration {
     pemFile.ifPresent(value -> map.put(keyPrefix + PEM_FILE, value.toString()));
     startDate.ifPresent(value -> map.put(keyPrefix + START_DATE, value.format(DateTimeFormatter.ISO_DATE)));
     endDate.ifPresent(value -> map.put(keyPrefix + END_DATE, value.format(DateTimeFormatter.ISO_DATE)));
+    pullBefore.ifPresent(value -> map.put(keyPrefix + PULL_BEFORE, value.toString()));
+    pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).ifPresent(value -> map.put(keyPrefix + PULL_BEFORE_OVERRIDE, value.name()));
     return map;
   }
 
@@ -111,7 +129,9 @@ public class ExportConfiguration {
         exportDir,
         pemFile,
         startDate,
-        endDate
+        endDate,
+        pullBefore,
+        pullBeforeOverride
     );
   }
 
@@ -119,36 +139,83 @@ public class ExportConfiguration {
     return exportDir;
   }
 
+  public ExportConfiguration setExportDir(Path path) {
+    this.exportDir = Optional.ofNullable(path);
+    return this;
+  }
+
   public Optional<Path> getPemFile() {
     return pemFile;
+  }
+
+  public ExportConfiguration setPemFile(Path path) {
+    this.pemFile = Optional.ofNullable(path);
+    return this;
+  }
+
+  public boolean isPemFilePresent() {
+    return pemFile.isPresent();
   }
 
   public Optional<LocalDate> getStartDate() {
     return startDate;
   }
 
-  public void setStartDate(LocalDate date) {
+  public ExportConfiguration setStartDate(LocalDate date) {
     this.startDate = Optional.ofNullable(date);
+    return this;
   }
 
   public Optional<LocalDate> getEndDate() {
     return endDate;
   }
 
-  public void setEndDate(LocalDate date) {
+  public ExportConfiguration setEndDate(LocalDate date) {
     this.endDate = Optional.ofNullable(date);
+    return this;
+  }
+
+  public Optional<Boolean> getPullBefore() {
+    return pullBefore;
+  }
+
+  public ExportConfiguration setPullBefore(Boolean value) {
+    this.pullBefore = Optional.ofNullable(value);
+    return this;
+  }
+
+  public Optional<PullBeforeOverrideOption> getPullBeforeOverride() {
+    return pullBeforeOverride;
+  }
+
+  public ExportConfiguration setPullBeforeOverride(PullBeforeOverrideOption value) {
+    this.pullBeforeOverride = Optional.ofNullable(value);
+    return this;
+  }
+
+  /**
+   * Resolves if we need to pull forms depending on the pullBefore and pullBeforeOverride
+   * settings with the following algorithm:
+   * <ul>
+   * <li>if the pullBeforeOverride Optional holds a {@link PullBeforeOverrideOption} value
+   * different than {@link PullBeforeOverrideOption#INHERIT}, then it returns its associated
+   * boolean value</li>
+   * <li>if the pullBefore Optional holds a Boolean value, then it returns it.</li>
+   * <li>otherwise, it returns false</li>
+   * </ul>
+   * See the tests on ExportConfigurationTests to see all the specific cases.
+   *
+   * @return true if the algorithm resolves that we need to pull forms, false otherwise
+   */
+  public boolean resolvePullBefore() {
+    return Stream.of(
+        pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).flatMap(PullBeforeOverrideOption::asBoolean),
+        pullBefore
+    ).filter(Optional::isPresent).map(Optional::get).findFirst().orElse(false);
   }
 
   private boolean isDateRangeValid() {
     return !startDate.isPresent() || !endDate.isPresent() || startDate.get().isBefore(endDate.get());
-  }
-
-  public void setExportDir(Path path) {
-    this.exportDir = Optional.ofNullable(path);
-  }
-
-  public void setPemFile(Path path) {
-    this.pemFile = Optional.ofNullable(path);
   }
 
   public void ifExportDirPresent(Consumer<Path> consumer) {
@@ -165,6 +232,14 @@ public class ExportConfiguration {
 
   public void ifEndDatePresent(Consumer<LocalDate> consumer) {
     endDate.ifPresent(consumer);
+  }
+
+  public void ifPullBeforePresent(Consumer<Boolean> consumer) {
+    pullBefore.ifPresent(consumer);
+  }
+
+  public void ifPullBeforeOverridePresent(Consumer<PullBeforeOverrideOption> consumer) {
+    pullBeforeOverride.ifPresent(consumer);
   }
 
   private List<String> getErrors() {
@@ -223,7 +298,9 @@ public class ExportConfiguration {
     return !exportDir.isPresent()
         && !pemFile.isPresent()
         && !startDate.isPresent()
-        && !endDate.isPresent();
+        && !endDate.isPresent()
+        && !pullBefore.isPresent()
+        && !pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).isPresent();
   }
 
   public boolean isValid() {
@@ -250,12 +327,14 @@ public class ExportConfiguration {
     return endDate.map(mapper);
   }
 
-  public ExportConfiguration fallingBackTo(ExportConfiguration fallbackConfiguration) {
+  public ExportConfiguration fallingBackTo(ExportConfiguration defaultConfiguration) {
     return new ExportConfiguration(
-        exportDir.isPresent() ? exportDir : fallbackConfiguration.exportDir,
-        pemFile.isPresent() ? pemFile : fallbackConfiguration.pemFile,
-        startDate.isPresent() ? startDate : fallbackConfiguration.startDate,
-        endDate.isPresent() ? endDate : fallbackConfiguration.endDate
+        exportDir.isPresent() ? exportDir : defaultConfiguration.exportDir,
+        pemFile.isPresent() ? pemFile : defaultConfiguration.pemFile,
+        startDate.isPresent() ? startDate : defaultConfiguration.startDate,
+        endDate.isPresent() ? endDate : defaultConfiguration.endDate,
+        pullBefore.isPresent() ? pullBefore : defaultConfiguration.pullBefore,
+        pullBeforeOverride.isPresent() ? pullBeforeOverride : defaultConfiguration.pullBeforeOverride
     );
   }
 
@@ -266,6 +345,8 @@ public class ExportConfiguration {
         ", pemFile=" + pemFile +
         ", startDate=" + startDate +
         ", endDate=" + endDate +
+        ", pullBefore=" + pullBefore +
+        ", pullBeforeOverride=" + pullBeforeOverride +
         '}';
   }
 
@@ -279,11 +360,13 @@ public class ExportConfiguration {
     return Objects.equals(exportDir, that.exportDir) &&
         Objects.equals(pemFile, that.pemFile) &&
         Objects.equals(startDate, that.startDate) &&
-        Objects.equals(endDate, that.endDate);
+        Objects.equals(endDate, that.endDate) &&
+        Objects.equals(pullBefore, that.pullBefore) &&
+        Objects.equals(pullBeforeOverride, that.pullBeforeOverride);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(exportDir, pemFile, startDate, endDate);
+    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, pullBeforeOverride);
   }
 }

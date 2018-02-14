@@ -40,7 +40,7 @@ class ExportPanelPageObject {
 
   static ExportPanelPageObject setUp(Robot robot) {
     ExportPanel exportPanel = GuiActionRunner.execute(() -> {
-      ExportPanel ep = ExportPanel.from(new TerminationFuture(), new BriefcasePreferences(InMemoryPreferences.empty()));
+      ExportPanel ep = ExportPanel.from(new TerminationFuture(), new BriefcasePreferences(InMemoryPreferences.empty()), new BriefcasePreferences(InMemoryPreferences.empty()), Runnable::run);
       ep.updateForms();
       return ep;
     });
