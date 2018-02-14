@@ -222,10 +222,10 @@ public class PullTransferPanel extends JPanel {
     this.terminationFuture = terminationFuture;
     JLabel lblGetDataFrom = new JLabel(TAB_NAME + " data from:");
 
-    listOriginDataSource = new JComboBox<String>(new String[]{
-        EndPointType.AGGREGATE_1_0_CHOICE.toString(),
-        EndPointType.MOUNTED_ODK_COLLECT_DEVICE_CHOICE.toString(),
-        EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.toString()});
+    listOriginDataSource = new JComboBox<>(new String[] {
+            EndPointType.AGGREGATE_1_0_CHOICE.toString(),
+            EndPointType.MOUNTED_ODK_COLLECT_DEVICE_CHOICE.toString(),
+            EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.toString() });
     listOriginDataSource.addActionListener(new OriginSourceListener());
 
     lblOrigin = new JLabel("Origin:");
@@ -266,8 +266,8 @@ public class PullTransferPanel extends JPanel {
     });
 
     formTransferTable = new FormTransferTable(
-        btnSelectOrClearAllForms, FormStatus.TransferType.GATHER, btnTransfer, btnCancel);
-
+            btnSelectOrClearAllForms, FormStatus.TransferType.GATHER, btnTransfer, btnCancel);
+    formTransferTable.setSourceSelected(true);
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
 
     GroupLayout groupLayout = new GroupLayout(this);
@@ -349,7 +349,7 @@ public class PullTransferPanel extends JPanel {
   }
 
   public void updateFormStatuses() {
-    List<FormStatus> statuses = new ArrayList<FormStatus>();
+    List<FormStatus> statuses = new ArrayList<>();
 
     // determine what our origin is...
     String strSelection = (String) listOriginDataSource.getSelectedItem();
@@ -429,7 +429,7 @@ public class PullTransferPanel extends JPanel {
       listOriginDataSource.setEnabled(true);
       btnOriginAction.setEnabled(true);
       btnSelectOrClearAllForms.setEnabled(true);
-      btnTransfer.setEnabled(true);
+      btnTransfer.setEnabled(!formTransferTable.getSelectedForms().isEmpty());
       // disable cancel button
       btnCancel.setEnabled(false);
       // hide downloading progress text (by setting foreground color to

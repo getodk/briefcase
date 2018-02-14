@@ -32,6 +32,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
+
+import org.apache.http.util.TextUtils;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -122,6 +124,7 @@ public class PushTransferPanel extends JPanel {
         if (d.isSuccessful()) {
           destinationServerInfo = d.getServerInfo();
           txtDestinationName.setText(destinationServerInfo.getUrl());
+          formTransferTable.setSourceSelected(!TextUtils.isEmpty(txtDestinationName.getText()));
           PREFERENCES.put(BriefcasePreferences.AGGREGATE_1_0_URL, destinationServerInfo.getUrl());
           PREFERENCES.put(BriefcasePreferences.USERNAME, destinationServerInfo.getUsername());
           if (BriefcasePreferences.getStorePasswordsConsentProperty())
@@ -168,8 +171,6 @@ public class PushTransferPanel extends JPanel {
 
   /**
    * Create the transfer-from-to panel.
-   *
-   * @param txtBriefcaseDir
    */
   public PushTransferPanel(TerminationFuture terminationFuture) {
     super();
@@ -178,8 +179,8 @@ public class PushTransferPanel extends JPanel {
 
     JLabel lblSendDataTo = new JLabel(TAB_NAME + " data to:");
 
-    listDestinationDataSink = new JComboBox<String>(
-        new String[]{EndPointType.AGGREGATE_1_0_CHOICE.toString()});
+    listDestinationDataSink = new JComboBox<>(
+            new String[] { EndPointType.AGGREGATE_1_0_CHOICE.toString() });
 
     listDestinationDataSink.addActionListener(new DestinationSinkListener());
 
@@ -207,8 +208,9 @@ public class PushTransferPanel extends JPanel {
     });
 
     formTransferTable = new FormTransferTable(
-        btnSelectOrClearAllForms, FormStatus.TransferType.UPLOAD, btnTransfer, btnCancel);
+            btnSelectOrClearAllForms, FormStatus.TransferType.UPLOAD, btnTransfer, btnCancel);
 
+    formTransferTable.setSourceSelected(false);
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
 
     GroupLayout groupLayout = new GroupLayout(this);
@@ -289,7 +291,7 @@ public class PushTransferPanel extends JPanel {
   }
 
   public void updateFormStatuses() {
-    List<FormStatus> statuses = new ArrayList<FormStatus>();
+    List<FormStatus> statuses = new ArrayList<>();
 
     List<BriefcaseFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
     for (BriefcaseFormDefinition f : forms) {
@@ -327,7 +329,7 @@ public class PushTransferPanel extends JPanel {
       listDestinationDataSink.setEnabled(true);
       btnDestinationAction.setEnabled(true);
       btnSelectOrClearAllForms.setEnabled(true);
-      btnTransfer.setEnabled(true);
+      btnTransfer.setEnabled(!formTransferTable.getSelectedForms().isEmpty() && !TextUtils.isEmpty(txtDestinationName.getText()));
       // disable cancel button
       btnCancel.setEnabled(false);
       // hide downloading progress text (by setting foreground color to
