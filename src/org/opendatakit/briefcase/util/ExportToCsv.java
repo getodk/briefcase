@@ -25,7 +25,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -790,34 +792,28 @@ public class ExportToCsv implements ITransformFormAction {
     EventBus.publish(new ExportProgressPercentageEvent((processedInstances * 100.0) / totalInstances, briefcaseLfd));
 
     // If we are encrypted, be sure the temporary directory
-    // that will hold the unencrypted files is created and empty.
+    // that will hold the unencrypted files is created.
     // If we aren't encrypted, the temporary directory
     // is the same as the instance directory.
 
     File unEncryptedDir;
     if (briefcaseLfd.isFileEncryptedForm()) {
-      // create or clean-up the temp directory that will hold the unencrypted
+      // create the temp directory that will hold the unencrypted
       // files. Do this in the outputDir so that the briefcase storage location
       // can be a read-only network mount. issue 676.
-      unEncryptedDir = new File(outputDir, ".temp");
-
-      if (unEncryptedDir.exists()) {
-        // silently delete it...
-        try {
-          FileUtils.deleteDirectory(unEncryptedDir);
-        } catch (IOException e) {
-          String msg = "Unable to delete stale temp directory: " + unEncryptedDir.getAbsolutePath();
-          log.warn(msg, e);
-          EventBus.publish(new ExportProgressEvent(msg, briefcaseLfd));
-          return false;
-        }
-      }
-
-      if (!unEncryptedDir.mkdirs()) {
-        EventBus.publish(new ExportProgressEvent("Unable to create temp directory: "
-            + unEncryptedDir.getAbsolutePath(), briefcaseLfd));
+      Path path;
+      try {
+        path = Files.createTempDirectory(Paths.get(outputDir.toURI()), ".temp");
+      } catch (IOException e) {
+        String msg = "Unable to create temp directory.";
+        log.error(msg, e);
+        EventBus.publish(new ExportProgressEvent(msg + " Cause : "
+                + e.toString(), briefcaseLfd));
         return false;
       }
+
+      unEncryptedDir = path.toFile();
+
     } else {
       unEncryptedDir = instanceDir;
     }
