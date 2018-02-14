@@ -53,6 +53,7 @@ import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferAction;
+import org.opendatakit.briefcase.util.WebUtils;
 
 /**
  * Pull forms and data to external locations.
@@ -141,6 +142,8 @@ public class PullTransferPanel extends JPanel {
             (Window) PullTransferPanel.this.getTopLevelAncestor(), originServerInfo, false);
         d.setVisible(true);
         if (d.isSuccessful()) {
+          // We reset the Http context to force next request to authenticate itself
+          WebUtils.resetHttpContext();
           originServerInfo = d.getServerInfo();
           txtOriginName.setText(originServerInfo.getUrl());
           PREFERENCES.put(BriefcasePreferences.AGGREGATE_1_0_URL, originServerInfo.getUrl());
@@ -148,6 +151,12 @@ public class PullTransferPanel extends JPanel {
           if (BriefcasePreferences.getStorePasswordsConsentProperty())
             PREFERENCES.put(BriefcasePreferences.PASSWORD, new String(originServerInfo.getPassword()));
           PullTransferPanel.this.updateFormStatuses();
+        } else {
+          if (!BriefcasePreferences.getStorePasswordsConsentProperty()) {
+            // We need to clear the forms table because we have lost any password
+            // by opening the connection dialog
+            formTransferTable.setFormStatusList(new ArrayList<>());
+          }
         }
       } else if (EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.equals(selection)) {
         // odkCollect...
