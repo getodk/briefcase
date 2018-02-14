@@ -125,6 +125,7 @@
           <editable value="false"/>
           <focusCycleRoot value="false"/>
           <focusable value="false"/>
+          <opaque value="false"/>
           <text value="Some hint will be shown here"/>
         </properties>
       </component>

@@ -380,6 +380,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeHintPanel.setEditable(false);
     pullBeforeHintPanel.setFocusCycleRoot(false);
     pullBeforeHintPanel.setFocusable(false);
+    pullBeforeHintPanel.setOpaque(false);
     pullBeforeHintPanel.setText("Some hint will be shown here");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
