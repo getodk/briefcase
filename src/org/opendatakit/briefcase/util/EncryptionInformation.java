@@ -61,7 +61,7 @@ public class EncryptionInformation {
     return cipherFactory.getCipher(context);
   }
   
-  Cipher getCipher(String context, String fieldName) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, UnsupportedEncodingException {
+  public Cipher getCipher(String context, String fieldName) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, UnsupportedEncodingException {
     return cipherFactory.getCipher(context, fieldName);
   }
 }

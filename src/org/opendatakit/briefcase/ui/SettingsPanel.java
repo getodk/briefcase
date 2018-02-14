@@ -15,8 +15,11 @@ import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.apache.http.HttpHost;
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseAnalytics;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.SavePasswordsConsentGiven;
+import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.StringUtils;
 
@@ -95,10 +98,7 @@ public class SettingsPanel extends JPanel {
       if (e.getSource() == chkStorePasswordsConsent) {
         boolean isSelected = chkStorePasswordsConsent.isSelected();
         BriefcasePreferences.setStorePasswordsConsentProperty(isSelected);
-        if (!isSelected) {
-          PullTransferPanel.PREFERENCES.remove(BriefcasePreferences.PASSWORD);
-          PushTransferPanel.PREFERENCES.remove(BriefcasePreferences.PASSWORD);
-        }
+        EventBus.publish(isSelected ? new SavePasswordsConsentGiven() : new SavePasswordsConsentRevoked());
       }
     });
 

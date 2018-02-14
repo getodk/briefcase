@@ -33,6 +33,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
+import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 
@@ -355,6 +356,12 @@ public class TransferFromODK implements ITransferFromSourceAction {
   @Override
   public boolean isSourceDeletable() {
     return true;
+  }
+
+  @Override
+  public ServerConnectionInfo getTransferSettings() {
+    // TODO Solve this violation of Liskov's principle
+    throw new RuntimeException("This class has no transfer settings");
   }
 
   public static void pull(Path odk, List<FormStatus> forms) {

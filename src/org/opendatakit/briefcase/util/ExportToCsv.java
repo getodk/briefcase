@@ -17,9 +17,6 @@
 package org.opendatakit.briefcase.util;
 
 import static java.time.ZoneId.systemDefault;
-import static org.opendatakit.briefcase.util.FilesSkipped.ALL;
-import static org.opendatakit.briefcase.util.FilesSkipped.NONE;
-import static org.opendatakit.briefcase.util.FilesSkipped.SOME;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -89,7 +86,7 @@ public class ExportToCsv implements ITransformFormAction {
   private final Date endDate;
   private final File outputMediaDir;
 
-  ExportToCsv(TerminationFuture terminationFuture, File outputDir, BriefcaseFormDefinition briefcaseLfd, String baseFilename, boolean exportMedia, boolean overwrite, Date startDate, Date endDate) {
+  public ExportToCsv(TerminationFuture terminationFuture, File outputDir, BriefcaseFormDefinition briefcaseLfd, String baseFilename, boolean exportMedia, boolean overwrite, Date startDate, Date endDate) {
     this.terminationFuture = terminationFuture;
     this.outputDir = outputDir;
     this.briefcaseLfd = briefcaseLfd;
@@ -989,20 +986,6 @@ public class ExportToCsv implements ITransformFormAction {
     return briefcaseLfd;
   }
 
-  @Override
-  public FilesSkipped totalFilesSkipped() {
-    //Determine if all files where skipped or just some
-    //Note that if totalInstances = 0 then no files were skipped
-    if (totalInstances == 0 || totalFilesSkipped == 0) {
-      return FilesSkipped.NONE;
-    }
-    if (totalFilesSkipped == totalInstances) {
-      return FilesSkipped.ALL;
-    } else {
-      return FilesSkipped.SOME;
-    }
-  }
-
   public static void export(Path exportDir, BriefcaseFormDefinition formDefinition, String baseFilename, boolean exportMedia, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
     log.info("exporting to : " + exportDir);
     ExportToCsv action = new ExportToCsv(
@@ -1034,15 +1017,15 @@ public class ExportToCsv implements ITransformFormAction {
     }
   }
 
-  private boolean noneSkipped() {
-    return totalFilesSkipped() == NONE;
+  public boolean noneSkipped() {
+    return totalFilesSkipped == 0 || totalInstances == 0;
   }
 
-  private boolean someSkipped() {
-    return totalFilesSkipped() == SOME;
+  public boolean someSkipped() {
+    return totalInstances > 0 && totalFilesSkipped > 0 && totalFilesSkipped < totalInstances;
   }
 
-  private boolean allSkipped() {
-    return totalFilesSkipped() == ALL;
+  public boolean allSkipped() {
+    return totalInstances > 0 && totalFilesSkipped == totalInstances;
   }
 }

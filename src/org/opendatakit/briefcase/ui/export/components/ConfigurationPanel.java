@@ -32,6 +32,8 @@ public class ConfigurationPanel {
     configuration.ifPemFilePresent(form::setPemFile);
     configuration.ifStartDatePresent(form::setStartDate);
     configuration.ifEndDatePresent(form::setEndDate);
+    configuration.ifPullBeforePresent(form::setPullBefore);
+    configuration.ifPullBeforeOverridePresent(form::setPullBeforeOverride);
 
     form.onSelectExportDir(path -> {
       configuration.setExportDir(path);
@@ -49,10 +51,28 @@ public class ConfigurationPanel {
       configuration.setEndDate(date);
       triggerOnChange();
     });
+    form.onChangePullBefore(pullBefore -> {
+      configuration.setPullBefore(pullBefore);
+      triggerOnChange();
+    });
+    form.onChangePullBeforeOverride(pullBeforeOverrideOption -> {
+      configuration.setPullBeforeOverride(pullBeforeOverrideOption);
+      triggerOnChange();
+    });
   }
 
-  public static ConfigurationPanel from(ExportConfiguration config, boolean cleanableExportDir) {
-    return new ConfigurationPanel(config, new ConfigurationPanelForm(cleanableExportDir));
+  public static ConfigurationPanel overridePanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent, boolean hasTransferSettings) {
+    return new ConfigurationPanel(
+        initialConfiguration,
+        ConfigurationPanelForm.overridePanel(savePasswordsConsent, hasTransferSettings)
+    );
+  }
+
+  public static ConfigurationPanel defaultPanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent, boolean hasTransferSettings) {
+    return new ConfigurationPanel(
+        initialConfiguration,
+        ConfigurationPanelForm.defaultPanel(savePasswordsConsent, hasTransferSettings)
+    );
   }
 
   public ConfigurationPanelForm getForm() {
@@ -85,5 +105,13 @@ public class ConfigurationPanel {
 
   public boolean isEmpty() {
     return configuration.isEmpty();
+  }
+
+  public void savePasswordsConsentGiven() {
+    form.changeMode(true);
+  }
+
+  public void savePasswordsConsentRevoked() {
+    form.changeMode(false);
   }
 }

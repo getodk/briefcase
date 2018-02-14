@@ -96,9 +96,7 @@ public class AggregateUtils {
    * @throws ClientProtocolException
    * @throws TransmissionException
    */
-  public static final void commonDownloadFile(ServerConnectionInfo serverInfo, File f,
-      String downloadUrl) throws URISyntaxException, ClientProtocolException, IOException,
-      TransmissionException {
+  public static final void commonDownloadFile(ServerConnectionInfo serverInfo, File f, String downloadUrl) throws URISyntaxException, IOException, TransmissionException {
 
     // OK. We need to download it because we either:
     // (1) don't have it
@@ -129,7 +127,11 @@ public class AggregateUtils {
       response = httpclient.execute(req, localContext);
       int statusCode = response.getStatusLine().getStatusCode();
 
-      if (statusCode != 200) {
+      if (statusCode == 401) {
+        // We reset the Http context to force next request to authenticate itself
+        WebUtils.resetHttpContext();
+        throw new TransmissionException("Authentication failure");
+      } else if (statusCode != 200) {
         String errMsg = String.format(FETCH_FAILED_DETAILED_REASON, f.getAbsolutePath())
             + response.getStatusLine().getReasonPhrase() + " (" + statusCode + ")";
         log.error(errMsg);
@@ -157,8 +159,6 @@ public class AggregateUtils {
    * the body of the response entity and should be xml.
    * 
    * @param urlString
-   * @param localContext
-   * @param httpclient
    * @return
    */
   public static final DocumentFetchResult getXmlDocument(String urlString,
@@ -215,9 +215,6 @@ public class AggregateUtils {
    * context and client objects involved in the web connection. The document is
    * the body of the response entity and should be xml.
    * 
-   * @param urlString
-   * @param localContext
-   * @param httpclient
    * @return
    */
   private static final DocumentFetchResult httpRetrieveXmlDocument(HttpUriRequest request,
@@ -260,7 +257,11 @@ public class AggregateUtils {
       if (!statusCodeValid) {
         String webError = response.getStatusLine().getReasonPhrase() + " (" + statusCode + ")";
 
-        if (statusCode == 400) {
+        if (statusCode == 401) {
+          // We reset the Http context to force next request to authenticate itself
+          WebUtils.resetHttpContext();
+          ex = new XmlDocumentFetchException("Authentication failure");
+        } else if (statusCode == 400) {
           ex = new XmlDocumentFetchException(description.getFetchDocFailed() + webError + " while accessing: "
               + uri.toString() + "\nPlease verify that the " + description.getDocumentDescriptionType()
               + " that is being uploaded is well-formed.");
@@ -446,7 +447,11 @@ public class AggregateUtils {
       try {
         response = httpClient.execute(httpHead, localContext);
         int statusCode = response.getStatusLine().getStatusCode();
-        if (statusCode == 204) {
+        if (statusCode == 401) {
+          // We reset the Http context to force next request to authenticate itself
+          WebUtils.resetHttpContext();
+          throw new TransmissionException("Authentication failure");
+        } else if (statusCode == 204) {
           Header[] openRosaVersions = response.getHeaders(WebUtils.OPEN_ROSA_VERSION_HEADER);
           if (openRosaVersions == null || openRosaVersions.length == 0) {
             String msg = "Url: " + u.toString()
@@ -483,7 +488,7 @@ public class AggregateUtils {
             }
           } else {
             String msg = "The url: " + u.toString()
-                + " is not Aggregate 1.0 - status code on Head request: " + statusCode;
+                + " is not ODK Aggregate - status code on Head request: " + statusCode;
             log.warn(msg);
             throw new TransmissionException(msg);
           }
@@ -503,7 +508,7 @@ public class AggregateUtils {
             }
           }
           String msg = "The username or password may be incorrect or the url: " + u.toString()
-              + " is not Aggregate 1.0 - status code on Head request: " + statusCode;
+              + " is not ODK Aggregate - status code on Head request: " + statusCode;
           log.warn(msg);
           throw new TransmissionException(msg);
         }

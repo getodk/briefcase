@@ -54,4 +54,9 @@ public class UploadToServer implements ITransferToDestAction {
     return uploader.uploadForm( status, formDef, formMediaDir);
   }
 
+  @Override
+  public ServerConnectionInfo getTransferSettings() {
+    return destServerInfo;
+  }
+
 }

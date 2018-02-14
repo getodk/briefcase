@@ -58,7 +58,7 @@ public class TransferFromServer implements ITransferFromSourceAction {
     try {
       boolean allSuccessful = action.doAction();
       if (allSuccessful)
-        EventBus.publish(new TransferSucceededEvent(false, formList));
+        EventBus.publish(new TransferSucceededEvent(false, formList, transferSettings));
 
       if (!allSuccessful)
         throw new PullFromServerException(formList);
@@ -66,5 +66,10 @@ public class TransferFromServer implements ITransferFromSourceAction {
       EventBus.publish(new TransferFailedEvent(false, formList));
       throw new PullFromServerException(formList);
     }
+  }
+
+  @Override
+  public ServerConnectionInfo getTransferSettings() {
+    return originServerInfo;
   }
 }

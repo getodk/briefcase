@@ -23,7 +23,7 @@ public enum EndPointType {
   public String toString() {
     switch (this) {
     case AGGREGATE_1_0_CHOICE:
-      return "Aggregate 1.0";
+      return "ODK Aggregate";
     case MOUNTED_ODK_COLLECT_DEVICE_CHOICE:
       return "Mounted Android SD Card";
     case CUSTOM_ODK_COLLECT_DIRECTORY:

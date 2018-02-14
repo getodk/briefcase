@@ -36,6 +36,7 @@ import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.ui.reused.FontUtils;
 
@@ -93,7 +94,11 @@ public class FormsTableViewModel extends AbstractTableModel {
 
     updateConfButton(form, button);
     button.addActionListener(__ -> {
-      ConfigurationDialog dialog = ConfigurationDialog.from(forms.getCustomConfiguration(form));
+      ConfigurationDialog dialog = ConfigurationDialog.from(
+          forms.getCustomConfiguration(form),
+          forms.hasTransferSettings(form),
+          BriefcasePreferences.getStorePasswordsConsentProperty()
+      );
       dialog.onRemove(() -> removeConfiguration(form));
       dialog.onOK(configuration -> {
         if (configuration.isEmpty())

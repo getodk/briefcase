@@ -17,6 +17,7 @@ package org.opendatakit.briefcase.export;
 
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isEmpty;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
+import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAndIs;
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
@@ -24,6 +25,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
+import static org.opendatakit.briefcase.model.FormStatusBuilder.buildFormStatus;
 import static org.opendatakit.briefcase.model.FormStatusBuilder.buildFormStatusList;
 
 import java.io.IOException;
@@ -31,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,6 +41,7 @@ import org.junit.Test;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
+import org.opendatakit.briefcase.model.ServerConnectionInfo;
 
 public class ExportFormsTest {
   private static ExportConfiguration VALID_CONFIGURATION;
@@ -55,7 +59,7 @@ public class ExportFormsTest {
 
   @Test
   public void can_merge_an_incoming_list_of_forms() {
-    ExportForms forms = new ExportForms(new ArrayList<>(), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(new ArrayList<>(), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     assertThat(forms.size(), is(0));
     int expectedSize = 10;
 
@@ -66,7 +70,7 @@ public class ExportFormsTest {
 
   @Test
   public void manages_a_forms_configuration() {
-    ExportForms forms = new ExportForms(buildFormStatusList(2), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(2), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     FormStatus firstForm = forms.get(0);
     FormStatus secondForm = forms.get(1);
 
@@ -89,7 +93,7 @@ public class ExportFormsTest {
 
   @Test
   public void manages_forms_selection() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     assertThat(forms.getSelectedForms(), hasSize(0));
     assertThat(forms.allSelected(), is(false));
     assertThat(forms.noneSelected(), is(true));
@@ -116,7 +120,7 @@ public class ExportFormsTest {
 
   @Test
   public void knows_if_all_selected_forms_have_a_valid_configuration() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
     form.setSelected(true);
 
@@ -129,7 +133,7 @@ public class ExportFormsTest {
 
   @Test
   public void appends_status_history_on_forms() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
     forms.appendStatus(form.getFormDefinition(), "some status update", false);
     forms.appendStatus(form.getFormDefinition(), "some more lines", false);
@@ -141,7 +145,7 @@ public class ExportFormsTest {
 
   @Test
   public void when_there_is_a_status_history_update_thats_been_successful_it_registers_an_export_date() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
 
     assertThat(forms.getLastExportDateTime(form), isEmpty());
@@ -154,7 +158,7 @@ public class ExportFormsTest {
   @Test
   public void it_lets_a_third_party_react_to_successful_exports() {
     AtomicInteger count = new AtomicInteger(0);
-    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     forms.onSuccessfulExport((form, exportDateTime) -> {
       if (form.equals(forms.get(0).getFormDefinition().getFormId()))
         count.incrementAndGet();
@@ -171,14 +175,37 @@ public class ExportFormsTest {
     List<FormStatus> formsList = buildFormStatusList(10);
     FormStatus form = formsList.get(0);
     String formId = form.getFormDefinition().getFormId();
-    BriefcasePreferences prefs = new BriefcasePreferences(InMemoryPreferences.empty());
-    prefs.putAll(VALID_CONFIGURATION.asMap(buildCustomConfPrefix(formId)));
-    prefs.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME));
+    BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
+    exportPreferences.putAll(VALID_CONFIGURATION.asMap(buildCustomConfPrefix(formId)));
+    exportPreferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME));
+    BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
 
-    ExportForms forms = ExportForms.load(ExportConfiguration.empty(), formsList, prefs);
+    ExportForms forms = ExportForms.load(ExportConfiguration.empty(), formsList, exportPreferences, appPreferences);
 
     assertThat(forms.size(), is(10));
     assertThat(forms.hasConfiguration(form), is(true));
     assertThat(forms.getLastExportDateTime(form), isPresent());
+  }
+
+  @Test
+  public void the_factory_tries_to_load_any_transfer_settings_found_in_preferences() {
+    ServerConnectionInfo expectedTransferSettings = new ServerConnectionInfo(
+        "http://some/url",
+        "some username",
+        "some password".toCharArray()
+    );
+    FormStatus formWithTransferSettings = buildFormStatus(1);
+    FormStatus formWithoutTransferSettings = buildFormStatus(2);
+    List<FormStatus> formsList = Arrays.asList(formWithTransferSettings, formWithoutTransferSettings);
+    BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
+    BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
+    appPreferences.put(String.format("%s_pull_settings_url", formWithTransferSettings.getFormDefinition().getFormId()), expectedTransferSettings.getUrl());
+    appPreferences.put(String.format("%s_pull_settings_username", formWithTransferSettings.getFormDefinition().getFormId()), expectedTransferSettings.getUsername());
+    appPreferences.put(String.format("%s_pull_settings_password", formWithTransferSettings.getFormDefinition().getFormId()), String.valueOf(expectedTransferSettings.getPassword()));
+
+    ExportForms forms = ExportForms.load(ExportConfiguration.empty(), formsList, exportPreferences, appPreferences);
+
+    assertThat(forms.getTransferSettings(formWithoutTransferSettings.getFormDefinition().getFormId()), isEmpty());
+    assertThat(forms.getTransferSettings(formWithTransferSettings.getFormDefinition().getFormId()), isPresentAndIs(expectedTransferSettings));
   }
 }
