@@ -56,6 +56,7 @@ import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferAction;
+import org.opendatakit.briefcase.util.WebUtils;
 
 /**
  * Pull forms and data to external locations.
@@ -144,6 +145,8 @@ public class PullTransferPanel extends JPanel {
             (Window) PullTransferPanel.this.getTopLevelAncestor(), originServerInfo, false);
         d.setVisible(true);
         if (d.isSuccessful()) {
+          // We reset the Http context to force next request to authenticate itself
+          WebUtils.resetHttpContext();
           originServerInfo = d.getServerInfo();
           txtOriginName.setText(originServerInfo.getUrl());
           tabPreferences.put(BriefcasePreferences.AGGREGATE_1_0_URL, originServerInfo.getUrl());
@@ -151,6 +154,12 @@ public class PullTransferPanel extends JPanel {
           if (BriefcasePreferences.getStorePasswordsConsentProperty())
             tabPreferences.put(BriefcasePreferences.PASSWORD, new String(originServerInfo.getPassword()));
           PullTransferPanel.this.updateFormStatuses();
+        } else {
+          if (!BriefcasePreferences.getStorePasswordsConsentProperty()) {
+            // We need to clear the forms table because we have lost any password
+            // by opening the connection dialog
+            formTransferTable.setFormStatusList(new ArrayList<>());
+          }
         }
       } else if (EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.equals(selection)) {
         // odkCollect...
@@ -227,10 +236,10 @@ public class PullTransferPanel extends JPanel {
     this.terminationFuture = terminationFuture;
     JLabel lblGetDataFrom = new JLabel(TAB_NAME + " data from:");
 
-    listOriginDataSource = new JComboBox<String>(new String[]{
-        EndPointType.AGGREGATE_1_0_CHOICE.toString(),
-        EndPointType.MOUNTED_ODK_COLLECT_DEVICE_CHOICE.toString(),
-        EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.toString()});
+    listOriginDataSource = new JComboBox<>(new String[] {
+            EndPointType.AGGREGATE_1_0_CHOICE.toString(),
+            EndPointType.MOUNTED_ODK_COLLECT_DEVICE_CHOICE.toString(),
+            EndPointType.CUSTOM_ODK_COLLECT_DIRECTORY.toString() });
     listOriginDataSource.addActionListener(new OriginSourceListener());
 
     lblOrigin = new JLabel("Origin:");
@@ -271,8 +280,8 @@ public class PullTransferPanel extends JPanel {
     });
 
     formTransferTable = new FormTransferTable(
-        btnSelectOrClearAllForms, FormStatus.TransferType.GATHER, btnTransfer, btnCancel);
-
+            btnSelectOrClearAllForms, FormStatus.TransferType.GATHER, btnTransfer, btnCancel);
+    formTransferTable.setSourceSelected(true);
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
 
     GroupLayout groupLayout = new GroupLayout(this);
@@ -354,7 +363,7 @@ public class PullTransferPanel extends JPanel {
   }
 
   public void updateFormStatuses() {
-    List<FormStatus> statuses = new ArrayList<FormStatus>();
+    List<FormStatus> statuses = new ArrayList<>();
 
     // determine what our origin is...
     String strSelection = (String) listOriginDataSource.getSelectedItem();
@@ -434,7 +443,7 @@ public class PullTransferPanel extends JPanel {
       listOriginDataSource.setEnabled(true);
       btnOriginAction.setEnabled(true);
       btnSelectOrClearAllForms.setEnabled(true);
-      btnTransfer.setEnabled(true);
+      btnTransfer.setEnabled(!formTransferTable.getSelectedForms().isEmpty());
       // disable cancel button
       btnCancel.setEnabled(false);
       // hide downloading progress text (by setting foreground color to
