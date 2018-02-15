@@ -36,6 +36,7 @@ import org.opendatakit.briefcase.model.FormStatusBuilder;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
+import org.opendatakit.briefcase.ui.reused.NoOpAnalytics;
 
 public class ExportPanelUnitTest {
 
@@ -53,7 +54,8 @@ public class ExportPanelUnitTest {
         forms,
         ExportPanelForm.from(forms, confPanel),
         exportPreferences,
-        Runnable::run
+        Runnable::run,
+        new NoOpAnalytics()
     );
 
     assertThat(ExportConfiguration.load(exportPreferences).getExportDir(), isEmpty());
@@ -76,7 +78,8 @@ public class ExportPanelUnitTest {
         forms,
         exportPanelForm,
         exportPreferences,
-        Runnable::run
+        Runnable::run,
+        new NoOpAnalytics()
     );
 
     FormStatus form = formsList.get(0);
@@ -106,7 +109,8 @@ public class ExportPanelUnitTest {
         forms,
         ExportPanelForm.from(forms, confPanel),
         exportPreferences,
-        Runnable::run
+        Runnable::run,
+        new NoOpAnalytics()
     );
 
     FormStatus form = formsList.get(0);
