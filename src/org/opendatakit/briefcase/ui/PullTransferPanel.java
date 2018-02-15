@@ -54,6 +54,7 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferAction;
 import org.opendatakit.briefcase.util.WebUtils;
@@ -75,6 +76,7 @@ public class PullTransferPanel extends JPanel {
   private static final String DOWNLOADING_DOT_ETC = "Downloading..........";
   private final BriefcasePreferences tabPreferences;
   private final BriefcasePreferences appPreferences;
+  private final Analytics analytics;
 
   private JComboBox<String> listOriginDataSource;
   private JButton btnOriginAction;
@@ -228,12 +230,14 @@ public class PullTransferPanel extends JPanel {
     }
   }
 
-  public PullTransferPanel(TerminationFuture terminationFuture, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences) {
+  public PullTransferPanel(TerminationFuture terminationFuture, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, Analytics analytics) {
     super();
     this.tabPreferences = tabPreferences;
     this.appPreferences = appPreferences;
     AnnotationProcessor.process(this);// if not using AOP
+    addComponentListener(analytics.buildComponentListener("Pull"));
     this.terminationFuture = terminationFuture;
+    this.analytics = analytics;
     JLabel lblGetDataFrom = new JLabel(TAB_NAME + " data from:");
 
     listOriginDataSource = new JComboBox<>(new String[] {
@@ -475,6 +479,7 @@ public class PullTransferPanel extends JPanel {
   @EventSubscriber(eventClass = TransferFailedEvent.class)
   public void onTransferFailedEvent(TransferFailedEvent event) {
     setActiveTransferState(false);
+    analytics.event("Pull", "Transfer", "Failure", null);
   }
 
   @EventSubscriber(eventClass = TransferSucceededEvent.class)
@@ -487,6 +492,7 @@ public class PullTransferPanel extends JPanel {
         appPreferences.put(String.format("%s_pull_settings_password", form.getFormDefinition().getFormId()), String.valueOf(event.transferSettings.getPassword()));
       });
     }
+    analytics.event("Pull", "Transfer", "Success", null);
   }
 
   @EventSubscriber(eventClass = FormStatusEvent.class)

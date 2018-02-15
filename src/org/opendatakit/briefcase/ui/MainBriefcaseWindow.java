@@ -240,7 +240,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
         frame.setContentPane(tabbedPane);
 
-        PullTransferPanel gatherPanel = new PullTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PullTransferPanel.class), appPreferences);
+        PullTransferPanel gatherPanel = new PullTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PullTransferPanel.class), appPreferences, analytics);
         addPane(PullTransferPanel.TAB_NAME, gatherPanel);
 
         uploadPanel = new PushTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PushTransferPanel.class));
