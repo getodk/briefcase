@@ -28,6 +28,7 @@ import org.assertj.swing.fixture.FrameFixture;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.ui.reused.NoOpAnalytics;
 
 class ExportPanelPageObject {
   private final ExportPanel component;
@@ -40,7 +41,13 @@ class ExportPanelPageObject {
 
   static ExportPanelPageObject setUp(Robot robot) {
     ExportPanel exportPanel = GuiActionRunner.execute(() -> {
-      ExportPanel ep = ExportPanel.from(new TerminationFuture(), new BriefcasePreferences(InMemoryPreferences.empty()), new BriefcasePreferences(InMemoryPreferences.empty()), Runnable::run);
+      ExportPanel ep = ExportPanel.from(
+          new TerminationFuture(),
+          new BriefcasePreferences(InMemoryPreferences.empty()),
+          new BriefcasePreferences(InMemoryPreferences.empty()),
+          Runnable::run,
+          new NoOpAnalytics()
+      );
       ep.updateForms();
       return ep;
     });

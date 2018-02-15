@@ -44,7 +44,7 @@ dependencies {
     compile group: 'net.sf.kxml', name: 'kxml2', version: '2.3.0'
     compile group: 'org.opendatakit', name: 'opendatakit-javarosa', version: '2.7.0'
     compile group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
-    compile(group: 'com.brsanthu', name: 'google-analytics-java', version: '1.1.2'){
+    compile(group: 'com.brsanthu', name: 'google-analytics-java', version: '2.0.0'){
         exclude group: 'org.slf4j'
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
@@ -120,7 +120,7 @@ buildConfig {
     version = getVersionName()
     clsName = 'BuildConfig'
     packageName = 'org.opendatakit.briefcase.buildconfig'
-    buildConfigField 'String', 'GOOGLE_TRACKING_ID', "UA-91951913-3"
+    buildConfigField 'String', 'GOOGLE_TRACKING_ID', getValue("googleAnalytics.trackingId", "UA-91951913-3")
     buildConfigField 'String', 'SENTRY_DSN', getValue("sentryDsn", "https://b6f023a5f17e44d9a46447f8827e2a41:1b1f33d68b1b4404b85cd627563d37f9@sentry.io/287258")
 }
 

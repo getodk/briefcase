@@ -34,6 +34,9 @@ import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.ExportFailedEvent;
+import org.opendatakit.briefcase.model.ExportSucceededEvent;
+import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentGiven;
@@ -42,6 +45,7 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.transfer.NewTransferAction;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
+import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
 public class ExportPanel {
@@ -50,12 +54,15 @@ public class ExportPanel {
   private final TerminationFuture terminationFuture;
   private final ExportForms forms;
   private final ExportPanelForm form;
+  private final Analytics analytics;
 
-  public ExportPanel(TerminationFuture terminationFuture, ExportForms forms, ExportPanelForm form, BriefcasePreferences preferences, Executor backgroundExecutor) {
+  public ExportPanel(TerminationFuture terminationFuture, ExportForms forms, ExportPanelForm form, BriefcasePreferences preferences, Executor backgroundExecutor, Analytics analytics) {
     this.terminationFuture = terminationFuture;
     this.forms = forms;
     this.form = form;
+    this.analytics = analytics;
     AnnotationProcessor.process(this);// if not using AOP
+    analytics.register(form.getContainer());
 
     form.getConfPanel().onChange(() ->
         forms.updateDefaultConfiguration(form.getConfPanel().getConfiguration())
@@ -113,12 +120,14 @@ public class ExportPanel {
 
       if (errors.isEmpty())
         export();
-      else
+      else {
+        analytics.event("Export", "Export", "Configuration errors", null);
         showErrorDialog(getForm().getContainer(), errors.stream().collect(joining("\n")), "Export errors");
+      }
     }));
   }
 
-  public static ExportPanel from(TerminationFuture terminationFuture, BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Executor backgroundExecutor) {
+  public static ExportPanel from(TerminationFuture terminationFuture, BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Executor backgroundExecutor, Analytics analytics) {
     ExportConfiguration defaultConfiguration = ExportConfiguration.load(exportPreferences);
     ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(defaultConfiguration, BriefcasePreferences.getStorePasswordsConsentProperty(), true);
     ExportForms forms = ExportForms.load(defaultConfiguration, getFormsFromStorage(), exportPreferences, appPreferences);
@@ -128,7 +137,8 @@ public class ExportPanel {
         forms,
         form,
         exportPreferences,
-        backgroundExecutor
+        backgroundExecutor,
+        analytics
     );
   }
 
@@ -169,6 +179,21 @@ public class ExportPanel {
           );
         });
     form.enableUI();
+  }
+
+  @EventSubscriber(eventClass = ExportSucceededWithErrorsEvent.class)
+  public void onExportSucceededWithErrorsEvent(ExportSucceededWithErrorsEvent event) {
+    analytics.event("Export", "Export", "Success with errors", null);
+  }
+
+  @EventSubscriber(eventClass = ExportFailedEvent.class)
+  public void onExportFailedEvent(ExportFailedEvent event) {
+    analytics.event("Export", "Export", "Failure", null);
+  }
+
+  @EventSubscriber(eventClass = ExportSucceededEvent.class)
+  public void onExportSucceededEvent(ExportSucceededEvent event) {
+    analytics.event("Export", "Export", "Success", null);
   }
 
   @EventSubscriber(eventClass = FormStatusEvent.class)
