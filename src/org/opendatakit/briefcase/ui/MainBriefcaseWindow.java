@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.ui;
 
 import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -45,12 +46,13 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
-import org.opendatakit.briefcase.model.BriefcaseAnalytics;
+import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
+import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
 public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeListener {
@@ -64,7 +66,6 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     private SettingsPanel settingsPanel;
     private final TerminationFuture exportTerminationFuture = new TerminationFuture();
     private final TerminationFuture transferTerminationFuture = new TerminationFuture();
-    final BriefcaseAnalytics briefcaseAnalytics = new BriefcaseAnalytics();
     final StorageLocation storageLocation;
 
     public static final String AGGREGATE_URL = "aggregate_url";
@@ -218,9 +219,19 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     private MainBriefcaseWindow() {
         BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
 
-        briefcaseAnalytics.trackStartup();
-
         frame = new JFrame();
+
+        Analytics analytics = Analytics.from(
+            BuildConfig.GOOGLE_TRACKING_ID,
+            BuildConfig.VERSION,
+            BriefcasePreferences.getUniqueUserID(),
+            Toolkit.getDefaultToolkit().getScreenSize(),
+            frame::getSize
+        );
+        analytics.enableTracking(BriefcasePreferences.getBriefcaseTrackingConsentProperty());
+        analytics.enter("Briefcase");
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
+
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         storageLocation = new StorageLocation();

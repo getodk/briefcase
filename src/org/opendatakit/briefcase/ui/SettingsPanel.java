@@ -16,7 +16,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.apache.http.HttpHost;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.BriefcaseAnalytics;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.SavePasswordsConsentGiven;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
@@ -91,7 +90,6 @@ public class SettingsPanel extends JPanel {
     chkParallel.addActionListener(new ParallelPullToggleListener());
 
     chkTrackingConsent.setSelected(BriefcasePreferences.getBriefcaseTrackingConsentProperty());
-    chkTrackingConsent.addActionListener(new TrackingConsentToggleListener(parentWindow.briefcaseAnalytics));
 
     chkStorePasswordsConsent.setSelected(BriefcasePreferences.getStorePasswordsConsentProperty());
     chkStorePasswordsConsent.addActionListener(e -> {
@@ -236,25 +234,6 @@ public class SettingsPanel extends JPanel {
       if (e.getSource() == chkParallel) {
         BriefcasePreferences.setBriefcaseParallelPullsProperty(
             !BriefcasePreferences.getBriefcaseParallelPullsProperty());
-      }
-    }
-  }
-
-  /**
-   * This listener notifies BriefcaseAnalytics of the users' updated choice
-   * of consent about being tracked.
-   */
-  public class TrackingConsentToggleListener implements ActionListener {
-    private final BriefcaseAnalytics briefcaseAnalytics;
-
-    TrackingConsentToggleListener(BriefcaseAnalytics briefcaseAnalytics) {
-      this.briefcaseAnalytics = briefcaseAnalytics;
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      if (e.getSource() == chkTrackingConsent) {
-        briefcaseAnalytics.trackConsentDecision(chkTrackingConsent.isSelected());
       }
     }
   }
