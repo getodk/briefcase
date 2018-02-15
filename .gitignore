@@ -9,3 +9,4 @@ build
 .settings
 briefcase.log
 simplelogger.properties
+gradle.properties
