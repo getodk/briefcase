@@ -73,9 +73,12 @@ public class ExportAction {
       ).get());
     }
     ExportToCsv action = new ExportToCsv(
+        terminationFuture,
         configuration.getExportDir().orElseThrow(() -> new RuntimeException("Export dir not present")).toFile(),
         formDefinition,
-        terminationFuture,
+        formDefinition.getFormName(),
+        true,
+        false,
         configuration.mapStartDate((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null),
         configuration.mapEndDate((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null)
     );

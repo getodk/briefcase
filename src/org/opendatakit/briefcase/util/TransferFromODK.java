@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
@@ -34,6 +35,7 @@ import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.TransferFailedEvent;
 
 public class TransferFromODK implements ITransferFromSourceAction {
 
@@ -358,7 +360,15 @@ public class TransferFromODK implements ITransferFromSourceAction {
 
   @Override
   public ServerConnectionInfo getTransferSettings() {
-    // TODO Solve this break on Liskov's Substitution Principle
-    throw new RuntimeException("This source has no transfer settings");
+    // TODO Solve this violation of Liskov's principle
+    throw new RuntimeException("This class has no transfer settings");
+  }
+
+  public static void pull(Path odk, List<FormStatus> forms) {
+    TransferFromODK action = new TransferFromODK(odk.toFile(), new TerminationFuture(), forms);
+    if (!action.doAction()) {
+      EventBus.publish(new TransferFailedEvent(false, forms));
+      throw new PullFromODKException(forms);
+    }
   }
 }
