@@ -32,7 +32,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
-
 import org.apache.http.util.TextUtils;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
@@ -49,6 +48,7 @@ import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
+import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferAction;
 
@@ -65,6 +65,7 @@ public class PushTransferPanel extends JPanel {
 
   private static final String UPLOADING_DOT_ETC = "Uploading..........";
   private final BriefcasePreferences tabPreferences;
+  private final Analytics analytics;
 
   private JComboBox<String> listDestinationDataSink;
   private JButton btnDestinationAction;
@@ -172,16 +173,18 @@ public class PushTransferPanel extends JPanel {
   /**
    * Create the transfer-from-to panel.
    */
-  public PushTransferPanel(TerminationFuture terminationFuture, BriefcasePreferences tabPreferences) {
+  public PushTransferPanel(TerminationFuture terminationFuture, BriefcasePreferences tabPreferences, Analytics analytics) {
     super();
     this.tabPreferences = tabPreferences;
     AnnotationProcessor.process(this);// if not using AOP
+    addComponentListener(analytics.buildComponentListener("Push"));
     this.terminationFuture = terminationFuture;
+    this.analytics = analytics;
 
     JLabel lblSendDataTo = new JLabel(TAB_NAME + " data to:");
 
     listDestinationDataSink = new JComboBox<>(
-            new String[] { EndPointType.AGGREGATE_1_0_CHOICE.toString() });
+        new String[]{EndPointType.AGGREGATE_1_0_CHOICE.toString()});
 
     listDestinationDataSink.addActionListener(new DestinationSinkListener());
 
@@ -209,7 +212,7 @@ public class PushTransferPanel extends JPanel {
     });
 
     formTransferTable = new FormTransferTable(
-            btnSelectOrClearAllForms, FormStatus.TransferType.UPLOAD, btnTransfer, btnCancel);
+        btnSelectOrClearAllForms, FormStatus.TransferType.UPLOAD, btnTransfer, btnCancel);
 
     formTransferTable.setSourceSelected(false);
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
@@ -359,11 +362,13 @@ public class PushTransferPanel extends JPanel {
   @EventSubscriber(eventClass = TransferFailedEvent.class)
   public void failedCompletion(TransferFailedEvent event) {
     setActiveTransferState(false);
+    analytics.event("Push", "Transfer", "Failure", null);
   }
 
   @EventSubscriber(eventClass = TransferSucceededEvent.class)
   public void successfulCompletion(TransferSucceededEvent event) {
     setActiveTransferState(false);
+    analytics.event("Push", "Transfer", "Success", null);
   }
 
   @EventSubscriber(eventClass = FormStatusEvent.class)
