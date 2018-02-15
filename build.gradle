@@ -47,7 +47,7 @@ dependencies {
     compile group: 'net.sf.kxml', name: 'kxml2', version: '2.3.0'
     compile group: 'org.opendatakit', name: 'opendatakit-javarosa', version: '2.7.0'
     compile group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
-    compile group: 'com.brsanthu', name: 'google-analytics-java', version: '1.1.2'
+    compile group: 'com.brsanthu', name: 'google-analytics-java', version: '2.0.0'
     compile group: 'com.github.lgooddatepicker', name: 'LGoodDatePicker', version: '10.3.1'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
@@ -106,12 +106,19 @@ def getVersionName = { ->
     }
 }
 
+String getValue(String key, String defaultValue) {
+    if (this.hasProperty(key))
+        return this.getProperty(key)
+    else
+        return defaultValue
+}
+
 buildConfig {
     appName = 'ODK Briefcase'
     version = getVersionName()
     clsName = 'BuildConfig'
     packageName = 'org.opendatakit.briefcase.buildconfig'
-    buildConfigField 'String', 'GOOGLE_TRACKING_ID', "UA-91951913-3"
+    buildConfigField 'String', 'GOOGLE_TRACKING_ID', getValue("googleAnalytics.trackingId", "UA-91951913-3")
 }
 
 mainClassName = 'org.opendatakit.briefcase.Launcher'
