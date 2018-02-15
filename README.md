@@ -56,8 +56,8 @@ If you're ready to contribute code, see [the contribution guide](CONTRIBUTING.md
 
 ## Contributing testing
 All releases are verified on the following operating systems:
-* Ubuntu 17.1
-* Windows 8.1
+* Ubuntu 16.04
+* Windows 10
 * OS X 10.11.6
 
 Testing checklists can be found on the [Briefcase testing plan](https://docs.google.com/spreadsheets/d/1H46G7OW21rk5skSyjpEx3dCZVv5Ly4WDK8LISmrz714/edit?usp=sharing).
