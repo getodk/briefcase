@@ -19,6 +19,7 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.SavePasswordsConsentGiven;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
+import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.StringUtils;
 
@@ -34,7 +35,8 @@ public class SettingsPanel extends JPanel {
   private final JCheckBox chkTrackingConsent = new JCheckBox(MessageStrings.TRACKING_CONSENT);
   private final JCheckBox chkStorePasswordsConsent = new JCheckBox("Remember passwords (unencrypted)");
 
-  SettingsPanel(final MainBriefcaseWindow parentWindow) {
+  SettingsPanel(final MainBriefcaseWindow parentWindow, Analytics analytics) {
+    addComponentListener(analytics.buildComponentListener("Settings"));
     txtBriefcaseDir.setFocusable(false);
     txtBriefcaseDir.setEditable(false);
     txtBriefcaseDir.setColumns(50);
@@ -90,6 +92,10 @@ public class SettingsPanel extends JPanel {
     chkParallel.addActionListener(new ParallelPullToggleListener());
 
     chkTrackingConsent.setSelected(BriefcasePreferences.getBriefcaseTrackingConsentProperty());
+    chkTrackingConsent.addActionListener(__ -> {
+      analytics.enableTracking(chkTrackingConsent.isSelected(), false);
+      BriefcasePreferences.setBriefcaseTrackingConsentProperty(chkTrackingConsent.isSelected());
+    });
 
     chkStorePasswordsConsent.setSelected(BriefcasePreferences.getStorePasswordsConsentProperty());
     chkStorePasswordsConsent.addActionListener(e -> {
@@ -125,6 +131,7 @@ public class SettingsPanel extends JPanel {
                             .addComponent(chkProxy)
                             .addComponent(chkParallel)
                             .addComponent(chkStorePasswordsConsent)
+                            .addComponent(chkTrackingConsent)
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(29, 29, 29)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -151,6 +158,8 @@ public class SettingsPanel extends JPanel {
                 .addComponent(chkParallel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(chkStorePasswordsConsent)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(chkTrackingConsent)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(chkProxy)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
