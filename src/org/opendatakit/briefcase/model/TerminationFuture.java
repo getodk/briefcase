@@ -16,14 +16,14 @@
 
 package org.opendatakit.briefcase.model;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 
 public class TerminationFuture {
 
-  private static final Log log = LogFactory.getLog(TerminationFuture.class);
+  private static final Logger log = LoggerFactory.getLogger(TerminationFuture.class);
 
   private boolean cancelled = false;
   

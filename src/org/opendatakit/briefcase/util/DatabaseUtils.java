@@ -32,8 +32,8 @@ import java.sql.Statement;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.opendatakit.briefcase.model.FileSystemException;
 
 /**
@@ -45,7 +45,7 @@ import org.opendatakit.briefcase.model.FileSystemException;
  */
 public class DatabaseUtils {
 
-  private static final Log log = LogFactory.getLog(DatabaseUtils.class);
+  private static final Logger log = LoggerFactory.getLogger(DatabaseUtils.class);
 
   private static final String CREATE_DDL = "CREATE TABLE recorded_instance (instanceId varchar(256) primary key, directory varchar(4096))";
   private static final String ASSERT_SQL = "SELECT instanceId, directory FROM recorded_instance limit 1";

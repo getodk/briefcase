@@ -31,8 +31,8 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.javarosa.xform.parse.XFormParser;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.io.KXmlSerializer;
@@ -56,7 +56,7 @@ public class XmlManipulationUtils {
 
   private static final String ODK_ID_PARAMETER_EQUALS = "odkId=";
 
-  private static final Log log = LogFactory.getLog(XmlManipulationUtils.class);
+  private static final Logger log = LoggerFactory.getLogger(XmlManipulationUtils.class);
 
   private static final String BAD_OPENROSA_FORMLIST = "The server has not provided an available-forms document compliant with the OpenRosa version 1.0 standard.";
 

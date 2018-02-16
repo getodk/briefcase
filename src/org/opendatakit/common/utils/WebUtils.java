@@ -24,8 +24,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.javarosa.core.model.utils.DateUtils;
@@ -39,7 +39,7 @@ import org.opendatakit.common.web.constants.HtmlConsts;
  */
 public class WebUtils {
 
-  static final Log log = LogFactory.getLog(WebUtils.class);
+  static final Logger log = LoggerFactory.getLogger(WebUtils.class);
   static final String IS_FORWARD_CURSOR_VALUE_TAG = "isForwardCursor";
   static final String URI_LAST_RETURNED_VALUE_TAG = "uriLastReturnedValue";
   static final String ATTRIBUTE_VALUE_TAG = "attributeValue";

@@ -27,8 +27,8 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -40,7 +40,7 @@ import org.opendatakit.briefcase.util.ErrorsOr;
 import org.opendatakit.briefcase.util.ExportToCsv;
 
 public class ExportAction {
-  private static final Log log = LogFactory.getLog(ExportAction.class);
+  private static final Logger log = LoggerFactory.getLogger(ExportAction.class);
 
   private static Optional<PrivateKey> extractPrivateKey(Object o) {
     if (o instanceof KeyPair)
@@ -61,7 +61,7 @@ public class ExportAction {
         return ErrorsOr.errors("The supplied file does not contain a private key.");
       return ErrorsOr.some(pk.get());
     } catch (IOException e) {
-      log.error(e);
+      log.error("Error while reading PEM file", e);
       return ErrorsOr.errors("Briefcase can't read the provided file: " + e.getMessage());
     }
   }

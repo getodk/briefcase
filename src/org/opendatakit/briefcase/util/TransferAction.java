@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
@@ -38,7 +38,7 @@ import org.opendatakit.briefcase.ui.TransferInProgressDialog;
 
 public class TransferAction {
 
-  private static final Log log = LogFactory.getLog(TransferAction.class);
+  private static final Logger log = LoggerFactory.getLogger(TransferAction.class);
 
   private static ExecutorService backgroundExecutorService = Executors.newCachedThreadPool();
 

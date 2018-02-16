@@ -33,8 +33,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -48,7 +48,7 @@ import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
 
 public class Export {
-  private static final Log log = LogFactory.getLog(Export.class);
+  private static final Logger log = LoggerFactory.getLogger(Export.class);
   private static final Param<Void> EXPORT = Param.flag("e", "export", "Export a form");
   private static final Param<Path> EXPORT_DIR = Param.arg("ed", "export_directory", "Export directory", Paths::get);
   private static final Param<String> FILE = Param.arg("f", "export_filename", "Filename for export operation");

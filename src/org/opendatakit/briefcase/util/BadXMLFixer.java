@@ -20,8 +20,8 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.model.CannotFixXMLException;
 import org.opendatakit.briefcase.model.FileSystemException;
@@ -41,7 +41,7 @@ import org.opendatakit.briefcase.model.ParsingException;
  */
 public final class BadXMLFixer {
 
-    private static final Log log = LogFactory.getLog(BadXMLFixer.class);
+    private static final Logger log = LoggerFactory.getLogger(BadXMLFixer.class);
 
     private static final String XML_HEADER = "<?xml version='1.0' ?>";
     private static final String ENCODING = "UTF-8";

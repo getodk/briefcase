@@ -30,8 +30,8 @@ import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -62,7 +62,7 @@ import org.xmlpull.v1.XmlPullParser;
 
 public class AggregateUtils {
 
-  private static final Log log = LogFactory.getLog(AggregateUtils.class);
+  private static final Logger log = LoggerFactory.getLogger(AggregateUtils.class);
 
   private static final CharSequence HTTP_CONTENT_TYPE_TEXT_XML = "text/xml";
 

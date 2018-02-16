@@ -39,8 +39,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -59,7 +59,7 @@ import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 
 public class ServerFetcher {
 
-  private static final Log log = LogFactory.getLog(ServerFetcher.class);
+  private static final Logger log = LoggerFactory.getLogger(ServerFetcher.class);
 
   private static final String MD5_COLON_PREFIX = "md5:";
 

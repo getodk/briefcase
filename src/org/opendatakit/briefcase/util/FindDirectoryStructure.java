@@ -21,8 +21,8 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Originally written by Dylan.  Determines the mounts that have SD Cards attached.
@@ -33,7 +33,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class FindDirectoryStructure {
 
-  private static final Log log = LogFactory.getLog(FindDirectoryStructure.class);
+  private static final Logger log = LoggerFactory.getLogger(FindDirectoryStructure.class);
 
   private static final String PROPERTY_OS = "os.name";
   private static final String OS_WINDOWS = "Windows";
