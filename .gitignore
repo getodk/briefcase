@@ -8,5 +8,5 @@ local.properties
 build
 .settings
 briefcase.log
-simplelogger.properties
+logback.xml
 gradle.properties
