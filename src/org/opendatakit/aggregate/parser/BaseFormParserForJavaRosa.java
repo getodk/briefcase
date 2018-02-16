@@ -30,9 +30,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.javarosa.core.io.Std;
 import org.javarosa.core.model.DataBinding;
 import org.javarosa.core.model.FormDef;
@@ -55,6 +52,8 @@ import org.opendatakit.aggregate.form.XFormParameters;
 import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.briefcase.util.StringUtils;
 import org.opendatakit.common.utils.WebUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Parses an XML definition of an XForm based on java rosa types
@@ -62,7 +61,6 @@ import org.opendatakit.common.utils.WebUtils;
  * @author wbrunette@gmail.com
  * @author mitchellsundt@gmail.com
  * @author chrislrobert@gmail.com
- *
  */
 public class BaseFormParserForJavaRosa implements Serializable {
 
@@ -73,35 +71,36 @@ public class BaseFormParserForJavaRosa implements Serializable {
    * Classes needed to serialize objects. Need to put anything from JR in here.
    */
   public final static String[] SERIALIABLE_CLASSES = {
-    "org.javarosa.core.services.locale.ResourceFileDataSource", // JavaRosaCoreModule
-    "org.javarosa.core.services.locale.TableLocaleSource", // JavaRosaCoreModule
-    "org.javarosa.core.model.FormDef",
-    "org.javarosa.core.model.SubmissionProfile", // CoreModelModule
-    "org.javarosa.core.model.QuestionDef", // CoreModelModule
-    "org.javarosa.core.model.GroupDef", // CoreModelModule
-    "org.javarosa.core.model.instance.FormInstance", // CoreModelModule
-    "org.javarosa.core.model.data.BooleanData", // CoreModelModule
-    "org.javarosa.core.model.data.DateData", // CoreModelModule
-    "org.javarosa.core.model.data.DateTimeData", // CoreModelModule
-    "org.javarosa.core.model.data.DecimalData", // CoreModelModule
-    "org.javarosa.core.model.data.GeoPointData", // CoreModelModule
-    "org.javarosa.core.model.data.GeoShapeData", // CoreModelModule
-    "org.javarosa.core.model.data.GeoTraceData", // CoreModelModule
-    "org.javarosa.core.model.data.IntegerData", // CoreModelModule
-    "org.javarosa.core.model.data.LongData", // CoreModelModule
-    "org.javarosa.core.model.data.MultiPointerAnswerData", // CoreModelModule
-    "org.javarosa.core.model.data.PointerAnswerData", // CoreModelModule
-    "org.javarosa.core.model.data.SelectMultiData", // CoreModelModule
-    "org.javarosa.core.model.data.SelectOneData", // CoreModelModule
-    "org.javarosa.core.model.data.StringData", // CoreModelModule
-    "org.javarosa.core.model.data.TimeData", // CoreModelModule
-    "org.javarosa.core.model.data.UncastData", // CoreModelModule
-    "org.javarosa.core.model.data.helper.BasicDataPointer", // CoreModelModule
-    "org.javarosa.core.model.Action", // CoreModelModule
-    "org.javarosa.core.model.actions.SetValueAction" //CoreModelModule
+      "org.javarosa.core.services.locale.ResourceFileDataSource", // JavaRosaCoreModule
+      "org.javarosa.core.services.locale.TableLocaleSource", // JavaRosaCoreModule
+      "org.javarosa.core.model.FormDef",
+      "org.javarosa.core.model.SubmissionProfile", // CoreModelModule
+      "org.javarosa.core.model.QuestionDef", // CoreModelModule
+      "org.javarosa.core.model.GroupDef", // CoreModelModule
+      "org.javarosa.core.model.instance.FormInstance", // CoreModelModule
+      "org.javarosa.core.model.data.BooleanData", // CoreModelModule
+      "org.javarosa.core.model.data.DateData", // CoreModelModule
+      "org.javarosa.core.model.data.DateTimeData", // CoreModelModule
+      "org.javarosa.core.model.data.DecimalData", // CoreModelModule
+      "org.javarosa.core.model.data.GeoPointData", // CoreModelModule
+      "org.javarosa.core.model.data.GeoShapeData", // CoreModelModule
+      "org.javarosa.core.model.data.GeoTraceData", // CoreModelModule
+      "org.javarosa.core.model.data.IntegerData", // CoreModelModule
+      "org.javarosa.core.model.data.LongData", // CoreModelModule
+      "org.javarosa.core.model.data.MultiPointerAnswerData", // CoreModelModule
+      "org.javarosa.core.model.data.PointerAnswerData", // CoreModelModule
+      "org.javarosa.core.model.data.SelectMultiData", // CoreModelModule
+      "org.javarosa.core.model.data.SelectOneData", // CoreModelModule
+      "org.javarosa.core.model.data.StringData", // CoreModelModule
+      "org.javarosa.core.model.data.TimeData", // CoreModelModule
+      "org.javarosa.core.model.data.UncastData", // CoreModelModule
+      "org.javarosa.core.model.data.helper.BasicDataPointer", // CoreModelModule
+      "org.javarosa.core.model.Action", // CoreModelModule
+      "org.javarosa.core.model.actions.SetValueAction" //CoreModelModule
   };
 
   private static boolean isJavaRosaInitialized = false;
+
   /**
    * The JR implementation here does not look thread-safe or
    * like something to be invoked more than once.
@@ -109,18 +108,18 @@ public class BaseFormParserForJavaRosa implements Serializable {
    */
   private static final void initializeJavaRosa() {
     synchronized (log) {
-       if ( !isJavaRosaInitialized ) {
-             // need a list of classes that formdef uses
-             // unfortunately, the JR registerModule() functions do more than this.
-             // register just the classes that would have been registered by:
-             // new JavaRosaCoreModule().registerModule();
-             // new CoreModelModule().registerModule();
-             // replace with direct call to PrototypeManager
-             PrototypeManager.registerPrototypes(SERIALIABLE_CLASSES);
-             redirectOutput();
-             new XFormsModule().registerModule();
-             isJavaRosaInitialized = true;
-       }
+      if (!isJavaRosaInitialized) {
+        // need a list of classes that formdef uses
+        // unfortunately, the JR registerModule() functions do more than this.
+        // register just the classes that would have been registered by:
+        // new JavaRosaCoreModule().registerModule();
+        // new CoreModelModule().registerModule();
+        // replace with direct call to PrototypeManager
+        PrototypeManager.registerPrototypes(SERIALIABLE_CLASSES);
+        redirectOutput();
+        new XFormsModule().registerModule();
+        isJavaRosaInitialized = true;
+      }
     }
   }
 
@@ -160,12 +159,12 @@ public class BaseFormParserForJavaRosa implements Serializable {
         "relevant", "constraint", "readonly", "required", "calculate",
         XFormParser.NAMESPACE_JAVAROSA.toLowerCase() + ":constraintmsg",
         XFormParser.NAMESPACE_JAVAROSA.toLowerCase() + ":preload",
-        XFormParser.NAMESPACE_JAVAROSA.toLowerCase() + ":preloadparams", 
-        "appearance" });
-    
+        XFormParser.NAMESPACE_JAVAROSA.toLowerCase() + ":preloadparams",
+        "appearance"});
+
     NonchangeableInstanceAttributes = Arrays.asList(new String[]{"id"});
   }
-  
+
   // nodeset attribute name, in <bind> elements
   private static final String NODESET_ATTR = "nodeset";
 
@@ -312,7 +311,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
   }
 
   private static synchronized final XFormParserWithBindEnhancements parseFormDefinition(String xml,
-      BaseFormParserForJavaRosa parser) throws ODKIncompleteSubmissionData {
+                                                                                        BaseFormParserForJavaRosa parser) throws ODKIncompleteSubmissionData {
 
     StringReader isr = null;
     try {
@@ -378,11 +377,9 @@ public class BaseFormParserForJavaRosa implements Serializable {
   /**
    * Extract the form id, version and uiVersion.
    *
-   * @param rootElement
-   *          - the tree element that is the root submission.
-   * @param defaultFormIdValue
-   *          - used if no "id" attribute found. This should already be
-   *          slash-substituted.
+   * @param rootElement        - the tree element that is the root submission.
+   * @param defaultFormIdValue - used if no "id" attribute found. This should already be
+   *                           slash-substituted.
    * @return
    */
   private XFormParameters extractFormParameters(TreeElement rootElement, String defaultFormIdValue) {
@@ -422,9 +419,9 @@ public class BaseFormParserForJavaRosa implements Serializable {
    * "encrypted" bind attribute that identifies the fields that are to be
    * encrypted and a BASE64_RSA_PUBLIC_KEY bind attribute on the
    * BASE64_ENCRYPTED_FIELD_KEY field in the form.
-   *
+   * <p>
    * Requires an experimental custom Javarosa library.
-   *
+   * <p>
    * Not enabled in the main tree.
    *
    * @param element
@@ -465,7 +462,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
    * a meta block with a BASE64_ENCRYPTED_FIELD_KEY entry.
    *
    * @return base64EncryptedFieldRsaPublicKey string if field encryption is
-   *         present.
+   *     present.
    */
   private String extractBase64FieldEncryptionKey(TreeElement submissionElement) {
     TreeElement meta = findDepthFirst(submissionElement, "meta");
@@ -718,19 +715,17 @@ public class BaseFormParserForJavaRosa implements Serializable {
    * Compare two XML files to assess their level of structural difference (if
    * any).
    *
-   * @param incomingParser
-   *          -- parsed version of incoming form
-   * @param existingXml
-   *          -- the existing Xml for this form
+   * @param incomingParser -- parsed version of incoming form
+   * @param existingXml    -- the existing Xml for this form
    * @return XFORMS_SHARE_INSTANCE when bodies differ but instances and bindings
-   *         are identical; XFORMS_SHARE_SCHEMA when bodies and/or bindings
-   *         differ, but database structure remains unchanged; XFORMS_DIFFERENT
-   *         when forms are different enough to affect database structure and/or
-   *         encryption.
+   *     are identical; XFORMS_SHARE_SCHEMA when bodies and/or bindings
+   *     differ, but database structure remains unchanged; XFORMS_DIFFERENT
+   *     when forms are different enough to affect database structure and/or
+   *     encryption.
    * @throws ODKIncompleteSubmissionData
    */
   public static DifferenceResult compareXml(BaseFormParserForJavaRosa incomingParser,
-      String existingXml, String existingTitle, boolean isWithinUpdateWindow)
+                                            String existingXml, String existingTitle, boolean isWithinUpdateWindow)
       throws ODKIncompleteSubmissionData {
     if (incomingParser == null || existingXml == null) {
       throw new ODKIncompleteSubmissionData(Reason.MISSING_XML);
@@ -767,7 +762,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
     String evs = existingParser.rootElementDefn.versionString;
     boolean modelVersionSame = (incomingParser.rootElementDefn.modelVersion == null) ? (existingParser.rootElementDefn.modelVersion == null)
         : incomingParser.rootElementDefn.modelVersion
-            .equals(existingParser.rootElementDefn.modelVersion);
+        .equals(existingParser.rootElementDefn.modelVersion);
 
     boolean isEarlierVersion = false;
     if (!(evs == null || (modelVersionSame && ivs.length() > evs.length()) || (!modelVersionSame && ivs
@@ -889,10 +884,10 @@ public class BaseFormParserForJavaRosa implements Serializable {
    * @param treeElement1
    * @param treeElement2
    * @return XFORMS_SHARE_INSTANCE when bodies differ but instances and bindings
-   *         are identical; XFORMS_SHARE_SCHEMA when bodies and/or bindings
-   *         differ, but database structure remains unchanged; XFORMS_DIFFERENT
-   *         when forms are different enough to affect database structure and/or
-   *         encryption.
+   *     are identical; XFORMS_SHARE_SCHEMA when bodies and/or bindings
+   *     differ, but database structure remains unchanged; XFORMS_DIFFERENT
+   *     when forms are different enough to affect database structure and/or
+   *     encryption.
    */
   public static DifferenceResult compareTreeElements(TreeElement treeElement1,
                                                      BaseFormParserForJavaRosa parser1,
@@ -979,8 +974,8 @@ public class BaseFormParserForJavaRosa implements Serializable {
                 && value1 != null
                 && value2 != null
                 && ((value1.toLowerCase().equals("string") && value2.toLowerCase()
-                    .equals("select1")) || (value1.toLowerCase().equals("select1") && value2
-                    .toLowerCase().equals("string")))) {
+                .equals("select1")) || (value1.toLowerCase().equals("select1") && value2
+                .toLowerCase().equals("string")))) {
               // handle changes between string and select1 data types as special
               // (allowable) case
               smalldiff = true;
@@ -1090,15 +1085,15 @@ public class BaseFormParserForJavaRosa implements Serializable {
         if (childElement2 != null) {
           // recursively compare children...
           switch (compareTreeElements(childElement1, parser1, childElement2, parser2)) {
-          case XFORMS_SHARE_SCHEMA:
-            smalldiff = true;
-            break;
-          case XFORMS_DIFFERENT:
-            bigdiff = true;
-            break;
-          default:
-            // no update for the other cases (IDENTICAL, EARLIER, MISSING, SHARE_INSTANCE)
-            break;
+            case XFORMS_SHARE_SCHEMA:
+              smalldiff = true;
+              break;
+            case XFORMS_DIFFERENT:
+              bigdiff = true;
+              break;
+            default:
+              // no update for the other cases (IDENTICAL, EARLIER, MISSING, SHARE_INSTANCE)
+              break;
           }
         } else {
           // consider children not found as big differences
@@ -1120,7 +1115,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
   // search list of recorded bindings for a particular attribute; return its
   // value
   private static String getBindingAttributeValue(List<Element> bindings,
-      String attributeNamespace, String attributeName) {
+                                                 String attributeNamespace, String attributeName) {
     String retval = null;
 
     for (int i = 0; i < bindings.size(); i++) {

@@ -32,8 +32,6 @@ import javax.swing.JScrollPane;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
@@ -41,6 +39,8 @@ import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.IFormDefinition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ScrollingStatusListDialog extends JDialog implements ActionListener {
   private static final long serialVersionUID = 3565952263140071560L;

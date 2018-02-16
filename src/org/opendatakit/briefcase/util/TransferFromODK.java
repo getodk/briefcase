@@ -24,8 +24,6 @@ import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.FileSystemException;
@@ -36,6 +34,8 @@ import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TransferFromODK implements ITransferFromSourceAction {
 

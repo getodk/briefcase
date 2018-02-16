@@ -25,10 +25,10 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Optional;
 import org.apache.commons.cli.CommandLine;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Command line interface contributed by Nafundi

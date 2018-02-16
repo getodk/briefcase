@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -29,9 +29,6 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -58,6 +55,8 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 import org.opendatakit.briefcase.util.ServerUploader.SubmissionResponseAction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParser;
 
 public class AggregateUtils {
@@ -88,7 +87,7 @@ public class AggregateUtils {
    * Common routine to download a document from the downloadUrl and save the
    * contents in the file 'f'. Shared by media file download and form file
    * download.
-   * 
+   *
    * @param f
    * @param downloadUrl
    * @throws URISyntaxException
@@ -157,13 +156,13 @@ public class AggregateUtils {
    * Common method for returning a parsed xml document given a url and the http
    * context and client objects involved in the web connection. The document is
    * the body of the response entity and should be xml.
-   * 
+   *
    * @param urlString
    * @return
    */
   public static final DocumentFetchResult getXmlDocument(String urlString,
-      ServerConnectionInfo serverInfo, boolean alwaysResetCredentials, 
-      DocumentDescription description, ResponseAction action)
+                                                         ServerConnectionInfo serverInfo, boolean alwaysResetCredentials,
+                                                         DocumentDescription description, ResponseAction action)
       throws XmlDocumentFetchException {
 
     URI u = null;
@@ -175,7 +174,7 @@ public class AggregateUtils {
       if (!urlString.toLowerCase().startsWith("http://") && !urlString.toLowerCase().startsWith("https://")) {
         msg += "\nDid you forget to prefix the address with 'http://' or 'https://' ?";
       }
-      log.warn(msg, e) ;
+      log.warn(msg, e);
       throw new XmlDocumentFetchException(msg);
     } catch (URISyntaxException e) {
       String msg = description.getFetchDocFailed() + "Invalid uri: " + urlString + ".\nFailed with error: "
@@ -187,7 +186,7 @@ public class AggregateUtils {
     // set up request...
     HttpGet req = WebUtils.createOpenRosaHttpGet(u);
 
-    int[] validStatusList = { 200 };
+    int[] validStatusList = {200};
 
     return httpRetrieveXmlDocument(req, validStatusList, serverInfo, alwaysResetCredentials,
         description, action);
@@ -209,18 +208,18 @@ public class AggregateUtils {
       }
     }
   }
-  
+
   /**
    * Common method for returning a parsed xml document given a url and the http
    * context and client objects involved in the web connection. The document is
    * the body of the response entity and should be xml.
-   * 
+   *
    * @return
    */
   private static final DocumentFetchResult httpRetrieveXmlDocument(HttpUriRequest request,
-      int[] validStatusList, ServerConnectionInfo serverInfo, boolean alwaysResetCredentials,
-      DocumentDescription description, 
-      ResponseAction action) throws XmlDocumentFetchException {
+                                                                   int[] validStatusList, ServerConnectionInfo serverInfo, boolean alwaysResetCredentials,
+                                                                   DocumentDescription description,
+                                                                   ResponseAction action) throws XmlDocumentFetchException {
 
     HttpClient httpClient = WebUtils.createHttpClient();
 
@@ -231,10 +230,10 @@ public class AggregateUtils {
 
     WebUtils.setCredentials(localContext, serverInfo, uri, alwaysResetCredentials);
 
-    if ( description.isCancelled() ) {
+    if (description.isCancelled()) {
       throw new XmlDocumentFetchException("Transfer of " + description.getDocumentDescriptionType() + " aborted.");
     }
-    
+
     HttpResponse response = null;
     try {
       response = httpClient.execute(request, localContext);
@@ -398,14 +397,14 @@ public class AggregateUtils {
   /**
    * Send a HEAD request to the server to confirm the validity of the URL and
    * credentials.
-   * 
+   *
    * @param serverInfo
    * @param actionAddr
    * @return the confirmed URI of this action.
    * @throws TransmissionException
    */
   public static final URI testServerConnectionWithHeadRequest(ServerConnectionInfo serverInfo,
-      String actionAddr) throws TransmissionException {
+                                                              String actionAddr) throws TransmissionException {
 
     String urlString = serverInfo.getUrl();
     if (urlString.endsWith("/")) {
@@ -455,7 +454,7 @@ public class AggregateUtils {
           Header[] openRosaVersions = response.getHeaders(WebUtils.OPEN_ROSA_VERSION_HEADER);
           if (openRosaVersions == null || openRosaVersions.length == 0) {
             String msg = "Url: " + u.toString()
-                    + ", header missing: " + WebUtils.OPEN_ROSA_VERSION_HEADER;
+                + ", header missing: " + WebUtils.OPEN_ROSA_VERSION_HEADER;
             log.warn(msg);
             throw new TransmissionException(msg);
           }
@@ -521,8 +520,8 @@ public class AggregateUtils {
   }
 
   public static final boolean uploadFilesToServer(ServerConnectionInfo serverInfo, URI u,
-      String distinguishedFileTagName, File file, List<File> files, DocumentDescription description,
-      SubmissionResponseAction action, TerminationFuture terminationFuture, FormStatus formToTransfer) {
+                                                  String distinguishedFileTagName, File file, List<File> files, DocumentDescription description,
+                                                  SubmissionResponseAction action, TerminationFuture terminationFuture, FormStatus formToTransfer) {
 
     boolean allSuccessful = true;
     formToTransfer.setStatusString("Preparing for upload of " + description.getDocumentDescriptionType() + " with "
@@ -536,13 +535,13 @@ public class AggregateUtils {
       lastJ = j;
       first = false;
 
-      if ( terminationFuture.isCancelled() ) {
+      if (terminationFuture.isCancelled()) {
         formToTransfer.setStatusString("Aborting upload of " + description.getDocumentDescriptionType() + " with "
             + files.size() + " media attachments", true);
         EventBus.publish(new FormStatusEvent(formToTransfer));
         return false;
       }
-      
+
       HttpPost httppost = WebUtils.createOpenRosaHttpPost(u);
 
       long byteCount = 0L;
@@ -629,7 +628,7 @@ public class AggregateUtils {
 
       httppost.setEntity(builder.build());
 
-      int[] validStatusList = { 201 };
+      int[] validStatusList = {201};
 
       try {
         if (j != files.size()) {
@@ -651,8 +650,9 @@ public class AggregateUtils {
         log.error("upload failed", e);
         formToTransfer.setStatusString("UPLOAD FAILED: " + e.getMessage(), false);
         EventBus.publish(new FormStatusEvent(formToTransfer));
-        
-        if ( description.isCancelled() ) return false;
+
+        if (description.isCancelled())
+          return false;
       }
     }
 

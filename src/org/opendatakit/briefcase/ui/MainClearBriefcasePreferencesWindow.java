@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -19,14 +19,12 @@ package org.opendatakit.briefcase.ui;
 import java.awt.EventQueue;
 import java.awt.Image;
 import java.awt.Toolkit;
-
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
-
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
 
 public class MainClearBriefcasePreferencesWindow {
 
@@ -49,10 +47,10 @@ public class MainClearBriefcasePreferencesWindow {
               "Cancel"};
           int outcome = JOptionPane.showOptionDialog(null,
               "Clear all Briefcase preferences.                                            ",
-              CLEAR_PREFERENCES_VERSION, 
-              JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, 
+              CLEAR_PREFERENCES_VERSION,
+              JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE,
               new ImageIcon(myImage), options, options[1]);
-          if ( outcome == 0 ) {
+          if (outcome == 0) {
             BriefcasePreferences.setBriefcaseDirectoryProperty(null);
           }
         } catch (Exception e) {

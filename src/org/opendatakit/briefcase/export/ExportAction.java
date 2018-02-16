@@ -27,8 +27,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -38,6 +36,8 @@ import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.util.ErrorsOr;
 import org.opendatakit.briefcase.util.ExportToCsv;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExportAction {
   private static final Logger log = LoggerFactory.getLogger(ExportAction.class);

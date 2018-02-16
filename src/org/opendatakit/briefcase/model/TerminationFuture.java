@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -16,27 +16,27 @@
 
 package org.opendatakit.briefcase.model;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TerminationFuture {
 
   private static final Logger log = LoggerFactory.getLogger(TerminationFuture.class);
 
   private boolean cancelled = false;
-  
+
   public TerminationFuture() {
     AnnotationProcessor.process(this);
   }
-  
+
   @EventSubscriber(eventClass = TransferAbortEvent.class)
   public void markAsCancelled(TransferAbortEvent event) {
     cancelled = true;
     log.info("cancel requested: " + event.getReason());
   }
-  
+
   @EventSubscriber(eventClass = ExportAbortEvent.class)
   public void markAsCancelled(ExportAbortEvent event) {
     cancelled = true;
@@ -46,7 +46,7 @@ public class TerminationFuture {
   public void reset() {
     cancelled = false;
   }
-  
+
   public boolean isCancelled() {
     return cancelled;
   }

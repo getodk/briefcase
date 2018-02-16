@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2012 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -31,17 +31,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Set;
 import java.util.TreeSet;
-
+import org.opendatakit.briefcase.model.FileSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.opendatakit.briefcase.model.FileSystemException;
 
 /**
  * This class abstracts all the functionality of the instance-tracking
  * database.
  *
  * @author mitchellsundt@gmail.com
- *
  */
 public class DatabaseUtils {
 
@@ -75,10 +73,10 @@ public class DatabaseUtils {
   }
 
   public synchronized void close() throws SQLException {
-    if ( getRecordedInstanceQuery != null ) {
+    if (getRecordedInstanceQuery != null) {
       try {
         getRecordedInstanceQuery.close();
-      } catch ( SQLException e ) {
+      } catch (SQLException e) {
         log.error("failed to close connection", e);
       } finally {
         getRecordedInstanceQuery = null;
@@ -133,67 +131,67 @@ public class DatabaseUtils {
   }
 
   // recorded instances have known instanceIds
-  public synchronized void putRecordedInstanceDirectory( String instanceId, File instanceDir) {
+  public synchronized void putRecordedInstanceDirectory(String instanceId, File instanceDir) {
     try {
       assertRecordedInstanceTable();
 
-      if ( insertRecordedInstanceQuery == null ) {
+      if (insertRecordedInstanceQuery == null) {
         insertRecordedInstanceQuery =
-                connection.prepareStatement(INSERT_DML);
+            connection.prepareStatement(INSERT_DML);
       }
 
       insertRecordedInstanceQuery.setString(1, instanceId);
       insertRecordedInstanceQuery.setString(2, makeRelative(formDir, instanceDir).toString());
 
-      if ( 1 != insertRecordedInstanceQuery.executeUpdate() ) {
+      if (1 != insertRecordedInstanceQuery.executeUpdate()) {
         throw new SQLException("Expected one row to be updated");
       }
-    } catch ( SQLException e ) {
+    } catch (SQLException e) {
       log.error("failed to record instance " + instanceId, e);
     }
   }
 
   // recorded instances have known instanceIds
-  private void forgetRecordedInstance( String instanceId ) {
+  private void forgetRecordedInstance(String instanceId) {
     try {
       assertRecordedInstanceTable();
 
-      if ( deleteRecordedInstanceQuery == null ) {
+      if (deleteRecordedInstanceQuery == null) {
         deleteRecordedInstanceQuery =
-                connection.prepareStatement(DELETE_DML);
+            connection.prepareStatement(DELETE_DML);
       }
 
-      deleteRecordedInstanceQuery.setString(1, instanceId );
+      deleteRecordedInstanceQuery.setString(1, instanceId);
 
-      if ( deleteRecordedInstanceQuery.executeUpdate() > 1 ) {
+      if (deleteRecordedInstanceQuery.executeUpdate() > 1) {
         throw new SQLException("Expected one row to be deleted");
       }
-    } catch ( SQLException e ) {
+    } catch (SQLException e) {
       log.error("failed to forget instance " + instanceId, e);
     }
   }
 
   // ask whether we have the recorded instance in this briefcase
   // return null if we don't.
-  public synchronized File hasRecordedInstance( String instanceId ) {
+  public synchronized File hasRecordedInstance(String instanceId) {
     try {
       assertRecordedInstanceTable();
 
-      if ( getRecordedInstanceQuery == null ) {
+      if (getRecordedInstanceQuery == null) {
         getRecordedInstanceQuery = connection.prepareStatement(SELECT_DIR_SQL);
       }
 
       getRecordedInstanceQuery.setString(1, instanceId);
       ResultSet values = getRecordedInstanceQuery.executeQuery();
       File f = null;
-      while ( values.next() ) {
-        if ( f != null ) {
+      while (values.next()) {
+        if (f != null) {
           throw new SQLException("Duplicate entries for instanceId: " + instanceId);
         }
         f = new File(formDir, values.getString(1));
       }
       return (f != null && f.exists() && f.isDirectory()) ? f : null;
-    } catch ( SQLException e ) {
+    } catch (SQLException e) {
       if (log.isDebugEnabled()) {
         log.debug("failed to find recorded instance " + instanceId, e);
       }
@@ -201,8 +199,8 @@ public class DatabaseUtils {
     }
   }
 
-  public synchronized void assertRecordedInstanceDirectory( String instanceId, File dir) {
-    forgetRecordedInstance( instanceId );
+  public synchronized void assertRecordedInstanceDirectory(String instanceId, File dir) {
+    forgetRecordedInstance(instanceId);
     putRecordedInstanceDirectory(instanceId, dir);
   }
 

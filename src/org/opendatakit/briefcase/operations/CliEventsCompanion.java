@@ -16,12 +16,12 @@
 package org.opendatakit.briefcase.operations;
 
 import java.util.function.Consumer;
-import org.slf4j.Logger;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.slf4j.Logger;
 
 /**
  * This class will handle Events while we change from an annotation based,

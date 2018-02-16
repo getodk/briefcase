@@ -23,13 +23,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferFromODK;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ImportFromODK {
   private static final Logger log = LoggerFactory.getLogger(ImportFromODK.class);
