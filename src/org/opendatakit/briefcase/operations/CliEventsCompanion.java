@@ -16,19 +16,19 @@
 package org.opendatakit.briefcase.operations;
 
 import java.util.function.Consumer;
-import org.apache.commons.logging.Log;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.slf4j.Logger;
 
 /**
  * This class will handle Events while we change from an annotation based,
  * static API Event bus to something more flexible.
  */
 class CliEventsCompanion {
-  static void attach(Log log) {
+  static void attach(Logger log) {
     on(ExportProgressEvent.class, event -> {
       if (event.getText().contains("Cause:")) {
         log.warn(event.getText());

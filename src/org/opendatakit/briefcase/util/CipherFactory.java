@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -21,26 +21,23 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.opendatakit.briefcase.model.CryptoException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Handles the initialization of Cipher objects for the decryption of submission
  * and media files.
- * 
+ *
  * @author mitchellsundt@gmail.com
- * 
  */
 public final class CipherFactory {
 
-  private static final Log log = LogFactory.getLog(CipherFactory.class);
+  private static final Logger log = LoggerFactory.getLogger(CipherFactory.class);
   private static final String SYMMETRIC_ALGORITHM = "AES/CFB/PKCS5Padding";
   private static final int IV_BYTE_LENGTH = 16;
 

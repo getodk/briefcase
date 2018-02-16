@@ -28,10 +28,10 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.UnrecognizedOptionException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>Cli is a command line adapter. It helps define executable operations and their
@@ -39,7 +39,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
  * <p>It defines some default operations like "show help" and "show version"
  */
 public class Cli {
-  private static final Log log = LogFactory.getLog(Cli.class);
+  private static final Logger log = LoggerFactory.getLogger(Cli.class);
   private static final Param<Void> SHOW_HELP = Param.flag("h", "help", "Show help");
   private static final Param<Void> SHOW_VERSION = Param.flag("v", "version", "Show version");
 

@@ -23,16 +23,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferFromODK;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ImportFromODK {
-  private static final Log log = LogFactory.getLog(ImportFromODK.class);
+  private static final Logger log = LoggerFactory.getLogger(ImportFromODK.class);
   private static final Param<Void> IMPORT = Param.flag("pc", "pull_collect", "Pull from Collect");
   private static final Param<Path> ODK_DIR = Param.arg("od", "odk_directory", "ODK directory", Paths::get);
 

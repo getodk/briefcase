@@ -45,8 +45,6 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.NoSuchPaddingException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.EventBus;
 import org.javarosa.core.model.instance.AbstractTreeElement;
 import org.javarosa.core.model.instance.TreeElement;
@@ -64,12 +62,14 @@ import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.operations.ExportException;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExportToCsv implements ITransformFormAction {
 
   private static final String MEDIA_DIR = "media";
 
-  private static final Log log = LogFactory.getLog(ExportToCsv.class);
+  private static final Logger log = LoggerFactory.getLogger(ExportToCsv.class);
 
   int totalFilesSkipped = 0;
   int totalInstances = 0;

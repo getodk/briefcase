@@ -41,8 +41,6 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -50,6 +48,8 @@ import org.opendatakit.briefcase.model.FormStatus.TransferType;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsSucceededEvent;
 import org.opendatakit.briefcase.ui.reused.FontUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FormTransferTable extends JTable {
 
@@ -114,7 +114,7 @@ public class FormTransferTable extends JTable {
      *
      */
     private static final long serialVersionUID = -5106458166776020642L;
-    private static final Log log = LogFactory.getLog(DetailButton.class);
+    private static final Logger log = LoggerFactory.getLogger(DetailButton.class);
     public static final String LABEL = "Detail";
 
     final FormStatus status;
@@ -145,7 +145,7 @@ public class FormTransferTable extends JTable {
 
     public static final int BUTTON_COLUMN = 3;
 
-    private static final Log log = LogFactory.getLog(FormTransferTableModel.class);
+    private static final Logger log = LoggerFactory.getLogger(FormTransferTableModel.class);
 
     final String[] columnNames;
     final JButton btnSelectOrClearAllForms;
@@ -157,7 +157,7 @@ public class FormTransferTable extends JTable {
     private Map<FormStatus, DetailButton> buttonMap = new HashMap<>();
 
     public FormTransferTableModel(JButton btnSelectOrClearAllForms, TransferType transferType, JButton btnTransfer,
-      JButton btnCancel) {
+                                  JButton btnCancel) {
       super();
       AnnotationProcessor.process(this);// if not using AOP
 
@@ -174,17 +174,17 @@ public class FormTransferTable extends JTable {
       btnSelectOrClearAllForms.setText("Clear all");
 
       btnSelectOrClearAllForms.addActionListener(e -> {
-          boolean anyDeselected = false;
-          for (FormStatus f : formStatuses) {
-              anyDeselected = anyDeselected || !f.isSelected();
-          }
+        boolean anyDeselected = false;
+        for (FormStatus f : formStatuses) {
+          anyDeselected = anyDeselected || !f.isSelected();
+        }
 
-          // clear-all if all were selected, otherwise, select-all...
-          for (FormStatus f : formStatuses) {
-              f.setSelected(anyDeselected);
-          }
-          FormTransferTableModel.this.updateButtonsAfterStatusChange();
-          FormTransferTableModel.this.fireTableDataChanged();
+        // clear-all if all were selected, otherwise, select-all...
+        for (FormStatus f : formStatuses) {
+          f.setSelected(anyDeselected);
+        }
+        FormTransferTableModel.this.updateButtonsAfterStatusChange();
+        FormTransferTableModel.this.fireTableDataChanged();
       });
 
     }
@@ -321,12 +321,12 @@ public class FormTransferTable extends JTable {
     }
 
     public void setSourceSelected(boolean sourceSelected) {
-        this.sourceSelected = sourceSelected;
+      this.sourceSelected = sourceSelected;
     }
   }
 
   public FormTransferTable(JButton btnSelectOrClearAllForms, TransferType transferType, JButton btnTransfer,
-        JButton btnCancel) {
+                           JButton btnCancel) {
     super(new FormTransferTableModel(btnSelectOrClearAllForms, transferType, btnTransfer, btnCancel));
     AnnotationProcessor.process(this);// if not using AOP
     // set the button column renderer to a custom renderer
@@ -407,8 +407,8 @@ public class FormTransferTable extends JTable {
   }
 
   public void setSourceSelected(boolean value) {
-      FormTransferTableModel model = (FormTransferTableModel) this.dataModel;
-      model.setSourceSelected(value);
+    FormTransferTableModel model = (FormTransferTableModel) this.dataModel;
+    model.setSourceSelected(value);
   }
 
   private Dimension getHeaderDimension(String header) {
