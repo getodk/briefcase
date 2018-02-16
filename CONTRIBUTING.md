@@ -63,6 +63,48 @@ Small fixes that target very particular bugs may occasionally be merged without 
 ## Style guidelines
 For now, match the style of the code in the file you are editing.
 
+## Logging
+Moving forward all Briefcase code will use [SLF4J](https://www.slf4j.org/) with [Logback](https://logback.qos.ch/)
+binding. Legacy code will still have reference to the [Apache Commons Logging](https://commons.apache.org/proper/commons-logging/),
+but all of the call will be bridged to SLF4J using [jcl-over-slf4j](https://www.slf4j.org/legacy.html).
+
+The default configuration for logback can be found in the resources folder.
+
+Simple example of logging:
+```java
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+...
+private static Logger logger = LoggerFactory.getLogger(HelloWorld.class.getSimpleName());
+
+...
+logger.info("Hello world");
+...
+
+```
+
+### Log format
+The default output of briefcase log looks like this:
+```java
+2017-10-19 10:35:57,501 INFO [AWT-EventQueue-0] o.o.b.m.TerminationFuture cancel requested: Main window closed
+```
+The following items will be in the output:
+* Date and Time
+* Log Level (ERROR, WARN, INFO, or DEBUG)
+* Thread name
+* Logger name (usually the source class name)
+* The log message
+
+### Console output
+Console output will have the same format as above but will default to only display INFO, WARN and ERROR log messages.
+
+### File output
+In addition to the console output, briefcase will also write the log mesages to file. The file will have all messages
+displayed on the console plus all DEBUG messages. Briefcase's file logger will rollover daily or if the file size
+reached 10MB. The logger will keep only the last 10 log files with max total size capped at 100MB.
+
+
 ## Code from external sources
 ODK Briefcase is released under the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0). Please make sure that any code you include is an OSI-approved [permissive license](https://opensource.org/faq#permissive). **Please note that if no license is specified for a piece of code or if it has an incompatible license such as GPL, using it puts the project at legal risk**.
 
