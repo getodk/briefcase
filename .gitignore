@@ -9,4 +9,5 @@ build
 .settings
 briefcase.log
 logback.xml
+logback-test.xml
 gradle.properties
