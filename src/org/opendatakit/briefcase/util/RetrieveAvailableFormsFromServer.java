@@ -31,7 +31,7 @@ import org.opendatakit.briefcase.operations.RetrieveAvailableFormsException;
 public class RetrieveAvailableFormsFromServer {
   final ServerConnectionInfo originServerInfo;
   final TerminationFuture terminationFuture;
-  List<FormStatus> formStatuses = new ArrayList<FormStatus>();
+  List<FormStatus> formStatuses = new ArrayList<>();
 
   public RetrieveAvailableFormsFromServer(ServerConnectionInfo originServerInfo,
                                           TerminationFuture terminationFuture) {

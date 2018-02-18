@@ -34,7 +34,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -74,8 +73,8 @@ public class ExportToCsv implements ITransformFormAction {
   int totalFilesSkipped = 0;
   int totalInstances = 0;
   int processedInstances = 0;
-  private final Map<TreeElement, OutputStreamWriter> fileMap = new HashMap<TreeElement, OutputStreamWriter>();
-  private final Map<String, String> fileHashMap = new HashMap<String, String>();
+  private final Map<TreeElement, OutputStreamWriter> fileMap = new HashMap<>();
+  private final Map<String, String> fileHashMap = new HashMap<>();
   private final TerminationFuture terminationFuture;
   private final File outputDir;
   private final BriefcaseFormDefinition briefcaseLfd;
@@ -140,8 +139,8 @@ public class ExportToCsv implements ITransformFormAction {
     // Sorts the instances by the submission date. If no submission date, we
     // assume it to be latest.
     if (instances != null) {
-      Arrays.sort(instances, new Comparator<File>() {
-        public int compare(File f1, File f2) {
+      Arrays.sort(instances, (f1, f2) ->
+        {
           try {
             if (f1.isDirectory() && f2.isDirectory()) {
               File submission1 = new File(f1, "submission.xml");
@@ -162,8 +161,8 @@ public class ExportToCsv implements ITransformFormAction {
             log.error("failed to sort submissions", e);
           }
           return 0;
-        }
-      });
+        });
+
     }
 
     for (File instanceDir : instances) {
@@ -205,7 +204,7 @@ public class ExportToCsv implements ITransformFormAction {
   }
 
   private String getFullName(AbstractTreeElement e, TreeElement group) {
-    List<String> names = new ArrayList<String>();
+    List<String> names = new ArrayList<>();
     while (e != null && e != group) {
       names.add(e.getName());
       e = e.getParent();
@@ -241,7 +240,7 @@ public class ExportToCsv implements ITransformFormAction {
   }
 
   private List<Element> findElementList(Element submissionElement, String name) {
-    List<Element> ecl = new ArrayList<Element>();
+    List<Element> ecl = new ArrayList<>();
     int maxChildren = submissionElement.getChildCount();
     for (int i = 0; i < maxChildren; i++) {
       if (submissionElement.getType(i) == Node.ELEMENT) {

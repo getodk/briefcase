@@ -135,7 +135,7 @@ public class ServerUploader {
       fs.setStatusString("retrieving next chunk of instanceIds from server...", true);
       EventBus.publish(new FormStatusEvent(fs));
 
-      Map<String, String> params = new HashMap<String, String>();
+      Map<String, String> params = new HashMap<>();
       params.put("numEntries", Integer.toString(MAX_ENTRIES));
       params.put("formId", fs.getFormDefinition().getFormId());
       params.put("cursor", websafeCursorString);
@@ -303,7 +303,7 @@ public class ServerUploader {
     // clean up the list, removing anything that is suspicious
     // or that we won't attempt to upload. For OpenRosa servers,
     // we'll upload just about everything...
-    List<File> files = new ArrayList<File>();
+    List<File> files = new ArrayList<>();
     if (allFiles != null) {
       for (File f : allFiles) {
         String fileName = f.getName();
@@ -362,7 +362,7 @@ public class ServerUploader {
     // clean up the list, removing anything that is suspicious
     // or that we won't attempt to upload. For OpenRosa servers,
     // we'll upload just about everything...
-    List<File> files = new ArrayList<File>();
+    List<File> files = new ArrayList<>();
     for (File f : allFiles) {
       String fileName = f.getName();
       if (fileName.startsWith(".")) {

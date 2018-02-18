@@ -285,7 +285,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
     protected void parseBind(Element e) {
       // remember raw bindings in case we want to compare parsed XForms later
       parser.bindElements.add(copyBindingElement(e));
-      List<String> usedAtts = new ArrayList<String>();
+      List<String> usedAtts = new ArrayList<>();
 
       DataBinding binding = processStandardBindAttributes(usedAtts, e);
 
@@ -347,16 +347,16 @@ public class BaseFormParserForJavaRosa implements Serializable {
   protected final String xml;
 
   // extracted from XForm during parsing
-  private final Map<String, Integer> stringLengths = new HashMap<String, Integer>();
+  private final Map<String, Integer> stringLengths = new HashMap<>();
   // original bindings from parse-time for later comparison
-  private transient final List<Element> bindElements = new ArrayList<Element>();
+  private transient final List<Element> bindElements = new ArrayList<>();
 
   private void setNodesetStringLength(String nodeset, Integer length) {
     stringLengths.put(nodeset, length);
   }
 
   protected Integer getNodesetStringLength(AbstractTreeElement<?> e) {
-    List<String> path = new ArrayList<String>();
+    List<String> path = new ArrayList<>();
     while (e != null && e.getName() != null) {
       path.add(e.getName());
       e = e.getParent();
@@ -694,7 +694,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
    * @return
    */
   private List<Element> getBindingsForTreeElement(TreeElement treeElement) {
-    List<Element> l = new ArrayList<Element>();
+    List<Element> l = new ArrayList<>();
     String nodeset = "/" + getTreeElementPath(treeElement);
 
     for (int i = 0; i < this.bindElements.size(); i++) {
@@ -1033,7 +1033,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
     @SuppressWarnings("unused")
     int template1DropCount = 0;
     // get non-template entries for treeElement1
-    List<TreeElement> element1ExcludingRepeatIndex0Children = new ArrayList<TreeElement>();
+    List<TreeElement> element1ExcludingRepeatIndex0Children = new ArrayList<>();
 
     for (int i = 0; i < treeElement1.getNumChildren(); i++) {
       TreeElement child = treeElement1.getChildAt(i);
@@ -1051,7 +1051,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
     @SuppressWarnings("unused")
     int template2DropCount = 0;
     // get non-template entries for treeElement2
-    Map<String, TreeElement> element2ExcludingRepeatIndex0Children = new HashMap<String, TreeElement>();
+    Map<String, TreeElement> element2ExcludingRepeatIndex0Children = new HashMap<>();
 
     for (int i = 0; i < treeElement2.getNumChildren(); i++) {
       TreeElement child = treeElement2.getChildAt(i);

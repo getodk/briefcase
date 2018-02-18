@@ -194,7 +194,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
       contentPanel.add(lblEncoding, gbc_lblEncoding);
     }
     {
-      listCharset = new JList<CharsetEntry>();
+      listCharset = new JList<>();
       listCharset.setVisibleRowCount(7);
       listCharset.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       GridBagConstraints gbc_cbCharset = new GridBagConstraints();
@@ -260,7 +260,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
   }
 
   protected void initialize() {
-    DefaultListModel<CharsetEntry> defaultListModel = new DefaultListModel<CharsetEntry>();
+    DefaultListModel<CharsetEntry> defaultListModel = new DefaultListModel<>();
 
     for (CharsetEntry commonCharsetEntry : commonCharsetEntries) {
       try {
