@@ -483,7 +483,7 @@ public class ServerFetcher {
 
     String baseUrl = serverInfo.getUrl() + "/view/downloadSubmission";
 
-    Map<String, String> params = new HashMap<String, String>();
+    Map<String, String> params = new HashMap<>();
     params.put("formId", formId);
     String fullUrl = WebUtils.createLinkWithProperties(baseUrl, params);
     AggregateUtils.DocumentFetchResult result;
@@ -572,7 +572,7 @@ public class ServerFetcher {
     fs.setStatusString("Fetching form manifest", true);
     EventBus.publish(new FormStatusEvent(fs));
 
-    List<MediaFile> files = new ArrayList<MediaFile>();
+    List<MediaFile> files = new ArrayList<>();
     AggregateUtils.DocumentFetchResult result;
     try {
       DocumentDescription formManifestDescription = new DocumentDescription("Fetch of manifest failed. Detailed reason: ",

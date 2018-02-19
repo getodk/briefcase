@@ -289,7 +289,7 @@ public class XmlManipulationUtils {
   public static final List<RemoteFormDefinition> parseFormListResponse(boolean isOpenRosaResponse,
                                                                        Document formListDoc) throws ParsingException {
     // This gets a list of available forms from the specified server.
-    List<RemoteFormDefinition> formList = new ArrayList<RemoteFormDefinition>();
+    List<RemoteFormDefinition> formList = new ArrayList<>();
 
     if (isOpenRosaResponse) {
       // Attempt OpenRosa 1.0 parsing
@@ -466,7 +466,7 @@ public class XmlManipulationUtils {
   public static final List<MediaFile> parseFormManifestResponse(boolean isOpenRosaResponse,
                                                                 Document doc) throws ParsingException {
 
-    List<MediaFile> files = new ArrayList<MediaFile>();
+    List<MediaFile> files = new ArrayList<>();
 
     if (!isOpenRosaResponse) {
       log.error("Manifest reply doesn't report an OpenRosa version -- bad server?");
@@ -543,7 +543,7 @@ public class XmlManipulationUtils {
 
   public static final SubmissionChunk parseSubmissionDownloadListResponse(Document doc)
       throws ParsingException {
-    List<String> uriList = new ArrayList<String>();
+    List<String> uriList = new ArrayList<>();
     String websafeCursorString = "";
 
     // Attempt parsing
@@ -617,7 +617,7 @@ public class XmlManipulationUtils {
       throws ParsingException {
 
     // and parse the document...
-    List<MediaFile> attachmentList = new ArrayList<MediaFile>();
+    List<MediaFile> attachmentList = new ArrayList<>();
     Element rootSubmissionElement = null;
     String instanceID = null;
 

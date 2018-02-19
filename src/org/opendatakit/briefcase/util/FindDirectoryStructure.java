@@ -75,7 +75,7 @@ public class FindDirectoryStructure {
     } else // Assume Unix
     {
       String username = System.getProperty(USER_NAME);
-      List<File> mountslist = new ArrayList<File>();
+      List<File> mountslist = new ArrayList<>();
       mountslist.add( new File("/mnt"));
       mountslist.add( new File("/media"));
 
@@ -117,7 +117,7 @@ public class FindDirectoryStructure {
    */
   private static List<File> search(File[] mounts, boolean isDirectChild) {
 
-    List<File> candidates = new ArrayList<File>();
+    List<File> candidates = new ArrayList<>();
 
     for ( File f : mounts ) {
       if ( f.exists() && f.isDirectory() ) {

@@ -302,7 +302,7 @@ public final class WebUtils {
   }
 
   public static final List<AuthScope> buildAuthScopes(String host) {
-    List<AuthScope> asList = new ArrayList<AuthScope>();
+    List<AuthScope> asList = new ArrayList<>();
 
     AuthScope a;
     // allow digest auth on any port...
@@ -386,7 +386,7 @@ public final class WebUtils {
     SocketConfig socketConfig = SocketConfig.copy(SocketConfig.DEFAULT).setSoTimeout(SERVER_CONNECTION_TIMEOUT).build();
 
     // if possible, bias toward digest auth (may not be in 4.0 beta 2)
-    List<String> targetPreferredAuthSchemes = new ArrayList<String>();
+    List<String> targetPreferredAuthSchemes = new ArrayList<>();
     targetPreferredAuthSchemes.add(AuthSchemes.DIGEST);
     targetPreferredAuthSchemes.add(AuthSchemes.BASIC);
 

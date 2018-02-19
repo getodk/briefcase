@@ -122,7 +122,7 @@ public class FileSystemUtils {
   }
 
   public static final List<BriefcaseFormDefinition> getBriefcaseFormList() {
-    List<BriefcaseFormDefinition> formsList = new ArrayList<BriefcaseFormDefinition>();
+    List<BriefcaseFormDefinition> formsList = new ArrayList<>();
     File forms = FileSystemUtils.getFormsFolder();
     if (forms.exists()) {
       File[] formDirs = forms.listFiles();
@@ -156,7 +156,7 @@ public class FileSystemUtils {
   }
 
   public static final List<OdkCollectFormDefinition> getODKFormList(File odk) {
-    List<OdkCollectFormDefinition> formsList = new ArrayList<OdkCollectFormDefinition>();
+    List<OdkCollectFormDefinition> formsList = new ArrayList<>();
     File forms = new File(odk, "forms");
     if (forms.exists()) {
       File[] formDirs = forms.listFiles();
@@ -502,7 +502,7 @@ public class FileSystemUtils {
     // NOTE: will decrypt only the files in the media list, plus the encryptedSubmissionFile
 
     File[] allFiles = instanceDir.listFiles();
-    List<File> filesToProcess = new ArrayList<File>();
+    List<File> filesToProcess = new ArrayList<>();
     for (File f : allFiles) {
       if (mediaNames.contains(f.getName())) {
         filesToProcess.add(f);
@@ -515,7 +515,7 @@ public class FileSystemUtils {
     if (filesToProcess.size() != mediaNames.size() + 1) {
       // figure out what we're missing...
       int lostFileCount = 0;
-      List<String> missing = new ArrayList<String>();
+      List<String> missing = new ArrayList<>();
       for (String name : mediaNames) {
         if (name == null) {
           // this was lost due to an pre-ODK Aggregate 1.4.5 mark-as-complete action
@@ -672,7 +672,7 @@ public class FileSystemUtils {
 
     String base64EncryptedSymmetricKey;
     String instanceIdMetadata = null;
-    List<String> mediaNames = new ArrayList<String>();
+    List<String> mediaNames = new ArrayList<>();
     String encryptedSubmissionFile;
     String base64EncryptedElementSignature;
 
