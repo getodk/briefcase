@@ -49,6 +49,36 @@ To package a runnable jar, use the `jar` Gradle task.
 
 To try the app, you can use the demo server. In the window that opens when running, choose Connect, then fill in the URL [http://opendatakit.appspot.com](http://opendatakit.appspot.com) leave username and password blank.
 
+## Logging
+Briefcase uses [SLF4J](https://www.slf4j.org/) with [Logback Classic](https://logback.qos.ch/) binding. The project also loads the [jcl-over-slf4j](https://www.slf4j.org/legacy.html) bridge for libraries that still use old [Apache Commons Logging](https://commons.apache.org/proper/commons-logging/). 
+
+There are example configuration files that you can use while developing:
+- Copy `test/resources/logback-test.xml.example` to `test/resources/logback-test.xml`. This conf will be used when running tests.
+- Copy `res/logback.xml.example` to `res/logback.xml`. This conf will be used when launching Briefcase on your machine.
+
+### Logging tests vs development vs release
+During the release process, we use a specific logback for release. This configuration only logs to a `briefcase.log` file, created in the same folder where Briefcase is launched by the user.
+
+For testing and development purposes, customization of logback conf files is encouraged, especially to filter different levels of logging for specific packages. The following example sets the default level to `INFO` and `DEBUG` for components under `org.opendatakit`:
+
+```xml
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="org.opendatakit" level="debug"/>
+
+  <root level="info">
+    <appender-ref ref="STDOUT"/>
+  </root>
+</configuration>
+``` 
+
+More information on Logback configuration is available [here](https://logback.qos.ch/manual/configuration.html)
+
 ## Contributing code
 Any and all contributions to the project are welcome. ODK Briefcase is used across the world primarily by organizations with a social purpose so you can have real impact!
 

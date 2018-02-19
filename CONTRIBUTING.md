@@ -63,62 +63,6 @@ Small fixes that target very particular bugs may occasionally be merged without 
 ## Style guidelines
 For now, match the style of the code in the file you are editing.
 
-## Logging
-Briefcase uses [SLF4J](https://www.slf4j.org/) with [Logback Classic](https://logback.qos.ch/) binding. The project also loads the [jcl-over-slf4j](https://www.slf4j.org/legacy.html) bridge for libraries that still use old [Apache Commons Logging](https://commons.apache.org/proper/commons-logging/). 
-
-There are example configuration files that you can use while developing:
-- Copy `test/resources/logback-test.xml.example` to `test/resources/logback-test.xml`. This conf will be used when running tests.
-- Copy `res/logback.xml.example` to `res/logback.xml`. This conf will be used when launching Briefcase on your machine.
-
-### Getting the logger and logger names
-When a class needs to log something, it must get its logger like this:
-
-```java
-public class Cli {
-  private static final Logger log = LoggerFactory.getLogger(Cli.class);
-
-  //...
-
-}
-```
-
-This way, the logger name is the FQN of the class.
-
-### Log format
-The default output of briefcase log looks like this:
-```log
-2017-10-19 10:35:57,501 [AWT-EventQueue-0] INFO o.o.b.m.TerminationFuture - cancel requested: Main window closed
-```
-The following items will be in the output (in the same order):
-* Date and Time
-* Thread name (between brackets)
-* Log Level
-* Logger name (collapsed to 36 chars long)
-* The log message
-
-### Logging tests vs development vs release
-During the release process, we use a specific logback for release. This configuration only logs to a `briefcase.log` file, created in the same folder where Briefcase is launched by the user.
-
-For testing and development purposes, customization of logback conf files is encouraged, especially to filter different levels of logging for specific packages. The following example sets the default level to `INFO` and `DEBUG` for components under `org.opendatakit`:
-
-```xml
-<configuration>
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-      <pattern>%d [%thread] %-5level %logger{36} - %msg%n</pattern>
-    </encoder>
-  </appender>
-
-  <logger name="org.opendatakit" level="debug"/>
-
-  <root level="info">
-    <appender-ref ref="STDOUT"/>
-  </root>
-</configuration>
-``` 
-
-More information on Logback configuration is available [here](https://logback.qos.ch/manual/configuration.html)
-
 ## Code from external sources
 ODK Briefcase is released under the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0). Please make sure that any code you include is an OSI-approved [permissive license](https://opensource.org/faq#permissive). **Please note that if no license is specified for a piece of code or if it has an incompatible license such as GPL, using it puts the project at legal risk**.
 
