@@ -57,7 +57,7 @@ There are example configuration files that you can use while developing:
 - Copy `res/logback.xml.example` to `res/logback.xml`. This conf will be used when launching Briefcase on your machine.
 
 ### Logging tests vs development vs release
-During the release process, we use a specific logback for release. This configuration only logs to a `briefcase.log` file, created in the same folder where Briefcase is launched by the user.
+During the release process, we use a specific logback for release. This configuration sends exceptions to Sentry.io and also logs to a `briefcase.log` file, created in the same folder where Briefcase is launched by the user.
 
 For testing and development purposes, customization of logback conf files is encouraged, especially to filter different levels of logging for specific packages. The following example sets the default level to `INFO` and `DEBUG` for components under `org.opendatakit`:
 
@@ -77,7 +77,7 @@ For testing and development purposes, customization of logback conf files is enc
 </configuration>
 ``` 
 
-More information on Logback configuration is available [here](https://logback.qos.ch/manual/configuration.html)
+More information on Logback configuration is available [here](https://logback.qos.ch/manual/configuration.html).
 
 ## Contributing code
 Any and all contributions to the project are welcome. ODK Briefcase is used across the world primarily by organizations with a social purpose so you can have real impact!
