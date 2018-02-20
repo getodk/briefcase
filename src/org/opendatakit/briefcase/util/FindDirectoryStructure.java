@@ -17,7 +17,6 @@
 package org.opendatakit.briefcase.util;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -126,12 +125,7 @@ public class FindDirectoryStructure {
             candidates.add(f);
           }
         } else {
-          File[] subdirs = f.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File f) {
-              return f.isDirectory();
-            }
-          });
+          File[] subdirs = f.listFiles(file -> file.isDirectory());
 
           for ( File s : subdirs ) {
             if ( hasOdkInstancesDirectory(s) ) {

@@ -20,7 +20,6 @@ import java.awt.Container;
 import java.awt.FileDialog;
 import java.awt.Frame;
 import java.io.File;
-import java.io.FilenameFilter;
 
 import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
@@ -67,12 +66,7 @@ public class WrappedFileChooser {
       dlg = new FileDialog((Frame) SwingUtilities.getWindowAncestor(parentWindow),
           fc.getDialogTitle());
       if (directoriesOnly) {
-        dlg.setFilenameFilter(new FilenameFilter() {
-          @Override
-          public boolean accept(File dir, String name) {
-            return (new File(dir, name).isDirectory());
-          }
-        });
+        dlg.setFilenameFilter((dir, name) -> (new File(dir, name).isDirectory()));
       }
     }
   }

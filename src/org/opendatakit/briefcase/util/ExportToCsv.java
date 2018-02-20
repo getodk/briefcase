@@ -20,7 +20,6 @@ import static java.time.ZoneId.systemDefault;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -130,12 +129,7 @@ public class ExportToCsv implements ITransformFormAction {
       return false;
     }
 
-    File[] instances = instancesDir.listFiles(new FileFilter() {
-      public boolean accept(File file) {
-        // do we have a folder with submission.xml inside
-        return file.isDirectory() && new File(file, "submission.xml").exists();
-      }
-    });
+    File[] instances = instancesDir.listFiles(file -> file.isDirectory() && new File(file, "submission.xml").exists());
     totalInstances = instances.length;
 
     // Sorts the instances by the submission date. If no submission date, we
