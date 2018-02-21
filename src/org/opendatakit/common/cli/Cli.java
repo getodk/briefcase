@@ -26,6 +26,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -131,8 +132,9 @@ public class Cli {
   private CommandLine getCli(String[] args, Set<Param> params) {
     try {
       return new DefaultParser().parse(mapToOptions(params), args, false);
-    } catch (UnrecognizedOptionException e) {
+    } catch (UnrecognizedOptionException | MissingArgumentException e) {
       System.err.println(e.getMessage());
+      log.error("Error", e);
       printHelp(requiredOperations, operations);
       System.exit(1);
       return null;
