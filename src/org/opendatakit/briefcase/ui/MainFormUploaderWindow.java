@@ -77,20 +77,18 @@ public class MainFormUploaderWindow {
    */
   public static void main(String[] args) {
 
-    EventQueue.invokeLater(new Runnable() {
-      public void run() {
-        try {
-          // Set System L&F
-          UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    EventQueue.invokeLater(() -> {
+      try {
+        // Set System L&F
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
-          MainFormUploaderWindow window = new MainFormUploaderWindow();
-          window.frame.setTitle(FORM_UPLOADER_VERSION);
-          ImageIcon icon = new ImageIcon(MainFormUploaderWindow.class.getClassLoader().getResource("odk_logo.png"));
-          window.frame.setIconImage(icon.getImage());
-          window.frame.setVisible(true);
-        } catch (Exception e) {
-          log.error("failed to launch app", e);
-        }
+        MainFormUploaderWindow window = new MainFormUploaderWindow();
+        window.frame.setTitle(FORM_UPLOADER_VERSION);
+        ImageIcon icon = new ImageIcon(MainFormUploaderWindow.class.getClassLoader().getResource("odk_logo.png"));
+        window.frame.setIconImage(icon.getImage());
+        window.frame.setVisible(true);
+      } catch (Exception e) {
+        log.error("failed to launch app", e);
       }
     });
   }
@@ -254,57 +252,41 @@ public class MainFormUploaderWindow {
     lblUploading = new JLabel("");
 
     btnDetails = new JButton("Details...");
-    btnDetails.addActionListener(new ActionListener() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (fs != null) {
-          ScrollingStatusListDialog.showDialog(
-              MainFormUploaderWindow.this.frame, fs.getFormDefinition(), fs.getStatusHistory());
-        }
+    btnDetails.addActionListener(__ -> {
+      if (fs != null) {
+        ScrollingStatusListDialog.showDialog(
+            MainFormUploaderWindow.this.frame, fs.getFormDefinition(), fs.getStatusHistory());
       }
     });
 
     btnUploadForm = new JButton("Upload Form");
-    btnUploadForm.addActionListener(new ActionListener() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        setActiveTransferState(true);
-        File formDefn = new File(txtFormDefinitionFile.getText());
-        TransferAction.uploadForm(
-            MainFormUploaderWindow.this.frame.getOwner(),
-            destinationServerInfo, terminationFuture, formDefn, fs);
-      }
+    btnUploadForm.addActionListener(__ -> {
+      setActiveTransferState(true);
+      File formDefn = new File(txtFormDefinitionFile.getText());
+      TransferAction.uploadForm(
+          MainFormUploaderWindow.this.frame.getOwner(),
+          destinationServerInfo, terminationFuture, formDefn, fs);
     });
 
     btnCancel = new JButton("Cancel");
-    btnCancel.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        terminationFuture.markAsCancelled(
-            new TransferAbortEvent("Form upload cancelled by user."));
-      }
-    });
+    btnCancel.addActionListener(__ -> terminationFuture.markAsCancelled(
+        new TransferAbortEvent("Form upload cancelled by user.")));
 
     btnClose = new JButton("Close");
-    btnClose.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (transferStateActive) {
-          if (JOptionPane.YES_OPTION != JOptionPane.showOptionDialog(frame,
-              "An upload is in progress. Are you sure you want to abort and exit?",
-              "Confirm Stop Form Upload",
-              JOptionPane.YES_NO_OPTION,
-              JOptionPane.ERROR_MESSAGE, null, null, null)) {
-            return; // no-op
-          }
-          terminationFuture.markAsCancelled(new TransferAbortEvent("User closes window"));
+    btnClose.addActionListener(__ -> {
+      if (transferStateActive) {
+        if (JOptionPane.YES_OPTION != JOptionPane.showOptionDialog(frame,
+            "An upload is in progress. Are you sure you want to abort and exit?",
+            "Confirm Stop Form Upload",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.ERROR_MESSAGE, null, null, null)) {
+          return; // no-op
         }
-        frame.setVisible(false);
-        frame.dispose();
-        System.exit(0);
+        terminationFuture.markAsCancelled(new TransferAbortEvent("User closes window"));
       }
+      frame.setVisible(false);
+      frame.dispose();
+      System.exit(0);
     });
 
     JLabel lblUploadToServer = new JLabel("Upload to server:");

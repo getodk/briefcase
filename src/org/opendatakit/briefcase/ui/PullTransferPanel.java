@@ -274,14 +274,8 @@ public class PullTransferPanel extends JPanel {
     lblDownloading.setForeground(lblDownloading.getBackground());
     btnTransfer = new JButton(TAB_NAME);
     btnCancel = new JButton("Cancel");
-    btnCancel.addActionListener(new ActionListener() {
-
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        PullTransferPanel.this.terminationFuture.markAsCancelled(
-            new TransferAbortEvent(TAB_NAME + " cancelled by user."));
-      }
-    });
+    btnCancel.addActionListener(__ -> PullTransferPanel.this.terminationFuture.markAsCancelled(
+        new TransferAbortEvent(TAB_NAME + " cancelled by user.")));
 
     formTransferTable = new FormTransferTable(
             btnSelectOrClearAllForms, FormStatus.TransferType.GATHER, btnTransfer, btnCancel);

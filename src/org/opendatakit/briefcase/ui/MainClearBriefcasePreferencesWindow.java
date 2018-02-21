@@ -36,26 +36,24 @@ public class MainClearBriefcasePreferencesWindow {
    */
   public static void main(String[] args) {
 
-    EventQueue.invokeLater(new Runnable() {
-      public void run() {
-        try {
-          // Set System L&F
-          UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-          Image myImage = Toolkit.getDefaultToolkit().getImage(
-              MainClearBriefcasePreferencesWindow.class.getClassLoader().getResource("odk_logo.png"));
-          Object[] options = {"Purge",
-              "Cancel"};
-          int outcome = JOptionPane.showOptionDialog(null,
-              "Clear all Briefcase preferences.                                            ",
-              CLEAR_PREFERENCES_VERSION,
-              JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE,
-              new ImageIcon(myImage), options, options[1]);
-          if (outcome == 0) {
-            BriefcasePreferences.setBriefcaseDirectoryProperty(null);
-          }
-        } catch (Exception e) {
-          log.error("failed to launch app", e);
+    EventQueue.invokeLater(() -> {
+      try {
+        // Set System L&F
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        Image myImage = Toolkit.getDefaultToolkit().getImage(
+            MainClearBriefcasePreferencesWindow.class.getClassLoader().getResource("odk_logo.png"));
+        Object[] options = {"Purge",
+            "Cancel"};
+        int outcome = JOptionPane.showOptionDialog(null,
+            "Clear all Briefcase preferences.                                            ",
+            CLEAR_PREFERENCES_VERSION,
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE,
+            new ImageIcon(myImage), options, options[1]);
+        if (outcome == 0) {
+          BriefcasePreferences.setBriefcaseDirectoryProperty(null);
         }
+      } catch (Exception e) {
+        log.error("failed to launch app", e);
       }
     });
   }

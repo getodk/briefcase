@@ -176,14 +176,12 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   }
 
   public static void launchGUI() {
-    EventQueue.invokeLater(new Runnable() {
-      public void run() {
-        try {
-          UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-          MainBriefcaseWindow window = new MainBriefcaseWindow();
-        } catch (Exception e) {
-          log.error("failed to launch app", e);
-        }
+    EventQueue.invokeLater(() -> {
+      try {
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        MainBriefcaseWindow window = new MainBriefcaseWindow();
+      } catch (Exception e) {
+        log.error("failed to launch app", e);
       }
     });
   }

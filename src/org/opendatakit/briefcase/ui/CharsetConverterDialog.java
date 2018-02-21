@@ -58,8 +58,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -116,17 +114,15 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
    */
   public static void main(String[] args) {
 
-    EventQueue.invokeLater(new Runnable() {
-      public void run() {
-        try {
-          // Set System L&F
-          UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    EventQueue.invokeLater(() -> {
+      try {
+        // Set System L&F
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
-          CharsetConverterDialog window = new CharsetConverterDialog(new JFrame());
-          window.setVisible(true);
-        } catch (Exception e) {
-          log.error("failed to start app", e);
-        }
+        CharsetConverterDialog window = new CharsetConverterDialog(new JFrame());
+        window.setVisible(true);
+      } catch (Exception e) {
+        log.error("failed to start app", e);
       }
     });
   }
@@ -285,13 +281,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
     if (defaultListModel.size() > 0) {
       listCharset.setSelectedIndex(0);
 
-      listCharset.addListSelectionListener(new ListSelectionListener() {
-
-        @Override
-        public void valueChanged(ListSelectionEvent e) {
-          updatePreview();
-        }
-      });
+      listCharset.addListSelectionListener(__ -> updatePreview());
     } else {
       JOptionPane.showMessageDialog(this,
               "It appears that your installed Java Runtime Environment does not support any charset encodings!",

@@ -42,37 +42,34 @@ public class SettingsPanel extends JPanel {
     txtBriefcaseDir.setColumns(50);
 
     final JButton btnChoose = new JButton("Change...");
-    btnChoose.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        WrappedFileChooser fc = new WrappedFileChooser(parentWindow.frame,
-            new BriefcaseFolderChooser(parentWindow.frame));
-        // figure out the initial directory path...
-        String candidateDir = txtBriefcaseDir.getText();
-        File base = null;
-        if (candidateDir == null || candidateDir.trim().length() == 0) {
-          // nothing -- use default
-          base = new File(BriefcasePreferences.appScoped().getBriefcaseDirectoryOrUserHome());
-        } else {
-          // start with candidate parent and move up the tree until we have a valid directory.
-          base = new File(candidateDir).getParentFile();
-          while (base != null && (!base.exists() || !base.isDirectory())) {
-            base = base.getParentFile();
-          }
+    btnChoose.addActionListener(__ -> {
+      WrappedFileChooser fc = new WrappedFileChooser(parentWindow.frame,
+          new BriefcaseFolderChooser(parentWindow.frame));
+      // figure out the initial directory path...
+      String candidateDir = txtBriefcaseDir.getText();
+      File base = null;
+      if (candidateDir == null || candidateDir.trim().length() == 0) {
+        // nothing -- use default
+        base = new File(BriefcasePreferences.appScoped().getBriefcaseDirectoryOrUserHome());
+      } else {
+        // start with candidate parent and move up the tree until we have a valid directory.
+        base = new File(candidateDir).getParentFile();
+        while (base != null && (!base.exists() || !base.isDirectory())) {
+          base = base.getParentFile();
         }
-        if (base != null) {
-          fc.setSelectedFile(base);
-        }
-        int retVal = fc.showDialog();
-        if (retVal == JFileChooser.APPROVE_OPTION) {
-          File parentFolder = fc.getSelectedFile();
-          if (parentFolder != null) {
-            String briefcasePath = parentFolder.getAbsolutePath();
-            txtBriefcaseDir.setText(briefcasePath);
-            BriefcasePreferences.setBriefcaseDirectoryProperty(briefcasePath);
-            FileSystemUtils.createFormCacheInBriefcaseFolder();
-            parentWindow.storageLocation.establishBriefcaseStorageLocation(parentWindow.frame, parentWindow);
-          }
+      }
+      if (base != null) {
+        fc.setSelectedFile(base);
+      }
+      int retVal = fc.showDialog();
+      if (retVal == JFileChooser.APPROVE_OPTION) {
+        File parentFolder = fc.getSelectedFile();
+        if (parentFolder != null) {
+          String briefcasePath = parentFolder.getAbsolutePath();
+          txtBriefcaseDir.setText(briefcasePath);
+          BriefcasePreferences.setBriefcaseDirectoryProperty(briefcasePath);
+          FileSystemUtils.createFormCacheInBriefcaseFolder();
+          parentWindow.storageLocation.establishBriefcaseStorageLocation(parentWindow.frame, parentWindow);
         }
       }
     });
