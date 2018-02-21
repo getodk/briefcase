@@ -16,34 +16,35 @@
 
 package org.opendatakit.briefcase.util;
 
+import static java.time.ZoneId.systemDefault;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Optional;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.NoSuchPaddingException;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.EventBus;
 import org.javarosa.core.model.instance.AbstractTreeElement;
 import org.javarosa.core.model.instance.TreeElement;
@@ -54,53 +55,53 @@ import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.CryptoException;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportProgressPercentageEvent;
+import org.opendatakit.briefcase.model.ExportSucceededEvent;
+import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.operations.ExportException;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExportToCsv implements ITransformFormAction {
 
   private static final String MEDIA_DIR = "media";
 
-  private static final Log log = LogFactory.getLog(ExportToCsv.class);
+  private static final Logger log = LoggerFactory.getLogger(ExportToCsv.class);
 
-  File outputDir;
-  File outputMediaDir;
-  String baseFilename;
-  BriefcaseFormDefinition briefcaseLfd;
-  TerminationFuture terminationFuture;
-  Map<TreeElement, OutputStreamWriter> fileMap = new HashMap<TreeElement, OutputStreamWriter>();
-  Map<String, String> fileHashMap = new HashMap<String, String>();
-  
-  boolean exportMedia = true;
-  Date startDate;
-  Date endDate;
-  boolean overwrite = false;
   int totalFilesSkipped = 0;
   int totalInstances = 0;
   int processedInstances = 0;
+  private final Map<TreeElement, OutputStreamWriter> fileMap = new HashMap<>();
+  private final Map<String, String> fileHashMap = new HashMap<>();
+  private final TerminationFuture terminationFuture;
+  private final File outputDir;
+  private final BriefcaseFormDefinition briefcaseLfd;
+  private final String baseFilename;
+  private final boolean exportMedia;
+  private final boolean overwrite;
+  private final Date startDate;
+  private final Date endDate;
+  private final File outputMediaDir;
 
-
-  public ExportToCsv(File outputDir, BriefcaseFormDefinition lfd, TerminationFuture terminationFuture, Date start, Date end) {
-    this(outputDir, lfd, terminationFuture, lfd.getFormName(), true, false, start, end);
+  public ExportToCsv(TerminationFuture terminationFuture, File outputDir, BriefcaseFormDefinition briefcaseLfd, String baseFilename, boolean exportMedia, boolean overwrite, Date startDate, Date endDate) {
+    this.terminationFuture = terminationFuture;
+    this.outputDir = outputDir;
+    this.briefcaseLfd = briefcaseLfd;
+    this.baseFilename = stripCsvExtension(baseFilename);
+    this.exportMedia = exportMedia;
+    this.overwrite = overwrite;
+    this.startDate = startDate;
+    this.endDate = endDate;
+    this.outputMediaDir = new File(outputDir, MEDIA_DIR);
   }
 
-  public ExportToCsv(File outputDir, BriefcaseFormDefinition lfd, TerminationFuture terminationFuture, String filename, boolean exportMedia, Boolean overwrite, Date start, Date end) {
-     this.outputDir = outputDir;
-     this.outputMediaDir = new File(outputDir, MEDIA_DIR);
-     this.briefcaseLfd = lfd;
-     this.terminationFuture = terminationFuture;
 
-     // Strip .csv, it gets added later
-     if (filename.endsWith(".csv")) {
-         filename = filename.substring(0, filename.length() - 4);
-     }
-     this.baseFilename = filename;
-     this.exportMedia = exportMedia;
-     this.overwrite = overwrite;
-     this.startDate = start;
-     this.endDate = end;
+  private String stripCsvExtension(String filename) {
+    // Strip .csv, it gets added later
+    return filename.endsWith(".csv") ? filename.substring(0, filename.length() - 4) : filename;
   }
 
   @Override
@@ -128,19 +129,14 @@ public class ExportToCsv implements ITransformFormAction {
       return false;
     }
 
-    File[] instances = instancesDir.listFiles(new FileFilter() {
-      public boolean accept(File file) {
-        // do we have a folder with submission.xml inside
-        return file.isDirectory() && new File(file, "submission.xml").exists();
-      }
-    });
+    File[] instances = instancesDir.listFiles(file -> file.isDirectory() && new File(file, "submission.xml").exists());
     totalInstances = instances.length;
 
     // Sorts the instances by the submission date. If no submission date, we
     // assume it to be latest.
     if (instances != null) {
-      Arrays.sort(instances, new Comparator<File>() {
-        public int compare(File f1, File f2) {
+      Arrays.sort(instances, (f1, f2) ->
+        {
           try {
             if (f1.isDirectory() && f2.isDirectory()) {
               File submission1 = new File(f1, "submission.xml");
@@ -161,12 +157,12 @@ public class ExportToCsv implements ITransformFormAction {
             log.error("failed to sort submissions", e);
           }
           return 0;
-        }
-      });
+        });
+
     }
 
     for (File instanceDir : instances) {
-      if ( terminationFuture.isCancelled() ) {
+      if (terminationFuture.isCancelled()) {
         EventBus.publish(new ExportProgressEvent("Aborted", briefcaseLfd));
         allSuccessful = false;
         break;
@@ -204,7 +200,7 @@ public class ExportToCsv implements ITransformFormAction {
   }
 
   private String getFullName(AbstractTreeElement e, TreeElement group) {
-    List<String> names = new ArrayList<String>();
+    List<String> names = new ArrayList<>();
     while (e != null && e != group) {
       names.add(e.getName());
       e = e.getParent();
@@ -224,7 +220,7 @@ public class ExportToCsv implements ITransformFormAction {
   }
 
   private Element findElement(Element submissionElement, String name) {
-    if ( submissionElement == null ) {
+    if (submissionElement == null) {
       return null;
     }
     int maxChildren = submissionElement.getChildCount();
@@ -240,7 +236,7 @@ public class ExportToCsv implements ITransformFormAction {
   }
 
   private List<Element> findElementList(Element submissionElement, String name) {
-    List<Element> ecl = new ArrayList<Element>();
+    List<Element> ecl = new ArrayList<>();
     int maxChildren = submissionElement.getChildCount();
     for (int i = 0; i < maxChildren; i++) {
       if (submissionElement.getType(i) == Node.ELEMENT) {
@@ -270,18 +266,18 @@ public class ExportToCsv implements ITransformFormAction {
     String rawElement = b.toString();
 
     // Field-level encryption support -- experimental
-    if ( JavaRosaParserWrapper.isEncryptedField(model) ) {
+    if (JavaRosaParserWrapper.isEncryptedField(model)) {
 
       InputStreamReader isr = null;
       try {
         Cipher c = ei.getCipher("field:" + model.getName(), model.getName());
 
         isr = new InputStreamReader(new CipherInputStream(
-                  new ByteArrayInputStream(Base64.decodeBase64(rawElement)), c),"UTF-8");
+            new ByteArrayInputStream(Base64.decodeBase64(rawElement)), c), "UTF-8");
 
         b.setLength(0);
         int ch;
-        while ( (ch = isr.read()) != -1 ) {
+        while ((ch = isr.read()) != -1) {
           char theChar = (char) ch;
           b.append(theChar);
         }
@@ -305,9 +301,9 @@ public class ExportToCsv implements ITransformFormAction {
   }
 
   private boolean emitSubmissionCsv(OutputStreamWriter osw, EncryptionInformation ei,
-      Element submissionElement,
-      TreeElement primarySet, TreeElement treeElement, boolean first, String uniquePath,
-      File instanceDir) throws IOException {
+                                    Element submissionElement,
+                                    TreeElement primarySet, TreeElement treeElement, boolean first, String uniquePath,
+                                    File instanceDir) throws IOException {
     // OK -- group with at least one element -- assume no value...
     // TreeElement list has the begin and end tags for the nested groups.
     // Swallow the end tag by looking to see if the prior and current
@@ -324,229 +320,229 @@ public class ExportToCsv implements ITransformFormAction {
       } else {
         Element ec = findElement(submissionElement, current.getName());
         switch (current.getDataType()) {
-        case org.javarosa.core.model.Constants.DATATYPE_TEXT:/**
+          case org.javarosa.core.model.Constants.DATATYPE_TEXT:/**
            * Text question
            * type.
            */
-        case org.javarosa.core.model.Constants.DATATYPE_INTEGER:/**
+          case org.javarosa.core.model.Constants.DATATYPE_INTEGER:/**
            * Numeric
            * question type. These are numbers without decimal points
            */
-        case org.javarosa.core.model.Constants.DATATYPE_DECIMAL:/**
+          case org.javarosa.core.model.Constants.DATATYPE_DECIMAL:/**
            * Decimal
            * question type. These are numbers with decimals
            */
-        case org.javarosa.core.model.Constants.DATATYPE_CHOICE:/**
+          case org.javarosa.core.model.Constants.DATATYPE_CHOICE:/**
            * This is a
            * question with alist of options where not more than one option can
            * be selected at a time.
            */
-        case org.javarosa.core.model.Constants.DATATYPE_CHOICE_LIST:/**
+          case org.javarosa.core.model.Constants.DATATYPE_CHOICE_LIST:/**
            * This is a
            * question with alist of options where more than one option can be
            * selected at a time.
            */
-        case org.javarosa.core.model.Constants.DATATYPE_BOOLEAN:/**
+          case org.javarosa.core.model.Constants.DATATYPE_BOOLEAN:/**
            * Question with
            * true and false answers.
            */
-        case org.javarosa.core.model.Constants.DATATYPE_BARCODE:/**
+          case org.javarosa.core.model.Constants.DATATYPE_BARCODE:/**
            * Question with
            * barcode string answer.
            */
-        default:
-        case org.javarosa.core.model.Constants.DATATYPE_UNSUPPORTED:
-          if (ec == null) {
-            emitString(osw, first, null);
-          } else {
-            emitString(osw, first, getSubmissionValue(ei,current,ec));
-          }
-          first = false;
-          break;
-        case org.javarosa.core.model.Constants.DATATYPE_DATE:
-          /**
-           * Date question type. This has only date component without time.
-           */
-          if (ec == null) {
-            emitString(osw, first, null);
-          } else {
-            String value = getSubmissionValue(ei,current,ec);
-            if (value == null || value.length() == 0) {
+          default:
+          case org.javarosa.core.model.Constants.DATATYPE_UNSUPPORTED:
+            if (ec == null) {
               emitString(osw, first, null);
             } else {
-              Date date = WebUtils.parseDate(value);
-              DateFormat formatter = DateFormat.getDateInstance();
-              emitString(osw, first, formatter.format(date));
+              emitString(osw, first, getSubmissionValue(ei, current, ec));
             }
-          }
-          first = false;
-          break;
-        case org.javarosa.core.model.Constants.DATATYPE_TIME:
-          /**
-           * Time question type. This has only time element without date
-           */
-          if (ec == null) {
-            emitString(osw, first, null);
-          } else {
-            String value = getSubmissionValue(ei,current,ec);
-            if (value == null || value.length() == 0) {
-              emitString(osw, first, null);
-            } else {
-              Date date = WebUtils.parseDate(value);
-              DateFormat formatter = DateFormat.getTimeInstance();
-              emitString(osw, first, formatter.format(date));
-            }
-          }
-          first = false;
-          break;
-        case org.javarosa.core.model.Constants.DATATYPE_DATE_TIME:
-          /**
-           * Date and Time question type. This has both the date and time
-           * components
-           */
-          if (ec == null) {
-            emitString(osw, first, null);
-          } else {
-            String value = getSubmissionValue(ei,current,ec);
-            if (value == null || value.length() == 0) {
-              emitString(osw, first, null);
-            } else {
-              Date date = WebUtils.parseDate(value);
-              DateFormat formatter = DateFormat.getDateTimeInstance();
-              emitString(osw, first, formatter.format(date));
-            }
-          }
-          first = false;
-          break;
-        case org.javarosa.core.model.Constants.DATATYPE_GEOPOINT:
-          /**
-           * Question with location answer.
-           */
-          String compositeValue = (ec == null) ? null : getSubmissionValue(ei,current,ec);
-          compositeValue = (compositeValue == null) ? null : compositeValue.trim();
-
-          // emit separate lat, long, alt, acc columns...
-          if (compositeValue == null || compositeValue.length() == 0) {
-            for (int count = 0; count < 4; ++count) {
-              emitString(osw, first, null);
-              first = false;
-            }
-          } else {
-            String[] values = compositeValue.split(" ");
-            for (String value : values) {
-              emitString(osw, first, value);
-              first = false;
-            }
-            for (int count = values.length; count < 4; ++count) {
-              emitString(osw, first, null);
-              first = false;
-            }
-          }
-          break;
-        case org.javarosa.core.model.Constants.DATATYPE_BINARY:
-          /**
-           * Question with external binary answer.
-           */
-          String binaryFilename = getSubmissionValue(ei,current,ec);
-          if (binaryFilename == null || binaryFilename.length() == 0) {
-            emitString(osw, first, null);
             first = false;
-          } else {
-            if (exportMedia) {
-               if (!outputMediaDir.exists()) {
+            break;
+          case org.javarosa.core.model.Constants.DATATYPE_DATE:
+            /**
+             * Date question type. This has only date component without time.
+             */
+            if (ec == null) {
+              emitString(osw, first, null);
+            } else {
+              String value = getSubmissionValue(ei, current, ec);
+              if (value == null || value.length() == 0) {
+                emitString(osw, first, null);
+              } else {
+                Date date = WebUtils.parseDate(value);
+                DateFormat formatter = DateFormat.getDateInstance();
+                emitString(osw, first, formatter.format(date));
+              }
+            }
+            first = false;
+            break;
+          case org.javarosa.core.model.Constants.DATATYPE_TIME:
+            /**
+             * Time question type. This has only time element without date
+             */
+            if (ec == null) {
+              emitString(osw, first, null);
+            } else {
+              String value = getSubmissionValue(ei, current, ec);
+              if (value == null || value.length() == 0) {
+                emitString(osw, first, null);
+              } else {
+                Date date = WebUtils.parseDate(value);
+                DateFormat formatter = DateFormat.getTimeInstance();
+                emitString(osw, first, formatter.format(date));
+              }
+            }
+            first = false;
+            break;
+          case org.javarosa.core.model.Constants.DATATYPE_DATE_TIME:
+            /**
+             * Date and Time question type. This has both the date and time
+             * components
+             */
+            if (ec == null) {
+              emitString(osw, first, null);
+            } else {
+              String value = getSubmissionValue(ei, current, ec);
+              if (value == null || value.length() == 0) {
+                emitString(osw, first, null);
+              } else {
+                Date date = WebUtils.parseDate(value);
+                DateFormat formatter = DateFormat.getDateTimeInstance();
+                emitString(osw, first, formatter.format(date));
+              }
+            }
+            first = false;
+            break;
+          case org.javarosa.core.model.Constants.DATATYPE_GEOPOINT:
+            /**
+             * Question with location answer.
+             */
+            String compositeValue = (ec == null) ? null : getSubmissionValue(ei, current, ec);
+            compositeValue = (compositeValue == null) ? null : compositeValue.trim();
+
+            // emit separate lat, long, alt, acc columns...
+            if (compositeValue == null || compositeValue.length() == 0) {
+              for (int count = 0; count < 4; ++count) {
+                emitString(osw, first, null);
+                first = false;
+              }
+            } else {
+              String[] values = compositeValue.split(" ");
+              for (String value : values) {
+                emitString(osw, first, value);
+                first = false;
+              }
+              for (int count = values.length; count < 4; ++count) {
+                emitString(osw, first, null);
+                first = false;
+              }
+            }
+            break;
+          case org.javarosa.core.model.Constants.DATATYPE_BINARY:
+            /**
+             * Question with external binary answer.
+             */
+            String binaryFilename = getSubmissionValue(ei, current, ec);
+            if (binaryFilename == null || binaryFilename.length() == 0) {
+              emitString(osw, first, null);
+              first = false;
+            } else {
+              if (exportMedia) {
+                if (!outputMediaDir.exists()) {
                   if (!outputMediaDir.mkdir()) {
                     EventBus.publish(new ExportProgressEvent("Unable to create destination media directory", briefcaseLfd));
                     return false;
                   }
-               }
+                }
 
-               int dotIndex = binaryFilename.lastIndexOf(".");
-               String namePart = (dotIndex == -1) ? binaryFilename : binaryFilename.substring(0,
-                   dotIndex);
-               String extPart = (dotIndex == -1) ? "" : binaryFilename.substring(dotIndex);
-   
-               File binaryFile = new File(instanceDir, binaryFilename);
-               String destBinaryFilename = binaryFilename;
-               int version = 1;
-               File destFile = new File(outputMediaDir, destBinaryFilename);
-               boolean exists = false;
+                int dotIndex = binaryFilename.lastIndexOf(".");
+                String namePart = (dotIndex == -1) ? binaryFilename : binaryFilename.substring(0,
+                    dotIndex);
+                String extPart = (dotIndex == -1) ? "" : binaryFilename.substring(dotIndex);
+
+                File binaryFile = new File(instanceDir, binaryFilename);
+                String destBinaryFilename = binaryFilename;
+                int version = 1;
+                File destFile = new File(outputMediaDir, destBinaryFilename);
+                boolean exists = false;
                 String binaryFileHash = null;
                 String destFileHash = null;
- 
+
                 if (destFile.exists() && binaryFile.exists()) {
-                   binaryFileHash = FileSystemUtils.getMd5Hash(binaryFile);
-                     
-                   while (destFile.exists()) {
+                  binaryFileHash = FileSystemUtils.getMd5Hash(binaryFile);
+
+                  while (destFile.exists()) {
                     /* check if the contents of the destFile and binaryFile is same
                      * if yes, skip the export of such file
                      */
- 
+
                     if (fileHashMap.containsKey(destFile.getName())) {
-                       destFileHash = fileHashMap.get(destFile.getName());
+                      destFileHash = fileHashMap.get(destFile.getName());
                     } else {
-                       destFileHash = FileSystemUtils.getMd5Hash(destFile);
-                       if (destFileHash != null) {
-                         fileHashMap.put(destFile.getName(), destFileHash);
-                       }
+                      destFileHash = FileSystemUtils.getMd5Hash(destFile);
+                      if (destFileHash != null) {
+                        fileHashMap.put(destFile.getName(), destFileHash);
+                      }
                     }
- 
+
                     if (binaryFileHash != null && destFileHash != null && destFileHash.equals(binaryFileHash)) {
-                     exists = true;
-                     break;
+                      exists = true;
+                      break;
                     }
- 
+
                     destBinaryFilename = namePart + "-" + (++version) + extPart;
                     destFile = new File(outputMediaDir, destBinaryFilename);
                   }
                 }
-               if (binaryFile.exists() && exists == false) {
-                 FileUtils.copyFile(binaryFile, destFile);
-               }
-               emitString(osw, first, MEDIA_DIR + File.separator + destFile.getName());
-            } else {
+                if (binaryFile.exists() && exists == false) {
+                  FileUtils.copyFile(binaryFile, destFile);
+                }
+                emitString(osw, first, MEDIA_DIR + File.separator + destFile.getName());
+              } else {
                 emitString(osw, first, binaryFilename);
-            }
+              }
 
-            first = false;
-          }
-          break;
-        case org.javarosa.core.model.Constants.DATATYPE_NULL: /*
-                                                               * for nodes that
-                                                               * have no data,
-                                                               * or data type
-                                                               * otherwise
-                                                               * unknown
-                                                               */
-          if (current.isRepeatable()) {
-            if (prior == null || !current.getName().equals(prior.getName())) {
-              // repeatable group...
+              first = false;
+            }
+            break;
+          case org.javarosa.core.model.Constants.DATATYPE_NULL: /*
+           * for nodes that
+           * have no data,
+           * or data type
+           * otherwise
+           * unknown
+           */
+            if (current.isRepeatable()) {
+              if (prior == null || !current.getName().equals(prior.getName())) {
+                // repeatable group...
+                if (ec == null) {
+                  emitString(osw, first, null);
+                  first = false;
+                } else {
+                  String uniqueGroupPath = uniquePath + "/" + getFullName(current, primarySet);
+                  emitString(osw, first, uniqueGroupPath);
+                  first = false;
+                  // first time processing this repeat group (ignore templates)
+                  List<Element> ecl = findElementList(submissionElement, current.getName());
+                  emitRepeatingGroupCsv(ei, ecl, current, uniquePath,
+                      uniqueGroupPath, instanceDir);
+                }
+              }
+            } else if (current.getNumChildren() == 0 && current != briefcaseLfd.getSubmissionElement()) {
+              // assume fields that don't have children are string fields.
               if (ec == null) {
                 emitString(osw, first, null);
                 first = false;
               } else {
-                String uniqueGroupPath = uniquePath + "/" + getFullName(current, primarySet);
-                emitString(osw, first, uniqueGroupPath);
+                emitString(osw, first, getSubmissionValue(ei, current, ec));
                 first = false;
-                // first time processing this repeat group (ignore templates)
-                List<Element> ecl = findElementList(submissionElement, current.getName());
-                emitRepeatingGroupCsv(ei, ecl, current, uniquePath,
-                                                    uniqueGroupPath, instanceDir);
               }
-            }
-          } else if (current.getNumChildren() == 0 && current != briefcaseLfd.getSubmissionElement()) {
-            // assume fields that don't have children are string fields.
-            if (ec == null) {
-              emitString(osw, first, null);
-              first = false;
             } else {
-              emitString(osw, first, getSubmissionValue(ei,current,ec));
-              first = false;
+              /* one or more children -- this is a non-repeating group */
+              first = emitSubmissionCsv(osw, ei, ec, primarySet, current, first, uniquePath, instanceDir);
             }
-          } else {
-            /* one or more children -- this is a non-repeating group */
-            first = emitSubmissionCsv(osw, ei, ec, primarySet, current, first, uniquePath, instanceDir);
-          }
-          break;
+            break;
         }
         prior = current;
       }
@@ -555,11 +551,11 @@ public class ExportToCsv implements ITransformFormAction {
   }
 
   private void emitRepeatingGroupCsv(EncryptionInformation ei, List<Element> groupElementList, TreeElement group,
-      String uniqueParentPath, String uniqueGroupPath, File instanceDir)
+                                     String uniqueParentPath, String uniqueGroupPath, File instanceDir)
       throws IOException {
     OutputStreamWriter osw = fileMap.get(group);
     int trueOrdinal = 1;
-    for ( Element groupElement : groupElementList ) {
+    for (Element groupElement : groupElementList) {
       String uniqueGroupInstancePath = uniqueGroupPath + "[" + trueOrdinal + "]";
       boolean first = true;
       first = emitSubmissionCsv(osw, ei, groupElement, group, group, first, uniqueGroupInstancePath, instanceDir);
@@ -572,7 +568,7 @@ public class ExportToCsv implements ITransformFormAction {
   }
 
   private boolean emitCsvHeaders(OutputStreamWriter osw, TreeElement primarySet,
-      TreeElement treeElement, boolean first) throws IOException {
+                                 TreeElement treeElement, boolean first) throws IOException {
     // OK -- group with at least one element -- assume no value...
     // TreeElement list has the begin and end tags for the nested groups.
     // Swallow the end tag by looking to see if the prior and current
@@ -587,88 +583,88 @@ public class ExportToCsv implements ITransformFormAction {
         prior = current;
       } else {
         switch (current.getDataType()) {
-        case org.javarosa.core.model.Constants.DATATYPE_TEXT:/**
+          case org.javarosa.core.model.Constants.DATATYPE_TEXT:/**
            * Text question
            * type.
            */
-        case org.javarosa.core.model.Constants.DATATYPE_INTEGER:/**
+          case org.javarosa.core.model.Constants.DATATYPE_INTEGER:/**
            * Numeric
            * question type. These are numbers without decimal points
            */
-        case org.javarosa.core.model.Constants.DATATYPE_DECIMAL:/**
+          case org.javarosa.core.model.Constants.DATATYPE_DECIMAL:/**
            * Decimal
            * question type. These are numbers with decimals
            */
-        case org.javarosa.core.model.Constants.DATATYPE_DATE:/**
+          case org.javarosa.core.model.Constants.DATATYPE_DATE:/**
            * Date question
            * type. This has only date component without time.
            */
-        case org.javarosa.core.model.Constants.DATATYPE_TIME:/**
+          case org.javarosa.core.model.Constants.DATATYPE_TIME:/**
            * Time question
            * type. This has only time element without date
            */
-        case org.javarosa.core.model.Constants.DATATYPE_DATE_TIME:/**
+          case org.javarosa.core.model.Constants.DATATYPE_DATE_TIME:/**
            * Date and
            * Time question type. This has both the date and time components
            */
-        case org.javarosa.core.model.Constants.DATATYPE_CHOICE:/**
+          case org.javarosa.core.model.Constants.DATATYPE_CHOICE:/**
            * This is a
            * question with alist of options where not more than one option can
            * be selected at a time.
            */
-        case org.javarosa.core.model.Constants.DATATYPE_CHOICE_LIST:/**
+          case org.javarosa.core.model.Constants.DATATYPE_CHOICE_LIST:/**
            * This is a
            * question with alist of options where more than one option can be
            * selected at a time.
            */
-        case org.javarosa.core.model.Constants.DATATYPE_BOOLEAN:/**
+          case org.javarosa.core.model.Constants.DATATYPE_BOOLEAN:/**
            * Question with
            * true and false answers.
            */
-        case org.javarosa.core.model.Constants.DATATYPE_BARCODE:/**
+          case org.javarosa.core.model.Constants.DATATYPE_BARCODE:/**
            * Question with
            * barcode string answer.
            */
-        case org.javarosa.core.model.Constants.DATATYPE_BINARY:/**
+          case org.javarosa.core.model.Constants.DATATYPE_BINARY:/**
            * Question with
            * external binary answer.
            */
-        default:
-        case org.javarosa.core.model.Constants.DATATYPE_UNSUPPORTED:
-          emitString(osw, first, getFullName(current, primarySet));
-          first = false;
-          break;
-        case org.javarosa.core.model.Constants.DATATYPE_GEOPOINT:
-          /**
-           * Question with location answer.
-           */
-          emitString(osw, first, getFullName(current, primarySet) + "-Latitude");
-          emitString(osw, false, getFullName(current, primarySet) + "-Longitude");
-          emitString(osw, false, getFullName(current, primarySet) + "-Altitude");
-          emitString(osw, false, getFullName(current, primarySet) + "-Accuracy");
-          first = false;
-          break;
-        case org.javarosa.core.model.Constants.DATATYPE_NULL: /*
-                                                               * for nodes that
-                                                               * have no data,
-                                                               * or data type
-                                                               * otherwise
-                                                               * unknown
-                                                               */
-          if (current.isRepeatable()) {
-            // repeatable group...
-            emitString(osw, first, "SET-OF-" + getFullName(current, primarySet));
-            first = false;
-            processRepeatingGroupDefinition(current, primarySet, true);
-          } else if (current.getNumChildren() == 0 && current != briefcaseLfd.getSubmissionElement()) {
-            // assume fields that don't have children are string fields.
+          default:
+          case org.javarosa.core.model.Constants.DATATYPE_UNSUPPORTED:
             emitString(osw, first, getFullName(current, primarySet));
             first = false;
-          } else {
-            /* one or more children -- this is a non-repeating group */
-            first = emitCsvHeaders(osw, primarySet, current, first);
-          }
-          break;
+            break;
+          case org.javarosa.core.model.Constants.DATATYPE_GEOPOINT:
+            /**
+             * Question with location answer.
+             */
+            emitString(osw, first, getFullName(current, primarySet) + "-Latitude");
+            emitString(osw, false, getFullName(current, primarySet) + "-Longitude");
+            emitString(osw, false, getFullName(current, primarySet) + "-Altitude");
+            emitString(osw, false, getFullName(current, primarySet) + "-Accuracy");
+            first = false;
+            break;
+          case org.javarosa.core.model.Constants.DATATYPE_NULL: /*
+           * for nodes that
+           * have no data,
+           * or data type
+           * otherwise
+           * unknown
+           */
+            if (current.isRepeatable()) {
+              // repeatable group...
+              emitString(osw, first, "SET-OF-" + getFullName(current, primarySet));
+              first = false;
+              processRepeatingGroupDefinition(current, primarySet, true);
+            } else if (current.getNumChildren() == 0 && current != briefcaseLfd.getSubmissionElement()) {
+              // assume fields that don't have children are string fields.
+              emitString(osw, first, getFullName(current, primarySet));
+              first = false;
+            } else {
+              /* one or more children -- this is a non-repeating group */
+              first = emitCsvHeaders(osw, primarySet, current, first);
+            }
+            break;
         }
         prior = current;
       }
@@ -677,7 +673,7 @@ public class ExportToCsv implements ITransformFormAction {
   }
 
   private void populateRepeatGroupsIntoFileMap(TreeElement primarySet,
-      TreeElement treeElement) throws IOException {
+                                               TreeElement treeElement) throws IOException {
     // OK -- group with at least one element -- assume no value...
     // TreeElement list has the begin and end tags for the nested groups.
     // Swallow the end tag by looking to see if the prior and current
@@ -692,19 +688,19 @@ public class ExportToCsv implements ITransformFormAction {
         prior = current;
       } else {
         switch (current.getDataType()) {
-        default:
-          break;
-        case org.javarosa.core.model.Constants.DATATYPE_NULL: 
-          /* for nodes that have no data, or data type otherwise unknown */
-          if (current.isRepeatable()) {
-            processRepeatingGroupDefinition(current, primarySet, false);
-          } else if (current.getNumChildren() == 0 && current != briefcaseLfd.getSubmissionElement()) {
-            // ignore - string type
-          } else {
-            /* one or more children -- this is a non-repeating group */
-            populateRepeatGroupsIntoFileMap(primarySet, current);
-          }
-          break;
+          default:
+            break;
+          case org.javarosa.core.model.Constants.DATATYPE_NULL:
+            /* for nodes that have no data, or data type otherwise unknown */
+            if (current.isRepeatable()) {
+              processRepeatingGroupDefinition(current, primarySet, false);
+            } else if (current.getNumChildren() == 0 && current != briefcaseLfd.getSubmissionElement()) {
+              // ignore - string type
+            } else {
+              /* one or more children -- this is a non-repeating group */
+              populateRepeatGroupsIntoFileMap(primarySet, current);
+            }
+            break;
         }
         prior = current;
       }
@@ -718,7 +714,7 @@ public class ExportToCsv implements ITransformFormAction {
     FileOutputStream os = new FileOutputStream(topLevelCsv, !overwrite);
     OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
     fileMap.put(group, osw);
-    if ( emitCsvHeaders ) {
+    if (emitCsvHeaders) {
       boolean first = true;
       first = emitCsvHeaders(osw, group, group, first);
       emitString(osw, first, "PARENT_KEY");
@@ -748,16 +744,16 @@ public class ExportToCsv implements ITransformFormAction {
       fileMap.put(submission, osw);
       // only write headers if overwrite is set, or creating file for the first time
       if (overwrite || !exists) {
-          emitString(osw, true, "SubmissionDate");
-          emitCsvHeaders(osw, submission, submission, false);
-          emitString(osw, false, "KEY");
-          if ( briefcaseLfd.isFileEncryptedForm() ) {
-              emitString(osw, false, "isValidated");
-          }
-          osw.append("\n");
-       } else {
-         populateRepeatGroupsIntoFileMap(submission, submission);
-       }
+        emitString(osw, true, "SubmissionDate");
+        emitCsvHeaders(osw, submission, submission, false);
+        emitString(osw, false, "KEY");
+        if (briefcaseLfd.isFileEncryptedForm()) {
+          emitString(osw, false, "isValidated");
+        }
+        osw.append("\n");
+      } else {
+        populateRepeatGroupsIntoFileMap(submission, submission);
+      }
 
     } catch (IOException e) {
       String msg = "Unable to create csv file: " + topLevelCsv.getPath();
@@ -790,34 +786,28 @@ public class ExportToCsv implements ITransformFormAction {
     EventBus.publish(new ExportProgressPercentageEvent((processedInstances * 100.0) / totalInstances, briefcaseLfd));
 
     // If we are encrypted, be sure the temporary directory
-    // that will hold the unencrypted files is created and empty.
+    // that will hold the unencrypted files is created.
     // If we aren't encrypted, the temporary directory
     // is the same as the instance directory.
 
     File unEncryptedDir;
     if (briefcaseLfd.isFileEncryptedForm()) {
-      // create or clean-up the temp directory that will hold the unencrypted
+      // create the temp directory that will hold the unencrypted
       // files. Do this in the outputDir so that the briefcase storage location
       // can be a read-only network mount. issue 676.
-      unEncryptedDir = new File(outputDir, ".temp");
-
-      if (unEncryptedDir.exists()) {
-        // silently delete it...
-        try {
-          FileUtils.deleteDirectory(unEncryptedDir);
-        } catch (IOException e) {
-          String msg = "Unable to delete stale temp directory: " + unEncryptedDir.getAbsolutePath();
-          log.warn(msg, e);
-          EventBus.publish(new ExportProgressEvent(msg, briefcaseLfd));
-          return false;
-        }
-      }
-
-      if (!unEncryptedDir.mkdirs()) {
-        EventBus.publish(new ExportProgressEvent("Unable to create temp directory: "
-            + unEncryptedDir.getAbsolutePath(), briefcaseLfd));
+      Path path;
+      try {
+        path = Files.createTempDirectory(Paths.get(outputDir.toURI()), ".temp");
+      } catch (IOException e) {
+        String msg = "Unable to create temp directory.";
+        log.error(msg, e);
+        EventBus.publish(new ExportProgressEvent(msg + " Cause : "
+                + e.toString(), briefcaseLfd));
         return false;
       }
+
+      unEncryptedDir = path.toFile();
+
     } else {
       unEncryptedDir = instanceDir;
     }
@@ -845,23 +835,23 @@ public class ExportToCsv implements ITransformFormAction {
       Date theDate = WebUtils.parseDate(submissionDate);
       DateFormat formatter = DateFormat.getDateTimeInstance();
       submissionDate = formatter.format(theDate);
-      
+
       // just return true to skip records out of range
       if (startDate != null && theDate.before(startDate)) {
-          log.info("Submission date is before specified, skipping: " + instanceDir.getName());
-          return true;
+        log.info("Submission date is before specified, skipping: " + instanceDir.getName());
+        return true;
       }
       if (endDate != null && theDate.after(endDate)) {
-          log.info("Submission date is after specified, skipping: " + instanceDir.getName());
-          return true;
+        log.info("Submission date is after specified, skipping: " + instanceDir.getName());
+        return true;
       }
       // don't export records without dates if either date is set
       if ((startDate != null || endDate != null) && submissionDate == null) {
-          log.info("No submission date found, skipping: " + instanceDir.getName());
-          return true;
+        log.info("No submission date found, skipping: " + instanceDir.getName());
+        return true;
       }
     }
-    
+
     // Beyond this point, we need to have a finally block that
     // will clean up any decrypted files whenever there is any
     // failure.
@@ -874,18 +864,18 @@ public class ExportToCsv implements ITransformFormAction {
         // NOTE: this changes the value of 'doc'
         try {
           FileSystemUtils.DecryptOutcome outcome =
-            FileSystemUtils.decryptAndValidateSubmission(doc, briefcaseLfd.getPrivateKey(),
-              instanceDir, unEncryptedDir);
+              FileSystemUtils.decryptAndValidateSubmission(doc, briefcaseLfd.getPrivateKey(),
+                  instanceDir, unEncryptedDir);
           doc = outcome.submission;
           isValidated = outcome.isValidated;
         } catch (ParsingException | CryptoException | FileSystemException e) {
           //Was unable to parse file or decrypt file or a file system error occurred
           //Hence skip this instance
           EventBus.publish(new ExportProgressEvent("Error decrypting submission "
-                  + instanceDir.getName() + " Cause: " + e.toString() + " skipping....", briefcaseLfd));
+              + instanceDir.getName() + " Cause: " + e.toString() + " skipping....", briefcaseLfd));
 
           log.info("Error decrypting submission "
-                  + instanceDir.getName() + " Cause: " + e.toString());
+              + instanceDir.getName() + " Cause: " + e.toString());
 
           //update total number of files skipped
           totalFilesSkipped++;
@@ -924,13 +914,13 @@ public class ExportToCsv implements ITransformFormAction {
         instanceId = "crc32:" + Long.toString(checksum);
       }
 
-      if ( terminationFuture.isCancelled() ) {
+      if (terminationFuture.isCancelled()) {
         EventBus.publish(new ExportProgressEvent("Aborted", briefcaseLfd));
         return false;
       }
 
       EncryptionInformation ei = null;
-      if ( base64EncryptedFieldKey != null ) {
+      if (base64EncryptedFieldKey != null) {
         try {
           ei = new EncryptionInformation(base64EncryptedFieldKey, instanceId, briefcaseLfd.getPrivateKey());
         } catch (CryptoException e) {
@@ -949,9 +939,9 @@ public class ExportToCsv implements ITransformFormAction {
         emitSubmissionCsv(osw, ei, doc.getRootElement(), briefcaseLfd.getSubmissionElement(),
             briefcaseLfd.getSubmissionElement(), false, instanceId, unEncryptedDir);
         emitString(osw, false, instanceId);
-        if ( briefcaseLfd.isFileEncryptedForm() ) {
+        if (briefcaseLfd.isFileEncryptedForm()) {
           emitString(osw, false, Boolean.toString(isValidated));
-          if ( !isValidated ) {
+          if (!isValidated) {
             EventBus.publish(new ExportProgressEvent("Decrypted submission "
                 + instanceDir.getName() + " may be missing attachments and could not be validated.", briefcaseLfd));
           }
@@ -985,17 +975,46 @@ public class ExportToCsv implements ITransformFormAction {
     return briefcaseLfd;
   }
 
-  @Override
-  public FilesSkipped totalFilesSkipped() {
-    //Determine if all files where skipped or just some
-    //Note that if totalInstances = 0 then no files were skipped
-    if (totalInstances == 0 || totalFilesSkipped == 0) {
-      return FilesSkipped.NONE;
+  public static void export(Path exportDir, BriefcaseFormDefinition formDefinition, String baseFilename, boolean exportMedia, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
+    log.info("exporting to : " + exportDir);
+    ExportToCsv action = new ExportToCsv(
+        new TerminationFuture(),
+        exportDir.toFile(),
+        formDefinition,
+        baseFilename,
+        exportMedia,
+        overwriteFiles,
+        startDate.map(ld -> Date.from(ld.atStartOfDay(systemDefault()).toInstant())).orElse(null),
+        endDate.map(ld -> Date.from(ld.atStartOfDay(systemDefault()).toInstant())).orElse(null)
+    );
+    try {
+      boolean allSuccessful = action.doAction();
+
+      if (allSuccessful && action.someSkipped())
+        EventBus.publish(new ExportSucceededWithErrorsEvent(action.getFormDefinition()));
+
+      if (allSuccessful && action.noneSkipped())
+        EventBus.publish(new ExportSucceededEvent(action.getFormDefinition()));
+
+      if (allSuccessful && action.allSkipped())
+        throw new ExportException(formDefinition, "None of the instances where exported");
+
+      if (!allSuccessful)
+        throw new ExportException(formDefinition);
+    } catch (Throwable t) {
+      throw new ExportException(formDefinition);
     }
-    if (totalFilesSkipped == totalInstances) {
-      return FilesSkipped.ALL;
-    } else {
-     return FilesSkipped.SOME;
-    }
+  }
+
+  public boolean noneSkipped() {
+    return totalFilesSkipped == 0 || totalInstances == 0;
+  }
+
+  public boolean someSkipped() {
+    return totalInstances > 0 && totalFilesSkipped > 0 && totalFilesSkipped < totalInstances;
+  }
+
+  public boolean allSkipped() {
+    return totalInstances > 0 && totalFilesSkipped == totalInstances;
   }
 }

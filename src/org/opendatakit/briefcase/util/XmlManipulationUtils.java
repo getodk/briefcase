@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -29,10 +29,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.javarosa.xform.parse.XFormParser;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.io.KXmlSerializer;
@@ -49,6 +46,8 @@ import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.briefcase.util.ServerFetcher.MediaFile;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionChunk;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionManifest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -56,7 +55,7 @@ public class XmlManipulationUtils {
 
   private static final String ODK_ID_PARAMETER_EQUALS = "odkId=";
 
-  private static final Log log = LogFactory.getLog(XmlManipulationUtils.class);
+  private static final Logger log = LoggerFactory.getLogger(XmlManipulationUtils.class);
 
   private static final String BAD_OPENROSA_FORMLIST = "The server has not provided an available-forms document compliant with the OpenRosa version 1.0 standard.";
 
@@ -91,13 +90,13 @@ public class XmlManipulationUtils {
   private static final String OPEN_ROSA_METADATA_TAG = "meta";
   private static final String OPEN_ROSA_INSTANCE_ID = "instanceID";
   private static final String BASE64_ENCRYPTED_FIELD_KEY = "base64EncryptedFieldKey";
-  
+
   private static final String UTF_8 = "UTF-8";
 
   /**
    * Traverse submission looking for OpenRosa metadata tag (with or without
    * namespace).
-   * 
+   *
    * @param parent
    * @return
    */
@@ -108,12 +107,12 @@ public class XmlManipulationUtils {
         String cnUri = child.getNamespace();
         String cnName = child.getName();
         if (cnName.equals(OPEN_ROSA_METADATA_TAG)
-            && (cnUri == null || 
-                cnUri.equals(EMPTY_STRING) || 
-                cnUri.equals(rootUri) ||
-                cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE) || 
-                cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_SLASH) || 
-                cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_PRELIM))) {
+            && (cnUri == null ||
+            cnUri.equals(EMPTY_STRING) ||
+            cnUri.equals(rootUri) ||
+            cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE) ||
+            cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_SLASH) ||
+            cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_PRELIM))) {
           return child;
         } else {
           Element descendent = findMetaTag(child, rootUri);
@@ -127,7 +126,7 @@ public class XmlManipulationUtils {
 
   /**
    * Find the OpenRosa instanceID defined for this record, if any.
-   * 
+   *
    * @return
    */
   public static String getOpenRosaInstanceId(Element root) {
@@ -140,12 +139,12 @@ public class XmlManipulationUtils {
           String cnUri = child.getNamespace();
           String cnName = child.getName();
           if (cnName.equals(OPEN_ROSA_INSTANCE_ID)
-              && (cnUri == null || 
-                  cnUri.equals(EMPTY_STRING) || 
-                  cnUri.equals(rootUri) ||
-                  cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE) || 
-                  cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_SLASH) || 
-                  cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_PRELIM))) {
+              && (cnUri == null ||
+              cnUri.equals(EMPTY_STRING) ||
+              cnUri.equals(rootUri) ||
+              cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE) ||
+              cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_SLASH) ||
+              cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_PRELIM))) {
             return XFormParser.getXMLText(child, true);
           }
         }
@@ -155,8 +154,8 @@ public class XmlManipulationUtils {
   }
 
   /**
-   * Encrypted field-level encryption key. 
-   * 
+   * Encrypted field-level encryption key.
+   *
    * @param root
    * @return
    */
@@ -170,11 +169,11 @@ public class XmlManipulationUtils {
           String cnUri = child.getNamespace();
           String cnName = child.getName();
           if (cnName.equals(BASE64_ENCRYPTED_FIELD_KEY)
-              && (cnUri == null || 
-                  cnUri.equals(EMPTY_STRING) || 
-                  cnUri.equals(rootUri) ||
-                  cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE) || 
-                  cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_SLASH))) {
+              && (cnUri == null ||
+              cnUri.equals(EMPTY_STRING) ||
+              cnUri.equals(rootUri) ||
+              cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE) ||
+              cnUri.equalsIgnoreCase(OPEN_ROSA_NAMESPACE_SLASH))) {
             return XFormParser.getXMLText(child, true);
           }
         }
@@ -182,7 +181,7 @@ public class XmlManipulationUtils {
     }
     return null;
   }
-  
+
   public static class FormInstanceMetadata {
     public final XFormParameters xparam;
     public final String instanceId; // this may be null
@@ -193,7 +192,9 @@ public class XmlManipulationUtils {
       this.instanceId = instanceId;
       this.base64EncryptedFieldKey = base64EncryptedFieldKey;
     }
-  };
+  }
+
+  ;
 
   private static final String FORM_ID_ATTRIBUTE_NAME = "id";
   private static final String EMPTY_STRING = "";
@@ -261,23 +262,23 @@ public class XmlManipulationUtils {
         }
       }
     } catch (XmlPullParserException e) {
+      try {
+        return BadXMLFixer.fixBadXML(submission);
+      } catch (CannotFixXMLException e1) {
+        File debugFileLocation = new File(new StorageLocation().getBriefcaseFolder(), "debug");
         try {
-            return BadXMLFixer.fixBadXML(submission);
-        } catch (CannotFixXMLException e1) {
-            File debugFileLocation = new File(new StorageLocation().getBriefcaseFolder(), "debug");
-            try {
-                if (!debugFileLocation.exists()) {
-                    FileUtils.forceMkdir(debugFileLocation);
-                }
-                long checksum = FileUtils.checksumCRC32(submission);
-                File debugFile = new File(debugFileLocation, "submission-" + checksum + ".xml");
-                FileUtils.copyFile(submission, debugFile);
-            } catch (IOException e2) {
-                throw new RuntimeException(e2);
-            }
-            throw new ParsingException("Failed during parsing of submission Xml: "
-                    + e.toString());
+          if (!debugFileLocation.exists()) {
+            FileUtils.forceMkdir(debugFileLocation);
+          }
+          long checksum = FileUtils.checksumCRC32(submission);
+          File debugFile = new File(debugFileLocation, "submission-" + checksum + ".xml");
+          FileUtils.copyFile(submission, debugFile);
+        } catch (IOException e2) {
+          throw new RuntimeException(e2);
         }
+        throw new ParsingException("Failed during parsing of submission Xml: "
+            + e.toString());
+      }
     } catch (IOException e) {
       throw new FileSystemException("Failed while reading submission xml: "
           + e.toString());
@@ -286,9 +287,9 @@ public class XmlManipulationUtils {
   }
 
   public static final List<RemoteFormDefinition> parseFormListResponse(boolean isOpenRosaResponse,
-      Document formListDoc) throws ParsingException {
+                                                                       Document formListDoc) throws ParsingException {
     // This gets a list of available forms from the specified server.
-    List<RemoteFormDefinition> formList = new ArrayList<RemoteFormDefinition>();
+    List<RemoteFormDefinition> formList = new ArrayList<>();
 
     if (isOpenRosaResponse) {
       // Attempt OpenRosa 1.0 parsing
@@ -354,7 +355,7 @@ public class XmlManipulationUtils {
           } else if (tag.equals("version")) {
             version = XFormParser.getXMLText(child, true);
             if (version != null && version.length() == 0) {
-               version = null;
+              version = null;
             }
           } else if (tag.equals("majorMinorVersion")) {
             majorMinorVersion = XFormParser.getXMLText(child, true);
@@ -385,19 +386,19 @@ public class XmlManipulationUtils {
           throw new ParsingException(BAD_OPENROSA_FORMLIST);
         }
         String versionString = null;
-        if (version != null && version.length() != 0 ) {
+        if (version != null && version.length() != 0) {
           versionString = version;
-        } else if ( majorMinorVersion != null && majorMinorVersion.length() != 0) {
+        } else if (majorMinorVersion != null && majorMinorVersion.length() != 0) {
           int idx = majorMinorVersion.indexOf(".");
           if (idx == -1) {
             versionString = majorMinorVersion;
           } else {
-            versionString = majorMinorVersion.substring(0,idx);
+            versionString = majorMinorVersion.substring(0, idx);
           }
         }
 
         try {
-          if (versionString != null ) {
+          if (versionString != null) {
             // verify that  the version string is a long integer value...
             Long.parseLong(versionString);
           }
@@ -463,9 +464,9 @@ public class XmlManipulationUtils {
   }
 
   public static final List<MediaFile> parseFormManifestResponse(boolean isOpenRosaResponse,
-      Document doc) throws ParsingException {
+                                                                Document doc) throws ParsingException {
 
-    List<MediaFile> files = new ArrayList<MediaFile>();
+    List<MediaFile> files = new ArrayList<>();
 
     if (!isOpenRosaResponse) {
       log.error("Manifest reply doesn't report an OpenRosa version -- bad server?");
@@ -542,7 +543,7 @@ public class XmlManipulationUtils {
 
   public static final SubmissionChunk parseSubmissionDownloadListResponse(Document doc)
       throws ParsingException {
-    List<String> uriList = new ArrayList<String>();
+    List<String> uriList = new ArrayList<>();
     String websafeCursorString = "";
 
     // Attempt parsing
@@ -616,7 +617,7 @@ public class XmlManipulationUtils {
       throws ParsingException {
 
     // and parse the document...
-    List<MediaFile> attachmentList = new ArrayList<MediaFile>();
+    List<MediaFile> attachmentList = new ArrayList<>();
     Element rootSubmissionElement = null;
     String instanceID = null;
 

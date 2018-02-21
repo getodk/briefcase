@@ -18,10 +18,10 @@ package org.opendatakit.briefcase.ui.export;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.matchers.SwingMatchers.enabled;
 import static org.opendatakit.briefcase.ui.SwingTestRig.classPath;
 import static org.opendatakit.briefcase.ui.SwingTestRig.createInMemoryCache;
 import static org.opendatakit.briefcase.ui.SwingTestRig.installFormsFrom;
-import static org.opendatakit.briefcase.ui.matchers.SwingMatchers.enabled;
 
 import java.io.IOException;
 import java.nio.file.Files;

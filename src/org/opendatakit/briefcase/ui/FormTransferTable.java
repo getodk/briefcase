@@ -41,8 +41,6 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -50,6 +48,8 @@ import org.opendatakit.briefcase.model.FormStatus.TransferType;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsSucceededEvent;
 import org.opendatakit.briefcase.ui.reused.FontUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FormTransferTable extends JTable {
 
@@ -114,7 +114,7 @@ public class FormTransferTable extends JTable {
      *
      */
     private static final long serialVersionUID = -5106458166776020642L;
-    private static final Log log = LogFactory.getLog(DetailButton.class);
+    private static final Logger log = LoggerFactory.getLogger(DetailButton.class);
     public static final String LABEL = "Detail";
 
     final FormStatus status;
@@ -145,17 +145,19 @@ public class FormTransferTable extends JTable {
 
     public static final int BUTTON_COLUMN = 3;
 
-    private static final Log log = LogFactory.getLog(FormTransferTableModel.class);
+    private static final Logger log = LoggerFactory.getLogger(FormTransferTableModel.class);
 
     final String[] columnNames;
     final JButton btnSelectOrClearAllForms;
     final TransferType transferType;
     final JButton btnTransfer;
     final JButton btnCancel;
-    List<FormStatus> formStatuses = new ArrayList<FormStatus>();
-    private Map<FormStatus, DetailButton> buttonMap = new HashMap<FormStatus, DetailButton>();
+    private boolean sourceSelected;
+    List<FormStatus> formStatuses = new ArrayList<>();
+    private Map<FormStatus, DetailButton> buttonMap = new HashMap<>();
 
-    public FormTransferTableModel(JButton btnSelectOrClearAllForms, TransferType transferType, JButton btnTransfer, JButton btnCancel) {
+    public FormTransferTableModel(JButton btnSelectOrClearAllForms, TransferType transferType, JButton btnTransfer,
+                                  JButton btnCancel) {
       super();
       AnnotationProcessor.process(this);// if not using AOP
 
@@ -171,22 +173,20 @@ public class FormTransferTable extends JTable {
       btnTransfer.setEnabled(false);
       btnSelectOrClearAllForms.setText("Clear all");
 
-      btnSelectOrClearAllForms.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          boolean anyDeselected = false;
-          for (FormStatus f : formStatuses) {
-            anyDeselected = anyDeselected || !f.isSelected();
-          }
-
-          // clear-all if all were selected, otherwise, select-all...
-          for (FormStatus f : formStatuses) {
-            f.setSelected(anyDeselected);
-          }
-          FormTransferTableModel.this.updateButtonsAfterStatusChange();
-          FormTransferTableModel.this.fireTableDataChanged();
+      btnSelectOrClearAllForms.addActionListener(e -> {
+        boolean anyDeselected = false;
+        for (FormStatus f : formStatuses) {
+          anyDeselected = anyDeselected || !f.isSelected();
         }
+
+        // clear-all if all were selected, otherwise, select-all...
+        for (FormStatus f : formStatuses) {
+          f.setSelected(anyDeselected);
+        }
+        FormTransferTableModel.this.updateButtonsAfterStatusChange();
+        FormTransferTableModel.this.fireTableDataChanged();
       });
+
     }
 
     private void updateButtonsAfterStatusChange() {
@@ -196,7 +196,9 @@ public class FormTransferTable extends JTable {
         anyDeselected = anyDeselected || !f.isSelected();
         anySelected = anySelected || f.isSelected();
       }
-      btnTransfer.setEnabled(anySelected);
+
+      btnTransfer.setEnabled(anySelected && sourceSelected);
+
       if (!anyDeselected) {
         FormTransferTableModel.this.btnSelectOrClearAllForms.setText("Clear all");
       } else {
@@ -215,7 +217,7 @@ public class FormTransferTable extends JTable {
     }
 
     public List<FormStatus> getSelectedForms() {
-      List<FormStatus> selected = new ArrayList<FormStatus>();
+      List<FormStatus> selected = new ArrayList<>();
       for (FormStatus s : formStatuses) {
         if (s.isSelected()) {
           selected.add(s);
@@ -318,9 +320,13 @@ public class FormTransferTable extends JTable {
       }
     }
 
+    public void setSourceSelected(boolean sourceSelected) {
+      this.sourceSelected = sourceSelected;
+    }
   }
 
-  public FormTransferTable(JButton btnSelectOrClearAllForms, FormStatus.TransferType transferType, JButton btnTransfer, JButton btnCancel) {
+  public FormTransferTable(JButton btnSelectOrClearAllForms, TransferType transferType, JButton btnTransfer,
+                           JButton btnCancel) {
     super(new FormTransferTableModel(btnSelectOrClearAllForms, transferType, btnTransfer, btnCancel));
     AnnotationProcessor.process(this);// if not using AOP
     // set the button column renderer to a custom renderer
@@ -362,7 +368,7 @@ public class FormTransferTable extends JTable {
     sorter.sort();
   }
 
-  private class FormNameColumnTableRowSorter extends TableRowSorter {
+  private class FormNameColumnTableRowSorter extends TableRowSorter<TableModel> {
 
     private final List<RowSorter.SortKey> sortKeys = new ArrayList<>(1);
 
@@ -398,6 +404,11 @@ public class FormTransferTable extends JTable {
   public List<FormStatus> getSelectedForms() {
     FormTransferTableModel model = (FormTransferTableModel) this.dataModel;
     return model.getSelectedForms();
+  }
+
+  public void setSourceSelected(boolean value) {
+    FormTransferTableModel model = (FormTransferTableModel) this.dataModel;
+    model.setSourceSelected(value);
   }
 
   private Dimension getHeaderDimension(String header) {

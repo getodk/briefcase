@@ -32,6 +32,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import org.apache.http.util.TextUtils;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -40,12 +41,14 @@ import org.opendatakit.briefcase.model.EndPointType;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
+import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
+import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferAction;
 
@@ -61,8 +64,8 @@ public class PushTransferPanel extends JPanel {
   public static final String TAB_NAME = "Push";
 
   private static final String UPLOADING_DOT_ETC = "Uploading..........";
-  static final BriefcasePreferences PREFERENCES =
-      BriefcasePreferences.forClass(PushTransferPanel.class);
+  private final BriefcasePreferences tabPreferences;
+  private final Analytics analytics;
 
   private JComboBox<String> listDestinationDataSink;
   private JButton btnDestinationAction;
@@ -122,10 +125,11 @@ public class PushTransferPanel extends JPanel {
         if (d.isSuccessful()) {
           destinationServerInfo = d.getServerInfo();
           txtDestinationName.setText(destinationServerInfo.getUrl());
-          PREFERENCES.put(BriefcasePreferences.AGGREGATE_1_0_URL, destinationServerInfo.getUrl());
-          PREFERENCES.put(BriefcasePreferences.USERNAME, destinationServerInfo.getUsername());
+          formTransferTable.setSourceSelected(!TextUtils.isEmpty(txtDestinationName.getText()));
+          tabPreferences.put(BriefcasePreferences.AGGREGATE_1_0_URL, destinationServerInfo.getUrl());
+          tabPreferences.put(BriefcasePreferences.USERNAME, destinationServerInfo.getUsername());
           if (BriefcasePreferences.getStorePasswordsConsentProperty())
-            PREFERENCES.put(BriefcasePreferences.PASSWORD, new String(destinationServerInfo.getPassword()));
+            tabPreferences.put(BriefcasePreferences.PASSWORD, new String(destinationServerInfo.getPassword()));
         }
       } else {
         throw new IllegalStateException("unexpected case");
@@ -168,17 +172,18 @@ public class PushTransferPanel extends JPanel {
 
   /**
    * Create the transfer-from-to panel.
-   *
-   * @param txtBriefcaseDir
    */
-  public PushTransferPanel(TerminationFuture terminationFuture) {
+  public PushTransferPanel(TerminationFuture terminationFuture, BriefcasePreferences tabPreferences, Analytics analytics) {
     super();
+    this.tabPreferences = tabPreferences;
     AnnotationProcessor.process(this);// if not using AOP
+    addComponentListener(analytics.buildComponentListener("Push"));
     this.terminationFuture = terminationFuture;
+    this.analytics = analytics;
 
     JLabel lblSendDataTo = new JLabel(TAB_NAME + " data to:");
 
-    listDestinationDataSink = new JComboBox<String>(
+    listDestinationDataSink = new JComboBox<>(
         new String[]{EndPointType.AGGREGATE_1_0_CHOICE.toString()});
 
     listDestinationDataSink.addActionListener(new DestinationSinkListener());
@@ -197,18 +202,13 @@ public class PushTransferPanel extends JPanel {
     lblUploading.setForeground(lblUploading.getBackground());
     btnTransfer = new JButton(TAB_NAME);
     btnCancel = new JButton("Cancel");
-    btnCancel.addActionListener(new ActionListener() {
-
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        PushTransferPanel.this.terminationFuture.markAsCancelled(
-            new TransferAbortEvent(TAB_NAME + " cancelled by user."));
-      }
-    });
+    btnCancel.addActionListener(__ -> PushTransferPanel.this.terminationFuture.markAsCancelled(
+        new TransferAbortEvent(TAB_NAME + " cancelled by user.")));
 
     formTransferTable = new FormTransferTable(
         btnSelectOrClearAllForms, FormStatus.TransferType.UPLOAD, btnTransfer, btnCancel);
 
+    formTransferTable.setSourceSelected(false);
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
 
     GroupLayout groupLayout = new GroupLayout(this);
@@ -289,7 +289,7 @@ public class PushTransferPanel extends JPanel {
   }
 
   public void updateFormStatuses() {
-    List<FormStatus> statuses = new ArrayList<FormStatus>();
+    List<FormStatus> statuses = new ArrayList<>();
 
     List<BriefcaseFormDefinition> forms = FileSystemUtils.getBriefcaseFormList();
     for (BriefcaseFormDefinition f : forms) {
@@ -327,7 +327,7 @@ public class PushTransferPanel extends JPanel {
       listDestinationDataSink.setEnabled(true);
       btnDestinationAction.setEnabled(true);
       btnSelectOrClearAllForms.setEnabled(true);
-      btnTransfer.setEnabled(true);
+      btnTransfer.setEnabled(!formTransferTable.getSelectedForms().isEmpty() && !TextUtils.isEmpty(txtDestinationName.getText()));
       // disable cancel button
       btnCancel.setEnabled(false);
       // hide downloading progress text (by setting foreground color to
@@ -345,10 +345,10 @@ public class PushTransferPanel extends JPanel {
   }
 
   private ServerConnectionInfo initServerInfoWithPreferences() {
-    String url = PREFERENCES.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
-    String username = PREFERENCES.get(BriefcasePreferences.USERNAME, "");
+    String url = tabPreferences.get(BriefcasePreferences.AGGREGATE_1_0_URL, "");
+    String username = tabPreferences.get(BriefcasePreferences.USERNAME, "");
     char[] password = BriefcasePreferences.getStorePasswordsConsentProperty()
-        ? PREFERENCES.get(BriefcasePreferences.PASSWORD, "").toCharArray()
+        ? tabPreferences.get(BriefcasePreferences.PASSWORD, "").toCharArray()
         : new char[0];
     return new ServerConnectionInfo(url, username, password);
   }
@@ -356,11 +356,13 @@ public class PushTransferPanel extends JPanel {
   @EventSubscriber(eventClass = TransferFailedEvent.class)
   public void failedCompletion(TransferFailedEvent event) {
     setActiveTransferState(false);
+    analytics.event("Push", "Transfer", "Failure", null);
   }
 
   @EventSubscriber(eventClass = TransferSucceededEvent.class)
   public void successfulCompletion(TransferSucceededEvent event) {
     setActiveTransferState(false);
+    analytics.event("Push", "Transfer", "Success", null);
   }
 
   @EventSubscriber(eventClass = FormStatusEvent.class)
@@ -377,5 +379,10 @@ public class PushTransferPanel extends JPanel {
   @EventSubscriber(eventClass = UpdatedBriefcaseFormDefinitionEvent.class)
   public void briefcaseFormListChanges(UpdatedBriefcaseFormDefinitionEvent event) {
     updateFormStatuses();
+  }
+
+  @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
+  public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
+    tabPreferences.remove(BriefcasePreferences.PASSWORD);
   }
 }

@@ -17,12 +17,11 @@
 package org.opendatakit.briefcase.util;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Originally written by Dylan.  Determines the mounts that have SD Cards attached.
@@ -33,7 +32,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class FindDirectoryStructure {
 
-  private static final Log log = LogFactory.getLog(FindDirectoryStructure.class);
+  private static final Logger log = LoggerFactory.getLogger(FindDirectoryStructure.class);
 
   private static final String PROPERTY_OS = "os.name";
   private static final String OS_WINDOWS = "Windows";
@@ -75,7 +74,7 @@ public class FindDirectoryStructure {
     } else // Assume Unix
     {
       String username = System.getProperty(USER_NAME);
-      List<File> mountslist = new ArrayList<File>();
+      List<File> mountslist = new ArrayList<>();
       mountslist.add( new File("/mnt"));
       mountslist.add( new File("/media"));
 
@@ -117,7 +116,7 @@ public class FindDirectoryStructure {
    */
   private static List<File> search(File[] mounts, boolean isDirectChild) {
 
-    List<File> candidates = new ArrayList<File>();
+    List<File> candidates = new ArrayList<>();
 
     for ( File f : mounts ) {
       if ( f.exists() && f.isDirectory() ) {
@@ -126,12 +125,7 @@ public class FindDirectoryStructure {
             candidates.add(f);
           }
         } else {
-          File[] subdirs = f.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File f) {
-              return f.isDirectory();
-            }
-          });
+          File[] subdirs = f.listFiles(file -> file.isDirectory());
 
           for ( File s : subdirs ) {
             if ( hasOdkInstancesDirectory(s) ) {

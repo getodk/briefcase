@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -23,9 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
@@ -35,10 +32,12 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.ui.TransferInProgressDialog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TransferAction {
 
-  private static final Log log = LogFactory.getLog(TransferAction.class);
+  private static final Logger log = LoggerFactory.getLogger(TransferAction.class);
 
   private static ExecutorService backgroundExecutorService = Executors.newCachedThreadPool();
 
@@ -58,7 +57,7 @@ public class TransferAction {
         boolean allSuccessful = dest.doAction();
 
         if (allSuccessful) {
-          EventBus.publish(new TransferSucceededEvent(srcIsDeletable, formsToTransfer));
+          EventBus.publish(new TransferSucceededEvent(srcIsDeletable, formsToTransfer, dest.getTransferSettings()));
         } else {
           EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
         }
@@ -90,7 +89,7 @@ public class TransferAction {
         boolean allSuccessful = src.doAction();
 
         if (allSuccessful) {
-          EventBus.publish(new TransferSucceededEvent(srcIsDeletable, formsToTransfer));
+          EventBus.publish(new TransferSucceededEvent(srcIsDeletable, formsToTransfer, src.getTransferSettings()));
         } else {
           EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
         }
@@ -128,7 +127,7 @@ public class TransferAction {
   }
 
   private static void showDialogAndRun(Window topLevel, RetrieveAvailableFormsFromServer src,
-      TerminationFuture terminationFuture) {
+                                       TerminationFuture terminationFuture) {
     // create the dialog first so that the background task will always have a
     // listener for its completion events...
     final TransferInProgressDialog dlg = new TransferInProgressDialog(topLevel,
@@ -140,21 +139,21 @@ public class TransferAction {
   }
 
   public static void retrieveAvailableFormsFromServer(Window topLevel,
-      ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture) {
-    RetrieveAvailableFormsFromServer source = 
+                                                      ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture) {
+    RetrieveAvailableFormsFromServer source =
         new RetrieveAvailableFormsFromServer(originServerInfo, terminationFuture);
     showDialogAndRun(topLevel, source, terminationFuture);
   }
 
   public static void uploadForm(Window topLevel, ServerConnectionInfo destinationServerInfo,
-      TerminationFuture terminationFuture, File formDefn, FormStatus status) {
+                                TerminationFuture terminationFuture, File formDefn, FormStatus status) {
     UploadToServer dest = new UploadToServer(destinationServerInfo, terminationFuture, formDefn,
         status);
     backgroundRun(dest, Collections.singletonList(status));
   }
 
   public static void transferServerToBriefcase(ServerConnectionInfo originServerInfo,
-      TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) throws IOException {
+                                               TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) throws IOException {
 
     TransferFromServer source = new TransferFromServer(originServerInfo, terminationFuture,
         formsToTransfer);
@@ -162,21 +161,20 @@ public class TransferAction {
   }
 
   /**
-   * @param odkSrcDir
-   *          -- NOTE: this ends with /odk in the typical case.
+   * @param odkSrcDir         -- NOTE: this ends with /odk in the typical case.
    * @param terminationFuture
    * @param formsToTransfer
    * @throws IOException
    */
   public static void transferODKToBriefcase(File odkSrcDir, TerminationFuture terminationFuture,
-      List<FormStatus> formsToTransfer) throws IOException {
+                                            List<FormStatus> formsToTransfer) throws IOException {
 
     TransferFromODK source = new TransferFromODK(odkSrcDir, terminationFuture, formsToTransfer);
     backgroundRun(source, formsToTransfer);
   }
 
   public static void transferBriefcaseToServer(ServerConnectionInfo destinationServerInfo,
-      TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) throws IOException {
+                                               TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) throws IOException {
 
     TransferToServer dest = new TransferToServer(destinationServerInfo, terminationFuture,
         formsToTransfer);

@@ -1,6 +1,7 @@
 package org.opendatakit.briefcase.util;
 
 import java.util.List;
+import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 
 public interface FormCacheable {
@@ -13,4 +14,6 @@ public interface FormCacheable {
     void putFormFileFormDefinition(String filePath, BriefcaseFormDefinition definition);
 
     List<BriefcaseFormDefinition> getForms();
+
+    Optional<BriefcaseFormDefinition> getForm(String formName);
 }

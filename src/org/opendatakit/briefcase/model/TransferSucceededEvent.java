@@ -21,12 +21,13 @@ import java.util.List;
 public class TransferSucceededEvent {
 
   @SuppressWarnings("unused")
-  private boolean isDeletableSource;
-  @SuppressWarnings("unused")
-  private List<FormStatus> formsToTransfer;
+  private final boolean isDeletableSource;
+  public final List<FormStatus> formsToTransfer;
+  public final ServerConnectionInfo transferSettings;
 
-  public TransferSucceededEvent(boolean isDeletableSource, List<FormStatus> formsToTransfer) {
+  public TransferSucceededEvent(boolean isDeletableSource, List<FormStatus> formsToTransfer, ServerConnectionInfo transferSettings) {
     this.isDeletableSource = isDeletableSource;
     this.formsToTransfer = formsToTransfer;
+    this.transferSettings = transferSettings;
   }
 }

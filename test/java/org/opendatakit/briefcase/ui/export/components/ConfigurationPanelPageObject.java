@@ -28,18 +28,20 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.function.Supplier;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 import org.assertj.swing.core.Robot;
-import org.assertj.swing.exception.ComponentLookupException;
+import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.exception.WaitTimedOutError;
-import org.assertj.swing.fixture.DialogFixture;
 import org.assertj.swing.fixture.FrameFixture;
-import org.assertj.swing.fixture.JButtonFixture;
 import org.assertj.swing.fixture.JFileChooserFixture;
-import org.assertj.swing.fixture.JTextComponentFixture;
 import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
 
 class ConfigurationPanelPageObject {
   private static Path TEST_FOLDER;
@@ -59,19 +61,43 @@ class ConfigurationPanelPageObject {
     this.fixture = fixture;
   }
 
-  static ConfigurationPanelPageObject setUp(Robot robot) {
-    ConfigurationPanel configurationPanel = execute(() -> ConfigurationPanel.from(ExportConfiguration.empty(), false));
-    JFrame testFrame = execute(() -> {
-      JFrame f = new JFrame();
-      f.add(configurationPanel.getForm().container);
-      return f;
+  static ConfigurationPanelPageObject setUp(Robot robot, ExportConfiguration initialConfiguration, boolean isOverridePanel, boolean hasTransferSettings, boolean savePasswordsConsent) {
+    return isOverridePanel
+        ? setUpOverridePanel(robot, initialConfiguration, savePasswordsConsent, hasTransferSettings)
+        : setUpDefaultPanel(robot, initialConfiguration, savePasswordsConsent, hasTransferSettings);
+  }
+
+
+  static ConfigurationPanelPageObject setUpDefaultPanel(Robot robot, ExportConfiguration initialConfiguration, boolean savePasswordsConsent, boolean hasTransferSettings) {
+    return execute(() -> {
+      ConfigurationPanel configurationPanel = ConfigurationPanel.defaultPanel(initialConfiguration, savePasswordsConsent, hasTransferSettings);
+      JFrame testFrame = new JFrame();
+      testFrame.add(configurationPanel.getForm().container);
+      FrameFixture window = new FrameFixture(robot, testFrame);
+      return new ConfigurationPanelPageObject(configurationPanel, window);
     });
-    FrameFixture window = new FrameFixture(robot, testFrame);
-    return new ConfigurationPanelPageObject(configurationPanel, window);
+  }
+
+  static ConfigurationPanelPageObject setUpOverridePanel(Robot robot, ExportConfiguration initialConfiguration, boolean savePasswordsConsent, boolean hasTransferSettings) {
+    return execute(() -> {
+      ConfigurationPanel configurationPanel = ConfigurationPanel.overridePanel(initialConfiguration, savePasswordsConsent, hasTransferSettings);
+      JFrame testFrame = new JFrame();
+      testFrame.add(configurationPanel.getForm().container);
+      FrameFixture window = new FrameFixture(robot, testFrame);
+      return new ConfigurationPanelPageObject(configurationPanel, window);
+    });
   }
 
   void show() {
     fixture.show();
+  }
+
+  void disable() {
+    GuiActionRunner.execute(component::disable);
+  }
+
+  void enable() {
+    GuiActionRunner.execute(component::enable);
   }
 
   public JButton choosePemFileButton() {
@@ -86,21 +112,46 @@ class ConfigurationPanelPageObject {
     return component.form.pemFileClearButton;
   }
 
+  public JTextComponent exportDirField() {
+    return component.form.exportDirField;
+  }
+
   public JTextComponent pemFileField() {
     return component.form.pemFileField;
   }
 
-  public DatePicker startDatePicker() {
+  public DatePicker startDateField() {
     return component.form.startDatePicker;
   }
 
-  public DatePicker endDatePicker() {
+  public DatePicker endDateField() {
     return component.form.endDatePicker;
+  }
+
+  public JCheckBox pullBeforeField() {
+    return component.form.pullBeforeField;
+  }
+
+  public JLabel pullBeforeOverrideLabel() {
+    return component.form.pullBeforeOverrideLabel;
+  }
+
+  public JComboBox<PullBeforeOverrideOption> pullBeforeOverrideField() {
+    return component.form.pullBeforeOverrideField;
+  }
+
+  public JTextPane pullBeforeHintPanel() {
+    return component.form.pullBeforeHintPanel;
   }
 
   public void setSomePemFile() {
     Path pemFile = TEST_FOLDER.resolve("some_file.pem");
     execute(() -> component.form.setPemFile(pemFile));
+  }
+
+  public void setSomeExportDir() {
+    Path exportDir = TEST_FOLDER.resolve("some_dir");
+    execute(() -> component.form.setExportDir(exportDir));
   }
 
   public void setStartDate(LocalDate someDate) {
@@ -114,6 +165,10 @@ class ConfigurationPanelPageObject {
     uncheckedSleep(50);
   }
 
+  public void setSomeStartDate() {
+    execute(() -> component.form.setStartDate(LocalDate.of(2018, 2, 1)));
+  }
+
   public void setEndDate(LocalDate someDate) {
     // GUI actions launched with GuiActionRunner.execute(...) will block the thread
     // until their completion. This is problematic when the action launches a modal
@@ -125,16 +180,26 @@ class ConfigurationPanelPageObject {
     uncheckedSleep(50);
   }
 
-  public DialogFixture errorDialog(int timeoutMillis) {
-    // Similar to buttonByName(name) or textFieldByName(name), we won't
-    // throw when exhausting the timeout for obtaining a dialog and we will
-    // return a null instead, which is more suitable for our SwingMatchers
-    // and for expressing intent in our tests
-    try {
-      return fixture.dialog(timeout(timeoutMillis));
-    } catch (WaitTimedOutError e) {
-      return null;
-    }
+  public void setSomeEndDate() {
+    execute(() -> component.form.setEndDate(LocalDate.of(2018, 3, 1)));
+  }
+
+  public void setPullBefore(boolean value) {
+    invokeLater(() -> {
+      JCheckBox field = component.form.pullBeforeField;
+      field.setSelected(value);
+      Arrays.asList(field.getActionListeners()).forEach(al -> al.actionPerformed(new ActionEvent(field, 1, "")));
+    });
+    uncheckedSleep(50);
+  }
+
+  public void setPullBeforeOverride(PullBeforeOverrideOption option) {
+    invokeLater(() -> {
+      JComboBox<PullBeforeOverrideOption> field = component.form.pullBeforeOverrideField;
+      field.setSelectedItem(option);
+      Arrays.asList(field.getActionListeners()).forEach(al -> al.actionPerformed(new ActionEvent(field, 1, "")));
+    });
+    uncheckedSleep(50);
   }
 
   private JFileChooserFixture fileDialog() {
@@ -181,40 +246,6 @@ class ConfigurationPanelPageObject {
     }
   }
 
-  private JButtonFixture buttonByName(String name) {
-    // The Swing test driver will produce a ComponentLookupException on
-    // unexpected situations like when a component is merely not visible
-    // (even if the component has been created and attached to the layout)
-    // In order to be used along with Hamcrest matchers, when the driver
-    // can't find an element, it's better to not throw and return a null
-    // instead. Matchers can make simple null-checks and when this is
-    // used on the test, NPEs are totally acceptable because we expect
-    // the test to fail if we need to click some element that it's not
-    // there.
-    try {
-      return fixture.button(name);
-    } catch (ComponentLookupException e) {
-      return null;
-    }
-  }
-
-  private JTextComponentFixture textFieldByName(String name) {
-    // The Swing test driver will produce a ComponentLookupException on
-    // unexpected situations like when a component is merely not visible
-    // (even if the component has been created and attached to the layout)
-    // In order to be used along with Hamcrest matchers, when the driver
-    // can't find an element, it's better to not throw and return a null
-    // instead. Matchers can make simple null-checks and when this is
-    // used on the test, NPEs are totally acceptable because we expect
-    // the test to fail if we need to click some element that it's not
-    // there.
-    try {
-      return fixture.textBox(name);
-    } catch (ComponentLookupException e) {
-      return null;
-    }
-  }
-
   public void clickChooseExportDirButton() {
     click(component.form.exportDirChooseButton);
     uncheckedSleep(50);
@@ -228,6 +259,14 @@ class ConfigurationPanelPageObject {
   public void clickClearPemFileButton() {
     click(component.form.pemFileClearButton);
     uncheckedSleep(50);
+  }
+
+  public ExportConfiguration getConfiguration() {
+    return component.getConfiguration();
+  }
+
+  public void onChange(Runnable callback) {
+    component.onChange(callback);
   }
 
   private void click(JButton button) {

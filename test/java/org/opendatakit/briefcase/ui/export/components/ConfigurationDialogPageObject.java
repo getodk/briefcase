@@ -38,7 +38,7 @@ class ConfigurationDialogPageObject {
   }
 
   static ConfigurationDialogPageObject setUp(Robot robot, ExportConfiguration configuration) {
-    ConfigurationDialog dialog = execute(() -> ConfigurationDialog.from(Optional.ofNullable(configuration)));
+    ConfigurationDialog dialog = execute(() -> ConfigurationDialog.from(Optional.ofNullable(configuration), true, true));
     DialogFixture fixture = new DialogFixture(robot, dialog.form);
     return new ConfigurationDialogPageObject(dialog, fixture);
   }
@@ -80,6 +80,14 @@ class ConfigurationDialogPageObject {
 
   public void clearExportDir() {
     GuiActionRunner.execute(() -> component.getConfPanel().form.clearExportDir());
+  }
+
+  public void onOK(Runnable callback) {
+    component.onOK(__ -> callback.run());
+  }
+
+  public void onRemove(Runnable callback) {
+    component.onRemove(callback::run);
   }
 
   private void click(JButton button) {

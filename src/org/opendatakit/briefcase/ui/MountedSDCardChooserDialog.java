@@ -83,35 +83,26 @@ public class MountedSDCardChooserDialog extends JDialog implements ActionListene
       radioPanel = new JPanel();
       
       btnOK = new JButton("OK");
-      btnOK.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          outcome = true;
-          setVisible(false);
-        }
+      btnOK.addActionListener(__ -> {
+        outcome = true;
+        setVisible(false);
       });
       
       btnCancel = new JButton("Cancel");
-      btnCancel.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          outcome = false;
-          setVisible(false);
-        }
+      btnCancel.addActionListener(__ -> {
+        outcome = false;
+        setVisible(false);
       });
 
       btnRefresh = new JButton("Refresh List");
-      btnRefresh.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          try {
-            btnOK.setEnabled(false);
-            btnCancel.setEnabled(false);
-            rebuildPanel();
-          } finally {
-            btnOK.setEnabled(true);
-            btnCancel.setEnabled(true);
-          }
+      btnRefresh.addActionListener(__ -> {
+        try {
+          btnOK.setEnabled(false);
+          btnCancel.setEnabled(false);
+          rebuildPanel();
+        } finally {
+          btnOK.setEnabled(true);
+          btnCancel.setEnabled(true);
         }
       });
 

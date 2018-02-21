@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2012 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -21,23 +21,21 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.opendatakit.briefcase.model.CryptoException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EncryptionInformation {
 
-  private static final Log log = LogFactory.getLog(EncryptionInformation.class);
-  
+  private static final Logger log = LoggerFactory.getLogger(EncryptionInformation.class);
+
   private CipherFactory cipherFactory;
-  
+
   public EncryptionInformation(String base64EncryptedSymmetricKey, String instanceId, PrivateKey rsaPrivateKey) throws CryptoException {
 
     try {
@@ -50,18 +48,18 @@ public class EncryptionInformation {
       byte[] decryptedKey = pkCipher.doFinal(encryptedSymmetricKey);
       cipherFactory = new CipherFactory(instanceId, decryptedKey);
     } catch (NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | InvalidKeyException
-            | NoSuchPaddingException e) {
+        | NoSuchPaddingException e) {
       String msg = "Error decrypting base64EncryptedKey";
       log.error(msg, e);
       throw new CryptoException(msg + " Cause: " + e.toString());
     }
   }
-  
+
   Cipher getCipher(String context) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
     return cipherFactory.getCipher(context);
   }
-  
-  Cipher getCipher(String context, String fieldName) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, UnsupportedEncodingException {
+
+  public Cipher getCipher(String context, String fieldName) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, UnsupportedEncodingException {
     return cipherFactory.getCipher(context, fieldName);
   }
 }

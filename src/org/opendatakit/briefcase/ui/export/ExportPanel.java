@@ -23,18 +23,29 @@ import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.stream.Stream;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.export.ExportAction;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.ExportFailedEvent;
+import org.opendatakit.briefcase.model.ExportSucceededEvent;
+import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.SavePasswordsConsentGiven;
+import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.transfer.NewTransferAction;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
-import org.opendatakit.briefcase.util.ExportAction;
+import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
 public class ExportPanel {
@@ -43,12 +54,15 @@ public class ExportPanel {
   private final TerminationFuture terminationFuture;
   private final ExportForms forms;
   private final ExportPanelForm form;
+  private final Analytics analytics;
 
-  public ExportPanel(TerminationFuture terminationFuture, ExportForms forms, ExportPanelForm form, BriefcasePreferences preferences) {
+  public ExportPanel(TerminationFuture terminationFuture, ExportForms forms, ExportPanelForm form, BriefcasePreferences preferences, Executor backgroundExecutor, Analytics analytics) {
     this.terminationFuture = terminationFuture;
     this.forms = forms;
     this.form = form;
+    this.analytics = analytics;
     AnnotationProcessor.process(this);// if not using AOP
+    analytics.register(form.getContainer());
 
     form.getConfPanel().onChange(() ->
         forms.updateDefaultConfiguration(form.getConfPanel().getConfiguration())
@@ -89,28 +103,42 @@ public class ExportPanel {
     });
 
 
-    form.onExport(() -> new Thread(() -> {
-      List<String> errors = export();
-      if (!errors.isEmpty()) {
-        String message = String.format(
-            "%s\n\n%s", "We have found some errors while performing the requested export actions:",
-            errors.stream().map(e -> "- " + e).collect(joining("\n"))
-        );
-        showErrorDialog(form.getContainer(), message, "Export error report");
+    form.onExport(() -> backgroundExecutor.execute(() -> {
+      // Segregating this validation from the export process to move it to ExportConfiguration on the future
+      List<String> errors = forms.getSelectedForms().stream().flatMap(formStatus -> {
+        ExportConfiguration exportConfiguration = forms.getConfiguration(formStatus.getFormDefinition().getFormId());
+        boolean needsPemFile = ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFileEncryptedForm() || ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFieldEncryptedForm();
+
+        if (needsPemFile && !exportConfiguration.isPemFilePresent())
+          return Stream.of("The form " + formStatus.getFormName() + " is encrypted and you haven't set a PEM file");
+        if (needsPemFile)
+          return ExportAction.readPemFile(exportConfiguration.getPemFile()
+              .orElseThrow(() -> new RuntimeException("PEM file not present"))
+          ).getErrors().stream();
+        return Stream.empty();
+      }).collect(toList());
+
+      if (errors.isEmpty())
+        export();
+      else {
+        analytics.event("Export", "Export", "Configuration errors", null);
+        showErrorDialog(getForm().getContainer(), errors.stream().collect(joining("\n")), "Export errors");
       }
-    }).start());
+    }));
   }
 
-  public static ExportPanel from(TerminationFuture terminationFuture, BriefcasePreferences preferences) {
-    ExportConfiguration defaultConfiguration = ExportConfiguration.load(preferences);
-    ConfigurationPanel confPanel = ConfigurationPanel.from(defaultConfiguration, false);
-    ExportForms forms = ExportForms.load(defaultConfiguration, getFormsFromStorage(), preferences);
+  public static ExportPanel from(TerminationFuture terminationFuture, BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Executor backgroundExecutor, Analytics analytics) {
+    ExportConfiguration defaultConfiguration = ExportConfiguration.load(exportPreferences);
+    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(defaultConfiguration, BriefcasePreferences.getStorePasswordsConsentProperty(), true);
+    ExportForms forms = ExportForms.load(defaultConfiguration, getFormsFromStorage(), exportPreferences, appPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, confPanel);
     return new ExportPanel(
         terminationFuture,
         forms,
         form,
-        preferences
+        exportPreferences,
+        backgroundExecutor,
+        analytics
     );
   }
 
@@ -129,20 +157,65 @@ public class ExportPanel {
     return form;
   }
 
-  private List<String> export() {
+  private void export() {
     form.disableUI();
     terminationFuture.reset();
-    List<String> errors = forms.getSelectedForms().parallelStream()
+    forms.getSelectedForms()
+        .parallelStream()
         .peek(FormStatus::clearStatusHistory)
-        .map(formStatus -> (BriefcaseFormDefinition) formStatus.getFormDefinition())
-        .flatMap(formDefinition -> ExportAction.export(formDefinition, forms.getConfiguration(formDefinition.getFormId()), terminationFuture).stream())
-        .collect(toList());
+        .forEach(form -> {
+          String formId = form.getFormDefinition().getFormId();
+          ExportConfiguration configuration = forms.getConfiguration(formId);
+          if (configuration.resolvePullBefore())
+            forms.getTransferSettings(formId).ifPresent(sci -> NewTransferAction.transferServerToBriefcase(
+                sci,
+                terminationFuture,
+                Collections.singletonList(form)
+            ));
+          ExportAction.export(
+              (BriefcaseFormDefinition) form.getFormDefinition(),
+              configuration,
+              terminationFuture
+          );
+        });
     form.enableUI();
-    return errors;
+  }
+
+  @EventSubscriber(eventClass = ExportSucceededWithErrorsEvent.class)
+  public void onExportSucceededWithErrorsEvent(ExportSucceededWithErrorsEvent event) {
+    analytics.event("Export", "Export", "Success with errors", null);
+  }
+
+  @EventSubscriber(eventClass = ExportFailedEvent.class)
+  public void onExportFailedEvent(ExportFailedEvent event) {
+    analytics.event("Export", "Export", "Failure", null);
+  }
+
+  @EventSubscriber(eventClass = ExportSucceededEvent.class)
+  public void onExportSucceededEvent(ExportSucceededEvent event) {
+    analytics.event("Export", "Export", "Success", null);
   }
 
   @EventSubscriber(eventClass = FormStatusEvent.class)
   public void onFormStatusEvent(FormStatusEvent event) {
     updateForms();
+  }
+
+  @EventSubscriber(eventClass = TransferSucceededEvent.class)
+  public void successfulCompletion(TransferSucceededEvent event) {
+    if (BriefcasePreferences.getStorePasswordsConsentProperty())
+      event.formsToTransfer.forEach(form -> forms.putTransferSettings(form, event.transferSettings));
+  }
+
+  @EventSubscriber(eventClass = SavePasswordsConsentGiven.class)
+  public void onSavePasswordsConsentGiven(SavePasswordsConsentGiven event) {
+    forms.flushTransferSettings();
+    form.getConfPanel().savePasswordsConsentGiven();
+  }
+
+  @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
+  public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
+    forms.flushTransferSettings();
+    form.getConfPanel().savePasswordsConsentRevoked();
   }
 }

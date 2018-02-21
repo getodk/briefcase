@@ -36,6 +36,7 @@ import org.opendatakit.briefcase.model.FormStatusBuilder;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
+import org.opendatakit.briefcase.ui.reused.NoOpAnalytics;
 
 public class ExportPanelUnitTest {
 
@@ -43,36 +44,42 @@ public class ExportPanelUnitTest {
 
   @Test
   public void saves_to_user_preferences_changes_on_the_default_configuration() throws IOException {
-    BriefcasePreferences prefs = new BriefcasePreferences(InMemoryPreferences.empty());
+    BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
+    BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     initialDefaultConf = ExportConfiguration.empty();
-    ExportForms forms = load(initialDefaultConf, new ArrayList<>(), prefs);
-    ConfigurationPanel confPanel = ConfigurationPanel.from(initialDefaultConf, false);
+    ExportForms forms = load(initialDefaultConf, new ArrayList<>(), exportPreferences, appPreferences);
+    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(initialDefaultConf, false, true);
     new ExportPanel(
         new TerminationFuture(),
         forms,
         ExportPanelForm.from(forms, confPanel),
-        prefs
+        exportPreferences,
+        Runnable::run,
+        new NoOpAnalytics()
     );
 
-    assertThat(ExportConfiguration.load(prefs).getExportDir(), isEmpty());
+    assertThat(ExportConfiguration.load(exportPreferences).getExportDir(), isEmpty());
     confPanel.getForm().setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()));
 
-    assertThat(ExportConfiguration.load(prefs).getExportDir(), isPresent());
+    assertThat(ExportConfiguration.load(exportPreferences).getExportDir(), isPresent());
   }
 
   @Test
   public void saves_to_user_preferences_changes_on_a_custom_configuration() throws IOException {
-    BriefcasePreferences prefs = new BriefcasePreferences(InMemoryPreferences.empty());
+    BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
+    BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     List<FormStatus> formsList = FormStatusBuilder.buildFormStatusList(10);
     initialDefaultConf = ExportConfiguration.empty();
-    ExportForms forms = load(initialDefaultConf, formsList, prefs);
-    ConfigurationPanel confPanel = ConfigurationPanel.from(initialDefaultConf, false);
+    ExportForms forms = load(initialDefaultConf, formsList, exportPreferences, appPreferences);
+    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(initialDefaultConf, true, true);
     ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, confPanel);
     new ExportPanel(
         new TerminationFuture(),
         forms,
         exportPanelForm,
-        prefs
+        exportPreferences,
+        Runnable::run,
+        new NoOpAnalytics()
     );
 
     FormStatus form = formsList.get(0);
@@ -81,35 +88,38 @@ public class ExportPanelUnitTest {
     ExportConfiguration conf = ExportConfiguration.empty();
     conf.setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()));
 
-    assertThat(ExportConfiguration.load(prefs, buildCustomConfPrefix(formId)).getExportDir(), isEmpty());
+    assertThat(ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), isEmpty());
 
     forms.putConfiguration(form, conf);
     exportPanelForm.getFormsTable().getViewModel().triggerChange();
 
-    assertThat(ExportConfiguration.load(prefs, buildCustomConfPrefix(formId)).getExportDir(), isPresent());
+    assertThat(ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), isPresent());
   }
 
   @Test
   public void saves_to_user_preferences_the_last_successful_export_date_for_a_form() {
-    BriefcasePreferences prefs = new BriefcasePreferences(InMemoryPreferences.empty());
+    BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
+    BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     List<FormStatus> formsList = FormStatusBuilder.buildFormStatusList(10);
     initialDefaultConf = ExportConfiguration.empty();
-    ExportForms forms = load(initialDefaultConf, formsList, prefs);
-    ConfigurationPanel confPanel = ConfigurationPanel.from(initialDefaultConf, false);
+    ExportForms forms = load(initialDefaultConf, formsList, exportPreferences, appPreferences);
+    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(initialDefaultConf, true, true);
     new ExportPanel(
         new TerminationFuture(),
         forms,
         ExportPanelForm.from(forms, confPanel),
-        prefs
+        exportPreferences,
+        Runnable::run,
+        new NoOpAnalytics()
     );
 
     FormStatus form = formsList.get(0);
     String formId = form.getFormDefinition().getFormId();
 
-    assertThat(prefs.nullSafeGet(buildExportDateTimePrefix(formId)), isEmpty());
+    assertThat(exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId)), isEmpty());
 
     forms.appendStatus(form.getFormDefinition(), "some status update", true);
 
-    assertThat(prefs.nullSafeGet(buildExportDateTimePrefix(formId)), isPresent());
+    assertThat(exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId)), isPresent());
   }
 }

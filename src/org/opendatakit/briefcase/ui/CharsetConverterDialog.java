@@ -58,13 +58,10 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -76,7 +73,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
    *
    */
   private static final long serialVersionUID = -5321396641987129789L;
-  private static final Log log = LogFactory.getLog(CharsetConverterDialog.class);
+  private static final Logger log = LoggerFactory.getLogger(CharsetConverterDialog.class);
 
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
@@ -117,17 +114,15 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
    */
   public static void main(String[] args) {
 
-    EventQueue.invokeLater(new Runnable() {
-      public void run() {
-        try {
-          // Set System L&F
-          UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    EventQueue.invokeLater(() -> {
+      try {
+        // Set System L&F
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
-          CharsetConverterDialog window = new CharsetConverterDialog(new JFrame());
-          window.setVisible(true);
-        } catch (Exception e) {
-          log.error("failed to start app", e);
-        }
+        CharsetConverterDialog window = new CharsetConverterDialog(new JFrame());
+        window.setVisible(true);
+      } catch (Exception e) {
+        log.error("failed to start app", e);
       }
     });
   }
@@ -195,7 +190,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
       contentPanel.add(lblEncoding, gbc_lblEncoding);
     }
     {
-      listCharset = new JList<CharsetEntry>();
+      listCharset = new JList<>();
       listCharset.setVisibleRowCount(7);
       listCharset.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       GridBagConstraints gbc_cbCharset = new GridBagConstraints();
@@ -261,7 +256,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
   }
 
   protected void initialize() {
-    DefaultListModel<CharsetEntry> defaultListModel = new DefaultListModel<CharsetEntry>();
+    DefaultListModel<CharsetEntry> defaultListModel = new DefaultListModel<>();
 
     for (CharsetEntry commonCharsetEntry : commonCharsetEntries) {
       try {
@@ -286,13 +281,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
     if (defaultListModel.size() > 0) {
       listCharset.setSelectedIndex(0);
 
-      listCharset.addListSelectionListener(new ListSelectionListener() {
-
-        @Override
-        public void valueChanged(ListSelectionEvent e) {
-          updatePreview();
-        }
-      });
+      listCharset.addListSelectionListener(__ -> updatePreview());
     } else {
       JOptionPane.showMessageDialog(this,
               "It appears that your installed Java Runtime Environment does not support any charset encodings!",
@@ -370,35 +359,26 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
 
     final Window pleaseWaitWindow = ODKOptionPane.showMessageDialog(this, "Creating preview, please wait...");
 
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        File file = new File(filePath);
-        BufferedReader bufferedReader = null;
-        try {
-          bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(file), getCharsetName()));
-          List<String> lines = new ArrayList<String>();
-          int N = 100;
-          String line;
-          int c = 0;
-          while ((line = bufferedReader.readLine()) != null && c < N) {
-            lines.add(line);
-          }
-
-          previewArea.setText(join(lines, LINE_SEPARATOR));
-          previewArea.setCaretPosition(0);
-
-        } catch (Exception ex) {
-          log.error("failed to create preview", ex);
-          JOptionPane.showMessageDialog(CharsetConverterDialog.this,
-                  ex.getMessage(),
-                  "Error reading file...", JOptionPane.ERROR_MESSAGE);
-        } finally {
-          IOUtils.closeQuietly(bufferedReader);
-
-          pleaseWaitWindow.setVisible(false);
-          pleaseWaitWindow.dispose();
+    SwingUtilities.invokeLater(() -> {
+      try (BufferedReader bufferedReader =
+                   new BufferedReader(new InputStreamReader(new FileInputStream(filePath), getCharsetName()))) {
+        List<String> lines = new ArrayList<>();
+        String line;
+        while ((line = bufferedReader.readLine()) != null) {
+          lines.add(line);
         }
+
+        previewArea.setText(join(lines, LINE_SEPARATOR));
+        previewArea.setCaretPosition(0);
+
+      } catch (Exception ex) {
+        log.error("failed to create preview", ex);
+        JOptionPane.showMessageDialog(CharsetConverterDialog.this,
+                ex.getMessage(),
+                "Error reading file...", JOptionPane.ERROR_MESSAGE);
+      } finally {
+        pleaseWaitWindow.setVisible(false);
+        pleaseWaitWindow.dispose();
       }
     });
   }

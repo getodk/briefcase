@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2018 Nafundi
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package org.opendatakit.common.cli;
 
 import static java.util.stream.Collectors.joining;
@@ -11,9 +26,13 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>Cli is a command line adapter. It helps define executable operations and their
@@ -21,6 +40,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
  * <p>It defines some default operations like "show help" and "show version"
  */
 public class Cli {
+  private static final Logger log = LoggerFactory.getLogger(Cli.class);
   private static final Param<Void> SHOW_HELP = Param.flag("h", "help", "Show help");
   private static final Param<Void> SHOW_VERSION = Param.flag("v", "version", "Show version");
 
@@ -66,22 +86,33 @@ public class Cli {
   public void run(String[] args) {
     Set<Param> allParams = getAllParams();
     CommandLine cli = getCli(args, allParams);
-
-    requiredOperations.forEach(operation -> {
-      checkForMissingParams(cli, operation.requiredParams);
-      operation.argsConsumer.accept(Args.from(cli, operation.requiredParams));
-    });
-
-    operations.forEach(operation -> {
-      if (cli.hasOption(operation.param.shortCode)) {
+    try {
+      requiredOperations.forEach(operation -> {
         checkForMissingParams(cli, operation.requiredParams);
-        operation.argsConsumer.accept(Args.from(cli, operation.getAllParams()));
-        executedOperations.add(operation);
-      }
-    });
+        operation.argsConsumer.accept(Args.from(cli, operation.requiredParams));
+      });
 
-    if (executedOperations.isEmpty())
-      otherwiseRunnables.forEach(Runnable::run);
+      operations.forEach(operation -> {
+        if (cli.hasOption(operation.param.shortCode)) {
+          checkForMissingParams(cli, operation.requiredParams);
+          operation.argsConsumer.accept(Args.from(cli, operation.getAllParams()));
+          executedOperations.add(operation);
+        }
+      });
+
+      if (executedOperations.isEmpty())
+        otherwiseRunnables.forEach(Runnable::run);
+    } catch (BriefcaseException e) {
+      System.err.println("Error: " + e.message);
+      log.error("Error", e);
+      System.exit(1);
+    } catch (Throwable t) {
+      System.err.println("Briefcase unexpected error. Please review the logs and contact maintainers on the following URLs:");
+      System.err.println("\thttps://opendatakit.slack.com/messages/C374LNDK9/");
+      System.err.println("\thttps://forum.opendatakit.org/c/support");
+      log.error("Error", t);
+      System.exit(1);
+    }
   }
 
   /**
@@ -101,8 +132,9 @@ public class Cli {
   private CommandLine getCli(String[] args, Set<Param> params) {
     try {
       return new DefaultParser().parse(mapToOptions(params), args, false);
-    } catch (UnrecognizedOptionException e) {
+    } catch (UnrecognizedOptionException | MissingArgumentException e) {
       System.err.println(e.getMessage());
+      log.error("Error", e);
       printHelp(requiredOperations, operations);
       System.exit(1);
       return null;
@@ -136,8 +168,10 @@ public class Cli {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
     Cli cli = (Cli) o;
     return Objects.equals(requiredOperations, cli.requiredOperations) &&
         Objects.equals(operations, cli.operations) &&
