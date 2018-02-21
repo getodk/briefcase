@@ -19,6 +19,9 @@ import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
+import static org.opendatakit.briefcase.export.ExportOutcome.ALL_EXPORTED;
+import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
+import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 
@@ -27,11 +30,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.stream.Stream;
+import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.export.ExportAction;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
+import org.opendatakit.briefcase.export.ExportOutcome;
+import org.opendatakit.briefcase.export.ExportToCsv;
+import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
@@ -113,10 +120,15 @@ public class ExportPanel {
 
         if (needsPemFile && !exportConfiguration.isPemFilePresent())
           return Stream.of("The form " + formStatus.getFormName() + " is encrypted and you haven't set a PEM file");
-        if (needsPemFile)
-          return ExportAction.readPemFile(exportConfiguration.getPemFile()
-              .orElseThrow(() -> new RuntimeException("PEM file not present"))
-          ).getErrors().stream();
+        if (needsPemFile) {
+          if (!exportConfiguration.getPemFile().isPresent())
+            return Stream.of("No PEM file configured");
+          try {
+            ExportConfiguration.readPemFile(exportConfiguration.getPemFile().get());
+          } catch (Throwable t) {
+            return Stream.of("Error reading PEM file: " + t.getMessage());
+          }
+        }
         return Stream.empty();
       }).collect(toList());
 
@@ -174,11 +186,19 @@ public class ExportPanel {
                 terminationFuture,
                 Collections.singletonList(form)
             ));
-          ExportAction.export(
-              (BriefcaseFormDefinition) form.getFormDefinition(),
-              configuration,
-              terminationFuture
-          );
+          BriefcaseFormDefinition formDefinition = (BriefcaseFormDefinition) form.getFormDefinition();
+          ExportOutcome allSuccessful = BriefcasePreferences.getBriefcaseOldExport()
+              ? ExportAction.export(formDefinition, configuration, new TerminationFuture())
+              : ExportToCsv.export(FormDefinition.from(formDefinition), configuration, true);
+
+          if (allSuccessful == ALL_EXPORTED)
+            EventBus.publish(new ExportSucceededEvent(formDefinition));
+
+          if (allSuccessful == SOME_SKIPPED)
+            EventBus.publish(new ExportSucceededWithErrorsEvent(formDefinition));
+
+          if (allSuccessful == ALL_SKIPPED)
+            EventBus.publish(new ExportFailedEvent(formDefinition));
         });
     form.enableUI();
   }

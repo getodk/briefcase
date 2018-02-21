@@ -16,6 +16,10 @@
 
 package org.opendatakit.briefcase.export;
 
+import static org.opendatakit.briefcase.export.ExportOutcome.ALL_EXPORTED;
+import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
+import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -31,11 +35,10 @@ import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
-import org.opendatakit.briefcase.model.ExportSucceededEvent;
-import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.util.ErrorsOr;
-import org.opendatakit.briefcase.util.ExportToCsv;
+import org.opendatakit.briefcase.util.OldExportToCsv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +54,7 @@ public class ExportAction {
   }
 
 
-  public static ErrorsOr<PrivateKey> readPemFile(Path pemFile) {
+  private static ErrorsOr<PrivateKey> readPemFile(Path pemFile) {
     try (PEMReader rdr = new PEMReader(new BufferedReader(new InputStreamReader(Files.newInputStream(pemFile), "UTF-8")))) {
       Optional<Object> o = Optional.ofNullable(rdr.readObject());
       if (!o.isPresent())
@@ -66,13 +69,13 @@ public class ExportAction {
     }
   }
 
-  public static void export(BriefcaseFormDefinition formDefinition, ExportConfiguration configuration, TerminationFuture terminationFuture) {
+  public static ExportOutcome export(BriefcaseFormDefinition formDefinition, ExportConfiguration configuration, TerminationFuture terminationFuture) {
     if (formDefinition.isFileEncryptedForm() || formDefinition.isFieldEncryptedForm()) {
       formDefinition.setPrivateKey(readPemFile(configuration.getPemFile()
           .orElseThrow(() -> new RuntimeException("PEM file not present"))
       ).get());
     }
-    ExportToCsv action = new ExportToCsv(
+    OldExportToCsv action = new OldExportToCsv(
         terminationFuture,
         configuration.getExportDir().orElseThrow(() -> new RuntimeException("Export dir not present")).toFile(),
         formDefinition,
@@ -85,20 +88,17 @@ public class ExportAction {
     try {
       boolean allSuccessful = action.doAction();
 
-      if (!allSuccessful)
-        EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
-
       if (allSuccessful && action.noneSkipped())
-        EventBus.publish(new ExportSucceededEvent(action.getFormDefinition()));
+        return ALL_EXPORTED;
 
       if (allSuccessful && action.someSkipped())
-        EventBus.publish(new ExportSucceededWithErrorsEvent(action.getFormDefinition()));
+        return SOME_SKIPPED;
 
-      if (allSuccessful && action.allSkipped())
-        EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
+      return ALL_SKIPPED;
     } catch (Exception e) {
       log.error("export action failed", e);
       EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
+      throw new BriefcaseException(e);
     }
   }
 

@@ -316,7 +316,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
   /**
    * The XForm definition in XML
    */
-  protected final String xml;
+  public final String xml;
 
   // extracted from XForm during parsing
   private final Map<String, Integer> stringLengths = new HashMap<>();

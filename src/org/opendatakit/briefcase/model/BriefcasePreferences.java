@@ -46,6 +46,7 @@ public class BriefcasePreferences {
   private static final String BRIEFCASE_PROXY_HOST_PROPERTY = "briefcaseProxyHost";
   private static final String BRIEFCASE_PROXY_PORT_PROPERTY = "briefcaseProxyPort";
   private static final String BRIEFCASE_PARALLEL_PULLS_PROPERTY = "briefcaseParallelPulls";
+  private static final String BRIEFCASE_OLD_EXPORT = "use old export";
   public static final String BRIEFCASE_TRACKING_CONSENT_PROPERTY = "briefcaseTrackingConsent";
   private static final String BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY = "briefcaseStorePasswordsConsent";
   private static final String BRIEFCASE_UNIQUE_USER_ID_PROPERTY = "uniqueUserID";
@@ -189,7 +190,13 @@ public class BriefcasePreferences {
 
   public static Boolean getBriefcaseParallelPullsProperty() {
     return Boolean.valueOf(
-        Preference.APPLICATION_SCOPED.get(BRIEFCASE_PARALLEL_PULLS_PROPERTY, Boolean.FALSE.toString())
+        Preference.APPLICATION_SCOPED.get(BRIEFCASE_PARALLEL_PULLS_PROPERTY, Boolean.TRUE.toString())
+    );
+  }
+
+  public static Boolean getBriefcaseOldExport() {
+    return Boolean.valueOf(
+        Preference.APPLICATION_SCOPED.get(BRIEFCASE_OLD_EXPORT, Boolean.TRUE.toString())
     );
   }
 
@@ -246,6 +253,15 @@ public class BriefcasePreferences {
    */
   public static void setBriefcaseTrackingConsentProperty(boolean value) {
     setBooleanProperty(BRIEFCASE_TRACKING_CONSENT_PROPERTY, value);
+  }
+
+  /**
+   * Persist the user's decision to use the old version of the Export process
+   *
+   * @param value (required) the boolean value representing the user's decision.
+   */
+  public static void setBriefcaseOldExport(boolean value) {
+    setBooleanProperty(BRIEFCASE_OLD_EXPORT, value);
   }
 
   /**

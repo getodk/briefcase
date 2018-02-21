@@ -13,22 +13,32 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.reused;
 
-public class BriefcaseException extends RuntimeException {
-  public BriefcaseException(Throwable cause) {
-    super(cause);
+package org.opendatakit.briefcase.export;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+public class ExportToCsvCascadingGroupsTest {
+  private ExportToCsvScenario scenario;
+
+  @Before
+  public void setUp() {
+    scenario = ExportToCsvScenario.setUp("cascading-repeats");
   }
 
-  public BriefcaseException(String message) {
-    super(message);
+  @After
+  public void tearDown() {
+    scenario.tearDown();
   }
 
-  public BriefcaseException(String message, Throwable cause) {
-    super(message, cause);
+  @Test
+  public void exports_cascading_groups_to_different_files() {
+    scenario.runOldExport();
+    scenario.runNewExport();
+    scenario.assertSameContent();
+    scenario.assertSameContentRepeats("g1", "g2", "g3");
   }
 
-  public BriefcaseException() {
-
-  }
 }

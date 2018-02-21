@@ -15,20 +15,21 @@
  */
 package org.opendatakit.briefcase.reused;
 
-public class BriefcaseException extends RuntimeException {
-  public BriefcaseException(Throwable cause) {
-    super(cause);
-  }
+import java.util.Arrays;
+import java.util.Optional;
 
-  public BriefcaseException(String message) {
-    super(message);
-  }
-
-  public BriefcaseException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public BriefcaseException() {
-
+public class Optionals {
+  /**
+   * Returns the first {@link Optional} in the array that is present.
+   *
+   * @param optionals an array of {@link Optional} instances to be evalued
+   * @return the first {@link Optional} in the array that is present
+   */
+  @SafeVarargs
+  public static <T> Optional<T> race(Optional<T>... optionals) {
+    return Arrays.stream(optionals)
+        .filter(Optional::isPresent)
+        .findFirst()
+        .flatMap(o -> o);
   }
 }

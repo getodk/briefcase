@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2011 University of Washington.
- * 
+ * Copyright (C) 2018 Nafundi
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -14,16 +14,30 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.model;
+package org.opendatakit.briefcase.export;
 
-import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-public class CryptoException extends BriefcaseException {
-  public CryptoException(String message) {
-    super(message);
+public class ExportToCsvAllDataTypesTest {
+  private ExportToCsvScenario scenario;
+
+  @Before
+  public void setUp() {
+    scenario = ExportToCsvScenario.setUp("all-data-types");
   }
 
-  public CryptoException(String message, Throwable cause) {
-    super(message, cause);
+  @After
+  public void tearDown() {
+    scenario.tearDown();
   }
+
+  @Test
+  public void exports_forms_with_all_data_types() {
+    scenario.runOldExport();
+    scenario.runNewExport();
+    scenario.assertSameContent();
+  }
+
 }

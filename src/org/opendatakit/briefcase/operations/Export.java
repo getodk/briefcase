@@ -35,13 +35,16 @@ import java.util.Arrays;
 import java.util.Optional;
 import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
+import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportToCsv;
+import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
-import org.opendatakit.briefcase.util.ExportToCsv;
 import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.briefcase.util.OldExportToCsv;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
 import org.slf4j.Logger;
@@ -57,25 +60,40 @@ public class Export {
   private static final Param<Void> EXCLUDE_MEDIA = Param.flag("em", "exclude_media_export", "Exclude media in export");
   private static final Param<Void> OVERWRITE = Param.flag("oc", "overwrite_csv_export", "Overwrite files during export");
   private static final Param<Path> PEM_FILE = Param.arg("pf", "pem_file", "PEM file for form decryption", Paths::get);
+  private static final Param<Void> RUN_OLD_VERSION = Param.flag("ro", "run_old", "Run old version of the Export operation");
 
   public static Operation EXPORT_FORM = Operation.of(
       EXPORT,
-      args -> export(
-          args.get(STORAGE_DIR),
-          args.get(FORM_ID),
-          args.get(EXPORT_DIR),
-          args.get(FILE),
-          !args.has(EXCLUDE_MEDIA),
-          args.has(OVERWRITE),
-          args.getOptional(START),
-          args.getOptional(END),
-          args.getOptional(PEM_FILE)
-      ),
+      args -> {
+        if (args.has(RUN_OLD_VERSION))
+          oldExport(
+              args.get(STORAGE_DIR),
+              args.get(FORM_ID),
+              args.get(EXPORT_DIR),
+              args.get(FILE),
+              !args.has(EXCLUDE_MEDIA),
+              args.has(OVERWRITE),
+              args.getOptional(START),
+              args.getOptional(END),
+              args.getOptional(PEM_FILE)
+          );
+        else
+          export(args.get(STORAGE_DIR),
+              args.get(FORM_ID),
+              args.get(EXPORT_DIR),
+              args.get(FILE),
+              !args.has(EXCLUDE_MEDIA),
+              args.has(OVERWRITE),
+              args.getOptional(START),
+              args.getOptional(END),
+              args.getOptional(PEM_FILE)
+          );
+      },
       Arrays.asList(STORAGE_DIR, FORM_ID, FILE, EXPORT_DIR),
-      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END)
+      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, RUN_OLD_VERSION)
   );
 
-  public static void export(String storageDir, String formid, Path exportPath, String baseFilename, boolean includeMediaFiles, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
+  private static void oldExport(String storageDir, String formid, Path exportPath, String baseFilename, boolean includeMediaFiles, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
     CliEventsCompanion.attach(log);
     bootCache(storageDir);
     Optional<BriefcaseFormDefinition> maybeFormDefinition = FileSystemUtils.getBriefcaseFormList().stream()
@@ -108,7 +126,31 @@ public class Export {
     }
 
     System.out.println("Exporting form " + formDefinition.getFormName() + " (" + formDefinition.getFormId() + ") to: " + exportPath);
-    ExportToCsv.export(exportPath, formDefinition, baseFilename, includeMediaFiles, overwriteFiles, startDate, endDate);
+    OldExportToCsv.export(exportPath, formDefinition, baseFilename, includeMediaFiles, overwriteFiles, startDate, endDate);
+
+    BriefcasePreferences.forClass(ExportPanel.class).put(buildExportDateTimePrefix(formDefinition.getFormId()), LocalDateTime.now().format(ISO_DATE_TIME));
+  }
+
+  public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
+    CliEventsCompanion.attach(log);
+    bootCache(storageDir);
+    Optional<BriefcaseFormDefinition> maybeFormDefinition = FileSystemUtils.getBriefcaseFormList().stream()
+        .filter(form -> form.getFormId().equals(formid))
+        .findFirst();
+
+    BriefcaseFormDefinition formDefinition = maybeFormDefinition.orElseThrow(() -> new FormNotFoundException(formid));
+
+    System.out.println("Exporting form " + formDefinition.getFormName() + " (" + formDefinition.getFormId() + ") to: " + exportDir);
+    ExportConfiguration configuration = new ExportConfiguration(
+        Optional.of(exportDir),
+        maybePemFile,
+        startDate,
+        endDate,
+        Optional.empty(),
+        Optional.empty(),
+        Optional.of(overwriteFiles)
+    );
+    ExportToCsv.export(FormDefinition.from(formDefinition), configuration, exportMedia);
 
     BriefcasePreferences.forClass(ExportPanel.class).put(buildExportDateTimePrefix(formDefinition.getFormId()), LocalDateTime.now().format(ISO_DATE_TIME));
   }
