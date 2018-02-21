@@ -15,13 +15,17 @@
  */
 package org.opendatakit.briefcase;
 
+import static org.opendatakit.briefcase.buildconfig.BuildConfig.SENTRY_DSN;
+import static org.opendatakit.briefcase.buildconfig.BuildConfig.SENTRY_ENABLED;
+import static org.opendatakit.briefcase.buildconfig.BuildConfig.SENTRY_ENV;
+import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
 import static org.opendatakit.briefcase.operations.ClearPreferences.CLEAR_PREFS;
 import static org.opendatakit.briefcase.operations.Export.EXPORT_FORM;
 import static org.opendatakit.briefcase.operations.ImportFromODK.IMPORT_FROM_ODK;
 import static org.opendatakit.briefcase.operations.PullFormFromAggregate.PULL_FORM_FROM_AGGREGATE;
+import static org.opendatakit.briefcase.util.FindDirectoryStructure.getOsName;
 
 import io.sentry.Sentry;
-import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.ui.MainBriefcaseWindow;
 import org.opendatakit.common.cli.Cli;
 
@@ -33,7 +37,16 @@ import org.opendatakit.common.cli.Cli;
  */
 public class Launcher {
   public static void main(String[] args) {
-    Sentry.init(BuildConfig.SENTRY_DSN);
+    if (SENTRY_ENABLED)
+      Sentry.init(String.format(
+          "%s?release=%s&environment=%s&stacktrace.app.packages=%s&tags=os:%s,jvm:%s",
+          SENTRY_DSN,
+          VERSION,
+          SENTRY_ENV,
+          "org.opendatakit",
+          getOsName(),
+          System.getProperty("java.version")
+      ));
 
     new Cli()
         .register(PULL_FORM_FROM_AGGREGATE)
