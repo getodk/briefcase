@@ -1,9 +1,12 @@
 package org.opendatakit.common.cli;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import org.apache.commons.cli.Option;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 
 /**
  * This class represents a command-line execution argument. It can be either a flag (without a
@@ -56,6 +59,29 @@ public class Param<T> {
         shortCode,
         new Option(shortCode, longCode, true, description),
         Optional.of(mapper)
+    );
+  }
+
+  /**
+   * Creates a new {@link Param}&lt;{@link LocalDate}&gt; instance for a command-line arg
+   *
+   * @param shortCode   the shortcode (usually one or two chars)
+   * @param longCode    the longcode (usually some words separated by hyphens)
+   * @param description the description
+   * @return a new {@link Param}&lt;{@link LocalDate}&gt; instance
+   */
+  public static Param<LocalDate> localDate(String shortCode, String longCode, String description) {
+    return Param.arg(
+        shortCode,
+        longCode,
+        description + "(yyyy-MM-dd or yyyy/MM/dd)",
+        dateAsText -> {
+          try {
+            return LocalDate.parse(dateAsText.replaceAll("/", "-"));
+          } catch (DateTimeParseException e) {
+            throw new BriefcaseException("Invalid date format.");
+          }
+        }
     );
   }
 

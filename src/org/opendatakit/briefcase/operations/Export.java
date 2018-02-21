@@ -52,8 +52,8 @@ public class Export {
   private static final Param<Void> EXPORT = Param.flag("e", "export", "Export a form");
   private static final Param<Path> EXPORT_DIR = Param.arg("ed", "export_directory", "Export directory", Paths::get);
   private static final Param<String> FILE = Param.arg("f", "export_filename", "Filename for export operation");
-  private static final Param<LocalDate> START = Param.arg("start", "export_start_date", "Export start date", LocalDate::parse);
-  private static final Param<LocalDate> END = Param.arg("end", "export_end_date", "Export end date", LocalDate::parse);
+  private static final Param<LocalDate> START = Param.localDate("start", "export_start_date", "Export start date");
+  private static final Param<LocalDate> END = Param.localDate("end", "export_end_date", "Export end date");
   private static final Param<Void> EXCLUDE_MEDIA = Param.flag("em", "exclude_media_export", "Exclude media in export");
   private static final Param<Void> OVERWRITE = Param.flag("oc", "overwrite_csv_export", "Overwrite files during export");
   private static final Param<Path> PEM_FILE = Param.arg("pf", "pem_file", "PEM file for form decryption", Paths::get);

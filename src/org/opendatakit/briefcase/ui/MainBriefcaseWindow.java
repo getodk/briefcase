@@ -67,7 +67,8 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   final StorageLocation storageLocation;
 
   public static final String AGGREGATE_URL = "aggregate_url";
-  public static final String DATE_FORMAT = "yyyy/MM/dd";
+  public static final String DATE_FORMAT1 = "yyyy-MM-dd";
+  public static final String DATE_FORMAT2 = "yyyy/MM/dd";
   public static final String EXCLUDE_MEDIA_EXPORT = "exclude_media_export";
   public static final String EXPORT_DIRECTORY = "export_directory";
   public static final String EXPORT_END_DATE = "export_end_date";
@@ -354,14 +355,14 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         .build();
 
     Option startDate = Option.builder("start")
-        .argName(DATE_FORMAT)
+        .argName(DATE_FORMAT1 + " or " + DATE_FORMAT2)
         .hasArg()
         .longOpt(EXPORT_START_DATE)
         .desc("Include submission dates after (inclusive) this date in export to CSV")
         .build();
 
     Option endDate = Option.builder("end")
-        .argName(DATE_FORMAT)
+        .argName(DATE_FORMAT1 + " or " + DATE_FORMAT2)
         .hasArg()
         .longOpt(EXPORT_END_DATE)
         .desc("Include submission dates before (exclusive) this date in export to CSV")
@@ -422,9 +423,10 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     return options;
   }
 
-  static boolean testDateFormat(String date) {
+  private static boolean testDateFormat(String date) {
+    date = date.replaceAll("/", "-");
     try {
-      DateFormat df = new SimpleDateFormat(DATE_FORMAT);
+      DateFormat df = new SimpleDateFormat(DATE_FORMAT1);
       df.parse(date);
     } catch (java.text.ParseException e) {
       return false;
