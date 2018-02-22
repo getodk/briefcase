@@ -21,6 +21,7 @@ import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_EXIST;
 import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_DATE_RANGE_MESSAGE;
+import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_PEM_FILE;
 import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 
@@ -154,7 +155,15 @@ public class ExportConfiguration {
   }
 
   public boolean isPemFilePresent() {
-    return pemFile.isPresent();
+    if (pemFile.isPresent())  {
+      Path path = pemFile.get();
+      //Check if path is a file and is readable
+      if (Files.isRegularFile(path) && Files.isReadable(path)) {
+        //todo check if file is parsable by PEMParser and contains private key
+        return true;
+      }
+    }
+    return false;
   }
 
   public Optional<LocalDate> getStartDate() {
@@ -266,6 +275,8 @@ public class ExportConfiguration {
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
       errors.add(INVALID_DATE_RANGE_MESSAGE);
+    if (!isPemFilePresent())
+      errors.add(INVALID_PEM_FILE);
     return errors;
   }
 
