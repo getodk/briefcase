@@ -21,7 +21,6 @@ import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_EXIST;
 import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_DATE_RANGE_MESSAGE;
-import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_PEM_FILE;
 import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 
@@ -49,6 +48,7 @@ public class ExportConfiguration {
   private static final String START_DATE = "startDate";
   private static final String END_DATE = "endDate";
   private static final String PULL_BEFORE = "pullBefore";
+  private static final String ENCRYPTED_FORM_CONFIG = "encryptedFormConfig";
   private static final String PULL_BEFORE_OVERRIDE = "pullBeforeOverride";
   private static final Predicate<PullBeforeOverrideOption> ALL_EXCEPT_INHERIT = value -> value != INHERIT;
   private Optional<Path> exportDir;
@@ -56,19 +56,21 @@ public class ExportConfiguration {
   private Optional<LocalDate> startDate;
   private Optional<LocalDate> endDate;
   private Optional<Boolean> pullBefore;
+  private Optional<Boolean> isEcncryptedFormConfig;
   private Optional<PullBeforeOverrideOption> pullBeforeOverride;
 
-  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride) {
+  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride,Optional<Boolean> isEcncryptedFormConfig) {
     this.exportDir = exportDir;
     this.pemFile = pemFile;
     this.startDate = startDate;
     this.endDate = endDate;
     this.pullBefore = pullBefore;
     this.pullBeforeOverride = pullBeforeOverride;
+    this.isEcncryptedFormConfig = isEcncryptedFormConfig;
   }
 
   public static ExportConfiguration empty() {
-    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
@@ -78,7 +80,8 @@ public class ExportConfiguration {
         prefs.nullSafeGet(START_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(PULL_BEFORE).map(Boolean::valueOf),
-        prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from)
+        prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from),
+        prefs.nullSafeGet(ENCRYPTED_FORM_CONFIG).map(Boolean::valueOf)
     );
   }
 
@@ -89,7 +92,8 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + PULL_BEFORE).map(Boolean::valueOf),
-        prefs.nullSafeGet(keyPrefix + PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from)
+        prefs.nullSafeGet(keyPrefix + PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from),
+        prefs.nullSafeGet(keyPrefix + ENCRYPTED_FORM_CONFIG).map(Boolean::valueOf)
     );
   }
 
@@ -132,7 +136,8 @@ public class ExportConfiguration {
         startDate,
         endDate,
         pullBefore,
-        pullBeforeOverride
+        pullBeforeOverride,
+        isEcncryptedFormConfig
     );
   }
 
@@ -275,8 +280,6 @@ public class ExportConfiguration {
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
       errors.add(INVALID_DATE_RANGE_MESSAGE);
-    if (!isPemFilePresent())
-      errors.add(INVALID_PEM_FILE);
     return errors;
   }
 
@@ -345,7 +348,8 @@ public class ExportConfiguration {
         startDate.isPresent() ? startDate : defaultConfiguration.startDate,
         endDate.isPresent() ? endDate : defaultConfiguration.endDate,
         pullBefore.isPresent() ? pullBefore : defaultConfiguration.pullBefore,
-        pullBeforeOverride.isPresent() ? pullBeforeOverride : defaultConfiguration.pullBeforeOverride
+        pullBeforeOverride.isPresent() ? pullBeforeOverride : defaultConfiguration.pullBeforeOverride,
+        isEcncryptedFormConfig.isPresent() ? isEcncryptedFormConfig : defaultConfiguration.isEcncryptedFormConfig
     );
   }
 
