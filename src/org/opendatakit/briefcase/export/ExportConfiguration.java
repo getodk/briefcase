@@ -49,7 +49,7 @@ public class ExportConfiguration {
   private static final String START_DATE = "startDate";
   private static final String END_DATE = "endDate";
   private static final String PULL_BEFORE = "pullBefore";
-  private static final String ENCRYPTED_FORM_CONFIG = "encryptedFormConfig";
+  private static final String FORM_NEEDS_PRIVATE_KEY = "formNeedsPrivateKey";
   private static final String PULL_BEFORE_OVERRIDE = "pullBeforeOverride";
   private static final Predicate<PullBeforeOverrideOption> ALL_EXCEPT_INHERIT = value -> value != INHERIT;
   private Optional<Path> exportDir;
@@ -57,17 +57,17 @@ public class ExportConfiguration {
   private Optional<LocalDate> startDate;
   private Optional<LocalDate> endDate;
   private Optional<Boolean> pullBefore;
-  private Optional<Boolean> isEcncryptedFormConfig;
+  private Optional<Boolean> formNeedsPrivateKey;
   private Optional<PullBeforeOverrideOption> pullBeforeOverride;
 
-  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride,Optional<Boolean> isEcncryptedFormConfig) {
+  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride,Optional<Boolean> formNeedsPrivateKey) {
     this.exportDir = exportDir;
     this.pemFile = pemFile;
     this.startDate = startDate;
     this.endDate = endDate;
     this.pullBefore = pullBefore;
     this.pullBeforeOverride = pullBeforeOverride;
-    this.isEcncryptedFormConfig = isEcncryptedFormConfig;
+    this.formNeedsPrivateKey = formNeedsPrivateKey;
   }
 
   public static ExportConfiguration empty() {
@@ -82,7 +82,7 @@ public class ExportConfiguration {
         prefs.nullSafeGet(END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(PULL_BEFORE).map(Boolean::valueOf),
         prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from),
-        prefs.nullSafeGet(ENCRYPTED_FORM_CONFIG).map(Boolean::valueOf)
+        prefs.nullSafeGet(FORM_NEEDS_PRIVATE_KEY).map(Boolean::valueOf)
     );
   }
 
@@ -94,7 +94,7 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + PULL_BEFORE).map(Boolean::valueOf),
         prefs.nullSafeGet(keyPrefix + PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from),
-        prefs.nullSafeGet(keyPrefix + ENCRYPTED_FORM_CONFIG).map(Boolean::valueOf)
+        prefs.nullSafeGet(keyPrefix + FORM_NEEDS_PRIVATE_KEY).map(Boolean::valueOf)
     );
   }
 
@@ -110,7 +110,7 @@ public class ExportConfiguration {
         keyPrefix + END_DATE,
         keyPrefix + PULL_BEFORE,
         keyPrefix + PULL_BEFORE_OVERRIDE,
-        keyPrefix + ENCRYPTED_FORM_CONFIG
+        keyPrefix + FORM_NEEDS_PRIVATE_KEY
     );
   }
 
@@ -128,7 +128,7 @@ public class ExportConfiguration {
     endDate.ifPresent(value -> map.put(keyPrefix + END_DATE, value.format(DateTimeFormatter.ISO_DATE)));
     pullBefore.ifPresent(value -> map.put(keyPrefix + PULL_BEFORE, value.toString()));
     pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).ifPresent(value -> map.put(keyPrefix + PULL_BEFORE_OVERRIDE, value.name()));
-    isEcncryptedFormConfig.ifPresent(value -> map.put(keyPrefix + ENCRYPTED_FORM_CONFIG, value.toString()));
+    formNeedsPrivateKey.ifPresent(value -> map.put(keyPrefix + FORM_NEEDS_PRIVATE_KEY, value.toString()));
     return map;
   }
 
@@ -140,7 +140,7 @@ public class ExportConfiguration {
         endDate,
         pullBefore,
         pullBeforeOverride,
-        isEcncryptedFormConfig
+            formNeedsPrivateKey
     );
   }
 
@@ -201,12 +201,12 @@ public class ExportConfiguration {
     return this;
   }
 
-  public Optional<Boolean> isEncryptedFormConfig() {
-    return isEcncryptedFormConfig;
+  public Optional<Boolean> getFormNeedsPrivateKey() {
+    return formNeedsPrivateKey;
   }
 
-  public ExportConfiguration setIsEncryptedFormConfig(Boolean value) {
-    this.isEcncryptedFormConfig = Optional.ofNullable(value);
+  public ExportConfiguration setFormNeedsPrivateKey(Boolean value) {
+    this.formNeedsPrivateKey = Optional.ofNullable(value);
     return this;
   }
 
@@ -268,10 +268,6 @@ public class ExportConfiguration {
     pullBeforeOverride.ifPresent(consumer);
   }
 
-  public void isEncryptedFormConfigPresent(Consumer<Boolean> consumer) {
-    isEcncryptedFormConfig.ifPresent(consumer);
-  }
-
   private List<String> getErrors() {
     List<String> errors = new ArrayList<>();
 
@@ -296,7 +292,7 @@ public class ExportConfiguration {
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
       errors.add(INVALID_DATE_RANGE_MESSAGE);
-    if (isEcncryptedFormConfig.isPresent() && !isPemFilePresent())
+    if (formNeedsPrivateKey.isPresent() && !isPemFilePresent())
       errors.add(INVALID_PEM_FILE);
     return errors;
   }
@@ -322,7 +318,7 @@ public class ExportConfiguration {
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
       errors.add(INVALID_DATE_RANGE_MESSAGE);
-    if (isEcncryptedFormConfig.isPresent() && !isPemFilePresent())
+    if (formNeedsPrivateKey.isPresent() && !isPemFilePresent())
       errors.add(INVALID_PEM_FILE);
 
     return errors;
@@ -369,7 +365,7 @@ public class ExportConfiguration {
         endDate.isPresent() ? endDate : defaultConfiguration.endDate,
         pullBefore.isPresent() ? pullBefore : defaultConfiguration.pullBefore,
         pullBeforeOverride.isPresent() ? pullBeforeOverride : defaultConfiguration.pullBeforeOverride,
-        isEcncryptedFormConfig.isPresent() ? isEcncryptedFormConfig : defaultConfiguration.isEcncryptedFormConfig
+        formNeedsPrivateKey.isPresent() ? formNeedsPrivateKey : defaultConfiguration.formNeedsPrivateKey
     );
   }
 

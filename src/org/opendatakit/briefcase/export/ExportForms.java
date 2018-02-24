@@ -64,7 +64,7 @@ public class ExportForms {
       if (((BriefcaseFormDefinition) form.getFormDefinition()).isFileEncryptedForm() ||
               ((BriefcaseFormDefinition) form.getFormDefinition()).isFieldEncryptedForm()) {
         //Check if this is an encrypted form. If true then set config to know it needs a PEM file
-        load.setIsEncryptedFormConfig(Boolean.TRUE);
+        load.setFormNeedsPrivateKey(Boolean.TRUE);
       }
       if (!load.isEmpty()) {
         configurations.put(formId, load);

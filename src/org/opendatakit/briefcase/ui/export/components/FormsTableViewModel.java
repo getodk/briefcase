@@ -107,7 +107,7 @@ public class FormsTableViewModel extends AbstractTableModel {
                         ((BriefcaseFormDefinition) form.getFormDefinition()).isFieldEncryptedForm())) {
             //Even if user sets all config fields empty. Try checking to see if the form is an encrypted form
             //and update the config to point to that
-            configuration.setIsEncryptedFormConfig(Boolean.TRUE);
+            configuration.setFormNeedsPrivateKey(Boolean.TRUE);
             putConfiguration(form, configuration);
         } else if (configuration.isEmpty()) {
           removeConfiguration(form);
