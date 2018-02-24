@@ -36,6 +36,7 @@ import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.ui.reused.FontUtils;
@@ -101,10 +102,18 @@ public class FormsTableViewModel extends AbstractTableModel {
       );
       dialog.onRemove(() -> removeConfiguration(form));
       dialog.onOK(configuration -> {
-        if (configuration.isEmpty())
+        if (configuration.isEmpty() &&
+                (((BriefcaseFormDefinition) form.getFormDefinition()).isFileEncryptedForm() ||
+                        ((BriefcaseFormDefinition) form.getFormDefinition()).isFieldEncryptedForm())) {
+            //Even if user sets all config fields empty. Try checking to see if the form is an encrypted form
+            //and update the config to point to that
+            configuration.setIsEncryptedFormConfig(Boolean.TRUE);
+            putConfiguration(form, configuration);
+        } else if (configuration.isEmpty()) {
           removeConfiguration(form);
-        else
+        } else {
           putConfiguration(form, configuration);
+        }
       });
       dialog.open();
     });

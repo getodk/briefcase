@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.IFormDefinition;
@@ -60,8 +61,14 @@ public class ExportForms {
     forms.forEach(form -> {
       String formId = getFormId(form);
       ExportConfiguration load = ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId));
-      if (!load.isEmpty())
+      if (((BriefcaseFormDefinition) form.getFormDefinition()).isFileEncryptedForm() ||
+              ((BriefcaseFormDefinition) form.getFormDefinition()).isFieldEncryptedForm()) {
+        //Check if this is an encrypted form. If true then set config to know it needs a PEM file
+        load.setIsEncryptedFormConfig(Boolean.TRUE);
+      }
+      if (!load.isEmpty()) {
         configurations.put(formId, load);
+      }
       exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId))
           .map(LocalDateTime::parse)
           .ifPresent(dateTime -> lastExportDateTimes.put(formId, dateTime));

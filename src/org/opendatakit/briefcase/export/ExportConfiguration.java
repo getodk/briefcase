@@ -21,6 +21,7 @@ import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_EXIST;
 import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_DATE_RANGE_MESSAGE;
+import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_PEM_FILE;
 import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 
@@ -108,7 +109,8 @@ public class ExportConfiguration {
         keyPrefix + START_DATE,
         keyPrefix + END_DATE,
         keyPrefix + PULL_BEFORE,
-        keyPrefix + PULL_BEFORE_OVERRIDE
+        keyPrefix + PULL_BEFORE_OVERRIDE,
+        keyPrefix + ENCRYPTED_FORM_CONFIG
     );
   }
 
@@ -126,6 +128,7 @@ public class ExportConfiguration {
     endDate.ifPresent(value -> map.put(keyPrefix + END_DATE, value.format(DateTimeFormatter.ISO_DATE)));
     pullBefore.ifPresent(value -> map.put(keyPrefix + PULL_BEFORE, value.toString()));
     pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).ifPresent(value -> map.put(keyPrefix + PULL_BEFORE_OVERRIDE, value.name()));
+    isEcncryptedFormConfig.ifPresent(value -> map.put(keyPrefix + ENCRYPTED_FORM_CONFIG, value.toString()));
     return map;
   }
 
@@ -198,6 +201,15 @@ public class ExportConfiguration {
     return this;
   }
 
+  public Optional<Boolean> isEncryptedFormConfig() {
+    return isEcncryptedFormConfig;
+  }
+
+  public ExportConfiguration setIsEncryptedFormConfig(Boolean value) {
+    this.isEcncryptedFormConfig = Optional.ofNullable(value);
+    return this;
+  }
+
   public Optional<PullBeforeOverrideOption> getPullBeforeOverride() {
     return pullBeforeOverride;
   }
@@ -256,6 +268,10 @@ public class ExportConfiguration {
     pullBeforeOverride.ifPresent(consumer);
   }
 
+  public void isEncryptedFormConfigPresent(Consumer<Boolean> consumer) {
+    isEcncryptedFormConfig.ifPresent(consumer);
+  }
+
   private List<String> getErrors() {
     List<String> errors = new ArrayList<>();
 
@@ -280,6 +296,8 @@ public class ExportConfiguration {
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
       errors.add(INVALID_DATE_RANGE_MESSAGE);
+    if (isEcncryptedFormConfig.isPresent() && !isPemFilePresent())
+      errors.add(INVALID_PEM_FILE);
     return errors;
   }
 
@@ -304,6 +322,8 @@ public class ExportConfiguration {
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
       errors.add(INVALID_DATE_RANGE_MESSAGE);
+    if (isEcncryptedFormConfig.isPresent() && !isPemFilePresent())
+      errors.add(INVALID_PEM_FILE);
 
     return errors;
   }
