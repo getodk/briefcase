@@ -126,7 +126,6 @@ buildConfig {
     buildConfigField 'String', 'GOOGLE_TRACKING_ID', getValue("googleAnalytics.trackingId", "UA-91951913-3")
     buildConfigField 'Boolean', 'SENTRY_ENABLED', getValue("sentry.enabled", "false")
     buildConfigField 'String', 'SENTRY_DSN', getValue("sentry.dsn", "https://b6f023a5f17e44d9a46447f8827e2a41:1b1f33d68b1b4404b85cd627563d37f9@sentry.io/287258")
-    buildConfigField 'String', 'SENTRY_ENV', getValue("sentry.env", "dev")
 }
 
 mainClassName = 'org.opendatakit.briefcase.Launcher'
