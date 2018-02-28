@@ -38,6 +38,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
@@ -87,7 +88,7 @@ public class ExportConfigurationTest {
     BriefcasePreferences prefs = new BriefcasePreferences(InMemoryPreferences.empty());
     prefs.putAll(validConfig.asMap("some_prefix"));
 
-    ExportConfiguration load = load(prefs, "some_prefix");
+    ExportConfiguration load = load(Optional.empty(), prefs, "some_prefix");
 
     assertThat(load, is(validConfig));
   }

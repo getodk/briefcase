@@ -27,6 +27,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
@@ -88,12 +90,12 @@ public class ExportPanelUnitTest {
     ExportConfiguration conf = ExportConfiguration.empty();
     conf.setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()));
 
-    assertThat(ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), isEmpty());
+    assertThat(ExportConfiguration.load(Optional.empty(), exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), isEmpty());
 
     forms.putConfiguration(form, conf);
     exportPanelForm.getFormsTable().getViewModel().triggerChange();
 
-    assertThat(ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), isPresent());
+    assertThat(ExportConfiguration.load(Optional.empty(), exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), isPresent());
   }
 
   @Test

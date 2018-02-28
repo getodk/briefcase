@@ -32,7 +32,7 @@ public class ExportConfigurationMatchers {
 
       @Override
       protected boolean matchesSafely(ExportConfiguration item) {
-        return item != null && item.isEmpty();
+        return item != null && item.isUserConfigsEmpty();
       }
     };
   }

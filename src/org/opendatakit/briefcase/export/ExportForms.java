@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.IFormDefinition;
@@ -60,13 +60,8 @@ public class ExportForms {
     Map<String, ServerConnectionInfo> transferSettings = new HashMap<>();
     forms.forEach(form -> {
       String formId = getFormId(form);
-      ExportConfiguration load = ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId));
-      if (((BriefcaseFormDefinition) form.getFormDefinition()).isFileEncryptedForm() ||
-              ((BriefcaseFormDefinition) form.getFormDefinition()).isFieldEncryptedForm()) {
-        //Check if this is an encrypted form. If true then set config to know it needs a PEM file
-        load.setFormNeedsPrivateKey(Boolean.TRUE);
-      }
-      if (!load.isEmpty()) {
+      ExportConfiguration load = ExportConfiguration.load(Optional.of(form), exportPreferences, buildCustomConfPrefix(formId));
+      if (!load.isUserConfigsEmpty()) {
         configurations.put(formId, load);
       }
       exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId))
@@ -147,7 +142,12 @@ public class ExportForms {
   }
 
   public void removeConfiguration(FormStatus form) {
-    customConfigurations.remove(getFormId(form));
+    customConfigurations.get(getFormId(form))
+            .removeExportDir()
+            .removePemFile()
+            .removePullBefore()
+            .removeStartDate()
+            .removeEndDate();
   }
 
   public void putConfiguration(FormStatus form, ExportConfiguration configuration) {

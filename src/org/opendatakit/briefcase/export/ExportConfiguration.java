@@ -41,7 +41,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.FormStatus;
 
 public class ExportConfiguration {
   private static final String EXPORT_DIR = "exportDir";
@@ -57,7 +59,7 @@ public class ExportConfiguration {
   private Optional<LocalDate> startDate;
   private Optional<LocalDate> endDate;
   private Optional<Boolean> pullBefore;
-  private Optional<Boolean> formNeedsPrivateKey;
+  private final Optional<Boolean> formNeedsPrivateKey;
   private Optional<PullBeforeOverrideOption> pullBeforeOverride;
 
   public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride,Optional<Boolean> formNeedsPrivateKey) {
@@ -86,7 +88,13 @@ public class ExportConfiguration {
     );
   }
 
-  public static ExportConfiguration load(BriefcasePreferences prefs, String keyPrefix) {
+  public static ExportConfiguration load(Optional<FormStatus> form, BriefcasePreferences prefs, String keyPrefix) {
+    //Determine if this form needs a private key
+    Boolean formNeedsPrivateKey = form.filter(formStatus -> ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFileEncryptedForm()
+            || ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFieldEncryptedForm()).map(value -> Boolean.TRUE).orElse(Boolean.FALSE);
+
+    //Note: If this pref value is Optional.empty() then this is the first time Briefcase is loading this form
+    Optional<Boolean> oldpref = prefs.nullSafeGet(keyPrefix + FORM_NEEDS_PRIVATE_KEY).map(Boolean::valueOf);
     return new ExportConfiguration(
         prefs.nullSafeGet(keyPrefix + EXPORT_DIR).map(Paths::get),
         prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get),
@@ -94,7 +102,9 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + PULL_BEFORE).map(Boolean::valueOf),
         prefs.nullSafeGet(keyPrefix + PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from),
-        prefs.nullSafeGet(keyPrefix + FORM_NEEDS_PRIVATE_KEY).map(Boolean::valueOf)
+        //Check if this forms FORM_NEEDS_PRIVATE_KEY pref is set. If not this is its first config
+        //Determine if it needs private key or not and set the pref depending on the form definition
+        oldpref.map(value -> Optional.of(value)).orElse(Optional.of(formNeedsPrivateKey))
     );
   }
 
@@ -140,7 +150,7 @@ public class ExportConfiguration {
         endDate,
         pullBefore,
         pullBeforeOverride,
-            formNeedsPrivateKey
+        formNeedsPrivateKey
     );
   }
 
@@ -153,42 +163,26 @@ public class ExportConfiguration {
     return this;
   }
 
+  public ExportConfiguration removeExportDir() {
+    this.exportDir = Optional.empty();
+    return this;
+  }
+
   public Optional<Path> getPemFile() {
     return pemFile;
   }
 
   public ExportConfiguration setPemFile(Path path) {
-    this.pemFile = Optional.ofNullable(path);
-    return this;
-  }
-
-  public boolean isPemFilePresent() {
-    if (pemFile.isPresent())  {
-      Path path = pemFile.get();
-      //Check if path is a file and is readable
-      if (Files.isRegularFile(path) && Files.isReadable(path)) {
-        //todo check if file is parsable by PEMParser and contains private key
-        return true;
-      }
+    //Check if path is a file and is readable
+    if (Files.isRegularFile(path) && Files.isReadable(path)) {
+      //todo check if file is parsable by PEMParser and contains private key
+      this.pemFile = Optional.ofNullable(path);
     }
-    return false;
-  }
-
-  public Optional<LocalDate> getStartDate() {
-    return startDate;
-  }
-
-  public ExportConfiguration setStartDate(LocalDate date) {
-    this.startDate = Optional.ofNullable(date);
     return this;
   }
 
-  public Optional<LocalDate> getEndDate() {
-    return endDate;
-  }
-
-  public ExportConfiguration setEndDate(LocalDate date) {
-    this.endDate = Optional.ofNullable(date);
+  public ExportConfiguration removePemFile() {
+    this.pemFile = Optional.empty();
     return this;
   }
 
@@ -201,13 +195,41 @@ public class ExportConfiguration {
     return this;
   }
 
-  public Optional<Boolean> getFormNeedsPrivateKey() {
-    return formNeedsPrivateKey;
+  public ExportConfiguration removePullBefore() {
+    this.pullBefore = Optional.empty();
+    return this;
   }
 
-  public ExportConfiguration setFormNeedsPrivateKey(Boolean value) {
-    this.formNeedsPrivateKey = Optional.ofNullable(value);
+  public Optional<LocalDate> getStartDate() {
+    return startDate;
+  }
+
+  public ExportConfiguration setStartDate(LocalDate date) {
+    this.startDate = Optional.ofNullable(date);
     return this;
+  }
+
+  public ExportConfiguration removeStartDate() {
+    this.startDate = Optional.empty();
+    return this;
+  }
+
+  public Optional<LocalDate> getEndDate() {
+    return endDate;
+  }
+
+  public ExportConfiguration setEndDate(LocalDate date) {
+    this.endDate = Optional.ofNullable(date);
+    return this;
+  }
+
+  public ExportConfiguration removeEndDate() {
+    this.endDate = Optional.empty();
+    return this;
+  }
+
+  public boolean isPemFilePresent() {
+    return pemFile.isPresent();
   }
 
   public Optional<PullBeforeOverrideOption> getPullBeforeOverride() {
@@ -292,7 +314,7 @@ public class ExportConfiguration {
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
       errors.add(INVALID_DATE_RANGE_MESSAGE);
-    if (formNeedsPrivateKey.isPresent() && !isPemFilePresent())
+    if (formNeedsPrivateKey.orElse(false) && !isPemFilePresent())
       errors.add(INVALID_PEM_FILE);
     return errors;
   }
@@ -318,19 +340,29 @@ public class ExportConfiguration {
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
       errors.add(INVALID_DATE_RANGE_MESSAGE);
-    if (formNeedsPrivateKey.isPresent() && !isPemFilePresent())
+    if (formNeedsPrivateKey.orElse(false) && !isPemFilePresent())
       errors.add(INVALID_PEM_FILE);
 
     return errors;
   }
 
-  public boolean isEmpty() {
+  public boolean isUserConfigsEmpty() {
     return !exportDir.isPresent()
         && !pemFile.isPresent()
         && !startDate.isPresent()
         && !endDate.isPresent()
         && !pullBefore.isPresent()
         && !pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).isPresent();
+  }
+
+  public boolean isEmpty() {
+    return !exportDir.isPresent()
+            && !pemFile.isPresent()
+            && !startDate.isPresent()
+            && !endDate.isPresent()
+            && !pullBefore.isPresent()
+            && !pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).isPresent()
+            && !formNeedsPrivateKey.isPresent();
   }
 
   public boolean isValid() {

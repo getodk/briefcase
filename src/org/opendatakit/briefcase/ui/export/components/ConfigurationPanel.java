@@ -40,7 +40,11 @@ public class ConfigurationPanel {
       triggerOnChange();
     });
     form.onSelectPemFile(path -> {
-      configuration.setPemFile(path);
+      if (path == null) {
+        configuration.removePemFile();
+      } else {
+        configuration.setPemFile(path);
+      }
       triggerOnChange();
     });
     form.onSelectDateRangeStart(date -> {
@@ -104,7 +108,7 @@ public class ConfigurationPanel {
   }
 
   public boolean isEmpty() {
-    return configuration.isEmpty();
+    return configuration.isUserConfigsEmpty();
   }
 
   public void savePasswordsConsentGiven() {
