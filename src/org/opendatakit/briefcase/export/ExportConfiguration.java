@@ -44,6 +44,7 @@ import java.util.stream.Stream;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.util.PrivateKeyUtils;
 
 public class ExportConfiguration {
   private static final String EXPORT_DIR = "exportDir";
@@ -76,7 +77,7 @@ public class ExportConfiguration {
     return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
-  public static ExportConfiguration load(BriefcasePreferences prefs) {
+  public static ExportConfiguration loadDefaultConfig(BriefcasePreferences prefs) {
     return new ExportConfiguration(
         prefs.nullSafeGet(EXPORT_DIR).map(Paths::get),
         prefs.nullSafeGet(PEM_FILE).map(Paths::get),
@@ -84,17 +85,11 @@ public class ExportConfiguration {
         prefs.nullSafeGet(END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(PULL_BEFORE).map(Boolean::valueOf),
         prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from),
-        prefs.nullSafeGet(FORM_NEEDS_PRIVATE_KEY).map(Boolean::valueOf)
+        Optional.empty()
     );
   }
 
-  public static ExportConfiguration load(Optional<FormStatus> form, BriefcasePreferences prefs, String keyPrefix) {
-    //Determine if this form needs a private key
-    Boolean formNeedsPrivateKey = form.filter(formStatus -> ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFileEncryptedForm()
-            || ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFieldEncryptedForm()).map(value -> Boolean.TRUE).orElse(Boolean.FALSE);
-
-    //Note: If this pref value is Optional.empty() then this is the first time Briefcase is loading this form
-    Optional<Boolean> oldpref = prefs.nullSafeGet(keyPrefix + FORM_NEEDS_PRIVATE_KEY).map(Boolean::valueOf);
+  public static ExportConfiguration loadFormConfig(BriefcasePreferences prefs, String keyPrefix) {
     return new ExportConfiguration(
         prefs.nullSafeGet(keyPrefix + EXPORT_DIR).map(Paths::get),
         prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get),
@@ -102,9 +97,7 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + PULL_BEFORE).map(Boolean::valueOf),
         prefs.nullSafeGet(keyPrefix + PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from),
-        //Check if this forms FORM_NEEDS_PRIVATE_KEY pref is set. If not this is its first config
-        //Determine if it needs private key or not and set the pref depending on the form definition
-        oldpref.map(value -> Optional.of(value)).orElse(Optional.of(formNeedsPrivateKey))
+        prefs.nullSafeGet(keyPrefix + FORM_NEEDS_PRIVATE_KEY).map(Boolean::valueOf)
     );
   }
 
@@ -163,19 +156,13 @@ public class ExportConfiguration {
     return this;
   }
 
-  public ExportConfiguration removeExportDir() {
-    this.exportDir = Optional.empty();
-    return this;
-  }
-
   public Optional<Path> getPemFile() {
     return pemFile;
   }
 
   public ExportConfiguration setPemFile(Path path) {
-    //Check if path is a file and is readable
-    if (Files.isRegularFile(path) && Files.isReadable(path)) {
-      //todo check if file is parsable by PEMParser and contains private key
+    //Check if path is a valid pem file with privateKey
+    if (PrivateKeyUtils.isValidPrivateKey(path)) {
       this.pemFile = Optional.ofNullable(path);
     }
     return this;
@@ -195,11 +182,6 @@ public class ExportConfiguration {
     return this;
   }
 
-  public ExportConfiguration removePullBefore() {
-    this.pullBefore = Optional.empty();
-    return this;
-  }
-
   public Optional<LocalDate> getStartDate() {
     return startDate;
   }
@@ -209,22 +191,12 @@ public class ExportConfiguration {
     return this;
   }
 
-  public ExportConfiguration removeStartDate() {
-    this.startDate = Optional.empty();
-    return this;
-  }
-
   public Optional<LocalDate> getEndDate() {
     return endDate;
   }
 
   public ExportConfiguration setEndDate(LocalDate date) {
     this.endDate = Optional.ofNullable(date);
-    return this;
-  }
-
-  public ExportConfiguration removeEndDate() {
-    this.endDate = Optional.empty();
     return this;
   }
 
@@ -346,23 +318,16 @@ public class ExportConfiguration {
     return errors;
   }
 
-  public boolean isUserConfigsEmpty() {
-    return !exportDir.isPresent()
-        && !pemFile.isPresent()
-        && !startDate.isPresent()
-        && !endDate.isPresent()
-        && !pullBefore.isPresent()
-        && !pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).isPresent();
-  }
-
   public boolean isEmpty() {
+    //Since formNeedsPrivateKey field is used just to determine if a form needs a private key
+    //and is not required to create a valid export configuration a configuration is thus empty
+    //if all the other fields are empty
     return !exportDir.isPresent()
             && !pemFile.isPresent()
             && !startDate.isPresent()
             && !endDate.isPresent()
             && !pullBefore.isPresent()
-            && !pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).isPresent()
-            && !formNeedsPrivateKey.isPresent();
+            && !pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).isPresent();
   }
 
   public boolean isValid() {
@@ -389,7 +354,9 @@ public class ExportConfiguration {
     return endDate.map(mapper);
   }
 
-  public ExportConfiguration fallingBackTo(ExportConfiguration defaultConfiguration) {
+  public ExportConfiguration fallingBackTo(ExportConfiguration defaultConfiguration, FormStatus form) {
+    Boolean isPrivateKeyNeeded = ((BriefcaseFormDefinition) form.getFormDefinition()).isFileEncryptedForm()
+            || ((BriefcaseFormDefinition) form.getFormDefinition()).isFieldEncryptedForm() ? Boolean.TRUE : Boolean.FALSE;
     return new ExportConfiguration(
         exportDir.isPresent() ? exportDir : defaultConfiguration.exportDir,
         pemFile.isPresent() ? pemFile : defaultConfiguration.pemFile,
@@ -397,7 +364,7 @@ public class ExportConfiguration {
         endDate.isPresent() ? endDate : defaultConfiguration.endDate,
         pullBefore.isPresent() ? pullBefore : defaultConfiguration.pullBefore,
         pullBeforeOverride.isPresent() ? pullBeforeOverride : defaultConfiguration.pullBeforeOverride,
-        formNeedsPrivateKey.isPresent() ? formNeedsPrivateKey : defaultConfiguration.formNeedsPrivateKey
+        formNeedsPrivateKey.isPresent() ? formNeedsPrivateKey : Optional.of(isPrivateKeyNeeded)
     );
   }
 

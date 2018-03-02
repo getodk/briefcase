@@ -51,7 +51,7 @@ public class BriefcasePreferences {
   private static final String BRIEFCASE_UNIQUE_USER_ID_PROPERTY = "uniqueUserID";
 
   static {
-    // load the security provider
+    // loadFormConfig the security provider
     Security.addProvider(new BouncyCastleProvider());
   }
 

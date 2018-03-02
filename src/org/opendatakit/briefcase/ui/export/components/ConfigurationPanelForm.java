@@ -48,6 +48,7 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
+import org.opendatakit.briefcase.util.PrivateKeyUtils;
 import org.opendatakit.briefcase.util.StringUtils;
 
 @SuppressWarnings("checkstyle:MethodName")
@@ -161,10 +162,13 @@ public class ConfigurationPanelForm extends JComponent {
   }
 
   void setPemFile(Path path) {
-    pemFileField.setText(path.toString());
-    onSelectPemFileCallbacks.forEach(consumer -> consumer.accept(path));
-    pemFileChooseButton.setVisible(false);
-    pemFileClearButton.setVisible(true);
+    if (PrivateKeyUtils.isValidPrivateKey(path)) {
+      pemFileField.setText(path.toString());
+      onSelectPemFileCallbacks.forEach(consumer -> consumer.accept(path));
+      pemFileChooseButton.setVisible(false);
+      pemFileClearButton.setVisible(true);
+    }
+    //TODO Show error message if path is not a valid pem file and default to previous value
   }
 
   private void clearPemFile() {

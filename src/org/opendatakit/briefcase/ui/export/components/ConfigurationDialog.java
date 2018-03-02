@@ -31,7 +31,7 @@ public class ConfigurationDialog {
       form.enableClearAll();
 
     confPanel.onChange(() -> {
-      if (!confPanel.getConfiguration().isUserConfigsEmpty())
+      if (!confPanel.getConfiguration().isEmpty())
         form.enableClearAll();
       else
         form.disableClearAll();

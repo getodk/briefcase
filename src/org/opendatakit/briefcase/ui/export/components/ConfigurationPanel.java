@@ -108,7 +108,7 @@ public class ConfigurationPanel {
   }
 
   public boolean isEmpty() {
-    return configuration.isUserConfigsEmpty();
+    return configuration.isEmpty();
   }
 
   public void savePasswordsConsentGiven() {

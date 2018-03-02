@@ -27,7 +27,7 @@ public class FontUtils {
 
     public static Font getCustomFont(String name, Float size) {
 
-        // if we are in a jar, then use the classloader, if not, load from filesystem
+        // if we are in a jar, then use the classloader, if not, loadFormConfig from filesystem
         File file = getResourceAsFile(name);
         if (!file.exists()) {
             file = new File("res" + File.separator + name);

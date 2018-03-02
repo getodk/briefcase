@@ -16,59 +16,26 @@
 
 package org.opendatakit.briefcase.export;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.KeyPair;
-import java.security.PrivateKey;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.Optional;
-import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.util.ErrorsOr;
 import org.opendatakit.briefcase.util.ExportToCsv;
+import org.opendatakit.briefcase.util.PrivateKeyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ExportAction {
   private static final Logger log = LoggerFactory.getLogger(ExportAction.class);
 
-  private static Optional<PrivateKey> extractPrivateKey(Object o) {
-    if (o instanceof KeyPair)
-      return Optional.of(((KeyPair) o).getPrivate());
-    if (o instanceof PrivateKey)
-      return Optional.of((PrivateKey) o);
-    return Optional.empty();
-  }
-
-
-  public static ErrorsOr<PrivateKey> readPemFile(Path pemFile) {
-    try (PEMReader rdr = new PEMReader(new BufferedReader(new InputStreamReader(Files.newInputStream(pemFile), "UTF-8")))) {
-      Optional<Object> o = Optional.ofNullable(rdr.readObject());
-      if (!o.isPresent())
-        return ErrorsOr.errors("The supplied file is not in PEM format.");
-      Optional<PrivateKey> pk = extractPrivateKey(o.get());
-      if (!pk.isPresent())
-        return ErrorsOr.errors("The supplied file does not contain a private key.");
-      return ErrorsOr.some(pk.get());
-    } catch (IOException e) {
-      log.error("Error while reading PEM file", e);
-      return ErrorsOr.errors("Briefcase can't read the provided file: " + e.getMessage());
-    }
-  }
-
   public static void export(BriefcaseFormDefinition formDefinition, ExportConfiguration configuration, TerminationFuture terminationFuture) {
     if (formDefinition.isFileEncryptedForm() || formDefinition.isFieldEncryptedForm()) {
-      formDefinition.setPrivateKey(readPemFile(configuration.getPemFile()
+      formDefinition.setPrivateKey(PrivateKeyUtils.readPemFile(configuration.getPemFile()
           .orElseThrow(() -> new RuntimeException("PEM file not present"))
       ).get());
     }

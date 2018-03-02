@@ -60,8 +60,8 @@ public class ExportForms {
     Map<String, ServerConnectionInfo> transferSettings = new HashMap<>();
     forms.forEach(form -> {
       String formId = getFormId(form);
-      ExportConfiguration load = ExportConfiguration.load(Optional.of(form), exportPreferences, buildCustomConfPrefix(formId));
-      if (!load.isUserConfigsEmpty()) {
+      ExportConfiguration load = ExportConfiguration.loadFormConfig(exportPreferences, buildCustomConfPrefix(formId));
+      if (!load.isEmpty()) {
         configurations.put(formId, load);
       }
       exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId))
@@ -135,19 +135,14 @@ public class ExportForms {
     defaultConfiguration = configuration;
   }
 
-  public ExportConfiguration getConfiguration(String formId) {
-    return Optional.ofNullable(customConfigurations.get(formId))
+  public ExportConfiguration getConfiguration(FormStatus form) {
+    return Optional.ofNullable(customConfigurations.get(form.getFormDefinition().getFormId()))
         .orElse(ExportConfiguration.empty())
-        .fallingBackTo(defaultConfiguration);
+        .fallingBackTo(defaultConfiguration, form);
   }
 
   public void removeConfiguration(FormStatus form) {
-    customConfigurations.get(getFormId(form))
-            .removeExportDir()
-            .removePemFile()
-            .removePullBefore()
-            .removeStartDate()
-            .removeEndDate();
+    customConfigurations.remove(getFormId(form));
   }
 
   public void putConfiguration(FormStatus form, ExportConfiguration configuration) {
@@ -168,7 +163,6 @@ public class ExportForms {
 
   public boolean allSelectedFormsHaveConfiguration() {
     return getSelectedForms().stream()
-        .map(ExportForms::getFormId)
         .map(this::getConfiguration)
         .allMatch(ExportConfiguration::isValid);
   }

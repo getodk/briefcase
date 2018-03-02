@@ -101,7 +101,7 @@ public class FormsTableViewModel extends AbstractTableModel {
       );
       dialog.onRemove(() -> removeConfiguration(form));
       dialog.onOK(configuration -> {
-        if (configuration.isUserConfigsEmpty()) {
+        if (configuration.isEmpty()) {
           removeConfiguration(form);
         } else {
           putConfiguration(form, configuration);
@@ -129,8 +129,7 @@ public class FormsTableViewModel extends AbstractTableModel {
   }
 
   private void updateConfButton(FormStatus form, JButton button) {
-    button.setForeground(forms.getCustomConfiguration(form)
-            .map(f -> !f.isUserConfigsEmpty()).orElse(false) ? NO_CONF_OVERRIDE_COLOR : DARK_GRAY );
+    button.setForeground(forms.hasConfiguration(form) ? NO_CONF_OVERRIDE_COLOR : DARK_GRAY );
   }
 
   @Override

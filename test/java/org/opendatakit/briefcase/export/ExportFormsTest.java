@@ -79,8 +79,8 @@ public class ExportFormsTest {
     forms.putConfiguration(firstForm, VALID_CONFIGURATION);
 
     assertThat(forms.hasConfiguration(firstForm), is(true));
-    assertThat(forms.getConfiguration(firstForm.getFormDefinition().getFormId()), is(VALID_CONFIGURATION));
-    assertThat(forms.getConfiguration(firstForm.getFormDefinition().getFormId()), is(VALID_CONFIGURATION));
+    assertThat(forms.getConfiguration(firstForm), is(VALID_CONFIGURATION));
+    assertThat(forms.getConfiguration(firstForm), is(VALID_CONFIGURATION));
 
     forms.putConfiguration(secondForm, INVALID_CONFIGURATION);
     assertThat(forms.getCustomConfigurations().values(), hasSize(2));

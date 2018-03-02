@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.opendatakit.briefcase.export.ExportConfiguration.empty;
-import static org.opendatakit.briefcase.export.ExportConfiguration.load;
+import static org.opendatakit.briefcase.export.ExportConfiguration.loadFormConfig;
 import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.DONT_PULL;
 import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.INHERIT;
 import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.PULL;
@@ -38,7 +38,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
@@ -78,7 +77,7 @@ public class ExportConfigurationTest {
     BriefcasePreferences prefs = new BriefcasePreferences(InMemoryPreferences.empty());
     prefs.putAll(validConfig.asMap());
 
-    ExportConfiguration load = load(prefs);
+    ExportConfiguration load = ExportConfiguration.loadDefaultConfig(prefs);
 
     assertThat(load, is(validConfig));
   }
@@ -88,7 +87,7 @@ public class ExportConfigurationTest {
     BriefcasePreferences prefs = new BriefcasePreferences(InMemoryPreferences.empty());
     prefs.putAll(validConfig.asMap("some_prefix"));
 
-    ExportConfiguration load = load(Optional.empty(), prefs, "some_prefix");
+    ExportConfiguration load = loadFormConfig(prefs, "some_prefix");
 
     assertThat(load, is(validConfig));
   }
