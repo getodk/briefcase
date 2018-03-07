@@ -49,6 +49,7 @@ public class ExportConfiguration {
   private static final String END_DATE = "endDate";
   private static final String PULL_BEFORE = "pullBefore";
   private static final String PULL_BEFORE_OVERRIDE = "pullBeforeOverride";
+  private static final String OVERWRITE_EXISTING_FILES = "overwriteExistingFiles";
   private static final Predicate<PullBeforeOverrideOption> ALL_EXCEPT_INHERIT = value -> value != INHERIT;
   private Optional<Path> exportDir;
   private Optional<Path> pemFile;
@@ -56,18 +57,20 @@ public class ExportConfiguration {
   private Optional<LocalDate> endDate;
   private Optional<Boolean> pullBefore;
   private Optional<PullBeforeOverrideOption> pullBeforeOverride;
+  private Optional<Boolean> overwriteExistingFiles;
 
-  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride) {
+  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride, Optional<Boolean> theOverwriteExistingFiles) {
     this.exportDir = exportDir;
     this.pemFile = pemFile;
     this.startDate = startDate;
     this.endDate = endDate;
     this.pullBefore = pullBefore;
     this.pullBeforeOverride = pullBeforeOverride;
+    this.overwriteExistingFiles = theOverwriteExistingFiles;
   }
 
   public static ExportConfiguration empty() {
-    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
@@ -77,7 +80,8 @@ public class ExportConfiguration {
         prefs.nullSafeGet(START_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(PULL_BEFORE).map(Boolean::valueOf),
-        prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from)
+        prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from),
+        prefs.nullSafeGet(OVERWRITE_EXISTING_FILES).map(Boolean::valueOf)
     );
   }
 
@@ -88,7 +92,8 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + PULL_BEFORE).map(Boolean::valueOf),
-        prefs.nullSafeGet(keyPrefix + PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from)
+        prefs.nullSafeGet(keyPrefix + PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from),
+        prefs.nullSafeGet(keyPrefix + OVERWRITE_EXISTING_FILES).map(Boolean::valueOf)
     );
   }
 
@@ -103,7 +108,8 @@ public class ExportConfiguration {
         keyPrefix + START_DATE,
         keyPrefix + END_DATE,
         keyPrefix + PULL_BEFORE,
-        keyPrefix + PULL_BEFORE_OVERRIDE
+        keyPrefix + PULL_BEFORE_OVERRIDE,
+        keyPrefix + OVERWRITE_EXISTING_FILES
     );
   }
 
@@ -121,6 +127,7 @@ public class ExportConfiguration {
     endDate.ifPresent(value -> map.put(keyPrefix + END_DATE, value.format(DateTimeFormatter.ISO_DATE)));
     pullBefore.ifPresent(value -> map.put(keyPrefix + PULL_BEFORE, value.toString()));
     pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).ifPresent(value -> map.put(keyPrefix + PULL_BEFORE_OVERRIDE, value.name()));
+    overwriteExistingFiles.ifPresent(value -> map.put(keyPrefix + OVERWRITE_EXISTING_FILES, value.toString()));
     return map;
   }
 
@@ -131,7 +138,8 @@ public class ExportConfiguration {
         startDate,
         endDate,
         pullBefore,
-        pullBeforeOverride
+        pullBeforeOverride,
+        overwriteExistingFiles
     );
   }
 
@@ -193,6 +201,15 @@ public class ExportConfiguration {
     return this;
   }
 
+  public Optional<Boolean> getOverwriteExistingFiles() {
+    return overwriteExistingFiles;
+  }
+
+  public ExportConfiguration setOverwriteExistingFiles(Boolean value) {
+    this.overwriteExistingFiles = Optional.ofNullable(value);
+    return this;
+  }
+
   /**
    * Resolves if we need to pull forms depending on the pullBefore and pullBeforeOverride
    * settings with the following algorithm:
@@ -240,6 +257,10 @@ public class ExportConfiguration {
 
   public void ifPullBeforeOverridePresent(Consumer<PullBeforeOverrideOption> consumer) {
     pullBeforeOverride.ifPresent(consumer);
+  }
+
+  public void ifOverwriteExistingFilesPresent(Consumer<Boolean> consumer) {
+    overwriteExistingFiles.ifPresent(consumer);
   }
 
   private List<String> getErrors() {
@@ -300,7 +321,8 @@ public class ExportConfiguration {
         && !startDate.isPresent()
         && !endDate.isPresent()
         && !pullBefore.isPresent()
-        && !pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).isPresent();
+        && !pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).isPresent()
+        && !overwriteExistingFiles.isPresent();
   }
 
   public boolean isValid() {
@@ -334,7 +356,8 @@ public class ExportConfiguration {
         startDate.isPresent() ? startDate : defaultConfiguration.startDate,
         endDate.isPresent() ? endDate : defaultConfiguration.endDate,
         pullBefore.isPresent() ? pullBefore : defaultConfiguration.pullBefore,
-        pullBeforeOverride.isPresent() ? pullBeforeOverride : defaultConfiguration.pullBeforeOverride
+        pullBeforeOverride.isPresent() ? pullBeforeOverride : defaultConfiguration.pullBeforeOverride,
+        overwriteExistingFiles.isPresent() ? overwriteExistingFiles : defaultConfiguration.overwriteExistingFiles
     );
   }
 
@@ -347,6 +370,7 @@ public class ExportConfiguration {
         ", endDate=" + endDate +
         ", pullBefore=" + pullBefore +
         ", pullBeforeOverride=" + pullBeforeOverride +
+        ", overwriteExistingFiles=" + overwriteExistingFiles +
         '}';
   }
 
@@ -362,11 +386,12 @@ public class ExportConfiguration {
         Objects.equals(startDate, that.startDate) &&
         Objects.equals(endDate, that.endDate) &&
         Objects.equals(pullBefore, that.pullBefore) &&
-        Objects.equals(pullBeforeOverride, that.pullBeforeOverride);
+        Objects.equals(pullBeforeOverride, that.pullBeforeOverride) &&
+        Objects.equals(overwriteExistingFiles, that.overwriteExistingFiles);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, pullBeforeOverride);
+    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, pullBeforeOverride, overwriteExistingFiles);
   }
 }
