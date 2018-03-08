@@ -135,11 +135,11 @@ public class ExportForms {
     defaultConfiguration = configuration;
   }
 
-  public ExportConfiguration getConfiguration(FormStatus form) {
-    return Optional.ofNullable(customConfigurations.get(form.getFormDefinition().getFormId()))
-        .orElse(ExportConfiguration.empty())
-        .fallingBackTo(defaultConfiguration, form);
-  }
+public ExportConfiguration getConfiguration(FormStatus form) {
+  return Optional.ofNullable(customConfigurations.get(form.getFormDefinition().getFormId()))
+      .orElse(ExportConfiguration.empty(form))
+      .fallingBackTo(defaultConfiguration);
+}
 
   public void removeConfiguration(FormStatus form) {
     customConfigurations.remove(getFormId(form));

@@ -77,6 +77,11 @@ public class ExportConfiguration {
     return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
+  public static ExportConfiguration empty(FormStatus form) {
+    Optional<Boolean> formNeedsPrivateKey = Optional.of(getFormDefinition(form).isFileEncryptedForm() || getFormDefinition(form).isFieldEncryptedForm());
+    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), formNeedsPrivateKey);
+  }
+
   public static ExportConfiguration loadDefaultConfig(BriefcasePreferences prefs) {
     return new ExportConfiguration(
         prefs.nullSafeGet(EXPORT_DIR).map(Paths::get),
@@ -354,18 +359,20 @@ public class ExportConfiguration {
     return endDate.map(mapper);
   }
 
-  public ExportConfiguration fallingBackTo(ExportConfiguration defaultConfiguration, FormStatus form) {
-    Boolean isPrivateKeyNeeded = ((BriefcaseFormDefinition) form.getFormDefinition()).isFileEncryptedForm()
-            || ((BriefcaseFormDefinition) form.getFormDefinition()).isFieldEncryptedForm() ? Boolean.TRUE : Boolean.FALSE;
+  public ExportConfiguration fallingBackTo(ExportConfiguration other) {
     return new ExportConfiguration(
-        exportDir.isPresent() ? exportDir : defaultConfiguration.exportDir,
-        pemFile.isPresent() ? pemFile : defaultConfiguration.pemFile,
-        startDate.isPresent() ? startDate : defaultConfiguration.startDate,
-        endDate.isPresent() ? endDate : defaultConfiguration.endDate,
-        pullBefore.isPresent() ? pullBefore : defaultConfiguration.pullBefore,
-        pullBeforeOverride.isPresent() ? pullBeforeOverride : defaultConfiguration.pullBeforeOverride,
-        formNeedsPrivateKey.isPresent() ? formNeedsPrivateKey : Optional.of(isPrivateKeyNeeded)
+        exportDir.isPresent() ? exportDir : other.exportDir,
+        pemFile.isPresent() ? pemFile : other.pemFile,
+        startDate.isPresent() ? startDate : other.startDate,
+        endDate.isPresent() ? endDate : other.endDate,
+        pullBefore.isPresent() ? pullBefore : other.pullBefore,
+        pullBeforeOverride.isPresent() ? pullBeforeOverride : other.pullBeforeOverride,
+        formNeedsPrivateKey.isPresent() ? formNeedsPrivateKey : other.formNeedsPrivateKey
     );
+  }
+
+  public static BriefcaseFormDefinition getFormDefinition(FormStatus form) {
+    return (BriefcaseFormDefinition) form.getFormDefinition();
   }
 
   @Override

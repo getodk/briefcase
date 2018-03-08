@@ -15,7 +15,6 @@
  */
 package org.opendatakit.briefcase.ui.export.components;
 
-import java.util.Optional;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 
@@ -43,8 +42,8 @@ public class ConfigurationDialog {
     });
   }
 
-  static ConfigurationDialog from(Optional<ExportConfiguration> configuration, boolean hasTransferSettings, boolean savePasswordsConsent) {
-    ConfigurationPanel confPanel = ConfigurationPanel.overridePanel(configuration.orElse(ExportConfiguration.empty()), savePasswordsConsent, hasTransferSettings);
+  static ConfigurationDialog from(ExportConfiguration configuration, boolean hasTransferSettings, boolean savePasswordsConsent) {
+    ConfigurationPanel confPanel = ConfigurationPanel.overridePanel(configuration, savePasswordsConsent, hasTransferSettings);
     ConfigurationDialogForm form = new ConfigurationDialogForm(confPanel.getForm());
     return new ConfigurationDialog(form, confPanel);
   }
