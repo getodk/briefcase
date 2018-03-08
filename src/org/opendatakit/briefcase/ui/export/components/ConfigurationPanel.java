@@ -40,11 +40,7 @@ public class ConfigurationPanel {
       triggerOnChange();
     });
     form.onSelectPemFile(path -> {
-      if (path == null) {
-        configuration.removePemFile();
-      } else {
-        configuration.setPemFile(path);
-      }
+      configuration.setPemFile(path);
       triggerOnChange();
     });
     form.onSelectDateRangeStart(date -> {

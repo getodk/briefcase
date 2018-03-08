@@ -43,6 +43,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
@@ -167,8 +168,14 @@ public class ConfigurationPanelForm extends JComponent {
       onSelectPemFileCallbacks.forEach(consumer -> consumer.accept(path));
       pemFileChooseButton.setVisible(false);
       pemFileClearButton.setVisible(true);
+    } else {
+      //TODO provide a better error message describing what the user could do
+      JOptionPane.showMessageDialog(this.pemFileField,
+              "Invalid private key file.\n" +
+                      "Make sure the file extension is .pem",
+              "Pivate key error",
+              JOptionPane.ERROR_MESSAGE);
     }
-    //TODO Show error message if path is not a valid pem file and default to previous value
   }
 
   private void clearPemFile() {

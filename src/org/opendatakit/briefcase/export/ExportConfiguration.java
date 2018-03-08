@@ -167,14 +167,7 @@ public class ExportConfiguration {
 
   public ExportConfiguration setPemFile(Path path) {
     //Check if path is a valid pem file with privateKey
-    if (PrivateKeyUtils.isValidPrivateKey(path)) {
-      this.pemFile = Optional.ofNullable(path);
-    }
-    return this;
-  }
-
-  public ExportConfiguration removePemFile() {
-    this.pemFile = Optional.empty();
+    this.pemFile = Optional.ofNullable(path).filter(PrivateKeyUtils::isValidPrivateKey);
     return this;
   }
 
