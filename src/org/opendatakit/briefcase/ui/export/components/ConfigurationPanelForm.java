@@ -471,9 +471,16 @@ public class ConfigurationPanelForm extends JComponent {
     overwriteFilesField.setText("Overwrite existing files");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 8;
+    gbc.gridy = 9;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(overwriteFilesField, gbc);
+    final JPanel spacer6 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 8;
+    gbc.gridwidth = 3;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    container.add(spacer6, gbc);
   }
 
   /**
