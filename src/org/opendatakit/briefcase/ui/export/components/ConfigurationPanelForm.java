@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.ui.export.components;
 
+import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static javax.swing.JOptionPane.YES_OPTION;
 import static javax.swing.JOptionPane.showConfirmDialog;
@@ -293,7 +294,7 @@ public class ConfigurationPanelForm extends JComponent {
 
 
   private boolean confirmOverwriteFiles() {
-    if (showConfirmDialog(this, "Overwrite existing files?", "", YES_NO_OPTION) == YES_OPTION)
+    if (showConfirmDialog(this, "Overwrite existing files?", "", YES_NO_OPTION, PLAIN_MESSAGE) == YES_OPTION)
       return true;
     overwriteFilesField.setSelected(false);
     return false;
