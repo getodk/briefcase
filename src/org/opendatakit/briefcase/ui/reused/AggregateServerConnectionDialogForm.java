@@ -4,9 +4,9 @@ import static java.awt.event.KeyEvent.VK_ESCAPE;
 import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 import static javax.swing.KeyStroke.getKeyStroke;
 
+import java.awt.Cursor;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -24,6 +24,7 @@ public class AggregateServerConnectionDialogForm extends JDialog {
   private JTextField urlField;
   private JTextField usernameField;
   private JPasswordField passwordField;
+  private Cursor savedCursor = null;
 
   public AggregateServerConnectionDialogForm() {
     $$$setupUI$$$();
@@ -38,10 +39,6 @@ public class AggregateServerConnectionDialogForm extends JDialog {
     dialog.registerKeyboardAction(e -> dispose(), getKeyStroke(VK_ESCAPE, 0), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
     cancelButton.addActionListener(e -> dispose());
-  }
-
-  public void addConnectButtonCallback(ActionListener listener) {
-    connectButton.addActionListener(listener);
   }
 
   public void disableConnectButton() {
@@ -68,6 +65,18 @@ public class AggregateServerConnectionDialogForm extends JDialog {
     AggregateServerConnectionDialogForm dialog = new AggregateServerConnectionDialogForm();
     dialog.setVisible(true);
     System.exit(0);
+  }
+
+  public String getURLFieldText() {
+    return urlField.getText();
+  }
+
+  public String getUsernameFieldText() {
+    return usernameField.getText();
+  }
+
+  public char[] getPasswordFieldPassword() {
+    return passwordField.getPassword();
   }
 
   /**
@@ -240,15 +249,27 @@ public class AggregateServerConnectionDialogForm extends JDialog {
     return dialog;
   }
 
-  public String getURLFieldText() {
-    return urlField.getText();
+  public void onConnect(Runnable callback) {
+    connectButton.addActionListener(__ -> callback.run());
   }
 
-  public String getUsernameFieldText() {
-    return usernameField.getText();
+  public void hideForm() {
+    this.setEnabled(false);
   }
 
-  public char[] getPasswordFieldPassword() {
-    return passwordField.getPassword();
+  public Cursor getSavedCursor() {
+    return savedCursor;
+  }
+
+  public void setSavedCursor() {
+    this.savedCursor = getCursor();
+  }
+
+  public void setFormCursor() {
+    this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+  }
+
+  public void setFormCursorAsSavedCursor() {
+    this.setCursor(getSavedCursor());
   }
 }

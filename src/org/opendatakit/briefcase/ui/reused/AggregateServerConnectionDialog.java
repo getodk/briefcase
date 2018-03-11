@@ -1,11 +1,12 @@
 package org.opendatakit.briefcase.ui.reused;
 
-import java.awt.Cursor;
+import java.util.function.Consumer;
 
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.ui.MessageStrings;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
+import org.opendatakit.briefcase.ui.export.AggregateServerConnectionConfiguration;
 import org.opendatakit.briefcase.util.ServerConnectionTest;
 
 public class AggregateServerConnectionDialog {
@@ -14,25 +15,25 @@ public class AggregateServerConnectionDialog {
   private boolean isSuccessful;
   private ServerConnectionInfo serverInfo = null;
   private TerminationFuture terminationFuture = new TerminationFuture();
+  private AggregateServerConnectionConfiguration aggregateServerConnectionConfiguration;
 
-  AggregateServerConnectionDialog(AggregateServerConnectionDialogForm aggregateServerConnectionDialogForm, boolean asTarget) {
+  AggregateServerConnectionDialog(AggregateServerConnectionDialogForm aggregateServerConnectionDialogForm, boolean asTarget, AggregateServerConnectionConfiguration aggregateServerConnectionConfiguration) {
     form = aggregateServerConnectionDialogForm;
     this.asTarget = asTarget;
-
-    form.addConnectButtonCallback(e -> verifyParams());
+    this.aggregateServerConnectionConfiguration = aggregateServerConnectionConfiguration;
   }
 
   private void verifyParams() {
-    final ServerConnectionInfo info = new ServerConnectionInfo((form.getURLFieldText()).trim(),
-        form.getUsernameFieldText(), form.getPasswordFieldPassword());
+    final ServerConnectionInfo info = new ServerConnectionInfo((aggregateServerConnectionConfiguration.getUrl().toString()).trim(),
+        aggregateServerConnectionConfiguration.getUsername(), aggregateServerConnectionConfiguration.getPassword());
 
     form.disableConnectButton();
     form.disableCancelButton();
     String errorString;
 
-    Cursor saved = form.getCursor();
+    form.setSavedCursor();
     try {
-      form.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+      form.setFormCursor();
       form.paint(form.getGraphics());
       terminationFuture.reset();
       ServerConnectionTest backgroundAction = new ServerConnectionTest(info, terminationFuture, asTarget);
@@ -41,12 +42,12 @@ public class AggregateServerConnectionDialog {
       isSuccessful = backgroundAction.isSuccessful();
       errorString = backgroundAction.getErrorReason();
     } finally {
-      form.setCursor(saved);
+      form.setFormCursorAsSavedCursor();
     }
 
     if (isSuccessful) {
       serverInfo = info;
-      form.setVisible(false);
+      form.hideForm();
     } else {
       String errorMessage = errorString.trim();
 
@@ -60,6 +61,10 @@ public class AggregateServerConnectionDialog {
       form.enableCancelButton();
     }
 
+  }
+
+  void onOK(Consumer<AggregateServerConnectionConfiguration> consumer) {
+    form.onConnect(() -> consumer.accept(aggregateServerConnectionConfiguration));
   }
 
   public AggregateServerConnectionDialogForm getForm() {
