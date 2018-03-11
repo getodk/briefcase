@@ -1,17 +1,23 @@
-package org.opendatakit.briefcase.ui.export;
+package org.opendatakit.briefcase.ui.reused;
+
+import org.opendatakit.briefcase.reused.BriefcaseException;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Objects;
 
 public class AggregateServerConnectionConfiguration {
   private URL url;
   private String username;
-  private char[] password;
+  private String password;
 
-  public AggregateServerConnectionConfiguration(String url, String username, char[] password) throws MalformedURLException {
-    this.url = new URL(url);
+  public AggregateServerConnectionConfiguration(String url, String username, String password) {
+    try {
+      this.url = new URL(url);
+    } catch (MalformedURLException e) {
+      throw new BriefcaseException("Invalid URL", e);
+    }
+
     this.username = username;
     this.password = password;
   }
@@ -20,8 +26,12 @@ public class AggregateServerConnectionConfiguration {
     return url;
   }
 
-  public void setUrl(String url) throws MalformedURLException {
-    this.url = new URL(url);
+  public void setUrl(String url) {
+    try {
+      this.url = new URL(url);
+    } catch (MalformedURLException e) {
+      throw new BriefcaseException("Invalid URL", e);
+    }
   }
 
   public String getUsername() {
@@ -32,11 +42,11 @@ public class AggregateServerConnectionConfiguration {
     this.username = username;
   }
 
-  public char[] getPassword() {
+  public String getPassword() {
     return password;
   }
 
-  public void setPassword(char[] password) {
+  public void setPassword(String password) {
     this.password = password;
   }
 
@@ -47,7 +57,7 @@ public class AggregateServerConnectionConfiguration {
     AggregateServerConnectionConfiguration that = (AggregateServerConnectionConfiguration) o;
     return Objects.equals(url, that.url) &&
         Objects.equals(username, that.username) &&
-        Arrays.equals(password, that.password);
+        Objects.equals(password, that.password);
   }
 
   @Override
