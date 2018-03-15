@@ -74,7 +74,7 @@ public class Param<T> {
     return Param.arg(
         shortCode,
         longCode,
-        description + "(yyyy-MM-dd or yyyy/MM/dd)",
+        description + " (yyyy-MM-dd or yyyy/MM/dd)",
         dateAsText -> {
           try {
             return LocalDate.parse(dateAsText.replaceAll("/", "-"));
