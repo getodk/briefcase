@@ -1,5 +1,6 @@
 package org.opendatakit.briefcase.ui.reused;
 
+import static java.awt.Cursor.DEFAULT_CURSOR;
 import static java.awt.event.KeyEvent.VK_ESCAPE;
 import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 import static javax.swing.KeyStroke.getKeyStroke;
@@ -7,6 +8,9 @@ import static javax.swing.KeyStroke.getKeyStroke;
 import java.awt.Cursor;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -24,7 +28,7 @@ public class AggregateServerConnectionDialogForm extends JDialog {
   private JTextField urlField;
   private JTextField usernameField;
   private JPasswordField passwordField;
-  private Cursor savedCursor = null;
+  private final List<Consumer<AggregateServerConnectionConfiguration>> onConnectCallbacks = new ArrayList<>();
 
   public AggregateServerConnectionDialogForm() {
     $$$setupUI$$$();
@@ -39,22 +43,23 @@ public class AggregateServerConnectionDialogForm extends JDialog {
     dialog.registerKeyboardAction(e -> dispose(), getKeyStroke(VK_ESCAPE, 0), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
     cancelButton.addActionListener(e -> dispose());
+
+    connectButton.addActionListener(__ -> {
+      connectButton.setEnabled(false);
+      cancelButton.setEnabled(false);
+      setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+      triggerConnect();
+    });
   }
 
-  public void disableConnectButton() {
-    connectButton.setEnabled(false);
-  }
+  private void triggerConnect() {
+    AggregateServerConnectionConfiguration conf = AggregateServerConnectionConfiguration.from(
+        urlField.getText(),
+        usernameField.getText(),
+        passwordField.getPassword()
+    );
 
-  public void disableCancelButton() {
-    cancelButton.setEnabled(false);
-  }
-
-  public void enableConnectButton() {
-    connectButton.setEnabled(true);
-  }
-
-  public void enableCancelButton() {
-    cancelButton.setEnabled(true);
+    onConnectCallbacks.forEach(callback -> callback.accept(conf));
   }
 
   private void createUIComponents() {
@@ -65,18 +70,6 @@ public class AggregateServerConnectionDialogForm extends JDialog {
     AggregateServerConnectionDialogForm dialog = new AggregateServerConnectionDialogForm();
     dialog.setVisible(true);
     System.exit(0);
-  }
-
-  public String getURLFieldText() {
-    return urlField.getText();
-  }
-
-  public String getUsernameFieldText() {
-    return usernameField.getText();
-  }
-
-  public char[] getPasswordFieldPassword() {
-    return passwordField.getPassword();
   }
 
   /**
@@ -249,27 +242,17 @@ public class AggregateServerConnectionDialogForm extends JDialog {
     return dialog;
   }
 
-  public void onConnect(Runnable callback) {
-    connectButton.addActionListener(__ -> callback.run());
+  public void onConnect(Consumer<AggregateServerConnectionConfiguration> callback) {
+    onConnectCallbacks.add(callback);
   }
 
-  public void hideForm() {
-    this.setEnabled(false);
+  public void hideDialog() {
+    setVisible(false);
   }
 
-  public Cursor getSavedCursor() {
-    return savedCursor;
-  }
-
-  public void setSavedCursor() {
-    this.savedCursor = getCursor();
-  }
-
-  public void setFormCursor() {
-    this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-  }
-
-  public void setFormCursorAsSavedCursor() {
-    this.setCursor(getSavedCursor());
+  public void enableUI() {
+    connectButton.setEnabled(true);
+    cancelButton.setEnabled(true);
+    setCursor(Cursor.getPredefinedCursor(DEFAULT_CURSOR));
   }
 }

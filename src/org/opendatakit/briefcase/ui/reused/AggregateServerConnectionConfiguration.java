@@ -1,53 +1,41 @@
 package org.opendatakit.briefcase.ui.reused;
 
-import org.opendatakit.briefcase.reused.BriefcaseException;
-
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
+
+import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class AggregateServerConnectionConfiguration {
-  private URL url;
-  private String username;
-  private String password;
+  final private URL url;
+  final private Optional<Credentials> credentials;
 
-  public AggregateServerConnectionConfiguration(String url, String username, String password) {
+  private AggregateServerConnectionConfiguration(URL url, Optional<Credentials> credentials) {
+    this.url = url;
+    this.credentials = credentials;
+  }
+
+  public static AggregateServerConnectionConfiguration from(String urlText, String username, char[] password) {
+    URL url;
     try {
-      this.url = new URL(url);
+      url = new URL(urlText);
     } catch (MalformedURLException e) {
-      throw new BriefcaseException("Invalid URL", e);
+      throw new BriefcaseException("Invalid URL " + urlText, e);
     }
 
-    this.username = username;
-    this.password = password;
+    Optional<String> optUsername = Optional.ofNullable(username);
+    Optional<String> optPassword = Optional.of(password).map(Arrays::toString).filter(String::isEmpty);
+    Optional<Credentials> from = optUsername.isPresent() && optPassword.isPresent()
+        ? Optional.of(Credentials.from(optUsername.get(), optPassword.get()))
+        : Optional.empty();
+
+    return new AggregateServerConnectionConfiguration(url, from);
   }
 
   public URL getUrl() {
     return url;
-  }
-
-  public void setUrl(String url) {
-    try {
-      this.url = new URL(url);
-    } catch (MalformedURLException e) {
-      throw new BriefcaseException("Invalid URL", e);
-    }
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  public void setUsername(String username) {
-    this.username = username;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
   }
 
   @Override
@@ -56,13 +44,18 @@ public class AggregateServerConnectionConfiguration {
     if (o == null || getClass() != o.getClass()) return false;
     AggregateServerConnectionConfiguration that = (AggregateServerConnectionConfiguration) o;
     return Objects.equals(url, that.url) &&
-        Objects.equals(username, that.username) &&
-        Objects.equals(password, that.password);
+        Objects.equals(credentials, that.credentials);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(url, username, password);
+    return Objects.hash(url, credentials);
   }
 
+  @Override
+  public String toString() {
+    return "Aggregate Server Configuration{" + "" +
+        "URL = " + url +
+        ", Credentials = " + credentials;
+  }
 }

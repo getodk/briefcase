@@ -1,22 +1,6 @@
 package org.opendatakit.briefcase.util;
 
-import org.bushe.swing.event.EventBus;
-import org.bushe.swing.event.annotation.AnnotationProcessor;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.DocumentDescription2;
-import org.opendatakit.briefcase.model.FileSystemException;
-import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.IFormDefinition;
-import org.opendatakit.briefcase.model.ParsingException;
-import org.opendatakit.briefcase.model.RemoteFormDefinition;
-import org.opendatakit.briefcase.model.ServerConnectionInfo;
-import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransmissionException;
-import org.opendatakit.briefcase.model.XmlDocumentFetchException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.opendatakit.briefcase.util.WebUtils.MAX_CONNECTIONS_PER_ROUTE;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,7 +23,22 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.opendatakit.briefcase.util.WebUtils.MAX_CONNECTIONS_PER_ROUTE;
+import org.bushe.swing.event.EventBus;
+import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.DocumentDescription2;
+import org.opendatakit.briefcase.model.FileSystemException;
+import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.IFormDefinition;
+import org.opendatakit.briefcase.model.ParsingException;
+import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.model.ServerConnectionInfo;
+import org.opendatakit.briefcase.model.TransmissionException;
+import org.opendatakit.briefcase.model.XmlDocumentFetchException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ServerFetcher2 {
 

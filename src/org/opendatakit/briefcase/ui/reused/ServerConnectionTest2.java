@@ -5,9 +5,7 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.operations.ServerConnectionTestException;
 import org.opendatakit.briefcase.util.ServerConnectionTest;
-import org.opendatakit.briefcase.util.ServerFetcher;
 import org.opendatakit.briefcase.util.ServerFetcher2;
-import org.opendatakit.briefcase.util.ServerUploader;
 
 public class ServerConnectionTest2 implements Runnable {
   private final ServerConnectionInfo info;

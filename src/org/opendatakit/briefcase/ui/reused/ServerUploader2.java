@@ -1,17 +1,26 @@
 package org.opendatakit.briefcase.ui.reused;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.io.FileUtils;
 import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.DocumentDescription;
+import org.opendatakit.briefcase.model.DocumentDescription2;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.MetadataUpdateException;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
-import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 import org.opendatakit.briefcase.util.AggregateUtils2;
@@ -24,31 +33,15 @@ import org.opendatakit.briefcase.util.XmlManipulationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 public class ServerUploader2 { private static final Logger log = LoggerFactory.getLogger(ServerUploader.class);
 
   private final int MAX_ENTRIES = 100;
 
   private final ServerConnectionInfo serverInfo;
-  private final TerminationFuture terminationFuture;
 
-  ServerUploader2(ServerConnectionInfo serverInfo, TerminationFuture terminationFuture) {
+  ServerUploader2(ServerConnectionInfo serverInfo) {
     AnnotationProcessor.process(this);// if not using AOP
     this.serverInfo = serverInfo;
-    this.terminationFuture = terminationFuture;
-  }
-
-  public boolean isCancelled() {
-    return terminationFuture.isCancelled();
   }
 
   public static class SubmissionResponseAction implements AggregateUtils2.ResponseAction {
@@ -114,11 +107,6 @@ public class ServerUploader2 { private static final Logger log = LoggerFactory.g
     String oldWebsafeCursorString = "not-empty";
     String websafeCursorString = "";
     for (; !oldWebsafeCursorString.equals(websafeCursorString); ) {
-      if (isCancelled()) {
-        fs.setStatusString("aborting retrieval of instanceIds of submissions on server...", true);
-        EventBus.publish(new FormStatusEvent(fs));
-        return;
-      }
 
       fs.setStatusString("retrieving next chunk of instanceIds from server...", true);
       EventBus.publish(new FormStatusEvent(fs));
@@ -131,10 +119,9 @@ public class ServerUploader2 { private static final Logger log = LoggerFactory.g
       oldWebsafeCursorString = websafeCursorString; // remember what we had...
       AggregateUtils2.DocumentFetchResult result;
       try {
-        DocumentDescription submissionChunkDescription = new DocumentDescription(
+        DocumentDescription2 submissionChunkDescription = new DocumentDescription2(
             "Fetch of instanceIds (submission download chunk) failed.  Detailed error: ",
-            "Fetch of instanceIds (submission download chunk) failed.", "submission download chunk",
-            terminationFuture);
+            "Fetch of instanceIds (submission download chunk) failed.", "submission download chunk");
         result = AggregateUtils2.getXmlDocument(fullUrl, serverInfo, false, submissionChunkDescription, null);
       } catch (XmlDocumentFetchException e) {
         fs.setStatusString("Not all submissions retrieved: Error fetching list of instanceIds: " + e.getMessage(), false);
@@ -169,12 +156,6 @@ public class ServerUploader2 { private static final Logger log = LoggerFactory.g
 
       BriefcaseFormDefinition briefcaseLfd = (BriefcaseFormDefinition) formToTransfer.getFormDefinition();
       boolean thisFormSuccessful = true;
-
-      if (isCancelled()) {
-        formToTransfer.setStatusString("Aborted upload.", true);
-        EventBus.publish(new FormStatusEvent(formToTransfer));
-        return false;
-      }
 
       if (!formToTransfer.isSuccessful()) {
         formToTransfer.setStatusString("Skipping upload -- download failed", false);
@@ -217,10 +198,6 @@ public class ServerUploader2 { private static final Logger log = LoggerFactory.g
           outcome = uploadSubmission(formDatabase, formToTransfer, u, i++, briefcaseInstances.size(), briefcaseInstance);
           thisFormSuccessful = thisFormSuccessful & outcome;
           allSuccessful = allSuccessful & outcome;
-          // and stop this loop quickly if we're cancelled...
-          if (isCancelled()) {
-            break;
-          }
         }
       } catch (SQLException | FileSystemException e) {
         thisFormSuccessful = false;
@@ -244,10 +221,7 @@ public class ServerUploader2 { private static final Logger log = LoggerFactory.g
         }
       }
 
-      if (isCancelled()) {
-        formToTransfer.setStatusString("Aborted upload.", true);
-        EventBus.publish(new FormStatusEvent(formToTransfer));
-      } else if (thisFormSuccessful) {
+      if (thisFormSuccessful) {
         formToTransfer.setStatusString("Successful upload!", true);
         EventBus.publish(new FormStatusEvent(formToTransfer));
       } else {
@@ -303,8 +277,8 @@ public class ServerUploader2 { private static final Logger log = LoggerFactory.g
       }
     }
 
-    DocumentDescription formDefinitionUploadDescription = new DocumentDescription("Form definition upload failed.  Detailed error: ",
-        "Form definition upload failed.", "form definition", terminationFuture);
+    DocumentDescription2 formDefinitionUploadDescription = new DocumentDescription2("Form definition upload failed.  Detailed error: ",
+        "Form definition upload failed.", "form definition");
 
     return AggregateUtils2.uploadFilesToServer(serverInfo, u, "form_def_file", briefcaseFormDefFile, files,
         formDefinitionUploadDescription, null, formToTransfer);
@@ -365,14 +339,8 @@ public class ServerUploader2 { private static final Logger log = LoggerFactory.g
     }
     ServerUploader2.SubmissionResponseAction action = new ServerUploader2.SubmissionResponseAction(file);
 
-    if (isCancelled()) {
-      formToTransfer.setStatusString("aborting upload of submission...", true);
-      EventBus.publish(new FormStatusEvent(formToTransfer));
-      return false;
-    }
-
-    DocumentDescription submissionUploadDescription = new DocumentDescription("Submission upload failed.  Detailed error: ",
-        "Submission upload failed.", "submission (" + count + " of " + totalCount + ")", terminationFuture);
+    DocumentDescription2 submissionUploadDescription = new DocumentDescription2("Submission upload failed.  Detailed error: ",
+        "Submission upload failed.", "submission (" + count + " of " + totalCount + ")");
     boolean outcome = AggregateUtils2.uploadFilesToServer(serverInfo, u, "xml_submission_file", file, files,
         submissionUploadDescription, action, formToTransfer);
 
