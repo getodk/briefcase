@@ -55,6 +55,8 @@ import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.ui.reused.Analytics;
+import org.opendatakit.briefcase.ui.reused.SourceConfigurationPanel;
+import org.opendatakit.briefcase.ui.reused.SourceConfigurationPanelForm;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferAction;
 import org.opendatakit.briefcase.util.WebUtils;
@@ -282,6 +284,8 @@ public class PullTransferPanel extends JPanel {
     formTransferTable.setSourceSelected(true);
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
 
+    SourceConfigurationPanel sourceConfPanel = new SourceConfigurationPanel(new SourceConfigurationPanelForm());
+
     GroupLayout groupLayout = new GroupLayout(this);
     groupLayout.setHorizontalGroup(groupLayout
         .createSequentialGroup()
@@ -289,25 +293,8 @@ public class PullTransferPanel extends JPanel {
         .addGroup(
             groupLayout
                 .createParallelGroup(Alignment.LEADING)
-                // get-data and origin rows
-                .addGroup(
-                    Alignment.LEADING,
-                    // sequential -- 2 elements - label - widgets
-                    groupLayout
-                        .createSequentialGroup()
-                        .addGroup(
-                            groupLayout.createParallelGroup(Alignment.TRAILING)
-                                .addComponent(lblOrigin).addComponent(lblGetDataFrom))
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(
-                            groupLayout
-                                .createParallelGroup(Alignment.LEADING)
-                                .addComponent(listOriginDataSource)
-                                .addGroup(
-                                    Alignment.TRAILING,
-                                    groupLayout.createSequentialGroup().addComponent(txtOriginName)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(btnOriginAction))))
+                .addComponent(sourceConfPanel.getForm(), GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
+                    Short.MAX_VALUE)
                 // scroll pane
                 .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
                     Short.MAX_VALUE)
@@ -321,15 +308,7 @@ public class PullTransferPanel extends JPanel {
                         .addComponent(btnCancel))).addContainerGap());
     groupLayout.setVerticalGroup(groupLayout
         .createSequentialGroup()
-        .addContainerGap()
-        .addGroup(
-            groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblGetDataFrom)
-                .addComponent(listOriginDataSource))
-        .addPreferredGap(ComponentPlacement.RELATED)
-        .addGroup(
-            groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblOrigin)
-                .addComponent(txtOriginName).addComponent(btnOriginAction))
-        .addPreferredGap(ComponentPlacement.RELATED)
+        .addComponent(sourceConfPanel.getForm(), 36, 36, Short.MAX_VALUE)
         .addComponent(scrollPane, 200, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
         .addPreferredGap(ComponentPlacement.RELATED)
         .addGroup(

@@ -66,10 +66,18 @@ public class AggregateServerConnectionDialogForm extends JDialog {
     // TODO: place custom component creation code here
   }
 
-  public static void main(String[] args) {
-    AggregateServerConnectionDialogForm dialog = new AggregateServerConnectionDialogForm();
-    dialog.setVisible(true);
-    System.exit(0);
+  public void onConnect(Consumer<AggregateServerConnectionConfiguration> callback) {
+    onConnectCallbacks.add(callback);
+  }
+
+  public void hideDialog() {
+    setVisible(false);
+  }
+
+  public void enableUI() {
+    connectButton.setEnabled(true);
+    cancelButton.setEnabled(true);
+    setCursor(Cursor.getPredefinedCursor(DEFAULT_CURSOR));
   }
 
   /**
@@ -240,19 +248,5 @@ public class AggregateServerConnectionDialogForm extends JDialog {
    */
   public JComponent $$$getRootComponent$$$() {
     return dialog;
-  }
-
-  public void onConnect(Consumer<AggregateServerConnectionConfiguration> callback) {
-    onConnectCallbacks.add(callback);
-  }
-
-  public void hideDialog() {
-    setVisible(false);
-  }
-
-  public void enableUI() {
-    connectButton.setEnabled(true);
-    cancelButton.setEnabled(true);
-    setCursor(Cursor.getPredefinedCursor(DEFAULT_CURSOR));
   }
 }
