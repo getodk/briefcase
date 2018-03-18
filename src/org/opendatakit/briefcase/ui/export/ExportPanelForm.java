@@ -20,12 +20,10 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import java.lang.Thread;
-import java.lang.InterruptedException;
 
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
@@ -163,12 +161,12 @@ public class ExportPanelForm {
     formsTable.refresh();
   }
 
-  public void showExporting(){
+  public void showExporting() {
     lblExporting.setText(EXPORTING_DOT_ETC);
     lblExporting.setVisible(true);
   }
 
-  public void hideExporting(){
+  public void hideExporting() {
     lblExporting.setVisible(false);
     lblExporting.setText(EXPORTING_DOT_ETC);
   }
