@@ -20,9 +20,13 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import java.lang.Thread;
+import java.lang.InterruptedException;
+
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanelForm;
@@ -31,6 +35,8 @@ import org.opendatakit.briefcase.ui.export.components.FormsTableView;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportPanelForm {
+  private static final String EXPORTING_DOT_ETC = "Exporting..........";
+
   private final ConfigurationPanel confPanel;
   private final FormsTable formsTable;
   private final ConfigurationPanelForm confPanelForm;
@@ -41,6 +47,7 @@ public class ExportPanelForm {
   private JPanel rightActions;
   private JButton selectAllButton;
   private JButton clearAllButton;
+  private JLabel lblExporting;
   JButton exportButton;
   private boolean exporting;
 
@@ -120,6 +127,26 @@ public class ExportPanelForm {
     exporting = active;
   }
 
+  public void updateExportingLabel() {
+    String text = lblExporting.getText();
+    if (text.equals(EXPORTING_DOT_ETC)) {
+      text = "Exporting.";
+    } else {
+      text += ".";
+    }
+    //hide exporting if 5 secs without updates
+    lblExporting.setText(text);
+    new java.util.Timer().schedule(
+            new java.util.TimerTask() {
+              @Override
+              public void run() {
+                hideExporting();
+              }
+            },
+            5000
+    );
+  }
+
   void disableUI() {
     for (Component c : container.getComponents())
       c.setEnabled(false);
@@ -136,6 +163,15 @@ public class ExportPanelForm {
     formsTable.refresh();
   }
 
+  public void showExporting(){
+    lblExporting.setText(EXPORTING_DOT_ETC);
+    lblExporting.setVisible(true);
+  }
+
+  public void hideExporting(){
+    lblExporting.setVisible(false);
+    lblExporting.setText(EXPORTING_DOT_ETC);
+  }
 
   private void createUIComponents() {
     // Custom creation of components occurs inside the constructor
@@ -179,6 +215,10 @@ public class ExportPanelForm {
     clearAllButton = new JButton();
     clearAllButton.setText("Clear All");
     leftActions.add(clearAllButton);
+    lblExporting = new JLabel();
+    lblExporting.setText(EXPORTING_DOT_ETC);
+    lblExporting.setVisible(false);
+    actions.add(lblExporting);
     final JPanel spacer1 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;

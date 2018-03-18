@@ -43,12 +43,6 @@
               </component>
             </children>
           </grid>
-          <hspacer id="e42a4">
-            <constraints>
-              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="0.0"/>
-            </constraints>
-          </hspacer>
           <grid id="d881a" binding="rightActions" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
             <constraints>
               <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -73,6 +67,18 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
           </vspacer>
+          <component id="b7dc5" class="javax.swing.JLabel">
+            <constraints/>
+            <properties>
+              <text value="Exporting.........."/>
+            </properties>
+          </component>
+          <hspacer id="e42a4">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="1.0" weighty="0.0"/>
+            </constraints>
+          </hspacer>
         </children>
       </grid>
       <vspacer id="4c4a3">
