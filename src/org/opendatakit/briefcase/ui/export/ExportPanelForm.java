@@ -19,6 +19,11 @@ import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.Optional;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -48,6 +53,9 @@ public class ExportPanelForm {
   private JLabel lblExporting;
   JButton exportButton;
   private boolean exporting;
+  private static final ScheduledExecutorService SCHEDULED_EXECUTOR =
+          new ScheduledThreadPoolExecutor(1);
+  private Optional<ScheduledFuture<?>> scheduledHideExportingLabel = Optional.empty();
 
   private ExportPanelForm(ConfigurationPanel confPanel, FormsTable formsTable) {
     this.confPanel = confPanel;
@@ -125,24 +133,20 @@ public class ExportPanelForm {
     exporting = active;
   }
 
-  public void updateExportingLabel() {
+  synchronized public void updateExportingLabel() {
     String text = lblExporting.getText();
     if (text.equals(EXPORTING_DOT_ETC)) {
       text = "Exporting.";
     } else {
       text += ".";
     }
-    //hide exporting if 5 secs without updates
     lblExporting.setText(text);
-    new java.util.Timer().schedule(
-            new java.util.TimerTask() {
-              @Override
-              public void run() {
-                hideExporting();
-              }
-            },
-            5000
-    );
+
+    //set a timeout of 5 secs and hide label if there are no new updates
+    scheduledHideExportingLabel.ifPresent(scheduledFuture ->
+            scheduledFuture.cancel(false));
+    scheduledHideExportingLabel = Optional.of(SCHEDULED_EXECUTOR.schedule(this::hideExporting,
+            5, TimeUnit.SECONDS));
   }
 
   void disableUI() {
@@ -213,10 +217,6 @@ public class ExportPanelForm {
     clearAllButton = new JButton();
     clearAllButton.setText("Clear All");
     leftActions.add(clearAllButton);
-    lblExporting = new JLabel();
-    lblExporting.setText(EXPORTING_DOT_ETC);
-    lblExporting.setVisible(false);
-    actions.add(lblExporting);
     final JPanel spacer1 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
@@ -231,6 +231,10 @@ public class ExportPanelForm {
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.BOTH;
     actions.add(rightActions, gbc);
+    lblExporting = new JLabel();
+    lblExporting.setText(EXPORTING_DOT_ETC);
+    lblExporting.setVisible(false);
+    rightActions.add(lblExporting);
     exportButton = new JButton();
     exportButton.setEnabled(false);
     exportButton.setName("export");
