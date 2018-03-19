@@ -40,8 +40,7 @@ import org.opendatakit.briefcase.ui.export.components.FormsTableView;
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportPanelForm {
   private static final String EXPORTING_DOT_ETC = "Exporting..........";
-  private static final ScheduledExecutorService SCHEDULED_EXECUTOR =
-          new ScheduledThreadPoolExecutor(1);
+  private static final ScheduledExecutorService SCHEDULED_EXECUTOR = new ScheduledThreadPoolExecutor(1);
 
   private final ConfigurationPanel confPanel;
   private final FormsTable formsTable;

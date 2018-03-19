@@ -105,7 +105,6 @@ public class ExportPanel {
 
 
     form.onExport(() -> backgroundExecutor.execute(() -> {
-      //notify user that export started
       form.showExporting();
       // Segregating this validation from the export process to move it to ExportConfiguration on the future
       List<String> errors = forms.getSelectedForms().stream().flatMap(formStatus -> {
