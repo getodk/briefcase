@@ -134,7 +134,13 @@ public class ExportPanelForm {
   }
 
   synchronized public void updateExportingLabel() {
-    exportingLabel.setText(exportingLabel.getText().equals(EXPORTING_DOT_ETC) ? "Exporting." : exportingLabel.getText() + ".");
+    String text = exportingLabel.getText();
+    if (text.equals(EXPORTING_DOT_ETC)) {
+      text = "Exporting.";
+    } else {
+      text += ".";
+    }
+    exportingLabel.setText(text);
 
     scheduledHideExportingLabel.ifPresent(scheduledFuture -> scheduledFuture.cancel(false));
     scheduledHideExportingLabel = Optional.of(SCHEDULED_EXECUTOR.schedule(this::hideExporting, 5, SECONDS));
