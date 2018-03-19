@@ -183,7 +183,6 @@ public class ExportPanel {
         });
     //notify UI
     form.enableUI();
-    form.hideExporting();
   }
 
   @EventSubscriber(eventClass = ExportSucceededWithErrorsEvent.class)

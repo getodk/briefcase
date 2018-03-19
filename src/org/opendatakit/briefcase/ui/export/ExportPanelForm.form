@@ -51,7 +51,7 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="b7dc5" class="javax.swing.JLabel" binding="lblExporting">
+              <component id="b7dc5" class="javax.swing.JLabel" binding="exportingLabel">
               <constraints/>
               <properties>
                 <text value="Exporting.........."/>

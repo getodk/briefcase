@@ -23,7 +23,6 @@ import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -36,9 +35,13 @@ import org.opendatakit.briefcase.ui.export.components.ConfigurationPanelForm;
 import org.opendatakit.briefcase.ui.export.components.FormsTable;
 import org.opendatakit.briefcase.ui.export.components.FormsTableView;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportPanelForm {
   private static final String EXPORTING_DOT_ETC = "Exporting..........";
+  private static final ScheduledExecutorService SCHEDULED_EXECUTOR =
+          new ScheduledThreadPoolExecutor(1);
 
   private final ConfigurationPanel confPanel;
   private final FormsTable formsTable;
@@ -50,11 +53,9 @@ public class ExportPanelForm {
   private JPanel rightActions;
   private JButton selectAllButton;
   private JButton clearAllButton;
-  private JLabel lblExporting;
+  private JLabel exportingLabel;
   JButton exportButton;
   private boolean exporting;
-  private static final ScheduledExecutorService SCHEDULED_EXECUTOR =
-          new ScheduledThreadPoolExecutor(1);
   private Optional<ScheduledFuture<?>> scheduledHideExportingLabel = Optional.empty();
 
   private ExportPanelForm(ConfigurationPanel confPanel, FormsTable formsTable) {
@@ -134,19 +135,16 @@ public class ExportPanelForm {
   }
 
   synchronized public void updateExportingLabel() {
-    String text = lblExporting.getText();
+    String text = exportingLabel.getText();
     if (text.equals(EXPORTING_DOT_ETC)) {
       text = "Exporting.";
     } else {
       text += ".";
     }
-    lblExporting.setText(text);
+    exportingLabel.setText(text);
 
-    //set a timeout of 5 secs and hide label if there are no new updates
-    scheduledHideExportingLabel.ifPresent(scheduledFuture ->
-            scheduledFuture.cancel(false));
-    scheduledHideExportingLabel = Optional.of(SCHEDULED_EXECUTOR.schedule(this::hideExporting,
-            5, TimeUnit.SECONDS));
+    scheduledHideExportingLabel.ifPresent(scheduledFuture -> scheduledFuture.cancel(false));
+    scheduledHideExportingLabel = Optional.of(SCHEDULED_EXECUTOR.schedule(this::hideExporting, 5, SECONDS));
   }
 
   void disableUI() {
@@ -166,13 +164,13 @@ public class ExportPanelForm {
   }
 
   public void showExporting() {
-    lblExporting.setText(EXPORTING_DOT_ETC);
-    lblExporting.setVisible(true);
+    exportingLabel.setText(EXPORTING_DOT_ETC);
+    exportingLabel.setVisible(true);
   }
 
   public void hideExporting() {
-    lblExporting.setVisible(false);
-    lblExporting.setText(EXPORTING_DOT_ETC);
+    exportingLabel.setVisible(false);
+    exportingLabel.setText(EXPORTING_DOT_ETC);
   }
 
   private void createUIComponents() {
@@ -231,10 +229,10 @@ public class ExportPanelForm {
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.BOTH;
     actions.add(rightActions, gbc);
-    lblExporting = new JLabel();
-    lblExporting.setText(EXPORTING_DOT_ETC);
-    lblExporting.setVisible(false);
-    rightActions.add(lblExporting);
+    exportingLabel = new JLabel();
+    exportingLabel.setText(EXPORTING_DOT_ETC);
+    exportingLabel.setVisible(false);
+    rightActions.add(exportingLabel);
     exportButton = new JButton();
     exportButton.setEnabled(false);
     exportButton.setName("export");
