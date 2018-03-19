@@ -15,6 +15,8 @@
  */
 package org.opendatakit.briefcase.ui.export;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -34,8 +36,6 @@ import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanelForm;
 import org.opendatakit.briefcase.ui.export.components.FormsTable;
 import org.opendatakit.briefcase.ui.export.components.FormsTableView;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportPanelForm {
