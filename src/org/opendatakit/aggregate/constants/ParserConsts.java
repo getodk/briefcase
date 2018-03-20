@@ -26,6 +26,8 @@ package org.opendatakit.aggregate.constants;
  */
 public final class ParserConsts {
 
+  private ParserConsts(){}
+
   public static final String DEFAULT_NAMESPACE = "ODK_DEFAULT";
 
   public static final String FORM_ID_ATTRIBUTE_NAME = "id";
