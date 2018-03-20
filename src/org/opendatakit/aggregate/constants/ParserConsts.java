@@ -18,57 +18,57 @@
 package org.opendatakit.aggregate.constants;
 
 /**
- * Constants used for parsing in ODK aggregate 
- *  
+ * Constants used for parsing in ODK aggregate
+ *
  * @author wbrunette@gmail.com
  * @author mitchellsundt@gmail.com
- * 
  */
 public final class ParserConsts {
 
-  private ParserConsts(){}
+    private ParserConsts() {
+    }
 
-  public static final String DEFAULT_NAMESPACE = "ODK_DEFAULT";
+    public static final String DEFAULT_NAMESPACE = "ODK_DEFAULT";
 
-  public static final String FORM_ID_ATTRIBUTE_NAME = "id";
+    public static final String FORM_ID_ATTRIBUTE_NAME = "id";
 
-  public static final String MODEL_VERSION_ATTRIBUTE_NAME = "version";
+    public static final String MODEL_VERSION_ATTRIBUTE_NAME = "version";
 
-  public static final String UI_VERSION_ATTRIBUTE_NAME = "uiVersion";
+    public static final String UI_VERSION_ATTRIBUTE_NAME = "uiVersion";
 
-  public static final String INSTANCE_ID_ATTRIBUTE_NAME = "instanceID";
-  
-  public static final String SUBMISSION_DATE_ATTRIBUTE_NAME = "submissionDate";
+    public static final String INSTANCE_ID_ATTRIBUTE_NAME = "instanceID";
 
-  public static final String IS_COMPLETE_ATTRIBUTE_NAME = "isComplete";
+    public static final String SUBMISSION_DATE_ATTRIBUTE_NAME = "submissionDate";
 
-  public static final String MARKED_AS_COMPLETE_DATE_ATTRIBUTE_NAME = "markedAsCompleteDate";
-  
-  public static final String NAMESPACE_ATTRIBUTE = "xmlns";
+    public static final String IS_COMPLETE_ATTRIBUTE_NAME = "isComplete";
 
-  public static final String FORWARD_SLASH = "/";
-  
-  public static final String FORWARD_SLASH_SUBSTITUTION = "&frasl;";
-  
-  public static final String VALUE_FORMATTED = "  Value: ";
+    public static final String MARKED_AS_COMPLETE_DATE_ATTRIBUTE_NAME = "markedAsCompleteDate";
 
-  public static final String ATTRIBUTE_FORMATTED = " Attribute> ";
+    public static final String NAMESPACE_ATTRIBUTE = "xmlns";
 
-  public static final String NODE_FORMATTED = "Node: ";
+    public static final String FORWARD_SLASH = "/";
 
-  /**
-   * The max file size that can be uploaded/parsed
-   */
-  public final static int FILE_SIZE_MAX = 5000000;
+    public static final String FORWARD_SLASH_SUBSTITUTION = "&frasl;";
 
-  /**
-   * Namespace of ODK extensions to the OpenRosa standards
-   */
-  public static final String NAMESPACE_ODK = "http://www.opendatakit.org/xforms";
+    public static final String VALUE_FORMATTED = "  Value: ";
 
-  /**
-   * additional attribute used to supply the base64 public key for encrypted submissions
-   */
-  public static final String BASE64_RSA_PUBLIC_KEY = "base64RsaPublicKey";
+    public static final String ATTRIBUTE_FORMATTED = " Attribute> ";
+
+    public static final String NODE_FORMATTED = "Node: ";
+
+    /**
+     * The max file size that can be uploaded/parsed
+     */
+    public final static int FILE_SIZE_MAX = 5000000;
+
+    /**
+     * Namespace of ODK extensions to the OpenRosa standards
+     */
+    public static final String NAMESPACE_ODK = "http://www.opendatakit.org/xforms";
+
+    /**
+     * additional attribute used to supply the base64 public key for encrypted submissions
+     */
+    public static final String BASE64_RSA_PUBLIC_KEY = "base64RsaPublicKey";
 
 }
