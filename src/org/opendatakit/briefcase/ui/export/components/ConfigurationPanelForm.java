@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.ui.export.components;
 
+import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static javax.swing.JOptionPane.YES_OPTION;
 import static javax.swing.JOptionPane.showConfirmDialog;
@@ -293,7 +294,7 @@ public class ConfigurationPanelForm extends JComponent {
 
 
   private boolean confirmOverwriteFiles() {
-    if (showConfirmDialog(this, "Overwrite existing files?", "", YES_NO_OPTION) == YES_OPTION)
+    if (showConfirmDialog(this, "Overwrite existing files?", "", YES_NO_OPTION, PLAIN_MESSAGE) == YES_OPTION)
       return true;
     overwriteFilesField.setSelected(false);
     return false;
@@ -471,9 +472,16 @@ public class ConfigurationPanelForm extends JComponent {
     overwriteFilesField.setText("Overwrite existing files");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 8;
+    gbc.gridy = 9;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(overwriteFilesField, gbc);
+    final JPanel spacer6 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 8;
+    gbc.gridwidth = 3;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    container.add(spacer6, gbc);
   }
 
   /**
