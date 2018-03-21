@@ -64,6 +64,9 @@ public class ExportPanelForm {
     this.formsTableForm = formsTable.getView();
     $$$setupUI$$$();
 
+    exportingLabel.setMinimumSize(exportingLabel.getPreferredSize());
+    exportingLabel.setPreferredSize(exportingLabel.getPreferredSize());
+
     selectAllButton.addActionListener(__ -> formsTable.selectAll());
     clearAllButton.addActionListener(__ -> formsTable.clearAll());
 
