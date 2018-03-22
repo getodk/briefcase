@@ -15,7 +15,10 @@
  */
 package org.opendatakit.briefcase.operations;
 
+import static org.opendatakit.briefcase.operations.Common.AGGREGATE_SERVER;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
+import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
+import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.operations.Common.bootCache;
 
@@ -34,9 +37,6 @@ import org.slf4j.LoggerFactory;
 public class PushFormToAggregate {
   private static final Logger log = LoggerFactory.getLogger(PushFormToAggregate.class);
   private static final Param<Void> PUSH_AGGREGATE = Param.flag("psha", "push_aggregate", "Push form to an Aggregate instance");
-  private static final Param<String> ODK_USERNAME = Param.arg("u", "odk_username", "ODK Username");
-  private static final Param<String> ODK_PASSWORD = Param.arg("p", "odk_password", "ODK Password");
-  private static final Param<String> AGGREGATE_SERVER = Param.arg("url", "aggregate_url", "Aggregate server URL");
 
   public static Operation PUSH_FORM_TO_AGGREGATE = Operation.of(
       PUSH_AGGREGATE,
