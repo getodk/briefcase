@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.ui.export;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -63,9 +64,6 @@ public class ExportPanelForm {
     this.formsTable = formsTable;
     this.formsTableForm = formsTable.getView();
     $$$setupUI$$$();
-
-    exportingLabel.setMinimumSize(exportingLabel.getPreferredSize());
-    exportingLabel.setPreferredSize(exportingLabel.getPreferredSize());
 
     selectAllButton.addActionListener(__ -> formsTable.selectAll());
     clearAllButton.addActionListener(__ -> formsTable.clearAll());
@@ -234,6 +232,8 @@ public class ExportPanelForm {
     exportingLabel = new JLabel();
     exportingLabel.setText(EXPORTING_DOT_ETC);
     exportingLabel.setVisible(false);
+    exportingLabel.setMinimumSize(new Dimension(86,21));
+    exportingLabel.setPreferredSize(new Dimension(86,21));
     rightActions.add(exportingLabel);
     exportButton = new JButton();
     exportButton.setEnabled(false);

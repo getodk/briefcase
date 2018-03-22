@@ -52,11 +52,13 @@
             <border type="none"/>
             <children>
               <component id="b7dc5" class="javax.swing.JLabel" binding="exportingLabel">
-              <constraints/>
-              <properties>
-                <text value="Exporting.........."/>
-              </properties>
-            </component>
+                <constraints/>
+                <properties>
+                  <minimumSize width="86" height="21"/>
+                  <preferredSize width="86" height="21"/>
+                  <text value="Exporting.........."/>
+                </properties>
+              </component>
               <component id="74e1" class="javax.swing.JButton" binding="exportButton">
                 <constraints/>
                 <properties>
