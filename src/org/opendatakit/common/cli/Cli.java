@@ -54,6 +54,16 @@ public class Cli {
     register(Operation.of(SHOW_VERSION, args -> printVersion()));
   }
 
+  public Cli deprecate(Param<?> oldParam, Operation alternative) {
+    operations.add(Operation.of(oldParam, __ -> {
+      log.warn("Trying to run deprecated param -{}", oldParam.shortCode);
+      System.out.println("The param -" + oldParam.shortCode + " has been deprecated. Run Briefcase again with -" + alternative.param.shortCode + " instead");
+      printHelp(requiredOperations, operations);
+      System.exit(1);
+    }));
+    return this;
+  }
+
   /**
    * Register an {@link Operation}
    *
