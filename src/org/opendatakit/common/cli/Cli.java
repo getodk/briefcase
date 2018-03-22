@@ -103,7 +103,7 @@ public class Cli {
       if (executedOperations.isEmpty())
         otherwiseRunnables.forEach(Runnable::run);
     } catch (BriefcaseException e) {
-      System.err.println("Error: " + e.message);
+      System.err.println("Error: " + e.getMessage());
       log.error("Error", e);
       System.exit(1);
     } catch (Throwable t) {
