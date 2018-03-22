@@ -42,6 +42,13 @@ public class ServerConnectionTest implements Runnable {
       throw new ServerConnectionTestException();
   }
 
+  public static void testPush(ServerConnectionInfo transferSettings) {
+    ServerConnectionTest test = new ServerConnectionTest(transferSettings, new TerminationFuture(), true);
+    test.run();
+    if (!test.isSuccessful())
+      throw new ServerConnectionTestException();
+  }
+
   @Override
   public void run() {
     try {
