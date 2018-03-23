@@ -180,7 +180,6 @@ public class ExportPanel {
               terminationFuture
           );
         });
-    //notify UI
     form.enableUI();
   }
 

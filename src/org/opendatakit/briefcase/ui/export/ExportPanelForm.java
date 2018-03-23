@@ -40,7 +40,7 @@ import org.opendatakit.briefcase.ui.export.components.FormsTableView;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportPanelForm {
-  private static final String EXPORTING_DOT_ETC = "Exporting..........";
+  private static final String EXPORTING_DOT_ETC = "Exporting...";
   private static final ScheduledExecutorService SCHEDULED_EXECUTOR = new ScheduledThreadPoolExecutor(1);
 
   private final ConfigurationPanel confPanel;
@@ -144,7 +144,7 @@ public class ExportPanelForm {
     exportingLabel.setText(text);
 
     scheduledHideExportingLabel.ifPresent(scheduledFuture -> scheduledFuture.cancel(false));
-    scheduledHideExportingLabel = Optional.of(SCHEDULED_EXECUTOR.schedule(this::hideExporting, 5, SECONDS));
+    scheduledHideExportingLabel = Optional.of(SCHEDULED_EXECUTOR.schedule(this::hideExporting, 3, SECONDS));
   }
 
   void disableUI() {
@@ -232,8 +232,8 @@ public class ExportPanelForm {
     exportingLabel = new JLabel();
     exportingLabel.setText(EXPORTING_DOT_ETC);
     exportingLabel.setVisible(false);
-    exportingLabel.setMinimumSize(new Dimension(86,21));
-    exportingLabel.setPreferredSize(new Dimension(86,21));
+    exportingLabel.setMinimumSize(new Dimension(80,21));
+    exportingLabel.setPreferredSize(new Dimension(80,21));
     rightActions.add(exportingLabel);
     exportButton = new JButton();
     exportButton.setEnabled(false);

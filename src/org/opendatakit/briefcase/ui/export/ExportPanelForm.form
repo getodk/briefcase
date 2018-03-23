@@ -54,9 +54,10 @@
               <component id="b7dc5" class="javax.swing.JLabel" binding="exportingLabel">
                 <constraints/>
                 <properties>
-                  <minimumSize width="86" height="21"/>
-                  <preferredSize width="86" height="21"/>
-                  <text value="Exporting.........."/>
+                  <minimumSize width="80" height="21"/>
+                  <preferredSize width="80" height="21"/>
+                  <text value="Exporting..."/>
+                  <visible value="false"/>
                 </properties>
               </component>
               <component id="74e1" class="javax.swing.JButton" binding="exportButton">
