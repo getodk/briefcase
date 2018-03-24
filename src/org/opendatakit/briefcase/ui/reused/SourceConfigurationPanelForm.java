@@ -2,6 +2,7 @@ package org.opendatakit.briefcase.ui.reused;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.function.BiConsumer;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -13,10 +14,13 @@ import javax.swing.JPanel;
 public class SourceConfigurationPanelForm extends JComponent {
   private JComboBox sourceComboBox;
   private JButton configureButton;
-  public JPanel container;
+  private JPanel container;
 
-  public SourceConfigurationPanelForm() {
+  private BiConsumer<String, String> onSuccess;
+
+  public SourceConfigurationPanelForm(BiConsumer<String, String> onSuccess) {
     $$$setupUI$$$();
+    this.onSuccess = onSuccess;
 
     configureButton.addActionListener(__ -> {
       configureButton.setEnabled(false);
@@ -29,8 +33,8 @@ public class SourceConfigurationPanelForm extends JComponent {
     AggregateServerConnectionDialog dialog = new AggregateServerConnectionDialog(
         new AggregateServerConnectionDialogForm(),
         aggregateServerConnectionConfiguration -> true,
-        AggregateServerConnectionConfiguration.from("http://test1.com", "", new char[]{})
-    );
+        null,
+        onSuccess);
     dialog.getForm().setVisible(true);
   }
 

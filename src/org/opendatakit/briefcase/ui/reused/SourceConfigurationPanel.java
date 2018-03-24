@@ -1,16 +1,22 @@
 package org.opendatakit.briefcase.ui.reused;
 
-import javax.swing.JPanel;
-
 public class SourceConfigurationPanel {
   private final SourceConfigurationPanelForm form;
+  private SourceDisplayPanelForm formSourceDisplay;
 
   public SourceConfigurationPanel(SourceConfigurationPanelForm form) {
     this.form = form;
   }
 
-  public JPanel getForm() {
-    return form.container;
+  public SourceConfigurationPanelForm getFormSourceConfig() {
+    return form;
   }
 
+  public void setFormSourceDisplay(SourceDisplayPanelForm sourceDisplay) {
+    formSourceDisplay = sourceDisplay;
+  }
+
+  public SourceDisplayPanelForm getFormSourceDisplay() {
+    return formSourceDisplay;
+  }
 }
