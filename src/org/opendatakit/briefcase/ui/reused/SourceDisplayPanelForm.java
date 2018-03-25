@@ -2,6 +2,8 @@ package org.opendatakit.briefcase.ui.reused;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -9,23 +11,39 @@ import javax.swing.JPanel;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class SourceDisplayPanelForm extends JComponent {
-  private JPanel container;
+  public JPanel container;
   private JLabel sourceLabel;
   private JLabel sourceAddressLabel;
   private JButton resetButton;
+  private List<Runnable> onResetCallbacks = new ArrayList<>();
 
-  public SourceDisplayPanelForm(String source, String sourceAddress, Runnable runnable) {
+  public SourceDisplayPanelForm(String source, String sourceAddress) {
     $$$setupUI$$$();
     sourceLabel.setText(source);
     sourceAddressLabel.setText(sourceAddress);
 
-    resetButton.addActionListener(__ -> {
-      runnable.run();
-    });
+    resetButton.addActionListener(__ -> onResetCallbacks.forEach(Runnable::run));
+  }
+
+  static SourceDisplayPanelForm empty() {
+    return new SourceDisplayPanelForm("", "");
+  }
+
+  public void onReset(Runnable callback) {
+    onResetCallbacks.add(callback);
+  }
+
+  public void readConfiguration(AggregateServerConnectionConfiguration conf) {
+    sourceLabel.setText("ODK Aggregate");
+    sourceAddressLabel.setText(conf.getUrl().toString());
   }
 
   private void createUIComponents() {
     // TODO: place custom component creation code here
+  }
+
+  public JComponent getContainer() {
+    return container;
   }
 
   /**
@@ -73,7 +91,7 @@ public class SourceDisplayPanelForm extends JComponent {
     gbc.anchor = GridBagConstraints.WEST;
     container.add(sourceAddressLabel, gbc);
     resetButton = new JButton();
-    resetButton.setText("Button");
+    resetButton.setText("Reset");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 2;
@@ -88,7 +106,4 @@ public class SourceDisplayPanelForm extends JComponent {
     return container;
   }
 
-  public JComponent getContainer() {
-    return container;
-  }
 }

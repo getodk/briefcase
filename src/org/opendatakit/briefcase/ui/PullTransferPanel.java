@@ -56,8 +56,6 @@ import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.SourceConfigurationPanel;
-import org.opendatakit.briefcase.ui.reused.SourceConfigurationPanelForm;
-import org.opendatakit.briefcase.ui.reused.SourceDisplayPanelForm;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferAction;
 import org.opendatakit.briefcase.util.WebUtils;
@@ -286,7 +284,7 @@ public class PullTransferPanel extends JPanel {
     formTransferTable.setSourceSelected(true);
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
 
-    sourceConfPanel = new SourceConfigurationPanel(new SourceConfigurationPanelForm(this::updateSourceUI));
+    sourceConfPanel = new SourceConfigurationPanel();
 
     GroupLayout groupLayout = new GroupLayout(this);
     groupLayout.setHorizontalGroup(groupLayout
@@ -295,7 +293,7 @@ public class PullTransferPanel extends JPanel {
         .addGroup(
             groupLayout
                 .createParallelGroup(Alignment.LEADING)
-                .addComponent(sourceConfPanel.getFormSourceConfig().getContainer(), GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
+                .addComponent(sourceConfPanel.getForm(), GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
                     Short.MAX_VALUE)
                 // scroll pane
                 .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
@@ -310,7 +308,7 @@ public class PullTransferPanel extends JPanel {
                         .addComponent(btnCancel))).addContainerGap());
     groupLayout.setVerticalGroup(groupLayout
         .createSequentialGroup()
-        .addComponent(sourceConfPanel.getFormSourceConfig().getContainer(), 36, 36, Short.MAX_VALUE)
+        .addComponent(sourceConfPanel.getForm(), 36, 36, Short.MAX_VALUE)
         .addComponent(scrollPane, 200, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
         .addPreferredGap(ComponentPlacement.RELATED)
         .addGroup(
@@ -327,47 +325,6 @@ public class PullTransferPanel extends JPanel {
 
     setActiveTransferState(transferStateActive);
     lblDownloading.setText("                     ");
-  }
-
-  private void resetUI() {
-  }
-
-  // This method is not working
-  private void updateSourceUI(String source, String sourceAddress) {
-    JScrollPane scrollPane = new JScrollPane(formTransferTable);
-    sourceConfPanel.setFormSourceDisplay(new SourceDisplayPanelForm(source, sourceAddress, this::resetUI));
-
-    GroupLayout groupLayout = new GroupLayout(this);
-    groupLayout.setVerticalGroup(groupLayout
-        .createSequentialGroup()
-        .addContainerGap()
-        .addGroup(
-            groupLayout
-                .createParallelGroup(Alignment.LEADING)
-                .addComponent(sourceConfPanel.getFormSourceDisplay().getContainer(), GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
-                    Short.MAX_VALUE)
-                // scroll pane
-                .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
-                    Short.MAX_VALUE)
-                .addGroup(
-                    groupLayout.createSequentialGroup().addComponent(btnSelectOrClearAllForms)
-                        .addPreferredGap(ComponentPlacement.RELATED).addComponent(lblDownloading))
-                .addGroup(
-                    Alignment.TRAILING,
-                    groupLayout.createSequentialGroup().addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(btnTransfer).addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(btnCancel))).addContainerGap());
-    groupLayout.setVerticalGroup(groupLayout
-        .createSequentialGroup()
-        .addComponent(sourceConfPanel.getFormSourceDisplay().getContainer(), 36, 36, Short.MAX_VALUE)
-        .addComponent(scrollPane, 200, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
-        .addPreferredGap(ComponentPlacement.RELATED)
-        .addGroup(
-            groupLayout.createParallelGroup(Alignment.BASELINE)
-                .addComponent(btnSelectOrClearAllForms).addComponent(lblDownloading)
-                .addComponent(btnTransfer).addComponent(btnCancel)).addContainerGap());
-    setLayout(groupLayout);
-
   }
 
   @Override

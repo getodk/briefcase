@@ -2,7 +2,9 @@ package org.opendatakit.briefcase.ui.reused;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.util.function.BiConsumer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -11,16 +13,14 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 @SuppressWarnings("checkstyle:MethodName")
-public class SourceConfigurationPanelForm extends JComponent {
+public class SourceSelectPanelForm extends JComponent {
   private JComboBox sourceComboBox;
   private JButton configureButton;
-  private JPanel container;
+  public JPanel container;
+  private final List<Consumer<AggregateServerConnectionConfiguration>> onConfiguredSourceCallback = new ArrayList<>();
 
-  private BiConsumer<String, String> onSuccess;
-
-  public SourceConfigurationPanelForm(BiConsumer<String, String> onSuccess) {
+  public SourceSelectPanelForm() {
     $$$setupUI$$$();
-    this.onSuccess = onSuccess;
 
     configureButton.addActionListener(__ -> {
       configureButton.setEnabled(false);
@@ -30,12 +30,17 @@ public class SourceConfigurationPanelForm extends JComponent {
   }
 
   private void triggerConfigure() {
-    AggregateServerConnectionDialog dialog = new AggregateServerConnectionDialog(
-        new AggregateServerConnectionDialogForm(),
-        aggregateServerConnectionConfiguration -> true,
-        null,
-        onSuccess);
+    AggregateServerConnectionDialog dialog = AggregateServerConnectionDialog.empty(__ -> true);
+    dialog.onConnect(this::trigureConfiguredSource);
     dialog.getForm().setVisible(true);
+  }
+
+  public void onConfiguredSource(Consumer<AggregateServerConnectionConfiguration> consumer) {
+    onConfiguredSourceCallback.add(consumer);
+  }
+
+  private void trigureConfiguredSource(AggregateServerConnectionConfiguration conf) {
+    onConfiguredSourceCallback.forEach(callback -> callback.accept(conf));
   }
 
   private void createUIComponents() {
