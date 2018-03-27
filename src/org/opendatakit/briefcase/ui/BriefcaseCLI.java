@@ -81,7 +81,7 @@ public class BriefcaseCLI {
             Optional.ofNullable(pemKeyFile).map(Paths::get)
         );
     } catch (BriefcaseException e) {
-      System.err.println("Error: " + e.message);
+      System.err.println("Error: " + e.getMessage());
       log.error("Error", e);
       System.exit(1);
     } catch (Throwable t) {

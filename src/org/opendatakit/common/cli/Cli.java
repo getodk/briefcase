@@ -55,6 +55,27 @@ public class Cli {
   }
 
   /**
+   * Marks a Param for deprecation and assigns an alternative operation.
+   *
+   * When Briefcase detects this param, it will show a message, output the help and
+   * exit with a non-zero status
+   *
+   * @param oldParam the {@link Param} to mark as deprecated
+   * @param alternative the alternative {@link Operation} that Briefcase will suggest to be
+   *                    used instead of the deprecated Param
+   * @return self {@link Cli} instance to chain more method calls
+   */
+  public Cli deprecate(Param<?> oldParam, Operation alternative) {
+    operations.add(Operation.of(oldParam, __ -> {
+      log.warn("Trying to run deprecated param -{}", oldParam.shortCode);
+      System.out.println("The param -" + oldParam.shortCode + " has been deprecated. Run Briefcase again with -" + alternative.param.shortCode + " instead");
+      printHelp(requiredOperations, operations);
+      System.exit(1);
+    }));
+    return this;
+  }
+
+  /**
    * Register an {@link Operation}
    *
    * @param operation an {@link Operation} instance
@@ -103,7 +124,7 @@ public class Cli {
       if (executedOperations.isEmpty())
         otherwiseRunnables.forEach(Runnable::run);
     } catch (BriefcaseException e) {
-      System.err.println("Error: " + e.message);
+      System.err.println("Error: " + e.getMessage());
       log.error("Error", e);
       System.exit(1);
     } catch (Throwable t) {
@@ -148,8 +169,8 @@ public class Cli {
   private void checkForMissingParams(CommandLine cli, Set<Param> paramsToCheck) {
     Set<Param> missingParams = paramsToCheck.stream().filter(param -> !cli.hasOption(param.shortCode)).collect(toSet());
     if (!missingParams.isEmpty()) {
-      System.out.printf("Missing params: ");
-      System.out.printf(missingParams.stream().map(param -> "-" + param.shortCode).collect(joining(", ")));
+      System.out.print("Missing params: ");
+      System.out.print(missingParams.stream().map(param -> "-" + param.shortCode).collect(joining(", ")));
       System.out.println("");
       printHelp(requiredOperations, operations);
       System.exit(1);
