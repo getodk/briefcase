@@ -77,12 +77,12 @@ public class ExportConfiguration {
   }
 
   public static ExportConfiguration empty() {
-    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
   public static ExportConfiguration empty(FormStatus form) {
     Optional<Boolean> formNeedsPrivateKey = Optional.of(getFormDefinition(form).isFileEncryptedForm() || getFormDefinition(form).isFieldEncryptedForm());
-    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), formNeedsPrivateKey);
+    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), formNeedsPrivateKey, Optional.empty());
   }
 
   public static ExportConfiguration loadDefaultConfig(BriefcasePreferences prefs) {
@@ -383,7 +383,7 @@ public class ExportConfiguration {
         pullBefore.isPresent() ? pullBefore : other.pullBefore,
         pullBeforeOverride.isPresent() ? pullBeforeOverride : other.pullBeforeOverride,
         formNeedsPrivateKey.isPresent() ? formNeedsPrivateKey : other.formNeedsPrivateKey,
-        overwriteExistingFiles.isPresent() ? overwriteExistingFiles : defaultConfiguration.overwriteExistingFiles
+        overwriteExistingFiles.isPresent() ? overwriteExistingFiles : other.overwriteExistingFiles
     );
   }
 
@@ -400,6 +400,7 @@ public class ExportConfiguration {
         ", endDate=" + endDate +
         ", pullBefore=" + pullBefore +
         ", pullBeforeOverride=" + pullBeforeOverride +
+        ", formNeedsPrivateKey=" + formNeedsPrivateKey +
         ", overwriteExistingFiles=" + overwriteExistingFiles +
         '}';
   }
@@ -417,11 +418,12 @@ public class ExportConfiguration {
         Objects.equals(endDate, that.endDate) &&
         Objects.equals(pullBefore, that.pullBefore) &&
         Objects.equals(pullBeforeOverride, that.pullBeforeOverride) &&
+        Objects.equals(formNeedsPrivateKey, that.formNeedsPrivateKey) &&
         Objects.equals(overwriteExistingFiles, that.overwriteExistingFiles);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, pullBeforeOverride, overwriteExistingFiles);
+    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, pullBeforeOverride, formNeedsPrivateKey, overwriteExistingFiles);
   }
 }

@@ -55,6 +55,7 @@ public class ExportPanelForm {
   private JButton clearAllButton;
   private JLabel exportingLabel;
   JButton exportButton;
+  private JLabel errorMsg;
   private boolean exporting;
   private Optional<ScheduledFuture<?>> scheduledHideExportingLabel = Optional.empty();
 
@@ -97,6 +98,10 @@ public class ExportPanelForm {
   void onChange(Runnable callback) {
     confPanel.onChange(callback);
     formsTable.onChange(callback);
+  }
+
+  void setErrorMsg(String errorMsg) {
+    this.errorMsg.setText(errorMsg);
   }
 
   void enableExport() {
@@ -166,6 +171,7 @@ public class ExportPanelForm {
   public void showExporting() {
     exportingLabel.setText(EXPORTING_DOT_ETC);
     exportingLabel.setVisible(true);
+
   }
 
   public void hideExporting() {
@@ -215,13 +221,12 @@ public class ExportPanelForm {
     clearAllButton = new JButton();
     clearAllButton.setText("Clear All");
     leftActions.add(clearAllButton);
-    final JPanel spacer1 = new JPanel();
-    gbc = new GridBagConstraints();
-    gbc.gridx = 1;
-    gbc.gridy = 0;
-    gbc.weightx = 1.0;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    actions.add(spacer1, gbc);
+    errorMsg = new JLabel();
+    errorMsg.setAutoscrolls(true);
+    errorMsg.setMaximumSize(new Dimension(429, 16));
+    errorMsg.setMinimumSize(new Dimension(429, 16));
+    errorMsg.setText("No errors!");
+    leftActions.add(errorMsg);
     rightActions = new JPanel();
     rightActions.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
     gbc = new GridBagConstraints();
@@ -230,22 +235,29 @@ public class ExportPanelForm {
     gbc.fill = GridBagConstraints.BOTH;
     actions.add(rightActions, gbc);
     exportingLabel = new JLabel();
-    exportingLabel.setText(EXPORTING_DOT_ETC);
+    exportingLabel.setMinimumSize(new Dimension(80, 21));
+    exportingLabel.setPreferredSize(new Dimension(80, 21));
+    exportingLabel.setText("Exporting...");
     exportingLabel.setVisible(false);
-    exportingLabel.setMinimumSize(new Dimension(80,21));
-    exportingLabel.setPreferredSize(new Dimension(80,21));
     rightActions.add(exportingLabel);
     exportButton = new JButton();
     exportButton.setEnabled(false);
     exportButton.setName("export");
     exportButton.setText("Export");
     rightActions.add(exportButton);
-    final JPanel spacer2 = new JPanel();
+    final JPanel spacer1 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 1;
     gbc.gridwidth = 3;
     gbc.fill = GridBagConstraints.VERTICAL;
+    actions.add(spacer1, gbc);
+    final JPanel spacer2 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 1;
+    gbc.gridy = 0;
+    gbc.weightx = 1.0;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
     actions.add(spacer2, gbc);
     final JPanel spacer3 = new JPanel();
     gbc = new GridBagConstraints();

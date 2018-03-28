@@ -92,10 +92,14 @@ public class ExportPanel {
           preferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
       );
 
-      if (forms.someSelected() && (form.getConfPanel().isValid() && forms.allSelectedFormsHaveConfiguration()))
+      if (forms.someSelected() && (form.getConfPanel().isValid() && forms.allSelectedFormsHaveConfiguration())) {
+        form.setErrorMsg("No errors! Ready to export form(s)");
         form.enableExport();
-      else {
-        //TODO show message to user why export button is disabled
+      } else {
+        if (!forms.someSelected())
+          form.setErrorMsg("No form(s) selected for export");
+        else
+          form.setErrorMsg("Some form(s) need encryption key. You can set this on the general settings above");
         form.disableExport();
       }
 
