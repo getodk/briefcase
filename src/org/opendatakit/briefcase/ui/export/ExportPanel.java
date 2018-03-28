@@ -35,6 +35,7 @@ import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
+import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -107,6 +108,7 @@ public class ExportPanel {
 
 
     form.onExport(() -> backgroundExecutor.execute(() -> {
+      form.showExporting();
       // Segregating this validation from the export process to move it to ExportConfiguration on the future
       List<String> errors = forms.getSelectedForms().stream().flatMap(formStatus -> {
         ExportConfiguration exportConfiguration = forms.getConfiguration(formStatus);
@@ -202,6 +204,11 @@ public class ExportPanel {
   @EventSubscriber(eventClass = FormStatusEvent.class)
   public void onFormStatusEvent(FormStatusEvent event) {
     updateForms();
+  }
+
+  @EventSubscriber(eventClass = ExportProgressEvent.class)
+  public void onExportProgressEvent(ExportProgressEvent event) {
+    form.updateExportingLabel();
   }
 
   @EventSubscriber(eventClass = TransferSucceededEvent.class)

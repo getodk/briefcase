@@ -76,12 +76,12 @@ public class BriefcaseCLI {
             fileName,
             exportMedia,
             overwrite,
-            Optional.ofNullable(startDateString).map(LocalDate::parse),
-            Optional.ofNullable(endDateString).map(LocalDate::parse),
+            Optional.ofNullable(startDateString).map(s -> LocalDate.parse(s.replaceAll("/", "-"))),
+            Optional.ofNullable(endDateString).map(s -> LocalDate.parse(s.replaceAll("/", "-"))),
             Optional.ofNullable(pemKeyFile).map(Paths::get)
         );
     } catch (BriefcaseException e) {
-      System.err.println("Error: " + e.message);
+      System.err.println("Error: " + e.getMessage());
       log.error("Error", e);
       System.exit(1);
     } catch (Throwable t) {

@@ -34,6 +34,7 @@ public class ConfigurationPanel {
     configuration.ifEndDatePresent(form::setEndDate);
     configuration.ifPullBeforePresent(form::setPullBefore);
     configuration.ifPullBeforeOverridePresent(form::setPullBeforeOverride);
+    configuration.ifOverwriteExistingFilesPresent(form::setOverwriteExistingFiles);
 
     form.onSelectExportDir(path -> {
       configuration.setExportDir(path);
@@ -57,6 +58,10 @@ public class ConfigurationPanel {
     });
     form.onChangePullBeforeOverride(pullBeforeOverrideOption -> {
       configuration.setPullBeforeOverride(pullBeforeOverrideOption);
+      triggerOnChange();
+    });
+    form.onChangeOverwriteExistingFiles(overwriteExistingFiles -> {
+      configuration.setOverwriteExistingFiles(overwriteExistingFiles);
       triggerOnChange();
     });
   }

@@ -105,7 +105,7 @@ public class ExportConfigurationTest {
   }
 
   @Test
-  public void a_configuration_is_not_empty_when_any_of_its_properies_is_present() {
+  public void a_configuration_is_not_empty_when_any_of_its_properties_is_present() {
     assertThat(empty(), isEmpty());
     assertThat(empty().setExportDir(Paths.get("/some/path")), not(isEmpty()));
     assertThat(empty().setPemFile(Paths.get("/some/file.pem")), not(isEmpty()));

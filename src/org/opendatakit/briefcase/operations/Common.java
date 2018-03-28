@@ -28,6 +28,9 @@ class Common {
 
   static final Param<String> STORAGE_DIR = Param.arg("sd", "storage_directory", "Briefcase storage directory");
   static final Param<String> FORM_ID = Param.arg("id", "form_id", "Form ID");
+  static final Param<String> ODK_USERNAME = Param.arg("u", "odk_username", "ODK Username");
+  static final Param<String> ODK_PASSWORD = Param.arg("p", "odk_password", "ODK Password");
+  static final Param<String> AGGREGATE_SERVER = Param.arg("url", "aggregate_url", "Aggregate server URL");
 
   static void bootCache(String storageDir) {
     BriefcasePreferences.setBriefcaseDirectoryProperty(storageDir);

@@ -15,14 +15,23 @@
  */
 package org.opendatakit.briefcase.ui.export;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.Optional;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanelForm;
@@ -31,6 +40,9 @@ import org.opendatakit.briefcase.ui.export.components.FormsTableView;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportPanelForm {
+  private static final String EXPORTING_DOT_ETC = "Exporting...";
+  private static final ScheduledExecutorService SCHEDULED_EXECUTOR = new ScheduledThreadPoolExecutor(1);
+
   private final ConfigurationPanel confPanel;
   private final FormsTable formsTable;
   private final ConfigurationPanelForm confPanelForm;
@@ -41,8 +53,10 @@ public class ExportPanelForm {
   private JPanel rightActions;
   private JButton selectAllButton;
   private JButton clearAllButton;
+  private JLabel exportingLabel;
   JButton exportButton;
   private boolean exporting;
+  private Optional<ScheduledFuture<?>> scheduledHideExportingLabel = Optional.empty();
 
   private ExportPanelForm(ConfigurationPanel confPanel, FormsTable formsTable) {
     this.confPanel = confPanel;
@@ -120,6 +134,19 @@ public class ExportPanelForm {
     exporting = active;
   }
 
+  synchronized public void updateExportingLabel() {
+    String text = exportingLabel.getText();
+    if (text.equals(EXPORTING_DOT_ETC)) {
+      text = "Exporting.";
+    } else {
+      text += ".";
+    }
+    exportingLabel.setText(text);
+
+    scheduledHideExportingLabel.ifPresent(scheduledFuture -> scheduledFuture.cancel(false));
+    scheduledHideExportingLabel = Optional.of(SCHEDULED_EXECUTOR.schedule(this::hideExporting, 3, SECONDS));
+  }
+
   void disableUI() {
     for (Component c : container.getComponents())
       c.setEnabled(false);
@@ -136,6 +163,15 @@ public class ExportPanelForm {
     formsTable.refresh();
   }
 
+  public void showExporting() {
+    exportingLabel.setText(EXPORTING_DOT_ETC);
+    exportingLabel.setVisible(true);
+  }
+
+  public void hideExporting() {
+    exportingLabel.setVisible(false);
+    exportingLabel.setText(EXPORTING_DOT_ETC);
+  }
 
   private void createUIComponents() {
     // Custom creation of components occurs inside the constructor
@@ -193,6 +229,12 @@ public class ExportPanelForm {
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.BOTH;
     actions.add(rightActions, gbc);
+    exportingLabel = new JLabel();
+    exportingLabel.setText(EXPORTING_DOT_ETC);
+    exportingLabel.setVisible(false);
+    exportingLabel.setMinimumSize(new Dimension(80,21));
+    exportingLabel.setPreferredSize(new Dimension(80,21));
+    rightActions.add(exportingLabel);
     exportButton = new JButton();
     exportButton.setEnabled(false);
     exportButton.setName("export");

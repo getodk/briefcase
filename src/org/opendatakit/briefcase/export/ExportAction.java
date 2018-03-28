@@ -45,7 +45,7 @@ public class ExportAction {
         formDefinition,
         formDefinition.getFormName(),
         true,
-        false,
+        configuration.getOverwriteExistingFiles().orElse(false),
         configuration.mapStartDate((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null),
         configuration.mapEndDate((LocalDate ld) -> Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())).orElse(null)
     );

@@ -54,6 +54,7 @@ public class ExportConfiguration {
   private static final String PULL_BEFORE = "pullBefore";
   private static final String FORM_NEEDS_PRIVATE_KEY = "formNeedsPrivateKey";
   private static final String PULL_BEFORE_OVERRIDE = "pullBeforeOverride";
+  private static final String OVERWRITE_EXISTING_FILES = "overwriteExistingFiles";
   private static final Predicate<PullBeforeOverrideOption> ALL_EXCEPT_INHERIT = value -> value != INHERIT;
   private Optional<Path> exportDir;
   private Optional<Path> pemFile;
@@ -62,8 +63,9 @@ public class ExportConfiguration {
   private Optional<Boolean> pullBefore;
   private final Optional<Boolean> formNeedsPrivateKey;
   private Optional<PullBeforeOverrideOption> pullBeforeOverride;
+  private Optional<Boolean> overwriteExistingFiles;
 
-  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride,Optional<Boolean> formNeedsPrivateKey) {
+  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride, Optional<Boolean> formNeedsPrivateKey, Optional<Boolean> theOverwriteExistingFiles) {
     this.exportDir = exportDir;
     this.pemFile = pemFile;
     this.startDate = startDate;
@@ -71,6 +73,7 @@ public class ExportConfiguration {
     this.pullBefore = pullBefore;
     this.pullBeforeOverride = pullBeforeOverride;
     this.formNeedsPrivateKey = formNeedsPrivateKey;
+    this.overwriteExistingFiles = theOverwriteExistingFiles;
   }
 
   public static ExportConfiguration empty() {
@@ -90,7 +93,8 @@ public class ExportConfiguration {
         prefs.nullSafeGet(END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(PULL_BEFORE).map(Boolean::valueOf),
         prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from),
-        Optional.empty()
+        Optional.empty(),
+        prefs.nullSafeGet(OVERWRITE_EXISTING_FILES).map(Boolean::valueOf)
     );
   }
 
@@ -102,7 +106,8 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + PULL_BEFORE).map(Boolean::valueOf),
         prefs.nullSafeGet(keyPrefix + PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from),
-        prefs.nullSafeGet(keyPrefix + FORM_NEEDS_PRIVATE_KEY).map(Boolean::valueOf)
+        prefs.nullSafeGet(keyPrefix + FORM_NEEDS_PRIVATE_KEY).map(Boolean::valueOf),
+        prefs.nullSafeGet(keyPrefix + OVERWRITE_EXISTING_FILES).map(Boolean::valueOf)
     );
   }
 
@@ -118,7 +123,8 @@ public class ExportConfiguration {
         keyPrefix + END_DATE,
         keyPrefix + PULL_BEFORE,
         keyPrefix + PULL_BEFORE_OVERRIDE,
-        keyPrefix + FORM_NEEDS_PRIVATE_KEY
+        keyPrefix + FORM_NEEDS_PRIVATE_KEY,
+        keyPrefix + OVERWRITE_EXISTING_FILES
     );
   }
 
@@ -137,6 +143,7 @@ public class ExportConfiguration {
     pullBefore.ifPresent(value -> map.put(keyPrefix + PULL_BEFORE, value.toString()));
     pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).ifPresent(value -> map.put(keyPrefix + PULL_BEFORE_OVERRIDE, value.name()));
     formNeedsPrivateKey.ifPresent(value -> map.put(keyPrefix + FORM_NEEDS_PRIVATE_KEY, value.toString()));
+    overwriteExistingFiles.ifPresent(value -> map.put(keyPrefix + OVERWRITE_EXISTING_FILES, value.toString()));
     return map;
   }
 
@@ -148,7 +155,8 @@ public class ExportConfiguration {
         endDate,
         pullBefore,
         pullBeforeOverride,
-        formNeedsPrivateKey
+        formNeedsPrivateKey,
+        overwriteExistingFiles
     );
   }
 
@@ -211,6 +219,15 @@ public class ExportConfiguration {
     return this;
   }
 
+  public Optional<Boolean> getOverwriteExistingFiles() {
+    return overwriteExistingFiles;
+  }
+
+  public ExportConfiguration setOverwriteExistingFiles(Boolean value) {
+    this.overwriteExistingFiles = Optional.ofNullable(value);
+    return this;
+  }
+
   /**
    * Resolves if we need to pull forms depending on the pullBefore and pullBeforeOverride
    * settings with the following algorithm:
@@ -258,6 +275,10 @@ public class ExportConfiguration {
 
   public void ifPullBeforeOverridePresent(Consumer<PullBeforeOverrideOption> consumer) {
     pullBeforeOverride.ifPresent(consumer);
+  }
+
+  public void ifOverwriteExistingFilesPresent(Consumer<Boolean> consumer) {
+    overwriteExistingFiles.ifPresent(consumer);
   }
 
   private List<String> getErrors() {
@@ -321,11 +342,12 @@ public class ExportConfiguration {
     //and is not required to create a valid export configuration a configuration is thus empty
     //if all the other fields are empty
     return !exportDir.isPresent()
-            && !pemFile.isPresent()
-            && !startDate.isPresent()
-            && !endDate.isPresent()
-            && !pullBefore.isPresent()
-            && !pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).isPresent();
+        && !pemFile.isPresent()
+        && !startDate.isPresent()
+        && !endDate.isPresent()
+        && !pullBefore.isPresent()
+        && !pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).isPresent()
+        && !overwriteExistingFiles.isPresent();
   }
 
   public boolean isValid() {
@@ -360,7 +382,8 @@ public class ExportConfiguration {
         endDate.isPresent() ? endDate : other.endDate,
         pullBefore.isPresent() ? pullBefore : other.pullBefore,
         pullBeforeOverride.isPresent() ? pullBeforeOverride : other.pullBeforeOverride,
-        formNeedsPrivateKey.isPresent() ? formNeedsPrivateKey : other.formNeedsPrivateKey
+        formNeedsPrivateKey.isPresent() ? formNeedsPrivateKey : other.formNeedsPrivateKey,
+        overwriteExistingFiles.isPresent() ? overwriteExistingFiles : defaultConfiguration.overwriteExistingFiles
     );
   }
 
@@ -377,6 +400,7 @@ public class ExportConfiguration {
         ", endDate=" + endDate +
         ", pullBefore=" + pullBefore +
         ", pullBeforeOverride=" + pullBeforeOverride +
+        ", overwriteExistingFiles=" + overwriteExistingFiles +
         '}';
   }
 
@@ -392,11 +416,12 @@ public class ExportConfiguration {
         Objects.equals(startDate, that.startDate) &&
         Objects.equals(endDate, that.endDate) &&
         Objects.equals(pullBefore, that.pullBefore) &&
-        Objects.equals(pullBeforeOverride, that.pullBeforeOverride);
+        Objects.equals(pullBeforeOverride, that.pullBeforeOverride) &&
+        Objects.equals(overwriteExistingFiles, that.overwriteExistingFiles);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, pullBeforeOverride);
+    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, pullBeforeOverride, overwriteExistingFiles);
   }
 }
