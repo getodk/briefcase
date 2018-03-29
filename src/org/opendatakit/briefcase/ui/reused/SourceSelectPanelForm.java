@@ -2,6 +2,8 @@ package org.opendatakit.briefcase.ui.reused;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -9,17 +11,24 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
+import org.opendatakit.briefcase.ui.ODKCollectFileChooser;
+import org.opendatakit.briefcase.ui.WrappedFileChooser;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class SourceSelectPanelForm extends JComponent {
   private JComboBox sourceComboBox;
   private JButton configureButton;
   public JPanel container;
-  private final List<Consumer<AggregateServerConnectionConfiguration>> onConfiguredSourceCallback = new ArrayList<>();
+  private final List<Consumer<AggregateServerConnectionConfiguration>> onAggregateSourceCallback = new ArrayList<>();
+  private final List<Consumer<Path>> onCustomDirectorySourceCallbacks = new ArrayList<>();
+  public static final String SOURCE_AGGREGATE = "Aggregate Server";
+  public static final String SOURCE_CUSTOM_DIR = "Custom ODK Directory";
 
-  public SourceSelectPanelForm() {
+  SourceSelectPanelForm() {
     $$$setupUI$$$();
 
     configureButton.addActionListener(__ -> {
@@ -30,17 +39,37 @@ public class SourceSelectPanelForm extends JComponent {
   }
 
   private void triggerConfigure() {
-    AggregateServerConnectionDialog dialog = AggregateServerConnectionDialog.empty(__ -> true);
-    dialog.onConnect(this::trigureConfiguredSource);
-    dialog.getForm().setVisible(true);
+    String source = (String) sourceComboBox.getSelectedItem();
+    if (source.equals(SOURCE_AGGREGATE)) {
+      AggregateServerConnectionDialog dialog = AggregateServerConnectionDialog.empty(__ -> true);
+      dialog.onConnect(this::triggerAggregateConnection);
+      dialog.getForm().setVisible(true);
+    } else if (source.equals(SOURCE_CUSTOM_DIR)) {
+      // Invoke the file chooser here
+      WrappedFileChooser fc = new WrappedFileChooser(SourceSelectPanelForm.this,
+          new ODKCollectFileChooser(SourceSelectPanelForm.this));
+
+      int retVal = fc.showDialog();
+
+      if (retVal == JFileChooser.APPROVE_OPTION)
+        triggerCustomDirSource(Paths.get(fc.getSelectedFile().getAbsolutePath()));
+    }
   }
 
-  public void onConfiguredSource(Consumer<AggregateServerConnectionConfiguration> consumer) {
-    onConfiguredSourceCallback.add(consumer);
+  public void onAggregateConnection(Consumer<AggregateServerConnectionConfiguration> consumer) {
+    onAggregateSourceCallback.add(consumer);
   }
 
-  private void trigureConfiguredSource(AggregateServerConnectionConfiguration conf) {
-    onConfiguredSourceCallback.forEach(callback -> callback.accept(conf));
+  private void triggerAggregateConnection(AggregateServerConnectionConfiguration conf) {
+    onAggregateSourceCallback.forEach(callback -> callback.accept(conf));
+  }
+
+  public void onCustomDir(Consumer<Path> consumer) {
+    onCustomDirectorySourceCallbacks.add(consumer);
+  }
+
+  private void triggerCustomDirSource(Path path) {
+    onCustomDirectorySourceCallbacks.forEach(callback -> callback.accept(path));
   }
 
   private void createUIComponents() {
@@ -71,6 +100,7 @@ public class SourceSelectPanelForm extends JComponent {
     sourceComboBox = new JComboBox();
     final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
     defaultComboBoxModel1.addElement("Aggregate Server");
+    defaultComboBoxModel1.addElement("Custom ODK Directory");
     sourceComboBox.setModel(defaultComboBoxModel1);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
@@ -106,5 +136,4 @@ public class SourceSelectPanelForm extends JComponent {
   public JComponent $$$getRootComponent$$$() {
     return container;
   }
-
 }

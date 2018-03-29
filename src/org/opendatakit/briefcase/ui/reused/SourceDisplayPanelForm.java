@@ -2,6 +2,7 @@ package org.opendatakit.briefcase.ui.reused;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JButton;
@@ -33,9 +34,14 @@ public class SourceDisplayPanelForm extends JComponent {
     onResetCallbacks.add(callback);
   }
 
-  public void readConfiguration(AggregateServerConnectionConfiguration conf) {
+  public void readConfigAggregate(AggregateServerConnectionConfiguration conf) {
     sourceLabel.setText("ODK Aggregate");
     sourceAddressLabel.setText(conf.getUrl().toString());
+  }
+
+  public void readConfigCustomDir(Path path) {
+    sourceLabel.setText("Custom ODK Directory");
+    sourceAddressLabel.setText(path.toString());
   }
 
   private void createUIComponents() {

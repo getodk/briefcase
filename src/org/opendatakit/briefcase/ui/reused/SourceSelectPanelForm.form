@@ -24,6 +24,7 @@
         <properties>
           <model>
             <item value="Aggregate Server"/>
+            <item value="Custom ODK Directory"/>
           </model>
         </properties>
       </component>
