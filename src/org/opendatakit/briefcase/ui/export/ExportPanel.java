@@ -93,13 +93,13 @@ public class ExportPanel {
       );
 
       if (forms.someSelected() && (form.getConfPanel().isValid() && forms.allSelectedFormsHaveConfiguration())) {
-        form.setErrorMsg("No errors! Ready to export form(s)");
+        form.hideErrorMSg();
         form.enableExport();
       } else {
         if (!forms.someSelected())
           form.setErrorMsg("No form(s) selected for export");
         else
-          form.setErrorMsg("Some form(s) need encryption key. You can set this on the general settings above");
+          form.setErrorMsg("Some form(s) need decryption key.");
         form.disableExport();
       }
 

@@ -16,7 +16,6 @@
 package org.opendatakit.briefcase.export;
 
 import static java.nio.file.Files.createTempDirectory;
-import static java.nio.file.Files.write;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -43,6 +42,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
+import org.opendatakit.briefcase.model.PemFileTest;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportConfigurationTest {
@@ -55,9 +55,8 @@ public class ExportConfigurationTest {
   static {
     try {
       VALID_EXPORT_DIR = Paths.get(createTempDirectory("briefcase_test").toUri()).resolve("some/dir");
-      VALID_PEM_FILE = VALID_EXPORT_DIR.resolve("some_key.pem");
+      VALID_PEM_FILE = PemFileTest.getSomePemFile();
       Files.createDirectories(VALID_EXPORT_DIR);
-      write(VALID_PEM_FILE, "some content".getBytes());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -108,7 +107,7 @@ public class ExportConfigurationTest {
   public void a_configuration_is_not_empty_when_any_of_its_properties_is_present() {
     assertThat(empty(), isEmpty());
     assertThat(empty().setExportDir(Paths.get("/some/path")), not(isEmpty()));
-    assertThat(empty().setPemFile(Paths.get("/some/file.pem")), not(isEmpty()));
+    assertThat(empty().setPemFile(PemFileTest.getSomePemFile()), not(isEmpty()));
     assertThat(empty().setStartDate(LocalDate.of(2018, 1, 1)), not(isEmpty()));
     assertThat(empty().setEndDate(LocalDate.of(2018, 1, 1)), not(isEmpty()));
     assertThat(empty().setPullBefore(true), not(isEmpty()));
@@ -200,7 +199,7 @@ public class ExportConfigurationTest {
   @Test
   public void toString_hashCode_and_equals_for_coverage() {
     assertThat(validConfig.toString(), containsString("some" + File.separator + "dir"));
-    assertThat(validConfig.toString(), containsString("some_key.pem"));
+    assertThat(validConfig.toString(), containsString(".pem"));
     assertThat(validConfig.toString(), containsString("2018"));
     assertThat(validConfig.toString(), containsString("2020"));
     assertThat(validConfig.hashCode(), is(notNullValue()));

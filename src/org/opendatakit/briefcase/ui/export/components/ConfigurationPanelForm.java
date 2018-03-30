@@ -183,7 +183,7 @@ public class ConfigurationPanelForm extends JComponent {
       JOptionPane.showMessageDialog(this.pemFileField,
               "Invalid private key file.\n" +
                       "Make sure the file extension is .pem",
-              "Pivate key error",
+              "Private key error",
               JOptionPane.ERROR_MESSAGE);
     }
   }

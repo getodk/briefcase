@@ -164,7 +164,7 @@ public ExportConfiguration getConfiguration(FormStatus form) {
   public boolean allSelectedFormsHaveConfiguration() {
     return getSelectedForms().stream()
         .map(this::getConfiguration)
-        .allMatch(ExportConfiguration::isValid);
+        .allMatch(ExportConfiguration::isValidAsCustomConf);
   }
 
   public void selectAll() {

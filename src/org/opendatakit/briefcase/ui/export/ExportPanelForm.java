@@ -101,7 +101,12 @@ public class ExportPanelForm {
   }
 
   void setErrorMsg(String errorMsg) {
+    this.errorMsg.setVisible(true);
     this.errorMsg.setText(errorMsg);
+  }
+
+  void hideErrorMSg() {
+    errorMsg.setVisible(false);
   }
 
   void enableExport() {
@@ -223,9 +228,11 @@ public class ExportPanelForm {
     leftActions.add(clearAllButton);
     errorMsg = new JLabel();
     errorMsg.setAutoscrolls(true);
+    errorMsg.setEnabled(true);
     errorMsg.setMaximumSize(new Dimension(429, 16));
     errorMsg.setMinimumSize(new Dimension(429, 16));
     errorMsg.setText("No errors!");
+    errorMsg.setVisible(false);
     leftActions.add(errorMsg);
     rightActions = new JPanel();
     rightActions.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));

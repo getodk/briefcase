@@ -44,7 +44,6 @@ import java.util.stream.Stream;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.util.PrivateKeyUtils;
 
 public class ExportConfiguration {
   private static final String EXPORT_DIR = "exportDir";
@@ -174,8 +173,7 @@ public class ExportConfiguration {
   }
 
   public ExportConfiguration setPemFile(Path path) {
-    //Check if path is a valid pem file with privateKey
-    this.pemFile = Optional.ofNullable(path).filter(PrivateKeyUtils::isValidPrivateKey);
+    this.pemFile = Optional.ofNullable(path);
     return this;
   }
 
@@ -305,8 +303,6 @@ public class ExportConfiguration {
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
       errors.add(INVALID_DATE_RANGE_MESSAGE);
-    if (formNeedsPrivateKey.orElse(false) && !isPemFilePresent())
-      errors.add(INVALID_PEM_FILE);
     return errors;
   }
 

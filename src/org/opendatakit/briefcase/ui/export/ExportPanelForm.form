@@ -45,9 +45,11 @@
                 <constraints/>
                 <properties>
                   <autoscrolls value="true"/>
+                  <enabled value="false"/>
                   <maximumSize width="429" height="16"/>
                   <minimumSize width="429" height="16"/>
                   <text value="No errors!"/>
+                  <visible value="false"/>
                 </properties>
               </component>
             </children>
