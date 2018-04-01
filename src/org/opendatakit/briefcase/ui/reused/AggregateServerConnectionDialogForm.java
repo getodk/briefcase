@@ -6,6 +6,7 @@ import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 import static javax.swing.KeyStroke.getKeyStroke;
 
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class AggregateServerConnectionDialogForm extends JDialog {
   public AggregateServerConnectionDialogForm() {
     $$$setupUI$$$();
     setContentPane(dialog);
+    setPreferredSize(new Dimension(500, 175));
     setModal(true);
     pack();
     setLocationRelativeTo(null);
@@ -50,6 +52,8 @@ public class AggregateServerConnectionDialogForm extends JDialog {
       setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
       triggerConnect();
     });
+
+    getRootPane().setDefaultButton(connectButton);
   }
 
   private void triggerConnect() {
