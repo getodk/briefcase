@@ -22,8 +22,8 @@ import java.awt.Component;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -250,13 +250,7 @@ public class PullTransferPanel extends JPanel {
 
     txtOriginName = new JTextField();
     txtOriginName.setColumns(10);
-    txtOriginName.addFocusListener(new FocusListener() {
-
-      @Override
-      public void focusGained(FocusEvent e) {
-        // don't care...
-      }
-
+    txtOriginName.addFocusListener(new FocusAdapter() {
       @Override
       public void focusLost(FocusEvent e) {
         if (txtOriginName.isEditable()) {

@@ -23,8 +23,8 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JDialog;
@@ -66,20 +66,12 @@ public class ODKOptionPane {
     // don't show the gray border of the scroll pane
     // unless we are showing the scroll bar, in which case we do show it.
     scrollPane.setBorder(BorderFactory.createEmptyBorder());
-    scrollPane.getVerticalScrollBar().addComponentListener(new ComponentListener() {
+    scrollPane.getVerticalScrollBar().addComponentListener(new ComponentAdapter() {
       @Override
       public void componentHidden(ComponentEvent component) {
         if ( component.getComponent().equals(scrollPane.getVerticalScrollBar()) ) {
           scrollPane.setBorder(BorderFactory.createEmptyBorder());
         }
-      }
-
-      @Override
-      public void componentMoved(ComponentEvent component) {
-      }
-
-      @Override
-      public void componentResized(ComponentEvent component) {
       }
 
       @Override

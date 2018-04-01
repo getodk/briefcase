@@ -15,24 +15,24 @@
  */
 package org.opendatakit.briefcase.ui.reused;
 
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.util.Optional;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.function.Consumer;
 
-public class WindowAdapterBuilder {
-  private Optional<Consumer<WindowEvent>> onWindowClosing = Optional.empty();
+public class MouseAdapterBuilder {
+  private Consumer<MouseEvent> onClickCallback = e -> {
+  };
 
-  public WindowAdapterBuilder onClosing(Consumer<WindowEvent> callback) {
-    this.onWindowClosing = Optional.ofNullable(callback);
+  public MouseAdapterBuilder onClick(Consumer<MouseEvent> callback) {
+    onClickCallback = callback;
     return this;
   }
 
-  public WindowAdapter build() {
-    return new WindowAdapter() {
+  public MouseAdapter build() {
+    return new MouseAdapter() {
       @Override
-      public void windowClosing(WindowEvent e) {
-        onWindowClosing.ifPresent(c -> c.accept(e));
+      public void mouseClicked(MouseEvent e) {
+        onClickCallback.accept(e);
       }
     };
   }
