@@ -17,13 +17,13 @@
 package org.opendatakit.briefcase.model;
 
 public class XmlDocumentFetchException extends Exception {
-
-  /**
-   * 
-   */
   private static final long serialVersionUID = -2163850446028219296L;
 
   public XmlDocumentFetchException(String message) {
     super(message);
+  }
+
+  public XmlDocumentFetchException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

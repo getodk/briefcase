@@ -198,9 +198,11 @@ public class FileSystemUtils {
     File dbDir = new File(formDirectory, HSQLDB_DIR);
     File dbFile = new File(dbDir, HSQLDB_DB);
 
+
     if (!dbDir.exists()) {
+      log.info("Creating database directory {}", dbDir);
       if (!dbDir.mkdirs()) {
-        log.warn("failed to create database directory: " + dbDir);
+        log.warn("failed to create database directory");
       } else if (oldDbFile.exists()) {
         migrateDatabase(oldDbFile, dbFile);
       }
