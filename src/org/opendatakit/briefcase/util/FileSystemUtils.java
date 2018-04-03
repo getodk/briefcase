@@ -388,7 +388,7 @@ public class FileSystemUtils {
       long lLength = file.length();
 
       if (lLength > Integer.MAX_VALUE) {
-        log.error("File " + file.getName() + "is too large");
+        log.error("File is too large");
         return null;
       }
 
@@ -418,14 +418,14 @@ public class FileSystemUtils {
       return md5;
 
     } catch (NoSuchAlgorithmException e) {
-      log.error("MD5 calculation failed: " + e.getMessage());
+      log.error("MD5 calculation failed", e);
       return null;
 
     } catch (FileNotFoundException e) {
-      log.error("No File: " + e.getMessage());
+      log.error("No File", e);
       return null;
     } catch (IOException e) {
-      log.error("Problem reading from file: " + e.getMessage());
+      log.error("Problem reading from file", e);
       return null;
     }
 
@@ -568,13 +568,11 @@ public class FileSystemUtils {
       decryptFile(ei, f, unencryptedDir);
     } catch (InvalidKeyException | NoSuchPaddingException | InvalidAlgorithmParameterException
         | NoSuchAlgorithmException e) {
-      String msg = "Error decrypting:" + f.getName();
-      log.error(msg, e);
-      throw new CryptoException(msg + " Cause: " + e.toString());
+      log.error("Error decrypting file", e);
+      throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
     } catch (IOException e) {
-      String msg = "Error decrypting:" + f.getName();
-      log.error(msg, e);
-      throw new FileSystemException(msg + " Cause: " + e.toString());
+      log.error("Error decrypting file", e);
+      throw new FileSystemException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
     }
 
     // get the FIM for the decrypted submission file
@@ -586,9 +584,8 @@ public class FileSystemUtils {
       Document subDoc = XmlManipulationUtils.parseXml(submissionFile);
       submissionFim = XmlManipulationUtils.getFormInstanceMetadata(subDoc.getRootElement());
     } catch (ParsingException | FileSystemException e) {
-      String msg = "Error decrypting: " + submissionFile.getName();
-      log.error(msg, e);
-      throw new FileSystemException(msg + " Cause: " + e);
+      log.error("Error decrypting submission", e);
+      throw new FileSystemException("Error decrypting: " + submissionFile.getName() + " Cause: " + e);
     }
 
     boolean same = submissionFim.xparam.formId.equals(fim.xparam.formId);

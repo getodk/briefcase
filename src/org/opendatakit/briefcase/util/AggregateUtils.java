@@ -67,8 +67,6 @@ public class AggregateUtils {
 
   private static final CharSequence HTTP_CONTENT_TYPE_APPLICATION_XML = "application/xml";
 
-  private static final String FETCH_FAILED_DETAILED_REASON = "Fetch of %1$s failed. Detailed reason: ";
-
   public static interface ResponseAction {
     void doAction(DocumentFetchResult result) throws MetadataUpdateException;
   }
@@ -97,18 +95,23 @@ public class AggregateUtils {
    */
   public static final void commonDownloadFile(ServerConnectionInfo serverInfo, File f, String downloadUrl) throws URISyntaxException, IOException, TransmissionException {
 
+    log.info("Downloading URL {} into {}", downloadUrl, f);
+
     // OK. We need to download it because we either:
     // (1) don't have it
     // (2) don't know if it is changed because the hash is not md5
     // (3) know it is changed
     URI u = null;
     try {
+      log.info("Parsing URL {}", downloadUrl);
       URL uurl = new URL(downloadUrl);
       u = uurl.toURI();
     } catch (MalformedURLException | URISyntaxException e) {
-      log.error("bad download url " + downloadUrl, e);
+      log.warn("bad download url", e);
       throw e;
     }
+
+
 
     HttpClient httpclient = WebUtils.createHttpClient();
 
@@ -131,8 +134,7 @@ public class AggregateUtils {
         WebUtils.resetHttpContext();
         throw new TransmissionException("Authentication failure");
       } else if (statusCode != 200) {
-        String errMsg = String.format(FETCH_FAILED_DETAILED_REASON, f.getAbsolutePath())
-            + response.getStatusLine().getReasonPhrase() + " (" + statusCode + ")";
+        String errMsg = "Fetch failed. Detailed reason: " + response.getStatusLine().getReasonPhrase() + " (" + statusCode + ")";
         log.error(errMsg);
         flushEntityBytes(response.getEntity());
         throw new TransmissionException(errMsg);
