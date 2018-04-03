@@ -30,6 +30,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 
 import org.opendatakit.briefcase.export.ExportForms;
@@ -53,8 +54,8 @@ public class ExportPanelForm {
   private JPanel rightActions;
   private JButton selectAllButton;
   private JButton clearAllButton;
-  private JLabel exportingLabel;
   JButton exportButton;
+  private JProgressBar exportProgressBar;
   private boolean exporting;
   private Optional<ScheduledFuture<?>> scheduledHideExportingLabel = Optional.empty();
 
@@ -135,16 +136,7 @@ public class ExportPanelForm {
   }
 
   synchronized public void updateExportingLabel() {
-    String text = exportingLabel.getText();
-    if (text.equals(EXPORTING_DOT_ETC)) {
-      text = "Exporting.";
-    } else {
-      text += ".";
-    }
-    exportingLabel.setText(text);
 
-    scheduledHideExportingLabel.ifPresent(scheduledFuture -> scheduledFuture.cancel(false));
-    scheduledHideExportingLabel = Optional.of(SCHEDULED_EXECUTOR.schedule(this::hideExporting, 3, SECONDS));
   }
 
   void disableUI() {
@@ -164,13 +156,11 @@ public class ExportPanelForm {
   }
 
   public void showExporting() {
-    exportingLabel.setText(EXPORTING_DOT_ETC);
-    exportingLabel.setVisible(true);
+
   }
 
   public void hideExporting() {
-    exportingLabel.setVisible(false);
-    exportingLabel.setText(EXPORTING_DOT_ETC);
+
   }
 
   private void createUIComponents() {
@@ -229,12 +219,8 @@ public class ExportPanelForm {
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.BOTH;
     actions.add(rightActions, gbc);
-    exportingLabel = new JLabel();
-    exportingLabel.setText(EXPORTING_DOT_ETC);
-    exportingLabel.setVisible(false);
-    exportingLabel.setMinimumSize(new Dimension(80,21));
-    exportingLabel.setPreferredSize(new Dimension(80,21));
-    rightActions.add(exportingLabel);
+    exportProgressBar = new JProgressBar();
+    rightActions.add(exportProgressBar);
     exportButton = new JButton();
     exportButton.setEnabled(false);
     exportButton.setName("export");
