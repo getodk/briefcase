@@ -50,7 +50,8 @@ public class SwingTestRig {
   }
 
   public static Path classPath(String location) {
-    return Paths.get(uncheckedURLtoURI(SwingTestRig.class.getResource(location)));
+    String absoluteLocation = location.startsWith("/") ? location : "/" + location;
+    return Paths.get(uncheckedURLtoURI(SwingTestRig.class.getResource(absoluteLocation)));
   }
 
   public static void createInMemoryCache() {
