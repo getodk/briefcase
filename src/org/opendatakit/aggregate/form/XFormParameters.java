@@ -16,6 +16,7 @@
 package org.opendatakit.aggregate.form;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Helper class holding the details of a
@@ -41,29 +42,28 @@ public final class XFormParameters implements Comparable<Object>, Serializable {
 
   @Override
   public String toString() {
-    // TODO Replace with IntelliJ's templated toString()
-    return "XFormParameters[formId=" + formId + " and version=" +
-        (modelVersion == null ? "null" : modelVersion) +
-        " and uiVersion=null]";
+    return "XFormParameters{" +
+        "formId='" + formId + '\'' +
+        ", versionString='" + versionString + '\'' +
+        ", modelVersion='" + modelVersion + '\'' +
+        '}';
   }
 
   @Override
-  // TODO Replace with Objects.equals()
-  public boolean equals(Object obj) {
-    if (obj == null || !(obj instanceof XFormParameters))
+  public boolean equals(Object o) {
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
       return false;
-    XFormParameters p = (XFormParameters) obj;
-    // uiVersion is ignored during equality tests...
-    return formId.equals(p.formId) &&
-        ((modelVersion == null) ? p.modelVersion == null :
-            ((p.modelVersion != null) && modelVersion.equals(p.modelVersion)));
+    XFormParameters that = (XFormParameters) o;
+    return Objects.equals(formId, that.formId) &&
+        Objects.equals(versionString, that.versionString) &&
+        Objects.equals(modelVersion, that.modelVersion);
   }
 
   @Override
   public int hashCode() {
-    // TODO Replace with Objects.hash()
-    return Long.valueOf(formId.hashCode() +
-        ((modelVersion == null) ? 20480L : modelVersion.hashCode())).hashCode();
+    return Objects.hash(formId, versionString, modelVersion);
   }
 
   @Override
