@@ -19,6 +19,7 @@ public class PemFileTest {
             pemFile = Paths.get(Files.createTempFile("private-key_", ".pem").toUri());
             File f = new File("test/resources/private-key.pem");
             Files.copy(f.toPath(), pemFile, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
+            pemFile.toFile().deleteOnExit();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

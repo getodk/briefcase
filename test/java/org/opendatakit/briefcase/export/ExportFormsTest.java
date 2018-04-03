@@ -124,6 +124,8 @@ public class ExportFormsTest {
     FormStatus form = forms.get(0);
     form.setSelected(true);
 
+    assertThat(forms.allSelectedFormsHaveConfiguration(), is(false));
+
     forms.putConfiguration(form, VALID_CONFIGURATION);
 
     assertThat(forms.allSelectedFormsHaveConfiguration(), is(true));

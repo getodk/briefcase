@@ -172,7 +172,7 @@ public class ConfigurationPanelForm extends JComponent {
     }
   }
 
-  void setPemFile(Path path) {
+  public void setPemFile(Path path) {
     if (PrivateKeyUtils.isValidPrivateKey(path)) {
       pemFileField.setText(path.toString());
       onSelectPemFileCallbacks.forEach(consumer -> consumer.accept(path));

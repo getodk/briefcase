@@ -28,6 +28,7 @@ import java.nio.file.Files;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.opendatakit.briefcase.model.PemFileTest;
 
 public class ExportPanelTest extends AssertJSwingJUnitTestCase {
   private ExportPanelPageObject page;
@@ -54,6 +55,8 @@ public class ExportPanelTest extends AssertJSwingJUnitTestCase {
     // Export dir must exist to be valid
     page.setExportDirectory(Files.createTempDirectory("test_briefcase_export").toString());
     page.selectFormATRow(0);
+    //The first form might be an encrypted form so lets set a valid pem file else this check will fail
+    page.setPemFile(PemFileTest.getSomePemFile());
     assertThat(page.exportButton(), is(enabled()));
   }
 }

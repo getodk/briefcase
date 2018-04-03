@@ -35,7 +35,7 @@ public class ConfigurationDialog {
       else
         form.disableClearAll();
 
-      if (true)
+      if (confPanel.getConfiguration().isValidAsCustomConf())
         form.enableOK();
       else
         form.disableOK();

@@ -74,8 +74,8 @@ public class ExportPanelForm {
 
   public static ExportPanelForm from(ExportForms forms, ConfigurationPanel confPanel) {
     return new ExportPanelForm(
-        confPanel,
-        FormsTable.from(forms)
+            confPanel,
+            FormsTable.from(forms)
     );
   }
 
@@ -231,7 +231,7 @@ public class ExportPanelForm {
     errorMsg.setEnabled(true);
     errorMsg.setMaximumSize(new Dimension(429, 16));
     errorMsg.setMinimumSize(new Dimension(429, 16));
-    errorMsg.setText("No errors!");
+    errorMsg.setText("");
     errorMsg.setVisible(false);
     leftActions.add(errorMsg);
     rightActions = new JPanel();

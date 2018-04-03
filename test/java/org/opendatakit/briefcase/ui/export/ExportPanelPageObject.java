@@ -17,6 +17,7 @@ package org.opendatakit.briefcase.ui.export;
 
 import static org.opendatakit.briefcase.ui.export.components.FormsTableView.SELECTED_CHECKBOX_COL;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -66,6 +67,10 @@ class ExportPanelPageObject {
 
   void setExportDirectory(String value) {
     GuiActionRunner.execute(() -> component.getForm().getConfPanel().getForm().setExportDir(Paths.get(value)));
+  }
+
+  void setPemFile(Path path) {
+    GuiActionRunner.execute(() -> component.getForm().getConfPanel().getForm().setPemFile(path));
   }
 
   void selectFormATRow(int row) {
