@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.javarosa.core.io.Std;
-import org.javarosa.core.model.DataBinding;
 import org.javarosa.core.model.FormDef;
 import org.javarosa.core.model.IDataReference;
 import org.javarosa.core.model.SubmissionProfile;
@@ -42,7 +41,6 @@ import org.javarosa.core.model.instance.TreeReference;
 import org.javarosa.core.services.PrototypeManager;
 import org.javarosa.model.xform.XFormsModule;
 import org.javarosa.xform.parse.XFormParser;
-import org.javarosa.xform.util.XFormUtils;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
 import org.opendatakit.aggregate.constants.ParserConsts;
@@ -280,33 +278,6 @@ public class BaseFormParserForJavaRosa implements Serializable {
       super(form);
       this.xmldoc = form;
       this.parser = parser;
-    }
-
-    protected void parseBind(Element e) {
-      // remember raw bindings in case we want to compare parsed XForms later
-      parser.bindElements.add(copyBindingElement(e));
-      List<String> usedAtts = new ArrayList<>();
-
-      DataBinding binding = processStandardBindAttributes(usedAtts, e);
-
-      String value = e.getAttributeValue(ParserConsts.NAMESPACE_ODK, "length");
-      if (value != null) {
-        e.setAttribute(ParserConsts.NAMESPACE_ODK, "length", null);
-      }
-
-      log.debug("Calling handle found value " + ((value == null) ? "null" : value));
-
-      if (value != null) {
-        Integer iValue = Integer.valueOf(value);
-        parser.setNodesetStringLength(e.getAttributeValue(null, "nodeset"), iValue);
-      }
-
-      // print unused attribute warning message for parent element
-      if (XFormUtils.showUnusedAttributeWarning(e, usedAtts)) {
-        log.debug(XFormUtils.unusedAttWarning(e, usedAtts));
-      }
-
-      addBinding(binding);
     }
   }
 
