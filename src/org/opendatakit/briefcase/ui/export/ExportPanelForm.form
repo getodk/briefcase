@@ -51,15 +51,6 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="b7dc5" class="javax.swing.JLabel" binding="exportingLabel">
-                <constraints/>
-                <properties>
-                  <minimumSize width="80" height="21"/>
-                  <preferredSize width="80" height="21"/>
-                  <text value="Exporting..."/>
-                  <visible value="false"/>
-                </properties>
-              </component>
               <component id="74e1" class="javax.swing.JButton" binding="exportButton">
                 <constraints/>
                 <properties>
@@ -76,12 +67,13 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
           </vspacer>
-          <hspacer id="e42a4">
+          <component id="c500b" class="javax.swing.JProgressBar" binding="exportProgressBar">
             <constraints>
-              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="0.0"/>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
-          </hspacer>
+            <properties/>
+          </component>
         </children>
       </grid>
       <vspacer id="4c4a3">
