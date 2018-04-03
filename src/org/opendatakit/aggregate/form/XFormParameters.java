@@ -28,7 +28,7 @@ public final class XFormParameters implements Comparable<Object>, Serializable {
 
   public final String formId;
   public final String versionString;
-  public final Long modelVersion;
+  public final String modelVersion;
 
   public XFormParameters(String formId, String versionString) {
     if (formId == null) {
@@ -36,17 +36,19 @@ public final class XFormParameters implements Comparable<Object>, Serializable {
     }
     this.formId = formId;
     this.versionString = (versionString == null || versionString.length() == 0) ? null : versionString;
-    this.modelVersion = (this.versionString == null) ? null : Long.valueOf(versionString);
+    this.modelVersion = this.versionString;
   }
 
   @Override
   public String toString() {
+    // TODO Replace with IntelliJ's templated toString()
     return "XFormParameters[formId=" + formId + " and version=" +
-        (modelVersion == null ? "null" : Long.toString(modelVersion)) +
+        (modelVersion == null ? "null" : modelVersion) +
         " and uiVersion=null]";
   }
 
   @Override
+  // TODO Replace with Objects.equals()
   public boolean equals(Object obj) {
     if (obj == null || !(obj instanceof XFormParameters))
       return false;
@@ -59,8 +61,9 @@ public final class XFormParameters implements Comparable<Object>, Serializable {
 
   @Override
   public int hashCode() {
+    // TODO Replace with Objects.hash()
     return Long.valueOf(formId.hashCode() +
-        ((modelVersion == null) ? 20480L : 37 * modelVersion)).hashCode();
+        ((modelVersion == null) ? 20480L : modelVersion.hashCode())).hashCode();
   }
 
   @Override

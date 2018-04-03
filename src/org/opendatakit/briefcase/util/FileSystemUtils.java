@@ -600,7 +600,7 @@ public class FileSystemUtils {
     StringBuilder b = new StringBuilder();
     appendElementSignatureSource(b, fim.xparam.formId);
     if (fim.xparam.modelVersion != null) {
-      appendElementSignatureSource(b, Long.toString(fim.xparam.modelVersion));
+      appendElementSignatureSource(b, fim.xparam.modelVersion);
     }
     appendElementSignatureSource(b, base64EncryptedSymmetricKey);
 
