@@ -562,8 +562,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
             Reason.ID_MISSING);
       }
     }
-    if (!allowLegacy && rootElementDefn.modelVersion != null
-        && (rootElementDefn.modelVersion > Long.valueOf(Integer.MAX_VALUE))) {
+    if (!allowLegacy && rootElementDefn.modelVersion != null) {
       // for some reason, the datastore is not persisting Long values correctly?
       throw new ODKIncompleteSubmissionData(
           "The version string must be an integer less than 2147483648", Reason.ID_MALFORMED);
