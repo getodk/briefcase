@@ -1,6 +1,5 @@
 package org.opendatakit.briefcase.model;
 
-
 import static java.nio.file.Files.createTempDirectory;
 import static java.nio.file.Files.delete;
 import static java.nio.file.Files.readAllBytes;

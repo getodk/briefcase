@@ -67,20 +67,17 @@ public final class XFormParameters implements Comparable<XFormParameters>, Seria
   }
 
   @Override
-  public int compareTo(XFormParameters p) {
-    int cmp = formId.compareTo(p.formId);
+  public int compareTo(XFormParameters other) {
+    int cmp = formId.compareTo(other.formId);
     if (cmp != 0)
       return cmp;
-    if (((modelVersion == null) ? (p.modelVersion == null) :
-        (p.modelVersion != null && modelVersion.equals(p.modelVersion)))) {
-      // uiVersion is ignored during comparisons and equality tests
+    if (modelVersion != null && other.modelVersion != null)
+      return modelVersion.compareTo(other.modelVersion);
+    if (modelVersion == null && other.modelVersion == null)
       return 0;
-    } else if (modelVersion == null) {
+    if (modelVersion == null)
       return 1;
-    } else if (p.modelVersion == null) {
-      return -1;
-    } else {
-      return modelVersion.compareTo(p.modelVersion);
-    }
+    // Implies: p.modelVersion == null
+    return -1;
   }
 }
