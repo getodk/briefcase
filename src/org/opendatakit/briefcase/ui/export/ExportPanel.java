@@ -105,7 +105,7 @@ public class ExportPanel {
 
 
     form.onExport(() -> backgroundExecutor.execute(() -> {
-      form.showExporting();
+      form.showExportProgressBar();
       // Segregating this validation from the export process to move it to ExportConfiguration on the future
       List<String> errors = forms.getSelectedForms().stream().flatMap(formStatus -> {
         ExportConfiguration exportConfiguration = forms.getConfiguration(formStatus.getFormDefinition().getFormId());
@@ -205,7 +205,7 @@ public class ExportPanel {
 
   @EventSubscriber(eventClass = ExportProgressEvent.class)
   public void onExportProgressEvent(ExportProgressEvent event) {
-    form.updateExportingLabel();
+    form.updateExportProgressBar();
   }
 
   @EventSubscriber(eventClass = TransferSucceededEvent.class)

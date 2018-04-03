@@ -18,7 +18,6 @@ package org.opendatakit.briefcase.ui.export;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -28,8 +27,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 
 import org.opendatakit.briefcase.export.ExportForms;
@@ -40,7 +39,6 @@ import org.opendatakit.briefcase.ui.export.components.FormsTableView;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportPanelForm {
-  private static final String EXPORTING_DOT_ETC = "Exporting...";
   private static final ScheduledExecutorService SCHEDULED_EXECUTOR = new ScheduledThreadPoolExecutor(1);
 
   private final ConfigurationPanel confPanel;
@@ -53,10 +51,10 @@ public class ExportPanelForm {
   private JPanel rightActions;
   private JButton selectAllButton;
   private JButton clearAllButton;
-  private JLabel exportingLabel;
   JButton exportButton;
+  private JProgressBar exportProgressBar;
   private boolean exporting;
-  private Optional<ScheduledFuture<?>> scheduledHideExportingLabel = Optional.empty();
+  private Optional<ScheduledFuture<?>> scheduledUpdateProgressBar = Optional.empty();
 
   private ExportPanelForm(ConfigurationPanel confPanel, FormsTable formsTable) {
     this.confPanel = confPanel;
@@ -134,17 +132,9 @@ public class ExportPanelForm {
     exporting = active;
   }
 
-  synchronized public void updateExportingLabel() {
-    String text = exportingLabel.getText();
-    if (text.equals(EXPORTING_DOT_ETC)) {
-      text = "Exporting.";
-    } else {
-      text += ".";
-    }
-    exportingLabel.setText(text);
-
-    scheduledHideExportingLabel.ifPresent(scheduledFuture -> scheduledFuture.cancel(false));
-    scheduledHideExportingLabel = Optional.of(SCHEDULED_EXECUTOR.schedule(this::hideExporting, 3, SECONDS));
+  synchronized public void updateExportProgressBar() {
+    scheduledUpdateProgressBar.ifPresent(scheduledFuture -> scheduledFuture.cancel(false));
+    scheduledUpdateProgressBar = Optional.of(SCHEDULED_EXECUTOR.schedule(this::hideExportProgressBar, 3, SECONDS));
   }
 
   void disableUI() {
@@ -163,14 +153,12 @@ public class ExportPanelForm {
     formsTable.refresh();
   }
 
-  public void showExporting() {
-    exportingLabel.setText(EXPORTING_DOT_ETC);
-    exportingLabel.setVisible(true);
+  public void showExportProgressBar() {
+    exportProgressBar.setVisible(true);
   }
 
-  public void hideExporting() {
-    exportingLabel.setVisible(false);
-    exportingLabel.setText(EXPORTING_DOT_ETC);
+  public void hideExportProgressBar() {
+    exportProgressBar.setVisible(false);
   }
 
   private void createUIComponents() {
@@ -200,6 +188,7 @@ public class ExportPanelForm {
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 7;
+    gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(actions, gbc);
     leftActions = new JPanel();
@@ -218,16 +207,16 @@ public class ExportPanelForm {
     rightActions = new JPanel();
     rightActions.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
     gbc = new GridBagConstraints();
-    gbc.gridx = 2;
+    gbc.gridx = 3;
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.BOTH;
     actions.add(rightActions, gbc);
-    exportingLabel = new JLabel();
-    exportingLabel.setMinimumSize(new Dimension(80, 21));
-    exportingLabel.setPreferredSize(new Dimension(80, 21));
-    exportingLabel.setText("Exporting...");
-    exportingLabel.setVisible(false);
-    rightActions.add(exportingLabel);
+    exportProgressBar = new JProgressBar();
+    exportProgressBar.setEnabled(true);
+    exportProgressBar.setIndeterminate(true);
+    exportProgressBar.setStringPainted(false);
+    exportProgressBar.setVisible(false);
+    rightActions.add(exportProgressBar);
     exportButton = new JButton();
     exportButton.setEnabled(false);
     exportButton.setName("export");
@@ -237,13 +226,14 @@ public class ExportPanelForm {
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 1;
-    gbc.gridwidth = 3;
+    gbc.gridwidth = 4;
     gbc.fill = GridBagConstraints.VERTICAL;
     actions.add(spacer1, gbc);
     final JPanel spacer2 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 0;
+    gbc.gridwidth = 2;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     actions.add(spacer2, gbc);
