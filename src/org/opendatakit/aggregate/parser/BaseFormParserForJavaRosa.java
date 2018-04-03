@@ -123,12 +123,13 @@ public class BaseFormParserForJavaRosa implements Serializable {
 
   private static void redirectOutput() {
     File jrLogFile = new File(new StorageLocation().getBriefcaseFolder(), ".briefcase-javarosa.log");
+    log.info("Redirecting javarosa output to {}", jrLogFile);
     try {
       PrintStream jrOut = new PrintStream(jrLogFile);
       Std.setOut(jrOut);
       Std.setErr(jrOut);
     } catch (FileNotFoundException e) {
-      log.warn("failed to redirect javarosa output to " + jrLogFile);
+      log.warn("Failed to redirect javarosa output");
     }
   }
 
