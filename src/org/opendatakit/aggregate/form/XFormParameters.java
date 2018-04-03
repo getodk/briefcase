@@ -25,7 +25,7 @@ import java.util.Objects;
  * @author mitchellsundt@gmail.com
  * @author wbrunette@gmail.com
  */
-public final class XFormParameters implements Comparable<Object>, Serializable {
+public final class XFormParameters implements Comparable<XFormParameters>, Serializable {
 
   public final String formId;
   public final String versionString;
@@ -67,10 +67,7 @@ public final class XFormParameters implements Comparable<Object>, Serializable {
   }
 
   @Override
-  public int compareTo(Object obj) {
-    if (obj == null || !(obj instanceof XFormParameters))
-      return -1;
-    XFormParameters p = (XFormParameters) obj;
+  public int compareTo(XFormParameters p) {
     int cmp = formId.compareTo(p.formId);
     if (cmp != 0)
       return cmp;
