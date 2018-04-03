@@ -129,42 +129,42 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
       // required for all operations
       if (!cmd.hasOption(FORM_ID) || !cmd.hasOption(STORAGE_DIRECTORY)) {
-        log.error(FORM_ID + " and " + STORAGE_DIRECTORY + " are required");
+        System.err.println(FORM_ID + " and " + STORAGE_DIRECTORY + " are required");
         showHelp(options);
         System.exit(1);
       }
 
       // pull from collect or aggregate, not both
       if (cmd.hasOption(ODK_DIR) && cmd.hasOption(AGGREGATE_URL)) {
-        log.error("Can only have one of " + ODK_DIR + " or " + AGGREGATE_URL);
+        System.err.println("Can only have one of " + ODK_DIR + " or " + AGGREGATE_URL);
         showHelp(options);
         System.exit(1);
       }
 
       // pull from aggregate
       if (cmd.hasOption(AGGREGATE_URL) && (!(cmd.hasOption(ODK_USERNAME) && cmd.hasOption(ODK_PASSWORD)))) {
-        log.error(ODK_USERNAME + " and " + ODK_PASSWORD + " required when " + AGGREGATE_URL + " is specified");
+        System.err.println(ODK_USERNAME + " and " + ODK_PASSWORD + " required when " + AGGREGATE_URL + " is specified");
         showHelp(options);
         System.exit(1);
       }
 
       // export files
       if (cmd.hasOption(EXPORT_DIRECTORY) && !cmd.hasOption(EXPORT_FILENAME) || !cmd.hasOption(EXPORT_DIRECTORY) && cmd.hasOption(EXPORT_FILENAME)) {
-        log.error(EXPORT_DIRECTORY + " and " + EXPORT_FILENAME + " are both required to export");
+        System.err.println(EXPORT_DIRECTORY + " and " + EXPORT_FILENAME + " are both required to export");
         showHelp(options);
         System.exit(1);
       }
 
       if (cmd.hasOption(EXPORT_END_DATE)) {
         if (!testDateFormat(cmd.getOptionValue(EXPORT_END_DATE))) {
-          log.error("Invalid date format in " + EXPORT_END_DATE);
+          System.err.println("Invalid date format in " + EXPORT_END_DATE);
           showHelp(options);
           System.exit(1);
         }
       }
       if (cmd.hasOption(EXPORT_START_DATE)) {
         if (!testDateFormat(cmd.getOptionValue(EXPORT_START_DATE))) {
-          log.error("Invalid date format in " + EXPORT_START_DATE);
+          System.err.println("Invalid date format in " + EXPORT_START_DATE);
           showHelp(options);
           System.exit(1);
         }
