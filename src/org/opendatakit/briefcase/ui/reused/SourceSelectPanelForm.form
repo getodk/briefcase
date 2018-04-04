@@ -22,10 +22,7 @@
           <gridbag weightx="1.0" weighty="0.0"/>
         </constraints>
         <properties>
-          <model>
-            <item value="Aggregate Server"/>
-            <item value="Custom ODK Directory"/>
-          </model>
+          <model/>
         </properties>
       </component>
       <component id="62c2d" class="javax.swing.JButton" binding="configureButton" default-binding="true">

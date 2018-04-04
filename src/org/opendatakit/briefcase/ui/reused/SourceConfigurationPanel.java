@@ -22,13 +22,13 @@ public class SourceConfigurationPanel {
 
     selectSourceView.onAggregateConnection(configuration -> {
       container.navigateTo(SHOW_SOURCE_VIEW);
-      showSourceView.readConfigAggregate(configuration);
+      showSourceView.readConfiguration(configuration);
       triggerAggregateConfiguredSource(configuration);
     });
 
     selectSourceView.onCustomDir(path -> {
       container.navigateTo(SHOW_SOURCE_VIEW);
-      showSourceView.readConfigCustomDir(path);
+      showSourceView.readConfiguration(path);
       triggerCustomDirSource(path);
     });
 
