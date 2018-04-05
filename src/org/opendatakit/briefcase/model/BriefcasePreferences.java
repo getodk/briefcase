@@ -46,7 +46,7 @@ public class BriefcasePreferences {
   private static final String BRIEFCASE_PROXY_HOST_PROPERTY = "briefcaseProxyHost";
   private static final String BRIEFCASE_PROXY_PORT_PROPERTY = "briefcaseProxyPort";
   private static final String BRIEFCASE_PARALLEL_PULLS_PROPERTY = "briefcaseParallelPulls";
-  private static final String BRIEFCASE_TRACKING_CONSENT_PROPERTY = "briefcaseTrackingConsent";
+  public static final String BRIEFCASE_TRACKING_CONSENT_PROPERTY = "briefcaseTrackingConsent";
   private static final String BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY = "briefcaseStorePasswordsConsent";
   private static final String BRIEFCASE_UNIQUE_USER_ID_PROPERTY = "uniqueUserID";
 
