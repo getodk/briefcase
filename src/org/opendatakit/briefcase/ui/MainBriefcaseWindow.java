@@ -129,6 +129,14 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   }
 
   public static void runLegacyCli(CommandLine cmd, Runnable helpShower) {
+    System.err.println("" +
+        "** WARNING **************************************************\n" +
+        "* You're running the legacy Briefcase launcher.             *\n" +
+        "*                                                           *\n" +
+        "* You can run Briefcase with -h to learn how to use the new *\n" +
+        "* launcher, which offers new operations and configuration   *\n" +
+        "* parameters                                                *\n" +
+        "*************************************************************\n");
     if (cmd.hasOption(HELP)) {
       helpShower.run();
       System.exit(1);
