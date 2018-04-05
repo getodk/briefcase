@@ -124,63 +124,67 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
         System.exit(1);
       }
 
-      if (cmd.hasOption(HELP)) {
-        showHelp(options);
-        System.exit(1);
-      }
-
-      if (cmd.hasOption(VERSION)) {
-        showVersion();
-        System.exit(1);
-      }
-
-      // required for all operations
-      if (!cmd.hasOption(FORM_ID) || !cmd.hasOption(STORAGE_DIRECTORY)) {
-        System.err.println(FORM_ID + " and " + STORAGE_DIRECTORY + " are required");
-        showHelp(options);
-        System.exit(1);
-      }
-
-      // pull from collect or aggregate, not both
-      if (cmd.hasOption(ODK_DIR) && cmd.hasOption(AGGREGATE_URL)) {
-        System.err.println("Can only have one of " + ODK_DIR + " or " + AGGREGATE_URL);
-        showHelp(options);
-        System.exit(1);
-      }
-
-      // pull from aggregate
-      if (cmd.hasOption(AGGREGATE_URL) && (!(cmd.hasOption(ODK_USERNAME) && cmd.hasOption(ODK_PASSWORD)))) {
-        System.err.println(ODK_USERNAME + " and " + ODK_PASSWORD + " required when " + AGGREGATE_URL + " is specified");
-        showHelp(options);
-        System.exit(1);
-      }
-
-      // export files
-      if (cmd.hasOption(EXPORT_DIRECTORY) && !cmd.hasOption(EXPORT_FILENAME) || !cmd.hasOption(EXPORT_DIRECTORY) && cmd.hasOption(EXPORT_FILENAME)) {
-        System.err.println(EXPORT_DIRECTORY + " and " + EXPORT_FILENAME + " are both required to export");
-        showHelp(options);
-        System.exit(1);
-      }
-
-      if (cmd.hasOption(EXPORT_END_DATE)) {
-        if (!testDateFormat(cmd.getOptionValue(EXPORT_END_DATE))) {
-          System.err.println("Invalid date format in " + EXPORT_END_DATE);
-          showHelp(options);
-          System.exit(1);
-        }
-      }
-      if (cmd.hasOption(EXPORT_START_DATE)) {
-        if (!testDateFormat(cmd.getOptionValue(EXPORT_START_DATE))) {
-          System.err.println("Invalid date format in " + EXPORT_START_DATE);
-          showHelp(options);
-          System.exit(1);
-        }
-      }
-
-
-      BriefcaseCLI bcli = new BriefcaseCLI(cmd);
-      bcli.run();
+      runLegacyCli(cmd, () -> MainBriefcaseWindow.showHelp(options));
     }
+  }
+
+  public static void runLegacyCli(CommandLine cmd, Runnable helpShower) {
+    if (cmd.hasOption(HELP)) {
+      helpShower.run();
+      System.exit(1);
+    }
+
+    if (cmd.hasOption(VERSION)) {
+      helpShower.run();
+      System.exit(1);
+    }
+
+    // required for all operations
+    if (!cmd.hasOption(FORM_ID) || !cmd.hasOption(STORAGE_DIRECTORY)) {
+      System.err.println(FORM_ID + " and " + STORAGE_DIRECTORY + " are required");
+      helpShower.run();
+      System.exit(1);
+    }
+
+    // pull from collect or aggregate, not both
+    if (cmd.hasOption(ODK_DIR) && cmd.hasOption(AGGREGATE_URL)) {
+      System.err.println("Can only have one of " + ODK_DIR + " or " + AGGREGATE_URL);
+      helpShower.run();
+      System.exit(1);
+    }
+
+    // pull from aggregate
+    if (cmd.hasOption(AGGREGATE_URL) && (!(cmd.hasOption(ODK_USERNAME) && cmd.hasOption(ODK_PASSWORD)))) {
+      System.err.println(ODK_USERNAME + " and " + ODK_PASSWORD + " required when " + AGGREGATE_URL + " is specified");
+      helpShower.run();
+      System.exit(1);
+    }
+
+    // export files
+    if (cmd.hasOption(EXPORT_DIRECTORY) && !cmd.hasOption(EXPORT_FILENAME) || !cmd.hasOption(EXPORT_DIRECTORY) && cmd.hasOption(EXPORT_FILENAME)) {
+      System.err.println(EXPORT_DIRECTORY + " and " + EXPORT_FILENAME + " are both required to export");
+      helpShower.run();
+      System.exit(1);
+    }
+
+    if (cmd.hasOption(EXPORT_END_DATE)) {
+      if (!testDateFormat(cmd.getOptionValue(EXPORT_END_DATE))) {
+        System.err.println("Invalid date format in " + EXPORT_END_DATE);
+        helpShower.run();
+        System.exit(1);
+      }
+    }
+    if (cmd.hasOption(EXPORT_START_DATE)) {
+      if (!testDateFormat(cmd.getOptionValue(EXPORT_START_DATE))) {
+        System.err.println("Invalid date format in " + EXPORT_START_DATE);
+        helpShower.run();
+        System.exit(1);
+      }
+    }
+
+
+    BriefcaseCLI bcli = new BriefcaseCLI(cmd);
+    bcli.run();
   }
 
   public static void launchGUI() {
