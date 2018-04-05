@@ -17,7 +17,6 @@ package org.opendatakit.common.cli;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
-import static org.opendatakit.common.cli.CustomHelpFormatter.printHelp;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -50,8 +49,15 @@ public class Cli {
   private final Set<Operation> executedOperations = new HashSet<>();
 
   public Cli() {
-    register(Operation.of(SHOW_HELP, args -> printHelp(requiredOperations, operations)));
+    register(Operation.of(SHOW_HELP, args -> printHelp()));
     register(Operation.of(SHOW_VERSION, args -> printVersion()));
+  }
+
+  /**
+   * Prints the help message with all the registered operations and their paramsº
+   */
+  public void printHelp() {
+    CustomHelpFormatter.printHelp(requiredOperations, operations);
   }
 
   /**
@@ -69,7 +75,7 @@ public class Cli {
     operations.add(Operation.of(oldParam, __ -> {
       log.warn("Trying to run deprecated param -{}", oldParam.shortCode);
       System.out.println("The param -" + oldParam.shortCode + " has been deprecated. Run Briefcase again with -" + alternative.param.shortCode + " instead");
-      printHelp(requiredOperations, operations);
+      printHelp();
       System.exit(1);
     }));
     return this;
@@ -156,7 +162,7 @@ public class Cli {
     } catch (UnrecognizedOptionException | MissingArgumentException e) {
       System.err.println(e.getMessage());
       log.error("Error", e);
-      printHelp(requiredOperations, operations);
+      printHelp();
       System.exit(1);
       return null;
     } catch (Throwable t) {
@@ -172,7 +178,7 @@ public class Cli {
       System.out.print("Missing params: ");
       System.out.print(missingParams.stream().map(param -> "-" + param.shortCode).collect(joining(", ")));
       System.out.println("");
-      printHelp(requiredOperations, operations);
+      printHelp();
       System.exit(1);
     }
   }
