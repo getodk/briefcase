@@ -15,9 +15,11 @@
  */
 package org.opendatakit.briefcase;
 
+import static java.lang.Boolean.TRUE;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.SENTRY_DSN;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.SENTRY_ENABLED;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
+import static org.opendatakit.briefcase.model.BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY;
 import static org.opendatakit.briefcase.operations.ClearPreferences.CLEAR_PREFS;
 import static org.opendatakit.briefcase.operations.Export.EXPORT_FORM;
 import static org.opendatakit.briefcase.operations.ImportFromODK.IMPORT_FROM_ODK;
@@ -27,6 +29,7 @@ import static org.opendatakit.briefcase.operations.PushFormToAggregate.PUSH_FORM
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.getOsName;
 
 import io.sentry.Sentry;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.ui.MainBriefcaseWindow;
 import org.opendatakit.common.cli.Cli;
 
@@ -46,6 +49,10 @@ public class Launcher {
           getOsName(),
           System.getProperty("java.version")
       ));
+
+    BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
+    if (!appPreferences.hasKey(BRIEFCASE_TRACKING_CONSENT_PROPERTY))
+      appPreferences.put(BRIEFCASE_TRACKING_CONSENT_PROPERTY, TRUE.toString());
 
     new Cli()
         .deprecate(DEPRECATED_PULL_AGGREGATE, PULL_FORM_FROM_AGGREGATE)
