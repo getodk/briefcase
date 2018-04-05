@@ -53,10 +53,10 @@ public class MessageStrings {
       "Welcome to ODK Briefcase! Here are three things you should know to get started.\n" +
           "\n" +
           "1. You must set a Storage Location where Briefcase will store data that it needs\n" +
-          "    to operate. You will not be able to use Briefcase until you set this location.\n" +
+          "    to operate. You will not be able to use Briefcase until you set this location.\n\n" +
           "2. We gather anonymous usage data (e.g., operating system, version number) to help\n" +
           "    our community prioritize fixes and features. If you do not want to contribute\n" +
-          "    your data, please disable that setting.\n" +
+          "    your data, please uncheck that setting.\n\n" +
           "3. ODK is a community-powered project and the community lives at\n" +
           "    https://forum.opendatakit.org. Stop by for a visit and introduce yourself!\n" +
           "\n";
