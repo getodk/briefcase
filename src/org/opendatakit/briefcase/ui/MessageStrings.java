@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2012 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -29,7 +29,7 @@ public class MessageStrings {
       "Directory does not exist";
   public static final String DIR_NOT_DIRECTORY =
       "You must specify a directory";
-  public static final String DIR_INSIDE_BRIEFCASE_STORAGE = 
+  public static final String DIR_INSIDE_BRIEFCASE_STORAGE =
       "Directory appears to be nested within an enclosing ODK Briefcase Storage area";
   public static final String DIR_INSIDE_ODK_DEVICE_DIRECTORY =
       "The directory you have chosen appears to be within an ODK Device directory";
@@ -46,28 +46,25 @@ public class MessageStrings {
       "Invalid Directory";
   public static final String INVALID_PEM_FILE =
       "Invalid Private Key (PEM) File";
-  
+
   public static final String INVALID_PEM_FILE_DIALOG_TITLE =
       "Invalid Private Key (PEM) File";
   static final String BRIEFCASE_WELCOME =
-          "Welcome to ODK Briefcase! Here are three things you should know to get started.\n" +
-            "1. You must set a Storage Location where Briefcase will store data that it needs to operate. You will " +
-                  "not be able to use Briefcase until you set this location.\n" +
-            "2. We gather anonymous usage data (e.g., operating system, version number) to help our community " +
-                  "prioritize fixes and features. If you do not want to contribute your data, please disable that setting.\n" +
-            "3. ODK is a community-powered project and the community lives at https://forum.opendatakit.org. " +
-                  "Stop by for a visit and introduce yourself\n\n!";
+      "Welcome to ODK Briefcase! Here are three things you should know to get started.\n" +
+          "1. You must set a Storage Location where Briefcase will store data that it needs to operate. You will not be able to use Briefcase until you set this location.\n" +
+          "2. We gather anonymous usage data (e.g., operating system, version number) to help our community prioritize fixes and features. If you do not want to contribute your data, please disable that setting.\n" +
+          "3. ODK is a community-powered project and the community lives at https://forum.opendatakit.org. Stop by for a visit and introduce yourself!";
   public static final String README_CONTENTS =
       "This ODK Briefcase storage area retains\n" +
-      "all the forms and submissions that have been\n" +
-      "gathered into it.\n" +
-      "\n" +
-      "Users should not navigate into or modify its\n" +
-      "contents unless explicitly directed to do so.\n";
+          "all the forms and submissions that have been\n" +
+          "gathered into it.\n" +
+          "\n" +
+          "Users should not navigate into or modify its\n" +
+          "contents unless explicitly directed to do so.\n";
 
   public static final String ERROR_DIALOG_TITLE =
       "ODK Briefcase Action Failed";
-  
+
   public static final String PROXY_HOST = "Host";
   public static final String PROXY_PORT = "Port";
   public static final String PROXY_TOGGLE = "Use HTTP Proxy";
@@ -76,7 +73,7 @@ public class MessageStrings {
 
   public static final String PARALLEL_PULLS = "Pull submissions in parallel (experimental)";
   static final String TRACKING_CONSENT_EXPLANATION =
-          "Please help the ODK Community of volunteers and our mission to build software that\n" +
+      "Please help the ODK Community of volunteers and our mission to build software that\n" +
           "better meets your needs. We use third-party analytics tools to gather anonymous\n" +
           "information about things like your operating system, versions, and most-used\n" +
           "features of this software. Use of this information will always follow the ODK\n" +
