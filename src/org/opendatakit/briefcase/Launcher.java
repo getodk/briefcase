@@ -26,11 +26,12 @@ import static org.opendatakit.briefcase.operations.ImportFromODK.IMPORT_FROM_ODK
 import static org.opendatakit.briefcase.operations.PullFormFromAggregate.DEPRECATED_PULL_AGGREGATE;
 import static org.opendatakit.briefcase.operations.PullFormFromAggregate.PULL_FORM_FROM_AGGREGATE;
 import static org.opendatakit.briefcase.operations.PushFormToAggregate.PUSH_FORM_TO_AGGREGATE;
+import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.launchGUI;
+import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.runLegacyCli;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.getOsName;
 
 import io.sentry.Sentry;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.ui.MainBriefcaseWindow;
 import org.opendatakit.common.cli.Cli;
 
 /**
@@ -69,7 +70,12 @@ public class Launcher {
         .register(IMPORT_FROM_ODK)
         .register(EXPORT_FORM)
         .register(CLEAR_PREFS)
-        .otherwise(() -> MainBriefcaseWindow.main(args))
+        .otherwise((cli, commandLine) -> {
+          if (args.length == 0)
+            launchGUI();
+          else
+            runLegacyCli(commandLine, cli::printHelp);
+        })
         .run(args);
   }
 }
