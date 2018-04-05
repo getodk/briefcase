@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toSet;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.apache.commons.cli.CommandLine;
@@ -45,7 +46,7 @@ public class Cli {
 
   private final Set<Operation> requiredOperations = new HashSet<>();
   private final Set<Operation> operations = new HashSet<>();
-  private final Set<Runnable> otherwiseRunnables = new HashSet<>();
+  private final Set<BiConsumer<Cli, CommandLine>> otherwiseCallbacks = new HashSet<>();
   private final Set<Operation> executedOperations = new HashSet<>();
 
   public Cli() {
@@ -62,11 +63,11 @@ public class Cli {
 
   /**
    * Marks a Param for deprecation and assigns an alternative operation.
-   *
+   * <p>
    * When Briefcase detects this param, it will show a message, output the help and
    * exit with a non-zero status
    *
-   * @param oldParam the {@link Param} to mark as deprecated
+   * @param oldParam    the {@link Param} to mark as deprecated
    * @param alternative the alternative {@link Operation} that Briefcase will suggest to be
    *                    used instead of the deprecated Param
    * @return self {@link Cli} instance to chain more method calls
@@ -96,11 +97,11 @@ public class Cli {
    * Register a {@link Runnable} block that will be executed if no {@link Operation}
    * is executed. For example, if the user passes no arguments when executing this program
    *
-   * @param runnable a {@link Runnable} block
+   * @param callback a {@link BiConsumer} that will receive the {@link Cli} and {@link CommandLine} instances
    * @return self {@link Cli} instance to chain more method calls
    */
-  public Cli otherwise(Runnable runnable) {
-    otherwiseRunnables.add(runnable);
+  public Cli otherwise(BiConsumer<Cli, CommandLine> callback) {
+    otherwiseCallbacks.add(callback);
     return this;
   }
 
@@ -128,7 +129,7 @@ public class Cli {
       });
 
       if (executedOperations.isEmpty())
-        otherwiseRunnables.forEach(Runnable::run);
+        otherwiseCallbacks.forEach(callback -> callback.accept(this, cli));
     } catch (BriefcaseException e) {
       System.err.println("Error: " + e.getMessage());
       log.error("Error", e);
@@ -202,13 +203,13 @@ public class Cli {
     Cli cli = (Cli) o;
     return Objects.equals(requiredOperations, cli.requiredOperations) &&
         Objects.equals(operations, cli.operations) &&
-        Objects.equals(otherwiseRunnables, cli.otherwiseRunnables) &&
+        Objects.equals(otherwiseCallbacks, cli.otherwiseCallbacks) &&
         Objects.equals(executedOperations, cli.executedOperations);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(requiredOperations, operations, otherwiseRunnables, executedOperations);
+    return Objects.hash(requiredOperations, operations, otherwiseCallbacks, executedOperations);
   }
 
   @Override
@@ -216,7 +217,7 @@ public class Cli {
     return "Cli{" +
         "requiredOperations=" + requiredOperations +
         ", operations=" + operations +
-        ", otherwiseRunnables=" + otherwiseRunnables +
+        ", otherwiseCallbacks=" + otherwiseCallbacks +
         ", executedOperations=" + executedOperations +
         '}';
   }
