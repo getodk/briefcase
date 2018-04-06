@@ -42,7 +42,7 @@ public class BriefcasePreferences {
   public static final String PASSWORD = "password";
   public static final String AGGREGATE_1_0_URL = "url_1_0";
 
-  private static final String BRIEFCASE_DIR_PROPERTY = "briefcaseDir";
+  public static final String BRIEFCASE_DIR_PROPERTY = "briefcaseDir";
   private static final String BRIEFCASE_PROXY_HOST_PROPERTY = "briefcaseProxyHost";
   private static final String BRIEFCASE_PROXY_PORT_PROPERTY = "briefcaseProxyPort";
   private static final String BRIEFCASE_PARALLEL_PULLS_PROPERTY = "briefcaseParallelPulls";

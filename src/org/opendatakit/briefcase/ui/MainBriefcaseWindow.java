@@ -19,6 +19,7 @@ package org.opendatakit.briefcase.ui;
 import static java.lang.Boolean.TRUE;
 import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
+import static org.opendatakit.briefcase.model.BriefcasePreferences.BRIEFCASE_DIR_PROPERTY;
 import static org.opendatakit.briefcase.ui.MessageStrings.BRIEFCASE_WELCOME;
 import static org.opendatakit.briefcase.ui.MessageStrings.TRACKING_WARNING;
 
@@ -276,7 +277,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   }
 
   private void showIntroDialogIfNeeded(BriefcasePreferences appPreferences) {
-    if (appPreferences.getBriefcaseDirectoryOrNull() == null) {
+    if (!appPreferences.hasKey(BRIEFCASE_DIR_PROPERTY)) {
       showMessageDialog(frame, BRIEFCASE_WELCOME, APP_NAME, INFORMATION_MESSAGE, imageIcon);
       appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
     }
