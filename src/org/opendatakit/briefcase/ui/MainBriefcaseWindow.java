@@ -277,15 +277,33 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   }
 
   private void showIntroDialogIfNeeded(BriefcasePreferences appPreferences) {
-    if (!appPreferences.hasKey(BRIEFCASE_DIR_PROPERTY)) {
-      showMessageDialog(frame, BRIEFCASE_WELCOME, APP_NAME, INFORMATION_MESSAGE, imageIcon);
+    if (isFirstLaunch(appPreferences)) {
+      showWelcomeMessage();
       appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
     }
 
-    if (!appPreferences.hasKey(TRACKING_WARNING_SHOWED_PREF_KEY)) {
-      showMessageDialog(frame, TRACKING_WARNING, APP_NAME, INFORMATION_MESSAGE, imageIcon);
+    // Starting with Briefcase version 1.10.0, tracking is enabled by default.
+    // Users upgrading from previous versions must be warned about this.
+    if (isFirstLaunchAfterTrackingUpgrade(appPreferences)) {
+      showTrackingWarning();
       appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
     }
+  }
+
+  private void showTrackingWarning() {
+    showMessageDialog(frame, TRACKING_WARNING, APP_NAME, INFORMATION_MESSAGE, imageIcon);
+  }
+
+  private void showWelcomeMessage() {
+    showMessageDialog(frame, BRIEFCASE_WELCOME, APP_NAME, INFORMATION_MESSAGE, imageIcon);
+  }
+
+  private boolean isFirstLaunchAfterTrackingUpgrade(BriefcasePreferences appPreferences) {
+    return !appPreferences.hasKey(TRACKING_WARNING_SHOWED_PREF_KEY);
+  }
+
+  private boolean isFirstLaunch(BriefcasePreferences appPreferences) {
+    return !appPreferences.hasKey(BRIEFCASE_DIR_PROPERTY);
   }
 
   /**
