@@ -16,6 +16,12 @@
 
 package org.opendatakit.briefcase.ui;
 
+import static java.lang.Boolean.TRUE;
+import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
+import static javax.swing.JOptionPane.showMessageDialog;
+import static org.opendatakit.briefcase.ui.MessageStrings.BRIEFCASE_WELCOME;
+import static org.opendatakit.briefcase.ui.MessageStrings.TRACKING_WARNING;
+
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
@@ -30,7 +36,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -272,15 +277,13 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
   private void showIntroDialogIfNeeded() {
     if (BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull() == null) {
-      JOptionPane.showMessageDialog(frame, MessageStrings.BRIEFCASE_WELCOME, APP_NAME,
-          JOptionPane.INFORMATION_MESSAGE, imageIcon);
-      BriefcasePreferences.appScoped().put(TRACKING_WARNING_SHOWED_PREF_KEY, Boolean.TRUE.toString());
+      showMessageDialog(frame, BRIEFCASE_WELCOME, APP_NAME, INFORMATION_MESSAGE, imageIcon);
+      BriefcasePreferences.appScoped().put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
     }
 
     if (!BriefcasePreferences.appScoped().hasKey(TRACKING_WARNING_SHOWED_PREF_KEY)) {
-      JOptionPane.showMessageDialog(frame, MessageStrings.TRACKING_WARNING, APP_NAME,
-          JOptionPane.INFORMATION_MESSAGE, imageIcon);
-      BriefcasePreferences.appScoped().put(TRACKING_WARNING_SHOWED_PREF_KEY, Boolean.TRUE.toString());
+      showMessageDialog(frame, TRACKING_WARNING, APP_NAME, INFORMATION_MESSAGE, imageIcon);
+      BriefcasePreferences.appScoped().put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
     }
   }
 
