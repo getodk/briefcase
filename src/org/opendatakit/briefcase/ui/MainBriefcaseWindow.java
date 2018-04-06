@@ -273,6 +273,13 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     if (BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull() == null) {
       JOptionPane.showMessageDialog(frame, MessageStrings.BRIEFCASE_WELCOME, APP_NAME,
           JOptionPane.INFORMATION_MESSAGE, imageIcon);
+      BriefcasePreferences.appScoped().put("tracking warning showed", Boolean.TRUE.toString());
+    }
+
+    if (!BriefcasePreferences.appScoped().hasKey("tracking warning showed")) {
+      JOptionPane.showMessageDialog(frame, MessageStrings.TRACKING_WARNING, APP_NAME,
+          JOptionPane.INFORMATION_MESSAGE, imageIcon);
+      BriefcasePreferences.appScoped().put("tracking warning showed", Boolean.TRUE.toString());
     }
   }
 
