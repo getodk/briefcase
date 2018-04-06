@@ -56,6 +56,7 @@ import org.slf4j.LoggerFactory;
 public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeListener {
   private static final String APP_NAME = "ODK Briefcase";
   private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BriefcasePreferences.VERSION;
+  public static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
   private final ImageIcon imageIcon = new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png"));
 
   JFrame frame;
@@ -273,13 +274,13 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     if (BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull() == null) {
       JOptionPane.showMessageDialog(frame, MessageStrings.BRIEFCASE_WELCOME, APP_NAME,
           JOptionPane.INFORMATION_MESSAGE, imageIcon);
-      BriefcasePreferences.appScoped().put("tracking warning showed", Boolean.TRUE.toString());
+      BriefcasePreferences.appScoped().put(TRACKING_WARNING_SHOWED_PREF_KEY, Boolean.TRUE.toString());
     }
 
-    if (!BriefcasePreferences.appScoped().hasKey("tracking warning showed")) {
+    if (!BriefcasePreferences.appScoped().hasKey(TRACKING_WARNING_SHOWED_PREF_KEY)) {
       JOptionPane.showMessageDialog(frame, MessageStrings.TRACKING_WARNING, APP_NAME,
           JOptionPane.INFORMATION_MESSAGE, imageIcon);
-      BriefcasePreferences.appScoped().put("tracking warning showed", Boolean.TRUE.toString());
+      BriefcasePreferences.appScoped().put(TRACKING_WARNING_SHOWED_PREF_KEY, Boolean.TRUE.toString());
     }
   }
 
