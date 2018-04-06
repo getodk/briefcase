@@ -266,7 +266,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
     storageLocation.establishBriefcaseStorageLocation(frame, this);
 
-    showIntroDialogIfNeeded();
+    showIntroDialogIfNeeded(appPreferences);
   }
 
   private void createFormCache() {
@@ -275,15 +275,15 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     }
   }
 
-  private void showIntroDialogIfNeeded() {
-    if (BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull() == null) {
+  private void showIntroDialogIfNeeded(BriefcasePreferences appPreferences) {
+    if (appPreferences.getBriefcaseDirectoryOrNull() == null) {
       showMessageDialog(frame, BRIEFCASE_WELCOME, APP_NAME, INFORMATION_MESSAGE, imageIcon);
-      BriefcasePreferences.appScoped().put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
+      appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
     }
 
-    if (!BriefcasePreferences.appScoped().hasKey(TRACKING_WARNING_SHOWED_PREF_KEY)) {
+    if (!appPreferences.hasKey(TRACKING_WARNING_SHOWED_PREF_KEY)) {
       showMessageDialog(frame, TRACKING_WARNING, APP_NAME, INFORMATION_MESSAGE, imageIcon);
-      BriefcasePreferences.appScoped().put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
+      appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
     }
   }
 
