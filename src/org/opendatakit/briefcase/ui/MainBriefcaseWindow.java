@@ -267,16 +267,6 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
     storageLocation.establishBriefcaseStorageLocation(frame, this);
 
-    showIntroDialogIfNeeded(appPreferences);
-  }
-
-  private void createFormCache() {
-    if (BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull() != null) {
-      FileSystemUtils.createFormCacheInBriefcaseFolder();
-    }
-  }
-
-  private void showIntroDialogIfNeeded(BriefcasePreferences appPreferences) {
     if (isFirstLaunch(appPreferences)) {
       showWelcomeMessage();
       appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
@@ -287,6 +277,12 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     if (isFirstLaunchAfterTrackingUpgrade(appPreferences)) {
       showTrackingWarning();
       appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
+    }
+  }
+
+  private void createFormCache() {
+    if (BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull() != null) {
+      FileSystemUtils.createFormCacheInBriefcaseFolder();
     }
   }
 
