@@ -56,14 +56,14 @@ public class MessageStrings {
           "    to operate. You will not be able to use Briefcase until you set this location.\n\n" +
           "2. We gather anonymous usage data (e.g., operating system, version number) to help\n" +
           "    our community prioritize fixes and features. If you do not want to contribute\n" +
-          "    your data, please uncheck that setting.\n\n" +
+          "    your usage data, please uncheck that setting.\n\n" +
           "3. ODK is a community-powered project and the community lives at\n" +
           "    https://forum.opendatakit.org. Stop by for a visit and introduce yourself!\n" +
           "\n";
   static final String TRACKING_WARNING = "" +
-      "We gather anonymous usage data (e.g., operating system, version number) to help\n" +
+      "We now gather anonymous usage data (e.g., operating system, version number) to help\n" +
       "our community prioritize fixes and features. If you do not want to contribute\n" +
-      "your data, please uncheck that setting.\n\n";
+      "your usage data, please uncheck that setting in the Settings tab.\n";
   public static final String README_CONTENTS =
       "This ODK Briefcase storage area retains\n" +
           "all the forms and submissions that have been\n" +
