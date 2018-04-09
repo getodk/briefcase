@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.javarosa.core.io.Std;
-import org.javarosa.core.model.DataBinding;
 import org.javarosa.core.model.FormDef;
 import org.javarosa.core.model.IDataReference;
 import org.javarosa.core.model.SubmissionProfile;
@@ -42,7 +41,6 @@ import org.javarosa.core.model.instance.TreeReference;
 import org.javarosa.core.services.PrototypeManager;
 import org.javarosa.model.xform.XFormsModule;
 import org.javarosa.xform.parse.XFormParser;
-import org.javarosa.xform.util.XFormUtils;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
 import org.opendatakit.aggregate.constants.ParserConsts;
@@ -125,12 +123,13 @@ public class BaseFormParserForJavaRosa implements Serializable {
 
   private static void redirectOutput() {
     File jrLogFile = new File(new StorageLocation().getBriefcaseFolder(), ".briefcase-javarosa.log");
+    log.info("Redirecting javarosa output to {}", jrLogFile);
     try {
       PrintStream jrOut = new PrintStream(jrLogFile);
       Std.setOut(jrOut);
       Std.setErr(jrOut);
     } catch (FileNotFoundException e) {
-      log.warn("failed to redirect javarosa output to " + jrLogFile);
+      log.warn("Failed to redirect javarosa output");
     }
   }
 
@@ -280,33 +279,6 @@ public class BaseFormParserForJavaRosa implements Serializable {
       super(form);
       this.xmldoc = form;
       this.parser = parser;
-    }
-
-    protected void parseBind(Element e) {
-      // remember raw bindings in case we want to compare parsed XForms later
-      parser.bindElements.add(copyBindingElement(e));
-      List<String> usedAtts = new ArrayList<>();
-
-      DataBinding binding = processStandardBindAttributes(usedAtts, e);
-
-      String value = e.getAttributeValue(ParserConsts.NAMESPACE_ODK, "length");
-      if (value != null) {
-        e.setAttribute(ParserConsts.NAMESPACE_ODK, "length", null);
-      }
-
-      log.debug("Calling handle found value " + ((value == null) ? "null" : value));
-
-      if (value != null) {
-        Integer iValue = Integer.valueOf(value);
-        parser.setNodesetStringLength(e.getAttributeValue(null, "nodeset"), iValue);
-      }
-
-      // print unused attribute warning message for parent element
-      if (XFormUtils.showUnusedAttributeWarning(e, usedAtts)) {
-        log.debug(XFormUtils.unusedAttWarning(e, usedAtts));
-      }
-
-      addBinding(binding);
     }
   }
 
@@ -562,8 +534,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
             Reason.ID_MISSING);
       }
     }
-    if (!allowLegacy && rootElementDefn.modelVersion != null
-        && (rootElementDefn.modelVersion > Long.valueOf(Integer.MAX_VALUE))) {
+    if (!allowLegacy && rootElementDefn.modelVersion != null) {
       // for some reason, the datastore is not persisting Long values correctly?
       throw new ODKIncompleteSubmissionData(
           "The version string must be an integer less than 2147483648", Reason.ID_MALFORMED);

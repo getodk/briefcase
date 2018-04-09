@@ -750,13 +750,11 @@ public class XmlManipulationUtils {
       fr.close();
       fs.close();
     } catch (IOException e) {
-      String msg = "Original submission file could not be opened "
-          + submissionFile.getAbsolutePath();
+      String msg = "Original submission file could not be opened";
       log.error(msg, e);
       throw new MetadataUpdateException(msg);
     } catch (XmlPullParserException e) {
-      String msg = "Original submission file could not be parsed as XML file "
-          + submissionFile.getAbsolutePath();
+      String msg = "Original submission file could not be parsed as XML file";
       log.error(msg, e);
       throw new MetadataUpdateException(msg);
     }
@@ -771,8 +769,7 @@ public class XmlManipulationUtils {
       String name = root.getAttributeName(i);
       if (name.equals(INSTANCE_ID_ATTRIBUTE_NAME)) {
         if (!root.getAttributeValue(i).equals(instanceID)) {
-          String msg = "Original submission file's instanceID does not match that on server! "
-              + submissionFile.getAbsolutePath();
+          String msg = "Original submission file's instanceID does not match that on server!";
           log.error(msg);
           throw new MetadataUpdateException(msg);
         } else {
@@ -786,8 +783,7 @@ public class XmlManipulationUtils {
         Date newDate = WebUtils.parseDate(returnDate);
         // cross-platform datetime resolution is 1 second.
         if (Math.abs(newDate.getTime() - oldDate.getTime()) > 1000L) {
-          String msg = "Original submission file's submissionDate does not match that on server! "
-              + submissionFile.getAbsolutePath();
+          String msg = "Original submission file's submissionDate does not match that on server!";
           log.error(msg);
           throw new MetadataUpdateException(msg);
         } else {
@@ -829,15 +825,13 @@ public class XmlManipulationUtils {
       try {
         if (temp.exists()) {
           if (!temp.delete()) {
-            String msg = "Unable to remove temporary submission backup file "
-                + temp.getAbsolutePath();
+            String msg = "Unable to remove temporary submission backup file";
             log.error(msg);
             throw new MetadataUpdateException(msg);
           }
         }
         if (!submissionFile.renameTo(temp)) {
-          String msg = "Unable to rename submission to temporary submission backup file "
-              + temp.getAbsolutePath();
+          String msg = "Unable to rename submission to temporary submission backup file";
           log.error(msg);
           throw new MetadataUpdateException(msg);
         }
@@ -846,8 +840,7 @@ public class XmlManipulationUtils {
         restoreTemp = true;
 
         if (!revisedFile.renameTo(submissionFile)) {
-          String msg = "Original submission file could not be updated "
-              + submissionFile.getAbsolutePath();
+          String msg = "Original submission file could not be updated";
           log.error(msg);
           throw new MetadataUpdateException(msg);
         }
@@ -857,19 +850,18 @@ public class XmlManipulationUtils {
       } finally {
         if (restoreTemp) {
           if (!temp.renameTo(submissionFile)) {
-            String msg = "Unable to restore submission from temporary submission backup file "
-                + temp.getAbsolutePath();
+            String msg = "Unable to restore submission from temporary submission backup file";
             log.error(msg);
             throw new MetadataUpdateException(msg);
           }
         }
       }
     } catch (FileNotFoundException e) {
-      String msg = "Temporary submission file could not be opened " + revisedFile.getAbsolutePath();
+      String msg = "Temporary submission file could not be opened";
       log.error(msg, e);
       throw new MetadataUpdateException(msg);
     } catch (IOException e) {
-      String msg = "Temporary submission file could not be written " + revisedFile.getAbsolutePath();
+      String msg = "Temporary submission file could not be written";
       log.error(msg, e);
       throw new MetadataUpdateException(msg);
     }

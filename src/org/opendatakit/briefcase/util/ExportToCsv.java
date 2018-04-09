@@ -136,28 +136,28 @@ public class ExportToCsv implements ITransformFormAction {
     // assume it to be latest.
     if (instances != null) {
       Arrays.sort(instances, (f1, f2) ->
-        {
-          try {
-            if (f1.isDirectory() && f2.isDirectory()) {
-              File submission1 = new File(f1, "submission.xml");
-              String submissionDate1String = XmlManipulationUtils.parseXml(submission1).getRootElement()
-                  .getAttributeValue(null, "submissionDate");
+      {
+        try {
+          if (f1.isDirectory() && f2.isDirectory()) {
+            File submission1 = new File(f1, "submission.xml");
+            String submissionDate1String = XmlManipulationUtils.parseXml(submission1).getRootElement()
+                .getAttributeValue(null, "submissionDate");
 
-              File submission2 = new File(f2, "submission.xml");
-              String submissionDate2String = XmlManipulationUtils.parseXml(submission2).getRootElement()
-                  .getAttributeValue(null, "submissionDate");
+            File submission2 = new File(f2, "submission.xml");
+            String submissionDate2String = XmlManipulationUtils.parseXml(submission2).getRootElement()
+                .getAttributeValue(null, "submissionDate");
 
-              Date submissionDate1 = StringUtils.isNotEmptyNotNull(submissionDate1String)
-                  ? WebUtils.parseDate(submissionDate1String) : new Date();
-              Date submissionDate2 = StringUtils.isNotEmptyNotNull(submissionDate2String)
-                  ? WebUtils.parseDate(submissionDate2String) : new Date();
-              return submissionDate1.compareTo(submissionDate2);
-            }
-          } catch (ParsingException | FileSystemException e) {
-            log.error("failed to sort submissions", e);
+            Date submissionDate1 = StringUtils.isNotEmptyNotNull(submissionDate1String)
+                ? WebUtils.parseDate(submissionDate1String) : new Date();
+            Date submissionDate2 = StringUtils.isNotEmptyNotNull(submissionDate2String)
+                ? WebUtils.parseDate(submissionDate2String) : new Date();
+            return submissionDate1.compareTo(submissionDate2);
           }
-          return 0;
-        });
+        } catch (ParsingException | FileSystemException e) {
+          log.error("failed to sort submissions", e);
+        }
+        return 0;
+      });
 
     }
 
@@ -736,6 +736,7 @@ public class ExportToCsv implements ITransformFormAction {
 
     String formName = baseFilename;
     File topLevelCsv = new File(outputDir, safeFilename(formName) + ".csv");
+    log.info("Trying to create top level CSV file at {}", topLevelCsv);
     boolean exists = topLevelCsv.exists();
     FileOutputStream os;
     try {
@@ -756,7 +757,7 @@ public class ExportToCsv implements ITransformFormAction {
       }
 
     } catch (IOException e) {
-      String msg = "Unable to create csv file: " + topLevelCsv.getPath();
+      String msg = "Unable to create csv file";
       log.error(msg, e);
       EventBus.publish(new ExportProgressEvent(msg, briefcaseLfd));
       for (OutputStreamWriter w : fileMap.values()) {
@@ -819,9 +820,8 @@ public class ExportToCsv implements ITransformFormAction {
     try {
       doc = XmlManipulationUtils.parseXml(submission);
     } catch (ParsingException | FileSystemException e) {
-      String msg = "Error parsing submission " + instanceDir.getName();
-      log.error(msg, e);
-      EventBus.publish(new ExportProgressEvent(msg + " Cause: " + e.toString(), briefcaseLfd));
+      log.error("Error parsing submission", e);
+      EventBus.publish(new ExportProgressEvent(("Error parsing submission " + instanceDir.getName()) + " Cause: " + e.toString(), briefcaseLfd));
       return false;
     }
 
@@ -891,9 +891,8 @@ public class ExportToCsv implements ITransformFormAction {
         instanceId = sim.instanceId;
         base64EncryptedFieldKey = sim.base64EncryptedFieldKey;
       } catch (ParsingException e) {
-        String msg = "Could not extract metadata from submission: " + submission.getAbsolutePath();
-        log.error(msg, e);
-        EventBus.publish(new ExportProgressEvent(msg + " Cause: " + e.toString(), briefcaseLfd));
+        log.error("Could not extract metadata from submission", e);
+        EventBus.publish(new ExportProgressEvent("Could not extract metadata from submission " + submission.getAbsolutePath(), briefcaseLfd));
         return false;
       }
 
@@ -924,9 +923,8 @@ public class ExportToCsv implements ITransformFormAction {
         try {
           ei = new EncryptionInformation(base64EncryptedFieldKey, instanceId, briefcaseLfd.getPrivateKey());
         } catch (CryptoException e) {
-          String msg = "Error establishing field decryption for submission " + instanceDir.getName();
-          log.error(msg, e);
-          EventBus.publish(new ExportProgressEvent(msg + " Cause: " + e.toString(), briefcaseLfd));
+          log.error("Error establishing field decryption", e);
+          EventBus.publish(new ExportProgressEvent("Error establishing field decryption for submission " + instanceDir.getName() + " Cause: " + e.toString(), briefcaseLfd));
           return false;
         }
       }

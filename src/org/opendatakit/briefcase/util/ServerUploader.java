@@ -87,6 +87,7 @@ public class ServerUploader {
       File newInstanceDir = FileSystemUtils.getFormSubmissionDirectory(instancesParentDir, instanceID);
       if (!newInstanceDir.equals(instanceDir)) {
         try {
+          log.info("Moving {} to {}", instanceDir, newInstanceDir);
           FileUtils.moveDirectory(instanceDir, newInstanceDir);
           /*
            * We might be tempted to do:
@@ -102,7 +103,7 @@ public class ServerUploader {
           formToTransfer.setStatusString(msg, true);
           EventBus.publish(new FormStatusEvent(formToTransfer));
         } catch (IOException e) {
-          String msg = "Submission directory could not be renamed: " + instanceDir.getName();
+          String msg = "Submission directory could not be renamed";
           log.warn(msg, e);
           formToTransfer.setStatusString("WARNING: " + msg, true);
           EventBus.publish(new FormStatusEvent(formToTransfer));

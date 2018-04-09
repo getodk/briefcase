@@ -36,19 +36,15 @@ class Common {
     BriefcasePreferences.setBriefcaseDirectoryProperty(storageDir);
     File f = new StorageLocation().getBriefcaseFolder();
 
+    LOGGER.info("Trying to use {} as storage directory", f);
     if (!f.exists()) {
-      boolean success = f.mkdirs();
-      if (success) {
-        LOGGER.info("Successfully created directory. Using: " + f.getAbsolutePath());
-      } else {
-        LOGGER.error("Unable to create directory: " + f.getAbsolutePath());
+      if (!f.mkdirs()) {
+        LOGGER.error("Unable to create directory");
         System.exit(1);
       }
     } else if (f.exists() && !f.isDirectory()) {
-      LOGGER.error("Not a directory.  " + f.getAbsolutePath());
+      LOGGER.error("Not a directory");
       System.exit(1);
-    } else if (f.exists() && f.isDirectory()) {
-      LOGGER.info("Directory found, using " + f.getAbsolutePath());
     }
 
     if (BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull() != null) {

@@ -198,9 +198,11 @@ public class FileSystemUtils {
     File dbDir = new File(formDirectory, HSQLDB_DIR);
     File dbFile = new File(dbDir, HSQLDB_DB);
 
+
     if (!dbDir.exists()) {
+      log.info("Creating database directory {}", dbDir);
       if (!dbDir.mkdirs()) {
-        log.warn("failed to create database directory: " + dbDir);
+        log.warn("failed to create database directory");
       } else if (oldDbFile.exists()) {
         migrateDatabase(oldDbFile, dbFile);
       }
@@ -386,7 +388,7 @@ public class FileSystemUtils {
       long lLength = file.length();
 
       if (lLength > Integer.MAX_VALUE) {
-        log.error("File " + file.getName() + "is too large");
+        log.error("File is too large");
         return null;
       }
 
@@ -416,14 +418,14 @@ public class FileSystemUtils {
       return md5;
 
     } catch (NoSuchAlgorithmException e) {
-      log.error("MD5 calculation failed: " + e.getMessage());
+      log.error("MD5 calculation failed", e);
       return null;
 
     } catch (FileNotFoundException e) {
-      log.error("No File: " + e.getMessage());
+      log.error("No File", e);
       return null;
     } catch (IOException e) {
-      log.error("Problem reading from file: " + e.getMessage());
+      log.error("Problem reading from file", e);
       return null;
     }
 
@@ -566,13 +568,11 @@ public class FileSystemUtils {
       decryptFile(ei, f, unencryptedDir);
     } catch (InvalidKeyException | NoSuchPaddingException | InvalidAlgorithmParameterException
         | NoSuchAlgorithmException e) {
-      String msg = "Error decrypting:" + f.getName();
-      log.error(msg, e);
-      throw new CryptoException(msg + " Cause: " + e.toString());
+      log.error("Error decrypting file", e);
+      throw new CryptoException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
     } catch (IOException e) {
-      String msg = "Error decrypting:" + f.getName();
-      log.error(msg, e);
-      throw new FileSystemException(msg + " Cause: " + e.toString());
+      log.error("Error decrypting file", e);
+      throw new FileSystemException("Error decrypting:" + f.getName() + " Cause: " + e.toString());
     }
 
     // get the FIM for the decrypted submission file
@@ -584,9 +584,8 @@ public class FileSystemUtils {
       Document subDoc = XmlManipulationUtils.parseXml(submissionFile);
       submissionFim = XmlManipulationUtils.getFormInstanceMetadata(subDoc.getRootElement());
     } catch (ParsingException | FileSystemException e) {
-      String msg = "Error decrypting: " + submissionFile.getName();
-      log.error(msg, e);
-      throw new FileSystemException(msg + " Cause: " + e);
+      log.error("Error decrypting submission", e);
+      throw new FileSystemException("Error decrypting: " + submissionFile.getName() + " Cause: " + e);
     }
 
     boolean same = submissionFim.xparam.formId.equals(fim.xparam.formId);
@@ -600,7 +599,7 @@ public class FileSystemUtils {
     StringBuilder b = new StringBuilder();
     appendElementSignatureSource(b, fim.xparam.formId);
     if (fim.xparam.modelVersion != null) {
-      appendElementSignatureSource(b, Long.toString(fim.xparam.modelVersion));
+      appendElementSignatureSource(b, fim.xparam.modelVersion);
     }
     appendElementSignatureSource(b, base64EncryptedSymmetricKey);
 

@@ -229,21 +229,21 @@ public class ServerFetcher {
 
       } catch (SocketTimeoutException se) {
         allSuccessful = false;
-        log.error("error accessing " + fd.getDownloadUrl(), se);
+        log.error("error accessing URL", se);
         fs.setStatusString("Communications to the server timed out. Detailed message: "
             + se.getLocalizedMessage() + " while accessing: " + fd.getDownloadUrl()
             + " A network login screen may be interfering with the transmission to the server.", false);
         EventBus.publish(new FormStatusEvent(fs));
       } catch (IOException e) {
         allSuccessful = false;
-        log.error("error accessing " + fd.getDownloadUrl(), e);
+        log.error("error accessing form download URL", e);
         fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
             + fd.getDownloadUrl()
             + " A network login screen may be interfering with the transmission to the server.", false);
         EventBus.publish(new FormStatusEvent(fs));
       } catch (FileSystemException | TransmissionException | URISyntaxException e) {
         allSuccessful = false;
-        log.error("error accessing " + fd.getDownloadUrl(), e);
+        log.error("error accessing form download URL", e);
         fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
             + fd.getDownloadUrl(), false);
         EventBus.publish(new FormStatusEvent(fs));

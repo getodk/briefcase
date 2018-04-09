@@ -53,10 +53,11 @@ public class StorageLocation {
       if (dir.exists() && dir.isDirectory()) {
         if (BriefcaseFolderChooser.testAndMessageBadBriefcaseStorageLocationParentFolder(dir, errorParentWindow)) {
           try {
+            log.info("Trying {} as briefcase storage location", dir);
             assertBriefcaseStorageLocationParentFolder(dir);
             enableUi = true;
           } catch (FileSystemException e1) {
-            String msg = "Unable to create " + StorageLocation.BRIEFCASE_DIR;
+            String msg = "Unable to create briefcase storage location";
             log.error(msg, e1);
             ODKOptionPane.showErrorDialog(errorParentWindow, msg, "Failed to Create " + StorageLocation.BRIEFCASE_DIR);
           }

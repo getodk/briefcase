@@ -46,7 +46,7 @@ public final class BadXMLFixer {
   private static final String ENCODING = "UTF-8";
 
   public static Document fixBadXML(File xmlFile) throws CannotFixXMLException {
-    log.warn("Trying to fix the submission " + xmlFile.getAbsolutePath());
+    log.info("Trying to fix the submission {} ", xmlFile.getAbsolutePath());
 
     try {
       String originalXML = FileUtils.readFileToString(xmlFile, ENCODING);
@@ -54,15 +54,9 @@ public final class BadXMLFixer {
       File tempFile = File.createTempFile(xmlFile.getName(), ".fixed.xml");
       FileUtils.writeStringToFile(tempFile, fixedXML, ENCODING);
       return XmlManipulationUtils.parseXml(tempFile);
-    } catch (IOException e) {
-      log.error(e.getMessage(), e);
-      throw new CannotFixXMLException("Cannot fix " + xmlFile.getAbsolutePath(), e);
-    } catch (ParsingException e) {
-      log.error(e.getMessage(), e);
-      throw new CannotFixXMLException("Cannot fix " + xmlFile.getAbsolutePath(), e);
-    } catch (FileSystemException e) {
-      log.error(e.getMessage(), e);
-      throw new CannotFixXMLException("Cannot fix " + xmlFile.getAbsolutePath(), e);
+    } catch (IOException | ParsingException | FileSystemException e) {
+      log.error("Cannot fix xml", e);
+      throw new CannotFixXMLException("Cannot fix xml", e);
     }
   }
 
