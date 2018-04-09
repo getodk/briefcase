@@ -16,6 +16,13 @@
 
 package org.opendatakit.briefcase.ui;
 
+import static java.lang.Boolean.TRUE;
+import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
+import static javax.swing.JOptionPane.showMessageDialog;
+import static org.opendatakit.briefcase.model.BriefcasePreferences.BRIEFCASE_DIR_PROPERTY;
+import static org.opendatakit.briefcase.ui.MessageStrings.BRIEFCASE_WELCOME;
+import static org.opendatakit.briefcase.ui.MessageStrings.TRACKING_WARNING;
+
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
@@ -30,7 +37,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -56,6 +62,7 @@ import org.slf4j.LoggerFactory;
 public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeListener {
   private static final String APP_NAME = "ODK Briefcase";
   private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BriefcasePreferences.VERSION;
+  public static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
   private final ImageIcon imageIcon = new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png"));
 
   JFrame frame;
@@ -260,7 +267,17 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
     storageLocation.establishBriefcaseStorageLocation(frame, this);
 
-    showIntroDialogIfNeeded();
+    if (isFirstLaunch(appPreferences)) {
+      showWelcomeMessage();
+      appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
+    }
+
+    // Starting with Briefcase version 1.10.0, tracking is enabled by default.
+    // Users upgrading from previous versions must be warned about this.
+    if (isFirstLaunchAfterTrackingUpgrade(appPreferences)) {
+      showTrackingWarning();
+      appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
+    }
   }
 
   private void createFormCache() {
@@ -269,11 +286,20 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     }
   }
 
-  private void showIntroDialogIfNeeded() {
-    if (BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull() == null) {
-      JOptionPane.showMessageDialog(frame, MessageStrings.BRIEFCASE_WELCOME, APP_NAME,
-          JOptionPane.INFORMATION_MESSAGE, imageIcon);
-    }
+  private void showTrackingWarning() {
+    showMessageDialog(frame, TRACKING_WARNING, APP_NAME, INFORMATION_MESSAGE, imageIcon);
+  }
+
+  private void showWelcomeMessage() {
+    showMessageDialog(frame, BRIEFCASE_WELCOME, APP_NAME, INFORMATION_MESSAGE, imageIcon);
+  }
+
+  private boolean isFirstLaunchAfterTrackingUpgrade(BriefcasePreferences appPreferences) {
+    return !appPreferences.hasKey(TRACKING_WARNING_SHOWED_PREF_KEY);
+  }
+
+  private boolean isFirstLaunch(BriefcasePreferences appPreferences) {
+    return !appPreferences.hasKey(BRIEFCASE_DIR_PROPERTY);
   }
 
   /**
