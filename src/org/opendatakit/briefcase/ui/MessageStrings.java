@@ -54,16 +54,17 @@ public class MessageStrings {
           "\n" +
           "1. You must set a Storage Location where Briefcase will store data that it needs\n" +
           "    to operate. You will not be able to use Briefcase until you set this location.\n\n" +
-          "2. We gather anonymous usage data (e.g., operating system, version number) to help\n" +
-          "    our community prioritize fixes and features. If you do not want to contribute\n" +
-          "    your usage data, please uncheck that setting.\n\n" +
+          "2. We send usage data (e.g., operating system, version number) and crash logs\n" +
+          "    to the core developers to help prioritize features and fixes. If you do not\n" +
+          "    want to contribute your usage data or crash logs, please uncheck that setting.\n\n" +
           "3. ODK is a community-powered project and the community lives at\n" +
           "    https://forum.opendatakit.org. Stop by for a visit and introduce yourself!\n" +
           "\n";
   static final String TRACKING_WARNING = "" +
-      "We now gather anonymous usage data (e.g., operating system, version number) to help\n" +
-      "our community prioritize fixes and features. If you do not want to contribute\n" +
-      "your usage data, please uncheck that setting in the Settings tab.\n";
+      "We now send usage data (e.g., operating system, version number) and crash logs\n" +
+      "to the core developers to help prioritize features and fixes. If you do not\n" +
+      "want to contribute your usage data or crash logs, please uncheck that setting\n" +
+      "in the Settings tab.\n";
   public static final String README_CONTENTS =
       "This ODK Briefcase storage area retains\n" +
           "all the forms and submissions that have been\n" +
@@ -89,5 +90,5 @@ public class MessageStrings {
           "features of this software. Use of this information will always follow the ODK\n" +
           "Community Privacy Policy.";
 
-  static final String TRACKING_CONSENT = "Gather anonymous usage data";
+  static final String TRACKING_CONSENT = "Send usage data and crash logs to core developers";
 }
