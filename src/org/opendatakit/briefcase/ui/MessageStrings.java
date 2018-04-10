@@ -62,9 +62,9 @@ public class MessageStrings {
           "\n";
   static final String TRACKING_WARNING = "" +
       "We now send usage data (e.g., operating system, version number) and crash logs\n" +
-      "to the core developers to help prioritize features and fixes. If you do not\n" +
-      "want to contribute your usage data or crash logs, please uncheck that setting\n" +
-      "in the Settings tab.\n";
+      "to the core developers to help prioritize features and fixes.\n\n" +
+      "If you do not want to contribute your usage data or crash logs, please uncheck\n" +
+      "that setting in the Settings tab.\n";
   public static final String README_CONTENTS =
       "This ODK Briefcase storage area retains\n" +
           "all the forms and submissions that have been\n" +
