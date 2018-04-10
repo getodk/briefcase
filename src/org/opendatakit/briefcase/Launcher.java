@@ -41,6 +41,10 @@ import org.opendatakit.common.cli.Cli;
  */
 public class Launcher {
   public static void main(String[] args) {
+    BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
+    if (!appPreferences.hasKey(BRIEFCASE_TRACKING_CONSENT_PROPERTY))
+      appPreferences.put(BRIEFCASE_TRACKING_CONSENT_PROPERTY, TRUE.toString());
+
     if (SENTRY_ENABLED)
       Sentry.init(String.format(
           "%s?release=%s&stacktrace.app.packages=org.opendatakit&tags=os:%s,jvm:%s",
@@ -50,9 +54,6 @@ public class Launcher {
           System.getProperty("java.version")
       ));
 
-    BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
-    if (!appPreferences.hasKey(BRIEFCASE_TRACKING_CONSENT_PROPERTY))
-      appPreferences.put(BRIEFCASE_TRACKING_CONSENT_PROPERTY, TRUE.toString());
 
     new Cli()
         .deprecate(DEPRECATED_PULL_AGGREGATE, PULL_FORM_FROM_AGGREGATE)
