@@ -8,39 +8,42 @@ import java.awt.Container;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public interface Source<T> {
-  Source<AggregateServerConnectionConfiguration> AGGREGATE = new Source<AggregateServerConnectionConfiguration>() {
-    @Override
-    public void onSelect(Container container, Consumer<AggregateServerConnectionConfiguration> callback) {
-      AggregateServerConnectionDialog dialog = AggregateServerConnectionDialog.empty(__ -> true);
-      dialog.onConnect(callback);
-      dialog.getForm().setVisible(true);
-    }
+public final class Source<T> {
 
-    @Override
-    public String toString() {
-      return "ODK Aggregate Server";
-    }
-  };
+  private final String label;
+  private final BiConsumer<Container, Consumer<T>> onSelectCallback;
 
-  Source<Path> CUSTOM_DIR = new Source<Path>() {
-    @Override
-    public void onSelect(Container container, Consumer<Path> callback) {
-      FileChooser fc = FileChooser.directory(container,
-          Optional.empty(),
-          f -> f.exists() && f.isDirectory() && !isUnderBriefcaseFolder(f) && !isUnderODKFolder(f) && isODKInstancesParentFolder(f),
-          "Check for valid ODK Directories");
-      fc.choose().ifPresent(file -> callback.accept(Paths.get(file.getAbsolutePath())));
-    }
+  public Source(String label, BiConsumer<Container, Consumer<T>> onSelectCallback) {
+    this.label = label;
+    this.onSelectCallback = onSelectCallback;
+  }
 
-    @Override
-    public String toString() {
-      return "Custom ODK Directory";
-    }
-  };
+  public static final Source<AggregateServerConnectionConfiguration> AGGREGATE = new Source<>("ODK Aggregate Server",
+      (container, callback) -> {
+        AggregateServerConnectionDialog dialog = AggregateServerConnectionDialog.empty(__ -> true);
+        dialog.onConnect(callback);
+        dialog.getForm().setVisible(true);
+      });
 
-  void onSelect(Container container, Consumer<T> callback);
+  public static final Source<Path> CUSTOM_DIR = new Source<>("Custom ODK Directory",
+      (container, callback) -> {
+        FileChooser fc = FileChooser.directory(container,
+            Optional.empty(),
+            f -> f.exists() && f.isDirectory() && !isUnderBriefcaseFolder(f) && !isUnderODKFolder(f) && isODKInstancesParentFolder(f),
+            "Check for valid ODK Directories");
+        fc.choose().ifPresent(file -> callback.accept(Paths.get(file.getAbsolutePath())));
+      });
+
+  void onSelect(Container container, Consumer<T> callback) {
+    onSelectCallback.accept(container, callback);
+  }
+
+  @Override
+  public String toString() {
+    return label;
+  }
 }
 
