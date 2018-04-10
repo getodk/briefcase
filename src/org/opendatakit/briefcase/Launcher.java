@@ -45,7 +45,7 @@ public class Launcher {
     if (!appPreferences.hasKey(BRIEFCASE_TRACKING_CONSENT_PROPERTY))
       appPreferences.put(BRIEFCASE_TRACKING_CONSENT_PROPERTY, TRUE.toString());
 
-    if (SENTRY_ENABLED)
+    if (SENTRY_ENABLED) {
       Sentry.init(String.format(
           "%s?release=%s&stacktrace.app.packages=org.opendatakit&tags=os:%s,jvm:%s",
           SENTRY_DSN,
@@ -54,6 +54,13 @@ public class Launcher {
           System.getProperty("java.version")
       ));
 
+      // Add a callback that will prevent sending crash reports to Sentry
+      // if the user disables tracking
+      Sentry.getStoredClient().addShouldSendEventCallback(event -> appPreferences
+          .nullSafeGet(BRIEFCASE_TRACKING_CONSENT_PROPERTY)
+          .map(Boolean::valueOf)
+          .orElse(true));
+    }
 
     new Cli()
         .deprecate(DEPRECATED_PULL_AGGREGATE, PULL_FORM_FROM_AGGREGATE)
