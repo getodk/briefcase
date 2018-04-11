@@ -39,6 +39,7 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
@@ -387,6 +388,12 @@ public class AggregateUtils {
     } catch (UnknownHostException e) {
       String msg = description.getFetchDocFailed() + "Unknown host";
       log.warn(msg, e);
+      throw new XmlDocumentFetchException(msg);
+    } catch (ConnectTimeoutException e) {
+      // We need to anonymize the host info that comes on the
+      // exception's message before logging the exception
+      String msg = description.getFetchDocFailed() + "Connection timeout";
+      log.warn(msg, e.getCause());
       throw new XmlDocumentFetchException(msg);
     } catch (IOException | MetadataUpdateException e) {
       String msg = description.getFetchDocFailed() + "Unexpected exception: " + e;
