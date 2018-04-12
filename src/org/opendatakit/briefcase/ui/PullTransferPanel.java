@@ -93,7 +93,6 @@ public class PullTransferPanel extends JPanel {
 
   private boolean transferStateActive = false;
   private TerminationFuture terminationFuture;
-  private SourceConfigurationPanel sourceConfPanel;
 
   /**
    * UI changes related to the selection of the origin location from drop-down
@@ -284,7 +283,7 @@ public class PullTransferPanel extends JPanel {
     formTransferTable.setSourceSelected(true);
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
 
-    sourceConfPanel = new SourceConfigurationPanel();
+    SourceConfigurationPanel sourceConfPanel = SourceConfigurationPanel.pull();
 
     GroupLayout groupLayout = new GroupLayout(this);
     groupLayout.setHorizontalGroup(groupLayout

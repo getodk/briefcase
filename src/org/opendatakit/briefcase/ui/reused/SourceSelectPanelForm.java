@@ -19,14 +19,14 @@ public class SourceSelectPanelForm extends JComponent {
   private JComboBox<Source> sourceComboBox;
   private JButton configureButton;
   public JPanel container;
+  private JLabel actionLabel;
   private final List<Consumer<AggregateServerConnectionConfiguration>> onAggregateSourceCallback = new ArrayList<>();
   private final List<Consumer<Path>> onCustomDirectorySourceCallbacks = new ArrayList<>();
-  public static final String SOURCE_AGGREGATE = "Aggregate Server";
-  public static final String SOURCE_CUSTOM_DIR = "Custom ODK Directory";
 
-  SourceSelectPanelForm() {
+  SourceSelectPanelForm(String action) {
     $$$setupUI$$$();
     setupComboBox();
+    actionLabel.setText(action);
 
     configureButton.addActionListener(__ -> {
       configureButton.setEnabled(false);
@@ -85,13 +85,13 @@ public class SourceSelectPanelForm extends JComponent {
   private void $$$setupUI$$$() {
     container = new JPanel();
     container.setLayout(new GridBagLayout());
-    final JLabel label1 = new JLabel();
-    label1.setText("Pull Data From");
+    actionLabel = new JLabel();
+    actionLabel.setText("Pull Data From");
     GridBagConstraints gbc;
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 0;
-    container.add(label1, gbc);
+    container.add(actionLabel, gbc);
     sourceComboBox = new JComboBox();
     final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
     sourceComboBox.setModel(defaultComboBoxModel1);

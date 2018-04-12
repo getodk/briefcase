@@ -14,9 +14,8 @@ public class SourceConfigurationPanel {
   private final List<Consumer<Path>> onCustomDirectorySourceCallbacks = new ArrayList<>();
   private final List<Runnable> onResetCallbacks = new ArrayList<>();
 
-  public SourceConfigurationPanel() {
-    SourceSelectPanelForm selectSourceView = new SourceSelectPanelForm();
-    SourceDisplayPanelForm showSourceView = SourceDisplayPanelForm.empty();
+  public SourceConfigurationPanel(SourceSelectPanelForm selectSourceView, SourceDisplayPanelForm showSourceView) {
+
     container.addForm(SELECT_SOURCE_VIEW, selectSourceView.container);
     container.addForm(SHOW_SOURCE_VIEW, showSourceView.container);
 
@@ -38,6 +37,16 @@ public class SourceConfigurationPanel {
     });
 
     container.navigateTo(SELECT_SOURCE_VIEW);
+  }
+
+  public static SourceConfigurationPanel pull() {
+    return new SourceConfigurationPanel(new SourceSelectPanelForm("Pull Data From"),
+        SourceDisplayPanelForm.empty("Pulling data from"));
+  }
+
+  public static SourceConfigurationPanel push() {
+    return new SourceConfigurationPanel(new SourceSelectPanelForm("Push Data To"),
+        SourceDisplayPanelForm.empty("Pushing Data To"));
   }
 
   public void onAggregateConnection(Consumer<AggregateServerConnectionConfiguration> consumer) {

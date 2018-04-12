@@ -16,18 +16,20 @@ public class SourceDisplayPanelForm extends JComponent {
   private JLabel sourceLabel;
   private JLabel sourceAddressLabel;
   private JButton resetButton;
+  private JLabel actionLabel;
   private List<Runnable> onResetCallbacks = new ArrayList<>();
 
-  public SourceDisplayPanelForm(String source, String sourceAddress) {
+  public SourceDisplayPanelForm(String action, String source, String sourceAddress) {
     $$$setupUI$$$();
     sourceLabel.setText(source);
     sourceAddressLabel.setText(sourceAddress);
+    actionLabel.setText(action);
 
     resetButton.addActionListener(__ -> onResetCallbacks.forEach(Runnable::run));
   }
 
-  static SourceDisplayPanelForm empty() {
-    return new SourceDisplayPanelForm("", "");
+  static SourceDisplayPanelForm empty(String action) {
+    return new SourceDisplayPanelForm(action, "", "");
   }
 
   public void onReset(Runnable callback) {
@@ -62,13 +64,13 @@ public class SourceDisplayPanelForm extends JComponent {
   private void $$$setupUI$$$() {
     container = new JPanel();
     container.setLayout(new GridBagLayout());
-    final JLabel label1 = new JLabel();
-    label1.setText("Pulling data from ");
+    actionLabel = new JLabel();
+    actionLabel.setText("Pulling data from ");
     GridBagConstraints gbc;
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 0;
-    container.add(label1, gbc);
+    container.add(actionLabel, gbc);
     final JPanel spacer1 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
@@ -111,5 +113,4 @@ public class SourceDisplayPanelForm extends JComponent {
   public JComponent $$$getRootComponent$$$() {
     return container;
   }
-
 }
