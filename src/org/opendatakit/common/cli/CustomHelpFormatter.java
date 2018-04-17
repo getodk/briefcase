@@ -94,7 +94,8 @@ class CustomHelpFormatter {
 
   private static void printUsage() {
     System.out.println("");
-    System.out.println("Usage: java -jar " + jarFile + " <params>");
+    System.out.println("Launch the GUI with: java -jar " + jarFile);
+    System.out.println("Launch a CLI operation with: java -jar " + jarFile + " <operation> <params>");
     System.out.println("");
   }
 
