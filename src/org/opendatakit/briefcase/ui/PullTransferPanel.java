@@ -36,6 +36,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
@@ -45,7 +46,6 @@ import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.EndPointType;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
@@ -73,7 +73,6 @@ public class PullTransferPanel extends JPanel {
 
   public static final String TAB_NAME = "Pull";
 
-  private static final String DOWNLOADING_DOT_ETC = "Downloading..........";
   private final BriefcasePreferences tabPreferences;
   private final BriefcasePreferences appPreferences;
   private final Analytics analytics;
@@ -86,12 +85,13 @@ public class PullTransferPanel extends JPanel {
 
   private FormTransferTable formTransferTable;
   private JButton btnSelectOrClearAllForms;
-  private JLabel lblDownloading;
   private JButton btnTransfer;
   private JButton btnCancel;
 
   private boolean transferStateActive = false;
   private TerminationFuture terminationFuture;
+
+  private JProgressBar pbDownloading;
 
   /**
    * UI changes related to the selection of the origin location from drop-down
@@ -270,8 +270,11 @@ public class PullTransferPanel extends JPanel {
 
     btnSelectOrClearAllForms = new JButton("Select all");
 
-    lblDownloading = new JLabel(DOWNLOADING_DOT_ETC);
-    lblDownloading.setForeground(lblDownloading.getBackground());
+    pbDownloading = new JProgressBar();
+    pbDownloading.setEnabled(true);
+    pbDownloading.setIndeterminate(true);
+    pbDownloading.setStringPainted(false);
+    pbDownloading.setVisible(false);
     btnTransfer = new JButton(TAB_NAME);
     btnCancel = new JButton("Cancel");
     btnCancel.addActionListener(__ -> PullTransferPanel.this.terminationFuture.markAsCancelled(
@@ -313,7 +316,7 @@ public class PullTransferPanel extends JPanel {
                     Short.MAX_VALUE)
                 .addGroup(
                     groupLayout.createSequentialGroup().addComponent(btnSelectOrClearAllForms)
-                        .addPreferredGap(ComponentPlacement.RELATED).addComponent(lblDownloading))
+                        .addPreferredGap(ComponentPlacement.RELATED).addComponent(pbDownloading, 0, GroupLayout.DEFAULT_SIZE, 150))
                 .addGroup(
                     Alignment.TRAILING,
                     groupLayout.createSequentialGroup().addPreferredGap(ComponentPlacement.RELATED)
@@ -334,7 +337,7 @@ public class PullTransferPanel extends JPanel {
         .addPreferredGap(ComponentPlacement.RELATED)
         .addGroup(
             groupLayout.createParallelGroup(Alignment.BASELINE)
-                .addComponent(btnSelectOrClearAllForms).addComponent(lblDownloading)
+                .addComponent(btnSelectOrClearAllForms).addComponent(pbDownloading)
                 .addComponent(btnTransfer).addComponent(btnCancel)).addContainerGap());
     setLayout(groupLayout);
 
@@ -345,7 +348,6 @@ public class PullTransferPanel extends JPanel {
     btnTransfer.addActionListener(new TransferActionListener());
 
     setActiveTransferState(transferStateActive);
-    lblDownloading.setText("                     ");
   }
 
   @Override
@@ -395,16 +397,6 @@ public class PullTransferPanel extends JPanel {
     }
   }
 
-  private void updateDownloadingLabel() {
-    String text = lblDownloading.getText();
-    if (text.equals(DOWNLOADING_DOT_ETC)) {
-      text = "Downloading.";
-    } else {
-      text += ".";
-    }
-    lblDownloading.setText(text);
-  }
-
   private void setTxtOriginEnabled(boolean active) {
     EndPointType selection = getSelectedEndPointType();
 
@@ -431,9 +423,7 @@ public class PullTransferPanel extends JPanel {
       btnTransfer.setEnabled(false);
       // enable cancel button
       btnCancel.setEnabled(true);
-      // show downloading progress text
-      lblDownloading.setText(DOWNLOADING_DOT_ETC);
-      lblDownloading.setForeground(lblOrigin.getForeground());
+      pbDownloading.setVisible(true);
       // reset the termination future so we can cancel activity
       terminationFuture.reset();
     } else {
@@ -444,10 +434,7 @@ public class PullTransferPanel extends JPanel {
       btnTransfer.setEnabled(!formTransferTable.getSelectedForms().isEmpty());
       // disable cancel button
       btnCancel.setEnabled(false);
-      // hide downloading progress text (by setting foreground color to
-      // background)
-      lblDownloading.setText(DOWNLOADING_DOT_ETC);
-      lblDownloading.setForeground(lblDownloading.getBackground());
+      pbDownloading.setVisible(false);
     }
     // remember state...
     transferStateActive = active;
@@ -487,11 +474,6 @@ public class PullTransferPanel extends JPanel {
       });
     }
     analytics.event("Pull", "Transfer", "Success", null);
-  }
-
-  @EventSubscriber(eventClass = FormStatusEvent.class)
-  public void onFormStatusEvent(FormStatusEvent fse) {
-    updateDownloadingLabel();
   }
 
   @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
