@@ -87,6 +87,7 @@ class CustomHelpFormatter {
   private static void printAvailableOperations(Map<String, String> helpLinesPerShortcode, Set<Operation> operations) {
     System.out.println("Available operations:");
     operations.stream()
+        .filter(o -> !o.isDeprecated())
         .sorted(Comparator.comparing(operation -> operation.param.shortCode))
         .forEach(operation -> System.out.println(helpLinesPerShortcode.get(operation.param.shortCode)));
     System.out.println("");
@@ -111,7 +112,7 @@ class CustomHelpFormatter {
     HelpFormatter helpFormatter = new HelpFormatter();
     helpFormatter.printHelp(pw, 999, "ignore", "ignore", options, 0, 4, "ignore");
     return Stream.of(out.toString().split("\n"))
-        .filter(line -> line.startsWith("-"))
+        .filter(line -> line.startsWith("-") && line.contains(","))
         .collect(toMap(
             (String line) -> line.substring(1, line.indexOf(",")),
             Function.identity()
