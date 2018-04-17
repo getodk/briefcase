@@ -161,7 +161,7 @@ public class Cli {
     try {
       return new DefaultParser().parse(mapToOptions(params), args, false);
     } catch (UnrecognizedOptionException | MissingArgumentException e) {
-      System.err.println(e.getMessage());
+      System.err.println("Error: " + e.getMessage());
       log.error("Error", e);
       printHelp();
       System.exit(1);
