@@ -25,8 +25,8 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -73,10 +73,7 @@ public class FormTransferTable extends JTable {
     }
   }
 
-  public class JTableButtonMouseListener implements MouseListener {
-    public JTableButtonMouseListener() {
-    }
-
+  public class JTableButtonMouseListener extends MouseAdapter {
     @Override
     public void mouseClicked(MouseEvent e) {
       int column = FormTransferTable.this.getColumnModel().getColumnIndexAtX(e.getX());
@@ -89,22 +86,6 @@ public class FormTransferTable extends JTable {
           ((JButton) value).doClick();
         }
       }
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
     }
   }
 

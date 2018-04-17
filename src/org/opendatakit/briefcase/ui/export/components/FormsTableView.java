@@ -28,7 +28,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import org.opendatakit.briefcase.ui.reused.MouseListenerBuilder;
+import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 
 public class FormsTableView extends JTable {
   static final String[] HEADERS = new String[]{"", "", "Form Name", "Export Status", "Last Export", ""};
@@ -46,7 +46,7 @@ public class FormsTableView extends JTable {
     super(model);
     setName("forms");
 
-    addMouseListener(new MouseListenerBuilder().onClick(this::relayClickToButton).build());
+    addMouseListener(new MouseAdapterBuilder().onClick(this::relayClickToButton).build());
 
     Dimension formNameDims = getHeaderDimension(HEADERS[FORM_NAME_COL]);
     Dimension exportStatusDims = getHeaderDimension(HEADERS[EXPORT_STATUS_COL]);

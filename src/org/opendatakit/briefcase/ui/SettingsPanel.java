@@ -2,8 +2,8 @@ package org.opendatakit.briefcase.ui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.io.File;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -12,8 +12,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.apache.http.HttpHost;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -74,13 +72,16 @@ public class SettingsPanel extends JPanel {
       }
     });
 
-    ProxyChangeListener proxyChangeListener = new ProxyChangeListener();
-
     txtHost.setEnabled(false);
-    txtHost.addFocusListener(proxyChangeListener);
+    txtHost.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusLost(FocusEvent e) {
+        updateProxySettings();
+      }
+    });
 
     spinPort.setEnabled(false);
-    spinPort.addChangeListener(proxyChangeListener);
+    spinPort.addChangeListener(e -> updateProxySettings());
 
     chkProxy.setSelected(false);
     chkProxy.addActionListener(new ProxyToggleListener());
@@ -212,24 +213,6 @@ public class SettingsPanel extends JPanel {
           BriefcasePreferences.setBriefcaseProxyProperty(null);
         }
       }
-    }
-
-  }
-
-  class ProxyChangeListener implements FocusListener, ChangeListener {
-
-    @Override
-    public void focusGained(FocusEvent e) {
-    }
-
-    @Override
-    public void focusLost(FocusEvent e) {
-      updateProxySettings();
-    }
-
-    @Override
-    public void stateChanged(ChangeEvent e) {
-      updateProxySettings();
     }
 
   }
