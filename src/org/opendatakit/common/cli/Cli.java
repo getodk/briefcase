@@ -73,7 +73,7 @@ public class Cli {
    * @return self {@link Cli} instance to chain more method calls
    */
   public Cli deprecate(Param<?> oldParam, Operation alternative) {
-    operations.add(Operation.of(oldParam, __ -> {
+    operations.add(Operation.deprecated(oldParam, __ -> {
       log.warn("Trying to run deprecated param -{}", oldParam.shortCode);
       System.out.println("The param -" + oldParam.shortCode + " has been deprecated. Run Briefcase again with -" + alternative.param.shortCode + " instead");
       printHelp();
