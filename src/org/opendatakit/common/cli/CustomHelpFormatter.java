@@ -6,8 +6,11 @@ import static org.opendatakit.common.cli.Cli.mapToOptions;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -15,6 +18,28 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
 class CustomHelpFormatter {
+  private static String jarFile;
+
+  static {
+    try {
+      jarFile = Optional.ofNullable(System.getProperty("java.class.path"))
+          .filter(classpath -> !classpath.isEmpty())
+          .map(Paths::get)
+          .filter(Files::isRegularFile)
+          .map(Object::toString)
+          .map(filename -> {
+            // The easiest way to make paths with spaces work both on
+            // Windows & Unix is to wrap the path in double quotes
+            return filename.contains(" ") ? '"' + filename + '"' : filename;
+          })
+          .orElse("briefcase.jar");
+    } catch (Throwable t) {
+      // We can't allow this code to break Briefcase execution.
+      // In case of any problem, we'll just use the default "briefcase.jar" value
+      jarFile = "briefcase.jar";
+    }
+  }
+
   static void printHelp(Set<Operation> requiredOperations, Set<Operation> operations) {
     printUsage();
     Map<String, String> helpLinesPerShortcode = getParamHelpLines(requiredOperations, operations);
@@ -68,7 +93,8 @@ class CustomHelpFormatter {
   }
 
   private static void printUsage() {
-    System.out.println("Usage: java -jar briefcase.jar <params>");
+    System.out.println("");
+    System.out.println("Usage: java -jar " + jarFile + " <params>");
     System.out.println("");
   }
 
