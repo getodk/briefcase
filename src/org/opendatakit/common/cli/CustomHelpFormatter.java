@@ -78,7 +78,7 @@ class CustomHelpFormatter {
   }
 
   private static void printOptionalParams(Map<String, String> helpLinesPerShortcode, Operation operation) {
-    System.out.println("  (optionally)");
+    System.out.println("Optional params for -" + operation.param.shortCode + " operation:");
     operation.optionalParams.stream()
         .sorted(Comparator.comparing(param -> param.shortCode))
         .forEach(param -> System.out.println("  " + helpLinesPerShortcode.get(param.shortCode)));
