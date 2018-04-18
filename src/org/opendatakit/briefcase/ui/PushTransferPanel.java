@@ -29,6 +29,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
@@ -39,7 +40,6 @@ import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.EndPointType;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
@@ -63,7 +63,6 @@ public class PushTransferPanel extends JPanel {
 
   public static final String TAB_NAME = "Push";
 
-  private static final String UPLOADING_DOT_ETC = "Uploading..........";
   private final BriefcasePreferences tabPreferences;
   private final Analytics analytics;
 
@@ -75,12 +74,13 @@ public class PushTransferPanel extends JPanel {
 
   private FormTransferTable formTransferTable;
   private JButton btnSelectOrClearAllForms;
-  private JLabel lblUploading;
   private JButton btnTransfer;
   private JButton btnCancel;
 
   private boolean transferStateActive = false;
   private TerminationFuture terminationFuture;
+
+  private JProgressBar pbUploading;
 
   /**
    * UI changes related to the selection of the destination location from
@@ -198,8 +198,11 @@ public class PushTransferPanel extends JPanel {
 
     btnSelectOrClearAllForms = new JButton("Select all");
 
-    lblUploading = new JLabel(UPLOADING_DOT_ETC);
-    lblUploading.setForeground(lblUploading.getBackground());
+    pbUploading = new JProgressBar();
+    pbUploading.setEnabled(true);
+    pbUploading.setVisible(false);
+    pbUploading.setStringPainted(false);
+    pbUploading.setIndeterminate(true);
     btnTransfer = new JButton(TAB_NAME);
     btnCancel = new JButton("Cancel");
     btnCancel.addActionListener(__ -> PushTransferPanel.this.terminationFuture.markAsCancelled(
@@ -243,7 +246,7 @@ public class PushTransferPanel extends JPanel {
                     Short.MAX_VALUE)
                 .addGroup(
                     groupLayout.createSequentialGroup().addComponent(btnSelectOrClearAllForms)
-                        .addPreferredGap(ComponentPlacement.RELATED).addComponent(lblUploading))
+                        .addPreferredGap(ComponentPlacement.RELATED).addComponent(pbUploading, 0, GroupLayout.DEFAULT_SIZE, 150))
                 .addGroup(
                     Alignment.TRAILING,
                     groupLayout.createSequentialGroup().addPreferredGap(ComponentPlacement.RELATED)
@@ -264,7 +267,7 @@ public class PushTransferPanel extends JPanel {
         .addPreferredGap(ComponentPlacement.RELATED)
         .addGroup(
             groupLayout.createParallelGroup(Alignment.BASELINE)
-                .addComponent(btnSelectOrClearAllForms).addComponent(lblUploading)
+                .addComponent(btnSelectOrClearAllForms).addComponent(pbUploading)
                 .addComponent(btnTransfer).addComponent(btnCancel)).addContainerGap());
     setLayout(groupLayout);
     listDestinationDataSink.setSelectedIndex(0);
@@ -298,16 +301,6 @@ public class PushTransferPanel extends JPanel {
     formTransferTable.setFormStatusList(statuses);
   }
 
-  private void updateUploadingLabel() {
-    String text = lblUploading.getText();
-    if (text.equals(UPLOADING_DOT_ETC)) {
-      text = "Uploading.";
-    } else {
-      text += ".";
-    }
-    lblUploading.setText(text);
-  }
-
   private void setActiveTransferState(boolean active) {
     if (active) {
       // don't allow normal actions when we are transferring...
@@ -317,9 +310,7 @@ public class PushTransferPanel extends JPanel {
       btnTransfer.setEnabled(false);
       // enable cancel button
       btnCancel.setEnabled(true);
-      // show downloading progress text
-      lblUploading.setText(UPLOADING_DOT_ETC);
-      lblUploading.setForeground(lblDestination.getForeground());
+      pbUploading.setVisible(true);
       // reset the termination future so we can cancel activity
       terminationFuture.reset();
     } else {
@@ -330,10 +321,7 @@ public class PushTransferPanel extends JPanel {
       btnTransfer.setEnabled(!formTransferTable.getSelectedForms().isEmpty() && !TextUtils.isEmpty(txtDestinationName.getText()));
       // disable cancel button
       btnCancel.setEnabled(false);
-      // hide downloading progress text (by setting foreground color to
-      // background)
-      lblUploading.setText(UPLOADING_DOT_ETC);
-      lblUploading.setForeground(lblUploading.getBackground());
+      pbUploading.setVisible(false);
     }
     // remember state...
     transferStateActive = active;
@@ -363,11 +351,6 @@ public class PushTransferPanel extends JPanel {
   public void successfulCompletion(TransferSucceededEvent event) {
     setActiveTransferState(false);
     analytics.event("Push", "Transfer", "Success", null);
-  }
-
-  @EventSubscriber(eventClass = FormStatusEvent.class)
-  public void updateDetailedStatus(FormStatusEvent fse) {
-    updateUploadingLabel();
   }
 
   @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
