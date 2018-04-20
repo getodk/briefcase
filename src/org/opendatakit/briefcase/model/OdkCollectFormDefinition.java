@@ -98,7 +98,7 @@ public class OdkCollectFormDefinition implements IFormDefinition {
    */
   @Override
   public String getVersionString() {
-    return formDefn.getSubmissionElementDefn().versionString;
+    return formDefn.getSubmissionElementDefn().modelVersion;
   }
 
   public File getFormDefinitionFile() {

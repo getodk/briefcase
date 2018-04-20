@@ -724,13 +724,13 @@ public class BaseFormParserForJavaRosa implements Serializable {
     // form upload. The comparison is string-based, not
     // numeric-based (OpenRosa compliance). The recommended
     // version format is: yyyymmddnn e.g., 2012060100
-    String ivs = incomingParser.rootElementDefn.versionString;
+    String ivs = incomingParser.rootElementDefn.modelVersion;
     if (ivs == null) {
       // if we are changing the file, the new file must have a version string
       return DifferenceResult.XFORMS_MISSING_VERSION;
     }
 
-    String evs = existingParser.rootElementDefn.versionString;
+    String evs = existingParser.rootElementDefn.modelVersion;
     boolean modelVersionSame = (incomingParser.rootElementDefn.modelVersion == null) ? (existingParser.rootElementDefn.modelVersion == null)
         : incomingParser.rootElementDefn.modelVersion
         .equals(existingParser.rootElementDefn.modelVersion);
