@@ -89,7 +89,7 @@ class CustomHelpFormatter {
     operations.stream()
         .filter(o -> !o.isDeprecated())
         .sorted(Comparator.comparing(operation -> operation.param.shortCode))
-        .forEach(operation -> System.out.println(helpLinesPerShortcode.get(operation.param.shortCode)));
+        .forEach(operation -> System.out.println("  " + helpLinesPerShortcode.get(operation.param.shortCode)));
     System.out.println("");
   }
 
