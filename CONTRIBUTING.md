@@ -36,10 +36,6 @@ To contribute code to ODK Briefcase, you will need to open a [pull request](http
 
 1. Keep your pull request focused on one narrow goal. This could mean addressing an issue with multiple, smaller pull requests. Small pull requests are easier to review and less likely to introduce bugs. If you would like to make stylistic changes to the code, create a separate pull request.
 
-1. Use an automatic code reformatting tool with the correct code style scheme. If you are using IntelliJ, there is a code style scheme definition that you should [import](https://www.jetbrains.com/help/idea/copying-code-style-settings.html) and use at `IntelliJ code style.xml` (at the root of the project).
-
-    If your PR modifies any of the checkstyle rules, be sure to sync the IntelliJ code style scheme accordingly.
-
 1. Run `./gradlew lint` and `./gradlew check` and fix any errors.
 
 1. Write clear code. Use descriptive names and create meaningful abstractions (methods, classes).
