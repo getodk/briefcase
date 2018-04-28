@@ -38,10 +38,10 @@ import org.slf4j.LoggerFactory;
 public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
 
   private static final Logger log = LoggerFactory.getLogger(BriefcaseFormDefinition.class);
-  private final File formFolder;
-  private final File revisedFormFile;
-  private boolean needsMediaUpdate = false;
-  private JavaRosaParserWrapper formDefn;
+  public final File formFolder;
+  public final File revisedFormFile;
+  public boolean needsMediaUpdate = false;
+  public JavaRosaParserWrapper formDefn;
   private PrivateKey privateKey = null;
 
   private static final String readFile(File formDefinitionFile) throws BadFormDefinition {

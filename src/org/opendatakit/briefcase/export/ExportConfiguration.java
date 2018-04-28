@@ -24,9 +24,15 @@ import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_DATE_RANGE_MES
 import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyPair;
+import java.security.PrivateKey;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -40,7 +46,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import org.bouncycastle.openssl.PEMReader;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.CryptoException;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class ExportConfiguration {
   private static final String EXPORT_DIR = "exportDir";
@@ -393,5 +402,40 @@ public class ExportConfiguration {
   @Override
   public int hashCode() {
     return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, pullBeforeOverride, overwriteExistingFiles);
+  }
+
+  public static PrivateKey readPemFile(Path pemFile) {
+    try (InputStream in = Files.newInputStream(pemFile);
+         InputStreamReader inr = new InputStreamReader(in, "UTF-8");
+         BufferedReader reader = new BufferedReader(inr);
+         PEMReader pemReader = new PEMReader(reader)
+    ) {
+      return Optional.ofNullable(pemReader.readObject())
+          .flatMap(ExportConfiguration::extractPrivateKey)
+          .orElseThrow(() -> new CryptoException("Supplied PEM file is not valid"));
+    } catch (IOException e) {
+      throw new CryptoException("Can't read supplied PEM file", e);
+    }
+  }
+
+  private static Optional<PrivateKey> extractPrivateKey(Object o) {
+    if (o instanceof KeyPair)
+      return Optional.of(((KeyPair) o).getPrivate());
+    if (o instanceof PrivateKey)
+      return Optional.of((PrivateKey) o);
+    return Optional.empty();
+  }
+
+  public Optional<PrivateKey> getPrivateKey() {
+    return pemFile.map(ExportConfiguration::readPemFile);
+  }
+
+  public DateRange getDateRange() {
+    return new DateRange(startDate, endDate);
+  }
+
+  public Path getExportMediaPath() {
+    return exportDir.map(dir -> dir.resolve("media"))
+        .orElseThrow(() -> new BriefcaseException("No export dir configured"));
   }
 }

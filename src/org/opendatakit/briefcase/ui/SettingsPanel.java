@@ -30,6 +30,7 @@ public class SettingsPanel extends JPanel {
   private final JTextField txtHost = new JTextField();
   private final JSpinner spinPort = new JIntegerSpinner(8080, 0, 65535, 1);
   private final JCheckBox chkParallel = new JCheckBox(MessageStrings.PARALLEL_PULLS);
+  private final JCheckBox chkOldExport = new JCheckBox("Use legacy export process");
   private final JCheckBox chkTrackingConsent = new JCheckBox(MessageStrings.TRACKING_CONSENT);
   private final JCheckBox chkStorePasswordsConsent = new JCheckBox("Remember passwords (unencrypted)");
 
@@ -89,6 +90,11 @@ public class SettingsPanel extends JPanel {
     chkParallel.setSelected(BriefcasePreferences.getBriefcaseParallelPullsProperty());
     chkParallel.addActionListener(new ParallelPullToggleListener());
 
+    chkOldExport.setSelected(BriefcasePreferences.getBriefcaseOldExport());
+    chkOldExport.addActionListener(__ ->
+        BriefcasePreferences.setBriefcaseOldExport(chkOldExport.isSelected())
+    );
+
     chkTrackingConsent.setSelected(BriefcasePreferences.getBriefcaseTrackingConsentProperty());
     chkTrackingConsent.addActionListener(__ -> {
       analytics.enableTracking(chkTrackingConsent.isSelected(), false);
@@ -127,6 +133,7 @@ public class SettingsPanel extends JPanel {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(chkProxy)
+                            .addComponent(chkOldExport)
                             .addComponent(chkParallel)
                             .addComponent(chkStorePasswordsConsent)
                             .addComponent(chkTrackingConsent)
@@ -152,6 +159,8 @@ public class SettingsPanel extends JPanel {
                     .addComponent(lblBriefcaseDir)
                     .addComponent(txtBriefcaseDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnChoose))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(chkOldExport)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(chkParallel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)

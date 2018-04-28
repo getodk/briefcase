@@ -1,0 +1,571 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa">
+  <h:head><!-- ODK Aggregate upload time: 2018-02-21T09:58:31.192+0000 on http://192.168.1.129:8080 -->
+    <h:title>Independent Monitoring</h:title>
+    <model>
+      <instance>
+        <independent-monitoring id="independent-monitoring-revised" version="2018012404">
+          <start_time/>
+          <end_time/>
+          <device_id/>
+          <phone_number/>
+          <user_name/>
+          <intro/>
+          <actual/>
+          <intra_post/>
+          <today_date/>
+          <province/>
+          <district/>
+          <dfa_code/>
+          <dfa_code_note/>
+          <team_number/>
+          <cluster_number/>
+          <round/>
+          <hh>
+            <hh_count/>
+            <hh_id>
+              <house_number/>
+              <elder_name/>
+            </hh_id>
+            <location/>
+            <correctly_marked/>
+            <children0-11>
+              <count_0-11/>
+              <vaccinated_0-11/>
+            </children0-11>
+            <children12-59>
+              <count_12-59/>
+              <vaccinated_12-59/>
+            </children12-59>
+            <missed_children/>
+            <missed_intra>
+              <total_reasons_intra/>
+              <not_available_intra/>
+              <house_not_visited_intra/>
+              <parents_refused_intra/>
+              <unknown_intra/>
+            </missed_intra>
+            <reasons_mismatch>Please go back and review the counts.</reasons_mismatch>
+            <missed_post>
+              <total_reasons_post/>
+              <not_available_post>
+                <parents_not_available/>
+                <child_in_school/>
+                <market_street/>
+                <child_traveling/>
+              </not_available_post>
+              <team_performance_post>
+                <no_visit_post/>
+                <child_asleep/>
+                <newborn/>
+                <visitor/>
+                <child_sick/>
+              </team_performance_post>
+              <refusal_post>
+                <religious/>
+                <no_faith/>
+                <fatigue/>
+                <rumour/>
+                <other_services/>
+                <no_response/>
+              </refusal_post>
+              <unknown_post/>
+              <reasons_mismatch>Please go back and review the counts.</reasons_mismatch>
+            </missed_post>
+            <campaign_awareness/>
+            <information_sources/>
+            <information_sources_other/>
+            <acute_paralysis/>
+            <hh_end/>
+            <hh_end_complete/>
+          </hh>
+          <hh_added/>
+          <hh_count_warning/>
+          <afp_cases>
+            <afp_cases_names/>
+            <afp_cases_numbers/>
+          </afp_cases>
+          <supervisor/>
+          <correctly_marked_total/>
+          <count_0-11_total/>
+          <vaccinated_0-11_total/>
+          <count_12-59_total/>
+          <vaccinated_12-59_total/>
+          <missed_children_total/>
+          <campaign_awareness_total/>
+          <acute_paralysis_total/>
+          <summary_note/>
+          <meta>
+            <instanceID/>
+            <instanceName/>
+          </meta>
+        </independent-monitoring>
+      </instance>
+      <bind jr:preload="timestamp" jr:preloadParams="start" nodeset="/independent-monitoring/start_time" type="dateTime"/>
+      <bind jr:preload="timestamp" jr:preloadParams="end" nodeset="/independent-monitoring/end_time" type="dateTime"/>
+      <bind jr:preload="property" jr:preloadParams="deviceid" nodeset="/independent-monitoring/device_id" type="string"/>
+      <bind jr:preload="property" jr:preloadParams="phonenumber" nodeset="/independent-monitoring/phone_number" type="string"/>
+      <bind jr:preload="property" jr:preloadParams="username" nodeset="/independent-monitoring/user_name" type="string"/>
+      <bind nodeset="/independent-monitoring/intro" readonly="true()" type="string"/>
+      <bind nodeset="/independent-monitoring/actual" required="true()" type="select1"/>
+      <bind nodeset="/independent-monitoring/intra_post" type="select1"/>
+      <bind constraint=". &lt;= today()" jr:constraintMsg="Future dates are not allowed." nodeset="/independent-monitoring/today_date" required="true()" type="date"/>
+      <bind nodeset="/independent-monitoring/province" required="true()" type="select1"/>
+      <bind nodeset="/independent-monitoring/district" required="true()" type="string"/>
+      <bind nodeset="/independent-monitoring/dfa_code" required="true()" type="string"/>
+      <bind nodeset="/independent-monitoring/dfa_code_note" readonly="true()" type="string"/>
+      <bind nodeset="/independent-monitoring/team_number" relevant=" /independent-monitoring/intra_post  = 'intra'" required="true()" type="string"/>
+      <bind nodeset="/independent-monitoring/cluster_number" relevant=" /independent-monitoring/intra_post  = 'post'" required="true()" type="string"/>
+      <bind constraint=". &gt;= 0" nodeset="/independent-monitoring/round" required="true()" type="int"/>
+      <bind calculate="position(..)" nodeset="/independent-monitoring/hh/hh_count" type="string"/>
+      <bind nodeset="/independent-monitoring/hh/hh_id/house_number" type="string"/>
+      <bind nodeset="/independent-monitoring/hh/hh_id/elder_name" type="string"/>
+      <bind nodeset="/independent-monitoring/hh/location" type="geopoint"/>
+      <bind nodeset="/independent-monitoring/hh/correctly_marked" required="true()" type="select1"/>
+      <bind constraint=". &gt;= 0" nodeset="/independent-monitoring/hh/children0-11/count_0-11" required="true()" type="int"/>
+      <bind constraint=". &lt;=  /independent-monitoring/hh/children0-11/count_0-11 " jr:constraintMsg="Number of vaccinated children can't be greater than total children." nodeset="/independent-monitoring/hh/children0-11/vaccinated_0-11" required="true()" type="int"/>
+      <bind constraint=". &gt;= 0" nodeset="/independent-monitoring/hh/children12-59/count_12-59" required="true()" type="int"/>
+      <bind constraint=". &lt;=  /independent-monitoring/hh/children12-59/count_12-59 " jr:constraintMsg="Number of vaccinated children can't be greater than total children." nodeset="/independent-monitoring/hh/children12-59/vaccinated_12-59" required="true()" type="int"/>
+      <bind calculate="( /independent-monitoring/hh/children0-11/count_0-11  -  /independent-monitoring/hh/children0-11/vaccinated_0-11 ) + ( /independent-monitoring/hh/children12-59/count_12-59  -  /independent-monitoring/hh/children12-59/vaccinated_12-59 )" nodeset="/independent-monitoring/hh/missed_children" type="string"/>
+      <bind nodeset="/independent-monitoring/hh/missed_intra" relevant=" /independent-monitoring/intra_post  = 'intra' and  /independent-monitoring/hh/missed_children  &gt; 0"/>
+      <bind calculate="if( /independent-monitoring/hh/missed_intra/not_available_intra  = '', 0,  /independent-monitoring/hh/missed_intra/not_available_intra ) + if( /independent-monitoring/hh/missed_intra/house_not_visited_intra  = '', 0,  /independent-monitoring/hh/missed_intra/house_not_visited_intra ) + if( /independent-monitoring/hh/missed_intra/parents_refused_intra  = '', 0,  /independent-monitoring/hh/missed_intra/parents_refused_intra ) + if( /independent-monitoring/hh/missed_intra/unknown_intra  = '', 0,  /independent-monitoring/hh/missed_intra/unknown_intra )" nodeset="/independent-monitoring/hh/missed_intra/total_reasons_intra" type="string"/>
+      <bind nodeset="/independent-monitoring/hh/missed_intra/not_available_intra" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_intra/house_not_visited_intra" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_intra/parents_refused_intra" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_intra/unknown_intra" type="int"/>
+      <bind constraint=" /independent-monitoring/hh/missed_intra/total_reasons_intra  =  /independent-monitoring/hh/missed_children " jr:constraintMsg="The sum of reasons must match the total number of children missed." nodeset="/independent-monitoring/hh/reasons_mismatch" readonly="true()" relevant=" /independent-monitoring/intra_post  = 'intra' and  /independent-monitoring/hh/missed_children  &gt; 0 and not( /independent-monitoring/hh/missed_intra/total_reasons_intra  =  /independent-monitoring/hh/missed_children )" type="string"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post" relevant=" /independent-monitoring/intra_post  = 'post' and  /independent-monitoring/hh/missed_children  &gt; 0"/>
+      <bind calculate="if( /independent-monitoring/hh/missed_post/not_available_post/parents_not_available  = '', 0,  /independent-monitoring/hh/missed_post/not_available_post/parents_not_available ) +
+if( /independent-monitoring/hh/missed_post/not_available_post/child_in_school  = '', 0,  /independent-monitoring/hh/missed_post/not_available_post/child_in_school ) +
+if( /independent-monitoring/hh/missed_post/not_available_post/market_street  = '', 0,  /independent-monitoring/hh/missed_post/not_available_post/market_street ) +
+if( /independent-monitoring/hh/missed_post/not_available_post/child_traveling  = '', 0,  /independent-monitoring/hh/missed_post/not_available_post/child_traveling ) +
+if( /independent-monitoring/hh/missed_post/team_performance_post/no_visit_post  = '', 0,  /independent-monitoring/hh/missed_post/team_performance_post/no_visit_post ) +
+if( /independent-monitoring/hh/missed_post/team_performance_post/child_asleep  = '', 0,  /independent-monitoring/hh/missed_post/team_performance_post/child_asleep ) +
+if( /independent-monitoring/hh/missed_post/team_performance_post/newborn  = '', 0,  /independent-monitoring/hh/missed_post/team_performance_post/newborn ) +
+if( /independent-monitoring/hh/missed_post/team_performance_post/visitor  = '', 0,  /independent-monitoring/hh/missed_post/team_performance_post/visitor ) +
+if( /independent-monitoring/hh/missed_post/team_performance_post/child_sick  = '', 0,  /independent-monitoring/hh/missed_post/team_performance_post/child_sick ) +
+if( /independent-monitoring/hh/missed_post/refusal_post/religious  = '', 0,  /independent-monitoring/hh/missed_post/refusal_post/religious ) +
+if( /independent-monitoring/hh/missed_post/refusal_post/no_faith  = '', 0,  /independent-monitoring/hh/missed_post/refusal_post/no_faith ) +
+if( /independent-monitoring/hh/missed_post/refusal_post/fatigue  = '', 0,  /independent-monitoring/hh/missed_post/refusal_post/fatigue ) +
+if( /independent-monitoring/hh/missed_post/refusal_post/rumour  = '', 0,  /independent-monitoring/hh/missed_post/refusal_post/rumour ) +
+if( /independent-monitoring/hh/missed_post/refusal_post/other_services  = '', 0,  /independent-monitoring/hh/missed_post/refusal_post/other_services ) +
+if( /independent-monitoring/hh/missed_post/refusal_post/no_response  = '', 0,  /independent-monitoring/hh/missed_post/refusal_post/no_response ) +
+if( /independent-monitoring/hh/missed_post/unknown_post  = '', 0,  /independent-monitoring/hh/missed_post/unknown_post )" nodeset="/independent-monitoring/hh/missed_post/total_reasons_post" type="string"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post/not_available_post/parents_not_available" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post/not_available_post/child_in_school" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post/not_available_post/market_street" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post/not_available_post/child_traveling" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post/team_performance_post/no_visit_post" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post/team_performance_post/child_asleep" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post/team_performance_post/newborn" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post/team_performance_post/visitor" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post/team_performance_post/child_sick" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post/refusal_post/religious" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post/refusal_post/no_faith" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post/refusal_post/fatigue" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post/refusal_post/rumour" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post/refusal_post/other_services" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post/refusal_post/no_response" type="int"/>
+      <bind nodeset="/independent-monitoring/hh/missed_post/unknown_post" type="int"/>
+      <bind constraint=" /independent-monitoring/hh/missed_post/total_reasons_post  =  /independent-monitoring/hh/missed_children " jr:constraintMsg="The total number of reasons must match the number of children missed." nodeset="/independent-monitoring/hh/missed_post/reasons_mismatch" readonly="true()" relevant=" /independent-monitoring/hh/missed_children  &gt; 0 and not( /independent-monitoring/hh/missed_post/total_reasons_post  =  /independent-monitoring/hh/missed_children )" type="string"/>
+      <bind nodeset="/independent-monitoring/hh/campaign_awareness" required="true()" type="select1"/>
+      <bind nodeset="/independent-monitoring/hh/information_sources" relevant=" /independent-monitoring/intra_post  = 'post' and  /independent-monitoring/hh/campaign_awareness  = 'yes'" required="true()" type="select"/>
+      <bind nodeset="/independent-monitoring/hh/information_sources_other" relevant=" /independent-monitoring/intra_post  = 'post' and selected( /independent-monitoring/hh/information_sources , 'others')" type="string"/>
+      <bind nodeset="/independent-monitoring/hh/acute_paralysis" required="true()" type="select1"/>
+      <bind nodeset="/independent-monitoring/hh/hh_end" readonly="true()" relevant=" /independent-monitoring/hh/hh_count  &lt; 10" type="string"/>
+      <bind nodeset="/independent-monitoring/hh/hh_end_complete" readonly="true()" relevant=" /independent-monitoring/hh/hh_count  = 10" type="string"/>
+      <bind calculate="count( /independent-monitoring/hh )" nodeset="/independent-monitoring/hh_added" type="string"/>
+      <bind nodeset="/independent-monitoring/hh_count_warning" readonly="true()" relevant=" /independent-monitoring/hh_added  &lt; 10" type="string"/>
+      <bind nodeset="/independent-monitoring/afp_cases/afp_cases_names" type="string"/>
+      <bind nodeset="/independent-monitoring/afp_cases/afp_cases_numbers" type="string"/>
+      <bind nodeset="/independent-monitoring/supervisor" required="true()" type="string"/>
+      <bind calculate="count( /independent-monitoring/hh [correctly_marked = 'yes'])" nodeset="/independent-monitoring/correctly_marked_total" type="string"/>
+      <bind calculate="sum( /independent-monitoring/hh/children0-11/count_0-11 )" nodeset="/independent-monitoring/count_0-11_total" type="string"/>
+      <bind calculate="sum( /independent-monitoring/hh/children0-11/vaccinated_0-11 )" nodeset="/independent-monitoring/vaccinated_0-11_total" type="string"/>
+      <bind calculate="sum( /independent-monitoring/hh/children12-59/count_12-59 )" nodeset="/independent-monitoring/count_12-59_total" type="string"/>
+      <bind calculate="sum( /independent-monitoring/hh/children12-59/vaccinated_12-59 )" nodeset="/independent-monitoring/vaccinated_12-59_total" type="string"/>
+      <bind calculate="sum( /independent-monitoring/hh/missed_children )" nodeset="/independent-monitoring/missed_children_total" type="string"/>
+      <bind calculate="count( /independent-monitoring/hh [campaign_awareness = 'yes'])" nodeset="/independent-monitoring/campaign_awareness_total" type="string"/>
+      <bind calculate="count( /independent-monitoring/hh [acute_paralysis = 'yes'])" nodeset="/independent-monitoring/acute_paralysis_total" type="string"/>
+      <bind nodeset="/independent-monitoring/summary_note" readonly="true()" type="string"/>
+      <bind calculate="concat('uuid:', uuid())" nodeset="/independent-monitoring/meta/instanceID" readonly="true()" type="string"/>
+      <bind calculate="concat( /independent-monitoring/intra_post , '-',  /independent-monitoring/dfa_code , '-',  /independent-monitoring/today_date )" nodeset="/independent-monitoring/meta/instanceName" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <input ref="/independent-monitoring/intro">
+      <label>&lt;br/&gt;
+        Campaign assessment by independent monitors
+        &lt;br/&gt;
+        In each area, visit 10 households with children &lt; 5 years and check if households were visited by vaccinators and if every child &lt;5 years was vaccinated (marked). &lt;br/&gt;
+        Use a new form for each area.
+      </label>
+    </input>
+    <select1 ref="/independent-monitoring/actual">
+      <label>Is this an actual survey or a practice round?</label>
+      <hint>You can use to the phone to improve your skills but please indicate below that this is a practice round</hint>
+      <item>
+        <label>Actual data</label>
+        <value>actual</value>
+      </item>
+      <item>
+        <label>Practice</label>
+        <value>practice</value>
+      </item>
+    </select1>
+    <select1 ref="/independent-monitoring/intra_post">
+      <label>Is this an intra-campaign assessment or a post-campaign assessment?</label>
+      <item>
+        <label>Intra-campaign</label>
+        <value>intra</value>
+      </item>
+      <item>
+        <label>Post-campaign</label>
+        <value>post</value>
+      </item>
+    </select1>
+    <input appearance="no-calendar" ref="/independent-monitoring/today_date">
+      <label>What is today's date?</label>
+    </input>
+    <select1 ref="/independent-monitoring/province">
+      <label>Region</label>
+      <item>
+        <label>AWDAL</label>
+        <value>AWL</value>
+      </item>
+      <item>
+        <label>BAKOOL</label>
+        <value>BKL</value>
+      </item>
+      <item>
+        <label>BANADIR</label>
+        <value>BAN</value>
+      </item>
+      <item>
+        <label>BARI</label>
+        <value>BRI</value>
+      </item>
+      <item>
+        <label>BAY</label>
+        <value>BAY</value>
+      </item>
+      <item>
+        <label>GALBEED</label>
+        <value>WGB</value>
+      </item>
+      <item>
+        <label>GALGADUD</label>
+        <value>GDD</value>
+      </item>
+      <item>
+        <label>GEDO</label>
+        <value>GDO</value>
+      </item>
+      <item>
+        <label>HIRAN</label>
+        <value>HRN</value>
+      </item>
+      <item>
+        <label>LOWER JUBA</label>
+        <value>LJB</value>
+      </item>
+      <item>
+        <label>LOWER SHABELLE</label>
+        <value>LSH</value>
+      </item>
+      <item>
+        <label>MIDDLE JUBA</label>
+        <value>MJB</value>
+      </item>
+      <item>
+        <label>MIDDLE SHABELLE</label>
+        <value>MSH</value>
+      </item>
+      <item>
+        <label>MUDUG</label>
+        <value>MUD</value>
+      </item>
+      <item>
+        <label>NUGAL</label>
+        <value>NUG</value>
+      </item>
+      <item>
+        <label>SAHIL</label>
+        <value>SAH</value>
+      </item>
+      <item>
+        <label>SANAQ</label>
+        <value>SNG</value>
+      </item>
+      <item>
+        <label>SOOL</label>
+        <value>SOL</value>
+      </item>
+      <item>
+        <label>TOGDHER</label>
+        <value>TOG</value>
+      </item>
+    </select1>
+    <input query="instance('districts')/root/item[province= /independent-monitoring/province ]" ref="/independent-monitoring/district">
+      <label>District</label>
+    </input>
+    <input query="instance('dfas')/root/item[district= /independent-monitoring/district ]" ref="/independent-monitoring/dfa_code">
+      <label>DFA name</label>
+    </input>
+    <input ref="/independent-monitoring/dfa_code_note">
+      <label>The DFA code:
+        <output value=" /independent-monitoring/dfa_code "/>
+      </label>
+    </input>
+    <input ref="/independent-monitoring/team_number">
+      <label>Team number</label>
+    </input>
+    <input ref="/independent-monitoring/cluster_number">
+      <label>Cluster number</label>
+    </input>
+    <input ref="/independent-monitoring/round">
+      <label>Round</label>
+    </input>
+    <group ref="/independent-monitoring/hh">
+      <label>Household</label>
+      <repeat nodeset="/independent-monitoring/hh">
+        <group appearance="field-list" ref="/independent-monitoring/hh/hh_id">
+          <input ref="/independent-monitoring/hh/hh_id/house_number">
+            <label>House Number</label>
+          </input>
+          <input ref="/independent-monitoring/hh/hh_id/elder_name">
+            <label>Name of Household Elder</label>
+          </input>
+        </group>
+        <input ref="/independent-monitoring/hh/location">
+          <label>Current location</label>
+          <hint>Please try to get a location for up to 1 minute and then tap "save geopoint."</hint>
+        </input>
+        <select1 ref="/independent-monitoring/hh/correctly_marked">
+          <label>Was the house correctly marked by team?</label>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <group appearance="field-list" ref="/independent-monitoring/hh/children0-11">
+          <input ref="/independent-monitoring/hh/children0-11/count_0-11">
+            <label>No. of Children 0-11 months present in the house (including visitors)</label>
+          </input>
+          <input ref="/independent-monitoring/hh/children0-11/vaccinated_0-11">
+            <label>No. of Children 0-11 months found vaccinated verified by Finger Marking</label>
+          </input>
+        </group>
+        <group appearance="field-list" ref="/independent-monitoring/hh/children12-59">
+          <input ref="/independent-monitoring/hh/children12-59/count_12-59">
+            <label>No. of Children 12-59 months living in the house (including visitors)</label>
+          </input>
+          <input ref="/independent-monitoring/hh/children12-59/vaccinated_12-59">
+            <label>No. of Children 12-59 months found vaccinated verified by Finger Marking</label>
+          </input>
+        </group>
+        <group appearance="field-list" ref="/independent-monitoring/hh/missed_intra">
+          <label>Reasons children were missed during SIAs</label>
+          <input ref="/independent-monitoring/hh/missed_intra/not_available_intra">
+            <label>Children not available for vaccination</label>
+          </input>
+          <input ref="/independent-monitoring/hh/missed_intra/house_not_visited_intra">
+            <label>Team did not visit the house</label>
+          </input>
+          <input ref="/independent-monitoring/hh/missed_intra/parents_refused_intra">
+            <label>Parents refused</label>
+          </input>
+          <input ref="/independent-monitoring/hh/missed_intra/unknown_intra">
+            <label>Unknown</label>
+          </input>
+        </group>
+        <input ref="/independent-monitoring/hh/reasons_mismatch">
+          <label>The calculated number of missed children is<output value=" /independent-monitoring/hh/missed_children "/>. The total number of reasons given is<output value=" /independent-monitoring/hh/missed_intra/total_reasons_intra "/>.
+          </label>
+        </input>
+        <group ref="/independent-monitoring/hh/missed_post">
+          <label>Reasons children were missed during SIAs</label>
+          <group appearance="field-list" ref="/independent-monitoring/hh/missed_post/not_available_post">
+            <label>Not available</label>
+            <input ref="/independent-monitoring/hh/missed_post/not_available_post/parents_not_available">
+              <label>Parents not available</label>
+            </input>
+            <input ref="/independent-monitoring/hh/missed_post/not_available_post/child_in_school">
+              <label>Child in school/ Madras/Health facility</label>
+            </input>
+            <input ref="/independent-monitoring/hh/missed_post/not_available_post/market_street">
+              <label>Market/ street</label>
+            </input>
+            <input ref="/independent-monitoring/hh/missed_post/not_available_post/child_traveling">
+              <label>Child in travel</label>
+            </input>
+          </group>
+          <group appearance="field-list" ref="/independent-monitoring/hh/missed_post/team_performance_post">
+            <label>Team performance</label>
+            <input ref="/independent-monitoring/hh/missed_post/team_performance_post/no_visit_post">
+              <label>Team did not visit the house</label>
+            </input>
+            <input ref="/independent-monitoring/hh/missed_post/team_performance_post/child_asleep">
+              <label>Child asleep</label>
+            </input>
+            <input ref="/independent-monitoring/hh/missed_post/team_performance_post/newborn">
+              <label>New born</label>
+            </input>
+            <input ref="/independent-monitoring/hh/missed_post/team_performance_post/visitor">
+              <label>Visitor</label>
+            </input>
+            <input ref="/independent-monitoring/hh/missed_post/team_performance_post/child_sick">
+              <label>Child sick</label>
+            </input>
+          </group>
+          <group appearance="field-list" ref="/independent-monitoring/hh/missed_post/refusal_post">
+            <label>Refusal</label>
+            <input ref="/independent-monitoring/hh/missed_post/refusal_post/religious">
+              <label>Religious</label>
+            </input>
+            <input ref="/independent-monitoring/hh/missed_post/refusal_post/no_faith">
+              <label>No faith in vaccine</label>
+            </input>
+            <input ref="/independent-monitoring/hh/missed_post/refusal_post/fatigue">
+              <label>Fatigue</label>
+            </input>
+            <input ref="/independent-monitoring/hh/missed_post/refusal_post/rumour">
+              <label>Rumour</label>
+            </input>
+            <input ref="/independent-monitoring/hh/missed_post/refusal_post/other_services">
+              <label>Demand for other services</label>
+            </input>
+            <input ref="/independent-monitoring/hh/missed_post/refusal_post/no_response">
+              <label>No response/ Other</label>
+            </input>
+          </group>
+          <input ref="/independent-monitoring/hh/missed_post/unknown_post">
+            <label>Unknown reason</label>
+          </input>
+          <input ref="/independent-monitoring/hh/missed_post/reasons_mismatch">
+            <label>The total number of reasons given is<output value=" /independent-monitoring/hh/missed_post/total_reasons_post "/>. The number of missed children is<output value=" /independent-monitoring/hh/missed_children "/>.
+            </label>
+          </input>
+        </group>
+        <select1 ref="/independent-monitoring/hh/campaign_awareness">
+          <label>Was parent or caretaker aware of the campaign before the arrival of the team?</label>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <select ref="/independent-monitoring/hh/information_sources">
+          <label>Source of information on the SIA</label>
+          <hint>Check all that apply</hint>
+          <item>
+            <label>Community Mobilizers</label>
+            <value>mobilizers</value>
+          </item>
+          <item>
+            <label>Mounted car announcement</label>
+            <value>car_announcement</value>
+          </item>
+          <item>
+            <label>Health staff &amp; vaccinator</label>
+            <value>health_staff</value>
+          </item>
+          <item>
+            <label>Advocacy Meeting</label>
+            <value>advocacy_meeting</value>
+          </item>
+          <item>
+            <label>Radio</label>
+            <value>radio</value>
+          </item>
+          <item>
+            <label>Tv/Newspapers</label>
+            <value>tv_newspapers</value>
+          </item>
+          <item>
+            <label>Religious and clan elders</label>
+            <value>elders</value>
+          </item>
+          <item>
+            <label>Mosque Announcements</label>
+            <value>mosque_announcement</value>
+          </item>
+          <item>
+            <label>Others (please specify)</label>
+            <value>others</value>
+          </item>
+        </select>
+        <input ref="/independent-monitoring/hh/information_sources_other">
+          <label>Other sources of information</label>
+        </input>
+        <select1 ref="/independent-monitoring/hh/acute_paralysis">
+          <label>Any child ≤15 years with acute paralysis within the last 2 months?</label>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <input ref="/independent-monitoring/hh/hh_end">
+          <label>&lt;span style=&quot;color:red&quot;&gt;Household #
+            <output value=" /independent-monitoring/hh/hh_count "/>
+            complete.&lt;/span&gt;&lt;br/&gt;&lt;br/&gt;To add another household, swipe and then tap &quot;Add group&quot;. If this is the last household, swipe and then tap &quot;Do not add&quot;. You should visit 10 households.
+          </label>
+        </input>
+        <input ref="/independent-monitoring/hh/hh_end_complete">
+          <label>&lt;span style=&quot;color:red&quot;&gt;Household #
+            <output value=" /independent-monitoring/hh/hh_count "/>
+            complete.&lt;/span&gt;&lt;br/&gt;&lt;br/&gt;Please swipe and then tap &quot;Do not add&quot;.
+          </label>
+        </input>
+      </repeat>
+    </group>
+    <input ref="/independent-monitoring/hh_count_warning">
+      <label>&lt;span style=&quot;color:red&quot;&gt;You have added
+        <output value=" /independent-monitoring/hh_added "/>
+        households.&lt;/span&gt;&lt;br/&gt;&lt;br/&gt;The target number of households is 10. To add another household, please swipe back, swipe forward and then tap &quot;Add Group.&quot;
+      </label>
+    </input>
+    <group appearance="field-list" ref="/independent-monitoring/afp_cases">
+      <input ref="/independent-monitoring/afp_cases/afp_cases_names">
+        <label>If AFP case(s) seen, child name(s)</label>
+      </input>
+      <input ref="/independent-monitoring/afp_cases/afp_cases_numbers">
+        <label>If AFP case(s) seen, phone number(s)</label>
+      </input>
+    </group>
+    <input ref="/independent-monitoring/supervisor">
+      <label>Name of supervisor</label>
+    </input>
+    <input ref="/independent-monitoring/summary_note">
+      <label>Totals for all households
+        Houses correctly marked:
+        <output value=" /independent-monitoring/correctly_marked_total "/>
+        Children 0-11 months:
+        <output value=" /independent-monitoring/count_0-11_total "/>
+        Vaccinated 0-11 months:
+        <output value=" /independent-monitoring/vaccinated_0-11_total "/>
+        Children 12-59 months:
+        <output value=" /independent-monitoring/count_12-59_total "/>
+        Vaccinated 12-59 months:
+        <output value=" /independent-monitoring/vaccinated_12-59_total "/>
+        Missed children:
+        <output value=" /independent-monitoring/missed_children_total "/>
+        Parents aware of campaign:
+        <output value=" /independent-monitoring/campaign_awareness_total "/>
+        Acute paralysis:
+        <output value=" /independent-monitoring/acute_paralysis_total "/>
+      </label>
+    </input>
+  </h:body>
+</h:html>

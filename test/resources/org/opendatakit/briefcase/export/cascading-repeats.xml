@@ -1,0 +1,63 @@
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa">
+  <h:head>
+    <h:title>cascadingrepeats</h:title>
+    <model>
+      <instance>
+        <data id="cascadingrepeats">
+          <meta>
+            <instanceID/>
+          </meta>
+          <g1 jr:template="">
+            <t1/>
+            <g2 jr:template="">
+              <t2/>
+              <g3 jr:template="">
+                <t3/>
+              </g3>
+            </g2>
+          </g1>
+        </data>
+      </instance>
+      <itext>
+        <translation lang="English">
+          <text id="/data/g1:label">
+            <value></value>
+          </text>
+          <text id="/data/g1/g2:label">
+            <value></value>
+          </text>
+          <text id="/data/g1/g2/g3:label">
+            <value></value>
+          </text>
+        </translation>
+      </itext>
+      <bind nodeset="/data/meta/instanceID" type="string" readonly="true()" calculate="concat('uuid:', uuid())"/>
+      <bind nodeset="/data/g1/t1" type="string"/>
+      <bind nodeset="/data/g1/g2/t2" type="string"/>
+      <bind nodeset="/data/g1/g2/g3/t3" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <group>
+      <label ref="jr:itext('/data/g1:label')"/>
+      <repeat nodeset="/data/g1">
+        <input ref="/data/g1/t1">
+        </input>
+        <group>
+          <label ref="jr:itext('/data/g1/g2:label')"/>
+          <repeat nodeset="/data/g1/g2">
+            <input ref="/data/g1/g2/t2">
+            </input>
+            <group>
+              <label ref="jr:itext('/data/g1/g2/g3:label')"/>
+              <repeat nodeset="/data/g1/g2/g3">
+                <input ref="/data/g1/g2/g3/t3">
+                </input>
+              </repeat>
+            </group>
+          </repeat>
+        </group>
+      </repeat>
+    </group>
+  </h:body>
+</h:html>

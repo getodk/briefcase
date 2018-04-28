@@ -65,11 +65,11 @@ import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ExportToCsv implements ITransformFormAction {
+public class OldExportToCsv implements ITransformFormAction {
 
   private static final String MEDIA_DIR = "media";
 
-  private static final Logger log = LoggerFactory.getLogger(ExportToCsv.class);
+  private static final Logger log = LoggerFactory.getLogger(OldExportToCsv.class);
 
   int totalFilesSkipped = 0;
   int totalInstances = 0;
@@ -86,7 +86,7 @@ public class ExportToCsv implements ITransformFormAction {
   private final Date endDate;
   private final File outputMediaDir;
 
-  public ExportToCsv(TerminationFuture terminationFuture, File outputDir, BriefcaseFormDefinition briefcaseLfd, String baseFilename, boolean exportMedia, boolean overwrite, Date startDate, Date endDate) {
+  public OldExportToCsv(TerminationFuture terminationFuture, File outputDir, BriefcaseFormDefinition briefcaseLfd, String baseFilename, boolean exportMedia, boolean overwrite, Date startDate, Date endDate) {
     this.terminationFuture = terminationFuture;
     this.outputDir = outputDir;
     this.briefcaseLfd = briefcaseLfd;
@@ -975,7 +975,7 @@ public class ExportToCsv implements ITransformFormAction {
 
   public static void export(Path exportDir, BriefcaseFormDefinition formDefinition, String baseFilename, boolean exportMedia, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
     log.info("exporting to : " + exportDir);
-    ExportToCsv action = new ExportToCsv(
+    OldExportToCsv action = new OldExportToCsv(
         new TerminationFuture(),
         exportDir.toFile(),
         formDefinition,
