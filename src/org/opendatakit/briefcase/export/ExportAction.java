@@ -35,7 +35,7 @@ import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.util.ErrorsOr;
-import org.opendatakit.briefcase.util.ExportToCsv;
+import org.opendatakit.briefcase.util.OldExportToCsv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +72,7 @@ public class ExportAction {
           .orElseThrow(() -> new RuntimeException("PEM file not present"))
       ).get());
     }
-    ExportToCsv action = new ExportToCsv(
+    OldExportToCsv action = new OldExportToCsv(
         terminationFuture,
         configuration.getExportDir().orElseThrow(() -> new RuntimeException("Export dir not present")).toFile(),
         formDefinition,

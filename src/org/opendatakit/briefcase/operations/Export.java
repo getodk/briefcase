@@ -40,7 +40,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
-import org.opendatakit.briefcase.util.ExportToCsv;
+import org.opendatakit.briefcase.util.OldExportToCsv;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
@@ -60,7 +60,7 @@ public class Export {
 
   public static Operation EXPORT_FORM = Operation.of(
       EXPORT,
-      args -> export(
+      args -> oldExport(
           args.get(STORAGE_DIR),
           args.get(FORM_ID),
           args.get(EXPORT_DIR),
@@ -75,7 +75,7 @@ public class Export {
       Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END)
   );
 
-  public static void export(String storageDir, String formid, Path exportPath, String baseFilename, boolean includeMediaFiles, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
+  public static void oldExport(String storageDir, String formid, Path exportPath, String baseFilename, boolean includeMediaFiles, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
     CliEventsCompanion.attach(log);
     bootCache(storageDir);
     Optional<BriefcaseFormDefinition> maybeFormDefinition = FileSystemUtils.getBriefcaseFormList(BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir))).stream()
@@ -108,7 +108,7 @@ public class Export {
     }
 
     System.out.println("Exporting form " + formDefinition.getFormName() + " (" + formDefinition.getFormId() + ") to: " + exportPath);
-    ExportToCsv.export(exportPath, formDefinition, baseFilename, includeMediaFiles, overwriteFiles, startDate, endDate);
+    OldExportToCsv.export(exportPath, formDefinition, baseFilename, includeMediaFiles, overwriteFiles, startDate, endDate);
 
     BriefcasePreferences.forClass(ExportPanel.class).put(buildExportDateTimePrefix(formDefinition.getFormId()), LocalDateTime.now().format(ISO_DATE_TIME));
   }
