@@ -13,30 +13,35 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package org.opendatakit.briefcase.reused;
 
 import java.util.Objects;
 
-@SuppressWarnings("checkstyle:MethodTypeParameterName")
-public class Pair<T, U> {
-  private final T left;
-  private final U right;
+public class Triplet<L, M, R> {
+  public final L left;
+  public final M middle;
+  public final R right;
 
-  public Pair(T left, U right) {
+  public Triplet(L left, M middle, R right) {
     this.left = left;
+    this.middle = middle;
     this.right = right;
   }
 
-  public static <TT, UU> Pair<TT, UU> of(TT left, UU right) {
-    return new Pair<>(left, right);
+  @SuppressWarnings("checkstyle:MethodTypeParameterName")
+  public static <LL, MM, RR> Triplet<LL, MM, RR> of(LL left, MM middle, RR right) {
+    return new Triplet<>(left, middle, right);
   }
 
-  public T getLeft() {
+  public L getLeft() {
     return left;
   }
 
-  public U getRight() {
+  public M getMiddle() {
+    return middle;
+  }
+
+  public R getRight() {
     return right;
   }
 
@@ -44,6 +49,7 @@ public class Pair<T, U> {
   public String toString() {
     return "Pair{" +
         "left=" + left +
+        ", middle=" + middle +
         ", right=" + right +
         '}';
   }
@@ -54,21 +60,14 @@ public class Pair<T, U> {
       return true;
     if (o == null || getClass() != o.getClass())
       return false;
-    Pair<?, ?> pair = (Pair<?, ?>) o;
-    return Objects.equals(left, pair.left) &&
-        Objects.equals(right, pair.right);
+    Triplet<?, ?, ?> triplet = (Triplet<?, ?, ?>) o;
+    return Objects.equals(left, triplet.left) &&
+        Objects.equals(middle, triplet.middle) &&
+        Objects.equals(right, triplet.right);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(left, right);
-  }
-
-  public <M> Triplet<T, M, U> intersperse(M middle) {
-    return new Triplet<>(left, middle, right);
-  }
-
-  public <LL> Triplet<LL, T, U> prepend(LL newLeft) {
-    return new Triplet<>(newLeft, left, right);
+    return Objects.hash(left, middle, right);
   }
 }
