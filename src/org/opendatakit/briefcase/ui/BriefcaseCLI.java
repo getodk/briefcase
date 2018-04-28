@@ -17,7 +17,7 @@
 
 package org.opendatakit.briefcase.ui;
 
-import static org.opendatakit.briefcase.operations.Export.oldExport;
+import static org.opendatakit.briefcase.operations.Export.export;
 import static org.opendatakit.briefcase.operations.ImportFromODK.importODK;
 import static org.opendatakit.briefcase.operations.PullFormFromAggregate.pullFormFromAggregate;
 
@@ -307,7 +307,7 @@ public class BriefcaseCLI {
         pullFormFromAggregate(storageDir, formid, username, password, server);
 
       if (exportPath != null)
-        oldExport(
+        export(
             storageDir,
             formid,
             Paths.get(exportPath),
