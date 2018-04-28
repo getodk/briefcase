@@ -16,10 +16,9 @@
 
 package org.opendatakit.briefcase.model;
 
-public class FileSystemException extends Exception {
+import org.opendatakit.briefcase.reused.BriefcaseException;
 
-  private static final long serialVersionUID = 3142210034175698950L;
-
+public class FileSystemException extends BriefcaseException {
   public FileSystemException(String message) {
     super(message);
   }
