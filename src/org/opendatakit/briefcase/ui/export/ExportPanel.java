@@ -37,6 +37,8 @@ import org.opendatakit.briefcase.export.ExportAction;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.export.ExportOutcome;
+import org.opendatakit.briefcase.export.ExportToCsv;
+import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportFailedEvent;
@@ -185,18 +187,15 @@ public class ExportPanel {
                 appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new)
             ));
           BriefcaseFormDefinition formDefinition = (BriefcaseFormDefinition) form.getFormDefinition();
-          ExportOutcome allSuccessful = ExportAction.export(
-              formDefinition,
-              configuration,
-              terminationFuture
-          );
-          if (allSuccessful == ALL_EXPORTED)
+          ExportOutcome outcome = ExportToCsv.export(FormDefinition.from(formDefinition), configuration, true);
+
+          if (outcome == ALL_EXPORTED)
             EventBus.publish(new ExportSucceededEvent(formDefinition));
 
-          if (allSuccessful == SOME_SKIPPED)
+          if (outcome == SOME_SKIPPED)
             EventBus.publish(new ExportSucceededWithErrorsEvent(formDefinition));
 
-          if (allSuccessful == ALL_SKIPPED)
+          if (outcome == ALL_SKIPPED)
             EventBus.publish(new ExportFailedEvent(formDefinition));
         });
     form.enableUI();
