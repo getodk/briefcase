@@ -145,6 +145,16 @@ public class BriefcasePreferences {
    *
    * @param keys keys whose mappings are to be removed from the preference node.
    */
+  public void removeAll(String... keys) {
+    removeAll(Arrays.asList(keys));
+  }
+
+  /**
+   * Removes all the values associated with the specified key list in this preference
+   * node, if any.
+   *
+   * @param keys keys whose mappings are to be removed from the preference node.
+   */
   public void removeAll(List<String> keys) {
     keys.forEach(this::remove);
   }

@@ -27,7 +27,6 @@ import java.awt.event.FocusEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -482,13 +481,11 @@ public class PullTransferPanel extends JPanel {
           appPreferences.put(String.format("%s_pull_settings_password", form.getFormDefinition().getFormId()), String.valueOf(event.transferSettings.get().getPassword()));
         });
       } else {
-        event.formsToTransfer.forEach(form -> {
-          appPreferences.removeAll(Arrays.asList(
-              String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()),
-              String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()),
-              String.format("%s_pull_settings_password", form.getFormDefinition().getFormId())
-          ));
-        });
+        event.formsToTransfer.forEach(form -> appPreferences.removeAll(
+            String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()),
+            String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()),
+            String.format("%s_pull_settings_password", form.getFormDefinition().getFormId())
+        ));
       }
     }
     analytics.event("Pull", "Transfer", "Success", null);
