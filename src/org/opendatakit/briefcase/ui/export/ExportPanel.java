@@ -210,8 +210,11 @@ public class ExportPanel {
 
   @EventSubscriber(eventClass = TransferSucceededEvent.class)
   public void successfulCompletion(TransferSucceededEvent event) {
-    if (BriefcasePreferences.getStorePasswordsConsentProperty() && event.transferSettings.isPresent())
-      event.formsToTransfer.forEach(form -> forms.putTransferSettings(form, event.transferSettings.get()));
+    if (BriefcasePreferences.getStorePasswordsConsentProperty())
+      if (event.transferSettings.isPresent())
+        event.formsToTransfer.forEach(form -> forms.putTransferSettings(form, event.transferSettings.get()));
+      else
+        event.formsToTransfer.forEach(forms::removeTransferSettings);
   }
 
   @EventSubscriber(eventClass = SavePasswordsConsentGiven.class)

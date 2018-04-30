@@ -27,6 +27,7 @@ import java.awt.event.FocusEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -473,12 +474,22 @@ public class PullTransferPanel extends JPanel {
   @EventSubscriber(eventClass = TransferSucceededEvent.class)
   public void onTransferSucceededEvent(TransferSucceededEvent event) {
     setActiveTransferState(false);
-    if (BriefcasePreferences.getStorePasswordsConsentProperty() && event.transferSettings.isPresent()) {
-      event.formsToTransfer.forEach(form -> {
-        appPreferences.put(String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()), event.transferSettings.get().getUrl());
-        appPreferences.put(String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()), event.transferSettings.get().getUsername());
-        appPreferences.put(String.format("%s_pull_settings_password", form.getFormDefinition().getFormId()), String.valueOf(event.transferSettings.get().getPassword()));
-      });
+    if (BriefcasePreferences.getStorePasswordsConsentProperty()) {
+      if (event.transferSettings.isPresent()) {
+        event.formsToTransfer.forEach(form -> {
+          appPreferences.put(String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()), event.transferSettings.get().getUrl());
+          appPreferences.put(String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()), event.transferSettings.get().getUsername());
+          appPreferences.put(String.format("%s_pull_settings_password", form.getFormDefinition().getFormId()), String.valueOf(event.transferSettings.get().getPassword()));
+        });
+      } else {
+        event.formsToTransfer.forEach(form -> {
+          appPreferences.removeAll(Arrays.asList(
+              String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()),
+              String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()),
+              String.format("%s_pull_settings_password", form.getFormDefinition().getFormId())
+          ));
+        });
+      }
     }
     analytics.event("Pull", "Transfer", "Success", null);
   }
