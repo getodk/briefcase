@@ -473,11 +473,11 @@ public class PullTransferPanel extends JPanel {
   @EventSubscriber(eventClass = TransferSucceededEvent.class)
   public void onTransferSucceededEvent(TransferSucceededEvent event) {
     setActiveTransferState(false);
-    if (BriefcasePreferences.getStorePasswordsConsentProperty()) {
+    if (BriefcasePreferences.getStorePasswordsConsentProperty() && event.transferSettings.isPresent()) {
       event.formsToTransfer.forEach(form -> {
-        appPreferences.put(String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()), event.transferSettings.getUrl());
-        appPreferences.put(String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()), event.transferSettings.getUsername());
-        appPreferences.put(String.format("%s_pull_settings_password", form.getFormDefinition().getFormId()), String.valueOf(event.transferSettings.getPassword()));
+        appPreferences.put(String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()), event.transferSettings.get().getUrl());
+        appPreferences.put(String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()), event.transferSettings.get().getUsername());
+        appPreferences.put(String.format("%s_pull_settings_password", form.getFormDefinition().getFormId()), String.valueOf(event.transferSettings.get().getPassword()));
       });
     }
     analytics.event("Pull", "Transfer", "Success", null);

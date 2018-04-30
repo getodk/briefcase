@@ -57,7 +57,7 @@ public class TransferAction {
         boolean allSuccessful = dest.doAction();
 
         if (allSuccessful) {
-          EventBus.publish(new TransferSucceededEvent(srcIsDeletable, formsToTransfer, dest.getTransferSettings()));
+          EventBus.publish(TransferSucceededEvent.from(srcIsDeletable, formsToTransfer, dest.getTransferSettings()));
         } else {
           EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
         }
