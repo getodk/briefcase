@@ -21,7 +21,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextPane;
 
 class ConfigurationPanelMode {
-  static final String REQUIRE_PULL_TEXT = "Requires manually pulling the form once";
+  static final String REQUIRE_PULL_TEXT = "Requires manually pulling from Aggregate once";
   static final String REQUIRE_SAVE_PASSWORDS = "Requires Remember passwords in Settings";
   private final boolean isOverridePanel;
   private boolean savePasswordsConsent;
