@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Google Inc. 
+ * Copyright (C) 2009 Google Inc.
  * Copyright (C) 2010 University of Washington.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -25,17 +25,17 @@ package org.opendatakit.aggregate.constants;
  */
 public final class ParserConsts {
 
-    private ParserConsts() {
-    }
+  private ParserConsts() {
+  }
 
-    public static final String FORM_ID_ATTRIBUTE_NAME = "id";
+  public static final String FORM_ID_ATTRIBUTE_NAME = "id";
 
-    public static final String FORWARD_SLASH = "/";
+  public static final String FORWARD_SLASH = "/";
 
-    public static final String FORWARD_SLASH_SUBSTITUTION = "&frasl;";
+  public static final String FORWARD_SLASH_SUBSTITUTION = "&frasl;";
 
-    /**
-     * Namespace of ODK extensions to the OpenRosa standards
-     */
-    public static final String NAMESPACE_ODK = "http://www.opendatakit.org/xforms";
+  /**
+   * Namespace of ODK extensions to the OpenRosa standards
+   */
+  public static final String NAMESPACE_ODK = "http://www.opendatakit.org/xforms";
 }
