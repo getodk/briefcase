@@ -64,7 +64,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
  * Author Meletis Margaritis
  */
 public class CharsetConverterDialog extends JDialog implements ActionListener {
@@ -93,14 +92,14 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
   private static final String DONE_MESSAGE = "The file has been successfully converted to UTF-8.";
   private static final String DONE_TITLE = "Done!";
 
-  private static CharsetEntry[] commonCharsetEntries = new CharsetEntry[] {
-       new CharsetEntry("Windows Latin 1", "Windows-1252"),
-       new CharsetEntry("Mac OS Roman", "MacRoman"),
-       new CharsetEntry("UNICODE", "UTF-8"),
-       new CharsetEntry("UNICODE", "UTF-16"),
-       new CharsetEntry("Windows Central European", "Windows-1250"),
-       new CharsetEntry("Windows Greek", "Windows-1253"),
-       new CharsetEntry("ISO 646", "US-ASCII")
+  private static CharsetEntry[] commonCharsetEntries = new CharsetEntry[]{
+      new CharsetEntry("Windows Latin 1", "Windows-1252"),
+      new CharsetEntry("Mac OS Roman", "MacRoman"),
+      new CharsetEntry("UNICODE", "UTF-8"),
+      new CharsetEntry("UNICODE", "UTF-16"),
+      new CharsetEntry("Windows Central European", "Windows-1250"),
+      new CharsetEntry("Windows Greek", "Windows-1253"),
+      new CharsetEntry("ISO 646", "US-ASCII")
   };
 
   private JTextField tfFile;
@@ -268,7 +267,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
       }
     }
 
-    SortedMap<String,Charset> charsetSortedMap = Charset.availableCharsets();
+    SortedMap<String, Charset> charsetSortedMap = Charset.availableCharsets();
     for (Map.Entry<String, Charset> charsetMapEntry : charsetSortedMap.entrySet()) {
       CharsetEntry charsetEntry = new CharsetEntry(charsetMapEntry.getValue().displayName(), charsetMapEntry.getKey());
       if (!defaultListModel.contains(charsetEntry)) {
@@ -284,8 +283,8 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
       listCharset.addListSelectionListener(__ -> updatePreview());
     } else {
       JOptionPane.showMessageDialog(this,
-              "It appears that your installed Java Runtime Environment does not support any charset encodings!",
-              "Error", JOptionPane.ERROR_MESSAGE);
+          "It appears that your installed Java Runtime Environment does not support any charset encodings!",
+          "Error", JOptionPane.ERROR_MESSAGE);
     }
   }
 
@@ -336,15 +335,15 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
         FileUtils.writeLines(destinationPath, "UTF-8", lines, LINE_SEPARATOR);
 
         JOptionPane.showMessageDialog(this,
-                DONE_MESSAGE,
-                DONE_TITLE, JOptionPane.INFORMATION_MESSAGE);
+            DONE_MESSAGE,
+            DONE_TITLE, JOptionPane.INFORMATION_MESSAGE);
 
         cancelButton.setText("Close");
 
       } catch (Exception ex) {
         JOptionPane.showMessageDialog(this,
-                ex.getMessage(),
-                "Error converting file...", JOptionPane.ERROR_MESSAGE);
+            ex.getMessage(),
+            "Error converting file...", JOptionPane.ERROR_MESSAGE);
       }
     } else if (CANCEL_COMMAND.equals(actionCommand)) {
       closeDialog();
@@ -361,7 +360,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
 
     SwingUtilities.invokeLater(() -> {
       try (BufferedReader bufferedReader =
-                   new BufferedReader(new InputStreamReader(new FileInputStream(filePath), getCharsetName()))) {
+               new BufferedReader(new InputStreamReader(new FileInputStream(filePath), getCharsetName()))) {
         List<String> lines = new ArrayList<>();
         String line;
         while ((line = bufferedReader.readLine()) != null) {
@@ -374,8 +373,8 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
       } catch (Exception ex) {
         log.error("failed to create preview", ex);
         JOptionPane.showMessageDialog(CharsetConverterDialog.this,
-                ex.getMessage(),
-                "Error reading file...", JOptionPane.ERROR_MESSAGE);
+            ex.getMessage(),
+            "Error reading file...", JOptionPane.ERROR_MESSAGE);
       } finally {
         pleaseWaitWindow.setVisible(false);
         pleaseWaitWindow.dispose();
@@ -462,7 +461,7 @@ public class CharsetConverterDialog extends JDialog implements ActionListener {
   class FileChooser extends AbstractFileChooser {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 6458668203143472878L;
 
