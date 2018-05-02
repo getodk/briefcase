@@ -28,23 +28,20 @@ import java.util.Objects;
 public final class XFormParameters implements Comparable<XFormParameters>, Serializable {
 
   public final String formId;
-  public final String versionString;
   public final String modelVersion;
 
-  public XFormParameters(String formId, String versionString) {
+  public XFormParameters(String formId, String modelVersion) {
     if (formId == null) {
       throw new IllegalArgumentException("formId cannot be null");
     }
     this.formId = formId;
-    this.versionString = (versionString == null || versionString.length() == 0) ? null : versionString;
-    this.modelVersion = this.versionString;
+    this.modelVersion = (modelVersion == null || modelVersion.length() == 0) ? null : modelVersion;
   }
 
   @Override
   public String toString() {
     return "XFormParameters{" +
         "formId='" + formId + '\'' +
-        ", versionString='" + versionString + '\'' +
         ", modelVersion='" + modelVersion + '\'' +
         '}';
   }
@@ -57,13 +54,12 @@ public final class XFormParameters implements Comparable<XFormParameters>, Seria
       return false;
     XFormParameters that = (XFormParameters) o;
     return Objects.equals(formId, that.formId) &&
-        Objects.equals(versionString, that.versionString) &&
         Objects.equals(modelVersion, that.modelVersion);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(formId, versionString, modelVersion);
+    return Objects.hash(formId, modelVersion);
   }
 
   @Override
