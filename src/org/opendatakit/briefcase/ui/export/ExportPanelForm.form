@@ -16,7 +16,7 @@
       <grid id="5933e" binding="actions" layout-manager="GridBagLayout">
         <constraints>
           <grid row="7" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
+          <gridbag weightx="1.0" weighty="0.0"/>
         </constraints>
         <properties/>
         <border type="none"/>
@@ -45,18 +45,18 @@
           </grid>
           <grid id="d881a" binding="rightActions" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
             <constraints>
-              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+              <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
             <properties/>
             <border type="none"/>
             <children>
-              <component id="b7dc5" class="javax.swing.JLabel" binding="exportingLabel">
+              <component id="752b6" class="javax.swing.JProgressBar" binding="exportProgressBar">
                 <constraints/>
                 <properties>
-                  <minimumSize width="80" height="21"/>
-                  <preferredSize width="80" height="21"/>
-                  <text value="Exporting..."/>
+                  <enabled value="true"/>
+                  <indeterminate value="true"/>
+                  <stringPainted value="false"/>
                   <visible value="false"/>
                 </properties>
               </component>
@@ -72,13 +72,13 @@
           </grid>
           <vspacer id="3e677">
             <constraints>
-              <grid row="1" column="0" row-span="1" col-span="3" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+              <grid row="1" column="0" row-span="1" col-span="4" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
           </vspacer>
-          <hspacer id="e42a4">
+          <hspacer id="4fad">
             <constraints>
-              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="0" column="1" row-span="1" col-span="2" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
               <gridbag weightx="1.0" weighty="0.0"/>
             </constraints>
           </hspacer>
