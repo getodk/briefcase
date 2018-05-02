@@ -6,8 +6,11 @@ import static org.opendatakit.common.cli.Cli.mapToOptions;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -15,6 +18,28 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
 class CustomHelpFormatter {
+  private static String jarFile;
+
+  static {
+    try {
+      jarFile = Optional.ofNullable(System.getProperty("java.class.path"))
+          .filter(classpath -> !classpath.isEmpty())
+          .map(Paths::get)
+          .filter(Files::isRegularFile)
+          .map(Object::toString)
+          .map(filename -> {
+            // The easiest way to make paths with spaces work both on
+            // Windows & Unix is to wrap the path in double quotes
+            return filename.contains(" ") ? '"' + filename + '"' : filename;
+          })
+          .orElse("briefcase.jar");
+    } catch (Throwable t) {
+      // We can't allow this code to break Briefcase execution.
+      // In case of any problem, we'll just use the default "briefcase.jar" value
+      jarFile = "briefcase.jar";
+    }
+  }
+
   static void printHelp(Set<Operation> requiredOperations, Set<Operation> operations) {
     printUsage();
     Map<String, String> helpLinesPerShortcode = getParamHelpLines(requiredOperations, operations);
@@ -53,7 +78,7 @@ class CustomHelpFormatter {
   }
 
   private static void printOptionalParams(Map<String, String> helpLinesPerShortcode, Operation operation) {
-    System.out.println("  (optionally)");
+    System.out.println("Optional params for -" + operation.param.shortCode + " operation:");
     operation.optionalParams.stream()
         .sorted(Comparator.comparing(param -> param.shortCode))
         .forEach(param -> System.out.println("  " + helpLinesPerShortcode.get(param.shortCode)));
@@ -62,13 +87,16 @@ class CustomHelpFormatter {
   private static void printAvailableOperations(Map<String, String> helpLinesPerShortcode, Set<Operation> operations) {
     System.out.println("Available operations:");
     operations.stream()
+        .filter(o -> !o.isDeprecated())
         .sorted(Comparator.comparing(operation -> operation.param.shortCode))
-        .forEach(operation -> System.out.println(helpLinesPerShortcode.get(operation.param.shortCode)));
+        .forEach(operation -> System.out.println("  " + helpLinesPerShortcode.get(operation.param.shortCode)));
     System.out.println("");
   }
 
   private static void printUsage() {
-    System.out.println("Usage: java -jar briefcase.jar <params>");
+    System.out.println("");
+    System.out.println("Launch the GUI with: java -jar " + jarFile);
+    System.out.println("Launch a CLI operation with: java -jar " + jarFile + " <operation> <params>");
     System.out.println("");
   }
 
@@ -84,7 +112,7 @@ class CustomHelpFormatter {
     HelpFormatter helpFormatter = new HelpFormatter();
     helpFormatter.printHelp(pw, 999, "ignore", "ignore", options, 0, 4, "ignore");
     return Stream.of(out.toString().split("\n"))
-        .filter(line -> line.startsWith("-"))
+        .filter(line -> line.startsWith("-") && line.contains(","))
         .collect(toMap(
             (String line) -> line.substring(1, line.indexOf(",")),
             Function.identity()

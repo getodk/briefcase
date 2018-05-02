@@ -17,11 +17,11 @@ package org.opendatakit.common.cli;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
-import static org.opendatakit.common.cli.CustomHelpFormatter.printHelp;
 
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.apache.commons.cli.CommandLine;
@@ -46,30 +46,37 @@ public class Cli {
 
   private final Set<Operation> requiredOperations = new HashSet<>();
   private final Set<Operation> operations = new HashSet<>();
-  private final Set<Runnable> otherwiseRunnables = new HashSet<>();
+  private final Set<BiConsumer<Cli, CommandLine>> otherwiseCallbacks = new HashSet<>();
   private final Set<Operation> executedOperations = new HashSet<>();
 
   public Cli() {
-    register(Operation.of(SHOW_HELP, args -> printHelp(requiredOperations, operations)));
+    register(Operation.of(SHOW_HELP, args -> printHelp()));
     register(Operation.of(SHOW_VERSION, args -> printVersion()));
   }
 
   /**
+   * Prints the help message with all the registered operations and their paramsº
+   */
+  public void printHelp() {
+    CustomHelpFormatter.printHelp(requiredOperations, operations);
+  }
+
+  /**
    * Marks a Param for deprecation and assigns an alternative operation.
-   *
+   * <p>
    * When Briefcase detects this param, it will show a message, output the help and
    * exit with a non-zero status
    *
-   * @param oldParam the {@link Param} to mark as deprecated
+   * @param oldParam    the {@link Param} to mark as deprecated
    * @param alternative the alternative {@link Operation} that Briefcase will suggest to be
    *                    used instead of the deprecated Param
    * @return self {@link Cli} instance to chain more method calls
    */
   public Cli deprecate(Param<?> oldParam, Operation alternative) {
-    operations.add(Operation.of(oldParam, __ -> {
+    operations.add(Operation.deprecated(oldParam, __ -> {
       log.warn("Trying to run deprecated param -{}", oldParam.shortCode);
       System.out.println("The param -" + oldParam.shortCode + " has been deprecated. Run Briefcase again with -" + alternative.param.shortCode + " instead");
-      printHelp(requiredOperations, operations);
+      printHelp();
       System.exit(1);
     }));
     return this;
@@ -90,11 +97,11 @@ public class Cli {
    * Register a {@link Runnable} block that will be executed if no {@link Operation}
    * is executed. For example, if the user passes no arguments when executing this program
    *
-   * @param runnable a {@link Runnable} block
+   * @param callback a {@link BiConsumer} that will receive the {@link Cli} and {@link CommandLine} instances
    * @return self {@link Cli} instance to chain more method calls
    */
-  public Cli otherwise(Runnable runnable) {
-    otherwiseRunnables.add(runnable);
+  public Cli otherwise(BiConsumer<Cli, CommandLine> callback) {
+    otherwiseCallbacks.add(callback);
     return this;
   }
 
@@ -122,7 +129,7 @@ public class Cli {
       });
 
       if (executedOperations.isEmpty())
-        otherwiseRunnables.forEach(Runnable::run);
+        otherwiseCallbacks.forEach(callback -> callback.accept(this, cli));
     } catch (BriefcaseException e) {
       System.err.println("Error: " + e.getMessage());
       log.error("Error", e);
@@ -154,9 +161,9 @@ public class Cli {
     try {
       return new DefaultParser().parse(mapToOptions(params), args, false);
     } catch (UnrecognizedOptionException | MissingArgumentException e) {
-      System.err.println(e.getMessage());
+      System.err.println("Error: " + e.getMessage());
       log.error("Error", e);
-      printHelp(requiredOperations, operations);
+      printHelp();
       System.exit(1);
       return null;
     } catch (Throwable t) {
@@ -172,7 +179,7 @@ public class Cli {
       System.out.print("Missing params: ");
       System.out.print(missingParams.stream().map(param -> "-" + param.shortCode).collect(joining(", ")));
       System.out.println("");
-      printHelp(requiredOperations, operations);
+      printHelp();
       System.exit(1);
     }
   }
@@ -196,13 +203,13 @@ public class Cli {
     Cli cli = (Cli) o;
     return Objects.equals(requiredOperations, cli.requiredOperations) &&
         Objects.equals(operations, cli.operations) &&
-        Objects.equals(otherwiseRunnables, cli.otherwiseRunnables) &&
+        Objects.equals(otherwiseCallbacks, cli.otherwiseCallbacks) &&
         Objects.equals(executedOperations, cli.executedOperations);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(requiredOperations, operations, otherwiseRunnables, executedOperations);
+    return Objects.hash(requiredOperations, operations, otherwiseCallbacks, executedOperations);
   }
 
   @Override
@@ -210,7 +217,7 @@ public class Cli {
     return "Cli{" +
         "requiredOperations=" + requiredOperations +
         ", operations=" + operations +
-        ", otherwiseRunnables=" + otherwiseRunnables +
+        ", otherwiseCallbacks=" + otherwiseCallbacks +
         ", executedOperations=" + executedOperations +
         '}';
   }
