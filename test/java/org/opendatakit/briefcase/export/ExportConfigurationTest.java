@@ -16,7 +16,6 @@
 package org.opendatakit.briefcase.export;
 
 import static java.nio.file.Files.createTempDirectory;
-import static java.nio.file.Files.write;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -24,7 +23,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.opendatakit.briefcase.export.ExportConfiguration.empty;
-import static org.opendatakit.briefcase.export.ExportConfiguration.load;
+import static org.opendatakit.briefcase.export.ExportConfiguration.loadFormConfig;
 import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.DONT_PULL;
 import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.INHERIT;
 import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.PULL;
@@ -43,6 +42,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
+import org.opendatakit.briefcase.model.PemFileTest;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportConfigurationTest {
@@ -55,9 +55,8 @@ public class ExportConfigurationTest {
   static {
     try {
       VALID_EXPORT_DIR = Paths.get(createTempDirectory("briefcase_test").toUri()).resolve("some/dir");
-      VALID_PEM_FILE = VALID_EXPORT_DIR.resolve("some_key.pem");
+      VALID_PEM_FILE = PemFileTest.getSomePemFile();
       Files.createDirectories(VALID_EXPORT_DIR);
-      write(VALID_PEM_FILE, "some content".getBytes());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -77,7 +76,7 @@ public class ExportConfigurationTest {
     BriefcasePreferences prefs = new BriefcasePreferences(InMemoryPreferences.empty());
     prefs.putAll(validConfig.asMap());
 
-    ExportConfiguration load = load(prefs);
+    ExportConfiguration load = ExportConfiguration.loadDefaultConfig(prefs);
 
     assertThat(load, is(validConfig));
   }
@@ -87,7 +86,7 @@ public class ExportConfigurationTest {
     BriefcasePreferences prefs = new BriefcasePreferences(InMemoryPreferences.empty());
     prefs.putAll(validConfig.asMap("some_prefix"));
 
-    ExportConfiguration load = load(prefs, "some_prefix");
+    ExportConfiguration load = loadFormConfig(prefs, "some_prefix");
 
     assertThat(load, is(validConfig));
   }
@@ -108,7 +107,7 @@ public class ExportConfigurationTest {
   public void a_configuration_is_not_empty_when_any_of_its_properties_is_present() {
     assertThat(empty(), isEmpty());
     assertThat(empty().setExportDir(Paths.get("/some/path")), not(isEmpty()));
-    assertThat(empty().setPemFile(Paths.get("/some/file.pem")), not(isEmpty()));
+    assertThat(empty().setPemFile(PemFileTest.getSomePemFile()), not(isEmpty()));
     assertThat(empty().setStartDate(LocalDate.of(2018, 1, 1)), not(isEmpty()));
     assertThat(empty().setEndDate(LocalDate.of(2018, 1, 1)), not(isEmpty()));
     assertThat(empty().setPullBefore(true), not(isEmpty()));
@@ -200,7 +199,7 @@ public class ExportConfigurationTest {
   @Test
   public void toString_hashCode_and_equals_for_coverage() {
     assertThat(validConfig.toString(), containsString("some" + File.separator + "dir"));
-    assertThat(validConfig.toString(), containsString("some_key.pem"));
+    assertThat(validConfig.toString(), containsString(".pem"));
     assertThat(validConfig.toString(), containsString("2018"));
     assertThat(validConfig.toString(), containsString("2020"));
     assertThat(validConfig.hashCode(), is(notNullValue()));

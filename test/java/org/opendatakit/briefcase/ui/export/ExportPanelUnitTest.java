@@ -27,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
@@ -58,10 +59,10 @@ public class ExportPanelUnitTest {
         new NoOpAnalytics()
     );
 
-    assertThat(ExportConfiguration.load(exportPreferences).getExportDir(), isEmpty());
+    assertThat(ExportConfiguration.loadDefaultConfig(exportPreferences).getExportDir(), isEmpty());
     confPanel.getForm().setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()));
 
-    assertThat(ExportConfiguration.load(exportPreferences).getExportDir(), isPresent());
+    assertThat(ExportConfiguration.loadDefaultConfig(exportPreferences).getExportDir(), isPresent());
   }
 
   @Test
@@ -88,12 +89,12 @@ public class ExportPanelUnitTest {
     ExportConfiguration conf = ExportConfiguration.empty();
     conf.setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()));
 
-    assertThat(ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), isEmpty());
+    assertThat(ExportConfiguration.loadFormConfig(exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), isEmpty());
 
     forms.putConfiguration(form, conf);
     exportPanelForm.getFormsTable().getViewModel().triggerChange();
 
-    assertThat(ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), isPresent());
+    assertThat(ExportConfiguration.loadFormConfig(exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), isPresent());
   }
 
   @Test

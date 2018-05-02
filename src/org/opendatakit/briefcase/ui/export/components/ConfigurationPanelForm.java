@@ -47,11 +47,13 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
+import org.opendatakit.briefcase.util.PrivateKeyUtils;
 import org.opendatakit.briefcase.util.StringUtils;
 
 @SuppressWarnings("checkstyle:MethodName")
@@ -170,11 +172,20 @@ public class ConfigurationPanelForm extends JComponent {
     }
   }
 
-  void setPemFile(Path path) {
-    pemFileField.setText(path.toString());
-    onSelectPemFileCallbacks.forEach(consumer -> consumer.accept(path));
-    pemFileChooseButton.setVisible(false);
-    pemFileClearButton.setVisible(true);
+  public void setPemFile(Path path) {
+    if (PrivateKeyUtils.isValidPrivateKey(path)) {
+      pemFileField.setText(path.toString());
+      onSelectPemFileCallbacks.forEach(consumer -> consumer.accept(path));
+      pemFileChooseButton.setVisible(false);
+      pemFileClearButton.setVisible(true);
+    } else {
+      //TODO provide a better error message describing what the user could do
+      JOptionPane.showMessageDialog(this.pemFileField,
+              "Invalid private key file.\n" +
+                      "Make sure the file extension is .pem",
+              "Private key error",
+              JOptionPane.ERROR_MESSAGE);
+    }
   }
 
   private void clearPemFile() {

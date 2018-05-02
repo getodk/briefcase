@@ -55,6 +55,7 @@ public class ExportPanelForm {
   private JButton clearAllButton;
   private JLabel exportingLabel;
   JButton exportButton;
+  private JLabel errorMsg;
   private boolean exporting;
   private Optional<ScheduledFuture<?>> scheduledHideExportingLabel = Optional.empty();
 
@@ -73,8 +74,8 @@ public class ExportPanelForm {
 
   public static ExportPanelForm from(ExportForms forms, ConfigurationPanel confPanel) {
     return new ExportPanelForm(
-        confPanel,
-        FormsTable.from(forms)
+            confPanel,
+            FormsTable.from(forms)
     );
   }
 
@@ -97,6 +98,15 @@ public class ExportPanelForm {
   void onChange(Runnable callback) {
     confPanel.onChange(callback);
     formsTable.onChange(callback);
+  }
+
+  void setErrorMsg(String errorMsg) {
+    this.errorMsg.setVisible(true);
+    this.errorMsg.setText(errorMsg);
+  }
+
+  void hideErrorMSg() {
+    errorMsg.setVisible(false);
   }
 
   void enableExport() {
@@ -166,6 +176,7 @@ public class ExportPanelForm {
   public void showExporting() {
     exportingLabel.setText(EXPORTING_DOT_ETC);
     exportingLabel.setVisible(true);
+
   }
 
   public void hideExporting() {
@@ -215,6 +226,14 @@ public class ExportPanelForm {
     clearAllButton = new JButton();
     clearAllButton.setText("Clear All");
     leftActions.add(clearAllButton);
+    errorMsg = new JLabel();
+    errorMsg.setAutoscrolls(true);
+    errorMsg.setEnabled(true);
+    errorMsg.setMaximumSize(new Dimension(429, 16));
+    errorMsg.setMinimumSize(new Dimension(429, 16));
+    errorMsg.setText("");
+    errorMsg.setVisible(false);
+    leftActions.add(errorMsg);
     rightActions = new JPanel();
     rightActions.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
     gbc = new GridBagConstraints();

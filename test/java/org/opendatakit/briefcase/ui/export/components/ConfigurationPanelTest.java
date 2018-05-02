@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.matchers.GenericUIMatchers;
 import org.opendatakit.briefcase.matchers.SwingMatchers;
+import org.opendatakit.briefcase.model.PemFileTest;
 
 public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   private ConfigurationPanelPageObject component;
@@ -105,7 +106,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   public void default_panel_loads_values_from_the_initial_configuration() {
     ExportConfiguration expectedConfiguration = ExportConfiguration.empty();
     expectedConfiguration.setExportDir(Paths.get("/some/path"));
-    expectedConfiguration.setPemFile(Paths.get("/some/file.pem"));
+    expectedConfiguration.setPemFile(PemFileTest.getSomePemFile());
     expectedConfiguration.setStartDate(LocalDate.of(2018, 1, 1));
     expectedConfiguration.setEndDate(LocalDate.of(2019, 1, 1));
     expectedConfiguration.setPullBefore(true);
@@ -181,7 +182,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   public void override_panel_loads_values_from_the_initial_configuration() {
     ExportConfiguration expectedConfiguration = ExportConfiguration.empty();
     expectedConfiguration.setExportDir(Paths.get("/some/path"));
-    expectedConfiguration.setPemFile(Paths.get("/some/file.pem"));
+    expectedConfiguration.setPemFile(PemFileTest.getSomePemFile());
     expectedConfiguration.setStartDate(LocalDate.of(2018, 1, 1));
     expectedConfiguration.setEndDate(LocalDate.of(2019, 1, 1));
     expectedConfiguration.setPullBeforeOverride(PULL);

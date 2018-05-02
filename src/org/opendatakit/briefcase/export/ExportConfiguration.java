@@ -21,6 +21,7 @@ import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_EXIST;
 import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_DATE_RANGE_MESSAGE;
+import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_PEM_FILE;
 import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 
@@ -40,7 +41,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.util.PrivateKeyUtils;
 
 public class ExportConfiguration {
   private static final String EXPORT_DIR = "exportDir";
@@ -48,6 +52,7 @@ public class ExportConfiguration {
   private static final String START_DATE = "startDate";
   private static final String END_DATE = "endDate";
   private static final String PULL_BEFORE = "pullBefore";
+  private static final String FORM_NEEDS_PRIVATE_KEY = "formNeedsPrivateKey";
   private static final String PULL_BEFORE_OVERRIDE = "pullBeforeOverride";
   private static final String OVERWRITE_EXISTING_FILES = "overwriteExistingFiles";
   private static final Predicate<PullBeforeOverrideOption> ALL_EXCEPT_INHERIT = value -> value != INHERIT;
@@ -56,24 +61,31 @@ public class ExportConfiguration {
   private Optional<LocalDate> startDate;
   private Optional<LocalDate> endDate;
   private Optional<Boolean> pullBefore;
+  private final Optional<Boolean> formNeedsPrivateKey;
   private Optional<PullBeforeOverrideOption> pullBeforeOverride;
   private Optional<Boolean> overwriteExistingFiles;
 
-  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride, Optional<Boolean> theOverwriteExistingFiles) {
+  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride, Optional<Boolean> formNeedsPrivateKey, Optional<Boolean> theOverwriteExistingFiles) {
     this.exportDir = exportDir;
     this.pemFile = pemFile;
     this.startDate = startDate;
     this.endDate = endDate;
     this.pullBefore = pullBefore;
     this.pullBeforeOverride = pullBeforeOverride;
+    this.formNeedsPrivateKey = formNeedsPrivateKey;
     this.overwriteExistingFiles = theOverwriteExistingFiles;
   }
 
   public static ExportConfiguration empty() {
-    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
-  public static ExportConfiguration load(BriefcasePreferences prefs) {
+  public static ExportConfiguration empty(FormStatus form) {
+    Optional<Boolean> formNeedsPrivateKey = Optional.of(getFormDefinition(form).isFileEncryptedForm() || getFormDefinition(form).isFieldEncryptedForm());
+    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), formNeedsPrivateKey, Optional.empty());
+  }
+
+  public static ExportConfiguration loadDefaultConfig(BriefcasePreferences prefs) {
     return new ExportConfiguration(
         prefs.nullSafeGet(EXPORT_DIR).map(Paths::get),
         prefs.nullSafeGet(PEM_FILE).map(Paths::get),
@@ -81,11 +93,12 @@ public class ExportConfiguration {
         prefs.nullSafeGet(END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(PULL_BEFORE).map(Boolean::valueOf),
         prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from),
+        Optional.empty(),
         prefs.nullSafeGet(OVERWRITE_EXISTING_FILES).map(Boolean::valueOf)
     );
   }
 
-  public static ExportConfiguration load(BriefcasePreferences prefs, String keyPrefix) {
+  public static ExportConfiguration loadFormConfig(BriefcasePreferences prefs, String keyPrefix) {
     return new ExportConfiguration(
         prefs.nullSafeGet(keyPrefix + EXPORT_DIR).map(Paths::get),
         prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get),
@@ -93,6 +106,7 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + PULL_BEFORE).map(Boolean::valueOf),
         prefs.nullSafeGet(keyPrefix + PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from),
+        prefs.nullSafeGet(keyPrefix + FORM_NEEDS_PRIVATE_KEY).map(Boolean::valueOf),
         prefs.nullSafeGet(keyPrefix + OVERWRITE_EXISTING_FILES).map(Boolean::valueOf)
     );
   }
@@ -109,6 +123,7 @@ public class ExportConfiguration {
         keyPrefix + END_DATE,
         keyPrefix + PULL_BEFORE,
         keyPrefix + PULL_BEFORE_OVERRIDE,
+        keyPrefix + FORM_NEEDS_PRIVATE_KEY,
         keyPrefix + OVERWRITE_EXISTING_FILES
     );
   }
@@ -127,6 +142,7 @@ public class ExportConfiguration {
     endDate.ifPresent(value -> map.put(keyPrefix + END_DATE, value.format(DateTimeFormatter.ISO_DATE)));
     pullBefore.ifPresent(value -> map.put(keyPrefix + PULL_BEFORE, value.toString()));
     pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).ifPresent(value -> map.put(keyPrefix + PULL_BEFORE_OVERRIDE, value.name()));
+    formNeedsPrivateKey.ifPresent(value -> map.put(keyPrefix + FORM_NEEDS_PRIVATE_KEY, value.toString()));
     overwriteExistingFiles.ifPresent(value -> map.put(keyPrefix + OVERWRITE_EXISTING_FILES, value.toString()));
     return map;
   }
@@ -139,6 +155,7 @@ public class ExportConfiguration {
         endDate,
         pullBefore,
         pullBeforeOverride,
+        formNeedsPrivateKey,
         overwriteExistingFiles
     );
   }
@@ -157,12 +174,24 @@ public class ExportConfiguration {
   }
 
   public ExportConfiguration setPemFile(Path path) {
-    this.pemFile = Optional.ofNullable(path);
+    //After running several test with different pem files,
+    //this method always sets the pem file to Optional.empty()
+    //this is because isValidPrivateKey method doesn't return true though
+    //the path contains a valid pem file.
+    //Note: isValidPrivateKey returns true on the ui check when the user selects
+    //a valid pem file but fails here consequently making some tests to fail.
+    this.pemFile = Optional.ofNullable(path)
+            .filter(PrivateKeyUtils::isValidPrivateKey);
     return this;
   }
 
-  public boolean isPemFilePresent() {
-    return pemFile.isPresent();
+  public Optional<Boolean> getPullBefore() {
+    return pullBefore;
+  }
+
+  public ExportConfiguration setPullBefore(Boolean value) {
+    this.pullBefore = Optional.ofNullable(value);
+    return this;
   }
 
   public Optional<LocalDate> getStartDate() {
@@ -183,13 +212,8 @@ public class ExportConfiguration {
     return this;
   }
 
-  public Optional<Boolean> getPullBefore() {
-    return pullBefore;
-  }
-
-  public ExportConfiguration setPullBefore(Boolean value) {
-    this.pullBefore = Optional.ofNullable(value);
-    return this;
+  public boolean isPemFilePresent() {
+    return pemFile.isPresent();
   }
 
   public Optional<PullBeforeOverrideOption> getPullBeforeOverride() {
@@ -287,6 +311,8 @@ public class ExportConfiguration {
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
       errors.add(INVALID_DATE_RANGE_MESSAGE);
+    if (formNeedsPrivateKey.orElse(false) && !isPemFilePresent())
+      errors.add(INVALID_PEM_FILE);
     return errors;
   }
 
@@ -311,11 +337,13 @@ public class ExportConfiguration {
       errors.add("Missing date range start definition");
     if (!isDateRangeValid())
       errors.add(INVALID_DATE_RANGE_MESSAGE);
-
     return errors;
   }
 
   public boolean isEmpty() {
+    //Since formNeedsPrivateKey field is used just to determine if a form needs a private key
+    //and is not required to create a valid export configuration a configuration is thus empty
+    //if all the other fields are empty
     return !exportDir.isPresent()
         && !pemFile.isPresent()
         && !startDate.isPresent()
@@ -349,16 +377,21 @@ public class ExportConfiguration {
     return endDate.map(mapper);
   }
 
-  public ExportConfiguration fallingBackTo(ExportConfiguration defaultConfiguration) {
+  public ExportConfiguration fallingBackTo(ExportConfiguration other) {
     return new ExportConfiguration(
-        exportDir.isPresent() ? exportDir : defaultConfiguration.exportDir,
-        pemFile.isPresent() ? pemFile : defaultConfiguration.pemFile,
-        startDate.isPresent() ? startDate : defaultConfiguration.startDate,
-        endDate.isPresent() ? endDate : defaultConfiguration.endDate,
-        pullBefore.isPresent() ? pullBefore : defaultConfiguration.pullBefore,
-        pullBeforeOverride.isPresent() ? pullBeforeOverride : defaultConfiguration.pullBeforeOverride,
-        overwriteExistingFiles.isPresent() ? overwriteExistingFiles : defaultConfiguration.overwriteExistingFiles
+        exportDir.isPresent() ? exportDir : other.exportDir,
+        pemFile.isPresent() ? pemFile : other.pemFile,
+        startDate.isPresent() ? startDate : other.startDate,
+        endDate.isPresent() ? endDate : other.endDate,
+        pullBefore.isPresent() ? pullBefore : other.pullBefore,
+        pullBeforeOverride.isPresent() ? pullBeforeOverride : other.pullBeforeOverride,
+        formNeedsPrivateKey.isPresent() ? formNeedsPrivateKey : other.formNeedsPrivateKey,
+        overwriteExistingFiles.isPresent() ? overwriteExistingFiles : other.overwriteExistingFiles
     );
+  }
+
+  public static BriefcaseFormDefinition getFormDefinition(FormStatus form) {
+    return (BriefcaseFormDefinition) form.getFormDefinition();
   }
 
   @Override
@@ -370,6 +403,7 @@ public class ExportConfiguration {
         ", endDate=" + endDate +
         ", pullBefore=" + pullBefore +
         ", pullBeforeOverride=" + pullBeforeOverride +
+        ", formNeedsPrivateKey=" + formNeedsPrivateKey +
         ", overwriteExistingFiles=" + overwriteExistingFiles +
         '}';
   }
@@ -387,11 +421,12 @@ public class ExportConfiguration {
         Objects.equals(endDate, that.endDate) &&
         Objects.equals(pullBefore, that.pullBefore) &&
         Objects.equals(pullBeforeOverride, that.pullBeforeOverride) &&
+        Objects.equals(formNeedsPrivateKey, that.formNeedsPrivateKey) &&
         Objects.equals(overwriteExistingFiles, that.overwriteExistingFiles);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, pullBeforeOverride, overwriteExistingFiles);
+    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, pullBeforeOverride, formNeedsPrivateKey, overwriteExistingFiles);
   }
 }

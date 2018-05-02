@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.IFormDefinition;
@@ -59,9 +60,10 @@ public class ExportForms {
     Map<String, ServerConnectionInfo> transferSettings = new HashMap<>();
     forms.forEach(form -> {
       String formId = getFormId(form);
-      ExportConfiguration load = ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId));
-      if (!load.isEmpty())
+      ExportConfiguration load = ExportConfiguration.loadFormConfig(exportPreferences, buildCustomConfPrefix(formId));
+      if (!load.isEmpty()) {
         configurations.put(formId, load);
+      }
       exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId))
           .map(LocalDateTime::parse)
           .ifPresent(dateTime -> lastExportDateTimes.put(formId, dateTime));
@@ -133,11 +135,11 @@ public class ExportForms {
     defaultConfiguration = configuration;
   }
 
-  public ExportConfiguration getConfiguration(String formId) {
-    return Optional.ofNullable(customConfigurations.get(formId))
-        .orElse(ExportConfiguration.empty())
-        .fallingBackTo(defaultConfiguration);
-  }
+public ExportConfiguration getConfiguration(FormStatus form) {
+  return Optional.ofNullable(customConfigurations.get(form.getFormDefinition().getFormId()))
+      .orElse(ExportConfiguration.empty(form))
+      .fallingBackTo(defaultConfiguration);
+}
 
   public void removeConfiguration(FormStatus form) {
     customConfigurations.remove(getFormId(form));
@@ -161,7 +163,6 @@ public class ExportForms {
 
   public boolean allSelectedFormsHaveConfiguration() {
     return getSelectedForms().stream()
-        .map(ExportForms::getFormId)
         .map(this::getConfiguration)
         .allMatch(ExportConfiguration::isValid);
   }

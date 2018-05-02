@@ -95,7 +95,7 @@ public class FormsTableViewModel extends AbstractTableModel {
     updateConfButton(form, button);
     button.addActionListener(__ -> {
       ConfigurationDialog dialog = ConfigurationDialog.from(
-          forms.getCustomConfiguration(form),
+          forms.getCustomConfiguration(form).orElse(ExportConfiguration.empty(form)),
           forms.hasTransferSettings(form),
           BriefcasePreferences.getStorePasswordsConsentProperty()
       );
@@ -105,6 +105,7 @@ public class FormsTableViewModel extends AbstractTableModel {
           removeConfiguration(form);
         else
           putConfiguration(form, configuration);
+
       });
       dialog.open();
     });

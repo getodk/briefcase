@@ -48,6 +48,7 @@ import org.opendatakit.briefcase.transfer.NewTransferAction;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.briefcase.util.PrivateKeyUtils;
 
 public class ExportPanel {
   public static final String TAB_NAME = "Export";
@@ -91,10 +92,16 @@ public class ExportPanel {
           preferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
       );
 
-      if (forms.someSelected() && (form.getConfPanel().isValid() || forms.allSelectedFormsHaveConfiguration()))
+      if (forms.someSelected() && (form.getConfPanel().isValid() && forms.allSelectedFormsHaveConfiguration())) {
+        form.hideErrorMSg();
         form.enableExport();
-      else
+      } else {
+        if (!forms.someSelected())
+          form.setErrorMsg("No form(s) selected for export");
+        else
+          form.setErrorMsg("Some form(s) need decryption key.");
         form.disableExport();
+      }
 
       if (forms.allSelected()) {
         form.toggleClearAll();
@@ -108,13 +115,13 @@ public class ExportPanel {
       form.showExporting();
       // Segregating this validation from the export process to move it to ExportConfiguration on the future
       List<String> errors = forms.getSelectedForms().stream().flatMap(formStatus -> {
-        ExportConfiguration exportConfiguration = forms.getConfiguration(formStatus.getFormDefinition().getFormId());
+        ExportConfiguration exportConfiguration = forms.getConfiguration(formStatus);
         boolean needsPemFile = ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFileEncryptedForm() || ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFieldEncryptedForm();
 
         if (needsPemFile && !exportConfiguration.isPemFilePresent())
           return Stream.of("The form " + formStatus.getFormName() + " is encrypted and you haven't set a PEM file");
         if (needsPemFile)
-          return ExportAction.readPemFile(exportConfiguration.getPemFile()
+          return PrivateKeyUtils.readPemFile(exportConfiguration.getPemFile()
               .orElseThrow(() -> new RuntimeException("PEM file not present"))
           ).getErrors().stream();
         return Stream.empty();
@@ -130,7 +137,7 @@ public class ExportPanel {
   }
 
   public static ExportPanel from(TerminationFuture terminationFuture, BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Executor backgroundExecutor, Analytics analytics) {
-    ExportConfiguration defaultConfiguration = ExportConfiguration.load(exportPreferences);
+    ExportConfiguration defaultConfiguration = ExportConfiguration.loadDefaultConfig(exportPreferences);
     ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(defaultConfiguration, BriefcasePreferences.getStorePasswordsConsentProperty(), true);
     ExportForms forms = ExportForms.load(defaultConfiguration, getFormsFromStorage(), exportPreferences, appPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, confPanel);
@@ -167,7 +174,7 @@ public class ExportPanel {
         .peek(FormStatus::clearStatusHistory)
         .forEach(form -> {
           String formId = form.getFormDefinition().getFormId();
-          ExportConfiguration configuration = forms.getConfiguration(formId);
+          ExportConfiguration configuration = forms.getConfiguration(form);
           if (configuration.resolvePullBefore())
             forms.getTransferSettings(formId).ifPresent(sci -> NewTransferAction.transferServerToBriefcase(
                 sci,

@@ -42,6 +42,7 @@ import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.fixture.JFileChooserFixture;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
+import org.opendatakit.briefcase.model.PemFileTest;
 
 class ConfigurationPanelPageObject {
   private static Path TEST_FOLDER;
@@ -145,8 +146,7 @@ class ConfigurationPanelPageObject {
   }
 
   public void setSomePemFile() {
-    Path pemFile = TEST_FOLDER.resolve("some_file.pem");
-    execute(() -> component.form.setPemFile(pemFile));
+    execute(() -> component.form.setPemFile(PemFileTest.getSomePemFile()));
   }
 
   public void setSomeExportDir() {
