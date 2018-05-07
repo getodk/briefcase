@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import org.javarosa.core.model.FormDef;
+import org.javarosa.core.model.instance.TreeElement;
 import org.javarosa.xform.parse.XFormParser;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
@@ -33,12 +34,14 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
  * This class holds all the relevant information about the form being exported.
  */
 public class FormDefinition {
+  private final String id;
   private final String name;
   private final Path formFile;
   private final boolean isEncrypted;
   private final Model model;
 
-  private FormDefinition(Path formFile, String name, boolean isEncrypted, Model model) {
+  private FormDefinition(String id, Path formFile, String name, boolean isEncrypted, Model model) {
+    this.id = id;
     this.name = name;
     this.formFile = formFile;
     this.isEncrypted = isEncrypted;
@@ -67,6 +70,7 @@ public class FormDefinition {
           .filter(s -> !s.isEmpty())
           .isPresent();
       return new FormDefinition(
+          parseFormId(formDef.getMainInstance().getRoot()),
           formFile,
           formDef.getName(),
           isEncrypted,
@@ -83,11 +87,21 @@ public class FormDefinition {
    */
   public static FormDefinition from(BriefcaseFormDefinition fd) {
     return new FormDefinition(
+        fd.getFormId(),
         fd.getFormDefinitionFile().toPath(),
         fd.getFormName(),
         fd.isFileEncryptedForm(),
         new Model(fd.getSubmissionElement())
     );
+  }
+
+  private static String parseFormId(TreeElement root) {
+    for (int attrIndex = 0; attrIndex < root.getAttributeCount(); attrIndex++) {
+      String name = root.getAttributeName(attrIndex);
+      if (name.equals("id"))
+        return root.getAttributeValue(attrIndex);
+    }
+    throw new BriefcaseException("No form ID found");
   }
 
   /**
@@ -117,5 +131,12 @@ public class FormDefinition {
    */
   Model getModel() {
     return model;
+  }
+
+  /**
+   * Returns the form's ID
+   */
+  public String getFormId() {
+    return id;
   }
 }
