@@ -36,7 +36,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
@@ -54,6 +53,12 @@ public class ExportToCsv {
    * @see ExportConfiguration
    */
   public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration, boolean exportMedia) {
+    // Create an export tracker object with the total number of submissions we have to export
+    long submissionCount = walk(formDef.getFormDir().resolve("instances"))
+        .filter(UncheckedFiles::isInstanceDir)
+        .count();
+    ExportProcessTracker exportTracker = new ExportProcessTracker(formDef, submissionCount);
+
     // Compute and create the export directory
     Path exportDir = configuration.getExportDir().orElseThrow(() -> new BriefcaseException("No export dir defined"));
     createDirectories(exportDir);
@@ -79,9 +84,6 @@ public class ExportToCsv {
     );
     files.put(formDef.getModel(), mainFile);
 
-    // We have to remember how many submissions are exported.
-    AtomicInteger processedSubmissionCount = new AtomicInteger(0);
-
     // Parse all submission files in the instances folder of this form
     SubmissionParser
         .parseAllInFormDir(
@@ -105,7 +107,8 @@ public class ExportToCsv {
         .sorted(comparingLong(Submission::getSubmissionDateEpoch))
         // Write lines in the main CSV file
         .forEachOrdered(submission -> {
-          processedSubmissionCount.incrementAndGet();
+          // Increment the export count and maybe report progress
+          exportTracker.incAndReport();
           append(getMainSubmissionLines(
               submission,
               formDef.getModel(),
@@ -118,17 +121,7 @@ public class ExportToCsv {
     // Flush and close output streams
     files.values().forEach(UncheckedFiles::close);
 
-    // Check exported submissions count
-    long submissionCount = walk(formDef.getFormDir().resolve("instances"))
-        .filter(UncheckedFiles::isInstanceDir)
-        .count();
-
-    // Compute an outcome and return it
-    return processedSubmissionCount.get() == submissionCount
-        ? ExportOutcome.ALL_EXPORTED
-        : processedSubmissionCount.get() < submissionCount
-        ? ExportOutcome.SOME_SKIPPED
-        : ExportOutcome.ALL_SKIPPED;
+    return exportTracker.computeOutcome();
   }
 
   private static OutputStreamWriter getOutputStreamWriter(Path outputFile, Boolean overwrite, String header) {
