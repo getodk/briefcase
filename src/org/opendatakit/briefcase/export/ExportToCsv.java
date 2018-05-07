@@ -25,6 +25,9 @@ import static org.opendatakit.briefcase.export.CsvMapper.getMainHeader;
 import static org.opendatakit.briefcase.export.CsvMapper.getMainSubmissionLines;
 import static org.opendatakit.briefcase.export.CsvMapper.getRepeatCsvLine;
 import static org.opendatakit.briefcase.export.CsvMapper.getRepeatHeader;
+import static org.opendatakit.briefcase.export.ExportOutcome.ALL_EXPORTED;
+import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
+import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.append;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.newOutputStreamWriter;
@@ -36,6 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
@@ -124,7 +128,17 @@ public class ExportToCsv {
 
     exportTracker.end();
 
-    return exportTracker.computeOutcome();
+    ExportOutcome exportOutcome = exportTracker.computeOutcome();
+    if (exportOutcome == ALL_EXPORTED)
+      EventBus.publish(ExportEvent.successForm(formDef, (int) exportTracker.total));
+
+    if (exportOutcome == SOME_SKIPPED)
+      EventBus.publish(ExportEvent.partialSuccessForm(formDef, (int) exportTracker.exported, (int) exportTracker.total));
+
+    if (exportOutcome == ALL_SKIPPED)
+      EventBus.publish(ExportEvent.failure(formDef, "All submissions have been skipped"));
+
+    return exportOutcome;
   }
 
   private static OutputStreamWriter getOutputStreamWriter(Path outputFile, Boolean overwrite, String header) {

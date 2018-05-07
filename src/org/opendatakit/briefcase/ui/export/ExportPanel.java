@@ -19,9 +19,6 @@ import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
-import static org.opendatakit.briefcase.export.ExportOutcome.ALL_EXPORTED;
-import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
-import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 
@@ -30,14 +27,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.stream.Stream;
-import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.export.ExportAction;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.export.ExportForms;
-import org.opendatakit.briefcase.export.ExportOutcome;
 import org.opendatakit.briefcase.export.ExportToCsv;
 import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -188,16 +183,7 @@ public class ExportPanel {
                 appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new)
             ));
           BriefcaseFormDefinition formDefinition = (BriefcaseFormDefinition) form.getFormDefinition();
-          ExportOutcome outcome = ExportToCsv.export(FormDefinition.from(formDefinition), configuration, true);
-
-          if (outcome == ALL_EXPORTED)
-            EventBus.publish(new ExportSucceededEvent(formDefinition));
-
-          if (outcome == SOME_SKIPPED)
-            EventBus.publish(new ExportSucceededWithErrorsEvent(formDefinition));
-
-          if (outcome == ALL_SKIPPED)
-            EventBus.publish(new ExportFailedEvent(formDefinition));
+          ExportToCsv.export(FormDefinition.from(formDefinition), configuration, true);
         });
     form.enableUI();
   }
