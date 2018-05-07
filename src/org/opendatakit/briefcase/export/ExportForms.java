@@ -194,17 +194,6 @@ public class ExportForms {
     return forms.stream().noneMatch(FormStatus::isSelected);
   }
 
-  public void appendStatus(IFormDefinition formDefinition, String statusUpdate, boolean successful) {
-    FormStatus form = getForm(formDefinition);
-    form.setStatusString(statusUpdate, successful);
-    if (successful) {
-      LocalDateTime exportDate = LocalDateTime.now();
-      String formId = getFormId(form);
-      lastExportDateTimes.put(formId, exportDate);
-      onSuccessfulExportCallbacks.forEach(callback -> callback.accept(formId, exportDate));
-    }
-  }
-
   public void appendStatus(ExportEvent event) {
     getForm(event.getFormId()).setStatusString(event.getStatusLine(), false);
     if (event.isSuccess()) {

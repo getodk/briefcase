@@ -37,10 +37,6 @@ import org.opendatakit.briefcase.export.ExportToCsv;
 import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.ExportFailedEvent;
-import org.opendatakit.briefcase.model.ExportProgressEvent;
-import org.opendatakit.briefcase.model.ExportSucceededEvent;
-import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.SavePasswordsConsentGiven;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
@@ -188,33 +184,13 @@ public class ExportPanel {
     form.enableUI();
   }
 
-  @EventSubscriber(eventClass = ExportSucceededWithErrorsEvent.class)
-  public void onExportSucceededWithErrorsEvent(ExportSucceededWithErrorsEvent event) {
-    analytics.event("Export", "Export", "Success with errors", null);
-  }
-
-  @EventSubscriber(eventClass = ExportFailedEvent.class)
-  public void onExportFailedEvent(ExportFailedEvent event) {
-    analytics.event("Export", "Export", "Failure", null);
-  }
-
-  @EventSubscriber(eventClass = ExportSucceededEvent.class)
-  public void onExportSucceededEvent(ExportSucceededEvent event) {
-    analytics.event("Export", "Export", "Success", null);
-  }
-
   @EventSubscriber(eventClass = CacheUpdateEvent.class)
   public void onCacheUpdateEvent(CacheUpdateEvent event) {
     updateForms();
   }
 
-  @EventSubscriber(eventClass = ExportProgressEvent.class)
-  public void onExportProgressEvent(ExportProgressEvent event) {
-    form.updateExportProgressBar();
-  }
-
   @EventSubscriber(eventClass = ExportEvent.class)
-  public void onExportProgressEvent(ExportEvent event) {
+  public void onExportEvent(ExportEvent event) {
     form.updateExportProgressBar();
   }
 

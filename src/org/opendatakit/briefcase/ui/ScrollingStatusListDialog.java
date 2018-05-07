@@ -35,9 +35,6 @@ import javax.swing.text.JTextComponent;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.export.ExportEvent;
-import org.opendatakit.briefcase.model.ExportFailedEvent;
-import org.opendatakit.briefcase.model.ExportProgressEvent;
-import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.IFormDefinition;
 import org.slf4j.Logger;
@@ -137,23 +134,8 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
     }
   }
 
-  @EventSubscriber(eventClass = ExportProgressEvent.class)
-  public void onExportProgressEvent(ExportProgressEvent event) {
-    appendToDocument(editorArea, event.getText());
-  }
-
   @EventSubscriber(eventClass = ExportEvent.class)
-  public void onExportProgressEvent(ExportEvent event) {
+  public void onExportEvent(ExportEvent event) {
     appendToDocument(editorArea, event.getStatusLine());
-  }
-
-  @EventSubscriber(eventClass = ExportFailedEvent.class)
-  public void onExportFailedEvent(ExportFailedEvent event) {
-    appendToDocument(editorArea, "Failed.");
-  }
-
-  @EventSubscriber(eventClass = ExportSucceededEvent.class)
-  public void onExportSucceededEvent(ExportSucceededEvent event) {
-    appendToDocument(editorArea, "Succeeded.");
   }
 }
