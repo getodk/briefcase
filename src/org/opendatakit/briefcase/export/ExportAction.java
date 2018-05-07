@@ -34,7 +34,6 @@ import java.util.Optional;
 import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.ExportFailedEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.util.ErrorsOr;
@@ -97,7 +96,7 @@ public class ExportAction {
       return ALL_SKIPPED;
     } catch (Exception e) {
       log.error("export action failed", e);
-      EventBus.publish(new ExportFailedEvent(action.getFormDefinition()));
+      EventBus.publish(ExportEvent.failure(FormDefinition.from(formDefinition), "Export action has failed"));
       throw new BriefcaseException(e);
     }
   }

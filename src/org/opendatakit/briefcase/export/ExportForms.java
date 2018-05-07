@@ -207,6 +207,11 @@ public class ExportForms {
 
   public void appendStatus(ExportEvent event) {
     getForm(event.getFormId()).setStatusString(event.getStatusLine(), false);
+    if (event.isSuccess()) {
+      LocalDateTime exportDate = LocalDateTime.now();
+      lastExportDateTimes.put(event.getFormId(), exportDate);
+      onSuccessfulExportCallbacks.forEach(callback -> callback.accept(event.getFormId(), exportDate));
+    }
   }
 
   public Optional<LocalDateTime> getLastExportDateTime(FormStatus form) {

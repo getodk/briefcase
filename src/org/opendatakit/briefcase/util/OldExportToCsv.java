@@ -51,12 +51,11 @@ import org.javarosa.core.model.instance.TreeElement;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
 import org.kxml2.kdom.Node;
+import org.opendatakit.briefcase.export.ExportEvent;
+import org.opendatakit.briefcase.export.ExportProcessTracker;
+import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.CryptoException;
-import org.opendatakit.briefcase.model.ExportProgressEvent;
-import org.opendatakit.briefcase.model.ExportProgressPercentageEvent;
-import org.opendatakit.briefcase.model.ExportSucceededEvent;
-import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -70,10 +69,11 @@ public class OldExportToCsv implements ITransformFormAction {
   private static final String MEDIA_DIR = "media";
 
   private static final Logger log = LoggerFactory.getLogger(OldExportToCsv.class);
+  private final FormDefinition formDef;
 
   int totalFilesSkipped = 0;
-  int totalInstances = 0;
-  int processedInstances = 0;
+  public int totalInstances = 0;
+  public int processedInstances = 0;
   private final Map<TreeElement, OutputStreamWriter> fileMap = new HashMap<>();
   private final Map<String, String> fileHashMap = new HashMap<>();
   private final TerminationFuture terminationFuture;
@@ -85,11 +85,13 @@ public class OldExportToCsv implements ITransformFormAction {
   private final Date startDate;
   private final Date endDate;
   private final File outputMediaDir;
+  private ExportProcessTracker tracker;
 
   public OldExportToCsv(TerminationFuture terminationFuture, File outputDir, BriefcaseFormDefinition briefcaseLfd, String baseFilename, boolean exportMedia, boolean overwrite, Date startDate, Date endDate) {
     this.terminationFuture = terminationFuture;
     this.outputDir = outputDir;
     this.briefcaseLfd = briefcaseLfd;
+    this.formDef = FormDefinition.from(briefcaseLfd);
     this.baseFilename = stripCsvExtension(baseFilename);
     this.exportMedia = exportMedia;
     this.overwrite = overwrite;
@@ -113,13 +115,18 @@ public class OldExportToCsv implements ITransformFormAction {
     } catch (FileSystemException e) {
       String msg = "Unable to access instances directory of form";
       log.error(msg, e);
-      EventBus.publish(new ExportProgressEvent(msg, briefcaseLfd));
+      EventBus.publish(ExportEvent.failure(formDef, msg));
       return false;
     }
 
+    File[] instances = instancesDir.listFiles(file -> file.isDirectory() && new File(file, "submission.xml").exists());
+    totalInstances = instances.length;
+    tracker = new ExportProcessTracker(formDef, instances.length);
+    tracker.start();
+
     if (!outputDir.exists()) {
       if (!outputDir.mkdir()) {
-        EventBus.publish(new ExportProgressEvent("Unable to create destination directory", briefcaseLfd));
+        EventBus.publish(ExportEvent.failure(formDef, "Unable to create destination directory"));
         return false;
       }
     }
@@ -129,8 +136,7 @@ public class OldExportToCsv implements ITransformFormAction {
       return false;
     }
 
-    File[] instances = instancesDir.listFiles(file -> file.isDirectory() && new File(file, "submission.xml").exists());
-    totalInstances = instances.length;
+
 
     // Sorts the instances by the submission date. If no submission date, we
     // assume it to be latest.
@@ -163,7 +169,8 @@ public class OldExportToCsv implements ITransformFormAction {
 
     for (File instanceDir : instances) {
       if (terminationFuture.isCancelled()) {
-        EventBus.publish(new ExportProgressEvent("Aborted", briefcaseLfd));
+        // Doesn't matter which event to send. This class is going to disappear
+        EventBus.publish(ExportEvent.end(formDef, 0));
         allSuccessful = false;
         break;
       }
@@ -178,11 +185,13 @@ public class OldExportToCsv implements ITransformFormAction {
         w.close();
       } catch (IOException e) {
         String msg = "Error flushing csv file";
-        EventBus.publish(new ExportProgressEvent(msg, briefcaseLfd));
+        EventBus.publish(ExportEvent.failure(formDef, msg));
         log.error(msg, e);
         allSuccessful = false;
       }
     }
+
+    tracker.end();
 
     return allSuccessful;
   }
@@ -451,7 +460,7 @@ public class OldExportToCsv implements ITransformFormAction {
               if (exportMedia) {
                 if (!outputMediaDir.exists()) {
                   if (!outputMediaDir.mkdir()) {
-                    EventBus.publish(new ExportProgressEvent("Unable to create destination media directory", briefcaseLfd));
+                    EventBus.publish(ExportEvent.failure(formDef, "Unable to create destination media directory"));
                     return false;
                   }
                 }
@@ -759,7 +768,7 @@ public class OldExportToCsv implements ITransformFormAction {
     } catch (IOException e) {
       String msg = "Unable to create csv file";
       log.error(msg, e);
-      EventBus.publish(new ExportProgressEvent(msg, briefcaseLfd));
+      EventBus.publish(ExportEvent.failure(formDef, msg));
       for (OutputStreamWriter w : fileMap.values()) {
         try {
           w.close();
@@ -776,15 +785,14 @@ public class OldExportToCsv implements ITransformFormAction {
   private boolean processInstance(File instanceDir) {
     File submission = new File(instanceDir, "submission.xml");
     if (!submission.exists() || !submission.isFile()) {
-      EventBus.publish(new ExportProgressEvent("Submission not found for instance directory: "
-          + instanceDir.getPath(), briefcaseLfd));
+      EventBus.publish(ExportEvent.failure(formDef, "Submission not found for instance directory: "
+          + instanceDir.getPath()));
       return false;
     }
 
     processedInstances++;
 
-    EventBus.publish(new ExportProgressEvent("Processing instance: " + instanceDir.getName(), briefcaseLfd));
-    EventBus.publish(new ExportProgressPercentageEvent((processedInstances * 100.0) / totalInstances, briefcaseLfd));
+    tracker.incAndReport();
 
     // If we are encrypted, be sure the temporary directory
     // that will hold the unencrypted files is created.
@@ -802,8 +810,8 @@ public class OldExportToCsv implements ITransformFormAction {
       } catch (IOException e) {
         String msg = "Unable to create temp directory.";
         log.error(msg, e);
-        EventBus.publish(new ExportProgressEvent(msg + " Cause : "
-                + e.toString(), briefcaseLfd));
+        EventBus.publish(ExportEvent.failure(formDef, msg + " Cause : "
+            + e.toString()));
         return false;
       }
 
@@ -821,7 +829,7 @@ public class OldExportToCsv implements ITransformFormAction {
       doc = XmlManipulationUtils.parseXml(submission);
     } catch (ParsingException | FileSystemException e) {
       log.error("Error parsing submission", e);
-      EventBus.publish(new ExportProgressEvent(("Error parsing submission " + instanceDir.getName()) + " Cause: " + e.toString(), briefcaseLfd));
+      EventBus.publish(ExportEvent.failure(formDef, "Error parsing submission " + instanceDir.getName() + " Cause: " + e.toString()));
       return false;
     }
 
@@ -871,8 +879,8 @@ public class OldExportToCsv implements ITransformFormAction {
         } catch (ParsingException | CryptoException | FileSystemException e) {
           //Was unable to parse file or decrypt file or a file system error occurred
           //Hence skip this instance
-          EventBus.publish(new ExportProgressEvent("Error decrypting submission "
-              + instanceDir.getName() + " Cause: " + e.toString() + " skipping....", briefcaseLfd));
+          EventBus.publish(ExportEvent.failure(formDef, "Error decrypting submission "
+              + instanceDir.getName() + " Cause: " + e.toString() + " skipping...."));
 
           log.info("Error decrypting submission "
               + instanceDir.getName() + " Cause: " + e.toString());
@@ -892,7 +900,7 @@ public class OldExportToCsv implements ITransformFormAction {
         base64EncryptedFieldKey = sim.base64EncryptedFieldKey;
       } catch (ParsingException e) {
         log.error("Could not extract metadata from submission", e);
-        EventBus.publish(new ExportProgressEvent("Could not extract metadata from submission " + submission.getAbsolutePath(), briefcaseLfd));
+        EventBus.publish(ExportEvent.failure(formDef, "Could not extract metadata from submission " + submission.getAbsolutePath()));
         return false;
       }
 
@@ -907,14 +915,15 @@ public class OldExportToCsv implements ITransformFormAction {
         } catch (IOException e1) {
           String msg = "Failed during computing of crc";
           log.error(msg, e1);
-          EventBus.publish(new ExportProgressEvent(msg + ": " + e1.getMessage(), briefcaseLfd));
+          EventBus.publish(ExportEvent.failure(formDef, (msg + ": " + e1.getMessage())));
           return false;
         }
         instanceId = "crc32:" + Long.toString(checksum);
       }
 
       if (terminationFuture.isCancelled()) {
-        EventBus.publish(new ExportProgressEvent("Aborted", briefcaseLfd));
+        // Doesn't matter which event to send. This class is going to disappear
+        EventBus.publish(ExportEvent.end(formDef, 0));
         return false;
       }
 
@@ -924,7 +933,7 @@ public class OldExportToCsv implements ITransformFormAction {
           ei = new EncryptionInformation(base64EncryptedFieldKey, instanceId, briefcaseLfd.getPrivateKey());
         } catch (CryptoException e) {
           log.error("Error establishing field decryption", e);
-          EventBus.publish(new ExportProgressEvent("Error establishing field decryption for submission " + instanceDir.getName() + " Cause: " + e.toString(), briefcaseLfd));
+          EventBus.publish(ExportEvent.failure(formDef, "Error establishing field decryption for submission " + instanceDir.getName() + " Cause: " + e.toString()));
           return false;
         }
       }
@@ -940,8 +949,8 @@ public class OldExportToCsv implements ITransformFormAction {
         if (briefcaseLfd.isFileEncryptedForm()) {
           emitString(osw, false, Boolean.toString(isValidated));
           if (!isValidated) {
-            EventBus.publish(new ExportProgressEvent("Decrypted submission "
-                + instanceDir.getName() + " may be missing attachments and could not be validated.", briefcaseLfd));
+            // Doesn't matter which event to send. This class is going to disappear
+            EventBus.publish(ExportEvent.end(formDef, 0));
           }
         }
         osw.append("\n");
@@ -950,7 +959,7 @@ public class OldExportToCsv implements ITransformFormAction {
       } catch (IOException e) {
         String msg = "Failed writing csv";
         log.error(msg, e);
-        EventBus.publish(new ExportProgressEvent(msg + ": " + e.getMessage(), briefcaseLfd));
+        EventBus.publish(ExportEvent.failure(formDef, msg + ": " + e.getMessage()));
         return false;
       }
     } finally {
@@ -961,7 +970,7 @@ public class OldExportToCsv implements ITransformFormAction {
         } catch (IOException e) {
           String msg = "Unable to remove decrypted files";
           log.error(msg, e);
-          EventBus.publish(new ExportProgressEvent(msg + ": " + e.getMessage(), briefcaseLfd));
+          EventBus.publish(ExportEvent.failure(formDef, msg + ": " + e.getMessage()));
           return false;
         }
       }
@@ -985,14 +994,16 @@ public class OldExportToCsv implements ITransformFormAction {
         startDate.map(ld -> Date.from(ld.atStartOfDay(systemDefault()).toInstant())).orElse(null),
         endDate.map(ld -> Date.from(ld.atStartOfDay(systemDefault()).toInstant())).orElse(null)
     );
+    FormDefinition formDef = FormDefinition.from(action.getFormDefinition());
     try {
       boolean allSuccessful = action.doAction();
 
-      if (allSuccessful && action.someSkipped())
-        EventBus.publish(new ExportSucceededWithErrorsEvent(action.getFormDefinition()));
+      if (allSuccessful && action.someSkipped()) {
+        EventBus.publish(ExportEvent.partialSuccessForm(formDef, action.processedInstances, action.totalInstances));
+      }
 
       if (allSuccessful && action.noneSkipped())
-        EventBus.publish(new ExportSucceededEvent(action.getFormDefinition()));
+        EventBus.publish(ExportEvent.successForm(formDef, action.totalInstances));
 
       if (allSuccessful && action.allSkipped())
         throw new ExportException(formDefinition, "None of the instances where exported");

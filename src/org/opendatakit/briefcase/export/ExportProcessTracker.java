@@ -33,7 +33,7 @@ public class ExportProcessTracker {
     this.total = total;
   }
 
-  void incAndReport() {
+  public void incAndReport() {
     exported++;
     int percentage = (int) (exported * 100 / total);
     if (percentage > lastReportedPercentage && percentage % 10 == 0) {

@@ -29,7 +29,10 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.export.ExportForms;
+import org.opendatakit.briefcase.export.FormDefinition;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusBuilder;
@@ -121,7 +124,9 @@ public class ExportPanelUnitTest {
 
     assertThat(exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId)), isEmpty());
 
-    forms.appendStatus(form.getFormDefinition(), "some status update", true);
+    FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition)form.getFormDefinition());
+    ExportEvent event = ExportEvent.successForm(formDef, 10);
+    forms.appendStatus(event);
 
     assertThat(exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId)), isPresent());
   }
