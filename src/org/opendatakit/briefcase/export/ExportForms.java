@@ -205,6 +205,10 @@ public class ExportForms {
     }
   }
 
+  public void appendStatus(ExportEvent event) {
+    getForm(event.getFormId()).setStatusString(event.getStatusLine(), false);
+  }
+
   public Optional<LocalDateTime> getLastExportDateTime(FormStatus form) {
     return Optional.ofNullable(lastExportDateTimes.get(getFormId(form)));
   }

@@ -35,6 +35,7 @@ import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.export.ExportAction;
 import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.export.ExportOutcome;
 import org.opendatakit.briefcase.export.ExportToCsv;
@@ -223,6 +224,11 @@ public class ExportPanel {
 
   @EventSubscriber(eventClass = ExportProgressEvent.class)
   public void onExportProgressEvent(ExportProgressEvent event) {
+    form.updateExportProgressBar();
+  }
+
+  @EventSubscriber(eventClass = ExportEvent.class)
+  public void onExportProgressEvent(ExportEvent event) {
     form.updateExportProgressBar();
   }
 
