@@ -58,6 +58,7 @@ public class ExportToCsv {
         .filter(UncheckedFiles::isInstanceDir)
         .count();
     ExportProcessTracker exportTracker = new ExportProcessTracker(formDef, submissionCount);
+    exportTracker.start();
 
     // Compute and create the export directory
     Path exportDir = configuration.getExportDir().orElseThrow(() -> new BriefcaseException("No export dir defined"));
@@ -120,6 +121,8 @@ public class ExportToCsv {
 
     // Flush and close output streams
     files.values().forEach(UncheckedFiles::close);
+
+    exportTracker.end();
 
     return exportTracker.computeOutcome();
   }

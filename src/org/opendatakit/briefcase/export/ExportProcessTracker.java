@@ -22,13 +22,13 @@ import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
 
 import org.bushe.swing.event.EventBus;
 
-class ExportProcessTracker {
+public class ExportProcessTracker {
   private final FormDefinition form;
-  private final long total;
-  private long exported = 0;
+  final long total;
+  long exported;
   private int lastReportedPercentage = 0;
 
-  ExportProcessTracker(FormDefinition form, long total) {
+  public ExportProcessTracker(FormDefinition form, long total) {
     this.form = form;
     this.total = total;
   }
@@ -48,5 +48,14 @@ class ExportProcessTracker {
         : exported < total
         ? SOME_SKIPPED
         : ALL_SKIPPED;
+  }
+
+  public void start() {
+    exported = 0;
+    EventBus.publish(ExportEvent.start(form));
+  }
+
+  public void end() {
+    EventBus.publish(ExportEvent.end(form, exported));
   }
 }
