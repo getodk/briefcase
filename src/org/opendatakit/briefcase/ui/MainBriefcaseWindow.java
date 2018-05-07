@@ -41,7 +41,6 @@ import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.push.PushEvent;
@@ -184,7 +183,6 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
   @Override
   public void windowClosing(WindowEvent arg0) {
-    exportTerminationFuture.markAsCancelled(new ExportAbortEvent("Main window closed"));
     transferTerminationFuture.markAsCancelled(new PullEvent.Abort("Main window closed"));
     transferTerminationFuture.markAsCancelled(new PushEvent.Abort("Main window closed"));
   }
