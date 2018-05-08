@@ -211,7 +211,13 @@ public class ServerUploader {
 
       boolean outcome;
       boolean existsAlready = http.execute(server.containsFormQuery(formToTransfer.getFormDefinition().getFormId()));
-      outcome = existsAlready || uploadForm(formToTransfer, briefcaseFormDefFile, briefcaseFormMediaDir);
+      if (!existsAlready)
+        outcome = uploadForm(formToTransfer, briefcaseFormDefFile, briefcaseFormMediaDir);
+      else {
+        formToTransfer.setStatusString("Skipping form upload to remote server because it already exists", true);
+        EventBus.publish(new FormStatusEvent(formToTransfer));
+        outcome = true;
+      }
       thisFormSuccessful = thisFormSuccessful & outcome;
       allSuccessful = allSuccessful & outcome;
 
