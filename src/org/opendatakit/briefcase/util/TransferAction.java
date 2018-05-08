@@ -178,8 +178,15 @@ public class TransferAction {
   public static void transferBriefcaseToServer(ServerConnectionInfo destinationServerInfo,
                                                TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Http http, RemoteServer server) throws IOException {
 
-    TransferToServer dest = new TransferToServer(destinationServerInfo, terminationFuture,
-        formsToTransfer, http, server);
+    TransferToServer dest = new TransferToServer(
+        destinationServerInfo,
+        terminationFuture,
+        formsToTransfer,
+        http,
+        server,
+        // Since this is only used by the GUI, always force sending the blank form
+        true
+    );
     backgroundRun(dest, formsToTransfer);
   }
 }

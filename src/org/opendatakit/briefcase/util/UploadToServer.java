@@ -51,7 +51,7 @@ public class UploadToServer implements ITransferToDestAction {
   @Override
   public boolean doAction() {
 
-    ServerUploader uploader = new ServerUploader(destServerInfo, terminationFuture, new CommonsHttp(),RemoteServer.authenticated(destServerInfo.getUrl(), destServerInfo.getUsername(), new String(destServerInfo.getPassword())));
+    ServerUploader uploader = new ServerUploader(destServerInfo, terminationFuture, new CommonsHttp(),RemoteServer.authenticated(destServerInfo.getUrl(), destServerInfo.getUsername(), new String(destServerInfo.getPassword())), true);
 
     return uploader.uploadForm( status, formDef, formMediaDir);
   }

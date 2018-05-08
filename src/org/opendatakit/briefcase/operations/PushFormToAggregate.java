@@ -49,13 +49,14 @@ public class PushFormToAggregate {
           args.get(FORM_ID),
           args.get(ODK_USERNAME),
           args.get(ODK_PASSWORD),
-          args.get(AGGREGATE_SERVER)
+          args.get(AGGREGATE_SERVER),
+          args.has(FORCE_SEND_BLANK)
       ),
       Arrays.asList(STORAGE_DIR, FORM_ID, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER),
       Collections.singletonList(FORCE_SEND_BLANK)
   );
 
-  private static void pushFormToAggregate(String storageDir, String formid, String username, String password, String server) {
+  private static void pushFormToAggregate(String storageDir, String formid, String username, String password, String server, boolean forceSendBlank) {
     CliEventsCompanion.attach(log);
     bootCache(storageDir);
     Optional<FormStatus> maybeFormStatus = FileSystemUtils.getBriefcaseFormList().stream()
@@ -73,7 +74,7 @@ public class PushFormToAggregate {
 
     RemoteServer remoteServer = RemoteServer.authenticated(transferSettings.getUrl(), transferSettings.getUsername(), new String(transferSettings.getPassword()));
 
-    TransferToServer.push(transferSettings, http, remoteServer, form);
+    TransferToServer.push(transferSettings, http, remoteServer, forceSendBlank, form);
   }
 
 }

@@ -56,13 +56,15 @@ public class ServerUploader {
   private final TerminationFuture terminationFuture;
   private final Http http;
   private final RemoteServer server;
+  private final boolean forceSendBlank;
 
-  ServerUploader(ServerConnectionInfo serverInfo, TerminationFuture terminationFuture, Http http, RemoteServer server) {
+  ServerUploader(ServerConnectionInfo serverInfo, TerminationFuture terminationFuture, Http http, RemoteServer server, boolean forceSendBlank) {
     AnnotationProcessor.process(this);// if not using AOP
     this.serverInfo = serverInfo;
     this.terminationFuture = terminationFuture;
     this.server = server;
     this.http = http;
+    this.forceSendBlank = forceSendBlank;
   }
 
   public boolean isCancelled() {
@@ -210,8 +212,7 @@ public class ServerUploader {
       File briefcaseFormMediaDir = FileSystemUtils.getMediaDirectoryIfExists(briefcaseLfd.getFormDirectory());
 
       boolean outcome;
-      boolean existsAlready = http.execute(server.containsFormQuery(formToTransfer.getFormDefinition().getFormId()));
-      if (!existsAlready)
+      if (forceSendBlank || !checkIfExistsAlready(formToTransfer))
         outcome = uploadForm(formToTransfer, briefcaseFormDefFile, briefcaseFormMediaDir);
       else {
         formToTransfer.setStatusString("Skipping form upload to remote server because it already exists", true);
@@ -282,6 +283,10 @@ public class ServerUploader {
       }
     }
     return allSuccessful;
+  }
+
+  private Boolean checkIfExistsAlready(FormStatus form) {
+    return http.execute(server.containsFormQuery(form.getFormDefinition().getFormId()));
   }
 
   public boolean uploadForm(FormStatus formToTransfer, File briefcaseFormDefFile, File briefcaseFormMediaDir) {

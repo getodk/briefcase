@@ -26,34 +26,37 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.push.RemoteServer;
+import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
 
 public class TransferToServer implements ITransferToDestAction {
   private final Http http;
   private final RemoteServer server;
+  private final boolean forceSendBlank;
   ServerConnectionInfo destServerInfo;
   TerminationFuture terminationFuture;
   List<FormStatus> formsToTransfer;
 
   public TransferToServer(ServerConnectionInfo destServerInfo,
-                          TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Http http, RemoteServer server) {
+                          TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Http http, RemoteServer server, boolean forceSendBlank) {
     this.destServerInfo = destServerInfo;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
     this.http = http;
     this.server = server;
+    this.forceSendBlank = forceSendBlank;
   }
 
   @Override
   public boolean doAction() {
-    ServerUploader uploader = new ServerUploader(destServerInfo, terminationFuture, http, server);
+    ServerUploader uploader = new ServerUploader(destServerInfo, terminationFuture, http, server, forceSendBlank);
     
     return uploader.uploadFormAndSubmissionFiles( formsToTransfer);
   }
 
-  public static void push(ServerConnectionInfo transferSettings, Http http, RemoteServer server, FormStatus... forms) {
+  public static void push(ServerConnectionInfo transferSettings, CommonsHttp http, RemoteServer server, boolean forceSendBlank, FormStatus... forms) {
     List<FormStatus> formList = Arrays.asList(forms);
-    TransferToServer action = new TransferToServer(transferSettings, new TerminationFuture(), formList, http, server);
+    TransferToServer action = new TransferToServer(transferSettings, new TerminationFuture(), formList, http, server, forceSendBlank);
 
     try {
       boolean allSuccessful = action.doAction();
