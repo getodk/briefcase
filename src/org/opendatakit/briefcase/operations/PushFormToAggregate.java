@@ -26,6 +26,8 @@ import java.util.Arrays;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
+import org.opendatakit.briefcase.push.RemoteServer;
+import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.ServerConnectionTest;
 import org.opendatakit.briefcase.util.TransferToServer;
@@ -64,7 +66,11 @@ public class PushFormToAggregate {
 
     ServerConnectionTest.testPush(transferSettings);
 
-    TransferToServer.push(transferSettings, form);
+    CommonsHttp http = new CommonsHttp();
+
+    RemoteServer remoteServer = RemoteServer.authenticated(transferSettings.getUrl(), transferSettings.getUsername(), new String(transferSettings.getPassword()));
+
+    TransferToServer.push(transferSettings, http, remoteServer, form);
   }
 
 }

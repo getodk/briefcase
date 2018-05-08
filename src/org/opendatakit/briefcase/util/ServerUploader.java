@@ -39,6 +39,8 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
+import org.opendatakit.briefcase.push.RemoteServer;
+import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.util.AggregateUtils.DocumentFetchResult;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionChunk;
 import org.slf4j.Logger;
@@ -52,11 +54,15 @@ public class ServerUploader {
 
   private final ServerConnectionInfo serverInfo;
   private final TerminationFuture terminationFuture;
+  private final Http http;
+  private final RemoteServer server;
 
-  ServerUploader(ServerConnectionInfo serverInfo, TerminationFuture terminationFuture) {
+  ServerUploader(ServerConnectionInfo serverInfo, TerminationFuture terminationFuture, Http http, RemoteServer server) {
     AnnotationProcessor.process(this);// if not using AOP
     this.serverInfo = serverInfo;
     this.terminationFuture = terminationFuture;
+    this.server = server;
+    this.http = http;
   }
 
   public boolean isCancelled() {
@@ -204,7 +210,8 @@ public class ServerUploader {
       File briefcaseFormMediaDir = FileSystemUtils.getMediaDirectoryIfExists(briefcaseLfd.getFormDirectory());
 
       boolean outcome;
-      outcome = uploadForm(formToTransfer, briefcaseFormDefFile, briefcaseFormMediaDir);
+      boolean existsAlready = http.execute(server.containsFormQuery(formToTransfer.getFormDefinition().getFormId()));
+      outcome = existsAlready || uploadForm(formToTransfer, briefcaseFormDefFile, briefcaseFormMediaDir);
       thisFormSuccessful = thisFormSuccessful & outcome;
       allSuccessful = allSuccessful & outcome;
 

@@ -25,29 +25,35 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.push.RemoteServer;
+import org.opendatakit.briefcase.reused.http.Http;
 
 public class TransferToServer implements ITransferToDestAction {
+  private final Http http;
+  private final RemoteServer server;
   ServerConnectionInfo destServerInfo;
   TerminationFuture terminationFuture;
   List<FormStatus> formsToTransfer;
 
-  public TransferToServer(ServerConnectionInfo destServerInfo, 
-      TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) {
+  public TransferToServer(ServerConnectionInfo destServerInfo,
+                          TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Http http, RemoteServer server) {
     this.destServerInfo = destServerInfo;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
+    this.http = http;
+    this.server = server;
   }
 
   @Override
   public boolean doAction() {
-    ServerUploader uploader = new ServerUploader(destServerInfo, terminationFuture);
+    ServerUploader uploader = new ServerUploader(destServerInfo, terminationFuture, http, server);
     
     return uploader.uploadFormAndSubmissionFiles( formsToTransfer);
   }
 
-  public static void push(ServerConnectionInfo transferSettings, FormStatus... forms) {
+  public static void push(ServerConnectionInfo transferSettings, Http http, RemoteServer server, FormStatus... forms) {
     List<FormStatus> formList = Arrays.asList(forms);
-    TransferToServer action = new TransferToServer(transferSettings, new TerminationFuture(), formList);
+    TransferToServer action = new TransferToServer(transferSettings, new TerminationFuture(), formList, http, server);
 
     try {
       boolean allSuccessful = action.doAction();

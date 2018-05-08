@@ -21,6 +21,8 @@ import java.io.File;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.push.RemoteServer;
+import org.opendatakit.briefcase.reused.http.CommonsHttp;
 
 public class UploadToServer implements ITransferToDestAction {
 
@@ -49,7 +51,7 @@ public class UploadToServer implements ITransferToDestAction {
   @Override
   public boolean doAction() {
 
-    ServerUploader uploader = new ServerUploader(destServerInfo, terminationFuture);
+    ServerUploader uploader = new ServerUploader(destServerInfo, terminationFuture, new CommonsHttp(),RemoteServer.authenticated(destServerInfo.getUrl(), destServerInfo.getUsername(), new String(destServerInfo.getPassword())));
 
     return uploader.uploadForm( status, formDef, formMediaDir);
   }
