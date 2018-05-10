@@ -18,25 +18,24 @@ package org.opendatakit.briefcase.util;
 
 /**
  * Common utility methods to handle extended String functionalities.
- * 
+ *
  * @author rclakmal@gmail.com
- * 
  */
 public class StringUtils {
 
-    public static boolean isNotEmptyNotNull(String s) {
-        return s != null && !s.isEmpty();
-    }
+  public static boolean isNotEmptyNotNull(String s) {
+    return s != null && !s.isEmpty();
+  }
 
-    public static boolean notEmpty(String text) {
-        return text != null && text.trim().length() != 0;
-    }
+  public static boolean notEmpty(String text) {
+    return text != null && text.trim().length() != 0;
+  }
 
-    public static boolean nullOrEmpty(String text) {
-        return text == null || text.trim().length() == 0;
-    }
+  public static boolean nullOrEmpty(String text) {
+    return text == null || text.trim().length() == 0;
+  }
 
-    public static String stripIllegalChars(String text) {
-        return text == null ? null : text.replaceAll("\\p{Punct}", "_").replaceAll("\\p{Space}", " ");
-    }
+  public static String stripIllegalChars(String text) {
+    return text == null ? null : text.replaceAll("\\p{Punct}", "_").replaceAll("\\p{Space}", " ");
+  }
 }

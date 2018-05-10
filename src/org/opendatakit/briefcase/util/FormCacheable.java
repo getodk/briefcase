@@ -5,15 +5,15 @@ import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 
 public interface FormCacheable {
-    String getFormFileMd5Hash(String filePath);
+  String getFormFileMd5Hash(String filePath);
 
-    void putFormFileMd5Hash(String filePath, String md5Hash);
+  void putFormFileMd5Hash(String filePath, String md5Hash);
 
-    BriefcaseFormDefinition getFormFileFormDefinition(String filePath);
+  BriefcaseFormDefinition getFormFileFormDefinition(String filePath);
 
-    void putFormFileFormDefinition(String filePath, BriefcaseFormDefinition definition);
+  void putFormFileFormDefinition(String filePath, BriefcaseFormDefinition definition);
 
-    List<BriefcaseFormDefinition> getForms();
+  List<BriefcaseFormDefinition> getForms();
 
-    Optional<BriefcaseFormDefinition> getForm(String formName);
+  Optional<BriefcaseFormDefinition> getForm(String formName);
 }
