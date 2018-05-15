@@ -37,8 +37,7 @@ public class ExportToCsvEmptyTagsTest {
   public void exports_to_csv() {
     scenario.clearSubmissions();
     scenario.installSubmission("all-data-types-submission-empty-tags.xml");
-    scenario.runOldExport();
-    scenario.runNewExport();
-    scenario.assertSameContent();
+    scenario.runExport();
+    scenario.assertSameContent("empty");
   }
 }

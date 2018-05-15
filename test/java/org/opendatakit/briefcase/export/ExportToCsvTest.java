@@ -26,22 +26,24 @@ import org.junit.runners.Parameterized;
 
 @RunWith(value = Parameterized.class)
 public class ExportToCsvTest {
-  private ExportToCsvScenario scenario;
+  private final String suffix;
+  private final ExportToCsvScenario scenario;
 
-  public ExportToCsvTest(String testCase, String value) {
+  public ExportToCsvTest(String suffix, String testCase, String value) {
     scenario = ExportToCsvScenario.setUp("simple-form");
-    String tpl = scenario.readFile("simple-form_submission.xml.tpl");
-    scenario.createInstance(tpl, LocalDate.now(), value);
+    String tpl = scenario.readFile("simple-form-submission.xml.tpl");
+    scenario.createInstance(tpl, LocalDate.of(2018, 1, 1), value);
+    this.suffix = suffix;
   }
 
-  @Parameterized.Parameters(name = "{0}")
+  @Parameterized.Parameters(name = "{1}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-        {"empty field", ""},
-        {"simplest of forms", "some text"},
-        {"encodes strings with newlines", "some \n text"},
-        {"encodes strings with commas", "some , text"},
-        {"encodes strings with double quotes", "some \" text"},
+        {"empty", "empty field", ""},
+        {"simple", "simplest of forms", "some text"},
+        {"newlines", "encodes strings with newlines", "some \n text"},
+        {"commas", "encodes strings with commas", "some , text"},
+        {"double-quotes", "encodes strings with double quotes", "some \" text"},
     });
   }
 
@@ -52,8 +54,7 @@ public class ExportToCsvTest {
 
   @Test
   public void exports_to_csv() {
-    scenario.runOldExport();
-    scenario.runNewExport();
-    scenario.assertSameContent();
+    scenario.runExport();
+    scenario.assertSameContent(suffix);
   }
 }

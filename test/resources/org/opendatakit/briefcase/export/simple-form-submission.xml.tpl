@@ -1,4 +1,4 @@
-<data id="testform"
+<data id="simple-form"
       instanceID="%s"
       submissionDate="%s"
       isComplete="true"

@@ -35,21 +35,17 @@ public class ExportToCsvOverwriteTest {
 
   @Test
   public void can_overwrite_output_files() {
-    scenario.runOldExport(true);
-    scenario.runOldExport(true);
-    scenario.runNewExport(true);
-    scenario.runNewExport(true);
-    scenario.assertSameContent();
-    scenario.assertSameContentRepeats();
+    scenario.runExport(true);
+    scenario.runExport(true);
+    scenario.assertSameContent("overwrite");
+    scenario.assertSameContentRepeats("overwrite", "g1", "g2", "g3");
   }
 
   @Test
   public void can_append_to_existing_output_files() {
-    scenario.runOldExport(false);
-    scenario.runOldExport(false);
-    scenario.runNewExport(false);
-    scenario.runNewExport(false);
-    scenario.assertSameContent();
-    scenario.assertSameContentRepeats();
+    scenario.runExport(false);
+    scenario.runExport(false);
+    scenario.assertSameContent("append");
+    scenario.assertSameContentRepeats("append", "g1", "g2", "g3");
   }
 }

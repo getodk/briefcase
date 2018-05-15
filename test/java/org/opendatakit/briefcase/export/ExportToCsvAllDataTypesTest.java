@@ -35,8 +35,7 @@ public class ExportToCsvAllDataTypesTest {
 
   @Test
   public void exports_forms_with_all_data_types() {
-    scenario.runOldExport();
-    scenario.runNewExport();
+    scenario.runExport();
     scenario.assertSameContent();
   }
 

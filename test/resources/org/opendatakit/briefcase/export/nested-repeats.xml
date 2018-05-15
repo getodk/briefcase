@@ -1,9 +1,9 @@
 <h:html xmlns="http://www.w3.org/2002/xforms" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa">
   <h:head>
-    <h:title>cascadingrepeats</h:title>
+    <h:title>Nested repeats</h:title>
     <model>
       <instance>
-        <data id="cascadingrepeats">
+        <data id="nested-repeats">
           <meta>
             <instanceID/>
           </meta>

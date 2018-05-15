@@ -32,7 +32,7 @@ public class ExportToCsvEncryptedMediaTest {
   @Before
   public void setUp() {
     scenario = ExportToCsvScenario.setUp("encrypted-form-media");
-    pemFile = ExportToCsvScenario.getPath("encrypted-form-media_key.pem");
+    pemFile = ExportToCsvScenario.getPath("encrypted-form-media-key.pem");
     privateKey = ExportConfiguration.readPemFile(pemFile).get();
   }
 
@@ -43,18 +43,16 @@ public class ExportToCsvEncryptedMediaTest {
 
   @Test
   public void exports_encrypted_media_files() {
-    scenario.runOldExport(privateKey);
-    scenario.runNewExport(pemFile);
+    scenario.runExport(pemFile);
     scenario.assertSameContent();
     scenario.assertSameMedia();
   }
 
   @Test
   public void skips_submissions_that_are_missing_their_media_files() {
-    delete(scenario.getSubmissionDir().resolve("1524644764247.jpg.enc"));
-    scenario.runOldExport(privateKey);
-    scenario.runNewExport(pemFile);
-    scenario.assertSameContent();
+    delete(scenario.getSubmissionDir().resolve("1526413928119.jpg.enc"));
+    scenario.runExport(pemFile);
+    scenario.assertSameContent("skip");
     scenario.assertNoOutputMediaDir();
   }
 

@@ -1,0 +1,4 @@
+t1,SET-OF-g2,PARENT_KEY,KEY,SET-OF-g1
+some text 1,uuid:0a1b861f-a5fd-4f49-846a-78dcf06cfc1b/g1[1]/g2,uuid:0a1b861f-a5fd-4f49-846a-78dcf06cfc1b,uuid:0a1b861f-a5fd-4f49-846a-78dcf06cfc1b/g1[1],uuid:0a1b861f-a5fd-4f49-846a-78dcf06cfc1b/g1
+some text 2,uuid:0a1b861f-a5fd-4f49-846a-78dcf06cfc1b/g1[2]/g2,uuid:0a1b861f-a5fd-4f49-846a-78dcf06cfc1b,uuid:0a1b861f-a5fd-4f49-846a-78dcf06cfc1b/g1[2],uuid:0a1b861f-a5fd-4f49-846a-78dcf06cfc1b/g1
+some text 3,uuid:0a1b861f-a5fd-4f49-846a-78dcf06cfc1b/g1[3]/g2,uuid:0a1b861f-a5fd-4f49-846a-78dcf06cfc1b,uuid:0a1b861f-a5fd-4f49-846a-78dcf06cfc1b/g1[3],uuid:0a1b861f-a5fd-4f49-846a-78dcf06cfc1b/g1

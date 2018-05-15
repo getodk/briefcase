@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.export;
 
-import static java.time.ZoneId.systemDefault;
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -36,13 +35,11 @@ import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.PrivateKey;
 import java.security.Security;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -50,11 +47,7 @@ import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
-import org.opendatakit.briefcase.util.BadFormDefinition;
-import org.opendatakit.briefcase.util.OldExportToCsv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,16 +57,14 @@ class ExportToCsvScenario {
   private final Path formDir;
   private final Path outputDir;
   private final FormDefinition formDef;
-  private final BriefcaseFormDefinition oldFormDef;
   private final Optional<String> instanceID;
   private final Locale localeBackup;
   private final TimeZone zoneBackup;
 
-  ExportToCsvScenario(Path formDir, Path outputDir, FormDefinition formDef, BriefcaseFormDefinition oldFormDef, Optional<String> instanceID, Locale localeBackup, TimeZone zoneBackup) {
+  ExportToCsvScenario(Path formDir, Path outputDir, FormDefinition formDef, Optional<String> instanceID, Locale localeBackup, TimeZone zoneBackup) {
     this.formDir = formDir;
     this.outputDir = outputDir;
     this.formDef = formDef;
-    this.oldFormDef = oldFormDef;
     this.instanceID = instanceID;
     this.localeBackup = localeBackup;
     this.zoneBackup = zoneBackup;
@@ -102,7 +93,6 @@ class ExportToCsvScenario {
         formDir,
         outputDir,
         FormDefinition.from(formFile),
-        buildOldFormDefinition(formFile),
         readInstanceId(formName),
         localeBackup,
         zoneBackup
@@ -120,62 +110,27 @@ class ExportToCsvScenario {
     TimeZone.setDefault(zoneBackup);
   }
 
-  void runOldExport() {
-    runOldExport(true, true, null, null, null);
+  void runExport() {
+    runExport(true, true, null, null, null);
   }
 
-  void runOldExport(PrivateKey privateKey) {
-    runOldExport(true, true, null, null, privateKey);
+  void runExport(Path pemFile) {
+    runExport(true, true, null, null, pemFile);
   }
 
-  void runOldExport(LocalDate startDate, LocalDate endDate) {
-    runOldExport(true, true, startDate, endDate, null);
+  void runExport(boolean overwrite) {
+    runExport(overwrite, true, null, null, null);
   }
 
-  void runOldExport(boolean overwrite) {
-    runOldExport(overwrite, true, null, null, null);
+  void runExport(boolean overwrite, boolean exportMedia) {
+    runExport(overwrite, exportMedia, null, null, null);
   }
 
-  void runOldExport(boolean overwrite, boolean exportMedia) {
-    runOldExport(overwrite, exportMedia, null, null, null);
+  void runExport(LocalDate startDate, LocalDate endDate) {
+    runExport(true, true, startDate, endDate, null);
   }
 
-  void runOldExport(boolean overwrite, boolean exportMedia, LocalDate startDate, LocalDate endDate, PrivateKey privateKey) {
-    oldFormDef.setPrivateKey(privateKey);
-    new OldExportToCsv(
-        new TerminationFuture(),
-        outputDir.resolve("old").toFile(),
-        oldFormDef,
-        oldFormDef.getFormName(),
-        exportMedia,
-        overwrite,
-        Optional.ofNullable(startDate).map(ld -> Date.from(ld.atStartOfDay(systemDefault()).toInstant())).orElse(null),
-        Optional.ofNullable(endDate).map(ld -> Date.from(ld.atStartOfDay(systemDefault()).toInstant())).orElse(null)
-    ).doAction();
-  }
-
-
-  void runNewExport() {
-    runNewExport(true, true, null, null, null);
-  }
-
-  void runNewExport(Path pemFile) {
-    runNewExport(true, true, null, null, pemFile);
-  }
-
-  void runNewExport(boolean overwrite) {
-    runNewExport(overwrite, true, null, null, null);
-  }
-
-  void runNewExport(boolean overwrite, boolean exportMedia) {
-    runNewExport(overwrite, exportMedia, null, null, null);
-  }
-
-  void runNewExport(LocalDate startDate, LocalDate endDate) {
-    runNewExport(true, true, startDate, endDate, null);
-  }
-
-  void runNewExport(boolean overwrite, boolean exportMedia, LocalDate startDate, LocalDate endDate, Path pemFile) {
+  void runExport(boolean overwrite, boolean exportMedia, LocalDate startDate, LocalDate endDate, Path pemFile) {
     ExportConfiguration configuration = new ExportConfiguration(
         Optional.of(outputDir.resolve("new")),
         Optional.ofNullable(pemFile),
@@ -189,13 +144,21 @@ class ExportToCsvScenario {
   }
 
   void assertSameContent() {
-    String oldOutput = new String(readAllBytes(outputDir.resolve("old").resolve(stripIllegalChars(formDef.getFormName()) + ".csv")));
+    assertSameContent("");
+  }
+
+  void assertSameContent(String suffix) {
+    String oldOutput = new String(readAllBytes(getPath(formDef.getFormId() + (suffix.isEmpty() ? "" : "-" + suffix) + ".csv.expected")));
     String newOutput = new String(readAllBytes(outputDir.resolve("new").resolve(stripIllegalChars(formDef.getFormName()) + ".csv")));
     assertThat(newOutput, is(oldOutput));
   }
 
   void assertSameMedia() {
-    Path oldMediaPath = outputDir.resolve("old").resolve("media");
+    assertSameMedia("");
+  }
+
+  void assertSameMedia(String suffix) {
+    Path oldMediaPath = getPath(formDef.getFormId() + "-media" + (suffix.isEmpty() ? "" : "-" + suffix));
     Path newMediaPath = outputDir.resolve("new").resolve("media");
     List<Path> oldMedia = walk(oldMediaPath).filter(p -> !p.getFileName().toString().startsWith(".git")).collect(Collectors.toList());
     List<Path> newMedia = walk(newMediaPath).filter(p -> !p.getFileName().toString().startsWith(".git")).collect(Collectors.toList());
@@ -205,9 +168,9 @@ class ExportToCsvScenario {
     );
   }
 
-  void assertSameContentRepeats(String... groupNames) {
+  void assertSameContentRepeats(String suffix, String... groupNames) {
     Arrays.asList(groupNames).forEach(groupName -> {
-      String oldOutput = new String(readAllBytes(outputDir.resolve("old").resolve(stripIllegalChars(formDef.getFormName()) + "_" + groupName + ".csv")));
+      String oldOutput = new String(readAllBytes(getPath(formDef.getFormId() + "-" + groupName + (suffix.isEmpty() ? "" : "-" + suffix) + ".csv.expected")));
       String newOutput = new String(readAllBytes(outputDir.resolve("new").resolve(stripIllegalChars(formDef.getFormName()) + "-" + groupName + ".csv")));
       assertThat(newOutput, is(oldOutput));
     });
@@ -272,7 +235,7 @@ class ExportToCsvScenario {
   }
 
   private static Optional<String> readInstanceId(String formName) {
-    return maybeGetPath(formName + "_submission.xml")
+    return maybeGetPath(formName + "-submission.xml")
         .filter(Files::exists)
         .map(ExportToCsvScenario::readInstanceId);
   }
@@ -292,7 +255,7 @@ class ExportToCsvScenario {
     createDirectories(instancesDir);
 
     // Copy a submission and possibly other files
-    maybeGetPath(formName + "_submission.xml")
+    maybeGetPath(formName + "-submission.xml")
         .filter(Files::exists)
         .ifPresent(path -> {
           // Read the submission's instance ID
@@ -308,6 +271,7 @@ class ExportToCsvScenario {
               .filter(isRelatedToForm(formName))
               .filter(isPemFile().negate())
               .filter(isTemplateFile().negate())
+              .filter(isExpectedContentsFile().negate())
               .forEach(file -> {
                 Path target = submissionDir.resolve(file.getFileName().toString().substring(formName.length() + 1));
                 log.debug("Install " + submissionDir.getFileName() + "/" + target.getFileName());
@@ -316,6 +280,10 @@ class ExportToCsvScenario {
         });
 
     return targetForm;
+  }
+
+  private static Predicate<Path> isExpectedContentsFile() {
+    return file -> file.getFileName().toString().endsWith(".expected");
   }
 
   private static Predicate<Path> isTemplateFile() {
@@ -327,14 +295,6 @@ class ExportToCsvScenario {
   }
 
   private static Predicate<Path> isRelatedToForm(String formName) {
-    return file -> file.getFileName().toString().startsWith(formName + "_");
-  }
-
-  private static BriefcaseFormDefinition buildOldFormDefinition(Path formFile) {
-    try {
-      return new BriefcaseFormDefinition(formFile.getParent().toFile(), formFile.toFile());
-    } catch (BadFormDefinition e) {
-      throw new RuntimeException(e);
-    }
+    return file -> file.getFileName().toString().startsWith(formName + "-");
   }
 }

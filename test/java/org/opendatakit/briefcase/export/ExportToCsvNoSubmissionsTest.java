@@ -38,8 +38,7 @@ public class ExportToCsvNoSubmissionsTest {
   @Test
   public void exports_forms_even_when_they_dont_have_submissions() {
     deleteRecursive(scenario.getSubmissionDir());
-    scenario.runOldExport();
-    scenario.runNewExport();
-    scenario.assertSameContent();
+    scenario.runExport();
+    scenario.assertSameContent("no-subs");
   }
 }

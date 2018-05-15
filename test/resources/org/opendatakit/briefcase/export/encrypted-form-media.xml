@@ -1,9 +1,9 @@
 <h:html xmlns="http://www.w3.org/2002/xforms" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:orx="http://openrosa.org/xforms/">
   <h:head>
-    <h:title>Encrypted Form</h:title>
+    <h:title>Encrypted Form Media</h:title>
     <model>
       <instance>
-        <data id="encrypted-form">
+        <data id="encrypted-form-media">
           <name/>
           <image/>
           <orx:meta>

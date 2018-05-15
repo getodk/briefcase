@@ -34,11 +34,10 @@ public class ExportToCsvNestedRepeatsTest {
   }
 
   @Test
-  public void exports_cascading_groups_to_different_files() {
-    scenario.runOldExport();
-    scenario.runNewExport();
+  public void exports_nested_repeats_to_different_files() {
+    scenario.runExport();
     scenario.assertSameContent();
-    scenario.assertSameContentRepeats("g1", "g2", "g3");
+    scenario.assertSameContentRepeats("","g1", "g2", "g3");
   }
 
 }

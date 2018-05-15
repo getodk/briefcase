@@ -37,43 +37,38 @@ public class ExportToCsvMediaTest {
 
   @Test
   public void exports_data_and_media_files() {
-    scenario.runOldExport(true, true);
-    scenario.runNewExport(true, true);
-    scenario.assertSameContent();
-    scenario.assertSameMedia();
+    scenario.runExport(true, true);
+    scenario.assertSameContent("tt");
+    scenario.assertSameMedia("tt");
   }
 
   @Test
   public void skips_submissions_that_have_missing_media_files() {
     delete(scenario.getSubmissionDir().resolve("1524644764247.jpg"));
-    scenario.runOldExport(true, true);
-    scenario.runNewExport(true, true);
-    scenario.assertSameContent();
-    scenario.assertSameMedia();
+    scenario.runExport(true, true);
+    scenario.assertSameContent("tt-missing");
+    scenario.assertSameMedia("tt-missing");
   }
 
   @Test
   public void adds_a_numbered_suffix_when_media_files_already_exist_in_the_output_folders() {
     scenario.createOutputFile("media", "1524644764247.jpg");
-    scenario.runOldExport(false, true);
-    scenario.runNewExport(false, true);
-    scenario.assertSameContent();
-    scenario.assertSameMedia();
+    scenario.runExport(false, true);
+    scenario.assertSameContent("ft");
+    scenario.assertSameMedia("ft");
   }
 
   @Test
   public void adds_a_numbered_suffix_when_media_files_already_exist_in_the_output_folders_even_when_overwriting() {
     scenario.createOutputFile("media", "1524644764247.jpg");
-    scenario.runOldExport(true, true);
-    scenario.runNewExport(true, true);
-    scenario.assertSameContent();
-    scenario.assertSameMedia();
+    scenario.runExport(true, true);
+    scenario.assertSameContent("tt-dupe");
+    scenario.assertSameMedia("tt-dupe");
   }
 
   @Test
   public void can_export_only_data() {
-    scenario.runOldExport(true, false);
-    scenario.runNewExport(true, false);
-    scenario.assertSameContent();
+    scenario.runExport(true, false);
+    scenario.assertSameContent("tf");
   }
 }

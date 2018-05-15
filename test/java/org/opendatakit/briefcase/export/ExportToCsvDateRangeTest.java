@@ -37,13 +37,12 @@ public class ExportToCsvDateRangeTest {
 
   @Test
   public void exports_submissions_inside_given_date_range() {
-    String submissionTpl = scenario.readFile("simple-form_submission.xml.tpl");
+    String submissionTpl = scenario.readFile("simple-form-submission.xml.tpl");
     LocalDate startOfYear = LocalDate.of(2018, 1, 1);
     LocalDate startDate = LocalDate.of(2018, 4, 1);
     LocalDate endDate = LocalDate.of(2018, 5, 1);
     IntStream.range(0, 365).boxed().forEach(n -> scenario.createInstance(submissionTpl, startOfYear.plusDays(n)));
-    scenario.runOldExport(startDate, endDate);
-    scenario.runNewExport(startDate, endDate);
+    scenario.runExport(startDate, endDate);
     scenario.assertSameContent();
   }
 }

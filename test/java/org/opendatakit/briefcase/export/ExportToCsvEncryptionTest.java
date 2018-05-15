@@ -30,7 +30,7 @@ public class ExportToCsvEncryptionTest {
   @Before
   public void setUp() {
     scenario = ExportToCsvScenario.setUp("encrypted-form");
-    pemFile = ExportToCsvScenario.getPath("encrypted-form_key.pem");
+    pemFile = ExportToCsvScenario.getPath("encrypted-form-key.pem");
     privateKey = ExportConfiguration.readPemFile(pemFile).get();
   }
 
@@ -41,8 +41,7 @@ public class ExportToCsvEncryptionTest {
 
   @Test
   public void exports_encrypted_submissions() {
-    scenario.runOldExport(privateKey);
-    scenario.runNewExport(pemFile);
+    scenario.runExport(pemFile);
     scenario.assertSameContent();
   }
 }
