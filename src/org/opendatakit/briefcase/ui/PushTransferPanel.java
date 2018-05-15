@@ -21,6 +21,8 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.GroupLayout;
@@ -48,7 +50,9 @@ import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
-import org.opendatakit.briefcase.push.RemoteServer;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
@@ -128,7 +132,20 @@ public class PushTransferPanel extends JPanel {
         d.setVisible(true);
         if (d.isSuccessful()) {
           destinationServerInfo = d.getServerInfo();
-          server = RemoteServer.authenticated(destinationServerInfo.getUrl(), destinationServerInfo.getUsername(), new String(destinationServerInfo.getPassword()));
+          // This change is not very important because this class will be remove
+          URL baseUrl;
+          try {
+            baseUrl = new URL(destinationServerInfo.getUrl());
+          } catch (MalformedURLException e1) {
+            throw new BriefcaseException(e1);
+          }
+          server = RemoteServer.authenticated(
+              baseUrl,
+              new Credentials(
+                  destinationServerInfo.getUsername(),
+                  new String(destinationServerInfo.getPassword())
+              )
+          );
           txtDestinationName.setText(destinationServerInfo.getUrl());
           formTransferTable.setSourceSelected(!TextUtils.isEmpty(txtDestinationName.getText()));
           tabPreferences.put(BriefcasePreferences.AGGREGATE_1_0_URL, destinationServerInfo.getUrl());

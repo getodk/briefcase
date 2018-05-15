@@ -30,6 +30,13 @@ public class Credentials {
     this.password = password;
   }
 
+  public static Credentials from(String username, String password) {
+    if (Objects.requireNonNull(username).isEmpty() || Objects.requireNonNull(password).isEmpty())
+      throw new IllegalArgumentException("You need to provide non-empty username and password.");
+
+    return new Credentials(username, password);
+  }
+
   public String getUsername() {
     return username;
   }

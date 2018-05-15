@@ -14,18 +14,27 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.reused.http;
+package org.opendatakit.briefcase.reused;
 
-/**
- * This interface has Briefcase's HTTP API to interact with external services
- */
-public interface Http {
-  /**
-   * Runs a {@link Request} and returns some output value.
-   *
-   * @param request the {@link Request} to be executed
-   * @param <T>   type of the output {@link Response}
-   * @return an output value of type T
-   */
-  <T> Response<T> execute(Request<T> request);
+@SuppressWarnings("checkstyle:MethodTypeParameterName")
+public class Pair<T, U> {
+  private final T left;
+  private final U right;
+
+  public Pair(T left, U right) {
+    this.left = left;
+    this.right = right;
+  }
+
+  public static <TT, UU> Pair<TT, UU> of(TT left, UU right) {
+    return new Pair<>(left, right);
+  }
+
+  public T getLeft() {
+    return left;
+  }
+
+  public U getRight() {
+    return right;
+  }
 }

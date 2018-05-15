@@ -13,19 +13,17 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
-package org.opendatakit.briefcase.reused.http;
+package org.opendatakit.briefcase.reused;
 
 /**
- * This interface has Briefcase's HTTP API to interact with external services
+ * This is the version of {@link java.util.function.Function} for an arity of 3
+ *
+ * @param <I1> first arg's type
+ * @param <I2> second arg's type
+ * @param <I3> third arg's type
+ * @param <O>  output type
  */
-public interface Http {
-  /**
-   * Runs a {@link Request} and returns some output value.
-   *
-   * @param request the {@link Request} to be executed
-   * @param <T>   type of the output {@link Response}
-   * @return an output value of type T
-   */
-  <T> Response<T> execute(Request<T> request);
+@FunctionalInterface
+public interface Function3<I1, I2, I3, O> {
+  O apply(I1 i1, I2 i2, I3 i3);
 }
