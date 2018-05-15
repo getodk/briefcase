@@ -49,6 +49,7 @@ import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
 import org.opendatakit.briefcase.ui.reused.Analytics;
+import org.opendatakit.briefcase.ui.reused.SourceConfigurationPanel;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferAction;
 
@@ -214,6 +215,8 @@ public class PushTransferPanel extends JPanel {
     formTransferTable.setSourceSelected(false);
     JScrollPane scrollPane = new JScrollPane(formTransferTable);
 
+    SourceConfigurationPanel sourceConfPanel = SourceConfigurationPanel.push();
+
     GroupLayout groupLayout = new GroupLayout(this);
     groupLayout.setHorizontalGroup(groupLayout
         .createSequentialGroup()
@@ -221,26 +224,8 @@ public class PushTransferPanel extends JPanel {
         .addGroup(
             groupLayout
                 .createParallelGroup(Alignment.LEADING)
-                // get-data and origin rows
-                .addGroup(
-                    Alignment.LEADING,
-                    // sequential -- 2 elements - label - widgets
-                    groupLayout
-                        .createSequentialGroup()
-                        .addGroup(
-                            groupLayout.createParallelGroup(Alignment.TRAILING)
-                                .addComponent(lblDestination).addComponent(lblSendDataTo))
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(
-                            groupLayout
-                                .createParallelGroup(Alignment.LEADING)
-                                .addComponent(listDestinationDataSink)
-                                .addGroup(
-                                    Alignment.TRAILING,
-                                    groupLayout.createSequentialGroup()
-                                        .addComponent(txtDestinationName)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(btnDestinationAction))))
+                .addComponent(sourceConfPanel.getForm(), GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
+                    Short.MAX_VALUE)
                 // scroll pane
                 .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE,
                     Short.MAX_VALUE)
@@ -254,15 +239,7 @@ public class PushTransferPanel extends JPanel {
                         .addComponent(btnCancel))).addContainerGap());
     groupLayout.setVerticalGroup(groupLayout
         .createSequentialGroup()
-        .addContainerGap()
-        .addGroup(
-            groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblSendDataTo)
-                .addComponent(listDestinationDataSink))
-        .addPreferredGap(ComponentPlacement.RELATED)
-        .addGroup(
-            groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblDestination)
-                .addComponent(txtDestinationName).addComponent(btnDestinationAction))
-        .addPreferredGap(ComponentPlacement.RELATED)
+        .addComponent(sourceConfPanel.getForm(), 36, 36, Short.MAX_VALUE)
         .addComponent(scrollPane, 200, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
         .addPreferredGap(ComponentPlacement.RELATED)
         .addGroup(
@@ -270,6 +247,7 @@ public class PushTransferPanel extends JPanel {
                 .addComponent(btnSelectOrClearAllForms).addComponent(pbUploading)
                 .addComponent(btnTransfer).addComponent(btnCancel)).addContainerGap());
     setLayout(groupLayout);
+
     listDestinationDataSink.setSelectedIndex(0);
 
     // set up the transfer action...

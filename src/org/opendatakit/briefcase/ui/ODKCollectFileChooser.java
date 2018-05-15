@@ -26,7 +26,7 @@ import javax.swing.filechooser.FileFilter;
 
 import org.opendatakit.briefcase.util.FileSystemUtils;
 
-final class ODKCollectFileChooser extends AbstractFileChooser {
+public final class ODKCollectFileChooser extends AbstractFileChooser {
 
   private final Container parentWindow;
   private static final long serialVersionUID = 8457430037255302153L;
@@ -39,7 +39,7 @@ final class ODKCollectFileChooser extends AbstractFileChooser {
     }
   }
 
-  ODKCollectFileChooser(Container parentWindow) {
+  public ODKCollectFileChooser(Container parentWindow) {
     super();
     this.parentWindow = parentWindow;
     setDialogTitle("Choose " + MessageStrings.ODK_DIRECTORY);
