@@ -16,16 +16,23 @@
 
 package org.opendatakit.briefcase.reused.http;
 
-/**
- * This interface has Briefcase's HTTP API to interact with external services
- */
-public interface Http {
-  /**
-   * Runs a {@link Request} and returns some output value.
-   *
-   * @param request the {@link Request} to be executed
-   * @param <T>   type of the output {@link Response}
-   * @return an output value of type T
-   */
-  <T> Response<T> execute(Request<T> request);
+public class HttpException extends RuntimeException {
+  public HttpException() {
+  }
+
+  public HttpException(String message) {
+    super(message);
+  }
+
+  public HttpException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  public HttpException(Throwable cause) {
+    super(cause);
+  }
+
+  public HttpException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    super(message, cause, enableSuppression, writableStackTrace);
+  }
 }
