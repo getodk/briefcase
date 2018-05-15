@@ -23,6 +23,8 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.ui.PullTransferPanel;
 import org.opendatakit.briefcase.ui.PushTransferPanel;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
+import org.opendatakit.briefcase.ui.pull.PullPanel;
+import org.opendatakit.briefcase.ui.push.PushPanel;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
 
@@ -37,6 +39,8 @@ public class ClearPreferences {
     Stream.of(
         PullTransferPanel.class,
         PushTransferPanel.class,
+        PullPanel.class,
+        PushPanel.class,
         ExportPanel.class
     ).map(BriefcasePreferences::forClass)
         .forEach(ClearPreferences::flush);
