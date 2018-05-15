@@ -20,8 +20,6 @@ import static java.util.Comparator.naturalOrder;
 import java.util.List;
 import java.util.stream.Stream;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.ui.PullTransferPanel;
-import org.opendatakit.briefcase.ui.PushTransferPanel;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.ui.pull.PullPanel;
 import org.opendatakit.briefcase.ui.push.PushPanel;
@@ -37,8 +35,6 @@ public class ClearPreferences {
   private static void clear() {
     flush(BriefcasePreferences.appScoped());
     Stream.of(
-        PullTransferPanel.class,
-        PushTransferPanel.class,
         PullPanel.class,
         PushPanel.class,
         ExportPanel.class
