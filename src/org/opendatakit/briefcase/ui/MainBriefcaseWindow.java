@@ -57,6 +57,7 @@ import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.ui.pull.PullPanel;
+import org.opendatakit.briefcase.ui.push.PushPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.slf4j.Logger;
@@ -70,6 +71,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
   JFrame frame;
   private PushTransferPanel uploadPanel;
+  private PushPanel pushPanel;
   private ExportPanel exportPanel;
   private SettingsPanel settingsPanel;
   private final TerminationFuture exportTerminationFuture = new TerminationFuture();
@@ -215,6 +217,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     if (enabled) {
       exportPanel.updateForms();
       uploadPanel.updateFormStatuses();
+      pushPanel.updateForms();
     }
 
     for (Map.Entry<Component, Integer> entry : paneToIndexMap.entrySet()) {
@@ -266,6 +269,8 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
     uploadPanel = new PushTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PushTransferPanel.class), analytics, http);
     addPane(PushTransferPanel.TAB_NAME, uploadPanel);
+    pushPanel = PushPanel.from(http, appPreferences, transferTerminationFuture);
+    addPane("New push", pushPanel.getContainer());
 
     exportPanel = ExportPanel.from(exportTerminationFuture, BriefcasePreferences.forClass(ExportPanel.class), appPreferences, BACKGROUND_EXECUTOR, analytics);
     addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
