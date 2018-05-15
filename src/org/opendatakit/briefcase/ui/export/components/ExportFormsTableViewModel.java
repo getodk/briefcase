@@ -21,9 +21,9 @@ import static java.time.format.DateTimeFormatter.ofLocalizedDateTime;
 import static java.time.format.FormatStyle.SHORT;
 import static javax.swing.JOptionPane.getFrameForComponent;
 import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
-import static org.opendatakit.briefcase.ui.export.components.FormsTableView.EDITABLE_COLS;
-import static org.opendatakit.briefcase.ui.export.components.FormsTableView.HEADERS;
-import static org.opendatakit.briefcase.ui.export.components.FormsTableView.TYPES;
+import static org.opendatakit.briefcase.ui.export.components.ExportFormsTableView.EDITABLE_COLS;
+import static org.opendatakit.briefcase.ui.export.components.ExportFormsTableView.HEADERS;
+import static org.opendatakit.briefcase.ui.export.components.ExportFormsTableView.TYPES;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -40,7 +40,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.ui.reused.FontUtils;
 
-public class FormsTableViewModel extends AbstractTableModel {
+public class ExportFormsTableViewModel extends AbstractTableModel {
   private static final Color NO_CONF_OVERRIDE_COLOR = new Color(0, 128, 0);
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
   private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
@@ -50,7 +50,7 @@ public class FormsTableViewModel extends AbstractTableModel {
   private static final Font ic_settings = FontUtils.getCustomFont("ic_settings.ttf", 16f);
   private static final Font ic_receipt = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
 
-  FormsTableViewModel(ExportForms forms) {
+  ExportFormsTableViewModel(ExportForms forms) {
     this.forms = forms;
   }
 
@@ -145,19 +145,19 @@ public class FormsTableViewModel extends AbstractTableModel {
   public Object getValueAt(int rowIndex, int columnIndex) {
     FormStatus form = forms.get(rowIndex);
     switch (columnIndex) {
-      case FormsTableView.SELECTED_CHECKBOX_COL:
+      case ExportFormsTableView.SELECTED_CHECKBOX_COL:
         return form.isSelected();
-      case FormsTableView.OVERRIDE_CONF_COL:
+      case ExportFormsTableView.OVERRIDE_CONF_COL:
         return confButtons.computeIfAbsent(form, this::buildOverrideConfButton);
-      case FormsTableView.FORM_NAME_COL:
+      case ExportFormsTableView.FORM_NAME_COL:
         return form.getFormName();
-      case FormsTableView.EXPORT_STATUS_COL:
+      case ExportFormsTableView.EXPORT_STATUS_COL:
         return form.getStatusString();
-      case FormsTableView.LAST_EXPORT_COL:
+      case ExportFormsTableView.LAST_EXPORT_COL:
         return forms.getLastExportDateTime(form)
             .map(dateTime -> dateTime.format(ofLocalizedDateTime(SHORT, SHORT)))
             .orElse("Not exported yet");
-      case FormsTableView.DETAIL_BUTTON_COL:
+      case ExportFormsTableView.DETAIL_BUTTON_COL:
         return detailButtons.computeIfAbsent(form, this::buildDetailButton);
       default:
         throw new IllegalStateException("unexpected column choice");
@@ -170,12 +170,12 @@ public class FormsTableViewModel extends AbstractTableModel {
   public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
     FormStatus form = forms.get(rowIndex);
     switch (columnIndex) {
-      case FormsTableView.SELECTED_CHECKBOX_COL:
+      case ExportFormsTableView.SELECTED_CHECKBOX_COL:
         Boolean isSelected = (Boolean) aValue;
         form.setSelected(isSelected);
         triggerChange();
         break;
-      case FormsTableView.EXPORT_STATUS_COL:
+      case ExportFormsTableView.EXPORT_STATUS_COL:
         form.setStatusString((String) aValue, true);
         break;
       default:

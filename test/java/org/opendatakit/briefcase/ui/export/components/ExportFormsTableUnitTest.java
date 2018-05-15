@@ -34,12 +34,12 @@ import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.FormStatus;
 
-public class FormsTableUnitTest {
+public class ExportFormsTableUnitTest {
   @Test
   public void can_select_all_forms() {
     ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
-    TestFormsTableViewModel viewModel = new TestFormsTableViewModel(forms);
-    FormsTable formsTable = new FormsTable(forms, new TestFormsTableView(viewModel), viewModel);
+    TestExportFormsTableViewModel viewModel = new TestExportFormsTableViewModel(forms);
+    ExportFormsTable formsTable = new ExportFormsTable(forms, new TestExportFormsTableView(viewModel), viewModel);
 
     assertThat(forms.noneSelected(), Matchers.is(true));
 
@@ -51,8 +51,8 @@ public class FormsTableUnitTest {
   @Test
   public void can_clear_selection_of_forms() {
     ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
-    TestFormsTableViewModel viewModel = new TestFormsTableViewModel(forms);
-    FormsTable formsTable = new FormsTable(forms, new TestFormsTableView(viewModel), viewModel);
+    TestExportFormsTableViewModel viewModel = new TestExportFormsTableViewModel(forms);
+    ExportFormsTable formsTable = new ExportFormsTable(forms, new TestExportFormsTableView(viewModel), viewModel);
     formsTable.selectAll();
 
     formsTable.clearAll();
@@ -65,8 +65,8 @@ public class FormsTableUnitTest {
   public void appends_to_a_forms_status_history_when_export_events_are_sent() {
     FormStatus theForm = buildFormStatus(1);
     ExportForms forms = new ExportForms(Collections.singletonList(theForm), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
-    TestFormsTableViewModel viewModel = new TestFormsTableViewModel(forms);
-    new FormsTable(forms, new TestFormsTableView(viewModel), viewModel);
+    TestExportFormsTableViewModel viewModel = new TestExportFormsTableViewModel(forms);
+    new ExportFormsTable(forms, new TestExportFormsTableView(viewModel), viewModel);
 
     // TODO Event publishing happens asynchronously. We have to work this test a little more to stop ignoring it
     EventBus.publish(new ExportProgressEvent("some progress", (BriefcaseFormDefinition) theForm.getFormDefinition()));
@@ -80,14 +80,14 @@ public class FormsTableUnitTest {
     assertThat(theForm.getStatusHistory(), Matchers.containsString("Succeeded, but with errors."));
   }
 
-  private class TestFormsTableView extends FormsTableView {
-    TestFormsTableView(FormsTableViewModel model) {
+  private class TestExportFormsTableView extends ExportFormsTableView {
+    TestExportFormsTableView(ExportFormsTableViewModel model) {
       super(model);
     }
   }
 
-  private class TestFormsTableViewModel extends FormsTableViewModel {
-    TestFormsTableViewModel(ExportForms forms) {
+  private class TestExportFormsTableViewModel extends ExportFormsTableViewModel {
+    TestExportFormsTableViewModel(ExportForms forms) {
       super(forms);
     }
   }

@@ -23,21 +23,21 @@ import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 
-public class FormsTable {
-  private final FormsTableView view;
-  private final FormsTableViewModel viewModel;
+public class ExportFormsTable {
+  private final ExportFormsTableView view;
+  private final ExportFormsTableViewModel viewModel;
   private final ExportForms forms;
 
-  FormsTable(ExportForms forms, FormsTableView view, FormsTableViewModel viewModel) {
+  ExportFormsTable(ExportForms forms, ExportFormsTableView view, ExportFormsTableViewModel viewModel) {
     this.viewModel = viewModel;
     this.view = view;
     this.forms = forms;
     AnnotationProcessor.process(this);
   }
 
-  public static FormsTable from(ExportForms forms) {
-    FormsTableViewModel viewModel = new FormsTableViewModel(forms);
-    return new FormsTable(forms, new FormsTableView(viewModel), viewModel);
+  public static ExportFormsTable from(ExportForms forms) {
+    ExportFormsTableViewModel viewModel = new ExportFormsTableViewModel(forms);
+    return new ExportFormsTable(forms, new ExportFormsTableView(viewModel), viewModel);
   }
 
   public void onChange(Runnable callback) {
@@ -58,11 +58,11 @@ public class FormsTable {
     viewModel.refresh();
   }
 
-  public FormsTableView getView() {
+  public ExportFormsTableView getView() {
     return view;
   }
 
-  public FormsTableViewModel getViewModel() {
+  public ExportFormsTableViewModel getViewModel() {
     return viewModel;
   }
 

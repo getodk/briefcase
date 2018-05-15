@@ -30,7 +30,7 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 
-public class FormsTableView extends JTable {
+public class ExportFormsTableView extends JTable {
   static final String[] HEADERS = new String[]{"", "", "Form Name", "Export Status", "Last Export", ""};
   static final Class[] TYPES = new Class[]{Boolean.class, JButton.class, String.class, String.class, String.class, JButton.class};
   static final boolean[] EDITABLE_COLS = new boolean[]{true, false, false, false, false, false};
@@ -42,7 +42,7 @@ public class FormsTableView extends JTable {
   static final int LAST_EXPORT_COL = 4;
   static final int DETAIL_BUTTON_COL = 5;
 
-  FormsTableView(FormsTableViewModel model) {
+  ExportFormsTableView(ExportFormsTableViewModel model) {
     super(model);
     setName("forms");
 
@@ -75,7 +75,7 @@ public class FormsTableView extends JTable {
 
     setFillsViewportHeight(true);
 
-    TableRowSorter<FormsTableViewModel> sorter = sortBy(getModel(), FORM_NAME_COL, ASCENDING);
+    TableRowSorter<ExportFormsTableViewModel> sorter = sortBy(getModel(), FORM_NAME_COL, ASCENDING);
     setRowSorter(sorter);
     sorter.sort();
   }
@@ -100,8 +100,8 @@ public class FormsTableView extends JTable {
   }
 
   @Override
-  public FormsTableViewModel getModel() {
-    return (FormsTableViewModel) super.getModel();
+  public ExportFormsTableViewModel getModel() {
+    return (ExportFormsTableViewModel) super.getModel();
   }
 
   private static TableCellRenderer cellWithButton() {
