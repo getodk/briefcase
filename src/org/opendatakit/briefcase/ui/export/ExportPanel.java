@@ -29,7 +29,6 @@ import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
-import org.opendatakit.briefcase.export.ExportAction;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.export.ExportForms;
@@ -116,7 +115,7 @@ public class ExportPanel {
         if (needsPemFile && !exportConfiguration.isPemFilePresent())
           return Stream.of("The form " + formStatus.getFormName() + " is encrypted and you haven't set a PEM file");
         if (needsPemFile)
-          return ExportAction.readPemFile(exportConfiguration.getPemFile()
+          return ExportConfiguration.readPemFile(exportConfiguration.getPemFile()
               .orElseThrow(() -> new RuntimeException("PEM file not present"))
           ).getErrors().stream();
         return Stream.empty();

@@ -16,8 +16,6 @@
 
 package org.opendatakit.briefcase.util;
 
-import static java.time.ZoneId.systemDefault;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -31,7 +29,6 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,7 +36,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.NoSuchPaddingException;
@@ -59,7 +55,6 @@ import org.opendatakit.briefcase.model.CryptoException;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.operations.ExportException;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,7 +130,6 @@ public class OldExportToCsv implements ITransformFormAction {
       // weren't able to initialize the csv file...
       return false;
     }
-
 
 
     // Sorts the instances by the submission date. If no submission date, we
@@ -980,50 +974,5 @@ public class OldExportToCsv implements ITransformFormAction {
   @Override
   public BriefcaseFormDefinition getFormDefinition() {
     return briefcaseLfd;
-  }
-
-  public static void export(Path exportDir, BriefcaseFormDefinition formDefinition, String baseFilename, boolean exportMedia, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate) {
-    log.info("exporting to : " + exportDir);
-    OldExportToCsv action = new OldExportToCsv(
-        new TerminationFuture(),
-        exportDir.toFile(),
-        formDefinition,
-        baseFilename,
-        exportMedia,
-        overwriteFiles,
-        startDate.map(ld -> Date.from(ld.atStartOfDay(systemDefault()).toInstant())).orElse(null),
-        endDate.map(ld -> Date.from(ld.atStartOfDay(systemDefault()).toInstant())).orElse(null)
-    );
-    FormDefinition formDef = FormDefinition.from(action.getFormDefinition());
-    try {
-      boolean allSuccessful = action.doAction();
-
-      if (allSuccessful && action.someSkipped()) {
-        EventBus.publish(ExportEvent.partialSuccessForm(formDef, action.processedInstances, action.totalInstances));
-      }
-
-      if (allSuccessful && action.noneSkipped())
-        EventBus.publish(ExportEvent.successForm(formDef, action.totalInstances));
-
-      if (allSuccessful && action.allSkipped())
-        throw new ExportException(formDefinition, "None of the instances where exported");
-
-      if (!allSuccessful)
-        throw new ExportException(formDefinition);
-    } catch (Throwable t) {
-      throw new ExportException(formDefinition);
-    }
-  }
-
-  public boolean noneSkipped() {
-    return totalFilesSkipped == 0 || totalInstances == 0;
-  }
-
-  public boolean someSkipped() {
-    return totalInstances > 0 && totalFilesSkipped > 0 && totalFilesSkipped < totalInstances;
-  }
-
-  public boolean allSkipped() {
-    return totalInstances > 0 && totalFilesSkipped == totalInstances;
   }
 }
