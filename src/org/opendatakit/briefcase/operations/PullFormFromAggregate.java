@@ -22,13 +22,18 @@ import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.operations.Common.bootCache;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Optional;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.http.CommonsHttp;
+import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.util.RetrieveAvailableFormsFromServer;
-import org.opendatakit.briefcase.util.ServerConnectionTest;
 import org.opendatakit.briefcase.util.TransferFromServer;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
@@ -52,12 +57,21 @@ public class PullFormFromAggregate {
       Arrays.asList(STORAGE_DIR, FORM_ID, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER)
   );
 
-  public static void pullFormFromAggregate(String storageDir, String formid, String username, String password, String server) {
+  public static void pullFormFromAggregate(String storageDir, String formid, String username, String password, String baseUrl) {
     CliEventsCompanion.attach(log);
     bootCache(storageDir);
-    ServerConnectionInfo transferSettings = new ServerConnectionInfo(server, username, password.toCharArray());
+    ServerConnectionInfo transferSettings = new ServerConnectionInfo(baseUrl, username, password.toCharArray());
 
-    ServerConnectionTest.testPull(transferSettings);
+    RemoteServer server;
+    try {
+      server = RemoteServer.authenticated(new URL(baseUrl), new Credentials(username, password));
+    } catch (MalformedURLException e) {
+      throw new BriefcaseException(e);
+    }
+
+    // TODO Drill down known errors like HTTP 404 or HTTP 401 and give richer feedback
+    if (!server.testPull(new CommonsHttp()).map(__ -> true).orElse(false))
+      throw new BriefcaseException("Can't connect to Aggregate");
 
     Optional<FormStatus> maybeForm = RetrieveAvailableFormsFromServer.get(transferSettings).stream()
         .filter(f -> f.getFormDefinition().getFormId().equals(formid))
