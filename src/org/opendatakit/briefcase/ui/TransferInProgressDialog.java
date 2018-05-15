@@ -64,7 +64,7 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
    */
   public TransferInProgressDialog(Window topLevel, TransferType transferType, TerminationFuture terminationFuture) {
     super(topLevel, ((transferType == TransferType.UPLOAD) ?
-        PushTransferPanel.TAB_NAME : PullTransferPanel.TAB_NAME) + " in progress...", ModalityType.DOCUMENT_MODAL);
+        "Push" : "Push") + " in progress...", ModalityType.DOCUMENT_MODAL);
     AnnotationProcessor.process(this);// if not using AOP
     this.terminationFuture = terminationFuture;
 
@@ -74,7 +74,7 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
     getContentPane().add(contentPanel, BorderLayout.CENTER);
     {
       lblNewLabel = new JLabel(((transferType == TransferType.UPLOAD) ?
-          PushTransferPanel.TAB_NAME : PullTransferPanel.TAB_NAME) + " in progress...");
+          "Push" : "Pull") + " in progress...");
     }
     cancelButton = new JButton("Cancel");
     cancelButton.setActionCommand("Cancel");
