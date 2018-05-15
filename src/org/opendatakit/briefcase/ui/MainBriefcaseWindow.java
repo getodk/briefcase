@@ -70,7 +70,6 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   private final ImageIcon imageIcon = new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png"));
 
   JFrame frame;
-  private PushTransferPanel uploadPanel;
   private PushPanel pushPanel;
   private ExportPanel exportPanel;
   private SettingsPanel settingsPanel;
@@ -216,7 +215,6 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
     if (enabled) {
       exportPanel.updateForms();
-      uploadPanel.updateFormStatuses();
       pushPanel.updateForms();
     }
 
@@ -263,14 +261,10 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     tabbedPane = new JTabbedPane(JTabbedPane.TOP);
     frame.setContentPane(tabbedPane);
 
-    PullTransferPanel gatherPanel = new PullTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PullTransferPanel.class), appPreferences, analytics);
-    addPane(PullTransferPanel.TAB_NAME, gatherPanel);
-    addPane("New pull", PullPanel.from(http, appPreferences, transferTerminationFuture).getContainer());
+    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, transferTerminationFuture).getContainer());
 
-    uploadPanel = new PushTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PushTransferPanel.class), analytics, http);
-    addPane(PushTransferPanel.TAB_NAME, uploadPanel);
     pushPanel = PushPanel.from(http, appPreferences, transferTerminationFuture);
-    addPane("New push", pushPanel.getContainer());
+    addPane(PushPanel.TAB_NAME, pushPanel.getContainer());
 
     exportPanel = ExportPanel.from(exportTerminationFuture, BriefcasePreferences.forClass(ExportPanel.class), appPreferences, BACKGROUND_EXECUTOR, analytics);
     addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
