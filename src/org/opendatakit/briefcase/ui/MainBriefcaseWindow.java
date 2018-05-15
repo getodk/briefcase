@@ -56,6 +56,7 @@ import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
+import org.opendatakit.briefcase.ui.pull.PullPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.slf4j.Logger;
@@ -261,6 +262,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
     PullTransferPanel gatherPanel = new PullTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PullTransferPanel.class), appPreferences, analytics);
     addPane(PullTransferPanel.TAB_NAME, gatherPanel);
+    addPane("New pull", PullPanel.from(http, appPreferences, transferTerminationFuture).getContainer());
 
     uploadPanel = new PushTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PushTransferPanel.class), analytics, http);
     addPane(PushTransferPanel.TAB_NAME, uploadPanel);
