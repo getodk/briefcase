@@ -18,6 +18,8 @@ package org.opendatakit.briefcase.model;
 
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.push.PushEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,18 @@ public class TerminationFuture {
   public void markAsCancelled(TransferAbortEvent event) {
     cancelled = true;
     log.info("cancel requested: " + event.getReason());
+  }
+
+  @EventSubscriber(eventClass = PushEvent.Abort.class)
+  public void markAsCancelled(PushEvent.Abort event) {
+    cancelled = true;
+    log.info("cancel requested: " + event.cause);
+  }
+
+  @EventSubscriber(eventClass = PullEvent.Abort.class)
+  public void markAsCancelled(PullEvent.Abort event) {
+    cancelled = true;
+    log.info("cancel requested: " + event.cause);
   }
 
   @EventSubscriber(eventClass = ExportAbortEvent.class)
