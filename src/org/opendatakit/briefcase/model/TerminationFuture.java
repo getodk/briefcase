@@ -33,12 +33,6 @@ public class TerminationFuture {
     AnnotationProcessor.process(this);
   }
 
-  @EventSubscriber(eventClass = TransferAbortEvent.class)
-  public void markAsCancelled(TransferAbortEvent event) {
-    cancelled = true;
-    log.info("cancel requested: " + event.getReason());
-  }
-
   @EventSubscriber(eventClass = PushEvent.Abort.class)
   public void markAsCancelled(PushEvent.Abort event) {
     cancelled = true;

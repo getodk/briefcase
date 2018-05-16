@@ -52,7 +52,6 @@ import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
@@ -329,7 +328,6 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   @Override
   public void windowClosing(WindowEvent arg0) {
     exportTerminationFuture.markAsCancelled(new ExportAbortEvent("Main window closed"));
-    transferTerminationFuture.markAsCancelled(new TransferAbortEvent("Main window closed"));
     transferTerminationFuture.markAsCancelled(new PullEvent.Abort("Main window closed"));
     transferTerminationFuture.markAsCancelled(new PushEvent.Abort("Main window closed"));
   }

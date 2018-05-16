@@ -23,8 +23,6 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransferFailedEvent;
-import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
@@ -61,15 +59,12 @@ public class TransferToServer implements ITransferToDestAction {
 
     try {
       boolean allSuccessful = action.doAction();
-      if (allSuccessful) {
-        EventBus.publish(TransferSucceededEvent.from(false, formList, transferSettings));
+      if (allSuccessful)
         EventBus.publish(new PushEvent.Success(formList, transferSettings));
-      }
 
       if (!allSuccessful)
         throw new PushFromServerException(formList);
     } catch (Exception e) {
-      EventBus.publish(new TransferFailedEvent(false, formList));
       EventBus.publish(new PushEvent.Failure());
       throw new PushFromServerException(formList);
     }

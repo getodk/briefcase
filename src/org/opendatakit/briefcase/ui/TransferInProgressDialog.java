@@ -45,9 +45,6 @@ import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsSucceededEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransferAbortEvent;
-import org.opendatakit.briefcase.model.TransferFailedEvent;
-import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.push.PushEvent;
 
@@ -161,7 +158,6 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    terminationFuture.markAsCancelled(new TransferAbortEvent("User cancelled transfer."));
     if (transferType == UPLOAD)
       terminationFuture.markAsCancelled(new PushEvent.Abort("User cancelled transfer."));
     else

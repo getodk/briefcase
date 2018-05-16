@@ -21,8 +21,6 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransferFailedEvent;
-import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.util.TransferFromServer;
 import org.slf4j.Logger;
@@ -40,18 +38,13 @@ public class NewTransferAction {
     try {
       boolean allSuccessful = action.doAction();
 
-      if (!allSuccessful) {
-        EventBus.publish(new TransferFailedEvent(false, formsToTransfer));
+      if (!allSuccessful)
         EventBus.publish(new PullEvent.Failure());
-      }
 
-      if (allSuccessful) {
-        EventBus.publish(TransferSucceededEvent.from(false, formsToTransfer, transferSettings));
+      if (allSuccessful)
         EventBus.publish(new PullEvent.Success(formsToTransfer, transferSettings));
-      }
     } catch (Exception e) {
       log.error("transfer action failed", e);
-      EventBus.publish(new TransferFailedEvent(false, formsToTransfer));
       EventBus.publish(new PullEvent.Failure());
     }
   }
