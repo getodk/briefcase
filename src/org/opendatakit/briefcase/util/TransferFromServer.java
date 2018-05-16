@@ -25,6 +25,7 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.pull.PullEvent;
 
 public class TransferFromServer implements ITransferFromSourceAction {
 
@@ -58,13 +59,16 @@ public class TransferFromServer implements ITransferFromSourceAction {
 
     try {
       boolean allSuccessful = action.doAction();
-      if (allSuccessful)
+      if (allSuccessful) {
         EventBus.publish(TransferSucceededEvent.from(false, formList, transferSettings));
+        EventBus.publish(new PullEvent.Success(formList, transferSettings));
+      }
 
       if (!allSuccessful)
         throw new PullFromServerException(formList);
     } catch (Exception e) {
       EventBus.publish(new TransferFailedEvent(false, formList));
+      EventBus.publish(new PullEvent.Failure());
       throw new PullFromServerException(formList);
     }
   }
