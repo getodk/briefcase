@@ -53,6 +53,7 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
+import org.opendatakit.briefcase.ui.StorageLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -249,6 +250,7 @@ public class ServerFetcher {
         EventBus.publish(new FormStatusEvent(fs));
       }
     }
+    FileSystemUtils.updateCache(new StorageLocation().getBriefcaseFolder().toPath());
     return allSuccessful;
   }
 
