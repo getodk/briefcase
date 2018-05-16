@@ -163,20 +163,21 @@ public class PushPanel {
     ).collect(toList()));
   }
 
-  @EventSubscriber(eventClass = TransferFailedEvent.class)
-  public void onTransferFailedEvent(TransferFailedEvent event) {
+  @EventSubscriber(eventClass = PushEvent.Failure.class)
+  public void onPushFailure(PushEvent.Failure event) {
     terminationFuture.reset();
     view.unsetPushing();
     updateActionButtons();
   }
 
-  @EventSubscriber(eventClass = TransferSucceededEvent.class)
-  public void onTransferSucceededEvent(TransferSucceededEvent event) {
+  @EventSubscriber(eventClass = PushEvent.Success.class)
+  public void onPushSuccess(PushEvent.Success event) {
     terminationFuture.reset();
     view.unsetPushing();
     updateActionButtons();
     if (getStorePasswordsConsentProperty() && event.transferSettings.isPresent()) {
-      event.formsToTransfer.forEach(form -> {
+      event.forms.forEach(form -> {
+        // TODO apply Inversion of Control here to simplify (make the transferSettings object save itself into the prefs)
         appPreferences.put(String.format("%s_push_settings_url", form.getFormDefinition().getFormId()), event.transferSettings.get().getUrl());
         appPreferences.put(String.format("%s_push_settings_username", form.getFormDefinition().getFormId()), event.transferSettings.get().getUsername());
         appPreferences.put(String.format("%s_push_settings_password", form.getFormDefinition().getFormId()), String.valueOf(event.transferSettings.get().getPassword()));

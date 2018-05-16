@@ -151,31 +151,32 @@ public class PullPanel {
     ).collect(toList()));
   }
 
-  @EventSubscriber(eventClass = TransferFailedEvent.class)
-  public void onTransferFailedEvent(TransferFailedEvent event) {
+  @EventSubscriber(eventClass = PullEvent.Failure.class)
+  public void onPullFailure(PullEvent.Failure event) {
     terminationFuture.reset();
     view.unsetPulling();
     updateActionButtons();
   }
 
-  @EventSubscriber(eventClass = TransferSucceededEvent.class)
-  public void onTransferSucceededEvent(TransferSucceededEvent event) {
+  @EventSubscriber(eventClass = PullEvent.Success.class)
+  public void onPullSuccess(PullEvent.Success event) {
     terminationFuture.reset();
     view.unsetPulling();
     updateActionButtons();
-    if (getStorePasswordsConsentProperty())
+    if (getStorePasswordsConsentProperty()) {
       if (event.transferSettings.isPresent()) {
-        event.formsToTransfer.forEach(form -> {
+        event.forms.forEach(form -> {
           appPreferences.put(String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()), event.transferSettings.get().getUrl());
           appPreferences.put(String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()), event.transferSettings.get().getUsername());
           appPreferences.put(String.format("%s_pull_settings_password", form.getFormDefinition().getFormId()), String.valueOf(event.transferSettings.get().getPassword()));
         });
       } else {
-        event.formsToTransfer.forEach(form -> appPreferences.removeAll(
+        event.forms.forEach(form -> appPreferences.removeAll(
             String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()),
             String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()),
             String.format("%s_pull_settings_password", form.getFormDefinition().getFormId())
         ));
       }
+    }
   }
 }
