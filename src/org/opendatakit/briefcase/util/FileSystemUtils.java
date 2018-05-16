@@ -121,9 +121,8 @@ public class FileSystemUtils {
     FileSystemUtils.formCache = new FormCache(new StorageLocation().getBriefcaseFolder());
   }
 
-  public static final List<BriefcaseFormDefinition> getBriefcaseFormList() {
-    List<BriefcaseFormDefinition> formsList = new ArrayList<>();
-    File forms = FileSystemUtils.getFormsFolder();
+  public static void updateCache(Path briefcaseDir) {
+    File forms = briefcaseDir.resolve("forms").toFile();
     if (forms.exists()) {
       File[] formDirs = forms.listFiles();
       for (File f : formDirs) {
@@ -141,8 +140,6 @@ public class FileSystemUtils {
               existingDefinition = new BriefcaseFormDefinition(f, formFile);
               formCache.putFormFileFormDefinition(formFile.getAbsolutePath(), existingDefinition);
             }
-
-            formsList.add(existingDefinition);
           } catch (BadFormDefinition e) {
             log.debug("bad form definition", e);
           }
@@ -152,7 +149,11 @@ public class FileSystemUtils {
         }
       }
     }
-    return formsList;
+  }
+
+  public static final List<BriefcaseFormDefinition> getBriefcaseFormList() {
+    updateCache(new StorageLocation().getBriefcaseFolder().toPath());
+    return formCache.getForms();
   }
 
   public static final List<OdkCollectFormDefinition> getODKFormList(File odk) {
