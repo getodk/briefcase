@@ -42,6 +42,7 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import org.apache.commons.codec.binary.Base64;
+import org.bushe.swing.event.EventBus;
 import org.javarosa.xform.parse.XFormParser;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
@@ -51,6 +52,7 @@ import org.opendatakit.briefcase.model.CryptoException;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
+import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
 import org.slf4j.Logger;
@@ -149,6 +151,7 @@ public class FileSystemUtils {
         }
       }
     }
+    EventBus.publish(new CacheUpdateEvent());
   }
 
   public static final List<BriefcaseFormDefinition> getBriefcaseFormList() {
