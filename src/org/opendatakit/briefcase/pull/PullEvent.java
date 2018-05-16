@@ -32,6 +32,11 @@ public class PullEvent {
     public final List<FormStatus> forms;
     public final Optional<ServerConnectionInfo> transferSettings;
 
+    public Success(List<FormStatus> forms) {
+      this.forms = forms;
+      this.transferSettings = Optional.empty();
+    }
+
     public Success(List<FormStatus> forms, ServerConnectionInfo transferSettings) {
       this.forms = forms;
       this.transferSettings = Optional.ofNullable(transferSettings);

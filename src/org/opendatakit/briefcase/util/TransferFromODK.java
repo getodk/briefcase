@@ -34,6 +34,7 @@ import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -354,6 +355,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
     TransferFromODK action = new TransferFromODK(odk.toFile(), new TerminationFuture(), forms);
     if (!action.doAction()) {
       EventBus.publish(new TransferFailedEvent(false, forms));
+      EventBus.publish(new PullEvent.Failure());
       throw new PullFromODKException(forms);
     }
   }

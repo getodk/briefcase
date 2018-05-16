@@ -34,6 +34,7 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.PullForms;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -87,7 +88,10 @@ public class PullPanel {
       source.ifPresent(s -> s.pull(forms.getSelectedForms(), terminationFuture));
     });
 
-    view.onCancel(() -> terminationFuture.markAsCancelled(new TransferAbortEvent("Cancelled by the user")));
+    view.onCancel(() -> {
+      terminationFuture.markAsCancelled(new TransferAbortEvent("Cancelled by the user"));
+      terminationFuture.markAsCancelled(new PullEvent.Abort("Cancelled by the user"));
+    });
 
     // Read prefs and load saved remote server if available
     RemoteServer.readPreferences(tabPreferences).ifPresent(view::preloadSource);

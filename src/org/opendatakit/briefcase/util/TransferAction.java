@@ -31,6 +31,8 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.TransferInProgressDialog;
@@ -60,12 +62,15 @@ public class TransferAction {
 
         if (allSuccessful) {
           EventBus.publish(TransferSucceededEvent.from(srcIsDeletable, formsToTransfer, dest.getTransferSettings()));
+          EventBus.publish(new PushEvent.Success(formsToTransfer, dest.getTransferSettings()));
         } else {
           EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
+          EventBus.publish(new PushEvent.Failure());
         }
       } catch (Exception e) {
         log.error("upload transfer action failed", e);
         EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
+        EventBus.publish(new PushEvent.Failure());
       }
     }
 
@@ -92,12 +97,17 @@ public class TransferAction {
 
         if (allSuccessful) {
           EventBus.publish(new TransferSucceededEvent(srcIsDeletable, formsToTransfer, src.getTransferSettings()));
+          EventBus.publish(src.getTransferSettings()
+              .map(ts -> new PullEvent.Success(formsToTransfer, ts))
+              .orElse(new PullEvent.Success(formsToTransfer)));
         } else {
           EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
+          EventBus.publish(new PullEvent.Failure());
         }
       } catch (Exception e) {
         log.error("gather transfer action failed", e);
         EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
+        EventBus.publish(new PullEvent.Failure());
       }
     }
 
