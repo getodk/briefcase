@@ -28,7 +28,6 @@ import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -36,6 +35,7 @@ import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.push.PushForms;
+import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
@@ -138,8 +138,8 @@ public class PushPanel {
     view.refresh();
   }
 
-  @EventSubscriber(eventClass = FormStatusEvent.class)
-  public void onFormStatusEvent(FormStatusEvent event) {
+  @EventSubscriber(eventClass = CacheUpdateEvent.class)
+  public void onCacheUpdateEvent(CacheUpdateEvent event) {
     updateForms();
     view.refresh();
   }

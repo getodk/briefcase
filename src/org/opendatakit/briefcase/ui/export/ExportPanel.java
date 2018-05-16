@@ -39,11 +39,11 @@ import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentGiven;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.transfer.NewTransferAction;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
@@ -198,8 +198,8 @@ public class ExportPanel {
     analytics.event("Export", "Export", "Success", null);
   }
 
-  @EventSubscriber(eventClass = FormStatusEvent.class)
-  public void onFormStatusEvent(FormStatusEvent event) {
+  @EventSubscriber(eventClass = CacheUpdateEvent.class)
+  public void onCacheUpdateEvent(CacheUpdateEvent event) {
     updateForms();
   }
 
