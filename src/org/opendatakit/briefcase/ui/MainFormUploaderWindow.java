@@ -39,7 +39,6 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.util.BadFormDefinition;
@@ -269,10 +268,7 @@ public class MainFormUploaderWindow {
     });
 
     btnCancel = new JButton("Cancel");
-    btnCancel.addActionListener(__ -> {
-      terminationFuture.markAsCancelled(new TransferAbortEvent("Form upload cancelled by user."));
-      terminationFuture.markAsCancelled(new PushEvent.Abort("Form upload cancelled by user."));
-    });
+    btnCancel.addActionListener(__ -> terminationFuture.markAsCancelled(new PushEvent.Abort("Form upload cancelled by user.")));
 
     btnClose = new JButton("Close");
     btnClose.addActionListener(__ -> {
@@ -284,7 +280,6 @@ public class MainFormUploaderWindow {
             JOptionPane.ERROR_MESSAGE, null, null, null)) {
           return; // no-op
         }
-        terminationFuture.markAsCancelled(new TransferAbortEvent("User closes window"));
         terminationFuture.markAsCancelled(new PushEvent.Abort("User closes window"));
       }
       frame.setVisible(false);

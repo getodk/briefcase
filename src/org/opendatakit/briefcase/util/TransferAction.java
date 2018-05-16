@@ -29,8 +29,6 @@ import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsSucceededEvent;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransferFailedEvent;
-import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.reused.RemoteServer;
@@ -56,20 +54,15 @@ public class TransferAction {
 
     @Override
     public void run() {
-      boolean srcIsDeletable = false;
       try {
         boolean allSuccessful = dest.doAction();
 
-        if (allSuccessful) {
-          EventBus.publish(TransferSucceededEvent.from(srcIsDeletable, formsToTransfer, dest.getTransferSettings()));
+        if (allSuccessful)
           EventBus.publish(new PushEvent.Success(formsToTransfer, dest.getTransferSettings()));
-        } else {
-          EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
+        else
           EventBus.publish(new PushEvent.Failure());
-        }
       } catch (Exception e) {
         log.error("upload transfer action failed", e);
-        EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
         EventBus.publish(new PushEvent.Failure());
       }
     }
@@ -91,22 +84,17 @@ public class TransferAction {
 
     @Override
     public void run() {
-      boolean srcIsDeletable = src.isSourceDeletable();
       try {
         boolean allSuccessful = src.doAction();
 
-        if (allSuccessful) {
-          EventBus.publish(new TransferSucceededEvent(srcIsDeletable, formsToTransfer, src.getTransferSettings()));
+        if (allSuccessful)
           EventBus.publish(src.getTransferSettings()
               .map(ts -> new PullEvent.Success(formsToTransfer, ts))
               .orElse(new PullEvent.Success(formsToTransfer)));
-        } else {
-          EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
+        else
           EventBus.publish(new PullEvent.Failure());
-        }
       } catch (Exception e) {
         log.error("gather transfer action failed", e);
-        EventBus.publish(new TransferFailedEvent(srcIsDeletable, formsToTransfer));
         EventBus.publish(new PullEvent.Failure());
       }
     }

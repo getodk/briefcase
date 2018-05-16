@@ -33,7 +33,6 @@ import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.util.ServerConnectionTest;
@@ -227,7 +226,6 @@ public class ServerConnectionDialog extends JDialog implements ActionListener {
 
     } else {
       // cancel...
-      terminationFuture.markAsCancelled(new TransferAbortEvent("User cancels connection."));
       if (asTarget)
         terminationFuture.markAsCancelled(new PushEvent.Abort("User cancels connection."));
       else
