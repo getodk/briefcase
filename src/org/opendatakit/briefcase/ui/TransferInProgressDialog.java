@@ -124,13 +124,23 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
     contentPanel.setLayout(gl_contentPanel);
   }
 
-  @EventSubscriber(eventClass = TransferFailedEvent.class)
-  public void failedCompletion(TransferFailedEvent event) {
+  @EventSubscriber(eventClass = PullEvent.Failure.class)
+  public void onPullFailure(PullEvent.Failure event) {
     this.setVisible(false);
   }
 
-  @EventSubscriber(eventClass = TransferSucceededEvent.class)
-  public void successfulCompletion(TransferSucceededEvent event) {
+  @EventSubscriber(eventClass = PushEvent.Failure.class)
+  public void onPushFailure(PushEvent.Failure event) {
+    this.setVisible(false);
+  }
+
+  @EventSubscriber(eventClass = PullEvent.Success.class)
+  public void onPullSuccess(PullEvent.Success event) {
+    this.setVisible(false);
+  }
+
+  @EventSubscriber(eventClass = PushEvent.Success.class)
+  public void onPushSuccess(PushEvent.Success event) {
     this.setVisible(false);
   }
 

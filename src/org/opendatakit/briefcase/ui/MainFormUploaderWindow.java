@@ -40,8 +40,7 @@ import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
-import org.opendatakit.briefcase.model.TransferFailedEvent;
-import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.util.BadFormDefinition;
 import org.opendatakit.briefcase.util.TransferAction;
@@ -212,14 +211,14 @@ public class MainFormUploaderWindow {
     updateUploadingLabel();
   }
 
-  @EventSubscriber(eventClass = TransferFailedEvent.class)
-  public void failedCompletion(TransferFailedEvent event) {
+  @EventSubscriber(eventClass = PullEvent.Failure.class)
+  public void onPullFailure(PullEvent.Failure event) {
     lblUploading.setText("Failed.");
     setActiveTransferState(false);
   }
 
-  @EventSubscriber(eventClass = TransferSucceededEvent.class)
-  public void successfulCompletion(TransferSucceededEvent event) {
+  @EventSubscriber(eventClass = PullEvent.Success.class)
+  public void onPullSuccess(PullEvent.Success event) {
     lblUploading.setText("Succeeded.");
     setActiveTransferState(false);
   }
