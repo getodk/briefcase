@@ -53,6 +53,7 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.ui.StorageLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -223,6 +224,7 @@ public class ServerFetcher {
         if (successful) {
           fs.setStatusString(SUCCESS_STATUS, true);
           EventBus.publish(new FormStatusEvent(fs));
+          EventBus.publish(new PullEvent.NewForm(fs, serverInfo));
         } else {
           fs.setStatusString(FAILED_STATUS, true);
           EventBus.publish(new FormStatusEvent(fs));
