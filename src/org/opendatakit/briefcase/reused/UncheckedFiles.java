@@ -19,10 +19,14 @@ package org.opendatakit.briefcase.reused;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.CopyOption;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
+import java.util.Comparator;
+import java.util.stream.Stream;
 
 public class UncheckedFiles {
   public static Path createTempFile(String prefix, String suffix, FileAttribute<?>... attrs) {
@@ -49,6 +53,19 @@ public class UncheckedFiles {
     }
   }
 
+  public static void deleteRecursive(Path path) {
+    walk(path).filter(Files::isRegularFile).forEach(UncheckedFiles::delete);
+    walk(path).filter(p -> !Files.isRegularFile(p)).sorted(Comparator.reverseOrder()).forEach(UncheckedFiles::delete);
+  }
+
+  public static void delete(Path path) {
+    try {
+      Files.delete(path);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
   public static Path copy(Path source, Path target, CopyOption... options) {
     try {
       return Files.copy(source, target, options);
@@ -56,4 +73,17 @@ public class UncheckedFiles {
       throw new UncheckedIOException(e);
     }
   }
+
+  public static Stream<Path> walk(Path path, FileVisitOption... options) {
+    try {
+      return Files.walk(path, options);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  public static boolean exists(Path path, LinkOption... options) {
+    return Files.exists(path, options);
+  }
+
 }
