@@ -76,6 +76,15 @@ import org.opendatakit.briefcase.util.TransferAction;
  */
 public interface Source<T> {
   /**
+   * This method is required to let the calling site be unaware of the specific
+   * subtype of {@link Source} it is dealing with.
+   */
+  static void clearAllPreferences(BriefcasePreferences prefs) {
+    Aggregate.clearPreferences(prefs);
+    CustomDir.clearPreferences(prefs);
+  }
+
+  /**
    * Factory of {@link Source} instances that deal with remote Aggregate servers.
    *
    * @param consumer {@link Consumer} that would be applied the {@link RemoteServer}
@@ -192,6 +201,10 @@ public interface Source<T> {
       server.storePreferences(prefs, storePasswords);
     }
 
+    public static void clearPreferences(BriefcasePreferences prefs) {
+      prefs.removeAll(RemoteServer.PREFERENCE_KEYS);
+    }
+
     @Override
     public void pull(List<FormStatus> forms, TerminationFuture terminationFuture) {
       try {
@@ -263,6 +276,10 @@ public interface Source<T> {
     @Override
     public void storePreferences(BriefcasePreferences prefs, boolean storePasswords) {
       // No prefs to store
+    }
+
+    public static void clearPreferences(BriefcasePreferences prefs) {
+      // No prefs to clear
     }
 
     @Override
