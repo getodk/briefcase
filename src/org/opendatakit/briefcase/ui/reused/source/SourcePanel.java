@@ -19,6 +19,7 @@ package org.opendatakit.briefcase.ui.reused.source;
 import static org.opendatakit.briefcase.ui.reused.source.SourcePanel.View.SELECT;
 import static org.opendatakit.briefcase.ui.reused.source.SourcePanel.View.SHOW;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -49,13 +50,14 @@ public class SourcePanel {
     container.navigateTo(SELECT);
   }
 
-  public static SourcePanel pull(Http http) {
+  public static SourcePanel pull(Http http, Path briefcaseDir) {
     SourcePanel panel = new SourcePanel(
         new SelectSourceForm("Pull Data From"),
         ShowSourceForm.empty("Pulling data from")
     );
     panel.addSource(new Source.Aggregate(http, panel::triggerOnSource));
     panel.addSource(new Source.CustomDir(panel::triggerOnSource));
+    panel.addSource(new Source.FormInComputer(panel::triggerOnSource, briefcaseDir));
     return panel;
   }
 

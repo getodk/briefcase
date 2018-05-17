@@ -96,7 +96,7 @@ public class PullPanel {
     PullFormsTableViewModel pullFormsTableViewModel = new PullFormsTableViewModel(pullForms);
     PullFormsTableView pullFormsTableView = new PullFormsTableView(pullFormsTableViewModel);
     PullFormsTable pullFormsTable = new PullFormsTable(pullForms, pullFormsTableView, pullFormsTableViewModel);
-    SourcePanel sourcePanel = SourcePanel.pull(http);
+    SourcePanel sourcePanel = SourcePanel.pull(http, appPreferences.getBriefcaseDir());
     return new PullPanel(
         new PullPanelForm(sourcePanel, pullFormsTable),
         pullForms,
