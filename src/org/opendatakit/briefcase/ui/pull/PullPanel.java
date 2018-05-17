@@ -64,6 +64,7 @@ public class PullPanel {
     // Register callbacks to view events
     view.onSource(source -> {
       this.source = Optional.of(source);
+      Source.clearAllPreferences(tabPreferences);
       source.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
       forms.load(source.getFormList());
       view.refresh();
@@ -74,6 +75,7 @@ public class PullPanel {
       forms.clear();
       view.refresh();
       source = Optional.empty();
+      Source.clearAllPreferences(tabPreferences);
       updateActionButtons();
     });
 

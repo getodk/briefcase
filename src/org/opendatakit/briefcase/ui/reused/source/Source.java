@@ -44,6 +44,11 @@ public interface Source<T> {
     return Files.exists(f) && Files.isDirectory(f) && !isUnderBriefcaseFolder(f.toFile()) && Files.exists(f.resolve("forms")) && Files.isDirectory(f.resolve("forms"));
   }
 
+  static void clearAllPreferences(BriefcasePreferences prefs) {
+    Aggregate.clearPreferences(prefs);
+    CustomDir.clearPreferences(prefs);
+  }
+
   void onSelect(Container container);
 
   void set(T t);
@@ -98,6 +103,10 @@ public interface Source<T> {
     @Override
     public void storePreferences(BriefcasePreferences prefs, boolean storePasswords) {
       server.storePreferences(prefs, storePasswords);
+    }
+
+    public static void clearPreferences(BriefcasePreferences prefs) {
+      prefs.removeAll(RemoteServer.PREFERENCE_KEYS);
     }
 
     @Override
@@ -167,6 +176,10 @@ public interface Source<T> {
     @Override
     public void storePreferences(BriefcasePreferences prefs, boolean storePasswords) {
       // No prefs to store
+    }
+
+    public static void clearPreferences(BriefcasePreferences prefs) {
+      // No prefs to clear
     }
 
     @Override

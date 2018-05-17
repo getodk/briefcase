@@ -66,12 +66,14 @@ public class PushPanel {
     // Register callbacks to view events
     view.onSource(source -> {
       this.source = Optional.of(source);
+      Source.clearAllPreferences(tabPreferences);
       source.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
       updateActionButtons();
     });
 
     view.onReset(() -> {
       source = Optional.empty();
+      Source.clearAllPreferences(tabPreferences);
       updateActionButtons();
     });
 
