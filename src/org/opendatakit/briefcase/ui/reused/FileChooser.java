@@ -47,11 +47,16 @@ public interface FileChooser {
   }
 
   static FileChooser file(Container parent, Optional<File> initialFile) {
-    JFileChooser fileChooser = buildFileChooser(initialFile, "Choose a file", FILES_ONLY, Optional.empty());
+    return file(parent, initialFile, f -> true, "");
+  }
+
+  static FileChooser file(Container parent, Optional<File> initialFile, Predicate<File> filter, String filterDescription) {
+    Optional<FileFilter> fileFilter = Optional.ofNullable(filter).map(f -> createFileFilter(f, filterDescription));
+    JFileChooser fileChooser = buildFileChooser(initialFile, "Choose a file", FILES_ONLY, fileFilter);
 
     return isUnix() || isWindows()
-        ? new SwingFileChooser(parent, fileChooser, f -> true, "")
-        : new NativeFileChooser(parent, buildFileDialog(parent, initialFile, fileChooser), fileChooser, __ -> true, "");
+        ? new SwingFileChooser(parent, fileChooser, filter, filterDescription)
+        : new NativeFileChooser(parent, buildFileDialog(parent, initialFile, fileChooser), fileChooser, filter, filterDescription);
   }
 
   static FileDialog buildFileDialog(Container parent, Optional<File> initialLocation, JFileChooser fileChooser) {
