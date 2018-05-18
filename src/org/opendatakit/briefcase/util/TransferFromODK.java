@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import org.apache.commons.io.FileUtils;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -345,9 +346,8 @@ public class TransferFromODK implements ITransferFromSourceAction {
   }
 
   @Override
-  public ServerConnectionInfo getTransferSettings() {
-    // TODO Solve this violation of Liskov's principle
-    throw new RuntimeException("This class has no transfer settings");
+  public Optional<ServerConnectionInfo> getTransferSettings() {
+    return Optional.empty();
   }
 
   public static void pull(Path odk, List<FormStatus> forms) {

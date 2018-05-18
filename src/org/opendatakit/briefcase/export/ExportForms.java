@@ -159,6 +159,10 @@ public class ExportForms {
     this.transferSettings.put(getFormId(form), transferSettings);
   }
 
+  public void removeTransferSettings(FormStatus form) {
+    transferSettings.remove(getFormId(form));
+  }
+
   public boolean allSelectedFormsHaveConfiguration() {
     return getSelectedForms().stream()
         .map(ExportForms::getFormId)

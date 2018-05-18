@@ -52,7 +52,7 @@ public class TransferToServer implements ITransferToDestAction {
     try {
       boolean allSuccessful = action.doAction();
       if (allSuccessful)
-        EventBus.publish(new TransferSucceededEvent(false, formList, transferSettings));
+        EventBus.publish(TransferSucceededEvent.from(false, formList, transferSettings));
 
       if (!allSuccessful)
         throw new PushFromServerException(formList);

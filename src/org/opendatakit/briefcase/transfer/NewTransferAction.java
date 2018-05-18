@@ -43,7 +43,7 @@ public class NewTransferAction {
         EventBus.publish(new TransferFailedEvent(false, formsToTransfer));
 
       if (allSuccessful)
-        EventBus.publish(new TransferSucceededEvent(false, formsToTransfer, transferSettings));
+        EventBus.publish(TransferSucceededEvent.from(false, formsToTransfer, transferSettings));
     } catch (Exception e) {
       log.error("transfer action failed", e);
       EventBus.publish(new TransferFailedEvent(false, formsToTransfer));

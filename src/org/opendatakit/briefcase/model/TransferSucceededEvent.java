@@ -17,17 +17,21 @@
 package org.opendatakit.briefcase.model;
 
 import java.util.List;
+import java.util.Optional;
 
 public class TransferSucceededEvent {
-
   @SuppressWarnings("unused")
   private final boolean isDeletableSource;
   public final List<FormStatus> formsToTransfer;
-  public final ServerConnectionInfo transferSettings;
+  public final Optional<ServerConnectionInfo> transferSettings;
 
-  public TransferSucceededEvent(boolean isDeletableSource, List<FormStatus> formsToTransfer, ServerConnectionInfo transferSettings) {
+  public TransferSucceededEvent(boolean isDeletableSource, List<FormStatus> formsToTransfer, Optional<ServerConnectionInfo> transferSettings) {
     this.isDeletableSource = isDeletableSource;
     this.formsToTransfer = formsToTransfer;
     this.transferSettings = transferSettings;
+  }
+
+  public static TransferSucceededEvent from(boolean isDeletableSource, List<FormStatus> formsToTransfer, ServerConnectionInfo transferSettings) {
+    return new TransferSucceededEvent(isDeletableSource, formsToTransfer, Optional.of(transferSettings));
   }
 }

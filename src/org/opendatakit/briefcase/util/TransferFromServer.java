@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.util;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
@@ -58,7 +59,7 @@ public class TransferFromServer implements ITransferFromSourceAction {
     try {
       boolean allSuccessful = action.doAction();
       if (allSuccessful)
-        EventBus.publish(new TransferSucceededEvent(false, formList, transferSettings));
+        EventBus.publish(TransferSucceededEvent.from(false, formList, transferSettings));
 
       if (!allSuccessful)
         throw new PullFromServerException(formList);
@@ -69,7 +70,7 @@ public class TransferFromServer implements ITransferFromSourceAction {
   }
 
   @Override
-  public ServerConnectionInfo getTransferSettings() {
-    return originServerInfo;
+  public Optional<ServerConnectionInfo> getTransferSettings() {
+    return Optional.of(originServerInfo);
   }
 }

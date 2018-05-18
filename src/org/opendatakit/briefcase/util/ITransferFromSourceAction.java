@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.util;
 
+import java.util.Optional;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 
 interface ITransferFromSourceAction {
@@ -30,5 +31,5 @@ interface ITransferFromSourceAction {
    */
   boolean isSourceDeletable();
 
-  ServerConnectionInfo getTransferSettings();
+  Optional<ServerConnectionInfo> getTransferSettings();
 }
