@@ -15,24 +15,6 @@
  */
 package org.opendatakit.briefcase.operations;
 
-import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
-import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePrefix;
-import static org.opendatakit.briefcase.operations.Common.FORM_ID;
-import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
-import static org.opendatakit.briefcase.operations.Common.bootCache;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Optional;
 import org.bouncycastle.openssl.PEMReader;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -46,6 +28,23 @@ import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Optional;
+
+import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
+import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePrefix;
+import static org.opendatakit.briefcase.operations.Common.*;
 
 public class Export {
   private static final Logger log = LoggerFactory.getLogger(Export.class);
