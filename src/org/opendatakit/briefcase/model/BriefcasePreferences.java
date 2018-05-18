@@ -16,8 +16,12 @@
 
 package org.opendatakit.briefcase.model;
 
+import static org.opendatakit.briefcase.ui.StorageLocation.BRIEFCASE_DIR;
+
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Security;
 import java.util.Arrays;
 import java.util.List;
@@ -201,6 +205,10 @@ public class BriefcasePreferences {
     return Boolean.valueOf(
         Preference.APPLICATION_SCOPED.get(BRIEFCASE_PARALLEL_PULLS_PROPERTY, Boolean.FALSE.toString())
     );
+  }
+
+  public Path getBriefcaseDir() {
+    return Paths.get(getBriefcaseDirectoryOrUserHome()).resolve(BRIEFCASE_DIR);
   }
 
   /**

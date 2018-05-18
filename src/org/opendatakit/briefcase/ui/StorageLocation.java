@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
  * Managing the Briefcase storage location
  */
 public class StorageLocation {
-  static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
+  public static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
   static final String README_TXT = "readme.txt";
   private final BriefcasePreferences briefcasePreferences;
   private static final Logger log = LoggerFactory.getLogger(StorageLocation.class.getName());
