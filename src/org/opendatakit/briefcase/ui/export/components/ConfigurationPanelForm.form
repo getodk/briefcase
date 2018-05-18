@@ -31,7 +31,7 @@
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
         <properties>
-          <text value="Start date"/>
+          <text value="Start date (inclusive)"/>
         </properties>
       </component>
       <component id="798b5" class="javax.swing.JLabel" binding="endDateLabel">
@@ -40,7 +40,7 @@
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
         <properties>
-          <text value="End date"/>
+          <text value="End date (inclusive)"/>
         </properties>
       </component>
       <component id="6ae2" class="javax.swing.JTextField" binding="exportDirField">
