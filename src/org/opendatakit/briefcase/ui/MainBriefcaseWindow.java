@@ -53,6 +53,8 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferAbortEvent;
+import org.opendatakit.briefcase.reused.http.CommonsHttp;
+import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
@@ -247,6 +249,8 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     analytics.enter("Briefcase");
     Runtime.getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
+    Http http = new CommonsHttp();
+
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     storageLocation = new StorageLocation();
@@ -258,7 +262,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     PullTransferPanel gatherPanel = new PullTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PullTransferPanel.class), appPreferences, analytics);
     addPane(PullTransferPanel.TAB_NAME, gatherPanel);
 
-    uploadPanel = new PushTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PushTransferPanel.class), analytics);
+    uploadPanel = new PushTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PushTransferPanel.class), analytics, http);
     addPane(PushTransferPanel.TAB_NAME, uploadPanel);
 
     exportPanel = ExportPanel.from(exportTerminationFuture, BriefcasePreferences.forClass(ExportPanel.class), appPreferences, BACKGROUND_EXECUTOR, analytics);

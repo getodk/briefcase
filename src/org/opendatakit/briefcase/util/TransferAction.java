@@ -31,6 +31,8 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.push.RemoteServer;
+import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.TransferInProgressDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -174,10 +176,17 @@ public class TransferAction {
   }
 
   public static void transferBriefcaseToServer(ServerConnectionInfo destinationServerInfo,
-                                               TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) throws IOException {
+                                               TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Http http, RemoteServer server) throws IOException {
 
-    TransferToServer dest = new TransferToServer(destinationServerInfo, terminationFuture,
-        formsToTransfer);
+    TransferToServer dest = new TransferToServer(
+        destinationServerInfo,
+        terminationFuture,
+        formsToTransfer,
+        http,
+        server,
+        // Since this is only used by the GUI, always force sending the blank form
+        true
+    );
     backgroundRun(dest, formsToTransfer);
   }
 }

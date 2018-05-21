@@ -48,6 +48,8 @@ import org.opendatakit.briefcase.model.TransferAbortEvent;
 import org.opendatakit.briefcase.model.TransferFailedEvent;
 import org.opendatakit.briefcase.model.TransferSucceededEvent;
 import org.opendatakit.briefcase.model.UpdatedBriefcaseFormDefinitionEvent;
+import org.opendatakit.briefcase.push.RemoteServer;
+import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferAction;
@@ -81,6 +83,8 @@ public class PushTransferPanel extends JPanel {
   private TerminationFuture terminationFuture;
 
   private JProgressBar pbUploading;
+  private final Http http;
+  private RemoteServer server;
 
   /**
    * UI changes related to the selection of the destination location from
@@ -124,6 +128,7 @@ public class PushTransferPanel extends JPanel {
         d.setVisible(true);
         if (d.isSuccessful()) {
           destinationServerInfo = d.getServerInfo();
+          server = RemoteServer.authenticated(destinationServerInfo.getUrl(), destinationServerInfo.getUsername(), new String(destinationServerInfo.getPassword()));
           txtDestinationName.setText(destinationServerInfo.getUrl());
           formTransferTable.setSourceSelected(!TextUtils.isEmpty(txtDestinationName.getText()));
           tabPreferences.put(BriefcasePreferences.AGGREGATE_1_0_URL, destinationServerInfo.getUrl());
@@ -158,7 +163,7 @@ public class PushTransferPanel extends JPanel {
         setActiveTransferState(true);
         if (EndPointType.AGGREGATE_1_0_CHOICE.equals(destinationSelection)) {
           TransferAction.transferBriefcaseToServer(
-              destinationServerInfo, terminationFuture, formsToTransfer);
+              destinationServerInfo, terminationFuture, formsToTransfer, http, server);
         } else {
           throw new IllegalStateException("unhandled case");
         }
@@ -173,13 +178,14 @@ public class PushTransferPanel extends JPanel {
   /**
    * Create the transfer-from-to panel.
    */
-  public PushTransferPanel(TerminationFuture terminationFuture, BriefcasePreferences tabPreferences, Analytics analytics) {
+  public PushTransferPanel(TerminationFuture terminationFuture, BriefcasePreferences tabPreferences, Analytics analytics, Http http) {
     super();
     this.tabPreferences = tabPreferences;
     AnnotationProcessor.process(this);// if not using AOP
     addComponentListener(analytics.buildComponentListener("Push"));
     this.terminationFuture = terminationFuture;
     this.analytics = analytics;
+    this.http = http;
 
     JLabel lblSendDataTo = new JLabel(TAB_NAME + " data to:");
 
