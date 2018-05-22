@@ -59,6 +59,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MainBriefcaseWindow extends WindowAdapter {
+  private static final Logger log = LoggerFactory.getLogger(BaseFormParserForJavaRosa.class.getName());
+  private static final ExecutorService BACKGROUND_EXECUTOR = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 2);
   private static final String APP_NAME = "ODK Briefcase";
   private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
   private static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
@@ -66,12 +68,8 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private final JFrame frame;
   private final TerminationFuture exportTerminationFuture = new TerminationFuture();
   private final TerminationFuture transferTerminationFuture = new TerminationFuture();
-
-  private static final Logger log = LoggerFactory.getLogger(BaseFormParserForJavaRosa.class.getName());
-
   private final JTabbedPane tabbedPane;
   private final Map<String, Integer> tabTitleIndexes = new HashMap<>();
-  private static final ExecutorService BACKGROUND_EXECUTOR = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 2);
 
   public static void main(String[] args) {
     if (args.length == 0)
@@ -89,18 +87,6 @@ public class MainBriefcaseWindow extends WindowAdapter {
       System.err.println("Failed to launch Briefcase GUI");
       System.exit(1);
     }
-  }
-
-  private void lockUI() {
-    for (int i = 0; i < tabbedPane.getTabCount(); i++)
-      tabbedPane.setEnabledAt(i, false);
-    tabbedPane.setEnabledAt(tabTitleIndexes.get(SettingsPanel.TAB_NAME), true);
-    tabbedPane.setSelectedIndex(tabTitleIndexes.get(SettingsPanel.TAB_NAME));
-  }
-
-  private void unlockUI() {
-    for (int i = 0; i < tabbedPane.getTabCount(); i++)
-      tabbedPane.setEnabledAt(i, true);
   }
 
   private MainBriefcaseWindow() {
@@ -161,6 +147,18 @@ public class MainBriefcaseWindow extends WindowAdapter {
       showTrackingWarning();
       appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
     }
+  }
+
+  private void lockUI() {
+    for (int i = 0; i < tabbedPane.getTabCount(); i++)
+      tabbedPane.setEnabledAt(i, false);
+    tabbedPane.setEnabledAt(tabTitleIndexes.get(SettingsPanel.TAB_NAME), true);
+    tabbedPane.setSelectedIndex(tabTitleIndexes.get(SettingsPanel.TAB_NAME));
+  }
+
+  private void unlockUI() {
+    for (int i = 0; i < tabbedPane.getTabCount(); i++)
+      tabbedPane.setEnabledAt(i, true);
   }
 
   private void showTrackingWarning() {
