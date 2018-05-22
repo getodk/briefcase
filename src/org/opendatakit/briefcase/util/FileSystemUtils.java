@@ -53,6 +53,7 @@ import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -259,16 +260,8 @@ public class FileSystemUtils {
     return formDefnFile;
   }
 
-  public static File getTempFormDefinitionFile(Path briefcaseDir)
-      throws FileSystemException {
-    File tempDefnFile;
-    try {
-      tempDefnFile = File.createTempFile("tempDefn", ".xml", briefcaseDir.toFile());
-    } catch (IOException e) {
-      log.error("failed to create temp file for form def", e);
-      return null;
-    }
-    return tempDefnFile;
+  public static File getTempFormDefinitionFile() {
+    return UncheckedFiles.createTempFile("briefcase_", "_form.xml").toFile();
   }
 
   public static File getFormDefinitionFile(File formDirectory)

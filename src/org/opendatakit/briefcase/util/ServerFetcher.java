@@ -154,7 +154,7 @@ public class ServerFetcher {
       EventBus.publish(new FormStatusEvent(fs));
       try {
 
-        File tmpdl = FileSystemUtils.getTempFormDefinitionFile(briefcaseDir);
+        File tmpdl = FileSystemUtils.getTempFormDefinitionFile();
         AggregateUtils.commonDownloadFile(serverInfo, tmpdl, fd.getDownloadUrl());
 
         fs.setStatusString("resolving against briefcase form definitions", true);
@@ -246,7 +246,7 @@ public class ServerFetcher {
             + fd.getDownloadUrl()
             + " A network login screen may be interfering with the transmission to the server.", false);
         EventBus.publish(new FormStatusEvent(fs));
-      } catch (FileSystemException | TransmissionException | URISyntaxException e) {
+      } catch (TransmissionException | URISyntaxException e) {
         allSuccessful = false;
         log.error("error accessing form download URL", e);
         fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
