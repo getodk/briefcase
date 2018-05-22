@@ -329,7 +329,7 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.anchor = GridBagConstraints.EAST;
     container.add(pemFileLabel, gbc);
     startDateLabel = new JLabel();
-    startDateLabel.setText("  Start date (inclusive)");
+    startDateLabel.setText("Start date (inclusive)");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 2;
