@@ -73,9 +73,6 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private final Map<String, Integer> tabTitleIndexes = new HashMap<>();
   private static final ExecutorService BACKGROUND_EXECUTOR = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 2);
 
-  /**
-   * Launch the application.
-   */
   public static void main(String[] args) {
     if (args.length == 0)
       launchGUI();
@@ -106,9 +103,6 @@ public class MainBriefcaseWindow extends WindowAdapter {
       tabbedPane.setEnabledAt(i, true);
   }
 
-  /**
-   * Create the application.
-   */
   private MainBriefcaseWindow() {
     AnnotationProcessor.process(this);
 
