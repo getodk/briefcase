@@ -37,6 +37,8 @@ import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
+import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -44,6 +46,7 @@ import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.push.PushEvent;
+import org.opendatakit.briefcase.reused.StorageLocationEvent;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
@@ -56,7 +59,7 @@ import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeListener {
+public class MainBriefcaseWindow extends WindowAdapter {
   private static final String APP_NAME = "ODK Briefcase";
   private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
   public static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
@@ -72,10 +75,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   private static final Logger log = LoggerFactory.getLogger(BaseFormParserForJavaRosa.class.getName());
 
   private final JTabbedPane tabbedPane;
-  /**
-   * A map from each pane to its index in the JTabbedPane
-   */
-  private final Map<Component, Integer> paneToIndexMap = new HashMap<>();
+  private final Map<String, Integer> tabTitleIndexes = new HashMap<>();
   private static final ExecutorService BACKGROUND_EXECUTOR = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 2);
 
   /**
@@ -99,32 +99,24 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     });
   }
 
-  @Override
-  public void setFullUIEnabled(boolean enabled) {
+  private void lockUI() {
+    for (int i = 0; i < tabbedPane.getTabCount(); i++)
+      tabbedPane.setEnabledAt(i, false);
+    tabbedPane.setEnabledAt(tabTitleIndexes.get(SettingsPanel.TAB_NAME), true);
+    tabbedPane.setSelectedIndex(tabTitleIndexes.get(SettingsPanel.TAB_NAME));
+  }
 
-    if (enabled) {
-      exportPanel.updateForms();
-      pushPanel.updateForms();
-    }
-
-    for (Map.Entry<Component, Integer> entry : paneToIndexMap.entrySet()) {
-      final Component pane = entry.getKey();
-      final int paneIndex = entry.getValue();
-      if (pane != settingsPanel) {
-        pane.setEnabled(enabled);
-        tabbedPane.setEnabledAt(paneIndex, enabled);
-      }
-    }
-    if (!enabled) {
-      tabbedPane.setSelectedComponent(settingsPanel);
-    }
-    tabbedPane.setEnabled(enabled);
+  private void unlockUI() {
+    for (int i = 0; i < tabbedPane.getTabCount(); i++)
+      tabbedPane.setEnabledAt(i, true);
   }
 
   /**
    * Create the application.
    */
   private MainBriefcaseWindow() {
+    AnnotationProcessor.process(this);
+
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     appPreferences.getBriefcaseDir()
         .map(FormCache::from)
@@ -197,11 +189,8 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     return !appPreferences.getBriefcaseDir().isPresent();
   }
 
-  /**
-   * Adds a pane to the JTabbedPane, and saves its index in a map from pane to index.
-   */
   private void addPane(String title, Component pane) {
-    paneToIndexMap.put(pane, tabbedPane.getTabCount());
+    tabTitleIndexes.put(title, tabbedPane.getTabCount());
     tabbedPane.addTab(title, null, pane, null);
   }
 
@@ -210,5 +199,15 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     exportTerminationFuture.markAsCancelled(new ExportAbortEvent("Main window closed"));
     transferTerminationFuture.markAsCancelled(new PullEvent.Abort("Main window closed"));
     transferTerminationFuture.markAsCancelled(new PushEvent.Abort("Main window closed"));
+  }
+
+  @EventSubscriber(eventClass = StorageLocationEvent.LocationDefined.class)
+  public void onFormStatusEvent(StorageLocationEvent.LocationDefined event) {
+    unlockUI();
+  }
+
+  @EventSubscriber(eventClass = StorageLocationEvent.LocationCleared.class)
+  public void onFormStatusEvent(StorageLocationEvent.LocationCleared event) {
+    lockUI();
   }
 }
