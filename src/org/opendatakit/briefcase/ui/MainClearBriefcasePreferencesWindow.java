@@ -22,13 +22,14 @@ import java.awt.Toolkit;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
+import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MainClearBriefcasePreferencesWindow {
 
-  private static final String CLEAR_PREFERENCES_VERSION = "ODK ClearBriefcasePreferences - " + BriefcasePreferences.VERSION;
+  private static final String CLEAR_PREFERENCES_VERSION = "ODK ClearBriefcasePreferences - " + BuildConfig.VERSION;
   private static final Logger log = LoggerFactory.getLogger(MainClearBriefcasePreferencesWindow.class);
 
   /**

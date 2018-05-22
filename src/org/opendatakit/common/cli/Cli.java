@@ -29,7 +29,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.UnrecognizedOptionException;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -191,7 +191,7 @@ public class Cli {
   }
 
   private static void printVersion() {
-    System.out.println("Briefcase " + BriefcasePreferences.VERSION);
+    System.out.println("Briefcase " + BuildConfig.VERSION);
   }
 
   @Override

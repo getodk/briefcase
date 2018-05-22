@@ -40,7 +40,6 @@ import org.opendatakit.briefcase.buildconfig.BuildConfig;
  */
 public class BriefcasePreferences {
 
-  public static final String VERSION = BuildConfig.VERSION;
   public static final String GOOGLE_TRACKING_ID = BuildConfig.GOOGLE_TRACKING_ID;
   public static final String USERNAME = "username";
   public static final String PASSWORD = "password";

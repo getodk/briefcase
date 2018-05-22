@@ -67,7 +67,7 @@ import org.slf4j.LoggerFactory;
 
 public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeListener {
   private static final String APP_NAME = "ODK Briefcase";
-  private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BriefcasePreferences.VERSION;
+  private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
   public static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
   private final ImageIcon imageIcon = new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png"));
 
@@ -339,7 +339,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   }
 
   static void showVersion() {
-    System.out.println("version: " + BriefcasePreferences.VERSION);
+    System.out.println("version: " + BuildConfig.VERSION);
   }
 
   /**

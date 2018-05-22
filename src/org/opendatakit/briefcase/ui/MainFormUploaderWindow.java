@@ -33,8 +33,8 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.UIManager;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
 public class MainFormUploaderWindow {
 
   private static final Logger log = LoggerFactory.getLogger(MainFormUploaderWindow.class);
-  private static final String FORM_UPLOADER_VERSION = "ODK FormUploader - " + BriefcasePreferences.VERSION;
+  private static final String FORM_UPLOADER_VERSION = "ODK FormUploader - " + BuildConfig.VERSION;
   private static final String UPLOADING_DOT_ETC = "Uploading..........";
 
   private ServerConnectionInfo destinationServerInfo = null;
