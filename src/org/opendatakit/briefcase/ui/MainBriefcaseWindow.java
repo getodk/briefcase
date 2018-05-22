@@ -62,6 +62,7 @@ import org.opendatakit.briefcase.ui.pull.PullPanel;
 import org.opendatakit.briefcase.ui.push.PushPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -298,7 +299,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
   private void createFormCache(String briefcaseDir) {
     if (briefcaseDir != null) {
-      FileSystemUtils.createFormCacheInBriefcaseFolder(Paths.get(briefcaseDir));
+      FileSystemUtils.setFormCache(FormCache.from(Paths.get(briefcaseDir)));
     }
   }
 

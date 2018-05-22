@@ -55,7 +55,7 @@ public class SwingTestRig {
   }
 
   public static void createInMemoryCache() {
-    FileSystemUtils.formCache = new InMemoryFormCache();
+    FileSystemUtils.setFormCache(new InMemoryFormCache());
   }
 
   public static void uncheckedSleep(int millis) {

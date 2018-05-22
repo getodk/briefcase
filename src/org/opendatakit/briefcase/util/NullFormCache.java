@@ -11,22 +11,20 @@ import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 public class NullFormCache implements FormCacheable {
   @Override
   public String getFormFileMd5Hash(String filePath) {
-    throw new UnsupportedOperationException("getFormFileMd5Hash");
+    return null;
   }
 
   @Override
   public void putFormFileMd5Hash(String filePath, String md5Hash) {
-    throw new UnsupportedOperationException("putFormFileMd5Hash");
   }
 
   @Override
   public BriefcaseFormDefinition getFormFileFormDefinition(String filePath) {
-    throw new UnsupportedOperationException("getFormFileFormDefinition");
+    return null;
   }
 
   @Override
   public void putFormFileFormDefinition(String filePath, BriefcaseFormDefinition definition) {
-    throw new UnsupportedOperationException("putFormFileFormDefinition");
   }
 
   @Override
