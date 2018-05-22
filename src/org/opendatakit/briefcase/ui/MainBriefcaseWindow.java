@@ -24,7 +24,6 @@ import static org.opendatakit.briefcase.ui.MessageStrings.BRIEFCASE_WELCOME;
 import static org.opendatakit.briefcase.ui.MessageStrings.TRACKING_WARNING;
 
 import java.awt.Component;
-import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -89,14 +88,14 @@ public class MainBriefcaseWindow extends WindowAdapter {
   }
 
   public static void launchGUI() {
-    EventQueue.invokeLater(() -> {
-      try {
-        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        MainBriefcaseWindow window = new MainBriefcaseWindow();
-      } catch (Exception e) {
-        log.error("failed to launch app", e);
-      }
-    });
+    try {
+      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+      new MainBriefcaseWindow();
+    } catch (Exception e) {
+      log.error("Failed to launch GUI", e);
+      System.err.println("Failed to launch Briefcase GUI");
+      System.exit(1);
+    }
   }
 
   private void lockUI() {
