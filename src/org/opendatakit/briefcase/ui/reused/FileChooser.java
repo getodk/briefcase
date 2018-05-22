@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.ui.reused;
 import static javax.swing.JFileChooser.DIRECTORIES_ONLY;
 import static javax.swing.JFileChooser.FILES_ONLY;
 import static javax.swing.JFileChooser.OPEN_DIALOG;
+import static org.opendatakit.briefcase.util.FileSystemUtils.FORMS_DIR;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.isUnix;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
 
@@ -32,8 +33,39 @@ import java.util.function.Predicate;
 import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 
 public interface FileChooser {
+  /**
+   * Returns whether pathname is a folder under the Briefcase storage folder
+   *
+   * @param pathname the File to check
+   */
+  static boolean isUnderBriefcaseFolder(File pathname) {
+    File current = pathname;
+    File parent = pathname == null ? null : pathname.getParentFile();
+    while (parent != null) {
+      if (isStorageLocationParent(parent) && current.getName().equals(BriefcasePreferences.BRIEFCASE_DIR)) {
+        return true;
+      }
+      current = parent;
+      parent = parent.getParentFile();
+    }
+    return false;
+  }
+
+  static boolean isStorageLocationParent(File pathname) {
+    if (!pathname.exists()) {
+      return false;
+    }
+    File folder = new File(pathname, BriefcasePreferences.BRIEFCASE_DIR);
+    if (!folder.exists() || !folder.isDirectory()) {
+      return false;
+    }
+    File forms = new File(folder, FORMS_DIR);
+    return forms.exists() && forms.isDirectory();
+  }
+
   Optional<File> choose();
 
   static FileChooser directory(Container parent, Optional<File> initialLocation) {

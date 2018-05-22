@@ -53,7 +53,7 @@ public class BriefcasePreferences {
   public static final String BRIEFCASE_TRACKING_CONSENT_PROPERTY = "briefcaseTrackingConsent";
   private static final String BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY = "briefcaseStorePasswordsConsent";
   private static final String BRIEFCASE_UNIQUE_USER_ID_PROPERTY = "uniqueUserID";
-  private static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
+  public static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
   private static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
 
   static {

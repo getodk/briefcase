@@ -17,7 +17,7 @@
 package org.opendatakit.briefcase.ui.reused.source;
 
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.GATHER;
-import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
+import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 
 import java.awt.Container;
 import java.io.File;
