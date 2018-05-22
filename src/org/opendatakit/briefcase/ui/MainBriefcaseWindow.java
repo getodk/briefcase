@@ -61,10 +61,10 @@ import org.slf4j.LoggerFactory;
 public class MainBriefcaseWindow extends WindowAdapter {
   private static final String APP_NAME = "ODK Briefcase";
   private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
-  public static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
+  private static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
   private final ImageIcon imageIcon = new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png"));
 
-  JFrame frame;
+  private JFrame frame;
   private PushPanel pushPanel;
   private ExportPanel exportPanel;
   private Component settingsPanel;
