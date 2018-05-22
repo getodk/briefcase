@@ -29,6 +29,7 @@ import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -257,7 +258,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     storageLocation = new StorageLocation();
-    createFormCache();
+    createFormCache(BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull());
 
     tabbedPane = new JTabbedPane(JTabbedPane.TOP);
     frame.setContentPane(tabbedPane);
@@ -295,9 +296,9 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     }
   }
 
-  private void createFormCache() {
-    if (BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull() != null) {
-      FileSystemUtils.createFormCacheInBriefcaseFolder();
+  private void createFormCache(String briefcaseDir) {
+    if (briefcaseDir != null) {
+      FileSystemUtils.createFormCacheInBriefcaseFolder(Paths.get(briefcaseDir));
     }
   }
 

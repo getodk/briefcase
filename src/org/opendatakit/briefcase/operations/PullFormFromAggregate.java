@@ -24,9 +24,11 @@ import static org.opendatakit.briefcase.operations.Common.bootCache;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
 import org.bushe.swing.event.EventBus;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -82,7 +84,7 @@ public class PullFormFromAggregate {
 
     FormStatus form = maybeForm.get();
     EventBus.publish(new StartPullEvent(form));
-    TransferFromServer.pull(transferSettings, form);
+    TransferFromServer.pull(transferSettings, BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir)), form);
   }
 
 }

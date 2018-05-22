@@ -53,7 +53,6 @@ import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
-import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,8 +118,8 @@ public class FileSystemUtils {
    * Creates a new FormCache in the briefcase folder. Called, at program startup if the briefcase
    * folder has been established, and whenever it changes
    */
-  public static void createFormCacheInBriefcaseFolder() {
-    FileSystemUtils.formCache = new FormCache(new StorageLocation().getBriefcaseFolder());
+  public static void createFormCacheInBriefcaseFolder(Path briefcaseDir) {
+    FileSystemUtils.formCache = new FormCache(briefcaseDir.toFile());
   }
 
   public static void updateCache(Path briefcaseDir) {
@@ -154,8 +153,8 @@ public class FileSystemUtils {
     EventBus.publish(new CacheUpdateEvent());
   }
 
-  public static final List<BriefcaseFormDefinition> getBriefcaseFormList() {
-    updateCache(new StorageLocation().getBriefcaseFolder().toPath());
+  public static final List<BriefcaseFormDefinition> getBriefcaseFormList(Path briefcaseDir) {
+    updateCache(briefcaseDir);
     return formCache.getForms();
   }
 
@@ -177,19 +176,19 @@ public class FileSystemUtils {
     return formsList;
   }
 
-  public static File getFormsFolder() {
-    return new File(new StorageLocation().getBriefcaseFolder(), FORMS_DIR);
+  public static File getFormsFolder(File briefcaseFolder) {
+    return new File(briefcaseFolder, FORMS_DIR);
   }
 
   public static String asFilesystemSafeName(String formName) {
     return formName.replaceAll("[/\\\\:]", "").trim();
   }
 
-  public static File getFormDirectory(String formName)
+  public static File getFormDirectory(String formName, File briefcaseFolder)
       throws FileSystemException {
     // clean up friendly form name...
     String rootName = asFilesystemSafeName(formName);
-    File formPath = new File(getFormsFolder(), rootName);
+    File formPath = new File(getFormsFolder(briefcaseFolder), rootName);
     if (!formPath.exists() && !formPath.mkdirs()) {
       throw new FileSystemException("unable to create directory: " + formPath.getAbsolutePath());
     }
@@ -260,12 +259,11 @@ public class FileSystemUtils {
     return formDefnFile;
   }
 
-  public static File getTempFormDefinitionFile()
+  public static File getTempFormDefinitionFile(Path briefcaseDir)
       throws FileSystemException {
-    File briefcase = new StorageLocation().getBriefcaseFolder();
     File tempDefnFile;
     try {
-      tempDefnFile = File.createTempFile("tempDefn", ".xml", briefcase);
+      tempDefnFile = File.createTempFile("tempDefn", ".xml", briefcaseDir.toFile());
     } catch (IOException e) {
       log.error("failed to create temp file for form def", e);
       return null;

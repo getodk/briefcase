@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,7 +55,6 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 import org.opendatakit.briefcase.pull.PullEvent;
-import org.opendatakit.briefcase.ui.StorageLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +72,7 @@ public class ServerFetcher {
 
   public static String SUCCESS_STATUS = "Success.";
   public static String FAILED_STATUS = "Failed.";
+  private final Path briefcaseDir;
 
   public static class FormListException extends Exception {
 
@@ -122,7 +123,8 @@ public class ServerFetcher {
     }
   }
 
-  ServerFetcher(ServerConnectionInfo serverInfo, TerminationFuture future) {
+  ServerFetcher(ServerConnectionInfo serverInfo, TerminationFuture future, Path briefcaseDir) {
+    this.briefcaseDir = briefcaseDir;
     AnnotationProcessor.process(this);// if not using AOP
     this.serverInfo = serverInfo;
     this.terminationFuture = future;
@@ -152,7 +154,7 @@ public class ServerFetcher {
       EventBus.publish(new FormStatusEvent(fs));
       try {
 
-        File tmpdl = FileSystemUtils.getTempFormDefinitionFile();
+        File tmpdl = FileSystemUtils.getTempFormDefinitionFile(briefcaseDir);
         AggregateUtils.commonDownloadFile(serverInfo, tmpdl, fd.getDownloadUrl());
 
         fs.setStatusString("resolving against briefcase form definitions", true);
@@ -163,7 +165,7 @@ public class ServerFetcher {
         DatabaseUtils formDatabase = null;
         try {
           try {
-            briefcaseLfd = BriefcaseFormDefinition.resolveAgainstBriefcaseDefn(tmpdl);
+            briefcaseLfd = BriefcaseFormDefinition.resolveAgainstBriefcaseDefn(tmpdl, briefcaseDir.toFile());
             if (briefcaseLfd.needsMediaUpdate()) {
 
               if (fd.getManifestUrl() != null) {
@@ -252,7 +254,7 @@ public class ServerFetcher {
         EventBus.publish(new FormStatusEvent(fs));
       }
     }
-    FileSystemUtils.updateCache(new StorageLocation().getBriefcaseFolder().toPath());
+    FileSystemUtils.updateCache(briefcaseDir);
     return allSuccessful;
   }
 

@@ -53,6 +53,7 @@ public class ExportPanelUnitTest {
         new TerminationFuture(),
         forms,
         ExportPanelForm.from(forms, confPanel),
+        appPreferences,
         exportPreferences,
         Runnable::run,
         new NoOpAnalytics()
@@ -77,6 +78,7 @@ public class ExportPanelUnitTest {
         new TerminationFuture(),
         forms,
         exportPanelForm,
+        appPreferences,
         exportPreferences,
         Runnable::run,
         new NoOpAnalytics()
@@ -108,6 +110,7 @@ public class ExportPanelUnitTest {
         new TerminationFuture(),
         forms,
         ExportPanelForm.from(forms, confPanel),
+        appPreferences,
         exportPreferences,
         Runnable::run,
         new NoOpAnalytics()

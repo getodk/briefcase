@@ -67,7 +67,7 @@ public interface Source<T> {
 
   void storePreferences(BriefcasePreferences prefs, boolean storePasswords);
 
-  void pull(List<FormStatus> forms, TerminationFuture terminationFuture);
+  void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir);
 
   void push(List<FormStatus> forms, TerminationFuture terminationFuture);
 
@@ -118,9 +118,9 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture) {
+    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir) {
       try {
-        TransferAction.transferServerToBriefcase(server.asServerConnectionInfo(), terminationFuture, forms);
+        TransferAction.transferServerToBriefcase(server.asServerConnectionInfo(), terminationFuture, forms, briefcaseDir);
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
@@ -191,9 +191,9 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture) {
+    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir) {
       try {
-        TransferAction.transferODKToBriefcase(path.toFile(), terminationFuture, forms);
+        TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), terminationFuture, forms);
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
@@ -217,13 +217,11 @@ public interface Source<T> {
 
   class FormInComputer implements Source<FormStatus> {
     private final Consumer<Source> consumer;
-    private Path briefcaseDir;
     private Path path;
     private FormStatus form;
 
-    FormInComputer(Consumer<Source> consumer, Path briefcaseDir) {
+    FormInComputer(Consumer<Source> consumer) {
       this.consumer = consumer;
-      this.briefcaseDir = briefcaseDir;
     }
 
     @Override
@@ -273,7 +271,7 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture) {
+    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir) {
       SwingUtilities.invokeLater(() -> FormInstaller.install(briefcaseDir, form));
     }
 

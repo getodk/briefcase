@@ -19,6 +19,7 @@ package org.opendatakit.briefcase.util;
 import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -153,10 +154,10 @@ public class TransferAction {
   }
 
   public static void transferServerToBriefcase(ServerConnectionInfo originServerInfo,
-                                               TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) throws IOException {
+                                               TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Path briefcaseDir) throws IOException {
 
     TransferFromServer source = new TransferFromServer(originServerInfo, terminationFuture,
-        formsToTransfer);
+        formsToTransfer, briefcaseDir);
     backgroundRun(source, formsToTransfer);
   }
 
@@ -166,10 +167,10 @@ public class TransferAction {
    * @param formsToTransfer
    * @throws IOException
    */
-  public static void transferODKToBriefcase(File odkSrcDir, TerminationFuture terminationFuture,
+  public static void transferODKToBriefcase(Path briefcaseDir, File odkSrcDir, TerminationFuture terminationFuture,
                                             List<FormStatus> formsToTransfer) throws IOException {
 
-    TransferFromODK source = new TransferFromODK(odkSrcDir, terminationFuture, formsToTransfer);
+    TransferFromODK source = new TransferFromODK(briefcaseDir, odkSrcDir, terminationFuture, formsToTransfer);
     backgroundRun(source, formsToTransfer);
   }
 

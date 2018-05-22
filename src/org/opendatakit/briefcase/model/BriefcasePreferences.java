@@ -207,10 +207,13 @@ public class BriefcasePreferences {
     );
   }
 
-  public Path getBriefcaseDir() {
-    return Paths.get(getBriefcaseDirectoryOrUserHome()).resolve(BRIEFCASE_DIR);
+  public Optional<Path> getBriefcaseDir() {
+    return nullSafeGet(BRIEFCASE_DIR_PROPERTY).map(Paths::get).map(BriefcasePreferences::buildBriefcaseDir);
   }
 
+  public static Path buildBriefcaseDir(Path storageDir) {
+    return storageDir.resolve(BRIEFCASE_DIR);
+  }
   /**
    * Enum that implements the strategies, to create differently scoped preferences.
    */

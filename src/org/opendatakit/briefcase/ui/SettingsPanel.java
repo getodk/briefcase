@@ -66,8 +66,9 @@ public class SettingsPanel extends JPanel {
           String briefcasePath = parentFolder.getAbsolutePath();
           txtBriefcaseDir.setText(briefcasePath);
           BriefcasePreferences.setBriefcaseDirectoryProperty(briefcasePath);
-          FileSystemUtils.createFormCacheInBriefcaseFolder();
-          parentWindow.storageLocation.establishBriefcaseStorageLocation(parentWindow.frame, parentWindow);
+          // Comment these lines to simplify working with this file, which is going to be deleted
+          // FileSystemUtils.createFormCacheInBriefcaseFolder();
+          // parentWindow.storageLocation.establishBriefcaseStorageLocation(parentWindow.frame, parentWindow);
         }
       }
     });

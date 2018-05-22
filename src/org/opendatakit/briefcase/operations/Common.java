@@ -16,6 +16,7 @@
 package org.opendatakit.briefcase.operations;
 
 import java.io.File;
+import java.nio.file.Paths;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.briefcase.util.FileSystemUtils;
@@ -48,7 +49,7 @@ class Common {
     }
 
     if (BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull() != null) {
-      FileSystemUtils.createFormCacheInBriefcaseFolder();
+      FileSystemUtils.createFormCacheInBriefcaseFolder(BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir)));
     }
   }
 }

@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferFromODK;
@@ -54,6 +55,6 @@ public class ImportFromODK {
         .map(form -> new FormStatus(FormStatus.TransferType.GATHER, form))
         .collect(toList());
 
-    TransferFromODK.pull(odkDir, forms);
+    TransferFromODK.pull(BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir)), odkDir, forms);
   }
 }

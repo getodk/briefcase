@@ -33,6 +33,7 @@ import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.PullForms;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
@@ -82,7 +83,7 @@ public class PullPanel {
     view.onPull(() -> {
       view.setPulling();
       forms.forEach(FormStatus::clearStatusHistory);
-      source.ifPresent(s -> s.pull(forms.getSelectedForms(), terminationFuture));
+      source.ifPresent(s -> s.pull(forms.getSelectedForms(), terminationFuture, appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new)));
     });
 
     view.onCancel(() -> terminationFuture.markAsCancelled(new PullEvent.Abort("Cancelled by the user")));
@@ -96,7 +97,7 @@ public class PullPanel {
     PullFormsTableViewModel pullFormsTableViewModel = new PullFormsTableViewModel(pullForms);
     PullFormsTableView pullFormsTableView = new PullFormsTableView(pullFormsTableViewModel);
     PullFormsTable pullFormsTable = new PullFormsTable(pullForms, pullFormsTableView, pullFormsTableViewModel);
-    SourcePanel sourcePanel = SourcePanel.pull(http, appPreferences.getBriefcaseDir());
+    SourcePanel sourcePanel = SourcePanel.pull(http);
     return new PullPanel(
         new PullPanelForm(sourcePanel, pullFormsTable),
         pullForms,

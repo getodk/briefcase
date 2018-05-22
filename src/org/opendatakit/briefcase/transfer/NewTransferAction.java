@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.transfer;
 
+import java.nio.file.Path;
 import java.util.List;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -29,11 +30,12 @@ import org.slf4j.LoggerFactory;
 public class NewTransferAction {
   private static final Logger log = LoggerFactory.getLogger(NewTransferAction.class);
 
-  public static void transferServerToBriefcase(ServerConnectionInfo transferSettings, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) {
+  public static void transferServerToBriefcase(ServerConnectionInfo transferSettings, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Path briefcaseDir) {
     TransferFromServer action = new TransferFromServer(
         transferSettings,
         terminationFuture,
-        formsToTransfer
+        formsToTransfer,
+        briefcaseDir
     );
     try {
       boolean allSuccessful = action.doAction();

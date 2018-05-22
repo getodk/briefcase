@@ -24,9 +24,11 @@ import static org.opendatakit.briefcase.operations.Common.bootCache;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -63,7 +65,7 @@ public class PushFormToAggregate {
   private static void pushFormToAggregate(String storageDir, String formid, String username, String password, String server, boolean forceSendBlank) {
     CliEventsCompanion.attach(log);
     bootCache(storageDir);
-    Optional<FormStatus> maybeFormStatus = FileSystemUtils.getBriefcaseFormList().stream()
+    Optional<FormStatus> maybeFormStatus = FileSystemUtils.getBriefcaseFormList(BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir))).stream()
         .filter(form -> form.getFormId().equals(formid))
         .map(formDef -> new FormStatus(FormStatus.TransferType.UPLOAD, formDef))
         .findFirst();

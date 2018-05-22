@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.util;
 
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -30,18 +31,19 @@ public class TransferFromServer implements ITransferFromSourceAction {
   final ServerConnectionInfo originServerInfo;
   final TerminationFuture terminationFuture;
   final List<FormStatus> formsToTransfer;
+  private Path briefcaseDir;
 
-  public TransferFromServer(ServerConnectionInfo originServerInfo,
-                            TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) {
+  public TransferFromServer(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Path briefcaseDir) {
     this.originServerInfo = originServerInfo;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
+    this.briefcaseDir = briefcaseDir;
   }
 
   @Override
   public boolean doAction() {
 
-    ServerFetcher fetcher = new ServerFetcher(originServerInfo, terminationFuture);
+    ServerFetcher fetcher = new ServerFetcher(originServerInfo, terminationFuture, briefcaseDir);
 
     return fetcher.downloadFormAndSubmissionFiles(formsToTransfer);
   }
@@ -51,9 +53,9 @@ public class TransferFromServer implements ITransferFromSourceAction {
     return false;
   }
 
-  public static void pull(ServerConnectionInfo transferSettings, FormStatus... forms) {
+  public static void pull(ServerConnectionInfo transferSettings, Path briefcaseDir, FormStatus... forms) {
     List<FormStatus> formList = Arrays.asList(forms);
-    TransferFromServer action = new TransferFromServer(transferSettings, new TerminationFuture(), formList);
+    TransferFromServer action = new TransferFromServer(transferSettings, new TerminationFuture(), formList, briefcaseDir);
 
     try {
       boolean allSuccessful = action.doAction();

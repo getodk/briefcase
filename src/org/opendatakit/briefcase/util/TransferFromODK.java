@@ -44,11 +44,13 @@ public class TransferFromODK implements ITransferFromSourceAction {
   @SuppressWarnings("checkstyle:ParameterName")
   private FilenameFilter fileEndsWithXml = (__, name) -> name.endsWith(".xml");
 
+  private Path briefcaseDir;
   final File odkOriginDir;
   final TerminationFuture terminationFuture;
   final List<FormStatus> formsToTransfer;
 
-  public TransferFromODK(File odkOriginDir, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) {
+  public TransferFromODK(Path briefcaseDir, File odkOriginDir, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) {
+    this.briefcaseDir = briefcaseDir;
     this.odkOriginDir = odkOriginDir;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
@@ -73,7 +75,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
 
     // copy form definition files from ODK to briefcase (scratch area)
     try {
-      briefcaseLfd = BriefcaseFormDefinition.resolveAgainstBriefcaseDefn(odkFormDefFile, true);
+      briefcaseLfd = BriefcaseFormDefinition.resolveAgainstBriefcaseDefn(odkFormDefFile, true, briefcaseDir.toFile());
       if (briefcaseLfd.needsMediaUpdate()) {
         File destinationFormMediaDir;
         try {
@@ -350,8 +352,8 @@ public class TransferFromODK implements ITransferFromSourceAction {
     return Optional.empty();
   }
 
-  public static void pull(Path odk, List<FormStatus> forms) {
-    TransferFromODK action = new TransferFromODK(odk.toFile(), new TerminationFuture(), forms);
+  public static void pull(Path briefcaseDir, Path odk, List<FormStatus> forms) {
+    TransferFromODK action = new TransferFromODK(briefcaseDir, odk.toFile(), new TerminationFuture(), forms);
     if (!action.doAction()) {
       EventBus.publish(new PullEvent.Failure());
       throw new PullFromODKException(forms);
