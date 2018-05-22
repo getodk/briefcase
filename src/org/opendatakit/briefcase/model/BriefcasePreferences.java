@@ -16,8 +16,6 @@
 
 package org.opendatakit.briefcase.model;
 
-import static org.opendatakit.briefcase.ui.StorageLocation.BRIEFCASE_DIR;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,7 +30,10 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import org.apache.http.HttpHost;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
+import org.opendatakit.briefcase.reused.OptionalProduct;
+import org.opendatakit.briefcase.reused.StorageLocationEvent;
 
 /**
  * This class is used to manage the applications preferences. It achieves this task, by using the standard
@@ -52,6 +53,8 @@ public class BriefcasePreferences {
   public static final String BRIEFCASE_TRACKING_CONSENT_PROPERTY = "briefcaseTrackingConsent";
   private static final String BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY = "briefcaseStorePasswordsConsent";
   private static final String BRIEFCASE_UNIQUE_USER_ID_PROPERTY = "uniqueUserID";
+  private static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
+  private static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
 
   static {
     // load the security provider
@@ -88,7 +91,7 @@ public class BriefcasePreferences {
    * @param defaultValue the value to be returned in the event that this preference node
    *                     has no value associated with key.
    * @return the value associated with key, or defaultValue if no value is associated
-   *         with key, or the backing store is inaccessible.
+   *     with key, or the backing store is inaccessible.
    */
   public String get(String key, String defaultValue) {
     return preferences.get(key, defaultValue);
@@ -101,7 +104,7 @@ public class BriefcasePreferences {
    *
    * @param key key whose associated value is to be returned.
    * @return an Optional instance with the value associated with key, or Optional.empty()
-   *         if no value is associated with key, or the backing store is inaccessible.
+   *     if no value is associated with key, or the backing store is inaccessible.
    */
   public Optional<String> nullSafeGet(String key) {
     return Optional.ofNullable(get(key, null));
@@ -213,6 +216,66 @@ public class BriefcasePreferences {
   public static Path buildBriefcaseDir(Path storageDir) {
     return storageDir.resolve(BRIEFCASE_DIR);
   }
+
+  public void setStorageDir(Path storageDir) {
+    put(BRIEFCASE_DIR_PROPERTY, storageDir.toString());
+    EventBus.publish(new StorageLocationEvent.LocationDefined());
+  }
+
+  public void unsetStorageDir() {
+    remove(BRIEFCASE_DIR_PROPERTY);
+    EventBus.publish(new StorageLocationEvent.LocationCleared());
+  }
+
+  public Optional<HttpHost> getHttpProxy() {
+    return OptionalProduct.all(
+        nullSafeGet(BRIEFCASE_PROXY_HOST_PROPERTY),
+        nullSafeGet(BRIEFCASE_PROXY_PORT_PROPERTY).map(Integer::parseInt)
+    ).map(HttpHost::new);
+  }
+
+  public void setHttpProxy(HttpHost proxy) {
+    put(BRIEFCASE_PROXY_HOST_PROPERTY, proxy.getHostName());
+    put(BRIEFCASE_PROXY_PORT_PROPERTY, Integer.valueOf(proxy.getPort()).toString());
+  }
+
+  public void unsetHttpProxy() {
+    removeAll(BRIEFCASE_PROXY_HOST_PROPERTY, BRIEFCASE_PROXY_PORT_PROPERTY);
+  }
+
+  public void setPullInParallel(Boolean enabled) {
+    put(BRIEFCASE_PARALLEL_PULLS_PROPERTY, enabled.toString());
+  }
+
+  public Optional<Boolean> getPullInParallel() {
+    return nullSafeGet(BRIEFCASE_PARALLEL_PULLS_PROPERTY).map(Boolean::parseBoolean);
+  }
+
+  public void setRememberPasswords(Boolean enabled) {
+    put(BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY, enabled.toString());
+    EventBus.publish(enabled ? new SavePasswordsConsentGiven() : new SavePasswordsConsentRevoked());
+  }
+
+  public Optional<Boolean> getRememberPasswords() {
+    return nullSafeGet(BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY).map(Boolean::parseBoolean);
+  }
+
+  public void setSendUsage(Boolean enabled) {
+    put(BRIEFCASE_TRACKING_CONSENT_PROPERTY, enabled.toString());
+  }
+
+  public Optional<Boolean> getSendUsageData() {
+    return nullSafeGet(BRIEFCASE_TRACKING_CONSENT_PROPERTY).map(Boolean::parseBoolean);
+  }
+
+  public void setTrackingWarningShowed() {
+    put(TRACKING_WARNING_SHOWED_PREF_KEY, Boolean.TRUE.toString());
+  }
+
+  public boolean hasTrackingWarningBeenShowed() {
+    return hasKey(TRACKING_WARNING_SHOWED_PREF_KEY);
+  }
+
   /**
    * Enum that implements the strategies, to create differently scoped preferences.
    */
