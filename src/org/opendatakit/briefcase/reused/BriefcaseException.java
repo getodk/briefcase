@@ -2,11 +2,6 @@ package org.opendatakit.briefcase.reused;
 
 public class BriefcaseException extends RuntimeException {
   public BriefcaseException() {
-    super();
-  }
-
-  public BriefcaseException(Throwable cause) {
-    super(cause);
   }
 
   public BriefcaseException(String message) {
@@ -15,5 +10,13 @@ public class BriefcaseException extends RuntimeException {
 
   public BriefcaseException(String message, Throwable cause) {
     super(message, cause);
+  }
+
+  public BriefcaseException(Throwable cause) {
+    super(cause);
+  }
+
+  public BriefcaseException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    super(message, cause, enableSuppression, writableStackTrace);
   }
 }
