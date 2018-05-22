@@ -63,7 +63,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
   private static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
 
-  private JFrame frame;
+  private final JFrame frame;
   private final TerminationFuture exportTerminationFuture = new TerminationFuture();
   private final TerminationFuture transferTerminationFuture = new TerminationFuture();
 
