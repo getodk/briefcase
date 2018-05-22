@@ -62,12 +62,8 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private static final String APP_NAME = "ODK Briefcase";
   private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
   private static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
-  private final ImageIcon imageIcon = new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png"));
 
   private JFrame frame;
-  private PushPanel pushPanel;
-  private ExportPanel exportPanel;
-  private Component settingsPanel;
   private final TerminationFuture exportTerminationFuture = new TerminationFuture();
   private final TerminationFuture transferTerminationFuture = new TerminationFuture();
 
@@ -143,17 +139,18 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
     addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, transferTerminationFuture).getContainer());
 
-    pushPanel = PushPanel.from(http, appPreferences, transferTerminationFuture);
+    PushPanel pushPanel = PushPanel.from(http, appPreferences, transferTerminationFuture);
     addPane(PushPanel.TAB_NAME, pushPanel.getContainer());
 
-    exportPanel = ExportPanel.from(exportTerminationFuture, BriefcasePreferences.forClass(ExportPanel.class), appPreferences, BACKGROUND_EXECUTOR, analytics);
+    ExportPanel exportPanel = ExportPanel.from(exportTerminationFuture, BriefcasePreferences.forClass(ExportPanel.class), appPreferences, BACKGROUND_EXECUTOR, analytics);
     addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
 
-    settingsPanel = SettingsPanel.from(appPreferences, analytics).getContainer();
+    Component settingsPanel = SettingsPanel.from(appPreferences, analytics).getContainer();
     addPane(SettingsPanel.TAB_NAME, settingsPanel);
 
     frame.addWindowListener(this);
     frame.setTitle(BRIEFCASE_VERSION);
+    ImageIcon imageIcon = new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png"));
     frame.setIconImage(imageIcon.getImage());
     frame.pack();
     frame.setLocationRelativeTo(null);
