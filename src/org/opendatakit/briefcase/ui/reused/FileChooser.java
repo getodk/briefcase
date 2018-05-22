@@ -36,6 +36,10 @@ import javax.swing.filechooser.FileFilter;
 public interface FileChooser {
   Optional<File> choose();
 
+  static FileChooser directory(Container parent, Optional<File> initialLocation) {
+    return directory(parent, initialLocation, __ -> true, "");
+  }
+
   static FileChooser directory(Container parent, Optional<File> initialLocation, Predicate<File> filter, String filterDescription) {
     Optional<FileFilter> fileFilter = Optional.ofNullable(filter).map(f -> createFileFilter(f, filterDescription));
 
