@@ -20,6 +20,7 @@ import static java.lang.Boolean.TRUE;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.BRIEFCASE_DIR_PROPERTY;
+import static org.opendatakit.briefcase.ui.BriefcaseCLI.launchLegacyCLI;
 import static org.opendatakit.briefcase.ui.MessageStrings.BRIEFCASE_WELCOME;
 import static org.opendatakit.briefcase.ui.MessageStrings.TRACKING_WARNING;
 
@@ -30,8 +31,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -41,13 +40,6 @@ import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -80,24 +72,6 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   private final TerminationFuture transferTerminationFuture = new TerminationFuture();
   final StorageLocation storageLocation;
 
-  public static final String AGGREGATE_URL = "aggregate_url";
-  public static final String DATE_FORMAT1 = "yyyy-MM-dd";
-  public static final String DATE_FORMAT2 = "yyyy/MM/dd";
-  public static final String EXCLUDE_MEDIA_EXPORT = "exclude_media_export";
-  public static final String EXPORT_DIRECTORY = "export_directory";
-  public static final String EXPORT_END_DATE = "export_end_date";
-  public static final String EXPORT_FILENAME = "export_filename";
-  public static final String EXPORT_START_DATE = "export_start_date";
-  public static final String FORM_ID = "form_id";
-  public static final String ODK_PASSWORD = "odk_password";
-  public static final String ODK_USERNAME = "odk_username";
-  public static final String OVERWRITE_CSV_EXPORT = "overwrite_csv_export";
-  public static final String STORAGE_DIRECTORY = "storage_directory";
-  public static final String ODK_DIR = "odk_directory";
-  public static final String HELP = "help";
-  public static final String VERSION = "version";
-  public static final String PEM_FILE = "pem_file";
-
   private static final Logger log = LoggerFactory.getLogger(BaseFormParserForJavaRosa.class.getName());
 
   private final JTabbedPane tabbedPane;
@@ -111,92 +85,10 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
    * Launch the application.
    */
   public static void main(String[] args) {
-    if (false) { // Set to true during testing to clear the storage location
-      BriefcasePreferences.setBriefcaseDirectoryProperty(null);
-    }
-
-    if (args.length == 0) {
-
+    if (args.length == 0)
       launchGUI();
-    } else {
-      Options options = addOptions();
-      CommandLineParser parser = new DefaultParser();
-      CommandLine cmd = null;
-
-      try {
-        cmd = parser.parse(options, args);
-      } catch (ParseException e1) {
-        log.error("Launch Failed: " + e1.getMessage());
-        showHelp(options);
-        System.exit(1);
-      }
-
-      runLegacyCli(cmd, () -> MainBriefcaseWindow.showHelp(options));
-    }
-  }
-
-  public static void runLegacyCli(CommandLine cmd, Runnable helpShower) {
-    System.err.println("" +
-        "** WARNING ************************************************************\n" +
-        "* You are using old commands which will soon be removed from the CLI. *\n" +
-        "* Please run Briefcase with --help to learn about the new commands.   *\n" +
-        "***********************************************************************\n");
-    if (cmd.hasOption(HELP)) {
-      helpShower.run();
-      System.exit(1);
-    }
-
-    if (cmd.hasOption(VERSION)) {
-      helpShower.run();
-      System.exit(1);
-    }
-
-    // required for all operations
-    if (!cmd.hasOption(FORM_ID) || !cmd.hasOption(STORAGE_DIRECTORY)) {
-      System.err.println(FORM_ID + " and " + STORAGE_DIRECTORY + " are required");
-      helpShower.run();
-      System.exit(1);
-    }
-
-    // pull from collect or aggregate, not both
-    if (cmd.hasOption(ODK_DIR) && cmd.hasOption(AGGREGATE_URL)) {
-      System.err.println("Can only have one of " + ODK_DIR + " or " + AGGREGATE_URL);
-      helpShower.run();
-      System.exit(1);
-    }
-
-    // pull from aggregate
-    if (cmd.hasOption(AGGREGATE_URL) && (!(cmd.hasOption(ODK_USERNAME) && cmd.hasOption(ODK_PASSWORD)))) {
-      System.err.println(ODK_USERNAME + " and " + ODK_PASSWORD + " required when " + AGGREGATE_URL + " is specified");
-      helpShower.run();
-      System.exit(1);
-    }
-
-    // export files
-    if (cmd.hasOption(EXPORT_DIRECTORY) && !cmd.hasOption(EXPORT_FILENAME) || !cmd.hasOption(EXPORT_DIRECTORY) && cmd.hasOption(EXPORT_FILENAME)) {
-      System.err.println(EXPORT_DIRECTORY + " and " + EXPORT_FILENAME + " are both required to export");
-      helpShower.run();
-      System.exit(1);
-    }
-
-    if (cmd.hasOption(EXPORT_END_DATE)) {
-      if (!testDateFormat(cmd.getOptionValue(EXPORT_END_DATE))) {
-        System.err.println("Invalid date format in " + EXPORT_END_DATE);
-        helpShower.run();
-        System.exit(1);
-      }
-    }
-    if (cmd.hasOption(EXPORT_START_DATE)) {
-      if (!testDateFormat(cmd.getOptionValue(EXPORT_START_DATE))) {
-        System.err.println("Invalid date format in " + EXPORT_START_DATE);
-        helpShower.run();
-        System.exit(1);
-      }
-    }
-
-
-    BriefcaseCLI bcli = new BriefcaseCLI(cmd);
-    bcli.run();
+    else
+      launchLegacyCLI(args);
   }
 
   public static void launchGUI() {
@@ -332,149 +224,5 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     exportTerminationFuture.markAsCancelled(new ExportAbortEvent("Main window closed"));
     transferTerminationFuture.markAsCancelled(new PullEvent.Abort("Main window closed"));
     transferTerminationFuture.markAsCancelled(new PushEvent.Abort("Main window closed"));
-  }
-
-  static void showHelp(Options options) {
-    HelpFormatter formatter = new HelpFormatter();
-    formatter.printHelp("java -jar briefcase.jar", options);
-  }
-
-  static void showVersion() {
-    System.out.println("version: " + BuildConfig.VERSION);
-  }
-
-  /**
-   * Setting up options for Command Line Interface
-   *
-   * @return
-   */
-  static Options addOptions() {
-    Options options = new Options();
-
-    Option server = Option.builder("url")
-        .argName("url")
-        .hasArg()
-        .longOpt(AGGREGATE_URL)
-        .desc("ODK Aggregate URL (must start with http:// or https://)")
-        .build();
-
-    Option username = Option.builder("u")
-        .argName("username")
-        .hasArg()
-        .longOpt(ODK_USERNAME)
-        .desc("ODK username")
-        .build();
-
-    Option password = Option.builder("p")
-        .argName("password")
-        .hasArg()
-        .longOpt(ODK_PASSWORD)
-        .desc("ODK password")
-        .build();
-
-    Option formid = Option.builder("id")
-        .argName("form_id")
-        .hasArg()
-        .longOpt(FORM_ID)
-        .desc("Form ID of form to download and export")
-        .build();
-
-    Option storageDir = Option.builder("sd")
-        .argName("/path/to/dir")
-        .hasArg()
-        .longOpt(STORAGE_DIRECTORY)
-        .desc("Directory to create or find ODK Briefcase Storage directory (relative path unless it begins with / or C:\\)")
-        .build();
-
-    Option exportDir = Option.builder("ed")
-        .argName("/path/to/dir")
-        .hasArg()
-        .longOpt(EXPORT_DIRECTORY)
-        .desc("Directory to export the CSV and media files into (relative path unless it begins with / or C:\\)")
-        .build();
-
-    Option exportMedia = Option.builder("em")
-        .longOpt(EXCLUDE_MEDIA_EXPORT)
-        .desc("Flag to exclude media on export")
-        .build();
-
-    Option startDate = Option.builder("start")
-        .argName(DATE_FORMAT1 + " or " + DATE_FORMAT2)
-        .hasArg()
-        .longOpt(EXPORT_START_DATE)
-        .desc("Include submission dates after (inclusive) this date in export to CSV")
-        .build();
-
-    Option endDate = Option.builder("end")
-        .argName(DATE_FORMAT1 + " or " + DATE_FORMAT2)
-        .hasArg()
-        .longOpt(EXPORT_END_DATE)
-        .desc("Include submission dates before (exclusive) this date in export to CSV")
-        .build();
-
-    Option exportFilename = Option.builder("f")
-        .argName("name.csv")
-        .hasArg()
-        .longOpt(EXPORT_FILENAME)
-        .desc("File name for exported CSV")
-        .build();
-
-    Option overwrite = Option.builder("oc")
-        .longOpt(OVERWRITE_CSV_EXPORT)
-        .desc("Flag to overwrite CSV on export")
-        .build();
-
-    Option help = Option.builder("h")
-        .longOpt(HELP)
-        .desc("Print help information (this screen)")
-        .build();
-
-    Option version = Option.builder("v")
-        .longOpt(VERSION)
-        .desc("Print version information")
-        .build();
-
-    Option odkDir = Option.builder("od")
-        .argName("/path/to/dir")
-        .hasArg()
-        .longOpt(ODK_DIR)
-        .desc("/odk directory from ODK Collect (relative path unless it begins with / or C:\\)")
-        .build();
-
-    Option keyFile = Option.builder("pf")
-        .argName("/path/to/file.pem")
-        .hasArg()
-        .longOpt(PEM_FILE)
-        .desc("PEM private key file (relative path unless it begins with / or C:\\)")
-        .build();
-
-    options.addOption(server);
-    options.addOption(username);
-    options.addOption(password);
-    options.addOption(formid);
-    options.addOption(storageDir);
-    options.addOption(exportDir);
-    options.addOption(exportMedia);
-    options.addOption(startDate);
-    options.addOption(endDate);
-    options.addOption(exportFilename);
-    options.addOption(overwrite);
-    options.addOption(help);
-    options.addOption(version);
-    options.addOption(odkDir);
-    options.addOption(keyFile);
-
-    return options;
-  }
-
-  private static boolean testDateFormat(String date) {
-    date = date.replaceAll("/", "-");
-    try {
-      DateFormat df = new SimpleDateFormat(DATE_FORMAT1);
-      df.parse(date);
-    } catch (java.text.ParseException e) {
-      return false;
-    }
-    return true;
   }
 }
