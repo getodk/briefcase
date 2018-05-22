@@ -82,6 +82,14 @@ public class UncheckedFiles {
     }
   }
 
+  public static void createFile(Path path, FileAttribute<?>... attrs) {
+    try {
+      Files.createFile(path, attrs);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
   public static boolean exists(Path path, LinkOption... options) {
     return Files.exists(path, options);
   }
