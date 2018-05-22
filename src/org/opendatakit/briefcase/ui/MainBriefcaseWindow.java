@@ -19,7 +19,6 @@ package org.opendatakit.briefcase.ui;
 import static java.lang.Boolean.TRUE;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
-import static org.opendatakit.briefcase.model.BriefcasePreferences.BRIEFCASE_DIR_PROPERTY;
 import static org.opendatakit.briefcase.ui.BriefcaseCLI.launchLegacyCLI;
 import static org.opendatakit.briefcase.ui.MessageStrings.BRIEFCASE_WELCOME;
 import static org.opendatakit.briefcase.ui.MessageStrings.TRACKING_WARNING;
@@ -29,7 +28,6 @@ import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +51,7 @@ import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.ui.pull.PullPanel;
 import org.opendatakit.briefcase.ui.push.PushPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
+import org.opendatakit.briefcase.ui.settings.SettingsPanel;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
@@ -67,7 +66,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   JFrame frame;
   private PushPanel pushPanel;
   private ExportPanel exportPanel;
-  private SettingsPanel settingsPanel;
+  private Component settingsPanel;
   private final TerminationFuture exportTerminationFuture = new TerminationFuture();
   private final TerminationFuture transferTerminationFuture = new TerminationFuture();
   final StorageLocation storageLocation;
@@ -104,9 +103,6 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
   @Override
   public void setFullUIEnabled(boolean enabled) {
-    final String briefcaseDirectory = BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull();
-    settingsPanel.getTxtBriefcaseDir().setText(briefcaseDirectory == null ?
-        "" : briefcaseDirectory + File.separator + StorageLocation.BRIEFCASE_DIR);
 
     if (enabled) {
       exportPanel.updateForms();
@@ -164,7 +160,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     exportPanel = ExportPanel.from(exportTerminationFuture, BriefcasePreferences.forClass(ExportPanel.class), appPreferences, BACKGROUND_EXECUTOR, analytics);
     addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
 
-    settingsPanel = new SettingsPanel(this, analytics);
+    settingsPanel = SettingsPanel.from(appPreferences, analytics).getContainer();
     addPane(SettingsPanel.TAB_NAME, settingsPanel);
 
     frame.addWindowListener(this);
@@ -204,11 +200,11 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   }
 
   private boolean isFirstLaunchAfterTrackingUpgrade(BriefcasePreferences appPreferences) {
-    return !appPreferences.hasKey(TRACKING_WARNING_SHOWED_PREF_KEY);
+    return !appPreferences.hasTrackingWarningBeenShowed();
   }
 
   private boolean isFirstLaunch(BriefcasePreferences appPreferences) {
-    return !appPreferences.hasKey(BRIEFCASE_DIR_PROPERTY);
+    return !appPreferences.getBriefcaseDir().isPresent();
   }
 
   /**
