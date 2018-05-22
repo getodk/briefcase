@@ -28,7 +28,6 @@ import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -69,7 +68,6 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   private Component settingsPanel;
   private final TerminationFuture exportTerminationFuture = new TerminationFuture();
   private final TerminationFuture transferTerminationFuture = new TerminationFuture();
-  final StorageLocation storageLocation;
 
   private static final Logger log = LoggerFactory.getLogger(BaseFormParserForJavaRosa.class.getName());
 
@@ -128,6 +126,9 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
    */
   private MainBriefcaseWindow() {
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
+    appPreferences.getBriefcaseDir()
+        .map(FormCache::from)
+        .ifPresent(FileSystemUtils::setFormCache);
 
     frame = new JFrame();
 
@@ -145,9 +146,6 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     Http http = new CommonsHttp();
 
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
-    storageLocation = new StorageLocation();
-    createFormCache(BriefcasePreferences.appScoped().getBriefcaseDirectoryOrNull());
 
     tabbedPane = new JTabbedPane(JTabbedPane.TOP);
     frame.setContentPane(tabbedPane);
@@ -170,8 +168,6 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     frame.setLocationRelativeTo(null);
     frame.setVisible(true);
 
-    storageLocation.establishBriefcaseStorageLocation(frame, this);
-
     if (isFirstLaunch(appPreferences)) {
       showWelcomeMessage();
       appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
@@ -182,12 +178,6 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     if (isFirstLaunchAfterTrackingUpgrade(appPreferences)) {
       showTrackingWarning();
       appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
-    }
-  }
-
-  private void createFormCache(String briefcaseDir) {
-    if (briefcaseDir != null) {
-      FileSystemUtils.setFormCache(FormCache.from(Paths.get(briefcaseDir)));
     }
   }
 
