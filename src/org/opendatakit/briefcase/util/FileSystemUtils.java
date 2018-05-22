@@ -115,12 +115,9 @@ public class FileSystemUtils {
     return foi.exists() && foi.isDirectory();
   }
 
-  /**
-   * Creates a new FormCache in the briefcase folder. Called, at program startup if the briefcase
-   * folder has been established, and whenever it changes
-   */
-  public static void createFormCacheInBriefcaseFolder(Path briefcaseDir) {
-    FileSystemUtils.formCache = new FormCache(briefcaseDir.toFile());
+  public static void setFormCache(FormCacheable formCache) {
+    FileSystemUtils.formCache = formCache;
+    EventBus.publish(new CacheUpdateEvent());
   }
 
   public static void updateCache(Path briefcaseDir) {
