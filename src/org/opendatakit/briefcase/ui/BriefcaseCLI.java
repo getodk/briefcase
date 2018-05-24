@@ -85,9 +85,7 @@ public class BriefcaseCLI {
       log.error("Error", e);
       System.exit(1);
     } catch (Throwable t) {
-      System.err.println("Unexpected error. Please review the logs and contact maintainers on the following URLs:");
-      System.err.println("\thttps://opendatakit.slack.com/messages/C374LNDK9/");
-      System.err.println("\thttps://forum.opendatakit.org/c/support");
+      System.err.println("Unexpected error in Briefcase. Please review briefcase.log for more information. For help, post to https://forum.opendatakit.org/c/support");
       log.error("Error", t);
       System.exit(1);
     }
