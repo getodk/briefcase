@@ -13,19 +13,16 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.ui.export.components;
+package org.opendatakit.briefcase.ui.pull.components;
 
 import static java.awt.Color.DARK_GRAY;
 import static java.awt.Color.LIGHT_GRAY;
-import static java.time.format.DateTimeFormatter.ofLocalizedDateTime;
-import static java.time.format.FormatStyle.SHORT;
 import static javax.swing.JOptionPane.getFrameForComponent;
 import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
-import static org.opendatakit.briefcase.ui.export.components.FormsTableView.EDITABLE_COLS;
-import static org.opendatakit.briefcase.ui.export.components.FormsTableView.HEADERS;
-import static org.opendatakit.briefcase.ui.export.components.FormsTableView.TYPES;
+import static org.opendatakit.briefcase.ui.pull.components.PullFormsTableView.EDITABLE_COLS;
+import static org.opendatakit.briefcase.ui.pull.components.PullFormsTableView.HEADERS;
+import static org.opendatakit.briefcase.ui.pull.components.PullFormsTableView.TYPES;
 
-import java.awt.Color;
 import java.awt.Font;
 import java.awt.Insets;
 import java.util.ArrayList;
@@ -34,23 +31,19 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
-import org.opendatakit.briefcase.export.ExportConfiguration;
-import org.opendatakit.briefcase.export.ExportForms;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.pull.PullForms;
+import org.opendatakit.briefcase.ui.export.components.ExportFormsTableView;
 import org.opendatakit.briefcase.ui.reused.FontUtils;
 
-public class FormsTableViewModel extends AbstractTableModel {
-  private static final Color NO_CONF_OVERRIDE_COLOR = new Color(0, 128, 0);
+public class PullFormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
   private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
-  private final Map<FormStatus, JButton> confButtons = new HashMap<>();
-  private final ExportForms forms;
+  private final PullForms forms;
 
-  private static final Font ic_settings = FontUtils.getCustomFont("ic_settings.ttf", 16f);
   private static final Font ic_receipt = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
 
-  FormsTableViewModel(ExportForms forms) {
+  public PullFormsTableViewModel(PullForms forms) {
     this.forms = forms;
   }
 
@@ -64,7 +57,7 @@ public class FormsTableViewModel extends AbstractTableModel {
     triggerChange();
   }
 
-  public void triggerChange() {
+  private void triggerChange() {
     onChangeCallbacks.forEach(Runnable::run);
   }
 
@@ -84,51 +77,8 @@ public class FormsTableViewModel extends AbstractTableModel {
     return button;
   }
 
-  @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
-  private JButton buildOverrideConfButton(FormStatus form) {
-    // Use custom fonts instead of png for easier scaling
-    JButton button = new JButton("\uE900");
-    button.setFont(ic_settings); // custom font that overrides  with a gear icon
-    button.setToolTipText("Override the export configuration for this form");
-    button.setMargin(new Insets(0, 0, 0, 0));
-
-    updateConfButton(form, button);
-    button.addActionListener(__ -> {
-      ConfigurationDialog dialog = ConfigurationDialog.from(
-          forms.getCustomConfiguration(form),
-          forms.hasTransferSettings(form),
-          BriefcasePreferences.getStorePasswordsConsentProperty()
-      );
-      dialog.onRemove(() -> removeConfiguration(form));
-      dialog.onOK(configuration -> {
-        if (configuration.isEmpty())
-          removeConfiguration(form);
-        else
-          putConfiguration(form, configuration);
-      });
-      dialog.open();
-    });
-    return button;
-  }
-
-  private void putConfiguration(FormStatus form, ExportConfiguration configuration) {
-    forms.putConfiguration(form, configuration);
-    updateConfButton(form, confButtons.get(form));
-    triggerChange();
-  }
-
-  private void removeConfiguration(FormStatus form) {
-    forms.removeConfiguration(form);
-    updateConfButton(form, confButtons.get(form));
-    triggerChange();
-  }
-
   private void updateDetailButton(FormStatus form, JButton button) {
     button.setForeground(form.getStatusHistory().isEmpty() ? LIGHT_GRAY : DARK_GRAY);
-  }
-
-  private void updateConfButton(FormStatus form, JButton button) {
-    button.setForeground(forms.hasConfiguration(form) ? NO_CONF_OVERRIDE_COLOR : DARK_GRAY);
   }
 
   @Override
@@ -145,19 +95,13 @@ public class FormsTableViewModel extends AbstractTableModel {
   public Object getValueAt(int rowIndex, int columnIndex) {
     FormStatus form = forms.get(rowIndex);
     switch (columnIndex) {
-      case FormsTableView.SELECTED_CHECKBOX_COL:
+      case PullFormsTableView.SELECTED_CHECKBOX_COL:
         return form.isSelected();
-      case FormsTableView.OVERRIDE_CONF_COL:
-        return confButtons.computeIfAbsent(form, this::buildOverrideConfButton);
-      case FormsTableView.FORM_NAME_COL:
+      case PullFormsTableView.FORM_NAME_COL:
         return form.getFormName();
-      case FormsTableView.EXPORT_STATUS_COL:
+      case PullFormsTableView.PULL_STATUS_COL:
         return form.getStatusString();
-      case FormsTableView.LAST_EXPORT_COL:
-        return forms.getLastExportDateTime(form)
-            .map(dateTime -> dateTime.format(ofLocalizedDateTime(SHORT, SHORT)))
-            .orElse("Not exported yet");
-      case FormsTableView.DETAIL_BUTTON_COL:
+      case PullFormsTableView.DETAIL_BUTTON_COL:
         return detailButtons.computeIfAbsent(form, this::buildDetailButton);
       default:
         throw new IllegalStateException("unexpected column choice");
@@ -170,12 +114,12 @@ public class FormsTableViewModel extends AbstractTableModel {
   public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
     FormStatus form = forms.get(rowIndex);
     switch (columnIndex) {
-      case FormsTableView.SELECTED_CHECKBOX_COL:
+      case ExportFormsTableView.SELECTED_CHECKBOX_COL:
         Boolean isSelected = (Boolean) aValue;
         form.setSelected(isSelected);
         triggerChange();
         break;
-      case FormsTableView.EXPORT_STATUS_COL:
+      case PullFormsTableView.PULL_STATUS_COL:
         form.setStatusString((String) aValue, true);
         break;
       default:

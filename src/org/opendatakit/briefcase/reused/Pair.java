@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2011 University of Washington.
- * 
+ * Copyright (C) 2018 Nafundi
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -14,16 +14,27 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.model;
+package org.opendatakit.briefcase.reused;
 
-public class TransferAbortEvent {
-  private final String reason;
+@SuppressWarnings("checkstyle:MethodTypeParameterName")
+public class Pair<T, U> {
+  private final T left;
+  private final U right;
 
-  public TransferAbortEvent(String reason) {
-    this.reason = reason;
+  public Pair(T left, U right) {
+    this.left = left;
+    this.right = right;
   }
 
-  public String getReason() {
-    return reason;
+  public static <TT, UU> Pair<TT, UU> of(TT left, UU right) {
+    return new Pair<>(left, right);
+  }
+
+  public T getLeft() {
+    return left;
+  }
+
+  public U getRight() {
+    return right;
   }
 }

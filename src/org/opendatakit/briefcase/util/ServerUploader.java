@@ -39,7 +39,7 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
-import org.opendatakit.briefcase.push.RemoteServer;
+import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.util.AggregateUtils.DocumentFetchResult;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionChunk;
@@ -286,7 +286,7 @@ public class ServerUploader {
   }
 
   private Boolean checkIfExistsAlready(FormStatus form) {
-    return http.execute(server.containsFormQuery(form.getFormDefinition().getFormId()));
+    return server.containsForm(http, form.getFormDefinition().getFormId());
   }
 
   public boolean uploadForm(FormStatus formToTransfer, File briefcaseFormDefFile, File briefcaseFormMediaDir) {

@@ -21,11 +21,11 @@ package org.opendatakit.briefcase.reused.http;
  */
 public interface Http {
   /**
-   * Runs a {@link Query} and returns some output value.
+   * Runs a {@link Request} and returns some output value.
    *
-   * @param query the {@link Query} to be executed
-   * @param <T>   type of the output value
+   * @param request the {@link Request} to be executed
+   * @param <T>   type of the output {@link Response}
    * @return an output value of type T
    */
-  <T> T execute(Query<T> query);
+  <T> Response<T> execute(Request<T> request);
 }

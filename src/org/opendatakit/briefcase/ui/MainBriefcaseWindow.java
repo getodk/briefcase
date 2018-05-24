@@ -52,10 +52,13 @@ import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.ExportAbortEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransferAbortEvent;
+import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
+import org.opendatakit.briefcase.ui.pull.PullPanel;
+import org.opendatakit.briefcase.ui.push.PushPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.slf4j.Logger;
@@ -68,7 +71,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   private final ImageIcon imageIcon = new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png"));
 
   JFrame frame;
-  private PushTransferPanel uploadPanel;
+  private PushPanel pushPanel;
   private ExportPanel exportPanel;
   private SettingsPanel settingsPanel;
   private final TerminationFuture exportTerminationFuture = new TerminationFuture();
@@ -213,7 +216,7 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
 
     if (enabled) {
       exportPanel.updateForms();
-      uploadPanel.updateFormStatuses();
+      pushPanel.updateForms();
     }
 
     for (Map.Entry<Component, Integer> entry : paneToIndexMap.entrySet()) {
@@ -259,11 +262,10 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
     tabbedPane = new JTabbedPane(JTabbedPane.TOP);
     frame.setContentPane(tabbedPane);
 
-    PullTransferPanel gatherPanel = new PullTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PullTransferPanel.class), appPreferences, analytics);
-    addPane(PullTransferPanel.TAB_NAME, gatherPanel);
+    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, transferTerminationFuture).getContainer());
 
-    uploadPanel = new PushTransferPanel(transferTerminationFuture, BriefcasePreferences.forClass(PushTransferPanel.class), analytics, http);
-    addPane(PushTransferPanel.TAB_NAME, uploadPanel);
+    pushPanel = PushPanel.from(http, appPreferences, transferTerminationFuture);
+    addPane(PushPanel.TAB_NAME, pushPanel.getContainer());
 
     exportPanel = ExportPanel.from(exportTerminationFuture, BriefcasePreferences.forClass(ExportPanel.class), appPreferences, BACKGROUND_EXECUTOR, analytics);
     addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
@@ -326,7 +328,8 @@ public class MainBriefcaseWindow extends WindowAdapter implements UiStateChangeL
   @Override
   public void windowClosing(WindowEvent arg0) {
     exportTerminationFuture.markAsCancelled(new ExportAbortEvent("Main window closed"));
-    transferTerminationFuture.markAsCancelled(new TransferAbortEvent("Main window closed"));
+    transferTerminationFuture.markAsCancelled(new PullEvent.Abort("Main window closed"));
+    transferTerminationFuture.markAsCancelled(new PushEvent.Abort("Main window closed"));
   }
 
   static void showHelp(Options options) {

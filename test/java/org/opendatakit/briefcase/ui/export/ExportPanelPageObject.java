@@ -15,7 +15,7 @@
  */
 package org.opendatakit.briefcase.ui.export;
 
-import static org.opendatakit.briefcase.ui.export.components.FormsTableView.SELECTED_CHECKBOX_COL;
+import static org.opendatakit.briefcase.ui.export.components.ExportFormsTableView.SELECTED_CHECKBOX_COL;
 
 import java.nio.file.Paths;
 import javax.swing.JButton;

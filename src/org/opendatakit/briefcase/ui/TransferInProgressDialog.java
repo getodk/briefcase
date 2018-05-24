@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.ui;
 
+import static org.opendatakit.briefcase.model.FormStatus.TransferType.UPLOAD;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Window;
@@ -43,9 +45,8 @@ import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsSucceededEvent;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransferAbortEvent;
-import org.opendatakit.briefcase.model.TransferFailedEvent;
-import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.push.PushEvent;
 
 public class TransferInProgressDialog extends JDialog implements ActionListener, WindowListener {
 
@@ -58,14 +59,16 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
   private JButton cancelButton;
   private JTextArea textAreaStatusDetail;
   private TerminationFuture terminationFuture;
+  private TransferType transferType;
 
   /**
    * Create the dialog.
    */
   public TransferInProgressDialog(Window topLevel, TransferType transferType, TerminationFuture terminationFuture) {
-    super(topLevel, ((transferType == TransferType.UPLOAD) ?
-        PushTransferPanel.TAB_NAME : PullTransferPanel.TAB_NAME) + " in progress...", ModalityType.DOCUMENT_MODAL);
+    super(topLevel, ((transferType == UPLOAD) ?
+        "Push" : "Push") + " in progress...", ModalityType.DOCUMENT_MODAL);
     AnnotationProcessor.process(this);// if not using AOP
+    this.transferType = transferType;
     this.terminationFuture = terminationFuture;
 
     setBounds(100, 100, 450, 261);
@@ -73,8 +76,8 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
     contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
     getContentPane().add(contentPanel, BorderLayout.CENTER);
     {
-      lblNewLabel = new JLabel(((transferType == TransferType.UPLOAD) ?
-          PushTransferPanel.TAB_NAME : PullTransferPanel.TAB_NAME) + " in progress...");
+      lblNewLabel = new JLabel(((transferType == UPLOAD) ?
+          "Push" : "Pull") + " in progress...");
     }
     cancelButton = new JButton("Cancel");
     cancelButton.setActionCommand("Cancel");
@@ -118,13 +121,23 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
     contentPanel.setLayout(gl_contentPanel);
   }
 
-  @EventSubscriber(eventClass = TransferFailedEvent.class)
-  public void failedCompletion(TransferFailedEvent event) {
+  @EventSubscriber(eventClass = PullEvent.Failure.class)
+  public void onPullFailure(PullEvent.Failure event) {
     this.setVisible(false);
   }
 
-  @EventSubscriber(eventClass = TransferSucceededEvent.class)
-  public void successfulCompletion(TransferSucceededEvent event) {
+  @EventSubscriber(eventClass = PushEvent.Failure.class)
+  public void onPushFailure(PushEvent.Failure event) {
+    this.setVisible(false);
+  }
+
+  @EventSubscriber(eventClass = PullEvent.Success.class)
+  public void onPullSuccess(PullEvent.Success event) {
+    this.setVisible(false);
+  }
+
+  @EventSubscriber(eventClass = PushEvent.Success.class)
+  public void onPushSuccess(PushEvent.Success event) {
     this.setVisible(false);
   }
 
@@ -145,7 +158,10 @@ public class TransferInProgressDialog extends JDialog implements ActionListener,
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    terminationFuture.markAsCancelled(new TransferAbortEvent("User cancelled transfer."));
+    if (transferType == UPLOAD)
+      terminationFuture.markAsCancelled(new PushEvent.Abort("User cancelled transfer."));
+    else
+      terminationFuture.markAsCancelled(new PullEvent.Abort("User cancelled transfer."));
     cancelButton.setEnabled(false);
   }
 

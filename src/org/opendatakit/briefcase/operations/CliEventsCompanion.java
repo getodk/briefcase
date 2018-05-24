@@ -20,7 +20,8 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.push.PushEvent;
 import org.slf4j.Logger;
 
 /**
@@ -44,9 +45,14 @@ class CliEventsCompanion {
       System.out.println("Succeeded.");
     });
 
-    on(TransferSucceededEvent.class, event -> {
-      log.info("Transfer Succeeded");
-      System.out.println("Transfer Succeeded");
+    on(PullEvent.Success.class, event -> {
+      log.info("Pull Succeeded");
+      System.out.println("Pull Succeeded");
+    });
+
+    on(PushEvent.Success.class, event -> {
+      log.info("Push Succeeded");
+      System.out.println("Push Succeeded");
     });
 
     on(FormStatusEvent.class, fse -> {

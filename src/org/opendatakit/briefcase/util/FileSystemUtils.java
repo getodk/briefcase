@@ -42,6 +42,7 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import org.apache.commons.codec.binary.Base64;
+import org.bushe.swing.event.EventBus;
 import org.javarosa.xform.parse.XFormParser;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
@@ -51,6 +52,7 @@ import org.opendatakit.briefcase.model.CryptoException;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
+import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
 import org.slf4j.Logger;
@@ -121,9 +123,8 @@ public class FileSystemUtils {
     FileSystemUtils.formCache = new FormCache(new StorageLocation().getBriefcaseFolder());
   }
 
-  public static final List<BriefcaseFormDefinition> getBriefcaseFormList() {
-    List<BriefcaseFormDefinition> formsList = new ArrayList<>();
-    File forms = FileSystemUtils.getFormsFolder();
+  public static void updateCache(Path briefcaseDir) {
+    File forms = briefcaseDir.resolve("forms").toFile();
     if (forms.exists()) {
       File[] formDirs = forms.listFiles();
       for (File f : formDirs) {
@@ -141,8 +142,6 @@ public class FileSystemUtils {
               existingDefinition = new BriefcaseFormDefinition(f, formFile);
               formCache.putFormFileFormDefinition(formFile.getAbsolutePath(), existingDefinition);
             }
-
-            formsList.add(existingDefinition);
           } catch (BadFormDefinition e) {
             log.debug("bad form definition", e);
           }
@@ -152,7 +151,12 @@ public class FileSystemUtils {
         }
       }
     }
-    return formsList;
+    EventBus.publish(new CacheUpdateEvent());
+  }
+
+  public static final List<BriefcaseFormDefinition> getBriefcaseFormList() {
+    updateCache(new StorageLocation().getBriefcaseFolder().toPath());
+    return formCache.getForms();
   }
 
   public static final List<OdkCollectFormDefinition> getODKFormList(File odk) {

@@ -39,11 +39,11 @@ import org.opendatakit.briefcase.model.ExportProgressEvent;
 import org.opendatakit.briefcase.model.ExportSucceededEvent;
 import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentGiven;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.transfer.NewTransferAction;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
@@ -198,8 +198,8 @@ public class ExportPanel {
     analytics.event("Export", "Export", "Success", null);
   }
 
-  @EventSubscriber(eventClass = FormStatusEvent.class)
-  public void onFormStatusEvent(FormStatusEvent event) {
+  @EventSubscriber(eventClass = CacheUpdateEvent.class)
+  public void onCacheUpdateEvent(CacheUpdateEvent event) {
     updateForms();
   }
 
@@ -208,13 +208,13 @@ public class ExportPanel {
     form.updateExportProgressBar();
   }
 
-  @EventSubscriber(eventClass = TransferSucceededEvent.class)
-  public void successfulCompletion(TransferSucceededEvent event) {
+  @EventSubscriber(eventClass = PullEvent.NewForm.class)
+  public void onNewFormPulledEvent(PullEvent.NewForm event) {
     if (BriefcasePreferences.getStorePasswordsConsentProperty())
       if (event.transferSettings.isPresent())
-        event.formsToTransfer.forEach(form -> forms.putTransferSettings(form, event.transferSettings.get()));
+        forms.putTransferSettings(event.form, event.transferSettings.get());
       else
-        event.formsToTransfer.forEach(forms::removeTransferSettings);
+        forms.removeTransferSettings(event.form);
   }
 
   @EventSubscriber(eventClass = SavePasswordsConsentGiven.class)
