@@ -46,6 +46,7 @@ import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.reused.StorageLocationEvent;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.ui.automation.AutomationPanel;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.ui.pull.PullPanel;
 import org.opendatakit.briefcase.ui.push.PushPanel;
@@ -61,6 +62,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
 
   private final JFrame frame;
+  private AutomationPanel automationPanel;
   private final TerminationFuture transferTerminationFuture = new TerminationFuture();
   private final JTabbedPane tabbedPane;
   private final Map<String, Integer> tabTitleIndexes = new HashMap<>();
@@ -121,6 +123,9 @@ public class MainBriefcaseWindow extends WindowAdapter {
     addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
 
     Component settingsPanel = SettingsPanel.from(appPreferences, analytics, formCache).getContainer();
+
+    addPane(AutomationPanel.TAB_NAME, AutomationPanel.from().getContainer());
+
     addPane(SettingsPanel.TAB_NAME, settingsPanel);
 
     frame.addWindowListener(this);
