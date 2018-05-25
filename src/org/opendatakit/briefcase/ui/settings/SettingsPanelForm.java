@@ -39,7 +39,6 @@ import javax.swing.JTextField;
 import org.apache.http.HttpHost;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.OptionalProduct;
-import org.opendatakit.briefcase.ui.JIntegerSpinner;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 
 @SuppressWarnings("checkstyle:MethodName")

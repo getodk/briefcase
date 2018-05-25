@@ -17,12 +17,10 @@
 package org.opendatakit.briefcase.ui.reused.source;
 
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.GATHER;
-import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
+import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 
 import java.awt.Container;
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -119,20 +117,12 @@ public interface Source<T> {
 
     @Override
     public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir) {
-      try {
-        TransferAction.transferServerToBriefcase(server.asServerConnectionInfo(), terminationFuture, forms, briefcaseDir);
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
+      TransferAction.transferServerToBriefcase(server.asServerConnectionInfo(), terminationFuture, forms, briefcaseDir);
     }
 
     @Override
     public void push(List<FormStatus> forms, TerminationFuture terminationFuture) {
-      try {
-        TransferAction.transferBriefcaseToServer(server.asServerConnectionInfo(), terminationFuture, forms, http, server);
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
+      TransferAction.transferBriefcaseToServer(server.asServerConnectionInfo(), terminationFuture, forms, http, server);
     }
 
     @Override
@@ -192,11 +182,7 @@ public interface Source<T> {
 
     @Override
     public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir) {
-      try {
-        TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), terminationFuture, forms);
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
+      TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), terminationFuture, forms);
     }
 
     @Override

@@ -17,9 +17,12 @@ import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FormCache implements FormCacheable {
-  public static final String CACHE_FILE_NAME = "cache.ser";
+  private static final Logger log = LoggerFactory.getLogger(FormCache.class);
+  private static final String CACHE_FILE_NAME = "cache.ser";
   private final Path cacheFile;
   private final Map<String, String> pathToMd5Map;
   private final Map<String, BriefcaseFormDefinition> pathToDefinitionMap;
@@ -41,7 +44,10 @@ public class FormCache implements FormCacheable {
         Map<String, BriefcaseFormDefinition> pathToDefinitionMap = (Map<String, BriefcaseFormDefinition>) ois.readObject();
         return new FormCache(cacheFile, pathToMd5Map, pathToDefinitionMap);
       } catch (IOException | ClassNotFoundException e) {
-        throw new BriefcaseException("Can't deserialize form cache file", e);
+        // We can't read the forms cache file for some reason. Log it, delete it,
+        // and let the next block create it new.
+        log.warn("Can't read forms cache file", e);
+        UncheckedFiles.delete(cacheFile);
       }
     UncheckedFiles.createFile(cacheFile);
     return new FormCache(cacheFile, new HashMap<>(), new HashMap<>());
