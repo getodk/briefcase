@@ -21,18 +21,15 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class FakeHttp implements Http {
-  private final Map<Query<?>, String> stubs = new ConcurrentHashMap<>();
+  private final Map<Request<?>, Response<String>> stubs = new ConcurrentHashMap<>();
 
-  /**
-   * Stub a pre-defined output for a given {@link Query}.
-   */
-  public void stub(Query query, String stub) {
-    stubs.put(query, stub);
+  public void stub(Request<?> request, Response<String> stub) {
+    stubs.put(request, stub);
   }
 
-  public <T> T execute(Query<T> query) {
-    return Optional.ofNullable(stubs.get(query))
-        .map(query::map)
-        .orElseThrow(RuntimeException::new);
+  public <T> Response<T> execute(Request<T> request) {
+    return Optional.ofNullable(stubs.get(request))
+        .orElseThrow(() -> new RuntimeException("No stub defined for Query " + request.toString()))
+        .map(request::map);
   }
 }

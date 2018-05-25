@@ -26,8 +26,8 @@ import static org.opendatakit.briefcase.operations.ImportFromODK.IMPORT_FROM_ODK
 import static org.opendatakit.briefcase.operations.PullFormFromAggregate.DEPRECATED_PULL_AGGREGATE;
 import static org.opendatakit.briefcase.operations.PullFormFromAggregate.PULL_FORM_FROM_AGGREGATE;
 import static org.opendatakit.briefcase.operations.PushFormToAggregate.PUSH_FORM_TO_AGGREGATE;
+import static org.opendatakit.briefcase.ui.BriefcaseCLI.runLegacyCli;
 import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.launchGUI;
-import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.runLegacyCli;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.getOsName;
 
 import io.sentry.Sentry;

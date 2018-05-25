@@ -22,13 +22,19 @@ import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.operations.Common.bootCache;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
-import org.opendatakit.briefcase.push.RemoteServer;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
+import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.ServerConnectionTest;
 import org.opendatakit.briefcase.util.TransferToServer;
@@ -59,7 +65,7 @@ public class PushFormToAggregate {
   private static void pushFormToAggregate(String storageDir, String formid, String username, String password, String server, boolean forceSendBlank) {
     CliEventsCompanion.attach(log);
     bootCache(storageDir);
-    Optional<FormStatus> maybeFormStatus = FileSystemUtils.getBriefcaseFormList().stream()
+    Optional<FormStatus> maybeFormStatus = FileSystemUtils.getBriefcaseFormList(BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir))).stream()
         .filter(form -> form.getFormId().equals(formid))
         .map(formDef -> new FormStatus(FormStatus.TransferType.UPLOAD, formDef))
         .findFirst();
@@ -72,7 +78,19 @@ public class PushFormToAggregate {
 
     CommonsHttp http = new CommonsHttp();
 
-    RemoteServer remoteServer = RemoteServer.authenticated(transferSettings.getUrl(), transferSettings.getUsername(), new String(transferSettings.getPassword()));
+    URL baseUrl;
+    try {
+      baseUrl = new URL(transferSettings.getUrl());
+    } catch (MalformedURLException e) {
+      throw new BriefcaseException(e);
+    }
+    RemoteServer remoteServer = RemoteServer.authenticated(
+        baseUrl,
+        new Credentials(
+            transferSettings.getUsername(),
+            new String(transferSettings.getPassword())
+        )
+    );
 
     TransferToServer.push(transferSettings, http, remoteServer, forceSendBlank, form);
   }

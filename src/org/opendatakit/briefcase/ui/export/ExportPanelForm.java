@@ -34,17 +34,17 @@ import javax.swing.JScrollPane;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanelForm;
-import org.opendatakit.briefcase.ui.export.components.FormsTable;
-import org.opendatakit.briefcase.ui.export.components.FormsTableView;
+import org.opendatakit.briefcase.ui.export.components.ExportFormsTable;
+import org.opendatakit.briefcase.ui.export.components.ExportFormsTableView;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportPanelForm {
   private static final ScheduledExecutorService SCHEDULED_EXECUTOR = new ScheduledThreadPoolExecutor(1);
 
   private final ConfigurationPanel confPanel;
-  private final FormsTable formsTable;
   private final ConfigurationPanelForm confPanelForm;
-  private final FormsTableView formsTableForm;
+  private final ExportFormsTable formsTable;
+  private final ExportFormsTableView formsTableForm;
   private JPanel container;
   private JPanel actions;
   private JPanel leftActions;
@@ -56,7 +56,7 @@ public class ExportPanelForm {
   private boolean exporting;
   private Optional<ScheduledFuture<?>> scheduledUpdateProgressBar = Optional.empty();
 
-  private ExportPanelForm(ConfigurationPanel confPanel, FormsTable formsTable) {
+  private ExportPanelForm(ConfigurationPanel confPanel, ExportFormsTable formsTable) {
     this.confPanel = confPanel;
     this.confPanelForm = confPanel.getForm();
     this.formsTable = formsTable;
@@ -72,7 +72,7 @@ public class ExportPanelForm {
   public static ExportPanelForm from(ExportForms forms, ConfigurationPanel confPanel) {
     return new ExportPanelForm(
         confPanel,
-        FormsTable.from(forms)
+        ExportFormsTable.from(forms)
     );
   }
 
@@ -84,7 +84,7 @@ public class ExportPanelForm {
     return confPanel;
   }
 
-  public FormsTable getFormsTable() {
+  public ExportFormsTable getFormsTable() {
     return formsTable;
   }
 

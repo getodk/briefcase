@@ -80,13 +80,13 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
     needsMediaUpdate = false;
   }
 
-  public static final BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile)
+  public static final BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile, File briefcaseFolder)
       throws BadFormDefinition {
-    return resolveAgainstBriefcaseDefn(tmpFormFile, false);
+    return resolveAgainstBriefcaseDefn(tmpFormFile, false, briefcaseFolder);
   }
 
   public static final BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile,
-                                                                          boolean copyFile) throws BadFormDefinition {
+                                                                          boolean copyFile, File briefcaseFolder) throws BadFormDefinition {
 
     if (!tmpFormFile.exists()) {
       throw new BadFormDefinition("Form directory does not contain form");
@@ -98,14 +98,14 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
     File briefcaseFormFile;
     try {
       newDefn = new JavaRosaParserWrapper(tmpFormFile, readFile(tmpFormFile));
-      briefcaseFormDirectory = FileSystemUtils.getFormDirectory(newDefn.getFormName());
+      briefcaseFormDirectory = FileSystemUtils.getFormDirectory(newDefn.getFormName(), briefcaseFolder);
       briefcaseFormFile = FileSystemUtils.getFormDefinitionFile(briefcaseFormDirectory);
     } catch (ODKIncompleteSubmissionData e) {
       log.warn("bad form definition", e);
       try {
         badForm = true;
         newDefn = null;
-        briefcaseFormDirectory = FileSystemUtils.getFormDirectory("_badForm");
+        briefcaseFormDirectory = FileSystemUtils.getFormDirectory("_badForm", briefcaseFolder);
         briefcaseFormFile = FileSystemUtils.getFormDefinitionFile(briefcaseFormDirectory);
       } catch (FileSystemException ex) {
         log.error("failed to establish storage location for bad form", e);

@@ -122,7 +122,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="eb5be" class="org.opendatakit.briefcase.ui.export.components.FormsTableView" binding="formsTableForm" custom-create="true">
+          <component id="eb5be" class="org.opendatakit.briefcase.ui.export.components.ExportFormsTableView" binding="formsTableForm" custom-create="true">
             <constraints/>
             <properties/>
           </component>
