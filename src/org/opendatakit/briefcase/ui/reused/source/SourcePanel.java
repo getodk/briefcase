@@ -25,8 +25,13 @@ import java.util.function.Consumer;
 import javax.swing.JPanel;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.http.HttpException;
+import org.opendatakit.briefcase.ui.pull.PullPanelForm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SourcePanel {
+  private static final Logger log = LoggerFactory.getLogger(PullPanelForm.class);
   private final SourcePanelForm container = new SourcePanelForm();
   private final List<Source> sources = new ArrayList<>();
   private final List<Consumer<Source<?>>> onSourceCallbacks = new ArrayList<>();
@@ -41,10 +46,7 @@ public class SourcePanel {
     this.showView = showView;
     this.selectView = selectView;
 
-    showView.onReset(() -> {
-      container.navigateTo(SELECT);
-      triggerReset();
-    });
+    showView.onReset(this::reset);
 
     container.navigateTo(SELECT);
   }
@@ -67,6 +69,11 @@ public class SourcePanel {
     );
     panel.addSource(Source.aggregate(http, panel::triggerOnSource));
     return panel;
+  }
+
+  private void reset() {
+    container.navigateTo(SELECT);
+    triggerReset();
   }
 
   private void addSource(Source source) {
@@ -108,15 +115,20 @@ public class SourcePanel {
 
   @SuppressWarnings("unchecked")
   public void preload(RemoteServer server) {
-    sources.stream()
-        .filter(source -> source.accepts(server))
-        .findFirst()
-        // There's no .peek() method in Optional
-        .map(source -> {
-          ((Source<RemoteServer>) source).set(server);
-          return source;
-        })
-        .ifPresent(this::triggerOnSource);
+    try {
+      sources.stream()
+          .filter(source -> source.accepts(server))
+          .findFirst()
+          // There's no .peek() method in Optional
+          .map(source -> {
+            ((Source<RemoteServer>) source).set(server);
+            return source;
+          })
+          .ifPresent(this::triggerOnSource);
+    } catch (HttpException e) {
+      log.warn("Can't preload source. Resetting view", e);
+      reset();
+    }
   }
 
   enum View {
