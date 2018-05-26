@@ -34,19 +34,24 @@ public class RemoteServerDialog {
     this.form = form;
 
     this.form.onConnect(server -> {
-      try {
-        Response<Boolean> response = server.testPull(http);
-        if (response.isSuccess()) {
-          triggerConnect(server);
-          form.hideDialog();
-        } else
-          showError(
-              response.isRedirection() ? "Redirection detected" : response.isUnauthorized() ? "Wrong credentials" : response.isNotFound() ? "Aggregate not found" : "",
-              response.isRedirection() ? "Unexpected error" : "Configuration error"
-          );
-      } catch (HttpException e) {
-        showError(e.getMessage(), "Unexpected error");
-      }
+      form.setTestingConnection();
+      new Thread(() -> {
+        try {
+          Response<Boolean> response = server.testPull(http);
+          if (response.isSuccess()) {
+            triggerConnect(server);
+            form.hideDialog();
+          } else
+            showError(
+                response.isRedirection() ? "Redirection detected" : response.isUnauthorized() ? "Wrong credentials" : response.isNotFound() ? "Aggregate not found" : "",
+                response.isRedirection() ? "Unexpected error" : "Configuration error"
+            );
+        } catch (HttpException e) {
+          showError(e.getMessage(), "Unexpected error");
+        } finally {
+          form.unsetTestingConnection();
+        }
+      }).start();
     });
   }
 
