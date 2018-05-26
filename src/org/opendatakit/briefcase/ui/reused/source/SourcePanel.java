@@ -54,9 +54,9 @@ public class SourcePanel {
         new SelectSourceForm("Pull Data From"),
         ShowSourceForm.empty("Pulling data from")
     );
-    panel.addSource(new Source.Aggregate(http, panel::triggerOnSource));
-    panel.addSource(new Source.CustomDir(panel::triggerOnSource));
-    panel.addSource(new Source.FormInComputer(panel::triggerOnSource));
+    panel.addSource(Source.aggregate(http, panel::triggerOnSource));
+    panel.addSource(Source.customDir(panel::triggerOnSource));
+    panel.addSource(Source.formInComputer(panel::triggerOnSource));
     return panel;
   }
 
@@ -65,7 +65,7 @@ public class SourcePanel {
         new SelectSourceForm("Push Data To"),
         ShowSourceForm.empty("Pushing data to")
     );
-    panel.addSource(new Source.Aggregate(http, panel::triggerOnSource));
+    panel.addSource(Source.aggregate(http, panel::triggerOnSource));
     return panel;
   }
 
