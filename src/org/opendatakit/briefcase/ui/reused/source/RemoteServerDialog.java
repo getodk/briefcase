@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.reused.http.Response;
 
 public class RemoteServerDialog {
@@ -33,21 +34,33 @@ public class RemoteServerDialog {
     this.form = form;
 
     this.form.onConnect(server -> {
-      Response<Boolean> response = server.testPull(http);
-      if (response.isSuccess()) {
-        triggerConnect(server);
-        form.hideDialog();
-      } else {
-        String error = response.isRedirection()
-            ? "Redirection detected.\n\nPlease, review the connection parameters and try again."
-            : response.isUnauthorized()
-            ? "Wrong credentials.\n\nPlease, review the connection parameters and try again."
-            : response.isNotFound()
-            ? "Aggregate not found.\n\nPlease, review the connection parameters and try again."
-            : "Please, review the connection parameters and try again.";
-        showErrorDialog(form, error, "Wrong connection parameters");
+      try {
+        Response<Boolean> response = server.testPull(http);
+        if (response.isSuccess()) {
+          triggerConnect(server);
+          form.hideDialog();
+        } else
+          showError(
+              response.isRedirection() ? "Redirection detected" : response.isUnauthorized() ? "Wrong credentials" : response.isNotFound() ? "Aggregate not found" : "",
+              response.isRedirection() ? "Unexpected error" : "Configuration error"
+          );
+      } catch (HttpException e) {
+        showError(e.getMessage(), "Unexpected error");
       }
     });
+  }
+
+  private void showError(String error, String title) {
+    String maybeSeparator = error.isEmpty() ? "" : ".\n\n";
+    showErrorDialog(
+        form,
+        String.format(
+            "%s%sPlease review the connection parameters and try again.",
+            error,
+            maybeSeparator
+        ),
+        title
+    );
   }
 
   static RemoteServerDialog empty(Http http) {
