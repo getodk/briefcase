@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -254,7 +255,7 @@ class Submission {
   List<XmlElement> getElements(String fqn) {
     if (elementsByFqn == null)
       elementsByFqn = root.getChildrenIndex();
-    return elementsByFqn.get(fqn);
+    return Optional.ofNullable(elementsByFqn.get(fqn)).orElse(Collections.emptyList());
   }
 
   /**
