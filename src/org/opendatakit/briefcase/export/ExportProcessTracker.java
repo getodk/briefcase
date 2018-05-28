@@ -23,6 +23,7 @@ import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
 import org.bushe.swing.event.EventBus;
 
 public class ExportProcessTracker {
+  private static final int STEP_SIZE = 1;
   private final FormDefinition form;
   final long total;
   long exported;
@@ -36,7 +37,7 @@ public class ExportProcessTracker {
   public void incAndReport() {
     exported++;
     int percentage = (int) (exported * 100 / total);
-    if (percentage > lastReportedPercentage && percentage % 10 == 0) {
+    if (percentage > lastReportedPercentage && percentage % STEP_SIZE == 0) {
       EventBus.publish(ExportEvent.progress(form, percentage / 100D));
       lastReportedPercentage = percentage;
     }
