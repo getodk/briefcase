@@ -68,4 +68,9 @@ public class ExportFormsTable {
     forms.appendStatus(event);
     viewModel.refresh();
   }
+
+  public void setEnabled(boolean enabled) {
+    view.setEnabled(enabled);
+    viewModel.setEnabled(enabled);
+  }
 }

@@ -49,6 +49,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
 
   private static final Font ic_settings = FontUtils.getCustomFont("ic_settings.ttf", 16f);
   private static final Font ic_receipt = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
+  private boolean enabled = true;
 
   ExportFormsTableViewModel(ExportForms forms) {
     this.forms = forms;
@@ -94,19 +95,21 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
 
     updateConfButton(form, button);
     button.addActionListener(__ -> {
-      ConfigurationDialog dialog = ConfigurationDialog.from(
-          forms.getCustomConfiguration(form),
-          forms.hasTransferSettings(form),
-          BriefcasePreferences.getStorePasswordsConsentProperty()
-      );
-      dialog.onRemove(() -> removeConfiguration(form));
-      dialog.onOK(configuration -> {
-        if (configuration.isEmpty())
-          removeConfiguration(form);
-        else
-          putConfiguration(form, configuration);
-      });
-      dialog.open();
+      if (enabled) {
+        ConfigurationDialog dialog = ConfigurationDialog.from(
+            forms.getCustomConfiguration(form),
+            forms.hasTransferSettings(form),
+            BriefcasePreferences.getStorePasswordsConsentProperty()
+        );
+        dialog.onRemove(() -> removeConfiguration(form));
+        dialog.onOK(configuration -> {
+          if (configuration.isEmpty())
+            removeConfiguration(form);
+          else
+            putConfiguration(form, configuration);
+        });
+        dialog.open();
+      }
     });
     return button;
   }
@@ -199,4 +202,9 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
     return EDITABLE_COLS[columnIndex];
   }
 
+  @SuppressWarnings("checkstyle:ParameterName")
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+    confButtons.forEach((__, button) -> button.setEnabled(enabled));
+  }
 }

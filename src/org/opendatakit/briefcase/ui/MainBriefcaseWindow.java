@@ -29,8 +29,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
@@ -59,13 +57,11 @@ import org.slf4j.LoggerFactory;
 
 public class MainBriefcaseWindow extends WindowAdapter {
   private static final Logger log = LoggerFactory.getLogger(BaseFormParserForJavaRosa.class.getName());
-  private static final ExecutorService BACKGROUND_EXECUTOR = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 2);
   private static final String APP_NAME = "ODK Briefcase";
   private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
   private static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
 
   private final JFrame frame;
-  private final TerminationFuture exportTerminationFuture = new TerminationFuture();
   private final TerminationFuture transferTerminationFuture = new TerminationFuture();
   private final JTabbedPane tabbedPane;
   private final Map<String, Integer> tabTitleIndexes = new HashMap<>();
@@ -121,7 +117,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     PushPanel pushPanel = PushPanel.from(http, appPreferences, transferTerminationFuture);
     addPane(PushPanel.TAB_NAME, pushPanel.getContainer());
 
-    ExportPanel exportPanel = ExportPanel.from(exportTerminationFuture, BriefcasePreferences.forClass(ExportPanel.class), appPreferences, BACKGROUND_EXECUTOR, analytics);
+    ExportPanel exportPanel = ExportPanel.from(BriefcasePreferences.forClass(ExportPanel.class), appPreferences, analytics);
     addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
 
     Component settingsPanel = SettingsPanel.from(appPreferences, analytics).getContainer();
