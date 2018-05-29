@@ -132,6 +132,7 @@
         </constraints>
         <properties>
           <preferredSize width="150" height="30"/>
+          <text value="127.0.0.1"/>
         </properties>
       </component>
       <hspacer id="ef4f9">

@@ -125,7 +125,7 @@ public class SettingsPanelForm {
   }
 
   private void unsetHttpProxy() {
-    httpProxyHostField.setText("");
+    httpProxyHostField.setText("127.0.0.1");
     httpProxyPortField.setValue(8080);
     onClearHttpProxyCallbacks.forEach(Runnable::run);
   }
@@ -286,6 +286,7 @@ public class SettingsPanelForm {
     container.add(httpProxyJostLabel, gbc);
     httpProxyHostField = new JTextField();
     httpProxyHostField.setPreferredSize(new Dimension(150, 30));
+    httpProxyHostField.setText("127.0.0.1");
     gbc = new GridBagConstraints();
     gbc.gridx = 4;
     gbc.gridy = 10;
