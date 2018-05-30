@@ -58,8 +58,26 @@ import org.opendatakit.briefcase.util.StringUtils;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ConfigurationPanelForm extends JComponent {
+  public JPanel container;
   protected final DatePicker startDatePicker;
   protected final DatePicker endDatePicker;
+  protected JTextField exportDirField;
+  protected JTextField pemFileField;
+  protected JButton exportDirChooseButton;
+  private JLabel exportDirLabel;
+  private JLabel pemFileLabel;
+  private JLabel startDateLabel;
+  private JLabel endDateLabel;
+  private JPanel pemFileButtons;
+  protected JButton pemFileChooseButton;
+  protected JButton pemFileClearButton;
+  private JPanel exportDirButtons;
+  private JButton exportDirCleanButton;
+  JCheckBox pullBeforeField;
+  JComboBox<PullBeforeOverrideOption> pullBeforeOverrideField;
+  JTextPane pullBeforeHintPanel;
+  JLabel pullBeforeOverrideLabel;
+  private JCheckBox overwriteFilesField;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
@@ -68,24 +86,6 @@ public class ConfigurationPanelForm extends JComponent {
   private final List<Consumer<PullBeforeOverrideOption>> onChangePullBeforeOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeOverwriteExistingFilesCallbacks = new ArrayList<>();
   private final ConfigurationPanelMode mode;
-  public JPanel container;
-  protected JTextField exportDirField;
-  protected JTextField pemFileField;
-  protected JButton exportDirChooseButton;
-  protected JButton pemFileChooseButton;
-  protected JButton pemFileClearButton;
-  JCheckBox pullBeforeField;
-  JComboBox<PullBeforeOverrideOption> pullBeforeOverrideField;
-  JTextPane pullBeforeHintPanel;
-  JLabel pullBeforeOverrideLabel;
-  private JLabel exportDirLabel;
-  private JLabel pemFileLabel;
-  private JLabel startDateLabel;
-  private JLabel endDateLabel;
-  private JPanel pemFileButtons;
-  private JPanel exportDirButtons;
-  private JButton exportDirCleanButton;
-  private JCheckBox overwriteFilesField;
 
   protected ConfigurationPanelForm(ConfigurationPanelMode mode) {
     this.mode = mode;
@@ -139,12 +139,6 @@ public class ConfigurationPanelForm extends JComponent {
 
   public static ConfigurationPanelForm defaultPanel(boolean savePasswordsConsent, boolean hasTransferSettings) {
     return new ConfigurationPanelForm(ConfigurationPanelMode.defaultPanel(savePasswordsConsent, hasTransferSettings));
-  }
-
-  private static Optional<File> fileFrom(JTextField textField) {
-    return Optional.ofNullable(textField.getText())
-        .filter(StringUtils::nullOrEmpty)
-        .map(path -> Paths.get(path).toFile());
   }
 
   @Override
@@ -279,6 +273,12 @@ public class ConfigurationPanelForm extends JComponent {
         f -> f.exists() && f.isDirectory() && !isUnderBriefcaseFolder(f) && !isUnderODKFolder(f),
         "Exclude Briefcase & ODK directories"
     );
+  }
+
+  private static Optional<File> fileFrom(JTextField textField) {
+    return Optional.ofNullable(textField.getText())
+        .filter(StringUtils::nullOrEmpty)
+        .map(path -> Paths.get(path).toFile());
   }
 
   private void triggerChangePullBefore() {
