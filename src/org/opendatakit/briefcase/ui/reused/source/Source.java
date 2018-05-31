@@ -258,10 +258,20 @@ public interface Source<T> {
     @Override
     public void onSelect(Container container) {
       FileChooser
-          .directory(container, Optional.empty(), f -> isValidCustomDir(f.toPath()), "ODK Collect Folders")
+          .directory(container, Optional.empty())
           .choose()
           // TODO Changing the FileChooser to handle Paths instead of Files would improve this code and it's also coherent with the modernization (use NIO2 API) of this basecode
-          .ifPresent(file -> set(file.toPath()));
+          .ifPresent(file -> {
+            if (isValidCustomDir(file.toPath()))
+              set(file.toPath());
+            else {
+              ODKOptionPane.showErrorDialog(
+                  container,
+                  "The selected directory doesn't look like an ODK Collect storage directory. Please select another directory.",
+                  "Wrong directory"
+              );
+            }
+          });
     }
 
     @Override
