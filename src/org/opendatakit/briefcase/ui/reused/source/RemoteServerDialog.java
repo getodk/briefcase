@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.reused.RemoteServer;
-import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.reused.http.Response;
 
@@ -30,14 +29,14 @@ public class RemoteServerDialog {
   private final RemoteServerDialogForm form;
   private final List<Consumer<RemoteServer>> onConnectCallbacks = new ArrayList<>();
 
-  private RemoteServerDialog(RemoteServerDialogForm form, Http http) {
+  private RemoteServerDialog(RemoteServerDialogForm form, RemoteServer.Test serverTester) {
     this.form = form;
 
     this.form.onConnect(server -> {
       form.setTestingConnection();
       new Thread(() -> {
         try {
-          Response<Boolean> response = server.testPull(http);
+          Response<Boolean> response = serverTester.test(server);
           if (response.isSuccess()) {
             triggerConnect(server);
             form.hideDialog();
@@ -68,10 +67,10 @@ public class RemoteServerDialog {
     );
   }
 
-  static RemoteServerDialog empty(Http http) {
+  static RemoteServerDialog empty(RemoteServer.Test serverTester) {
     return new RemoteServerDialog(
         new RemoteServerDialogForm(),
-        http
+        serverTester
     );
   }
 

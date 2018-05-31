@@ -91,13 +91,25 @@ public interface Source<T> {
   }
 
   /**
-   * Factory of {@link Source} instances that deal with remote Aggregate servers.
+   * Factory of {@link Source} instances that deal with remote Aggregate servers
+   * for pulling forms.
    *
    * @param consumer {@link Consumer} that would be applied the {@link RemoteServer}
    *                 instance configured by the user
    */
-  static Source<RemoteServer> aggregate(Http http, Consumer<Source> consumer) {
-    return new Source.Aggregate(http, consumer);
+  static Source<RemoteServer> aggregatePull(Http http, Consumer<Source> consumer) {
+    return new Source.Aggregate(http, server -> server.testPull(http), consumer);
+  }
+
+  /**
+   * Factory of {@link Source} instances that deal with remote Aggregate servers
+   * for pushing forms.
+   *
+   * @param consumer {@link Consumer} that would be applied the {@link RemoteServer}
+   *                 instance configured by the user
+   */
+  static Source<RemoteServer> aggregatePush(Http http, Consumer<Source> consumer) {
+    return new Source.Aggregate(http, server -> server.testPush(http), consumer);
   }
 
   /**
@@ -180,17 +192,19 @@ public interface Source<T> {
 
   class Aggregate implements Source<RemoteServer> {
     private final Http http;
+    private RemoteServer.Test serverTester;
     private final Consumer<Source> consumer;
     private RemoteServer server;
 
-    Aggregate(Http http, Consumer<Source> consumer) {
+    Aggregate(Http http, RemoteServer.Test serverTester, Consumer<Source> consumer) {
       this.http = http;
+      this.serverTester = serverTester;
       this.consumer = consumer;
     }
 
     @Override
     public void onSelect(Container ignored) {
-      RemoteServerDialog dialog = RemoteServerDialog.empty(http);
+      RemoteServerDialog dialog = RemoteServerDialog.empty(serverTester);
       dialog.onConnect(this::set);
       dialog.getForm().setVisible(true);
     }

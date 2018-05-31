@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.kxml2.io.KXmlParser;
@@ -213,6 +214,12 @@ public class RemoteServer {
       throw new UncheckedIOException(e);
     } catch (XmlPullParserException e) {
       throw new BriefcaseException(e);
+    }
+  }
+
+  public interface Test extends Function<RemoteServer, Response<Boolean>> {
+    default Response<Boolean> test(RemoteServer server) {
+      return apply(server);
     }
   }
 }
