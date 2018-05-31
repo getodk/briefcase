@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.ui.export;
 
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -239,6 +240,7 @@ public class ExportPanelForm {
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(scrollPane1, gbc);
+    formsTableForm.setPreferredScrollableViewportSize(new Dimension(480, 400));
     scrollPane1.setViewportView(formsTableForm);
   }
 
