@@ -19,7 +19,6 @@ package org.opendatakit.briefcase.export;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-import static java.util.Comparator.comparingLong;
 import static java.util.stream.Collectors.toConcurrentMap;
 import static org.opendatakit.briefcase.export.CsvMapper.getMainHeader;
 import static org.opendatakit.briefcase.export.CsvMapper.getMainSubmissionLines;
@@ -37,14 +36,21 @@ import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExportToCsv {
+  private static final Logger log = LoggerFactory.getLogger(ExportToCsv.class);
+
   /**
    * Export a form's submissions into some CSV files.
    * <p>
@@ -57,6 +63,7 @@ public class ExportToCsv {
    * @see ExportConfiguration
    */
   public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration, boolean exportMedia) {
+    long start = System.nanoTime();
     // Create an export tracker object with the total number of submissions we have to export
     long submissionCount = walk(formDef.getFormDir().resolve("instances"))
         .filter(UncheckedFiles::isInstanceDir)
@@ -89,14 +96,12 @@ public class ExportToCsv {
     );
     files.put(formDef.getModel(), mainFile);
 
-    // Parse all submission files in the instances folder of this form
     SubmissionParser
-        .parseAllInFormDir(
-            formDef.getFormDir(),
-            formDef.isFileEncryptedForm(),
-            configuration.getPrivateKey(),
-            configuration.getDateRange()
-        )
+        .getOrderedListOfSubmissionFiles(formDef.getFormDir(), configuration.getDateRange())
+        .stream()
+        .map(path -> SubmissionParser.parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey()))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
         // While we iterate over each submission, take a peek, and
         // write lines on each repeat group CSV file
         .peek(submission -> repeatGroups.forEach(groupModel -> append(getRepeatCsvLine(
@@ -107,11 +112,8 @@ public class ExportToCsv {
             submission.getInstanceId(),
             submission.getWorkingDir()
         ), files.get(groupModel))))
-        // Sort the parsed submissions using a long instead of an OffsetDateTime
-        // to get a little boost of performance
-        .sorted(comparingLong(Submission::getSubmissionDateEpoch))
         // Write lines in the main CSV file
-        .forEachOrdered(submission -> {
+        .forEach(submission -> {
           // Increment the export count and maybe report progress
           exportTracker.incAndReport();
           append(getMainSubmissionLines(
@@ -138,6 +140,9 @@ public class ExportToCsv {
     if (exportOutcome == ALL_SKIPPED)
       EventBus.publish(ExportEvent.failure(formDef, "All submissions have been skipped"));
 
+    long end = System.nanoTime();
+    LocalTime duration = LocalTime.ofNanoOfDay(end - start);
+    log.info("Exported in {}", duration.format(DateTimeFormatter.ISO_TIME));
     return exportOutcome;
   }
 

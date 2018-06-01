@@ -15,6 +15,8 @@
  */
 package org.opendatakit.briefcase.export;
 
+import static java.util.Comparator.comparingLong;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static org.opendatakit.briefcase.export.CipherFactory.signatureDecrypter;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createTempDirectory;
@@ -31,9 +33,10 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -42,6 +45,7 @@ import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.model.CryptoException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
+import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,39 +59,58 @@ class SubmissionParser {
   private static final Logger log = LoggerFactory.getLogger(SubmissionParser.class);
 
   /**
-   * Parses all submission files in a form's directory and returns a {@link List} of {@link Submission} instances.
+   * Returns an sorted {@link List} of {@link Path} instances pointing to all the
+   * submissions of a form that belong to the given {@link DateRange}.
+   * <p>
+   * Each file gets briefly parsed to obtain their submission date and use it as
+   * the sorting criteria and for filtering.
    *
-   * @param formDir     the {@link Path} directory of the form
-   * @param isEncrypted a {@link Boolean} indicating if the form is encrypted or not
-   * @param privateKey  {@link PrivateKey} instance wrapped inside an {@link Optional} instance
-   * @param dateRange   a {@link DateRange} to filter submissions that are contained in it
-   * @return a {@link List} of {@link Submission} instances
+   * @param formDir   the {@link Path} directory of the form
+   * @param dateRange a {@link DateRange} to filter submissions that are contained in it
    */
-  static Stream<Submission> parseAllInFormDir(Path formDir, boolean isEncrypted, Optional<PrivateKey> privateKey, DateRange dateRange) {
+  static List<Path> getOrderedListOfSubmissionFiles(Path formDir, DateRange dateRange) {
     Path instancesDir = formDir.resolve("instances");
     if (!Files.exists(instancesDir) || !Files.isReadable(instancesDir))
-      return Stream.empty();
-
-    return list(instancesDir).parallel()
-        // Normally, we would use the Streams API to filter out files that
-        // are not contained in the given date range, but parsing is expensive
-        // enough to make it all in one pass and use Optionals to account
-        // for that
+      return Collections.emptyList();
+    return list(instancesDir)
         .filter(UncheckedFiles::isInstanceDir)
-        .map(path -> parseSubmission(path.resolve("submission.xml"), dateRange, isEncrypted, privateKey))
-        .filter(Optional::isPresent)
-        .map(Optional::get);
+        .map(instanceDir -> instanceDir.resolve("submission.xml"))
+        // Pair each path with the parsed submission date
+        .map(submissionPath -> Pair.of(
+            submissionPath,
+            readSubmissionDate(submissionPath).orElse(OffsetDateTime.MIN)
+        ))
+        // Filter out submissions outside the given date range
+        .filter(pair -> dateRange.contains(pair.getRight()))
+        // Sort them and return a list of paths
+        .sorted(comparingLong(pair -> pair.getRight().toInstant().toEpochMilli()))
+        .map(Pair::getLeft)
+        .collect(toList());
   }
 
-  private static Optional<Submission> parseSubmission(Path path, DateRange dateRange, boolean isEncrypted, Optional<PrivateKey> privateKey) {
+  /**
+   * Returns a parsed {@link Submission}, wrapped inside an {@link Optional} instance if
+   * it meets some criteria:
+   * <ul>
+   * <li>The given {@link Path} points to a parseable submission file</li>
+   * <li>If the form is encrypted, the submission can be decrypted</li>
+   * </ul>
+   * Returns an {@link Optional#empty()} otherwise.
+   *
+   * @param path        the {@link Path} to the submission file
+   * @param isEncrypted a {@link Boolean} indicating whether the form is encrypted or not.
+   * @param privateKey  the {@link PrivateKey} to be used to decrypt the submissions,
+   *                    wrapped inside an {@link Optional} when the form is encrypted, or
+   *                    {@link Optional#empty()} otherwise
+   * @return the {@link Submission} wrapped inside an {@link Optional} when it meets all the
+   *     criteria, or {@link Optional#empty()} otherwise
+   * @see #decrypt(Submission)
+   */
+  static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey) {
     Path workingDir = isEncrypted ? createTempDirectory("briefcase") : path.getParent();
     return parse(path).flatMap(document -> {
       XmlElement root = XmlElement.of(document);
       SubmissionMetaData metaData = new SubmissionMetaData(root);
-
-      // Filter out the submission if it's not included in the given date range
-      if (!metaData.getSubmissionDate().map(dateRange::contains).orElse(false))
-        return Optional.empty();
 
       // If all the needed parts are present, prepare the CipherFactory instance
       Optional<CipherFactory> cipherFactory = OptionalProduct.all(
@@ -110,6 +133,15 @@ class SubmissionParser {
           : Optional.of(submission);
     });
   }
+
+  private static Optional<OffsetDateTime> readSubmissionDate(Path path) {
+    return parse(path).flatMap(document -> {
+      XmlElement root = XmlElement.of(document);
+      SubmissionMetaData metaData = new SubmissionMetaData(root);
+      return metaData.getSubmissionDate();
+    });
+  }
+
 
   private static Optional<Submission> decrypt(Submission submission) {
     List<Path> mediaPaths = submission.getMediaPaths();
