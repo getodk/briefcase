@@ -27,7 +27,7 @@ import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.reused.http.Response;
 
 public class RemoteServerDialog {
-  private final RemoteServerDialogForm form;
+  final RemoteServerDialogForm form;
   private final List<Consumer<RemoteServer>> onConnectCallbacks = new ArrayList<>();
 
   private RemoteServerDialog(RemoteServerDialogForm form, RemoteServer.Test serverTester) {

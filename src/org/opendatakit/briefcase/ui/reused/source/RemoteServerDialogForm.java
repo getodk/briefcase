@@ -49,12 +49,12 @@ import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 public class RemoteServerDialogForm extends JDialog {
   private JPanel dialog;
   private JPanel actions;
-  private JButton cancelButton;
-  private JButton connectButton;
-  private JTextField urlField;
-  private JTextField usernameField;
-  private JPasswordField passwordField;
-  private JProgressBar progressBar;
+  JButton cancelButton;
+  JButton connectButton;
+  JTextField urlField;
+  JTextField usernameField;
+  JPasswordField passwordField;
+  JProgressBar progressBar;
   private final List<Consumer<RemoteServer>> onConnectCallbacks = new ArrayList<>();
 
   RemoteServerDialogForm() {
