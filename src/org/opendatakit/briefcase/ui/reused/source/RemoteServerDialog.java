@@ -21,6 +21,7 @@ import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import javax.swing.SwingUtilities;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.reused.http.Response;
@@ -34,7 +35,7 @@ public class RemoteServerDialog {
 
     this.form.onConnect(server -> {
       form.setTestingConnection();
-      new Thread(() -> {
+      new Thread(() -> SwingUtilities.invokeLater(() -> {
         try {
           Response<Boolean> response = serverTester.test(server);
           if (response.isSuccess()) {
@@ -50,7 +51,7 @@ public class RemoteServerDialog {
         } finally {
           form.unsetTestingConnection();
         }
-      }).start();
+      })).start();
     });
   }
 
