@@ -15,7 +15,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <nested-form id="4ae9a" form-file="org/opendatakit/briefcase/ui/reused/source/SourcePanelForm.form" binding="sourcePanel" custom-create="true">
+          <nested-form id="4ae9a" form-file="org/opendatakit/briefcase/ui/reused/source/SourcePanelForm.form" binding="sourcePanelForm" custom-create="true">
             <constraints>
               <card name="Card1"/>
             </constraints>

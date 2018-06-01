@@ -33,11 +33,13 @@ import org.opendatakit.briefcase.ui.push.components.PushFormsTable;
 import org.opendatakit.briefcase.ui.push.components.PushFormsTableView;
 import org.opendatakit.briefcase.ui.reused.source.Source;
 import org.opendatakit.briefcase.ui.reused.source.SourcePanel;
+import org.opendatakit.briefcase.ui.reused.source.SourcePanelForm;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class PushPanelForm {
   public JPanel container;
   private SourcePanel sourcePanel;
+  private SourcePanelForm sourcePanelForm;
   private JPanel top;
   private JPanel actions;
   private final PushFormsTable pushFormsTable;
@@ -55,6 +57,7 @@ public class PushPanelForm {
 
   public PushPanelForm(SourcePanel sourcePanel, PushFormsTable pushFormsTable) {
     this.sourcePanel = sourcePanel;
+    this.sourcePanelForm = sourcePanel.getContainer();
     this.pushFormsTable = pushFormsTable;
     this.pushFormsTableView = pushFormsTable.getView();
     $$$setupUI$$$();
@@ -170,7 +173,7 @@ public class PushPanelForm {
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(top, gbc);
-    top.add(sourcePanel.$$$getRootComponent$$$(), "Card1");
+    top.add(sourcePanelForm.$$$getRootComponent$$$(), "Card1");
     final JPanel spacer1 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
