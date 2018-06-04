@@ -28,6 +28,7 @@ import static org.opendatakit.briefcase.util.FindDirectoryStructure.isMac;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
 
 import com.github.lgooddatepicker.components.DatePicker;
+
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -49,6 +50,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+
 import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.StringUtils;
@@ -337,14 +339,14 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.anchor = GridBagConstraints.EAST;
     container.add(pemFileLabel, gbc);
     startDateLabel = new JLabel();
-    startDateLabel.setText("Start date");
+    startDateLabel.setText("Start date (inclusive)");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 2;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(startDateLabel, gbc);
     endDateLabel = new JLabel();
-    endDateLabel.setText("End date");
+    endDateLabel.setText("End date (inclusive)");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 3;
