@@ -45,12 +45,6 @@ public class TerminationFuture {
     log.info("cancel requested: " + event.cause);
   }
 
-  @EventSubscriber(eventClass = ExportAbortEvent.class)
-  public void markAsCancelled(ExportAbortEvent event) {
-    cancelled = true;
-    log.info("cancel requested: " + event.getReason());
-  }
-
   public void reset() {
     cancelled = false;
   }

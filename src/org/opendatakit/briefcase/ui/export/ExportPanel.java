@@ -25,19 +25,15 @@ import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
-import org.opendatakit.briefcase.export.ExportAction;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
+import org.opendatakit.briefcase.export.ExportToCsv;
+import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.ExportFailedEvent;
-import org.opendatakit.briefcase.model.ExportProgressEvent;
-import org.opendatakit.briefcase.model.ExportSucceededEvent;
-import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.SavePasswordsConsentGiven;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
@@ -49,22 +45,23 @@ import org.opendatakit.briefcase.transfer.NewTransferAction;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExportPanel {
+  private static final Logger log = LoggerFactory.getLogger(ExportPanel.class);
   public static final String TAB_NAME = "Export";
 
-  private final TerminationFuture terminationFuture;
   private final ExportForms forms;
   private final ExportPanelForm form;
   private final BriefcasePreferences appPreferences;
-  private final Analytics analytics;
+  private final BriefcasePreferences preferences;
 
-  public ExportPanel(TerminationFuture terminationFuture, ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences preferences, Executor backgroundExecutor, Analytics analytics) {
-    this.terminationFuture = terminationFuture;
+  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences preferences, Analytics analytics) {
     this.forms = forms;
     this.form = form;
     this.appPreferences = appPreferences;
-    this.analytics = analytics;
+    this.preferences = preferences;
     AnnotationProcessor.process(this);// if not using AOP
     analytics.register(form.getContainer());
 
@@ -77,73 +74,87 @@ public class ExportPanel {
     );
 
     form.onChange(() -> {
-      // Clean all default conf keys
-      preferences.removeAll(ExportConfiguration.keys());
+      updatePreferences();
+      updateExportButton();
+      updateSelectButtons();
+    });
 
-      // Put default conf
-      if (form.getConfPanel().isValid())
-        preferences.putAll(form.getConfPanel().getConfiguration().asMap());
-
-      // Clean all custom conf keys
-      forms.forEach(formId ->
-          preferences.removeAll(ExportConfiguration.keys(buildCustomConfPrefix(formId)))
-      );
-
-      // Put custom confs
-      forms.getCustomConfigurations().forEach((formId, configuration) ->
-          preferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
-      );
-
-      if (forms.someSelected() && (form.getConfPanel().isValid() || forms.allSelectedFormsHaveConfiguration()))
-        form.enableExport();
-      else
-        form.disableExport();
-
-      if (forms.allSelected()) {
-        form.toggleClearAll();
+    form.onExport(() -> {
+      form.setExporting();
+      List<String> errors = getErrors();
+      if (errors.isEmpty()) {
+        new Thread(this::export).start();
       } else {
-        form.toggleSelectAll();
+        analytics.event("Export", "Export", "Configuration errors", null);
+        showErrorDialog(getForm().getContainer(), errors.stream().collect(joining("\n")), "Export errors");
+        form.unsetExporting();
       }
     });
 
-
-    form.onExport(() -> backgroundExecutor.execute(() -> {
-      form.showExportProgressBar();
-      // Segregating this validation from the export process to move it to ExportConfiguration on the future
-      List<String> errors = forms.getSelectedForms().stream().flatMap(formStatus -> {
-        ExportConfiguration exportConfiguration = forms.getConfiguration(formStatus.getFormDefinition().getFormId());
-        boolean needsPemFile = ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFileEncryptedForm() || ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFieldEncryptedForm();
-
-        if (needsPemFile && !exportConfiguration.isPemFilePresent())
-          return Stream.of("The form " + formStatus.getFormName() + " is encrypted and you haven't set a PEM file");
-        if (needsPemFile)
-          return ExportAction.readPemFile(exportConfiguration.getPemFile()
-              .orElseThrow(() -> new RuntimeException("PEM file not present"))
-          ).getErrors().stream();
-        return Stream.empty();
-      }).collect(toList());
-
-      if (errors.isEmpty())
-        export();
-      else {
-        analytics.event("Export", "Export", "Configuration errors", null);
-        showErrorDialog(getForm().getContainer(), errors.stream().collect(joining("\n")), "Export errors");
-      }
-    }));
+    updateExportButton();
+    updateSelectButtons();
   }
 
-  public static ExportPanel from(TerminationFuture terminationFuture, BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Executor backgroundExecutor, Analytics analytics) {
+  private List<String> getErrors() {
+    // Segregating this validation from the export process to move it to ExportConfiguration on the future
+    return forms.getSelectedForms().stream().flatMap(formStatus -> {
+      ExportConfiguration exportConfiguration = forms.getConfiguration(formStatus.getFormDefinition().getFormId());
+      boolean needsPemFile = ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFileEncryptedForm() || ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFieldEncryptedForm();
+
+      if (needsPemFile && !exportConfiguration.isPemFilePresent())
+        return Stream.of("The form " + formStatus.getFormName() + " is encrypted and you haven't set a PEM file");
+      if (needsPemFile)
+        return ExportConfiguration.readPemFile(exportConfiguration.getPemFile()
+            .orElseThrow(() -> new RuntimeException("PEM file not present"))
+        ).getErrors().stream();
+      return Stream.empty();
+    }).collect(toList());
+  }
+
+  private void updatePreferences() {
+    // Clean all default conf keys
+    preferences.removeAll(ExportConfiguration.keys());
+
+    // Put default conf
+    if (form.getConfPanel().isValid())
+      preferences.putAll(form.getConfPanel().getConfiguration().asMap());
+
+    // Clean all custom conf keys
+    forms.forEach(formId ->
+        preferences.removeAll(ExportConfiguration.keys(buildCustomConfPrefix(formId)))
+    );
+
+    // Put custom confs
+    forms.getCustomConfigurations().forEach((formId, configuration) ->
+        preferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
+    );
+  }
+
+  private void updateExportButton() {
+    if (forms.someSelected() && (form.getConfPanel().isValid() || forms.allSelectedFormsHaveConfiguration()))
+      form.enableExport();
+    else
+      form.disableExport();
+  }
+
+  private void updateSelectButtons() {
+    if (forms.allSelected()) {
+      form.toggleClearAll();
+    } else {
+      form.toggleSelectAll();
+    }
+  }
+
+  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Analytics analytics) {
     ExportConfiguration defaultConfiguration = ExportConfiguration.load(exportPreferences);
     ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(defaultConfiguration, BriefcasePreferences.getStorePasswordsConsentProperty(), true);
     ExportForms forms = ExportForms.load(defaultConfiguration, getFormsFromStorage(), exportPreferences, appPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, confPanel);
     return new ExportPanel(
-        terminationFuture,
         forms,
         form,
         appPreferences,
         exportPreferences,
-        backgroundExecutor,
         analytics
     );
   }
@@ -164,53 +175,34 @@ public class ExportPanel {
   }
 
   private void export() {
-    form.disableUI();
-    terminationFuture.reset();
-    forms.getSelectedForms()
-        .parallelStream()
-        .peek(FormStatus::clearStatusHistory)
-        .forEach(form -> {
-          String formId = form.getFormDefinition().getFormId();
-          ExportConfiguration configuration = forms.getConfiguration(formId);
-          if (configuration.resolvePullBefore())
-            forms.getTransferSettings(formId).ifPresent(sci -> NewTransferAction.transferServerToBriefcase(
-                sci,
-                terminationFuture,
-                Collections.singletonList(form),
-                appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new)
-            ));
-          ExportAction.export(
-              (BriefcaseFormDefinition) form.getFormDefinition(),
-              configuration,
-              terminationFuture
-          );
-        });
-    form.enableUI();
-  }
-
-  @EventSubscriber(eventClass = ExportSucceededWithErrorsEvent.class)
-  public void onExportSucceededWithErrorsEvent(ExportSucceededWithErrorsEvent event) {
-    analytics.event("Export", "Export", "Success with errors", null);
-  }
-
-  @EventSubscriber(eventClass = ExportFailedEvent.class)
-  public void onExportFailedEvent(ExportFailedEvent event) {
-    analytics.event("Export", "Export", "Failure", null);
-  }
-
-  @EventSubscriber(eventClass = ExportSucceededEvent.class)
-  public void onExportSucceededEvent(ExportSucceededEvent event) {
-    analytics.event("Export", "Export", "Success", null);
+    try {
+      forms.getSelectedForms()
+          .parallelStream()
+          .peek(FormStatus::clearStatusHistory)
+          .forEach(form -> {
+            String formId = form.getFormDefinition().getFormId();
+            ExportConfiguration configuration = forms.getConfiguration(formId);
+            if (configuration.resolvePullBefore())
+              forms.getTransferSettings(formId).ifPresent(sci -> NewTransferAction.transferServerToBriefcase(
+                  sci,
+                  new TerminationFuture(),
+                  Collections.singletonList(form),
+                  appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new)
+              ));
+            BriefcaseFormDefinition formDefinition = (BriefcaseFormDefinition) form.getFormDefinition();
+            ExportToCsv.export(FormDefinition.from(formDefinition), configuration, true);
+          });
+    } catch (Throwable t) {
+      log.error("Error while exporting forms", t);
+      showErrorDialog(getForm().getContainer(), "Unexpected error. See logs", "Export errors");
+    } finally {
+      form.unsetExporting();
+    }
   }
 
   @EventSubscriber(eventClass = CacheUpdateEvent.class)
   public void onCacheUpdateEvent(CacheUpdateEvent event) {
     updateForms();
-  }
-
-  @EventSubscriber(eventClass = ExportProgressEvent.class)
-  public void onExportProgressEvent(ExportProgressEvent event) {
-    form.updateExportProgressBar();
   }
 
   @EventSubscriber(eventClass = PullEvent.NewForm.class)

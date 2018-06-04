@@ -16,8 +16,18 @@
 
 package org.opendatakit.briefcase.reused;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.CopyOption;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
@@ -25,13 +35,31 @@ import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
 import java.util.stream.Stream;
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * This class holds unchecked versions of some methods in {@link Files}.
+ */
 public class UncheckedFiles {
+  private static final Logger log = LoggerFactory.getLogger(UncheckedFiles.class);
+
   public static Path createTempFile(String prefix, String suffix, FileAttribute<?>... attrs) {
     try {
       return Files.createTempFile(prefix, suffix, attrs);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  public static Path write(Path path, Stream<String> lines, OpenOption... options) {
+    try {
+      return Files.write(path, (Iterable<String>) lines::iterator, options);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -82,6 +110,22 @@ public class UncheckedFiles {
     }
   }
 
+  public static Path createTempDirectory(Path dir, String prefix, FileAttribute<?>... attrs) {
+    try {
+      return Files.createTempDirectory(dir, prefix, attrs);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  public static Path createTempDirectory(String prefix, FileAttribute<?>... attrs) {
+    try {
+      return Files.createTempDirectory(prefix, attrs);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
   public static void createFile(Path path, FileAttribute<?>... attrs) {
     try {
       Files.createFile(path, attrs);
@@ -94,4 +138,156 @@ public class UncheckedFiles {
     return Files.exists(path, options);
   }
 
+  public static byte[] readAllBytes(Path path) {
+    try {
+      return Files.readAllBytes(path);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  public static String getMd5Hash(Path file) {
+    try {
+      // CTS (6/15/2010) : stream file through digest instead of handing
+      // it the
+      // byte[]
+      MessageDigest md = MessageDigest.getInstance("MD5");
+      int chunkSize = 256;
+
+      byte[] chunk = new byte[chunkSize];
+
+      // Get the size of the file
+      long lLength = Files.size(file);
+
+      if (lLength > Integer.MAX_VALUE) {
+        log.error("File is too large");
+        return null;
+      }
+
+      int length = (int) lLength;
+
+      InputStream is = Files.newInputStream(file);
+
+      int l = 0;
+      for (l = 0; l + chunkSize < length; l += chunkSize) {
+        is.read(chunk, 0, chunkSize);
+        md.update(chunk, 0, chunkSize);
+      }
+
+      int remaining = length - l;
+      if (remaining > 0) {
+        is.read(chunk, 0, remaining);
+        md.update(chunk, 0, remaining);
+      }
+      byte[] messageDigest = md.digest();
+
+      BigInteger number = new BigInteger(1, messageDigest);
+      String md5 = number.toString(16);
+      while (md5.length() < 32)
+        md5 = "0" + md5;
+      is.close();
+      return md5;
+
+    } catch (NoSuchAlgorithmException e) {
+      log.error("MD5 calculation failed", e);
+      return null;
+
+    } catch (FileNotFoundException e) {
+      log.error("No File", e);
+      return null;
+    } catch (IOException e) {
+      log.error("Problem reading from file", e);
+      return null;
+    }
+
+  }
+
+  public static String stripFileExtension(String fileName) {
+    return fileName.contains(".")
+        ? fileName.substring(0, fileName.lastIndexOf("."))
+        : fileName;
+  }
+
+  public static long checksumOf(Path file) {
+    try {
+      return FileUtils.checksumCRC32(file.toFile());
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  public static boolean isInstanceDir(Path dir) {
+    return Files.isDirectory(dir)
+        // Instance directories follow the pattern "uuid01234567-0123-0123-0123-012345678901"
+        // ("uuid" followed by a UUID string)
+        // This is decided when forms are pulled and written into the storage directory
+        // TODO Extract into an artifact, test, and use everywhere where this convention is used
+        && dir.getFileName().toString().matches("^uuid[\\w]{8}-[\\w]{4}-[\\w]{4}-[\\w]{4}-[\\w]{12}$")
+        && Files.exists(dir.resolve("submission.xml"));
+  }
+
+  public static String readFirstLine(Path path) {
+    try (BufferedReader reader = Files.newBufferedReader(path)) {
+      return reader.readLine();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  public static URI toURI(URL url) {
+    try {
+      return url.toURI();
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static InputStream newInputStream(Path path, OpenOption... options) {
+    try {
+      return Files.newInputStream(path, options);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  public static OutputStreamWriter newOutputStreamWriter(Path path, OpenOption... options) {
+    try {
+      return new OutputStreamWriter(Files.newOutputStream(path, options));
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  public static InputStreamReader newInputStreamReader(InputStream in, String charsetName) {
+    try {
+      return new InputStreamReader(in, charsetName);
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static void append(String content, OutputStreamWriter outputStreamWriter) {
+    try {
+      outputStreamWriter.append(content);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  public static void close(OutputStreamWriter osw) {
+    try {
+      osw.flush();
+      osw.close();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  public static Stream<Path> list(Path dir) {
+    try {
+      return Files.list(dir);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
 }

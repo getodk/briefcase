@@ -17,11 +17,8 @@ package org.opendatakit.briefcase.ui.export.components;
 
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.export.ExportForms;
-import org.opendatakit.briefcase.model.ExportFailedEvent;
-import org.opendatakit.briefcase.model.ExportProgressEvent;
-import org.opendatakit.briefcase.model.ExportSucceededEvent;
-import org.opendatakit.briefcase.model.ExportSucceededWithErrorsEvent;
 
 public class ExportFormsTable {
   private final ExportFormsTableView view;
@@ -66,27 +63,14 @@ public class ExportFormsTable {
     return viewModel;
   }
 
-  @EventSubscriber(eventClass = ExportProgressEvent.class)
-  public void onExportProgressEvent(ExportProgressEvent event) {
-    forms.appendStatus(event.getFormDefinition(), event.getText(), false);
+  @EventSubscriber(eventClass = ExportEvent.class)
+  public void onExportEvent(ExportEvent event) {
+    forms.appendStatus(event);
     viewModel.refresh();
   }
 
-  @EventSubscriber(eventClass = ExportFailedEvent.class)
-  public void onExportFailedEvent(ExportFailedEvent event) {
-    forms.appendStatus(event.getFormDefinition(), "Failed", false);
-    viewModel.refresh();
-  }
-
-  @EventSubscriber(eventClass = ExportSucceededEvent.class)
-  public void onExportSucceededEvent(ExportSucceededEvent event) {
-    forms.appendStatus(event.getFormDefinition(), "Succeeded", true);
-    viewModel.refresh();
-  }
-
-  @EventSubscriber(eventClass = ExportSucceededWithErrorsEvent.class)
-  public void onExportSucceededWithErrorsEvent(ExportSucceededWithErrorsEvent event) {
-    forms.appendStatus(event.getFormDefinition(), "Succeeded, but with errors", true);
-    viewModel.refresh();
+  public void setEnabled(boolean enabled) {
+    view.setEnabled(enabled);
+    viewModel.setEnabled(enabled);
   }
 }

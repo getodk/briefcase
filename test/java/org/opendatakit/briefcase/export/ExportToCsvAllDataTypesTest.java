@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Shivam Tripathi.
+ * Copyright (C) 2018 Nafundi
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,22 +14,29 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.model;
+package org.opendatakit.briefcase.export;
 
-public class ExportProgressPercentageEvent {
-  private final double progress;
-  private final BriefcaseFormDefinition formDefinition;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-  public ExportProgressPercentageEvent(double progress, BriefcaseFormDefinition formDefinition) {
-    this.progress = progress;
-    this.formDefinition = formDefinition;
+public class ExportToCsvAllDataTypesTest {
+  private ExportToCsvScenario scenario;
+
+  @Before
+  public void setUp() {
+    scenario = ExportToCsvScenario.setUp("all-data-types");
   }
 
-  public double getProgress() {
-    return progress;
+  @After
+  public void tearDown() {
+    scenario.tearDown();
   }
 
-  public BriefcaseFormDefinition getFormDefinition() {
-    return formDefinition;
+  @Test
+  public void exports_forms_with_all_data_types() {
+    scenario.runExport();
+    scenario.assertSameContent();
   }
+
 }

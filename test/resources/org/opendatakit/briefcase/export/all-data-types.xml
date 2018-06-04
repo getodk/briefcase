@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:h="http://www.w3.org/1999/xhtml">
+  <h:head>
+    <h:title>All data types</h:title>
+    <model>
+      <instance>
+        <data id="all-data-types">
+          <some_string/>
+          <some_int/>
+          <some_decimal/>
+          <some_date/>
+          <some_time/>
+          <some_date_time/>
+          <some_geopoint/>
+          <some_geotrace/>
+          <some_geoshape/>
+          <some_barcode/>
+          <meta>
+            <instanceID/>
+          </meta>
+        </data>
+      </instance>
+      <bind nodeset="/data/some_string" type="string"/>
+      <bind nodeset="/data/some_int" type="int"/>
+      <bind nodeset="/data/some_decimal" type="decimal"/>
+      <bind nodeset="/data/some_date" type="date"/>
+      <bind nodeset="/data/some_time" type="time"/>
+      <bind nodeset="/data/some_date_time" type="dateTime"/>
+      <bind nodeset="/data/some_geopoint" type="geopoint"/>
+      <bind nodeset="/data/some_geotrace" type="geotrace"/>
+      <bind nodeset="/data/some_geoshape" type="geoshape"/>
+      <bind nodeset="/data/some_barcode" type="barcode"/>
+      <bind calculate="concat('uuid:', uuid())" nodeset="/data/meta/instanceID" readonly="true()" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <input ref="some_string"/>
+    <input ref="some_int"/>
+    <input ref="some_decimal"/>
+    <input ref="some_date"/>
+    <input ref="some_time"/>
+    <input ref="some_date_time"/>
+    <input ref="some_geopoint"/>
+    <input ref="some_geotrace"/>
+    <input ref="some_geoshape"/>
+    <input ref="some_barcode"/>
+  </h:body>
+</h:html>

@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.reused;
 
+import java.util.Objects;
+
 @SuppressWarnings("checkstyle:MethodTypeParameterName")
 public class Pair<T, U> {
   private final T left;
@@ -36,5 +38,37 @@ public class Pair<T, U> {
 
   public U getRight() {
     return right;
+  }
+
+  @Override
+  public String toString() {
+    return "Pair{" +
+        "left=" + left +
+        ", right=" + right +
+        '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
+    Pair<?, ?> pair = (Pair<?, ?>) o;
+    return Objects.equals(left, pair.left) &&
+        Objects.equals(right, pair.right);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(left, right);
+  }
+
+  public <M> Triplet<T, M, U> intersperse(M middle) {
+    return new Triplet<>(left, middle, right);
+  }
+
+  public <LL> Triplet<LL, T, U> prepend(LL newLeft) {
+    return new Triplet<>(newLeft, left, right);
   }
 }

@@ -39,7 +39,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
 
   private static final Logger log = LoggerFactory.getLogger(BriefcaseFormDefinition.class);
   private final File formFolder;
-  private final File revisedFormFile;
+  public final File revisedFormFile;
   private boolean needsMediaUpdate = false;
   private JavaRosaParserWrapper formDefn;
   private PrivateKey privateKey = null;

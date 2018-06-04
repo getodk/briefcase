@@ -21,26 +21,18 @@ import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.operations.Common.bootCache;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyPair;
-import java.security.PrivateKey;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
-import org.bouncycastle.openssl.PEMReader;
-import org.bushe.swing.event.EventBus;
+import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportToCsv;
+import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.ExportProgressEvent;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
-import org.opendatakit.briefcase.util.ExportToCsv;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
@@ -60,8 +52,7 @@ public class Export {
 
   public static Operation EXPORT_FORM = Operation.of(
       EXPORT,
-      args -> export(
-          args.get(STORAGE_DIR),
+      args -> export(args.get(STORAGE_DIR),
           args.get(FORM_ID),
           args.get(EXPORT_DIR),
           args.get(FILE),
@@ -75,7 +66,7 @@ public class Export {
       Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END)
   );
 
-  public static void export(String storageDir, String formid, Path exportPath, String baseFilename, boolean includeMediaFiles, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
+  public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
     CliEventsCompanion.attach(log);
     bootCache(storageDir);
     Optional<BriefcaseFormDefinition> maybeFormDefinition = FileSystemUtils.getBriefcaseFormList(BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir))).stream()
@@ -84,31 +75,18 @@ public class Export {
 
     BriefcaseFormDefinition formDefinition = maybeFormDefinition.orElseThrow(() -> new FormNotFoundException(formid));
 
-    if (formDefinition.isFileEncryptedForm() || formDefinition.isFieldEncryptedForm()) {
-      Path pemFile = maybePemFile
-          .filter(Files::exists)
-          .orElseThrow(() -> new BriefcaseException("Missing pem file configuration"));
-
-      try (PEMReader rdr = new PEMReader(new BufferedReader(new InputStreamReader(Files.newInputStream(pemFile), "UTF-8")))) {
-        Object o = Optional.ofNullable(rdr.readObject()).orElseThrow(() -> new BriefcaseException("Can't parse Pem file"));
-
-        Optional<PrivateKey> privKey;
-        if (o instanceof KeyPair)
-          privKey = Optional.of(((KeyPair) o).getPrivate());
-        else if (o instanceof PrivateKey)
-          privKey = Optional.of((PrivateKey) o);
-        else
-          privKey = Optional.empty();
-
-        formDefinition.setPrivateKey(privKey.orElseThrow(() -> new BriefcaseException("No private key found on Pem file")));
-        EventBus.publish(new ExportProgressEvent("Successfully parsed Pem file", formDefinition));
-      } catch (IOException e) {
-        throw new BriefcaseException("Can't parse Pem file");
-      }
-    }
-
-    System.out.println("Exporting form " + formDefinition.getFormName() + " (" + formDefinition.getFormId() + ") to: " + exportPath);
-    ExportToCsv.export(exportPath, formDefinition, baseFilename, includeMediaFiles, overwriteFiles, startDate, endDate);
+    System.out.println("Exporting form " + formDefinition.getFormName() + " (" + formDefinition.getFormId() + ") to: " + exportDir);
+    ExportConfiguration configuration = new ExportConfiguration(
+        Optional.of(baseFilename),
+        Optional.of(exportDir),
+        maybePemFile,
+        startDate,
+        endDate,
+        Optional.empty(),
+        Optional.empty(),
+        Optional.of(overwriteFiles)
+    );
+    ExportToCsv.export(FormDefinition.from(formDefinition), configuration, exportMedia);
 
     BriefcasePreferences.forClass(ExportPanel.class).put(buildExportDateTimePrefix(formDefinition.getFormId()), LocalDateTime.now().format(ISO_DATE_TIME));
   }

@@ -15,22 +15,14 @@
  */
 package org.opendatakit.briefcase.ui.export;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-
-import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.util.Optional;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
-
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanelForm;
@@ -39,8 +31,6 @@ import org.opendatakit.briefcase.ui.export.components.ExportFormsTableView;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportPanelForm {
-  private static final ScheduledExecutorService SCHEDULED_EXECUTOR = new ScheduledThreadPoolExecutor(1);
-
   private final ConfigurationPanel confPanel;
   private final ConfigurationPanelForm confPanelForm;
   private final ExportFormsTable formsTable;
@@ -53,8 +43,6 @@ public class ExportPanelForm {
   private JButton clearAllButton;
   JButton exportButton;
   private JProgressBar exportProgressBar;
-  private boolean exporting;
-  private Optional<ScheduledFuture<?>> scheduledUpdateProgressBar = Optional.empty();
 
   private ExportPanelForm(ConfigurationPanel confPanel, ExportFormsTable formsTable) {
     this.confPanel = confPanel;
@@ -65,8 +53,6 @@ public class ExportPanelForm {
 
     selectAllButton.addActionListener(__ -> formsTable.selectAll());
     clearAllButton.addActionListener(__ -> formsTable.clearAll());
-
-    exporting = false;
   }
 
   public static ExportPanelForm from(ExportForms forms, ConfigurationPanel confPanel) {
@@ -115,50 +101,26 @@ public class ExportPanelForm {
     clearAllButton.setVisible(false);
   }
 
-  public void setEnabled(boolean enabled) {
-    if (enabled) {
-      enableUI();
-    } else {
-      disableUI();
-    }
-    setExporting(exporting);
+  void setExporting() {
+    exportProgressBar.setVisible(true);
+    confPanel.setEnabled(false);
+    formsTable.setEnabled(false);
+    selectAllButton.setEnabled(false);
+    clearAllButton.setEnabled(false);
+    exportButton.setEnabled(false);
   }
 
-  private void setExporting(boolean active) {
-    if (active)
-      disableUI();
-    else
-      enableUI();
-    exporting = active;
-  }
-
-  synchronized public void updateExportProgressBar() {
-    scheduledUpdateProgressBar.ifPresent(scheduledFuture -> scheduledFuture.cancel(false));
-    scheduledUpdateProgressBar = Optional.of(SCHEDULED_EXECUTOR.schedule(this::hideExportProgressBar, 3, SECONDS));
-  }
-
-  void disableUI() {
-    for (Component c : container.getComponents())
-      c.setEnabled(false);
-    container.setEnabled(false);
-  }
-
-  void enableUI() {
-    for (Component c : container.getComponents())
-      c.setEnabled(true);
-    container.setEnabled(true);
+  void unsetExporting() {
+    exportProgressBar.setVisible(false);
+    confPanel.setEnabled(true);
+    formsTable.setEnabled(true);
+    selectAllButton.setEnabled(true);
+    clearAllButton.setEnabled(true);
+    exportButton.setEnabled(true);
   }
 
   public void refresh() {
     formsTable.refresh();
-  }
-
-  public void showExportProgressBar() {
-    exportProgressBar.setVisible(true);
-  }
-
-  public void hideExportProgressBar() {
-    exportProgressBar.setVisible(false);
   }
 
   private void createUIComponents() {

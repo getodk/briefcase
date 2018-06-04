@@ -17,8 +17,7 @@ package org.opendatakit.briefcase.operations;
 
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.ExportProgressEvent;
-import org.opendatakit.briefcase.model.ExportSucceededEvent;
+import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.push.PushEvent;
@@ -30,19 +29,14 @@ import org.slf4j.Logger;
  */
 class CliEventsCompanion {
   static void attach(Logger log) {
-    on(ExportProgressEvent.class, event -> {
-      if (event.getText().contains("Cause:")) {
-        log.warn(event.getText());
-        System.err.println(event.getText());
+    on(ExportEvent.class, event -> {
+      if (event.getStatusLine().contains("Failure:")) {
+        log.warn(event.getStatusLine());
+        System.err.println(event.getStatusLine());
       } else {
-        log.info(event.getText());
-        System.out.println(event.getText());
+        log.info(event.getStatusLine());
+        System.out.println(event.getStatusLine());
       }
-    });
-
-    on(ExportSucceededEvent.class, event -> {
-      log.info("Succeeded.");
-      System.out.println("Succeeded.");
     });
 
     on(PullEvent.Success.class, event -> {
