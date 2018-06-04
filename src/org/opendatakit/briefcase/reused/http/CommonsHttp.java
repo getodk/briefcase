@@ -29,12 +29,13 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.impl.client.AbstractResponseHandler;
 import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 public class CommonsHttp implements Http {
   @Override
   public <T> Response<T> execute(Request<T> request) {
     // Always instantiate a new Executor to avoid side-effects between executions
-    Executor executor = Executor.newInstance();
+    Executor executor = Executor.newInstance(HttpClientBuilder.create().build());
     // Apply auth settings if credentials are received
     request.ifCredentials((URL url, Credentials credentials) -> executor.auth(
         HttpHost.create(url.getHost()),
