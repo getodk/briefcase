@@ -93,11 +93,11 @@ class ConfigurationPanelPageObject {
   }
 
   void disable() {
-    GuiActionRunner.execute(component::disable);
+    GuiActionRunner.execute(() -> component.setEnabled(false));
   }
 
   void enable() {
-    GuiActionRunner.execute(component::enable);
+    GuiActionRunner.execute(() -> component.setEnabled(true));
   }
 
   public JButton choosePemFileButton() {

@@ -22,10 +22,19 @@ import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.operations.Common.bootCache;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.http.CommonsHttp;
+import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.ServerConnectionTest;
 import org.opendatakit.briefcase.util.TransferToServer;
@@ -37,6 +46,7 @@ import org.slf4j.LoggerFactory;
 public class PushFormToAggregate {
   private static final Logger log = LoggerFactory.getLogger(PushFormToAggregate.class);
   private static final Param<Void> PUSH_AGGREGATE = Param.flag("psha", "push_aggregate", "Push form to an Aggregate instance");
+  private static final Param<Void> FORCE_SEND_BLANK = Param.flag("fsb", "force_send_blank", "Force sending the blank form to the Aggregate instance");
 
   public static Operation PUSH_FORM_TO_AGGREGATE = Operation.of(
       PUSH_AGGREGATE,
@@ -45,15 +55,17 @@ public class PushFormToAggregate {
           args.get(FORM_ID),
           args.get(ODK_USERNAME),
           args.get(ODK_PASSWORD),
-          args.get(AGGREGATE_SERVER)
+          args.get(AGGREGATE_SERVER),
+          args.has(FORCE_SEND_BLANK)
       ),
-      Arrays.asList(STORAGE_DIR, FORM_ID, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER)
+      Arrays.asList(STORAGE_DIR, FORM_ID, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER),
+      Collections.singletonList(FORCE_SEND_BLANK)
   );
 
-  private static void pushFormToAggregate(String storageDir, String formid, String username, String password, String server) {
+  private static void pushFormToAggregate(String storageDir, String formid, String username, String password, String server, boolean forceSendBlank) {
     CliEventsCompanion.attach(log);
     bootCache(storageDir);
-    Optional<FormStatus> maybeFormStatus = FileSystemUtils.getBriefcaseFormList().stream()
+    Optional<FormStatus> maybeFormStatus = FileSystemUtils.getBriefcaseFormList(BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir))).stream()
         .filter(form -> form.getFormId().equals(formid))
         .map(formDef -> new FormStatus(FormStatus.TransferType.UPLOAD, formDef))
         .findFirst();
@@ -64,7 +76,23 @@ public class PushFormToAggregate {
 
     ServerConnectionTest.testPush(transferSettings);
 
-    TransferToServer.push(transferSettings, form);
+    CommonsHttp http = new CommonsHttp();
+
+    URL baseUrl;
+    try {
+      baseUrl = new URL(transferSettings.getUrl());
+    } catch (MalformedURLException e) {
+      throw new BriefcaseException(e);
+    }
+    RemoteServer remoteServer = RemoteServer.authenticated(
+        baseUrl,
+        new Credentials(
+            transferSettings.getUsername(),
+            new String(transferSettings.getPassword())
+        )
+    );
+
+    TransferToServer.push(transferSettings, http, remoteServer, forceSendBlank, form);
   }
 
 }

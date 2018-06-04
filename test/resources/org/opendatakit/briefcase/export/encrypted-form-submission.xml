@@ -1,0 +1,8 @@
+<data id="encrypted-form" encrypted="yes" instanceID="uuid:494cd080-3bf4-47be-b40f-c706a950d58a" submissionDate="2018-04-18T10:15:09.483+02" isComplete="true" markedAsCompleteDate="2018-04-18T10:15:09.483+02" xmlns="http://opendatakit.org/submissions">
+  <base64EncryptedKey>Fh1NiIx1QuRBxbuwk7OvCnFDtqMA0bwtsu0R0Y2bDBkSBZ7K/rKD5vFDSh/b42N/eMHEMyvOe2tatla0BHd8vY6F4/xM8vyLPLs76KnZr+dDiipFKRo9uyT0QPYF14TSg4u9pH5r7bv0AWK/tmTORLhFKwuDKdLbykhkSnU/hDSzVKFPZWVe7HloJARx4FwYf14DBc3cqKvukWBwtiea8REcpidwDr6fx5s40kQRUhhL114FOxNVHd2XfjC492NiYcSMZYLXbVHj2ftmv3TzDuq0yEkwMQkUMWwFCfMwA5wPCk2QeXPeElSEU86VR1y1jFPakW+v9hFdekRZh1/7Ew==</base64EncryptedKey>
+  <n0:meta xmlns:n0="http://openrosa.org/xforms">
+    <n0:instanceID>uuid:494cd080-3bf4-47be-b40f-c706a950d58a</n0:instanceID>
+  </n0:meta>
+  <encryptedXmlFile>submission.xml.enc</encryptedXmlFile>
+  <base64EncryptedElementSignature>y6C9wWP29L3xHtVYC4dt8pGrP4DkzzGmzhvdZ/XcMLtxWsNGPKUlZJi8BlNV4yQ54iN1w+l+18EGMWZlo+PanODZUhowThV4BicTdNZ4inF/WxDZSWEKudcFybHmhEf+BZ7eqF/XfpnL/YsiZNBePO/ght2yTk81ZtT7brDsz0g9ss8EQyLH5UeQ0qJyXAkP1PNt8dF7NE9vfD43JDE1fghV/nvqTtK/fBsS7JUio87p/tnoLipFx11LvY3rKao912qdmQDItbrQfpd3DXI1HeXQ7bHsz1P/VekFHstvRpH+8eWUSVXIYHDMb1uNLklyVUKQgbeQQ8Dvp+5kQ4DfSQ==</base64EncryptedElementSignature>
+</data>

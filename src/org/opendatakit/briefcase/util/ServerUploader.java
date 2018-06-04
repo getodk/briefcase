@@ -39,6 +39,8 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
+import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.util.AggregateUtils.DocumentFetchResult;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionChunk;
 import org.slf4j.Logger;
@@ -52,11 +54,17 @@ public class ServerUploader {
 
   private final ServerConnectionInfo serverInfo;
   private final TerminationFuture terminationFuture;
+  private final Http http;
+  private final RemoteServer server;
+  private final boolean forceSendBlank;
 
-  ServerUploader(ServerConnectionInfo serverInfo, TerminationFuture terminationFuture) {
+  ServerUploader(ServerConnectionInfo serverInfo, TerminationFuture terminationFuture, Http http, RemoteServer server, boolean forceSendBlank) {
     AnnotationProcessor.process(this);// if not using AOP
     this.serverInfo = serverInfo;
     this.terminationFuture = terminationFuture;
+    this.server = server;
+    this.http = http;
+    this.forceSendBlank = forceSendBlank;
   }
 
   public boolean isCancelled() {
@@ -204,7 +212,13 @@ public class ServerUploader {
       File briefcaseFormMediaDir = FileSystemUtils.getMediaDirectoryIfExists(briefcaseLfd.getFormDirectory());
 
       boolean outcome;
-      outcome = uploadForm(formToTransfer, briefcaseFormDefFile, briefcaseFormMediaDir);
+      if (forceSendBlank || !checkIfExistsAlready(formToTransfer))
+        outcome = uploadForm(formToTransfer, briefcaseFormDefFile, briefcaseFormMediaDir);
+      else {
+        formToTransfer.setStatusString("Skipping form upload to remote server because it already exists", true);
+        EventBus.publish(new FormStatusEvent(formToTransfer));
+        outcome = true;
+      }
       thisFormSuccessful = thisFormSuccessful & outcome;
       allSuccessful = allSuccessful & outcome;
 
@@ -269,6 +283,10 @@ public class ServerUploader {
       }
     }
     return allSuccessful;
+  }
+
+  private Boolean checkIfExistsAlready(FormStatus form) {
+    return server.containsForm(http, form.getFormDefinition().getFormId());
   }
 
   public boolean uploadForm(FormStatus formToTransfer, File briefcaseFormDefFile, File briefcaseFormMediaDir) {

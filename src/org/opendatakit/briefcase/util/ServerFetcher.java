@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,6 +54,7 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +72,7 @@ public class ServerFetcher {
 
   public static String SUCCESS_STATUS = "Success.";
   public static String FAILED_STATUS = "Failed.";
+  private final Path briefcaseDir;
 
   public static class FormListException extends Exception {
 
@@ -120,7 +123,8 @@ public class ServerFetcher {
     }
   }
 
-  ServerFetcher(ServerConnectionInfo serverInfo, TerminationFuture future) {
+  ServerFetcher(ServerConnectionInfo serverInfo, TerminationFuture future, Path briefcaseDir) {
+    this.briefcaseDir = briefcaseDir;
     AnnotationProcessor.process(this);// if not using AOP
     this.serverInfo = serverInfo;
     this.terminationFuture = future;
@@ -161,7 +165,7 @@ public class ServerFetcher {
         DatabaseUtils formDatabase = null;
         try {
           try {
-            briefcaseLfd = BriefcaseFormDefinition.resolveAgainstBriefcaseDefn(tmpdl);
+            briefcaseLfd = BriefcaseFormDefinition.resolveAgainstBriefcaseDefn(tmpdl, briefcaseDir.toFile());
             if (briefcaseLfd.needsMediaUpdate()) {
 
               if (fd.getManifestUrl() != null) {
@@ -222,6 +226,7 @@ public class ServerFetcher {
         if (successful) {
           fs.setStatusString(SUCCESS_STATUS, true);
           EventBus.publish(new FormStatusEvent(fs));
+          EventBus.publish(new PullEvent.NewForm(fs, serverInfo));
         } else {
           fs.setStatusString(FAILED_STATUS, true);
           EventBus.publish(new FormStatusEvent(fs));
@@ -241,7 +246,7 @@ public class ServerFetcher {
             + fd.getDownloadUrl()
             + " A network login screen may be interfering with the transmission to the server.", false);
         EventBus.publish(new FormStatusEvent(fs));
-      } catch (FileSystemException | TransmissionException | URISyntaxException e) {
+      } catch (TransmissionException | URISyntaxException e) {
         allSuccessful = false;
         log.error("error accessing form download URL", e);
         fs.setStatusString("Unexpected error: " + e.getLocalizedMessage() + " while accessing: "
@@ -249,6 +254,7 @@ public class ServerFetcher {
         EventBus.publish(new FormStatusEvent(fs));
       }
     }
+    FileSystemUtils.updateCache(briefcaseDir);
     return allSuccessful;
   }
 

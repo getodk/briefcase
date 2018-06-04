@@ -96,12 +96,8 @@ public class ConfigurationPanel {
     onChangeCallbacks.forEach(Runnable::run);
   }
 
-  public void enable() {
-    form.setEnabled(true);
-  }
-
-  public void disable() {
-    form.setEnabled(false);
+  public void setEnabled(boolean enabled) {
+    form.setEnabled(enabled);
   }
 
   public boolean isValid() {

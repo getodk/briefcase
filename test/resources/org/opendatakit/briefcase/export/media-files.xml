@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:h="http://www.w3.org/1999/xhtml">
+  <h:head>
+    <h:title>Media files</h:title>
+    <model>
+      <instance>
+        <data id="media-files">
+          <image/>
+        </data>
+      </instance>
+      <bind nodeset="/data/image" type="binary"/>
+    </model>
+  </h:head>
+  <h:body>
+    <upload ref="image" mediatype="image/*">
+      <label>Take a picture</label>
+    </upload>
+  </h:body>
+</h:html>

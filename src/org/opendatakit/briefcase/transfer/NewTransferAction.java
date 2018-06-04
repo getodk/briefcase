@@ -16,13 +16,13 @@
 
 package org.opendatakit.briefcase.transfer;
 
+import java.nio.file.Path;
 import java.util.List;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.TransferFailedEvent;
-import org.opendatakit.briefcase.model.TransferSucceededEvent;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.util.TransferFromServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,23 +30,24 @@ import org.slf4j.LoggerFactory;
 public class NewTransferAction {
   private static final Logger log = LoggerFactory.getLogger(NewTransferAction.class);
 
-  public static void transferServerToBriefcase(ServerConnectionInfo transferSettings, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) {
+  public static void transferServerToBriefcase(ServerConnectionInfo transferSettings, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Path briefcaseDir) {
     TransferFromServer action = new TransferFromServer(
         transferSettings,
         terminationFuture,
-        formsToTransfer
+        formsToTransfer,
+        briefcaseDir
     );
     try {
       boolean allSuccessful = action.doAction();
 
       if (!allSuccessful)
-        EventBus.publish(new TransferFailedEvent(false, formsToTransfer));
+        EventBus.publish(new PullEvent.Failure());
 
       if (allSuccessful)
-        EventBus.publish(TransferSucceededEvent.from(false, formsToTransfer, transferSettings));
+        EventBus.publish(new PullEvent.Success(formsToTransfer, transferSettings));
     } catch (Exception e) {
       log.error("transfer action failed", e);
-      EventBus.publish(new TransferFailedEvent(false, formsToTransfer));
+      EventBus.publish(new PullEvent.Failure());
     }
   }
 

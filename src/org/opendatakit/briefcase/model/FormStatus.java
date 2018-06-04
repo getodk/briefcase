@@ -51,6 +51,7 @@ public class FormStatus {
   }
 
   public synchronized void clearStatusHistory() {
+    statusString = "";
     statusHistory.setLength(0);
     isSuccessful = true;
   }

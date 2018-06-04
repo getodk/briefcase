@@ -15,7 +15,7 @@
  */
 package org.opendatakit.briefcase.ui.export;
 
-import static org.opendatakit.briefcase.ui.export.components.FormsTableView.SELECTED_CHECKBOX_COL;
+import static org.opendatakit.briefcase.ui.export.components.ExportFormsTableView.SELECTED_CHECKBOX_COL;
 
 import java.nio.file.Paths;
 import javax.swing.JButton;
@@ -27,7 +27,6 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
-import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.ui.reused.NoOpAnalytics;
 
 class ExportPanelPageObject {
@@ -42,10 +41,8 @@ class ExportPanelPageObject {
   static ExportPanelPageObject setUp(Robot robot) {
     ExportPanel exportPanel = GuiActionRunner.execute(() -> {
       ExportPanel ep = ExportPanel.from(
-          new TerminationFuture(),
           new BriefcasePreferences(InMemoryPreferences.empty()),
           new BriefcasePreferences(InMemoryPreferences.empty()),
-          Runnable::run,
           new NoOpAnalytics()
       );
       ep.updateForms();

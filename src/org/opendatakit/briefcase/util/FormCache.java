@@ -1,51 +1,65 @@
 package org.opendatakit.briefcase.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FormCache implements FormCacheable {
-  private final File cacheFile;
-  private Map<String, String> pathToMd5Map = new HashMap<>();
-  private Map<String, BriefcaseFormDefinition> pathToDefinitionMap = new HashMap<>();
+  private static final Logger log = LoggerFactory.getLogger(FormCache.class);
+  private static final String CACHE_FILE_NAME = "cache.ser";
+  private final Path cacheFile;
+  private final Map<String, String> pathToMd5Map;
+  private final Map<String, BriefcaseFormDefinition> pathToDefinitionMap;
+
+  public FormCache(Path cacheFile, Map<String, String> pathToMd5Map, Map<String, BriefcaseFormDefinition> pathToDefinitionMap) {
+    this.cacheFile = cacheFile;
+    this.pathToMd5Map = pathToMd5Map;
+    this.pathToDefinitionMap = pathToDefinitionMap;
+    Runtime.getRuntime().addShutdownHook(new Thread(this::save));
+  }
 
   @SuppressWarnings("unchecked")
-  public FormCache(File storagePath) {
-    cacheFile = new File(storagePath, "cache.ser");
-    if (cacheFile.exists() && cacheFile.canRead()) {
-      try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(cacheFile))) {
-        pathToMd5Map = (Map) objectInputStream.readObject();
-        pathToDefinitionMap = (Map) objectInputStream.readObject();
-      } catch (IOException | ClassNotFoundException | ClassCastException e) {
-        e.printStackTrace();
+  public static FormCache from(Path briefcaseDir) {
+    Path cacheFile = briefcaseDir.resolve(CACHE_FILE_NAME);
+    if (exists(cacheFile))
+      try (InputStream in = Files.newInputStream(cacheFile);
+           ObjectInputStream ois = new ObjectInputStream(in)) {
+        Map<String, String> pathToMd5Map = (Map<String, String>) ois.readObject();
+        Map<String, BriefcaseFormDefinition> pathToDefinitionMap = (Map<String, BriefcaseFormDefinition>) ois.readObject();
+        return new FormCache(cacheFile, pathToMd5Map, pathToDefinitionMap);
+      } catch (IOException | ClassNotFoundException e) {
+        // We can't read the forms cache file for some reason. Log it, delete it,
+        // and let the next block create it new.
+        log.warn("Can't read forms cache file", e);
+        UncheckedFiles.delete(cacheFile);
       }
-    }
-
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        save();
-      }
-    });
+    UncheckedFiles.createFile(cacheFile);
+    return new FormCache(cacheFile, new HashMap<>(), new HashMap<>());
   }
 
   private void save() {
-    if (!cacheFile.exists() || cacheFile.canWrite()) {
-      try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(cacheFile))) {
-        objectOutputStream.writeObject(pathToMd5Map);
-        objectOutputStream.writeObject(pathToDefinitionMap);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+    try (OutputStream out = Files.newOutputStream(cacheFile);
+         ObjectOutputStream oos = new ObjectOutputStream(out)) {
+      oos.writeObject(pathToMd5Map);
+      oos.writeObject(pathToDefinitionMap);
+    } catch (IOException e) {
+      throw new BriefcaseException("Can't serialize form cache", e);
     }
   }
 
@@ -61,9 +75,6 @@ public class FormCache implements FormCacheable {
 
   @Override
   public BriefcaseFormDefinition getFormFileFormDefinition(String filePath) {
-    if (pathToDefinitionMap == null) {
-      pathToDefinitionMap = new HashMap<>();
-    }
     return pathToDefinitionMap.get(filePath);
   }
 
