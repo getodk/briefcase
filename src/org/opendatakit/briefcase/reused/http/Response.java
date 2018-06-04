@@ -28,6 +28,10 @@ public interface Response<T> {
     return new Success<>(204, null);
   }
 
+  static <U> Response<U> found() {
+    return new Redirection<>(302, "Found");
+  }
+
   static <U> Response<U> unauthorized() {
     return new ClientError<>(401, "Unauthorized");
   }

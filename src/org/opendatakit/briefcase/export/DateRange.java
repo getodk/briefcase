@@ -16,6 +16,7 @@
 package org.opendatakit.briefcase.export;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
 import java.util.Optional;
 
@@ -48,20 +49,19 @@ class DateRange {
   }
 
   /**
-   * Returns whether a given {@link Temporal} is wihtin the date range
+   * Returns whether a given {@link OffsetDateTime} is within the date range
    * this instance of {@link DateRange} represents.
    * <p>
-   * Both the start and end of the date range are inclusive.
-   * <p>
-   * The given {@link Temporal} has to have a resolution of at least
-   * {@link java.time.temporal.ChronoUnit#DAYS}
+   * Both the start and end of the date range are inclusive and will be
+   * interpreted as being local dates to the given {@link OffsetDateTime} instance's
+   * time offset.
    *
-   * @param temporal the {@link Temporal} to check against this date range
-   * @return true if the given {@link Temporal} is within this date range. False otherwise.
+   * @param dateTime the {@link OffsetDateTime} to check against this date range
+   * @return true if the given {@link OffsetDateTime} is within this date range. False otherwise.
    */
-  public boolean contains(Temporal temporal) {
-    LocalDate targetDate = LocalDate.from(temporal);
-    return start.map(ld -> !ld.isAfter(targetDate)).orElse(true)
-        && end.map(ld -> !ld.isBefore(targetDate)).orElse(true);
+  public boolean contains(OffsetDateTime dateTime) {
+    LocalDate targetDate = LocalDate.from(dateTime);
+    return start.map(startDate -> !startDate.isAfter(targetDate)).orElse(true)
+        && end.map(endDate -> !endDate.isBefore(targetDate)).orElse(true);
   }
 }

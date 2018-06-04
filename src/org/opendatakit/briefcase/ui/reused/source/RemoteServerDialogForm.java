@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.ui.reused.source;
 
-import static java.awt.Cursor.DEFAULT_CURSOR;
 import static java.awt.event.KeyEvent.VK_ESCAPE;
 import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 import static javax.swing.KeyStroke.getKeyStroke;
@@ -38,6 +37,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
@@ -49,14 +49,15 @@ import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 public class RemoteServerDialogForm extends JDialog {
   private JPanel dialog;
   private JPanel actions;
-  private JButton cancelButton;
-  private JButton connectButton;
-  private JTextField urlField;
-  private JTextField usernameField;
-  private JPasswordField passwordField;
+  JButton cancelButton;
+  JButton connectButton;
+  JTextField urlField;
+  JTextField usernameField;
+  JPasswordField passwordField;
+  JProgressBar progressBar;
   private final List<Consumer<RemoteServer>> onConnectCallbacks = new ArrayList<>();
 
-  public RemoteServerDialogForm() {
+  RemoteServerDialogForm() {
     $$$setupUI$$$();
     setContentPane(dialog);
     setPreferredSize(new Dimension(500, 175));
@@ -72,12 +73,8 @@ public class RemoteServerDialogForm extends JDialog {
     cancelButton.addActionListener(e -> dispose());
 
     connectButton.addActionListener(__ -> {
-      connectButton.setEnabled(false);
-      cancelButton.setEnabled(false);
       setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
       triggerConnect();
-      connectButton.setEnabled(true);
-      cancelButton.setEnabled(true);
     });
 
     getRootPane().setDefaultButton(connectButton);
@@ -108,18 +105,30 @@ public class RemoteServerDialogForm extends JDialog {
     // TODO: place custom component creation code here
   }
 
-  public void onConnect(Consumer<RemoteServer> callback) {
+  void onConnect(Consumer<RemoteServer> callback) {
     onConnectCallbacks.add(callback);
   }
 
-  public void hideDialog() {
+  void hideDialog() {
     setVisible(false);
   }
 
-  public void enableUI() {
-    connectButton.setEnabled(true);
+  void setTestingConnection() {
+    cancelButton.setEnabled(false);
+    urlField.setEditable(false);
+    usernameField.setEditable(false);
+    passwordField.setEditable(false);
+    connectButton.setEnabled(false);
+    progressBar.setVisible(true);
+  }
+
+  void unsetTestingConnection() {
     cancelButton.setEnabled(true);
-    setCursor(Cursor.getPredefinedCursor(DEFAULT_CURSOR));
+    urlField.setEditable(true);
+    usernameField.setEditable(true);
+    passwordField.setEditable(true);
+    connectButton.setEnabled(true);
+    progressBar.setVisible(false);
   }
 
   /**
@@ -164,7 +173,7 @@ public class RemoteServerDialogForm extends JDialog {
     connectButton.setHideActionText(false);
     connectButton.setText("Connect");
     gbc = new GridBagConstraints();
-    gbc.gridx = 2;
+    gbc.gridx = 3;
     gbc.gridy = 0;
     gbc.weighty = 1.0;
     gbc.anchor = GridBagConstraints.EAST;
@@ -176,6 +185,14 @@ public class RemoteServerDialogForm extends JDialog {
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     actions.add(spacer1, gbc);
+    progressBar = new JProgressBar();
+    progressBar.setIndeterminate(true);
+    progressBar.setVisible(false);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 0;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    actions.add(progressBar, gbc);
     final JPanel spacer2 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;

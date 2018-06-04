@@ -124,7 +124,9 @@
         <children>
           <component id="eb5be" class="org.opendatakit.briefcase.ui.export.components.ExportFormsTableView" binding="formsTableForm" custom-create="true">
             <constraints/>
-            <properties/>
+            <properties>
+              <preferredScrollableViewportSize width="480" height="400"/>
+            </properties>
           </component>
         </children>
       </scrollpane>

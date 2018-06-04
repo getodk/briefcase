@@ -21,39 +21,57 @@ import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import javax.swing.SwingUtilities;
 import org.opendatakit.briefcase.reused.RemoteServer;
-import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.reused.http.Response;
 
 public class RemoteServerDialog {
-  private final RemoteServerDialogForm form;
+  final RemoteServerDialogForm form;
   private final List<Consumer<RemoteServer>> onConnectCallbacks = new ArrayList<>();
 
-  private RemoteServerDialog(RemoteServerDialogForm form, Http http) {
+  private RemoteServerDialog(RemoteServerDialogForm form, RemoteServer.Test serverTester) {
     this.form = form;
 
     this.form.onConnect(server -> {
-      Response<Boolean> response = server.testPull(http);
-      if (response.isSuccess()) {
-        triggerConnect(server);
-        form.hideDialog();
-      } else {
-        String error = response.isRedirection()
-            ? "Redirection detected.\n\nPlease, review the connection parameters and try again."
-            : response.isUnauthorized()
-            ? "Wrong credentials.\n\nPlease, review the connection parameters and try again."
-            : response.isNotFound()
-            ? "Aggregate not found.\n\nPlease, review the connection parameters and try again."
-            : "Please, review the connection parameters and try again.";
-        showErrorDialog(form, error, "Wrong connection parameters");
-      }
+      form.setTestingConnection();
+      new Thread(() -> SwingUtilities.invokeLater(() -> {
+        try {
+          Response<Boolean> response = serverTester.test(server);
+          if (response.isSuccess()) {
+            triggerConnect(server);
+            form.hideDialog();
+          } else
+            showError(
+                response.isRedirection() ? "Redirection detected" : response.isUnauthorized() ? "Wrong credentials" : response.isNotFound() ? "Aggregate not found" : "",
+                response.isRedirection() ? "Unexpected error" : "Configuration error"
+            );
+        } catch (HttpException e) {
+          showError(e.getMessage(), "Unexpected error");
+        } finally {
+          form.unsetTestingConnection();
+        }
+      })).start();
     });
   }
 
-  static RemoteServerDialog empty(Http http) {
+  private void showError(String error, String title) {
+    String maybeSeparator = error.isEmpty() ? "" : ".\n\n";
+    showErrorDialog(
+        form,
+        String.format(
+            "%s%sPlease review the connection parameters and try again.",
+            error,
+            maybeSeparator
+        ),
+        title
+    );
+  }
+
+  static RemoteServerDialog empty(RemoteServer.Test serverTester) {
     return new RemoteServerDialog(
         new RemoteServerDialogForm(),
-        http
+        serverTester
     );
   }
 

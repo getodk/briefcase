@@ -19,6 +19,7 @@ import java.util.Objects;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JTextField;
 import javax.swing.text.JTextComponent;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -78,6 +79,25 @@ public class SwingMatchers {
     };
   }
 
+  public static Matcher<JTextField> editable() {
+    return new TypeSafeMatcher<JTextField>() {
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("visible");
+      }
+
+      @Override
+      protected boolean matchesSafely(JTextField item) {
+        return item != null && item.isEditable();
+      }
+
+      @Override
+      protected void describeMismatchSafely(JTextField item, Description mismatchDescription) {
+        mismatchDescription.appendText("not editable");
+      }
+    };
+  }
+
   public static Matcher<JTextComponent> empty() {
     return new TypeSafeMatcher<JTextComponent>() {
       @Override
@@ -107,6 +127,30 @@ public class SwingMatchers {
       @Override
       protected boolean matchesSafely(JComponent item) {
         return item != null && item.isEnabled();
+      }
+
+      @Override
+      protected void describeMismatchSafely(JComponent item, Description mismatchDescription) {
+        mismatchDescription.appendText("is disabled");
+      }
+    };
+  }
+
+  public static Matcher<JComponent> disabled() {
+    return new TypeSafeMatcher<JComponent>() {
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("disabled");
+      }
+
+      @Override
+      protected boolean matchesSafely(JComponent item) {
+        return item != null && !item.isEnabled();
+      }
+
+      @Override
+      protected void describeMismatchSafely(JComponent item, Description mismatchDescription) {
+        mismatchDescription.appendText("is enabled");
       }
     };
   }

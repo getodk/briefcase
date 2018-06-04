@@ -28,6 +28,7 @@ import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -139,6 +140,11 @@ public class PushPanel {
   @EventSubscriber(eventClass = CacheUpdateEvent.class)
   public void onCacheUpdateEvent(CacheUpdateEvent event) {
     updateForms();
+    view.refresh();
+  }
+
+  @EventSubscriber(eventClass = FormStatusEvent.class)
+  public void onCacheUpdateEvent(FormStatusEvent event) {
     view.refresh();
   }
 

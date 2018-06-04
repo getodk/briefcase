@@ -18,20 +18,24 @@ package org.opendatakit.briefcase.reused.http;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Optional;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Executor;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.impl.client.AbstractResponseHandler;
 import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 public class CommonsHttp implements Http {
   @Override
   public <T> Response<T> execute(Request<T> request) {
     // Always instantiate a new Executor to avoid side-effects between executions
-    Executor executor = Executor.newInstance();
+    Executor executor = Executor.newInstance(HttpClientBuilder.create().build());
     // Apply auth settings if credentials are received
     request.ifCredentials((URL url, Credentials credentials) -> executor.auth(
         HttpHost.create(url.getHost()),
@@ -44,6 +48,8 @@ public class CommonsHttp implements Http {
 
   private Response<String> uncheckedExecute(Request<?> request, Executor executor) {
     org.apache.http.client.fluent.Request commonsRequest = getCommonsRequest(request);
+    commonsRequest.connectTimeout(10_000);
+    commonsRequest.socketTimeout(10_000);
     commonsRequest.addHeader("X-OpenRosa-Version", "1.0");
     request.headers.forEach(pair -> commonsRequest.addHeader(pair.getLeft(), pair.getRight()));
     try {
@@ -58,6 +64,10 @@ public class CommonsHttp implements Http {
               return new Response.Redirection<>(res.getStatusLine().getStatusCode(), res.getStatusLine().getReasonPhrase());
             return new Response.Success<>(res.getStatusLine().getStatusCode(), readBody(res));
           });
+    } catch (HttpHostConnectException e) {
+      throw new HttpException("Connection refused");
+    } catch (SocketTimeoutException | ConnectTimeoutException e) {
+      throw new HttpException("The connection has timed out");
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
