@@ -59,6 +59,7 @@ public class ExportConfiguration {
   private static final String PULL_BEFORE_OVERRIDE = "pullBeforeOverride";
   private static final String OVERWRITE_EXISTING_FILES = "overwriteExistingFiles";
   private static final Predicate<PullBeforeOverrideOption> ALL_EXCEPT_INHERIT = value -> value != INHERIT;
+  private Optional<String> exportFileName;
   private Optional<Path> exportDir;
   private Optional<Path> pemFile;
   private Optional<LocalDate> startDate;
@@ -67,7 +68,8 @@ public class ExportConfiguration {
   private Optional<PullBeforeOverrideOption> pullBeforeOverride;
   private Optional<Boolean> overwriteExistingFiles;
 
-  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride, Optional<Boolean> theOverwriteExistingFiles) {
+  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride, Optional<Boolean> theOverwriteExistingFiles) {
+    this.exportFileName = exportFileName;
     this.exportDir = exportDir;
     this.pemFile = pemFile;
     this.startDate = startDate;
@@ -78,11 +80,12 @@ public class ExportConfiguration {
   }
 
   public static ExportConfiguration empty() {
-    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
     return new ExportConfiguration(
+        Optional.empty(),
         prefs.nullSafeGet(EXPORT_DIR).map(Paths::get),
         prefs.nullSafeGet(PEM_FILE).map(Paths::get),
         prefs.nullSafeGet(START_DATE).map(LocalDate::parse),
@@ -95,6 +98,7 @@ public class ExportConfiguration {
 
   public static ExportConfiguration load(BriefcasePreferences prefs, String keyPrefix) {
     return new ExportConfiguration(
+        Optional.empty(),
         prefs.nullSafeGet(keyPrefix + EXPORT_DIR).map(Paths::get),
         prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get),
         prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse),
@@ -141,7 +145,7 @@ public class ExportConfiguration {
 
   public ExportConfiguration copy() {
     return new ExportConfiguration(
-        exportDir,
+        exportFileName, exportDir,
         pemFile,
         startDate,
         endDate,
@@ -359,7 +363,7 @@ public class ExportConfiguration {
 
   public ExportConfiguration fallingBackTo(ExportConfiguration defaultConfiguration) {
     return new ExportConfiguration(
-        exportDir.isPresent() ? exportDir : defaultConfiguration.exportDir,
+        exportFileName, exportDir.isPresent() ? exportDir : defaultConfiguration.exportDir,
         pemFile.isPresent() ? pemFile : defaultConfiguration.pemFile,
         startDate.isPresent() ? startDate : defaultConfiguration.startDate,
         endDate.isPresent() ? endDate : defaultConfiguration.endDate,

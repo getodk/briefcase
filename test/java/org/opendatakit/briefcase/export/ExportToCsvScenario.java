@@ -132,6 +132,7 @@ class ExportToCsvScenario {
 
   void runExport(boolean overwrite, boolean exportMedia, LocalDate startDate, LocalDate endDate, Path pemFile) {
     ExportConfiguration configuration = new ExportConfiguration(
+        Optional.empty(),
         Optional.of(outputDir.resolve("new")),
         Optional.ofNullable(pemFile),
         Optional.ofNullable(startDate),

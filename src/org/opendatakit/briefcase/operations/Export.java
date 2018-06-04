@@ -77,6 +77,7 @@ public class Export {
 
     System.out.println("Exporting form " + formDefinition.getFormName() + " (" + formDefinition.getFormId() + ") to: " + exportDir);
     ExportConfiguration configuration = new ExportConfiguration(
+        Optional.of(baseFilename),
         Optional.of(exportDir),
         maybePemFile,
         startDate,
