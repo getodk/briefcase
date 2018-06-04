@@ -441,4 +441,8 @@ public class ExportConfiguration {
     return exportDir.map(dir -> dir.resolve("media"))
         .orElseThrow(() -> new BriefcaseException("No export dir configured"));
   }
+
+  public Optional<String> getExportFileName() {
+    return exportFileName;
+  }
 }

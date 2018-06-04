@@ -81,16 +81,21 @@ public class ExportToCsv {
     // Get a Map with all the files we need to produce:
     // - One per repeat group
     // - One for the main CSV file
+    String repeatFileNameBase = configuration.getExportFileName()
+        .map(UncheckedFiles::stripFileExtension)
+        .orElse(stripIllegalChars(formDef.getFormName()));
     Map<Model, OutputStreamWriter> files = repeatGroups.stream().collect(toConcurrentMap(
         group -> group,
         group -> getOutputStreamWriter(
-            exportDir.resolve(stripIllegalChars(formDef.getFormName()) + "-" + group.getName() + ".csv"),
+            exportDir.resolve(repeatFileNameBase + "-" + group.getName() + ".csv"),
             configuration.getOverwriteExistingFiles().orElse(true),
             getRepeatHeader(group)
         )
     ));
+    String mainFileName = configuration.getExportFileName()
+        .orElse(stripIllegalChars(formDef.getFormName()) + ".csv");
     OutputStreamWriter mainFile = getOutputStreamWriter(
-        exportDir.resolve(stripIllegalChars(formDef.getFormName()) + ".csv"),
+        exportDir.resolve(mainFileName),
         configuration.getOverwriteExistingFiles().orElse(true),
         getMainHeader(formDef.getModel(), formDef.isFileEncryptedForm())
     );
