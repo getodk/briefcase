@@ -22,7 +22,6 @@ import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
 
-import java.util.Collections;
 import java.util.Optional;
 import javax.swing.JPanel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
@@ -34,25 +33,27 @@ import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.PullEvent;
-import org.opendatakit.briefcase.pull.PullForms;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.source.Source;
+import org.opendatakit.briefcase.ui.reused.source.SourcePanel;
+import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
 
 public class PullPanel {
   public static final String TAB_NAME = "Pull";
-  private final PullPanelForm view;
-  private final PullForms forms;
+  private final TransferPanelForm view;
+  private final TransferForms forms;
   private final BriefcasePreferences tabPreferences;
   private final BriefcasePreferences appPreferences;
   private final Analytics analytics;
   private TerminationFuture terminationFuture;
   private Optional<Source<?>> source;
 
-  public PullPanel(PullPanelForm view, PullForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
+  public PullPanel(TransferPanelForm view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
@@ -100,9 +101,9 @@ public class PullPanel {
   }
 
   public static PullPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
-    PullForms forms = new PullForms(Collections.emptyList());
+    TransferForms forms = TransferForms.empty();
     return new PullPanel(
-        PullPanelForm.from(http, forms),
+        TransferPanelForm.from(forms, SourcePanel.pull(http), "Pull"),
         forms,
         BriefcasePreferences.forClass(PullPanel.class),
         appPreferences,

@@ -36,20 +36,21 @@ import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.push.PushEvent;
-import org.opendatakit.briefcase.push.PushForms;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.source.Source;
 import org.opendatakit.briefcase.ui.reused.source.SourcePanel;
+import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
 import org.opendatakit.briefcase.util.FormCache;
 
 public class PushPanel {
   public static final String TAB_NAME = "Push";
-  private final PushPanelForm view;
-  private final PushForms forms;
+  private final TransferPanelForm view;
+  private final TransferForms forms;
   private final BriefcasePreferences tabPreferences;
   private final BriefcasePreferences appPreferences;
   private final FormCache formCache;
@@ -57,7 +58,7 @@ public class PushPanel {
   private TerminationFuture terminationFuture;
   private Optional<Source<?>> source;
 
-  public PushPanel(PushPanelForm view, PushForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
+  public PushPanel(TransferPanelForm view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
@@ -98,9 +99,9 @@ public class PushPanel {
   }
 
   public static PushPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
-    PushForms forms = new PushForms(toFormStatuses(formCache.getForms()));
+    TransferForms forms = TransferForms.from(toFormStatuses(formCache.getForms()));
     return new PushPanel(
-        PushPanelForm.from(http, forms),
+        TransferPanelForm.from(forms, SourcePanel.push(http), "Push"),
         forms,
         BriefcasePreferences.forClass(PushPanel.class),
         appPreferences,
