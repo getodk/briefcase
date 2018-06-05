@@ -23,6 +23,7 @@ import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
 import java.awt.Font;
 import java.awt.Insets;
 import javax.swing.JButton;
+import javax.swing.JTable;
 import org.opendatakit.briefcase.model.FormStatus;
 
 public class UI {
@@ -41,6 +42,13 @@ public class UI {
       if (!form.getStatusHistory().isEmpty())
         showDialog(getFrameForComponent(button), form.getFormDefinition(), form.getStatusHistory());
     });
+    return button;
+  }
+
+  public static JButton cellWithButton(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+    JButton button = (JButton) value;
+    button.setOpaque(true);
+    button.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
     return button;
   }
 }

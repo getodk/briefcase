@@ -28,6 +28,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
+import org.opendatakit.briefcase.ui.reused.UI;
 
 public class PushFormsTableView extends JTable {
   static final String[] HEADERS = new String[]{"", "Form Name", "Push Status", ""};
@@ -58,7 +59,7 @@ public class PushFormsTableView extends JTable {
     columns.getColumn(FORM_NAME_COL).setPreferredWidth(formNameDims.width + 25);
     columns.getColumn(PUSH_STATUS_COL).setMinWidth(pushStatusDims.width + 25);
     columns.getColumn(PUSH_STATUS_COL).setPreferredWidth(pushStatusDims.width + 25);
-    columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(PushFormsTableView::cellWithButton);
+    columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(UI::cellWithButton);
     columns.getColumn(DETAIL_BUTTON_COL).setMinWidth(40);
     columns.getColumn(DETAIL_BUTTON_COL).setMaxWidth(40);
     columns.getColumn(DETAIL_BUTTON_COL).setPreferredWidth(40);
@@ -92,13 +93,6 @@ public class PushFormsTableView extends JTable {
   @Override
   public PushFormsTableViewModel getModel() {
     return (PushFormsTableViewModel) super.getModel();
-  }
-
-  private static JButton cellWithButton(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    JButton button = (JButton) value;
-    button.setOpaque(true);
-    button.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
-    return button;
   }
 
   private static <T extends TableModel> TableRowSorter<T> sortBy(T model, int col, SortOrder order) {
