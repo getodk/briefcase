@@ -54,7 +54,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="d4136" class="org.opendatakit.briefcase.ui.pull.components.PullFormsTableView" binding="pullFormsTableView" custom-create="true">
+          <component id="d4136" class="org.opendatakit.briefcase.ui.pull.components.PullFormsTableView" binding="formsTableView" custom-create="true">
             <constraints/>
             <properties/>
           </component>
@@ -106,14 +106,14 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="79b0e" class="javax.swing.JProgressBar" binding="pullProgressBar">
+              <component id="79b0e" class="javax.swing.JProgressBar" binding="progressBar">
                 <constraints/>
                 <properties>
                   <indeterminate value="true"/>
                   <visible value="false"/>
                 </properties>
               </component>
-              <component id="eccca" class="javax.swing.JButton" binding="pullButton">
+              <component id="eccca" class="javax.swing.JButton" binding="actionButton">
                 <constraints/>
                 <properties>
                   <enabled value="false"/>

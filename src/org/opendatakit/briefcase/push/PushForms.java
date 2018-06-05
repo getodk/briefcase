@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,12 +36,21 @@ public class PushForms {
     rebuildIndex();
   }
 
+  public static PushForms empty() {
+    return new PushForms(Collections.emptyList());
+  }
+
   public static PushForms from(List<FormStatus> forms) {
     return new PushForms(forms);
   }
 
   private static String getFormId(FormStatus form) {
     return form.getFormDefinition().getFormId();
+  }
+
+  public void load(List<FormStatus> forms) {
+    this.forms = forms;
+    triggerOnChange();
   }
 
   public void merge(List<FormStatus> incomingForms) {
@@ -85,6 +95,11 @@ public class PushForms {
 
   public boolean allSelected() {
     return !forms.isEmpty() && forms.stream().allMatch(FormStatus::isSelected);
+  }
+
+  public void clear() {
+    forms = Collections.emptyList();
+    triggerOnChange();
   }
 
   private void rebuildIndex() {

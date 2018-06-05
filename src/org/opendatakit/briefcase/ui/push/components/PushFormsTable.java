@@ -17,6 +17,7 @@ package org.opendatakit.briefcase.ui.push.components;
 
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.opendatakit.briefcase.push.PushForms;
+import org.opendatakit.briefcase.ui.pull.components.PullFormsTableView;
 
 public class PushFormsTable {
   private final PushFormsTableView view;
@@ -31,8 +32,9 @@ public class PushFormsTable {
   }
 
   public static PushFormsTable from(PushForms forms) {
-    PushFormsTableViewModel viewModel = new PushFormsTableViewModel(forms);
-    return new PushFormsTable(forms, new PushFormsTableView(viewModel), viewModel);
+    String[] headers = PushFormsTableView.buildHeaders("Push");
+    PushFormsTableViewModel viewModel = new PushFormsTableViewModel(forms, headers);
+    return new PushFormsTable(forms, new PushFormsTableView(viewModel, headers), viewModel);
   }
 
   public void onChange(Runnable callback) {

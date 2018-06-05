@@ -31,23 +31,24 @@ import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.UI;
 
 public class PushFormsTableView extends JTable {
-  static final String[] HEADERS = new String[]{"", "Form Name", "Push Status", ""};
   static final Class[] TYPES = new Class[]{Boolean.class, String.class, String.class, JButton.class};
   static final boolean[] EDITABLE_COLS = new boolean[]{true, false, false, false};
 
   static final int SELECTED_CHECKBOX_COL = 0;
   static final int FORM_NAME_COL = 1;
-  static final int PUSH_STATUS_COL = 2;
+  static final int STATUS_COL = 2;
   static final int DETAIL_BUTTON_COL = 3;
+  private final String[] headers;
 
-  public PushFormsTableView(PushFormsTableViewModel model) {
+  public PushFormsTableView(PushFormsTableViewModel model, String[] headers) {
     super(model);
+    this.headers = headers;
     setName("forms");
 
     addMouseListener(new MouseAdapterBuilder().onClick(this::relayClickToButton).build());
 
-    Dimension formNameDims = getHeaderDimension(HEADERS[FORM_NAME_COL]);
-    Dimension pushStatusDims = getHeaderDimension(HEADERS[PUSH_STATUS_COL]);
+    Dimension formNameDims = getHeaderDimension(getHeader(FORM_NAME_COL));
+    Dimension statusDims = getHeaderDimension(getHeader(STATUS_COL));
 
     setRowHeight(28);
 
@@ -57,8 +58,8 @@ public class PushFormsTableView extends JTable {
     columns.getColumn(SELECTED_CHECKBOX_COL).setPreferredWidth(40);
     columns.getColumn(FORM_NAME_COL).setMinWidth(formNameDims.width + 25);
     columns.getColumn(FORM_NAME_COL).setPreferredWidth(formNameDims.width + 25);
-    columns.getColumn(PUSH_STATUS_COL).setMinWidth(pushStatusDims.width + 25);
-    columns.getColumn(PUSH_STATUS_COL).setPreferredWidth(pushStatusDims.width + 25);
+    columns.getColumn(STATUS_COL).setMinWidth(statusDims.width + 25);
+    columns.getColumn(STATUS_COL).setPreferredWidth(statusDims.width + 25);
     columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(UI::cellWithButton);
     columns.getColumn(DETAIL_BUTTON_COL).setMinWidth(40);
     columns.getColumn(DETAIL_BUTTON_COL).setMaxWidth(40);
@@ -69,6 +70,10 @@ public class PushFormsTableView extends JTable {
     TableRowSorter<PushFormsTableViewModel> sorter = sortBy(getModel(), FORM_NAME_COL, ASCENDING);
     setRowSorter(sorter);
     sorter.sort();
+  }
+
+  public static String[] buildHeaders(String actionName) {
+    return new String[]{"", "Form Name", actionName + " Status", ""};
   }
 
   private Dimension getHeaderDimension(String header) {
@@ -100,5 +105,9 @@ public class PushFormsTableView extends JTable {
     sorter.setSortsOnUpdates(true);
     sorter.setSortKeys(Collections.singletonList(new RowSorter.SortKey(col, order)));
     return sorter;
+  }
+
+  public String getHeader(int column) {
+    return headers[column];
   }
 }

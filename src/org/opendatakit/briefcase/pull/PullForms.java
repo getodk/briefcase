@@ -16,27 +16,46 @@
 package org.opendatakit.briefcase.pull;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.FormStatus;
 
 public class PullForms {
   private List<FormStatus> forms;
+  private Map<String, FormStatus> formsIndex = new HashMap<>();
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
   public PullForms(List<FormStatus> forms) {
     this.forms = forms;
+    rebuildIndex();
   }
 
   public static PullForms empty() {
     return new PullForms(Collections.emptyList());
   }
 
+  public static PullForms from(List<FormStatus> forms) {
+    return new PullForms(forms);
+  }
+
+  private static String getFormId(FormStatus form) {
+    return form.getFormDefinition().getFormId();
+  }
+
   public void load(List<FormStatus> forms) {
     this.forms = forms;
+    triggerOnChange();
+  }
+
+  public void merge(List<FormStatus> forms) {
+    this.forms.addAll(forms.stream().filter(form -> !formsIndex.containsKey(getFormId(form))).collect(toList()));
+    rebuildIndex();
     triggerOnChange();
   }
 
@@ -77,6 +96,10 @@ public class PullForms {
   public void clear() {
     forms = Collections.emptyList();
     triggerOnChange();
+  }
+
+  private void rebuildIndex() {
+    formsIndex = forms.stream().collect(toMap(PullForms::getFormId, form -> form));
   }
 
   public void onChange(Runnable callback) {

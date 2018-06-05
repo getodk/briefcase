@@ -18,7 +18,6 @@ package org.opendatakit.briefcase.ui.pull.components;
 import static java.awt.Color.DARK_GRAY;
 import static java.awt.Color.LIGHT_GRAY;
 import static org.opendatakit.briefcase.ui.pull.components.PullFormsTableView.EDITABLE_COLS;
-import static org.opendatakit.briefcase.ui.pull.components.PullFormsTableView.HEADERS;
 import static org.opendatakit.briefcase.ui.pull.components.PullFormsTableView.TYPES;
 
 import java.util.ArrayList;
@@ -36,9 +35,11 @@ public class PullFormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
   private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
   private final PullForms forms;
+  private final String[] headers;
 
-  public PullFormsTableViewModel(PullForms forms) {
+  public PullFormsTableViewModel(PullForms forms, String[] headers) {
     this.forms = forms;
+    this.headers = headers;
   }
 
   public void onChange(Runnable callback) {
@@ -66,7 +67,7 @@ public class PullFormsTableViewModel extends AbstractTableModel {
 
   @Override
   public int getColumnCount() {
-    return HEADERS.length;
+    return headers.length;
   }
 
   @Override
@@ -77,7 +78,7 @@ public class PullFormsTableViewModel extends AbstractTableModel {
         return form.isSelected();
       case PullFormsTableView.FORM_NAME_COL:
         return form.getFormName();
-      case PullFormsTableView.PULL_STATUS_COL:
+      case PullFormsTableView.STATUS_COL:
         return form.getStatusString();
       case PullFormsTableView.DETAIL_BUTTON_COL:
         return detailButtons.computeIfAbsent(form, UI::buildDetailButton);
@@ -97,7 +98,7 @@ public class PullFormsTableViewModel extends AbstractTableModel {
         form.setSelected(isSelected);
         triggerChange();
         break;
-      case PullFormsTableView.PULL_STATUS_COL:
+      case PullFormsTableView.STATUS_COL:
         form.setStatusString((String) aValue, true);
         break;
       default:
@@ -108,7 +109,7 @@ public class PullFormsTableViewModel extends AbstractTableModel {
 
   @Override
   public String getColumnName(int column) {
-    return HEADERS[column];
+    return headers[column];
   }
 
   @Override

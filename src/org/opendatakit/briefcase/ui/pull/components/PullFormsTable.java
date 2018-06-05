@@ -31,8 +31,9 @@ public class PullFormsTable {
   }
 
   public static PullFormsTable from(PullForms forms) {
-    PullFormsTableViewModel viewModel = new PullFormsTableViewModel(forms);
-    return new PullFormsTable(forms, new PullFormsTableView(viewModel), viewModel);
+    String[] headers = PullFormsTableView.buildHeaders("Pull");
+    PullFormsTableViewModel viewModel = new PullFormsTableViewModel(forms, headers);
+    return new PullFormsTable(forms, new PullFormsTableView(viewModel, headers), viewModel);
   }
 
   public void onChange(Runnable callback) {

@@ -39,12 +39,8 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
-import org.opendatakit.briefcase.ui.pull.components.PullFormsTable;
-import org.opendatakit.briefcase.ui.pull.components.PullFormsTableView;
-import org.opendatakit.briefcase.ui.pull.components.PullFormsTableViewModel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.source.Source;
-import org.opendatakit.briefcase.ui.reused.source.SourcePanel;
 
 public class PullPanel {
   public static final String TAB_NAME = "Pull";
@@ -94,8 +90,8 @@ public class PullPanel {
 
     view.onChange(this::updateActionButtons);
 
-    view.onPull(() -> {
-      view.setPulling();
+    view.onAction(() -> {
+      view.setWorking();
       forms.forEach(FormStatus::clearStatusHistory);
       source.ifPresent(s -> s.pull(forms.getSelectedForms(), terminationFuture, appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new)));
     });
@@ -104,14 +100,10 @@ public class PullPanel {
   }
 
   public static PullPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
-    PullForms pullForms = new PullForms(Collections.emptyList());
-    PullFormsTableViewModel pullFormsTableViewModel = new PullFormsTableViewModel(pullForms);
-    PullFormsTableView pullFormsTableView = new PullFormsTableView(pullFormsTableViewModel);
-    PullFormsTable pullFormsTable = new PullFormsTable(pullForms, pullFormsTableView, pullFormsTableViewModel);
-    SourcePanel sourcePanel = SourcePanel.pull(http);
+    PullForms forms = new PullForms(Collections.emptyList());
     return new PullPanel(
-        new PullPanelForm(sourcePanel, pullFormsTable),
-        pullForms,
+        PullPanelForm.from(http, forms),
+        forms,
         BriefcasePreferences.forClass(PullPanel.class),
         appPreferences,
         terminationFuture,
@@ -125,9 +117,9 @@ public class PullPanel {
 
   private void updateActionButtons() {
     if (source.isPresent() && forms.someSelected())
-      view.enablePull();
+      view.enableAction();
     else
-      view.disablePull();
+      view.disableAction();
     if (forms.isEmpty())
       view.disableSelectAll();
     else
@@ -163,7 +155,7 @@ public class PullPanel {
   @EventSubscriber(eventClass = PullEvent.Failure.class)
   public void onPullFailure(PullEvent.Failure event) {
     terminationFuture.reset();
-    view.unsetPulling();
+    view.unsetWorking();
     updateActionButtons();
     analytics.event("Pull", "Transfer", "Failure", null);
   }
@@ -171,7 +163,7 @@ public class PullPanel {
   @EventSubscriber(eventClass = PullEvent.Success.class)
   public void onPullSuccess(PullEvent.Success event) {
     terminationFuture.reset();
-    view.unsetPulling();
+    view.unsetWorking();
     updateActionButtons();
     if (getStorePasswordsConsentProperty()) {
       if (event.transferSettings.isPresent()) {

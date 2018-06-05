@@ -41,9 +41,6 @@ import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
-import org.opendatakit.briefcase.ui.push.components.PushFormsTable;
-import org.opendatakit.briefcase.ui.push.components.PushFormsTableView;
-import org.opendatakit.briefcase.ui.push.components.PushFormsTableViewModel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.source.Source;
 import org.opendatakit.briefcase.ui.reused.source.SourcePanel;
@@ -91,8 +88,8 @@ public class PushPanel {
 
     view.onChange(this::updateActionButtons);
 
-    view.onPush(() -> {
-      view.setPushing();
+    view.onAction(() -> {
+      view.setWorking();
       forms.forEach(FormStatus::clearStatusHistory);
       source.ifPresent(s -> s.push(forms.getSelectedForms(), terminationFuture));
     });
@@ -101,14 +98,10 @@ public class PushPanel {
   }
 
   public static PushPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
-    PushForms pushForms = new PushForms(toFormStatuses(formCache.getForms()));
-    PushFormsTableViewModel pushFormsTableViewModel = new PushFormsTableViewModel(pushForms);
-    PushFormsTableView pushFormsTableView = new PushFormsTableView(pushFormsTableViewModel);
-    PushFormsTable pushFormsTable = new PushFormsTable(pushForms, pushFormsTableView, pushFormsTableViewModel);
-    SourcePanel sourcePanel = SourcePanel.push(http);
+    PushForms forms = new PushForms(toFormStatuses(formCache.getForms()));
     return new PushPanel(
-        new PushPanelForm(sourcePanel, pushFormsTable),
-        pushForms,
+        PushPanelForm.from(http, forms),
+        forms,
         BriefcasePreferences.forClass(PushPanel.class),
         appPreferences,
         terminationFuture,
@@ -129,9 +122,9 @@ public class PushPanel {
 
   private void updateActionButtons() {
     if (source.isPresent() && forms.someSelected())
-      view.enablePush();
+      view.enableAction();
     else
-      view.disablePush();
+      view.disableAction();
     if (forms.isEmpty())
       view.disableSelectAll();
     else
@@ -178,7 +171,7 @@ public class PushPanel {
   @EventSubscriber(eventClass = PushEvent.Failure.class)
   public void onPushFailure(PushEvent.Failure event) {
     terminationFuture.reset();
-    view.unsetPushing();
+    view.unsetWorking();
     updateActionButtons();
     analytics.event("Push", "Transfer", "Failure", null);
   }
@@ -186,7 +179,7 @@ public class PushPanel {
   @EventSubscriber(eventClass = PushEvent.Success.class)
   public void onPushSuccess(PushEvent.Success event) {
     terminationFuture.reset();
-    view.unsetPushing();
+    view.unsetWorking();
     updateActionButtons();
     if (getStorePasswordsConsentProperty() && event.transferSettings.isPresent()) {
       event.forms.forEach(form -> {

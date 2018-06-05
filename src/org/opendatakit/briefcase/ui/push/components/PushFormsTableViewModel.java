@@ -18,10 +18,8 @@ package org.opendatakit.briefcase.ui.push.components;
 import static java.awt.Color.DARK_GRAY;
 import static java.awt.Color.LIGHT_GRAY;
 import static org.opendatakit.briefcase.ui.push.components.PushFormsTableView.EDITABLE_COLS;
-import static org.opendatakit.briefcase.ui.push.components.PushFormsTableView.HEADERS;
 import static org.opendatakit.briefcase.ui.push.components.PushFormsTableView.TYPES;
 
-import java.awt.Font;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,18 +29,17 @@ import javax.swing.table.AbstractTableModel;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.push.PushForms;
 import org.opendatakit.briefcase.ui.export.components.ExportFormsTableView;
-import org.opendatakit.briefcase.ui.reused.FontUtils;
 import org.opendatakit.briefcase.ui.reused.UI;
 
 public class PushFormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
   private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
   private final PushForms forms;
+  private final String[] headers;
 
-  private static final Font ic_receipt = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
-
-  public PushFormsTableViewModel(PushForms forms) {
+  public PushFormsTableViewModel(PushForms forms, String[] headers) {
     this.forms = forms;
+    this.headers = headers;
   }
 
   public void onChange(Runnable callback) {
@@ -70,7 +67,7 @@ public class PushFormsTableViewModel extends AbstractTableModel {
 
   @Override
   public int getColumnCount() {
-    return HEADERS.length;
+    return headers.length;
   }
 
   @Override
@@ -81,7 +78,7 @@ public class PushFormsTableViewModel extends AbstractTableModel {
         return form.isSelected();
       case PushFormsTableView.FORM_NAME_COL:
         return form.getFormName();
-      case PushFormsTableView.PUSH_STATUS_COL:
+      case PushFormsTableView.STATUS_COL:
         return form.getStatusString();
       case PushFormsTableView.DETAIL_BUTTON_COL:
         return detailButtons.computeIfAbsent(form, UI::buildDetailButton);
@@ -101,7 +98,7 @@ public class PushFormsTableViewModel extends AbstractTableModel {
         form.setSelected(isSelected);
         triggerChange();
         break;
-      case PushFormsTableView.PUSH_STATUS_COL:
+      case PushFormsTableView.STATUS_COL:
         form.setStatusString((String) aValue, true);
         break;
       default:
@@ -112,7 +109,7 @@ public class PushFormsTableViewModel extends AbstractTableModel {
 
   @Override
   public String getColumnName(int column) {
-    return HEADERS[column];
+    return headers[column];
   }
 
   @Override

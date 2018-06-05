@@ -29,7 +29,9 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
+import org.opendatakit.briefcase.push.PushForms;
 import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.push.components.PushFormsTable;
 import org.opendatakit.briefcase.ui.push.components.PushFormsTableView;
 import org.opendatakit.briefcase.ui.reused.source.Source;
@@ -43,29 +45,36 @@ public class PushPanelForm {
   private SourcePanelForm sourcePanelForm;
   private JPanel top;
   private JPanel actions;
-  private final PushFormsTable pushFormsTable;
-  private final PushFormsTableView pushFormsTableView;
+  private final PushFormsTable formsTable;
+  private final PushFormsTableView formsTableView;
   private JScrollPane scrollPane;
   private JButton selectAllButton;
   private JButton clearAllButton;
-  private JButton pushButton;
+  private JButton actionButton;
   private JButton cancelButton;
   private JPanel leftActions;
   private JPanel rightActions;
-  private JProgressBar pushProgressBar;
-  private boolean pushing = false;
+  private JProgressBar progressBar;
+  private boolean working = false;
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
-  public PushPanelForm(SourcePanel sourcePanel, PushFormsTable pushFormsTable) {
+  public PushPanelForm(SourcePanel sourcePanel, PushFormsTable formsTable, String actionName) {
     this.sourcePanel = sourcePanel;
     this.sourcePanelForm = sourcePanel.getContainer();
-    this.pushFormsTable = pushFormsTable;
-    this.pushFormsTableView = pushFormsTable.getView();
+    this.formsTable = formsTable;
+    this.formsTableView = formsTable.getView();
     $$$setupUI$$$();
+    actionButton.setText(actionName);
 
-    pushFormsTable.onChange(this::triggerOnChange);
-    selectAllButton.addActionListener(__ -> pushFormsTable.selectAll());
-    clearAllButton.addActionListener(__ -> pushFormsTable.clearAll());
+    formsTable.onChange(this::triggerOnChange);
+    selectAllButton.addActionListener(__ -> formsTable.selectAll());
+    clearAllButton.addActionListener(__ -> formsTable.clearAll());
+  }
+
+  public static PushPanelForm from(Http http, PushForms forms) {
+    PushFormsTable formsTable = PushFormsTable.from(forms);
+    SourcePanel sourcePanel = SourcePanel.pull(http);
+    return new PushPanelForm(sourcePanel, formsTable, "Push");
   }
 
   public void onSource(Consumer<Source<?>> callback) {
@@ -84,8 +93,8 @@ public class PushPanelForm {
     onChangeCallbacks.add(runnable);
   }
 
-  public void onPush(Runnable callback) {
-    pushButton.addActionListener(__ -> callback.run());
+  public void onAction(Runnable callback) {
+    actionButton.addActionListener(__ -> callback.run());
   }
 
   public void onCancel(Runnable callback) {
@@ -93,7 +102,7 @@ public class PushPanelForm {
   }
 
   public void refresh() {
-    pushFormsTable.refresh();
+    formsTable.refresh();
   }
 
   public void showClearAll() {
@@ -107,43 +116,43 @@ public class PushPanelForm {
   }
 
   public void enableSelectAll() {
-    selectAllButton.setEnabled(!pushing);
+    selectAllButton.setEnabled(!working);
   }
 
   public void disableSelectAll() {
     selectAllButton.setEnabled(false);
   }
 
-  public void enablePush() {
-    pushButton.setEnabled(!pushing);
+  public void enableAction() {
+    actionButton.setEnabled(!working);
   }
 
-  public void disablePush() {
-    pushButton.setEnabled(false);
+  public void disableAction() {
+    actionButton.setEnabled(false);
   }
 
-  public void setPushing() {
-    pushing = true;
-    pushProgressBar.setVisible(true);
+  public void setWorking() {
+    working = true;
+    progressBar.setVisible(true);
     sourcePanel.disableInteraction();
-    pushFormsTable.disableInteraction();
+    formsTable.disableInteraction();
     selectAllButton.setEnabled(false);
     clearAllButton.setEnabled(false);
     cancelButton.setVisible(true);
     cancelButton.setEnabled(true);
-    pushButton.setVisible(false);
+    actionButton.setVisible(false);
   }
 
-  public void unsetPushing() {
-    pushing = false;
-    pushProgressBar.setVisible(false);
+  public void unsetWorking() {
+    working = false;
+    progressBar.setVisible(false);
     sourcePanel.enableInteraction();
-    pushFormsTable.enableInteraction();
+    formsTable.enableInteraction();
     selectAllButton.setEnabled(true);
     clearAllButton.setEnabled(true);
     cancelButton.setVisible(false);
     cancelButton.setEnabled(false);
-    pushButton.setVisible(true);
+    actionButton.setVisible(true);
   }
 
   public Optional<Source<?>> preloadSource(RemoteServer server) {
@@ -207,7 +216,7 @@ public class PushPanelForm {
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(scrollPane, gbc);
-    scrollPane.setViewportView(pushFormsTableView);
+    scrollPane.setViewportView(formsTableView);
     actions = new JPanel();
     actions.setLayout(new GridBagLayout());
     gbc = new GridBagConstraints();
@@ -244,14 +253,14 @@ public class PushPanelForm {
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.BOTH;
     actions.add(rightActions, gbc);
-    pushProgressBar = new JProgressBar();
-    pushProgressBar.setIndeterminate(true);
-    pushProgressBar.setVisible(false);
-    rightActions.add(pushProgressBar);
-    pushButton = new JButton();
-    pushButton.setEnabled(false);
-    pushButton.setText("Push");
-    rightActions.add(pushButton);
+    progressBar = new JProgressBar();
+    progressBar.setIndeterminate(true);
+    progressBar.setVisible(false);
+    rightActions.add(progressBar);
+    actionButton = new JButton();
+    actionButton.setEnabled(false);
+    actionButton.setText("Push");
+    rightActions.add(actionButton);
     cancelButton = new JButton();
     cancelButton.setText("Cancel");
     cancelButton.setVisible(false);
