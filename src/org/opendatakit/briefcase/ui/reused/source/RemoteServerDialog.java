@@ -68,9 +68,9 @@ public class RemoteServerDialog {
     );
   }
 
-  static RemoteServerDialog empty(RemoteServer.Test serverTester) {
+  static RemoteServerDialog empty(RemoteServer.Test serverTester, String requiredPermission) {
     return new RemoteServerDialog(
-        new RemoteServerDialogForm(),
+        new RemoteServerDialogForm(requiredPermission),
         serverTester
     );
   }

@@ -39,6 +39,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.RemoteServer;
@@ -55,12 +56,14 @@ public class RemoteServerDialogForm extends JDialog {
   JTextField usernameField;
   JPasswordField passwordField;
   JProgressBar progressBar;
+  private JTextPane accountTipTextPane;
   private final List<Consumer<RemoteServer>> onConnectCallbacks = new ArrayList<>();
 
-  RemoteServerDialogForm() {
+  RemoteServerDialogForm(String requiredPermission) {
     $$$setupUI$$$();
+    accountTipTextPane.setText("Username cannot be a Google login; it must be an ODK Aggregate username with \"" + requiredPermission + "\" permissions");
     setContentPane(dialog);
-    setPreferredSize(new Dimension(500, 175));
+    setPreferredSize(new Dimension(500, 240));
     setModal(true);
     pack();
     setLocationRelativeTo(null);
@@ -78,6 +81,7 @@ public class RemoteServerDialogForm extends JDialog {
     });
 
     getRootPane().setDefaultButton(connectButton);
+
   }
 
   private void triggerConnect() {
@@ -146,7 +150,7 @@ public class RemoteServerDialogForm extends JDialog {
     GridBagConstraints gbc;
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 2;
+    gbc.gridy = 4;
     gbc.gridwidth = 3;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
@@ -196,20 +200,20 @@ public class RemoteServerDialogForm extends JDialog {
     final JPanel spacer2 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 3;
+    gbc.gridy = 5;
     gbc.gridwidth = 3;
     gbc.fill = GridBagConstraints.VERTICAL;
     dialog.add(spacer2, gbc);
     final JPanel spacer3 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 4;
-    gbc.gridy = 1;
+    gbc.gridy = 3;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     dialog.add(spacer3, gbc);
     final JPanel spacer4 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 1;
+    gbc.gridy = 3;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     dialog.add(spacer4, gbc);
     final JPanel panel2 = new JPanel();
@@ -280,8 +284,9 @@ public class RemoteServerDialogForm extends JDialog {
     panel2.add(spacer7, gbc);
     final JPanel spacer8 = new JPanel();
     gbc = new GridBagConstraints();
-    gbc.gridx = 3;
+    gbc.gridx = 0;
     gbc.gridy = 0;
+    gbc.gridwidth = 4;
     gbc.fill = GridBagConstraints.VERTICAL;
     panel2.add(spacer8, gbc);
     passwordField = new JPasswordField();
@@ -295,11 +300,31 @@ public class RemoteServerDialogForm extends JDialog {
     panel2.add(passwordField, gbc);
     final JPanel spacer9 = new JPanel();
     gbc = new GridBagConstraints();
-    gbc.gridx = 3;
-    gbc.gridy = 1;
+    gbc.gridx = 1;
+    gbc.gridy = 3;
+    gbc.gridwidth = 3;
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.VERTICAL;
     dialog.add(spacer9, gbc);
+    final JPanel spacer10 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 1;
+    gbc.gridy = 1;
+    gbc.gridwidth = 3;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    dialog.add(spacer10, gbc);
+    accountTipTextPane = new JTextPane();
+    accountTipTextPane.setEditable(false);
+    accountTipTextPane.setMinimumSize(new Dimension(600, 60));
+    accountTipTextPane.setOpaque(false);
+    accountTipTextPane.setPreferredSize(new Dimension(600, 60));
+    accountTipTextPane.setText("Username cannot be a Google login; it must be an ODK Aggregate username with \"Form Manager\" permissions");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 1;
+    gbc.gridy = 2;
+    gbc.gridwidth = 3;
+    gbc.fill = GridBagConstraints.BOTH;
+    dialog.add(accountTipTextPane, gbc);
   }
 
   /**
