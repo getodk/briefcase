@@ -17,14 +17,11 @@ package org.opendatakit.briefcase.ui.push.components;
 
 import static java.awt.Color.DARK_GRAY;
 import static java.awt.Color.LIGHT_GRAY;
-import static javax.swing.JOptionPane.getFrameForComponent;
-import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
 import static org.opendatakit.briefcase.ui.push.components.PushFormsTableView.EDITABLE_COLS;
 import static org.opendatakit.briefcase.ui.push.components.PushFormsTableView.HEADERS;
 import static org.opendatakit.briefcase.ui.push.components.PushFormsTableView.TYPES;
 
 import java.awt.Font;
-import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +32,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.push.PushForms;
 import org.opendatakit.briefcase.ui.export.components.ExportFormsTableView;
 import org.opendatakit.briefcase.ui.reused.FontUtils;
+import org.opendatakit.briefcase.ui.reused.UI;
 
 public class PushFormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
@@ -59,22 +57,6 @@ public class PushFormsTableViewModel extends AbstractTableModel {
 
   private void triggerChange() {
     onChangeCallbacks.forEach(Runnable::run);
-  }
-
-  @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
-  private JButton buildDetailButton(FormStatus form) {
-    // Use custom fonts instead of png for easier scaling
-    JButton button = new JButton("\uE900");
-    button.setFont(ic_receipt); // custom font that overrides  with a receipt icon
-    button.setToolTipText("View this form's status history");
-    button.setMargin(new Insets(0, 0, 0, 0));
-
-    button.setForeground(LIGHT_GRAY);
-    button.addActionListener(__ -> {
-      if (!form.getStatusHistory().isEmpty())
-        showDialog(getFrameForComponent(button), form.getFormDefinition(), form.getStatusHistory());
-    });
-    return button;
   }
 
   private void updateDetailButton(FormStatus form, JButton button) {
@@ -102,7 +84,7 @@ public class PushFormsTableViewModel extends AbstractTableModel {
       case PushFormsTableView.PUSH_STATUS_COL:
         return form.getStatusString();
       case PushFormsTableView.DETAIL_BUTTON_COL:
-        return detailButtons.computeIfAbsent(form, this::buildDetailButton);
+        return detailButtons.computeIfAbsent(form, UI::buildDetailButton);
       default:
         throw new IllegalStateException("unexpected column choice");
     }

@@ -19,8 +19,6 @@ import static java.awt.Color.DARK_GRAY;
 import static java.awt.Color.LIGHT_GRAY;
 import static java.time.format.DateTimeFormatter.ofLocalizedDateTime;
 import static java.time.format.FormatStyle.SHORT;
-import static javax.swing.JOptionPane.getFrameForComponent;
-import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
 import static org.opendatakit.briefcase.ui.export.components.ExportFormsTableView.EDITABLE_COLS;
 import static org.opendatakit.briefcase.ui.export.components.ExportFormsTableView.HEADERS;
 import static org.opendatakit.briefcase.ui.export.components.ExportFormsTableView.TYPES;
@@ -39,6 +37,7 @@ import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.ui.reused.FontUtils;
+import org.opendatakit.briefcase.ui.reused.UI;
 
 public class ExportFormsTableViewModel extends AbstractTableModel {
   private static final Color NO_CONF_OVERRIDE_COLOR = new Color(0, 128, 0);
@@ -48,7 +47,6 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
   private final ExportForms forms;
 
   private static final Font ic_settings = FontUtils.getCustomFont("ic_settings.ttf", 16f);
-  private static final Font ic_receipt = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
   private boolean enabled = true;
 
   ExportFormsTableViewModel(ExportForms forms) {
@@ -67,22 +65,6 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
 
   public void triggerChange() {
     onChangeCallbacks.forEach(Runnable::run);
-  }
-
-  @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
-  private JButton buildDetailButton(FormStatus form) {
-    // Use custom fonts instead of png for easier scaling
-    JButton button = new JButton("\uE900");
-    button.setFont(ic_receipt); // custom font that overrides  with a receipt icon
-    button.setToolTipText("View this form's status history");
-    button.setMargin(new Insets(0, 0, 0, 0));
-
-    button.setForeground(LIGHT_GRAY);
-    button.addActionListener(__ -> {
-      if (!form.getStatusHistory().isEmpty())
-        showDialog(getFrameForComponent(button), form.getFormDefinition(), form.getStatusHistory());
-    });
-    return button;
   }
 
   @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
@@ -161,7 +143,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
             .map(dateTime -> dateTime.format(ofLocalizedDateTime(SHORT, SHORT)))
             .orElse("Not exported yet");
       case ExportFormsTableView.DETAIL_BUTTON_COL:
-        return detailButtons.computeIfAbsent(form, this::buildDetailButton);
+        return detailButtons.computeIfAbsent(form, UI::buildDetailButton);
       default:
         throw new IllegalStateException("unexpected column choice");
     }
