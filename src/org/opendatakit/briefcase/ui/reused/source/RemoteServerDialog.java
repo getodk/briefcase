@@ -20,10 +20,11 @@ import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
-import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+
 import org.opendatakit.briefcase.reused.RemoteServer;
-import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.reused.http.Response;
 
 public class RemoteServerDialog {
@@ -35,23 +36,33 @@ public class RemoteServerDialog {
 
     this.form.onConnect(server -> {
       form.setTestingConnection();
-      new Thread(() -> SwingUtilities.invokeLater(() -> {
-        try {
-          Response<Boolean> response = serverTester.test(server);
-          if (response.isSuccess()) {
-            triggerConnect(server);
-            form.hideDialog();
-          } else
-            showError(
-                response.isRedirection() ? "Redirection detected" : response.isUnauthorized() ? "Wrong credentials" : response.isNotFound() ? "Aggregate not found" : "",
-                response.isRedirection() ? "Unexpected error" : "Configuration error"
-            );
-        } catch (HttpException e) {
-          showError(e.getMessage(), "Unexpected error");
-        } finally {
+
+      new SwingWorker<Response<Boolean>, Void>() {
+        @Override protected Response<Boolean> doInBackground() {
+          return serverTester.test(server);
+        }
+
+        @Override protected void done() {
+          try {
+            Response<Boolean> response = get();
+            if (response.isSuccess()) {
+              triggerConnect(server);
+              form.hideDialog();
+            } else
+              showError(
+                  response.isRedirection() ? "Redirection detected" : response.isUnauthorized() ? "Wrong credentials" : response.isNotFound() ? "Aggregate not found" : "",
+                  response.isRedirection() ? "Unexpected error" : "Configuration error"
+              );
+          } catch (InterruptedException ignore) {
+            // Ignore
+          } catch (ExecutionException e) {
+            if (e.getCause() != null) {
+              showError(e.getCause().getMessage(), "Unexpected error");
+            }
+          }
           form.unsetTestingConnection();
         }
-      })).start();
+      }.execute();
     });
   }
 
