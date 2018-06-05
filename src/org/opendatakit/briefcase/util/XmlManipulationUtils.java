@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.util;
 
+import static org.opendatakit.common.utils.WebUtils.parseDate;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -778,9 +780,9 @@ public class XmlManipulationUtils {
       }
 
       if (name.equals(SUBMISSION_DATE_ATTRIBUTE_NAME)) {
-        Date oldDate = WebUtils.parseDate(submissionDate);
+        Date oldDate = parseDate(submissionDate);
         String returnDate = root.getAttributeValue(i);
-        Date newDate = WebUtils.parseDate(returnDate);
+        Date newDate = parseDate(returnDate);
         // cross-platform datetime resolution is 1 second.
         if (Math.abs(newDate.getTime() - oldDate.getTime()) > 1000L) {
           String msg = "Original submission file's submissionDate does not match that on server!";

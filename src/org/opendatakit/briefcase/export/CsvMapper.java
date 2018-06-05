@@ -31,7 +31,7 @@ import static org.opendatakit.briefcase.export.FieldMapper.simpleMapper;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.getMd5Hash;
-import static org.opendatakit.briefcase.util.WebUtils.parseDate;
+import static org.opendatakit.common.utils.WebUtils.parseDate;
 
 import java.io.File;
 import java.nio.file.Files;
