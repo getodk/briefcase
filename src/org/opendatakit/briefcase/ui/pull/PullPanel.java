@@ -40,7 +40,6 @@ import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.source.Source;
-import org.opendatakit.briefcase.ui.reused.source.SourcePanel;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
 
 public class PullPanel {
@@ -103,7 +102,7 @@ public class PullPanel {
   public static PullPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
     TransferForms forms = TransferForms.empty();
     return new PullPanel(
-        TransferPanelForm.from(forms, SourcePanel.pull(http), "Pull"),
+        TransferPanelForm.pull(http, forms),
         forms,
         BriefcasePreferences.forClass(PullPanel.class),
         appPreferences,

@@ -43,7 +43,6 @@ import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.source.Source;
-import org.opendatakit.briefcase.ui.reused.source.SourcePanel;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
 import org.opendatakit.briefcase.util.FormCache;
 
@@ -101,7 +100,7 @@ public class PushPanel {
   public static PushPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
     TransferForms forms = TransferForms.from(toFormStatuses(formCache.getForms()));
     return new PushPanel(
-        TransferPanelForm.from(forms, SourcePanel.push(http), "Push"),
+        TransferPanelForm.push(http, forms),
         forms,
         BriefcasePreferences.forClass(PushPanel.class),
         appPreferences,
