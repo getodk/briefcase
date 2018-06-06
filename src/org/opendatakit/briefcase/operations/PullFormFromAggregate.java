@@ -88,7 +88,6 @@ public class PullFormFromAggregate {
     FormStatus form = maybeForm.get();
     EventBus.publish(new StartPullEvent(form));
     TransferFromServer.pull(transferSettings, briefcaseDir, form);
-    // The form cache should update and save itself now
   }
 
 }

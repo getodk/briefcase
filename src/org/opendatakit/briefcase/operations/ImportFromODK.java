@@ -57,6 +57,5 @@ public class ImportFromODK {
         .collect(toList());
 
     TransferFromODK.pull(briefcaseDir, odkDir, forms);
-    // The form cache should update and save itself now
   }
 }
