@@ -33,15 +33,12 @@ import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportToCsvTest;
 
 public class FormCacheTest {
-
-  private Path cacheFile;
   private Path briefcaseDir;
   private Path formsDir;
 
   @Before
   public void setUp() throws IOException {
     briefcaseDir = Files.createTempDirectory("briefcase_test");
-    cacheFile = briefcaseDir.resolve("cache.ser");
     formsDir = briefcaseDir.resolve("forms");
     Files.createDirectories(formsDir);
   }
@@ -82,6 +79,31 @@ public class FormCacheTest {
     assertThat(cache.getForms().size(), is(1));
   }
 
+  @Test
+  public void can_serialize_and_deserialize_itself() throws IOException {
+    installForm("simple-form");
+    installForm("nested-repeats");
+
+    FormCache cache = FormCache.empty();
+    cache.setLocation(briefcaseDir);
+
+    FormCache deserializedCache = FormCache.from(briefcaseDir);
+
+    assertThat(cache.getForms(), is(deserializedCache.getForms()));
+  }
+
+  @Test
+  public void can_empty_itself_when_unsetting_the_location() throws IOException {
+    installForm("simple-form");
+    installForm("nested-repeats");
+    FormCache cache = FormCache.empty();
+    cache.setLocation(briefcaseDir);
+
+    cache.unsetLocation();
+
+    assertThat(cache.getForms(), is(empty()));
+  }
+
   private void installForm(final String formName) throws IOException {
     Path formDir = formsDir.resolve(formName);
     Files.createDirectories(formDir);
@@ -90,7 +112,6 @@ public class FormCacheTest {
         formDir.resolve(formName + ".xml")
     );
     Files.createDirectories(formDir.resolve("instances"));
-    formDir.resolve(formName + ".xml");
   }
 
   private void uninstallForm(final String formName) {
