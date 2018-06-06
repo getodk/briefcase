@@ -53,8 +53,8 @@ public class SourcePanel {
 
   public static SourcePanel pull(Http http) {
     SourcePanel panel = new SourcePanel(
-        new SelectSourceForm("Pull Data From"),
-        ShowSourceForm.empty("Pulling data from")
+        new SelectSourceForm("Pull from"),
+        ShowSourceForm.empty("Pulling from")
     );
     panel.addSource(Source.aggregatePull(http, panel::triggerOnSource));
     panel.addSource(Source.customDir(panel::triggerOnSource));
@@ -64,8 +64,8 @@ public class SourcePanel {
 
   public static SourcePanel push(Http http) {
     SourcePanel panel = new SourcePanel(
-        new SelectSourceForm("Push Data To"),
-        ShowSourceForm.empty("Pushing data to")
+        new SelectSourceForm("Push to"),
+        ShowSourceForm.empty("Pushing to")
     );
     panel.addSource(Source.aggregatePush(http, panel::triggerOnSource));
     return panel;

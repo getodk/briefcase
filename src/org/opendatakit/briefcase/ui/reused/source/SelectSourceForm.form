@@ -13,7 +13,7 @@
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
         <properties>
-          <text value="Pull Data From"/>
+          <text value="Pull from"/>
         </properties>
       </component>
       <component id="f6244" class="javax.swing.JComboBox" binding="sourceComboBox">
