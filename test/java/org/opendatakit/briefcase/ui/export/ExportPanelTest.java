@@ -19,18 +19,19 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.enabled;
-import static org.opendatakit.briefcase.ui.SwingTestRig.createInMemoryCache;
 
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.briefcase.util.FormCache;
 
 public class ExportPanelTest extends AssertJSwingJUnitTestCase {
   private ExportPanelPageObject page;
 
   @BeforeClass
   public static void init() {
-    createInMemoryCache();
+    FileSystemUtils.setFormCache(FormCache.empty());
   }
 
   @Override

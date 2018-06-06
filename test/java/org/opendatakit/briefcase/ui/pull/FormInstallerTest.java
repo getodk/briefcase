@@ -27,10 +27,10 @@ import static org.junit.Assert.fail;
 import static org.opendatakit.briefcase.matchers.IterableMatchers.containsAtLeast;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.GATHER;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
-import static org.opendatakit.briefcase.ui.SwingTestRig.createInMemoryCache;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -43,6 +43,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.util.BadFormDefinition;
 import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.briefcase.util.FormCache;
 
 public class FormInstallerTest {
 
@@ -51,10 +52,12 @@ public class FormInstallerTest {
 
   @Before
   public void setUp() throws IOException {
-    createInMemoryCache();
-
     briefcaseDir = createTempDirectory("briefcase_test_");
     formsDir = briefcaseDir.resolve("forms");
+    Files.createDirectories(formsDir);
+    FormCache formCache = FormCache.empty();
+    formCache.setLocation(briefcaseDir);
+    FileSystemUtils.setFormCache(formCache);
   }
 
   @After

@@ -20,18 +20,12 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.opendatakit.briefcase.util.FileSystemUtils;
-import org.opendatakit.briefcase.util.InMemoryFormCache;
 
 public class SwingTestRig {
 
   public static Path classPath(String location) {
     String absoluteLocation = location.startsWith("/") ? location : "/" + location;
     return Paths.get(uncheckedURLtoURI(SwingTestRig.class.getResource(absoluteLocation)));
-  }
-
-  public static void createInMemoryCache() {
-    FileSystemUtils.setFormCache(new InMemoryFormCache());
   }
 
   public static void uncheckedSleep(int millis) {
