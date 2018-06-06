@@ -121,6 +121,10 @@ public class FileSystemUtils {
   }
 
   public static void updateCache(Path briefcaseDir) {
+    updateCache(briefcaseDir, formCache);
+  }
+
+  public static void updateCache(Path briefcaseDir, FormCacheable formCache) {
     File forms = briefcaseDir.resolve("forms").toFile();
     if (forms.exists()) {
       File[] formDirs = forms.listFiles();
