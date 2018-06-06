@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.Optional;
 import org.junit.After;
 import org.junit.Before;
@@ -54,8 +53,8 @@ public class FormCacheTest {
 
   @Test
   public void updates_itself_scanning_forms_in_the_briefcase_directory() throws IOException {
-    FormCache cache = new FormCache(cacheFile, new HashMap<>(), new HashMap<>());
-    cache.update();
+    FormCache cache = FormCache.empty();
+    cache.setLocation(briefcaseDir);
 
     assertThat(cache.getForms(), is(empty()));
 
@@ -72,8 +71,8 @@ public class FormCacheTest {
     installForm("simple-form");
     installForm("nested-repeats");
 
-    FormCache cache = new FormCache(cacheFile, new HashMap<>(), new HashMap<>());
-    cache.update();
+    FormCache cache = FormCache.empty();
+    cache.setLocation(briefcaseDir);
 
     assertThat(cache.getForms().size(), is(2));
 

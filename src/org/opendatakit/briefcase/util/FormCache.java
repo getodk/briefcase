@@ -3,7 +3,6 @@ package org.opendatakit.briefcase.util;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createFile;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.delete;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
 
 import java.io.IOException;
@@ -33,51 +32,69 @@ import org.slf4j.LoggerFactory;
 public class FormCache implements FormCacheable {
   private static final Logger log = LoggerFactory.getLogger(FormCache.class);
   private static final String CACHE_FILE_NAME = "cache.ser";
-  private final Path cacheFile;
-  private final Path briefcaseDir;
-  private final Map<String, String> hashByPath;
-  private final Map<String, BriefcaseFormDefinition> formDefByPath;
+  private Optional<Path> cacheFile;
+  private Optional<Path> briefcaseDir;
+  private Map<String, String> hashByPath;
+  private Map<String, BriefcaseFormDefinition> formDefByPath;
 
-  public FormCache(Path cacheFile, Map<String, String> hashByPath, Map<String, BriefcaseFormDefinition> formDefByPath) {
+  FormCache(Optional<Path> cacheFile, Map<String, String> hashByPath, Map<String, BriefcaseFormDefinition> formDefByPath) {
     this.cacheFile = cacheFile;
-    this.briefcaseDir = cacheFile.getParent();
+    this.briefcaseDir = cacheFile.map(Path::getParent);
     this.hashByPath = hashByPath;
     this.formDefByPath = formDefByPath;
     AnnotationProcessor.process(this);
   }
 
+  public static FormCache empty() {
+    return new FormCache(Optional.empty(), new HashMap<>(), new HashMap<>());
+  }
+
   @SuppressWarnings("unchecked")
   public static FormCache from(Path briefcaseDir) {
-    Path cacheFile = briefcaseDir.resolve(CACHE_FILE_NAME);
-    if (exists(cacheFile))
-      try (InputStream in = Files.newInputStream(cacheFile);
+    FormCache formCache = empty();
+    formCache.setLocation(briefcaseDir);
+    return formCache;
+  }
+
+  @Override
+  public void setLocation(Path newBriefcaseDir) {
+    briefcaseDir = Optional.of(newBriefcaseDir);
+    Path cacheFilePath = newBriefcaseDir.resolve(CACHE_FILE_NAME);
+    cacheFile = Optional.of(cacheFilePath);
+    if (Files.exists(cacheFilePath))
+      try (InputStream in = Files.newInputStream(cacheFilePath);
            ObjectInputStream ois = new ObjectInputStream(in)) {
-        Map<String, String> pathToMd5Map = (Map<String, String>) ois.readObject();
-        Map<String, BriefcaseFormDefinition> pathToDefinitionMap = (Map<String, BriefcaseFormDefinition>) ois.readObject();
-        return new FormCache(cacheFile, pathToMd5Map, pathToDefinitionMap);
+        hashByPath = (Map<String, String>) ois.readObject();
+        formDefByPath = (Map<String, BriefcaseFormDefinition>) ois.readObject();
       } catch (InvalidClassException e) {
         log.warn("The serialized forms cache is incompatible due to an update on Briefcase");
-        delete(cacheFile);
+        delete(cacheFilePath);
       } catch (IOException | ClassNotFoundException e) {
         // We can't read the forms cache file for some reason. Log it, delete it,
         // and let the next block create it new.
         log.warn("Can't read forms cache file", e);
-        delete(cacheFile);
+        delete(cacheFilePath);
       }
-    createFile(cacheFile);
-    FormCache formCache = new FormCache(cacheFile, new HashMap<>(), new HashMap<>());
-    formCache.update();
-    return formCache;
+
+    // Check again since it could be deleted in the previous block
+    if (!Files.exists(cacheFilePath)) {
+      createFile(cacheFilePath);
+      hashByPath = new HashMap<>();
+      formDefByPath = new HashMap<>();
+    }
+    update();
   }
 
   private void save() {
-    try (OutputStream out = Files.newOutputStream(cacheFile);
-         ObjectOutputStream oos = new ObjectOutputStream(out)) {
-      oos.writeObject(hashByPath);
-      oos.writeObject(formDefByPath);
-    } catch (IOException e) {
-      log.error("Can't serialize form cache", e);
-    }
+    cacheFile.ifPresent(path -> {
+      try (OutputStream out = Files.newOutputStream(path);
+           ObjectOutputStream oos = new ObjectOutputStream(out)) {
+        oos.writeObject(hashByPath);
+        oos.writeObject(formDefByPath);
+      } catch (IOException e) {
+        log.error("Can't serialize form cache", e);
+      }
+    });
   }
 
   @Override
@@ -94,26 +111,27 @@ public class FormCache implements FormCacheable {
 
   @Override
   public void update() {
-    Set<String> scannedFiles = new HashSet<>();
-    list(briefcaseDir.resolve("forms"))
-        .filter(path -> Files.isDirectory(path) && Files.exists(getForm(path)))
-        .map(this::getForm)
-        .peek(path -> scannedFiles.add(path.toString()))
-        .forEach(form -> {
-          String hash = FileSystemUtils.getMd5Hash(form.toFile());
-          if (isFormNewOrChanged(form, hash)) {
-            try {
-              formDefByPath.put(form.toString(), new BriefcaseFormDefinition(form.getParent().toFile(), form.toFile()));
-              hashByPath.put(form.toString(), hash);
-            } catch (BadFormDefinition e) {
-              log.warn("Can't parse form file", e);
+    briefcaseDir.ifPresent(path -> {
+      Set<String> scannedFiles = new HashSet<>();
+      list(path.resolve("forms"))
+          .map(this::getForm)
+          .peek(p -> scannedFiles.add(p.toString()))
+          .forEach(form -> {
+            String hash = FileSystemUtils.getMd5Hash(form.toFile());
+            if (isFormNewOrChanged(form, hash)) {
+              try {
+                formDefByPath.put(form.toString(), new BriefcaseFormDefinition(form.getParent().toFile(), form.toFile()));
+                hashByPath.put(form.toString(), hash);
+              } catch (BadFormDefinition e) {
+                log.warn("Can't parse form file", e);
+              }
             }
-          }
-        });
-    hashByPath.keySet().stream().filter(path -> !scannedFiles.contains(path)).collect(toList()).forEach(hashByPath::remove);
-    formDefByPath.keySet().stream().filter(path -> !scannedFiles.contains(path)).collect(toList()).forEach(formDefByPath::remove);
-    EventBus.publish(new CacheUpdateEvent());
-    save();
+          });
+      hashByPath.keySet().stream().filter(p -> !scannedFiles.contains(p)).collect(toList()).forEach(hashByPath::remove);
+      formDefByPath.keySet().stream().filter(p -> !scannedFiles.contains(p)).collect(toList()).forEach(formDefByPath::remove);
+      EventBus.publish(new CacheUpdateEvent());
+      save();
+    });
   }
 
   private boolean isFormNewOrChanged(Path form, String hash) {
