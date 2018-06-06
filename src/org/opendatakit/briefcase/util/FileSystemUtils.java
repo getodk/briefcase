@@ -120,43 +120,8 @@ public class FileSystemUtils {
     EventBus.publish(new CacheUpdateEvent());
   }
 
-  public static void updateCache(Path briefcaseDir) {
-    updateCache(briefcaseDir, formCache);
-  }
-
-  public static void updateCache(Path briefcaseDir, FormCacheable formCache) {
-    File forms = briefcaseDir.resolve("forms").toFile();
-    if (forms.exists()) {
-      File[] formDirs = forms.listFiles();
-      for (File f : formDirs) {
-        if (f.isDirectory()) {
-          try {
-            File formFile = new File(f, f.getName() + ".xml");
-            String formFileHash = getMd5Hash(formFile);
-            String existingFormFileHash = formCache.getFormFileMd5Hash(formFile.getAbsolutePath());
-            BriefcaseFormDefinition existingDefinition = formCache.getFormFileFormDefinition(formFile.getAbsolutePath());
-            if (existingFormFileHash == null
-                || existingDefinition == null
-                || !existingFormFileHash.equalsIgnoreCase(formFileHash)) {
-              // overwrite cache if the form's hash is not the same or there's no entry for the form in the cache.
-              formCache.putFormFileMd5Hash(formFile.getAbsolutePath(), formFileHash);
-              existingDefinition = new BriefcaseFormDefinition(f, formFile);
-              formCache.putFormFileFormDefinition(formFile.getAbsolutePath(), existingDefinition);
-            }
-          } catch (BadFormDefinition e) {
-            log.debug("bad form definition", e);
-          }
-        } else {
-          // junk?
-          f.delete();
-        }
-      }
-    }
-    EventBus.publish(new CacheUpdateEvent());
-  }
-
   public static final List<BriefcaseFormDefinition> getBriefcaseFormList(Path briefcaseDir) {
-    updateCache(briefcaseDir);
+    formCache.update(briefcaseDir);
     return formCache.getForms();
   }
 
