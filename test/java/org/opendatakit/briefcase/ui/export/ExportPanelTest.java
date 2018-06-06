@@ -19,12 +19,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.enabled;
-import static org.opendatakit.briefcase.ui.SwingTestRig.classPath;
 import static org.opendatakit.briefcase.ui.SwingTestRig.createInMemoryCache;
-import static org.opendatakit.briefcase.ui.SwingTestRig.installFormsFrom;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -35,7 +31,6 @@ public class ExportPanelTest extends AssertJSwingJUnitTestCase {
   @BeforeClass
   public static void init() {
     createInMemoryCache();
-    installFormsFrom(classPath("/exportPanelTest/forms"));
   }
 
   @Override
@@ -49,11 +44,4 @@ public class ExportPanelTest extends AssertJSwingJUnitTestCase {
     assertThat(page.exportButton(), is(not(enabled())));
   }
 
-  @Test
-  public void export_button_should_be_enabled_when_there_are_no_configuration_errors() throws IOException {
-    // Export dir must exist to be valid
-    page.setExportDirectory(Files.createTempDirectory("test_briefcase_export").toString());
-    page.selectFormATRow(0);
-    assertThat(page.exportButton(), is(enabled()));
-  }
 }
