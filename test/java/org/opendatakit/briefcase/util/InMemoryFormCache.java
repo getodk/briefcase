@@ -59,7 +59,7 @@ public class InMemoryFormCache implements FormCacheable {
   }
 
   @Override
-  public void update(Path briefcaseDir) {
+  public void update() {
     // Do nothing
   }
 }

@@ -55,14 +55,14 @@ public class FormCacheTest {
   @Test
   public void updates_itself_scanning_forms_in_the_briefcase_directory() throws IOException {
     FormCache cache = new FormCache(cacheFile, new HashMap<>(), new HashMap<>());
-    cache.update(briefcaseDir);
+    cache.update();
 
     assertThat(cache.getForms(), is(empty()));
 
     installForm("nested-repeats");
     installForm("simple-form");
 
-    cache.update(briefcaseDir);
+    cache.update();
 
     assertThat(cache.getForms().size(), is(2));
   }
@@ -73,12 +73,12 @@ public class FormCacheTest {
     installForm("nested-repeats");
 
     FormCache cache = new FormCache(cacheFile, new HashMap<>(), new HashMap<>());
-    cache.update(briefcaseDir);
+    cache.update();
 
     assertThat(cache.getForms().size(), is(2));
 
     uninstallForm("simple-form");
-    cache.update(briefcaseDir);
+    cache.update();
 
     assertThat(cache.getForms().size(), is(1));
   }

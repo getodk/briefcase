@@ -18,5 +18,5 @@ public interface FormCacheable {
 
   Optional<BriefcaseFormDefinition> getForm(String formName);
 
-  void update(Path briefcaseDir);
+  void update();
 }

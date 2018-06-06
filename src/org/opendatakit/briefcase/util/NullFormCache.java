@@ -39,7 +39,7 @@ public class NullFormCache implements FormCacheable {
   }
 
   @Override
-  public void update(Path briefcaseDir) {
+  public void update() {
     // Do nothing
   }
 }

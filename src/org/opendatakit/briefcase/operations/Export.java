@@ -69,7 +69,7 @@ public class Export {
   public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
     CliEventsCompanion.attach(log);
     bootCache(storageDir);
-    Optional<BriefcaseFormDefinition> maybeFormDefinition = FileSystemUtils.getBriefcaseFormList(BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir))).stream()
+    Optional<BriefcaseFormDefinition> maybeFormDefinition = FileSystemUtils.getBriefcaseFormList().stream()
         .filter(form -> form.getFormId().equals(formid))
         .findFirst();
 

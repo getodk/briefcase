@@ -31,11 +31,13 @@ public class FormCache implements FormCacheable {
   private static final Logger log = LoggerFactory.getLogger(FormCache.class);
   private static final String CACHE_FILE_NAME = "cache.ser";
   private final Path cacheFile;
+  private final Path briefcaseDir;
   private final Map<String, String> hashByPath;
   private final Map<String, BriefcaseFormDefinition> formDefByPath;
 
   public FormCache(Path cacheFile, Map<String, String> hashByPath, Map<String, BriefcaseFormDefinition> formDefByPath) {
     this.cacheFile = cacheFile;
+    this.briefcaseDir = cacheFile.getParent();
     this.hashByPath = hashByPath;
     this.formDefByPath = formDefByPath;
     Runtime.getRuntime().addShutdownHook(new Thread(this::save));
@@ -61,7 +63,7 @@ public class FormCache implements FormCacheable {
       }
     createFile(cacheFile);
     FormCache formCache = new FormCache(cacheFile, new HashMap<>(), new HashMap<>());
-    formCache.update(briefcaseDir);
+    formCache.update();
     return formCache;
   }
 
@@ -108,7 +110,7 @@ public class FormCache implements FormCacheable {
   }
 
   @Override
-  public void update(Path briefcaseDir) {
+  public void update() {
     Set<String> scannedFiles = new HashSet<>();
     list(briefcaseDir.resolve("forms"))
         .filter(path -> Files.isDirectory(path) && Files.exists(getForm(path)))

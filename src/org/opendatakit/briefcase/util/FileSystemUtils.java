@@ -120,8 +120,8 @@ public class FileSystemUtils {
     EventBus.publish(new CacheUpdateEvent());
   }
 
-  public static final List<BriefcaseFormDefinition> getBriefcaseFormList(Path briefcaseDir) {
-    formCache.update(briefcaseDir);
+  public static final List<BriefcaseFormDefinition> getBriefcaseFormList() {
+    formCache.update();
     return formCache.getForms();
   }
 

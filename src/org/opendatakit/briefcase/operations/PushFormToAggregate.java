@@ -65,7 +65,7 @@ public class PushFormToAggregate {
   private static void pushFormToAggregate(String storageDir, String formid, String username, String password, String server, boolean forceSendBlank) {
     CliEventsCompanion.attach(log);
     bootCache(storageDir);
-    Optional<FormStatus> maybeFormStatus = FileSystemUtils.getBriefcaseFormList(BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir))).stream()
+    Optional<FormStatus> maybeFormStatus = FileSystemUtils.getBriefcaseFormList().stream()
         .filter(form -> form.getFormId().equals(formid))
         .map(formDef -> new FormStatus(FormStatus.TransferType.UPLOAD, formDef))
         .findFirst();

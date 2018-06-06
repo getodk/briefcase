@@ -52,7 +52,7 @@ public class FormInstaller {
   public static void install(Path briefcaseDir, FormStatus fs) {
     try {
       installForm(briefcaseDir, fs);
-      FileSystemUtils.formCache.update(briefcaseDir);
+      FileSystemUtils.formCache.update();
       EventBus.publish(new PullEvent.Success(Collections.singletonList(fs)));
     } catch (BriefcaseException e) {
       EventBus.publish(new PullEvent.Failure());
