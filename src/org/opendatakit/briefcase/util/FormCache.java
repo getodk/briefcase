@@ -29,7 +29,7 @@ import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FormCache implements FormCacheable {
+public class FormCache {
   private static final Logger log = LoggerFactory.getLogger(FormCache.class);
   private static final String CACHE_FILE_NAME = "cache.ser";
   private Optional<Path> cacheFile;
@@ -37,7 +37,7 @@ public class FormCache implements FormCacheable {
   private Map<String, String> hashByPath;
   private Map<String, BriefcaseFormDefinition> formDefByPath;
 
-  FormCache(Optional<Path> cacheFile, Map<String, String> hashByPath, Map<String, BriefcaseFormDefinition> formDefByPath) {
+  private FormCache(Optional<Path> cacheFile, Map<String, String> hashByPath, Map<String, BriefcaseFormDefinition> formDefByPath) {
     this.cacheFile = cacheFile;
     this.briefcaseDir = cacheFile.map(Path::getParent);
     this.hashByPath = hashByPath;
@@ -49,14 +49,13 @@ public class FormCache implements FormCacheable {
     return new FormCache(Optional.empty(), new HashMap<>(), new HashMap<>());
   }
 
-  @SuppressWarnings("unchecked")
   public static FormCache from(Path briefcaseDir) {
     FormCache formCache = empty();
     formCache.setLocation(briefcaseDir);
     return formCache;
   }
 
-  @Override
+  @SuppressWarnings("unchecked")
   public void setLocation(Path newBriefcaseDir) {
     briefcaseDir = Optional.of(newBriefcaseDir);
     Path cacheFilePath = newBriefcaseDir.resolve(CACHE_FILE_NAME);
@@ -85,7 +84,6 @@ public class FormCache implements FormCacheable {
     update();
   }
 
-  @Override
   public void unsetLocation() {
     briefcaseDir = Optional.empty();
     cacheFile = Optional.empty();
@@ -106,19 +104,16 @@ public class FormCache implements FormCacheable {
     });
   }
 
-  @Override
   public List<BriefcaseFormDefinition> getForms() {
     return new ArrayList<>(formDefByPath.values());
   }
 
-  @Override
   public Optional<BriefcaseFormDefinition> getForm(String formName) {
     return formDefByPath.values().stream()
         .filter(formDefinition -> formDefinition.getFormName().equals(formName))
         .findFirst();
   }
 
-  @Override
   public void update() {
     briefcaseDir.ifPresent(path -> {
       Set<String> scannedFiles = new HashSet<>();
