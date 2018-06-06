@@ -98,7 +98,7 @@ public interface Source<T> {
    *                 instance configured by the user
    */
   static Source<RemoteServer> aggregatePull(Http http, Consumer<Source> consumer) {
-    return new Source.Aggregate(http, server -> server.testPull(http), consumer);
+    return new Source.Aggregate(http, server -> server.testPull(http), "Data Viewer", consumer);
   }
 
   /**
@@ -109,7 +109,7 @@ public interface Source<T> {
    *                 instance configured by the user
    */
   static Source<RemoteServer> aggregatePush(Http http, Consumer<Source> consumer) {
-    return new Source.Aggregate(http, server -> server.testPush(http), consumer);
+    return new Source.Aggregate(http, server -> server.testPush(http), "Form Manager", consumer);
   }
 
   /**
@@ -193,18 +193,20 @@ public interface Source<T> {
   class Aggregate implements Source<RemoteServer> {
     private final Http http;
     private RemoteServer.Test serverTester;
+    private String requiredPermission;
     private final Consumer<Source> consumer;
     private RemoteServer server;
 
-    Aggregate(Http http, RemoteServer.Test serverTester, Consumer<Source> consumer) {
+    Aggregate(Http http, RemoteServer.Test serverTester, String requiredPermission, Consumer<Source> consumer) {
       this.http = http;
       this.serverTester = serverTester;
+      this.requiredPermission = requiredPermission;
       this.consumer = consumer;
     }
 
     @Override
     public void onSelect(Container ignored) {
-      RemoteServerDialog dialog = RemoteServerDialog.empty(serverTester);
+      RemoteServerDialog dialog = RemoteServerDialog.empty(serverTester, requiredPermission);
       dialog.onConnect(this::set);
       dialog.getForm().setVisible(true);
     }

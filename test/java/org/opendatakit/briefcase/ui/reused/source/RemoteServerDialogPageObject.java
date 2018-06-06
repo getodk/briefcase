@@ -41,7 +41,7 @@ class RemoteServerDialogPageObject {
   }
 
   static RemoteServerDialogPageObject setUp(Robot robot, RemoteServer.Test serverTester) {
-    RemoteServerDialog dialog = execute(() -> RemoteServerDialog.empty(serverTester));
+    RemoteServerDialog dialog = execute(() -> RemoteServerDialog.empty(serverTester, "Form Manager"));
     DialogFixture fixture = new DialogFixture(robot, dialog.form);
     return new RemoteServerDialogPageObject(dialog, fixture);
   }
