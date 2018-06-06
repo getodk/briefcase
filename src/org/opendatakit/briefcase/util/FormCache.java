@@ -81,26 +81,6 @@ public class FormCache implements FormCacheable {
   }
 
   @Override
-  public String getFormFileMd5Hash(String filePath) {
-    return hashByPath.get(filePath);
-  }
-
-  @Override
-  public void putFormFileMd5Hash(String filePath, String md5Hash) {
-    hashByPath.put(filePath, md5Hash);
-  }
-
-  @Override
-  public BriefcaseFormDefinition getFormFileFormDefinition(String filePath) {
-    return formDefByPath.get(filePath);
-  }
-
-  @Override
-  public void putFormFileFormDefinition(String filePath, BriefcaseFormDefinition definition) {
-    formDefByPath.put(filePath, definition);
-  }
-
-  @Override
   public List<BriefcaseFormDefinition> getForms() {
     return new ArrayList<>(formDefByPath.values());
   }
