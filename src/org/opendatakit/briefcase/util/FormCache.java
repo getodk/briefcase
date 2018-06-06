@@ -109,20 +109,19 @@ public class FormCache {
   public void update() {
     briefcaseDir.ifPresent(path -> {
       Set<String> scannedFiles = new HashSet<>();
-      list(path.resolve("forms"))
-          .map(this::getFormFilePath)
-          .peek(p -> scannedFiles.add(p.toString()))
-          .forEach(form -> {
-            String hash = FileSystemUtils.getMd5Hash(form.toFile());
-            if (isFormNewOrChanged(form, hash)) {
-              try {
-                formDefByPath.put(form.toString(), new BriefcaseFormDefinition(form.getParent().toFile(), form.toFile()));
-                hashByPath.put(form.toString(), hash);
-              } catch (BadFormDefinition e) {
-                log.warn("Can't parse form file", e);
-              }
-            }
-          });
+      list(path.resolve("forms")).forEach(formDir -> {
+        Path form = getFormFilePath(formDir);
+        scannedFiles.add(form.toString());
+        String hash = FileSystemUtils.getMd5Hash(form.toFile());
+        if (isFormNewOrChanged(form, hash)) {
+          try {
+            formDefByPath.put(form.toString(), new BriefcaseFormDefinition(form.getParent().toFile(), form.toFile()));
+            hashByPath.put(form.toString(), hash);
+          } catch (BadFormDefinition e) {
+            log.warn("Can't parse form file", e);
+          }
+        }
+      });
       hashByPath.keySet().stream().filter(p -> !scannedFiles.contains(p)).collect(toList()).forEach(hashByPath::remove);
       formDefByPath.keySet().stream().filter(p -> !scannedFiles.contains(p)).collect(toList()).forEach(formDefByPath::remove);
       EventBus.publish(new CacheUpdateEvent());
@@ -136,8 +135,8 @@ public class FormCache {
         || !hashByPath.get(form.toString()).equalsIgnoreCase(hash);
   }
 
-  private Path getFormFilePath(Path path) {
-    return path.resolve(path.getFileName().toString() + ".xml");
+  private Path getFormFilePath(Path formDir) {
+    return formDir.resolve(formDir.getFileName().toString() + ".xml");
   }
 
   @EventSubscriber(eventClass = PullEvent.Success.class)
