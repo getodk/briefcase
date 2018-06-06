@@ -1,5 +1,6 @@
 package org.opendatakit.briefcase.util;
 
+import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 
 import java.io.File;
@@ -13,9 +14,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -106,6 +109,7 @@ public class FormCache implements FormCacheable {
 
   @Override
   public void update(Path briefcaseDir) {
+    Set<String> scannedFiles = new HashSet<>();
     File forms = briefcaseDir.resolve("forms").toFile();
     if (forms.exists()) {
       File[] formDirs = forms.listFiles();
@@ -124,6 +128,7 @@ public class FormCache implements FormCacheable {
               existingDefinition = new BriefcaseFormDefinition(f, formFile);
               putFormFileFormDefinition(formFile.getAbsolutePath(), existingDefinition);
             }
+            scannedFiles.add(formFile.getAbsolutePath());
           } catch (BadFormDefinition e) {
             log.debug("bad form definition", e);
           }
@@ -133,6 +138,8 @@ public class FormCache implements FormCacheable {
         }
       }
     }
+    pathToMd5Map.keySet().stream().filter(path -> !scannedFiles.contains(path)).collect(toList()).forEach(pathToMd5Map::remove);
+    pathToDefinitionMap.keySet().stream().filter(path -> !scannedFiles.contains(path)).collect(toList()).forEach(pathToDefinitionMap::remove);
     EventBus.publish(new CacheUpdateEvent());
   }
 }

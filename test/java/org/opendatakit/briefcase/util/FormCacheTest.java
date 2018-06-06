@@ -67,6 +67,22 @@ public class FormCacheTest {
     assertThat(cache.getForms().size(), is(2));
   }
 
+  @Test
+  public void removes_items_if_they_are_no_longer_among_forms_in_the_briefcase_directory() throws IOException {
+    installForm("simple-form");
+    installForm("nested-repeats");
+
+    FormCache cache = new FormCache(cacheFile, new HashMap<>(), new HashMap<>());
+    cache.update(briefcaseDir);
+
+    assertThat(cache.getForms().size(), is(2));
+
+    uninstallForm("simple-form");
+    cache.update(briefcaseDir);
+
+    assertThat(cache.getForms().size(), is(1));
+  }
+
   private void installForm(final String formName) throws IOException {
     Path formDir = formsDir.resolve(formName);
     Files.createDirectories(formDir);
