@@ -84,10 +84,11 @@ public class FormInstaller {
           .forEach(sourcePath -> {
             copy(sourcePath, targetMediaDir.resolve(sourceMediaDir.relativize(sourcePath)));
             form.setStatusString("Installed " + sourcePath.getFileName() + " media file", true);
+            form.setStatusString("Installed " + sourcePath.getFileName() + " media file", true);
             EventBus.publish(new FormStatusEvent(form));
           });
 
-    form.setStatusString("Successfully installed", true);
+    form.setStatusString("Success", true);
     EventBus.publish(new FormStatusEvent(form));
   }
 
