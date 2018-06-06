@@ -253,7 +253,7 @@ public interface Source<T> {
 
     @Override
     public String toString() {
-      return "Aggregate";
+      return "Aggregate server";
     }
   }
 
@@ -322,7 +322,7 @@ public interface Source<T> {
 
     @Override
     public void push(List<FormStatus> forms, TerminationFuture terminationFuture) {
-      throw new BriefcaseException("Can't push to a Custom Directory");
+      throw new BriefcaseException("Can't push to a Collect directory");
     }
 
     @Override
@@ -332,7 +332,7 @@ public interface Source<T> {
 
     @Override
     public String toString() {
-      return "Custom Directory";
+      return "Collect directory";
     }
   }
 
@@ -408,7 +408,7 @@ public interface Source<T> {
 
     @Override
     public String toString() {
-      return "Individual form in the computer";
+      return "Form definition";
     }
   }
 }
