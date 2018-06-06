@@ -133,7 +133,7 @@ public class RemoteServer {
   public boolean containsForm(Http http, String formId) {
     return http.execute(Request.get(baseUrl, credentials)
         .resolve("/formList")
-        .withMapper(body -> Stream.of(body.split("\n")).anyMatch(line -> line.contains("?formId=" + formId + "\""))))
+        .withMapper(body -> Stream.of(body.split("\n")).anyMatch(line -> line.contains("?formId=" + formId))))
         .orElse(false);
   }
 
