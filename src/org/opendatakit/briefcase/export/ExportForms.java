@@ -100,8 +100,12 @@ public class ExportForms {
     return CUSTOM_CONF_PREFIX + formId + "_";
   }
 
-  public void merge(List<FormStatus> forms) {
-    this.forms.addAll(forms.stream().filter(form -> !formsIndex.containsKey(getFormId(form))).collect(toList()));
+  public void merge(List<FormStatus> incomingForms) {
+    List<String> incomingFormIds = incomingForms.stream().map(ExportForms::getFormId).collect(toList());
+    List<FormStatus> formsToAdd = incomingForms.stream().filter(form -> !formsIndex.containsKey(getFormId(form))).collect(toList());
+    List<FormStatus> formsToRemove = formsIndex.values().stream().filter(form -> !incomingFormIds.contains(getFormId(form))).collect(toList());
+    forms.addAll(formsToAdd);
+    forms.removeAll(formsToRemove);
     rebuildIndex();
   }
 
