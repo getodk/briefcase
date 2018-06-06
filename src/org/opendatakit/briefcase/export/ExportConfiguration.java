@@ -244,7 +244,7 @@ public class ExportConfiguration {
   }
 
   private boolean isDateRangeValid() {
-    return !startDate.isPresent() || !endDate.isPresent() || startDate.get().isBefore(endDate.get());
+    return !startDate.isPresent() || !endDate.isPresent() || !startDate.get().isAfter(endDate.get());
   }
 
   public void ifExportDirPresent(Consumer<Path> consumer) {
