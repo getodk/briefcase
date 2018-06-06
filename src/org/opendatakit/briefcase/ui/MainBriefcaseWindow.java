@@ -132,6 +132,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     frame.setVisible(true);
 
     if (isFirstLaunch(appPreferences)) {
+      lockUI();
       showWelcomeMessage();
       appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
     }
