@@ -50,7 +50,9 @@ public class FormCache implements FormCacheable {
         UncheckedFiles.delete(cacheFile);
       }
     UncheckedFiles.createFile(cacheFile);
-    return new FormCache(cacheFile, new HashMap<>(), new HashMap<>());
+    FormCache formCache = new FormCache(cacheFile, new HashMap<>(), new HashMap<>());
+    FileSystemUtils.updateCache(briefcaseDir, formCache);
+    return formCache;
   }
 
   private void save() {
