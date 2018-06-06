@@ -1,9 +1,11 @@
 package org.opendatakit.briefcase.util;
 
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.createFile;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.delete;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InvalidClassException;
@@ -21,9 +23,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
-import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,13 +31,13 @@ public class FormCache implements FormCacheable {
   private static final Logger log = LoggerFactory.getLogger(FormCache.class);
   private static final String CACHE_FILE_NAME = "cache.ser";
   private final Path cacheFile;
-  private final Map<String, String> pathToMd5Map;
-  private final Map<String, BriefcaseFormDefinition> pathToDefinitionMap;
+  private final Map<String, String> hashByPath;
+  private final Map<String, BriefcaseFormDefinition> formDefByPath;
 
-  public FormCache(Path cacheFile, Map<String, String> pathToMd5Map, Map<String, BriefcaseFormDefinition> pathToDefinitionMap) {
+  public FormCache(Path cacheFile, Map<String, String> hashByPath, Map<String, BriefcaseFormDefinition> formDefByPath) {
     this.cacheFile = cacheFile;
-    this.pathToMd5Map = pathToMd5Map;
-    this.pathToDefinitionMap = pathToDefinitionMap;
+    this.hashByPath = hashByPath;
+    this.formDefByPath = formDefByPath;
     Runtime.getRuntime().addShutdownHook(new Thread(this::save));
   }
 
@@ -52,14 +52,14 @@ public class FormCache implements FormCacheable {
         return new FormCache(cacheFile, pathToMd5Map, pathToDefinitionMap);
       } catch (InvalidClassException e) {
         log.warn("The serialized forms cache is incompatible due to an update on Briefcase");
-        UncheckedFiles.delete(cacheFile);
+        delete(cacheFile);
       } catch (IOException | ClassNotFoundException e) {
         // We can't read the forms cache file for some reason. Log it, delete it,
         // and let the next block create it new.
         log.warn("Can't read forms cache file", e);
-        UncheckedFiles.delete(cacheFile);
+        delete(cacheFile);
       }
-    UncheckedFiles.createFile(cacheFile);
+    createFile(cacheFile);
     FormCache formCache = new FormCache(cacheFile, new HashMap<>(), new HashMap<>());
     formCache.update(briefcaseDir);
     return formCache;
@@ -68,41 +68,41 @@ public class FormCache implements FormCacheable {
   private void save() {
     try (OutputStream out = Files.newOutputStream(cacheFile);
          ObjectOutputStream oos = new ObjectOutputStream(out)) {
-      oos.writeObject(pathToMd5Map);
-      oos.writeObject(pathToDefinitionMap);
+      oos.writeObject(hashByPath);
+      oos.writeObject(formDefByPath);
     } catch (IOException e) {
-      throw new BriefcaseException("Can't serialize form cache", e);
+      log.error("Can't serialize form cache", e);
     }
   }
 
   @Override
   public String getFormFileMd5Hash(String filePath) {
-    return pathToMd5Map.get(filePath);
+    return hashByPath.get(filePath);
   }
 
   @Override
   public void putFormFileMd5Hash(String filePath, String md5Hash) {
-    pathToMd5Map.put(filePath, md5Hash);
+    hashByPath.put(filePath, md5Hash);
   }
 
   @Override
   public BriefcaseFormDefinition getFormFileFormDefinition(String filePath) {
-    return pathToDefinitionMap.get(filePath);
+    return formDefByPath.get(filePath);
   }
 
   @Override
   public void putFormFileFormDefinition(String filePath, BriefcaseFormDefinition definition) {
-    pathToDefinitionMap.put(filePath, definition);
+    formDefByPath.put(filePath, definition);
   }
 
   @Override
   public List<BriefcaseFormDefinition> getForms() {
-    return new ArrayList<>(pathToDefinitionMap.values());
+    return new ArrayList<>(formDefByPath.values());
   }
 
   @Override
   public Optional<BriefcaseFormDefinition> getForm(String formName) {
-    return pathToDefinitionMap.values().stream()
+    return formDefByPath.values().stream()
         .filter(formDefinition -> formDefinition.getFormName().equals(formName))
         .findFirst();
   }
@@ -110,36 +110,34 @@ public class FormCache implements FormCacheable {
   @Override
   public void update(Path briefcaseDir) {
     Set<String> scannedFiles = new HashSet<>();
-    File forms = briefcaseDir.resolve("forms").toFile();
-    if (forms.exists()) {
-      File[] formDirs = forms.listFiles();
-      for (File f : formDirs) {
-        if (f.isDirectory()) {
-          try {
-            File formFile = new File(f, f.getName() + ".xml");
-            String formFileHash = FileSystemUtils.getMd5Hash(formFile);
-            String existingFormFileHash = getFormFileMd5Hash(formFile.getAbsolutePath());
-            BriefcaseFormDefinition existingDefinition = getFormFileFormDefinition(formFile.getAbsolutePath());
-            if (existingFormFileHash == null
-                || existingDefinition == null
-                || !existingFormFileHash.equalsIgnoreCase(formFileHash)) {
-              // overwrite cache if the form's hash is not the same or there's no entry for the form in the cache.
-              putFormFileMd5Hash(formFile.getAbsolutePath(), formFileHash);
-              existingDefinition = new BriefcaseFormDefinition(f, formFile);
-              putFormFileFormDefinition(formFile.getAbsolutePath(), existingDefinition);
+    list(briefcaseDir.resolve("forms"))
+        .filter(path -> Files.isDirectory(path) && Files.exists(getForm(path)))
+        .map(this::getForm)
+        .peek(path -> scannedFiles.add(path.toString()))
+        .forEach(form -> {
+          String hash = FileSystemUtils.getMd5Hash(form.toFile());
+          if (isFormNewOrChanged(form, hash)) {
+            try {
+              formDefByPath.put(form.toString(), new BriefcaseFormDefinition(form.getParent().toFile(), form.toFile()));
+              hashByPath.put(form.toString(), hash);
+            } catch (BadFormDefinition e) {
+              log.warn("Can't parse form file", e);
             }
-            scannedFiles.add(formFile.getAbsolutePath());
-          } catch (BadFormDefinition e) {
-            log.debug("bad form definition", e);
           }
-        } else {
-          // junk?
-          f.delete();
-        }
-      }
-    }
-    pathToMd5Map.keySet().stream().filter(path -> !scannedFiles.contains(path)).collect(toList()).forEach(pathToMd5Map::remove);
-    pathToDefinitionMap.keySet().stream().filter(path -> !scannedFiles.contains(path)).collect(toList()).forEach(pathToDefinitionMap::remove);
+        });
+    hashByPath.keySet().stream().filter(path -> !scannedFiles.contains(path)).collect(toList()).forEach(hashByPath::remove);
+    formDefByPath.keySet().stream().filter(path -> !scannedFiles.contains(path)).collect(toList()).forEach(formDefByPath::remove);
     EventBus.publish(new CacheUpdateEvent());
+  }
+
+  private boolean isFormNewOrChanged(Path form, String hash) {
+    return hashByPath.get(form.toString()) == null
+        || formDefByPath.get(form.toString()) == null
+        || !hashByPath.get(form.toString()).equalsIgnoreCase(hash);
+  }
+
+  public Path getForm(Path path) {
+    String formName = path.getFileName().toString();
+    return path.resolve(formName + ".xml");
   }
 }
