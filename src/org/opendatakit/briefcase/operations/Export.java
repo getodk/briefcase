@@ -19,7 +19,6 @@ import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePrefix;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
-import static org.opendatakit.briefcase.operations.Common.bootCache;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,7 +32,7 @@ import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
-import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
 import org.slf4j.Logger;
@@ -68,8 +67,10 @@ public class Export {
 
   public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
     CliEventsCompanion.attach(log);
-    bootCache(storageDir);
-    Optional<BriefcaseFormDefinition> maybeFormDefinition = FileSystemUtils.getBriefcaseFormList().stream()
+    Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
+    FormCache formCache = FormCache.from(briefcaseDir);
+    formCache.update();
+    Optional<BriefcaseFormDefinition> maybeFormDefinition = formCache.getForms().stream()
         .filter(form -> form.getFormId().equals(formid))
         .findFirst();
 

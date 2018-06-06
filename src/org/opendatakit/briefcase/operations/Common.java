@@ -15,10 +15,6 @@
  */
 package org.opendatakit.briefcase.operations;
 
-import java.nio.file.Paths;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.util.FileSystemUtils;
-import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.common.cli.Param;
 
 class Common {
@@ -27,8 +23,4 @@ class Common {
   static final Param<String> ODK_USERNAME = Param.arg("u", "odk_username", "ODK Username");
   static final Param<String> ODK_PASSWORD = Param.arg("p", "odk_password", "ODK Password");
   static final Param<String> AGGREGATE_SERVER = Param.arg("url", "aggregate_url", "Aggregate server URL");
-
-  static void bootCache(String storageDir) {
-    FileSystemUtils.setFormCache(FormCache.from(BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir))));
-  }
 }

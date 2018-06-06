@@ -42,17 +42,14 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import org.apache.commons.codec.binary.Base64;
-import org.bushe.swing.event.EventBus;
 import org.javarosa.xform.parse.XFormParser;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
 import org.kxml2.kdom.Node;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.CryptoException;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
-import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.util.XmlManipulationUtils.FormInstanceMetadata;
 import org.slf4j.Logger;
@@ -61,8 +58,6 @@ import org.slf4j.LoggerFactory;
 public class FileSystemUtils {
 
   static final Logger log = LoggerFactory.getLogger(FileSystemUtils.class);
-
-  public static FormCache formCache = FormCache.empty();
 
   public static final String FORMS_DIR = "forms";
   static final String INSTANCE_DIR = "instances";
@@ -113,16 +108,6 @@ public class FileSystemUtils {
   public static final boolean isODKInstancesParentFolder(File pathname) {
     File foi = new File(pathname, "instances");
     return foi.exists() && foi.isDirectory();
-  }
-
-  public static void setFormCache(FormCache formCache) {
-    FileSystemUtils.formCache = formCache;
-    EventBus.publish(new CacheUpdateEvent());
-  }
-
-  public static final List<BriefcaseFormDefinition> getBriefcaseFormList() {
-    formCache.update();
-    return formCache.getForms();
   }
 
   public static final List<OdkCollectFormDefinition> getODKFormList(File odk) {

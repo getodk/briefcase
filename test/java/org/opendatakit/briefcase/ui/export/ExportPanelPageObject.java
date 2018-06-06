@@ -28,6 +28,7 @@ import org.assertj.swing.fixture.FrameFixture;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
 import org.opendatakit.briefcase.ui.reused.NoOpAnalytics;
+import org.opendatakit.briefcase.util.FormCache;
 
 class ExportPanelPageObject {
   private final ExportPanel component;
@@ -43,7 +44,8 @@ class ExportPanelPageObject {
       ExportPanel ep = ExportPanel.from(
           new BriefcasePreferences(InMemoryPreferences.empty()),
           new BriefcasePreferences(InMemoryPreferences.empty()),
-          new NoOpAnalytics()
+          new NoOpAnalytics(),
+          FormCache.empty()
       );
       ep.updateForms();
       return ep;

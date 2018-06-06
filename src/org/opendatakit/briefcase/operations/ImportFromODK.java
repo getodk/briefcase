@@ -17,7 +17,6 @@ package org.opendatakit.briefcase.operations;
 
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
-import static org.opendatakit.briefcase.operations.Common.bootCache;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,6 +25,7 @@ import java.util.List;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.briefcase.util.TransferFromODK;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
@@ -48,13 +48,15 @@ public class ImportFromODK {
 
   public static void importODK(String storageDir, Path odkDir) {
     CliEventsCompanion.attach(log);
-    bootCache(storageDir);
-
+    Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
+    FormCache formCache = FormCache.from(briefcaseDir);
+    formCache.update();
 
     List<FormStatus> forms = FileSystemUtils.getODKFormList(odkDir.toFile()).stream()
         .map(form -> new FormStatus(FormStatus.TransferType.GATHER, form))
         .collect(toList());
 
-    TransferFromODK.pull(BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir)), odkDir, forms);
+    TransferFromODK.pull(briefcaseDir, odkDir, forms);
+    // The form cache should update and save itself now
   }
 }

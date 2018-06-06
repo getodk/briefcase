@@ -21,7 +21,7 @@ import javax.swing.JPanel;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.ui.reused.Analytics;
-import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.briefcase.util.FormCache;
 
 public class SettingsPanel {
   private static final String README_CONTENTS = "" +
@@ -36,7 +36,7 @@ public class SettingsPanel {
   private final SettingsPanelForm form;
 
   @SuppressWarnings("checkstyle:Indentation")
-  public SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics) {
+  public SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
     this.form = form;
 
     appPreferences.getBriefcaseDir().ifPresent(path -> form.setStorageLocation(path.getParent()));
@@ -50,10 +50,10 @@ public class SettingsPanel {
       UncheckedFiles.createDirectories(briefcaseDir);
       UncheckedFiles.createDirectories(briefcaseDir.resolve("forms"));
       UncheckedFiles.write(briefcaseDir.resolve("readme.txt"), README_CONTENTS.getBytes());
-      FileSystemUtils.formCache.setLocation(briefcaseDir);
+      formCache.setLocation(briefcaseDir);
       appPreferences.setStorageDir(path);
     }, () -> {
-      FileSystemUtils.formCache.unsetLocation();
+      formCache.unsetLocation();
       appPreferences.unsetStorageDir();
     });
     form.onPullInParallelChange(appPreferences::setPullInParallel);
@@ -65,9 +65,9 @@ public class SettingsPanel {
     form.onHttpProxy(appPreferences::setHttpProxy, appPreferences::unsetHttpProxy);
   }
 
-  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics) {
+  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
     SettingsPanelForm settingsPanelForm = new SettingsPanelForm();
-    return new SettingsPanel(settingsPanelForm, appPreferences, analytics);
+    return new SettingsPanel(settingsPanelForm, appPreferences, analytics, formCache);
   }
 
   public JPanel getContainer() {

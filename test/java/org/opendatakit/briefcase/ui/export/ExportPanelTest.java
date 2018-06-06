@@ -21,18 +21,10 @@ import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.enabled;
 
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.opendatakit.briefcase.util.FileSystemUtils;
-import org.opendatakit.briefcase.util.FormCache;
 
 public class ExportPanelTest extends AssertJSwingJUnitTestCase {
   private ExportPanelPageObject page;
-
-  @BeforeClass
-  public static void init() {
-    FileSystemUtils.setFormCache(FormCache.empty());
-  }
 
   @Override
   protected void onSetUp() {
