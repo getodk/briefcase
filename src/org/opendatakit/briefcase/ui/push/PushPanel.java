@@ -42,6 +42,7 @@ import org.opendatakit.briefcase.ui.ODKOptionPane;
 import org.opendatakit.briefcase.ui.push.components.PushFormsTable;
 import org.opendatakit.briefcase.ui.push.components.PushFormsTableView;
 import org.opendatakit.briefcase.ui.push.components.PushFormsTableViewModel;
+import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.source.Source;
 import org.opendatakit.briefcase.ui.reused.source.SourcePanel;
 import org.opendatakit.briefcase.util.FormCache;
@@ -56,7 +57,7 @@ public class PushPanel {
   private TerminationFuture terminationFuture;
   private Optional<Source> source = Optional.empty();
 
-  public PushPanel(PushPanelForm view, PushForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache) {
+  public PushPanel(PushPanelForm view, PushForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
@@ -64,6 +65,7 @@ public class PushPanel {
     this.appPreferences = appPreferences;
     this.formCache = formCache;
     this.terminationFuture = terminationFuture;
+    getContainer().addComponentListener(analytics.buildComponentListener("Push"));
 
     // Register callbacks to view events
     view.onSource(source -> {
@@ -95,7 +97,7 @@ public class PushPanel {
     updateActionButtons();
   }
 
-  public static PushPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache) {
+  public static PushPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
     PushForms pushForms = new PushForms(toFormStatuses(formCache.getForms()));
     PushFormsTableViewModel pushFormsTableViewModel = new PushFormsTableViewModel(pushForms);
     PushFormsTableView pushFormsTableView = new PushFormsTableView(pushFormsTableViewModel);
@@ -107,7 +109,8 @@ public class PushPanel {
         BriefcasePreferences.forClass(PushPanel.class),
         appPreferences,
         terminationFuture,
-        formCache
+        formCache,
+        analytics
     );
   }
 

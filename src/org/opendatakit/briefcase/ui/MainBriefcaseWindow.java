@@ -111,9 +111,9 @@ public class MainBriefcaseWindow extends WindowAdapter {
     tabbedPane = new JTabbedPane(JTabbedPane.TOP);
     frame.setContentPane(tabbedPane);
 
-    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, transferTerminationFuture).getContainer());
+    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, transferTerminationFuture, analytics).getContainer());
 
-    PushPanel pushPanel = PushPanel.from(http, appPreferences, transferTerminationFuture, formCache);
+    PushPanel pushPanel = PushPanel.from(http, appPreferences, transferTerminationFuture, formCache, analytics);
     addPane(PushPanel.TAB_NAME, pushPanel.getContainer());
 
     ExportPanel exportPanel = ExportPanel.from(BriefcasePreferences.forClass(ExportPanel.class), appPreferences, analytics, formCache);
