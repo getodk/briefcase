@@ -141,6 +141,7 @@ public class PullPanelForm {
     selectAllButton.setEnabled(true);
     clearAllButton.setEnabled(true);
     cancelButton.setVisible(false);
+    cancelButton.setEnabled(false);
     pullButton.setVisible(true);
   }
 

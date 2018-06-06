@@ -65,8 +65,6 @@ public class PushPanelForm {
     pushFormsTable.onChange(this::triggerOnChange);
     selectAllButton.addActionListener(__ -> pushFormsTable.selectAll());
     clearAllButton.addActionListener(__ -> pushFormsTable.clearAll());
-    cancelButton.addActionListener(__ -> cancelButton.setEnabled(false));
-    pushButton.addActionListener(__ -> pushButton.setEnabled(false));
   }
 
   public void onSource(Consumer<Source<?>> callback) {
@@ -131,6 +129,7 @@ public class PushPanelForm {
     selectAllButton.setEnabled(false);
     clearAllButton.setEnabled(false);
     cancelButton.setVisible(true);
+    cancelButton.setEnabled(true);
     pushButton.setVisible(false);
   }
 
@@ -142,6 +141,7 @@ public class PushPanelForm {
     selectAllButton.setEnabled(true);
     clearAllButton.setEnabled(true);
     cancelButton.setVisible(false);
+    cancelButton.setEnabled(false);
     pushButton.setVisible(true);
   }
 
