@@ -21,9 +21,7 @@ import javax.swing.JPanel;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.ui.reused.Analytics;
-import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.FormCache;
-import org.opendatakit.briefcase.util.NullFormCache;
 
 public class SettingsPanel {
   private static final String README_CONTENTS = "" +
@@ -38,7 +36,7 @@ public class SettingsPanel {
   private final SettingsPanelForm form;
 
   @SuppressWarnings("checkstyle:Indentation")
-  public SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics) {
+  public SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
     this.form = form;
 
     appPreferences.getBriefcaseDir().ifPresent(path -> form.setStorageLocation(path.getParent()));
@@ -52,11 +50,12 @@ public class SettingsPanel {
       UncheckedFiles.createDirectories(briefcaseDir);
       UncheckedFiles.createDirectories(briefcaseDir.resolve("forms"));
       UncheckedFiles.write(briefcaseDir.resolve("readme.txt"), README_CONTENTS.getBytes());
-      FileSystemUtils.setFormCache(FormCache.from(briefcaseDir));
-      FileSystemUtils.updateCache(briefcaseDir);
+      formCache.setLocation(briefcaseDir);
+      formCache.update();
       appPreferences.setStorageDir(path);
     }, () -> {
-      FileSystemUtils.setFormCache(new NullFormCache());
+      formCache.unsetLocation();
+      formCache.update();
       appPreferences.unsetStorageDir();
     });
     form.onPullInParallelChange(appPreferences::setPullInParallel);
@@ -68,9 +67,9 @@ public class SettingsPanel {
     form.onHttpProxy(appPreferences::setHttpProxy, appPreferences::unsetHttpProxy);
   }
 
-  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics) {
+  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
     SettingsPanelForm settingsPanelForm = new SettingsPanelForm();
-    return new SettingsPanel(settingsPanelForm, appPreferences, analytics);
+    return new SettingsPanel(settingsPanelForm, appPreferences, analytics, formCache);
   }
 
   public JPanel getContainer() {

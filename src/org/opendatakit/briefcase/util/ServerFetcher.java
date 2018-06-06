@@ -254,7 +254,6 @@ public class ServerFetcher {
         EventBus.publish(new FormStatusEvent(fs));
       }
     }
-    FileSystemUtils.updateCache(briefcaseDir);
     return allSuccessful;
   }
 

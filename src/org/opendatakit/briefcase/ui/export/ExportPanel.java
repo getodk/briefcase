@@ -44,7 +44,7 @@ import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.transfer.NewTransferAction;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
-import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,12 +56,14 @@ public class ExportPanel {
   private final ExportPanelForm form;
   private final BriefcasePreferences appPreferences;
   private final BriefcasePreferences preferences;
+  private final FormCache formCache;
 
-  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences preferences, Analytics analytics) {
+  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences preferences, Analytics analytics, FormCache formCache) {
     this.forms = forms;
     this.form = form;
     this.appPreferences = appPreferences;
     this.preferences = preferences;
+    this.formCache = formCache;
     AnnotationProcessor.process(this);// if not using AOP
     analytics.register(form.getContainer());
 
@@ -145,27 +147,28 @@ public class ExportPanel {
     }
   }
 
-  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Analytics analytics) {
+  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
     ExportConfiguration defaultConfiguration = ExportConfiguration.load(exportPreferences);
     ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(defaultConfiguration, BriefcasePreferences.getStorePasswordsConsentProperty(), true);
-    ExportForms forms = ExportForms.load(defaultConfiguration, getFormsFromStorage(), exportPreferences, appPreferences);
+    ExportForms forms = ExportForms.load(defaultConfiguration, toFormStatuses(formCache.getForms()), exportPreferences, appPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, confPanel);
     return new ExportPanel(
         forms,
         form,
         appPreferences,
         exportPreferences,
-        analytics
+        analytics,
+        formCache
     );
   }
 
   public void updateForms() {
-    forms.merge(getFormsFromStorage());
+    forms.merge(toFormStatuses(formCache.getForms()));
     form.refresh();
   }
 
-  private static List<FormStatus> getFormsFromStorage() {
-    return FileSystemUtils.formCache.getForms().stream()
+  private static List<FormStatus> toFormStatuses(List<BriefcaseFormDefinition> formDefs) {
+    return formDefs.stream()
         .map(formDefinition -> new FormStatus(EXPORT, formDefinition))
         .collect(toList());
   }

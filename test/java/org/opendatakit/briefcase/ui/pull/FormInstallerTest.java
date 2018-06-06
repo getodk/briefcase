@@ -19,30 +19,25 @@ package org.opendatakit.briefcase.ui.pull;
 import static java.nio.file.Files.createTempDirectory;
 import static java.nio.file.Files.walk;
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.opendatakit.briefcase.matchers.IterableMatchers.containsAtLeast;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.GATHER;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
-import static org.opendatakit.briefcase.ui.SwingTestRig.createInMemoryCache;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.util.BadFormDefinition;
-import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.briefcase.util.FormCache;
 
 public class FormInstallerTest {
 
@@ -51,15 +46,11 @@ public class FormInstallerTest {
 
   @Before
   public void setUp() throws IOException {
-    createInMemoryCache();
-
     briefcaseDir = createTempDirectory("briefcase_test_");
     formsDir = briefcaseDir.resolve("forms");
-  }
-
-  @After
-  public void tearDown() {
-    deleteRecursive(briefcaseDir);
+    Files.createDirectories(formsDir);
+    FormCache formCache = FormCache.empty();
+    formCache.setLocation(briefcaseDir);
   }
 
   @Test
@@ -85,17 +76,6 @@ public class FormInstallerTest {
         formsDir.resolve("basic"),
         formsDir.resolve("basic").resolve("basic.xml")
     ));
-  }
-
-  @Test
-  public void updates_the_cache() throws BadFormDefinition, URISyntaxException {
-    Path sourceFormPath = getPath("basic.xml");
-
-    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath));
-
-    List<BriefcaseFormDefinition> cachedForms = FileSystemUtils.formCache.getForms();
-    assertThat(cachedForms, hasSize(1));
-    assertThat(cachedForms.get(0).getFormName(), is("basic"));
   }
 
   @Test

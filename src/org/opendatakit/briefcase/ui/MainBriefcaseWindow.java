@@ -50,7 +50,6 @@ import org.opendatakit.briefcase.ui.pull.PullPanel;
 import org.opendatakit.briefcase.ui.push.PushPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.settings.SettingsPanel;
-import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,9 +87,9 @@ public class MainBriefcaseWindow extends WindowAdapter {
     AnnotationProcessor.process(this);
 
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
-    appPreferences.getBriefcaseDir()
+    FormCache formCache = appPreferences.getBriefcaseDir()
         .map(FormCache::from)
-        .ifPresent(FileSystemUtils::setFormCache);
+        .orElse(FormCache.empty());
 
     frame = new JFrame();
 
@@ -114,13 +113,13 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
     addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, transferTerminationFuture).getContainer());
 
-    PushPanel pushPanel = PushPanel.from(http, appPreferences, transferTerminationFuture);
+    PushPanel pushPanel = PushPanel.from(http, appPreferences, transferTerminationFuture, formCache);
     addPane(PushPanel.TAB_NAME, pushPanel.getContainer());
 
-    ExportPanel exportPanel = ExportPanel.from(BriefcasePreferences.forClass(ExportPanel.class), appPreferences, analytics);
+    ExportPanel exportPanel = ExportPanel.from(BriefcasePreferences.forClass(ExportPanel.class), appPreferences, analytics, formCache);
     addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
 
-    Component settingsPanel = SettingsPanel.from(appPreferences, analytics).getContainer();
+    Component settingsPanel = SettingsPanel.from(appPreferences, analytics, formCache).getContainer();
     addPane(SettingsPanel.TAB_NAME, settingsPanel);
 
     frame.addWindowListener(this);

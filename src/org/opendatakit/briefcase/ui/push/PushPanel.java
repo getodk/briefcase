@@ -26,6 +26,7 @@ import java.util.Optional;
 import javax.swing.JPanel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
@@ -43,7 +44,7 @@ import org.opendatakit.briefcase.ui.push.components.PushFormsTableView;
 import org.opendatakit.briefcase.ui.push.components.PushFormsTableViewModel;
 import org.opendatakit.briefcase.ui.reused.source.Source;
 import org.opendatakit.briefcase.ui.reused.source.SourcePanel;
-import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.briefcase.util.FormCache;
 
 public class PushPanel {
   public static final String TAB_NAME = "Push";
@@ -51,15 +52,17 @@ public class PushPanel {
   private final PushForms forms;
   private final BriefcasePreferences tabPreferences;
   private final BriefcasePreferences appPreferences;
+  private final FormCache formCache;
   private TerminationFuture terminationFuture;
   private Optional<Source> source = Optional.empty();
 
-  public PushPanel(PushPanelForm view, PushForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture) {
+  public PushPanel(PushPanelForm view, PushForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache) {
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
     this.tabPreferences = tabPreferences;
     this.appPreferences = appPreferences;
+    this.formCache = formCache;
     this.terminationFuture = terminationFuture;
 
     // Register callbacks to view events
@@ -92,8 +95,8 @@ public class PushPanel {
     updateActionButtons();
   }
 
-  public static PushPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture) {
-    PushForms pushForms = new PushForms(getFormsFromStorage());
+  public static PushPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache) {
+    PushForms pushForms = new PushForms(toFormStatuses(formCache.getForms()));
     PushFormsTableViewModel pushFormsTableViewModel = new PushFormsTableViewModel(pushForms);
     PushFormsTableView pushFormsTableView = new PushFormsTableView(pushFormsTableViewModel);
     PushFormsTable pushFormsTable = new PushFormsTable(pushForms, pushFormsTableView, pushFormsTableViewModel);
@@ -103,12 +106,13 @@ public class PushPanel {
         pushForms,
         BriefcasePreferences.forClass(PushPanel.class),
         appPreferences,
-        terminationFuture
+        terminationFuture,
+        formCache
     );
   }
 
-  private static List<FormStatus> getFormsFromStorage() {
-    return FileSystemUtils.formCache.getForms().stream()
+  private static List<FormStatus> toFormStatuses(List<BriefcaseFormDefinition> formDefs) {
+    return formDefs.stream()
         .map(formDefinition -> new FormStatus(UPLOAD, formDefinition))
         .collect(toList());
   }
@@ -133,7 +137,7 @@ public class PushPanel {
   }
 
   public void updateForms() {
-    forms.merge(getFormsFromStorage());
+    forms.merge(toFormStatuses(formCache.getForms()));
     view.refresh();
   }
 

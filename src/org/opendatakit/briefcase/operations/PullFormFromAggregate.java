@@ -20,10 +20,10 @@ import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
 import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
-import static org.opendatakit.briefcase.operations.Common.bootCache;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
@@ -35,6 +35,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
+import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.briefcase.util.RetrieveAvailableFormsFromServer;
 import org.opendatakit.briefcase.util.TransferFromServer;
 import org.opendatakit.common.cli.Operation;
@@ -61,7 +62,9 @@ public class PullFormFromAggregate {
 
   public static void pullFormFromAggregate(String storageDir, String formid, String username, String password, String baseUrl) {
     CliEventsCompanion.attach(log);
-    bootCache(storageDir);
+    Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
+    FormCache formCache = FormCache.from(briefcaseDir);
+    formCache.update();
     ServerConnectionInfo transferSettings = new ServerConnectionInfo(baseUrl, username, password.toCharArray());
 
     RemoteServer server;
@@ -84,7 +87,7 @@ public class PullFormFromAggregate {
 
     FormStatus form = maybeForm.get();
     EventBus.publish(new StartPullEvent(form));
-    TransferFromServer.pull(transferSettings, BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir)), form);
+    TransferFromServer.pull(transferSettings, briefcaseDir, form);
   }
 
 }
