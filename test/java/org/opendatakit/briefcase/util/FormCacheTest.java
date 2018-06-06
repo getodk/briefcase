@@ -52,6 +52,7 @@ public class FormCacheTest {
   public void updates_itself_scanning_forms_in_the_briefcase_directory() throws IOException {
     FormCache cache = FormCache.empty();
     cache.setLocation(briefcaseDir);
+    cache.update();
 
     assertThat(cache.getForms(), is(empty()));
 
@@ -70,6 +71,7 @@ public class FormCacheTest {
 
     FormCache cache = FormCache.empty();
     cache.setLocation(briefcaseDir);
+    cache.update();
 
     assertThat(cache.getForms().size(), is(2));
 
@@ -86,6 +88,7 @@ public class FormCacheTest {
 
     FormCache cache = FormCache.empty();
     cache.setLocation(briefcaseDir);
+    cache.update();
 
     FormCache deserializedCache = FormCache.from(briefcaseDir);
 
@@ -98,8 +101,10 @@ public class FormCacheTest {
     installForm("nested-repeats");
     FormCache cache = FormCache.empty();
     cache.setLocation(briefcaseDir);
+    cache.update();
 
     cache.unsetLocation();
+    cache.update();
 
     assertThat(cache.getForms(), is(empty()));
   }

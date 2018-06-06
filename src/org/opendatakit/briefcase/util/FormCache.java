@@ -81,7 +81,6 @@ public class FormCache {
       hashByPath = new HashMap<>();
       formDefByPath = new HashMap<>();
     }
-    update();
   }
 
   public void unsetLocation() {
@@ -89,7 +88,6 @@ public class FormCache {
     cacheFile = Optional.empty();
     hashByPath = new HashMap<>();
     formDefByPath = new HashMap<>();
-    update();
   }
 
   private void save() {

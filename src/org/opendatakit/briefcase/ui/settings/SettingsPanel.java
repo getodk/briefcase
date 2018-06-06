@@ -51,9 +51,11 @@ public class SettingsPanel {
       UncheckedFiles.createDirectories(briefcaseDir.resolve("forms"));
       UncheckedFiles.write(briefcaseDir.resolve("readme.txt"), README_CONTENTS.getBytes());
       formCache.setLocation(briefcaseDir);
+      formCache.update();
       appPreferences.setStorageDir(path);
     }, () -> {
       formCache.unsetLocation();
+      formCache.update();
       appPreferences.unsetStorageDir();
     });
     form.onPullInParallelChange(appPreferences::setPullInParallel);
