@@ -1,6 +1,5 @@
 package org.opendatakit.briefcase.util;
 
-import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createFile;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.delete;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
@@ -122,8 +121,9 @@ public class FormCache {
           }
         }
       });
-      hashByPath.keySet().stream().filter(p -> !scannedFiles.contains(p)).collect(toList()).forEach(hashByPath::remove);
-      formDefByPath.keySet().stream().filter(p -> !scannedFiles.contains(p)).collect(toList()).forEach(formDefByPath::remove);
+      // Warning: Remove map entries by mutating the key set works because the key set is a view on the map
+      hashByPath.keySet().removeIf(key -> !scannedFiles.contains(key));
+      formDefByPath.keySet().removeIf(key -> !scannedFiles.contains(key));
       EventBus.publish(new CacheUpdateEvent());
       save();
     });
