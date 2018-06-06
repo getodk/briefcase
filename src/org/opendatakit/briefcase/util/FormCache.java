@@ -4,6 +4,7 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -43,6 +44,9 @@ public class FormCache implements FormCacheable {
         Map<String, String> pathToMd5Map = (Map<String, String>) ois.readObject();
         Map<String, BriefcaseFormDefinition> pathToDefinitionMap = (Map<String, BriefcaseFormDefinition>) ois.readObject();
         return new FormCache(cacheFile, pathToMd5Map, pathToDefinitionMap);
+      } catch (InvalidClassException e) {
+        log.warn("The serialized forms cache is incompatible due to an update on Briefcase");
+        UncheckedFiles.delete(cacheFile);
       } catch (IOException | ClassNotFoundException e) {
         // We can't read the forms cache file for some reason. Log it, delete it,
         // and let the next block create it new.
