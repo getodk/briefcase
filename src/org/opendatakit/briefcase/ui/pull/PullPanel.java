@@ -40,6 +40,7 @@ import org.opendatakit.briefcase.ui.ODKOptionPane;
 import org.opendatakit.briefcase.ui.pull.components.PullFormsTable;
 import org.opendatakit.briefcase.ui.pull.components.PullFormsTableView;
 import org.opendatakit.briefcase.ui.pull.components.PullFormsTableViewModel;
+import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.source.Source;
 import org.opendatakit.briefcase.ui.reused.source.SourcePanel;
 
@@ -52,13 +53,14 @@ public class PullPanel {
   private TerminationFuture terminationFuture;
   private Optional<Source<?>> source = Optional.empty();
 
-  public PullPanel(PullPanelForm view, PullForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture) {
+  public PullPanel(PullPanelForm view, PullForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
     this.tabPreferences = tabPreferences;
     this.appPreferences = appPreferences;
     this.terminationFuture = terminationFuture;
+    getContainer().addComponentListener(analytics.buildComponentListener("Pull"));
 
     // Register callbacks to view events
     view.onSource(source -> {
@@ -92,7 +94,7 @@ public class PullPanel {
     RemoteServer.readPreferences(tabPreferences).ifPresent(view::preloadSource);
   }
 
-  public static PullPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture) {
+  public static PullPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
     PullForms pullForms = new PullForms(Collections.emptyList());
     PullFormsTableViewModel pullFormsTableViewModel = new PullFormsTableViewModel(pullForms);
     PullFormsTableView pullFormsTableView = new PullFormsTableView(pullFormsTableViewModel);
@@ -103,7 +105,8 @@ public class PullPanel {
         pullForms,
         BriefcasePreferences.forClass(PullPanel.class),
         appPreferences,
-        terminationFuture
+        terminationFuture,
+        analytics
     );
   }
 
