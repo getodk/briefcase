@@ -22,7 +22,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.bushe.swing.event.EventBus;
+import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +43,7 @@ public class FormCache implements FormCacheable {
     this.briefcaseDir = cacheFile.getParent();
     this.hashByPath = hashByPath;
     this.formDefByPath = formDefByPath;
-    Runtime.getRuntime().addShutdownHook(new Thread(this::save));
+    AnnotationProcessor.process(this);
   }
 
   @SuppressWarnings("unchecked")
@@ -130,6 +133,7 @@ public class FormCache implements FormCacheable {
     hashByPath.keySet().stream().filter(path -> !scannedFiles.contains(path)).collect(toList()).forEach(hashByPath::remove);
     formDefByPath.keySet().stream().filter(path -> !scannedFiles.contains(path)).collect(toList()).forEach(formDefByPath::remove);
     EventBus.publish(new CacheUpdateEvent());
+    save();
   }
 
   private boolean isFormNewOrChanged(Path form, String hash) {
@@ -141,5 +145,10 @@ public class FormCache implements FormCacheable {
   public Path getForm(Path path) {
     String formName = path.getFileName().toString();
     return path.resolve(formName + ".xml");
+  }
+
+  @EventSubscriber(eventClass = PullEvent.Success.class)
+  public void onPullSuccess(PullEvent.Success event) {
+    update();
   }
 }
