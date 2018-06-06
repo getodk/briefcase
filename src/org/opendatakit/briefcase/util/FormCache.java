@@ -2,6 +2,7 @@ package org.opendatakit.briefcase.util;
 
 import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InvalidClassException;
@@ -15,8 +16,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +58,7 @@ public class FormCache implements FormCacheable {
       }
     UncheckedFiles.createFile(cacheFile);
     FormCache formCache = new FormCache(cacheFile, new HashMap<>(), new HashMap<>());
-    FileSystemUtils.updateCache(briefcaseDir, formCache);
+    formCache.update(briefcaseDir);
     return formCache;
   }
 
@@ -99,5 +102,37 @@ public class FormCache implements FormCacheable {
     return pathToDefinitionMap.values().stream()
         .filter(formDefinition -> formDefinition.getFormName().equals(formName))
         .findFirst();
+  }
+
+  @Override
+  public void update(Path briefcaseDir) {
+    File forms = briefcaseDir.resolve("forms").toFile();
+    if (forms.exists()) {
+      File[] formDirs = forms.listFiles();
+      for (File f : formDirs) {
+        if (f.isDirectory()) {
+          try {
+            File formFile = new File(f, f.getName() + ".xml");
+            String formFileHash = FileSystemUtils.getMd5Hash(formFile);
+            String existingFormFileHash = getFormFileMd5Hash(formFile.getAbsolutePath());
+            BriefcaseFormDefinition existingDefinition = getFormFileFormDefinition(formFile.getAbsolutePath());
+            if (existingFormFileHash == null
+                || existingDefinition == null
+                || !existingFormFileHash.equalsIgnoreCase(formFileHash)) {
+              // overwrite cache if the form's hash is not the same or there's no entry for the form in the cache.
+              putFormFileMd5Hash(formFile.getAbsolutePath(), formFileHash);
+              existingDefinition = new BriefcaseFormDefinition(f, formFile);
+              putFormFileFormDefinition(formFile.getAbsolutePath(), existingDefinition);
+            }
+          } catch (BadFormDefinition e) {
+            log.debug("bad form definition", e);
+          }
+        } else {
+          // junk?
+          f.delete();
+        }
+      }
+    }
+    EventBus.publish(new CacheUpdateEvent());
   }
 }

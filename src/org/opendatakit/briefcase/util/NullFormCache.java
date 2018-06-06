@@ -1,5 +1,6 @@
 package org.opendatakit.briefcase.util;
 
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -35,5 +36,10 @@ public class NullFormCache implements FormCacheable {
   @Override
   public Optional<BriefcaseFormDefinition> getForm(String formName) {
     return Optional.empty();
+  }
+
+  @Override
+  public void update(Path briefcaseDir) {
+    // Do nothing
   }
 }

@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.util;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,5 +56,10 @@ public class InMemoryFormCache implements FormCacheable {
   public Optional<BriefcaseFormDefinition> getForm(String formName) {
     return formsByName.values().stream()
         .filter(formDefinition -> formDefinition.getFormName().equals(formName)).findFirst();
+  }
+
+  @Override
+  public void update(Path briefcaseDir) {
+    // Do nothing
   }
 }
