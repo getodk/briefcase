@@ -108,17 +108,11 @@ public class FormCache {
     return new ArrayList<>(formDefByPath.values());
   }
 
-  public Optional<BriefcaseFormDefinition> getForm(String formName) {
-    return formDefByPath.values().stream()
-        .filter(formDefinition -> formDefinition.getFormName().equals(formName))
-        .findFirst();
-  }
-
   public void update() {
     briefcaseDir.ifPresent(path -> {
       Set<String> scannedFiles = new HashSet<>();
       list(path.resolve("forms"))
-          .map(this::getForm)
+          .map(this::getFormFilePath)
           .peek(p -> scannedFiles.add(p.toString()))
           .forEach(form -> {
             String hash = FileSystemUtils.getMd5Hash(form.toFile());
@@ -144,9 +138,8 @@ public class FormCache {
         || !hashByPath.get(form.toString()).equalsIgnoreCase(hash);
   }
 
-  public Path getForm(Path path) {
-    String formName = path.getFileName().toString();
-    return path.resolve(formName + ".xml");
+  private Path getFormFilePath(Path path) {
+    return path.resolve(path.getFileName().toString() + ".xml");
   }
 
   @EventSubscriber(eventClass = PullEvent.Success.class)
