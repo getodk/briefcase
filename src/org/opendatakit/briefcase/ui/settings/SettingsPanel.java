@@ -22,8 +22,6 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FileSystemUtils;
-import org.opendatakit.briefcase.util.FormCache;
-import org.opendatakit.briefcase.util.NullFormCache;
 
 public class SettingsPanel {
   private static final String README_CONTENTS = "" +
@@ -55,7 +53,7 @@ public class SettingsPanel {
       FileSystemUtils.formCache.setLocation(briefcaseDir);
       appPreferences.setStorageDir(path);
     }, () -> {
-      FileSystemUtils.setFormCache(new NullFormCache());
+      FileSystemUtils.formCache.unsetLocation();
       appPreferences.unsetStorageDir();
     });
     form.onPullInParallelChange(appPreferences::setPullInParallel);

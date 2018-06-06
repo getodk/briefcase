@@ -17,6 +17,11 @@ public class NullFormCache implements FormCacheable {
   }
 
   @Override
+  public void unsetLocation() {
+
+  }
+
+  @Override
   public List<BriefcaseFormDefinition> getForms() {
     return Collections.emptyList();
   }

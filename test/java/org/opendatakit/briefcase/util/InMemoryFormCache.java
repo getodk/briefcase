@@ -33,6 +33,11 @@ public class InMemoryFormCache implements FormCacheable {
   }
 
   @Override
+  public void unsetLocation() {
+    // Do nothing
+  }
+
+  @Override
   public List<BriefcaseFormDefinition> getForms() {
     return new ArrayList<>(formsByName.values());
   }

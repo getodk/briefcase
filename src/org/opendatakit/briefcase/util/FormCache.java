@@ -85,6 +85,15 @@ public class FormCache implements FormCacheable {
     update();
   }
 
+  @Override
+  public void unsetLocation() {
+    briefcaseDir = Optional.empty();
+    cacheFile = Optional.empty();
+    hashByPath = new HashMap<>();
+    formDefByPath = new HashMap<>();
+    update();
+  }
+
   private void save() {
     cacheFile.ifPresent(path -> {
       try (OutputStream out = Files.newOutputStream(path);
