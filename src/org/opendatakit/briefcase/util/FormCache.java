@@ -144,4 +144,14 @@ public class FormCache {
   public void onPullSuccess(PullEvent.Success event) {
     update();
   }
+
+  @EventSubscriber(eventClass = PullEvent.Failure.class)
+  public void onPullFailure(PullEvent.Failure event) {
+    update();
+  }
+
+  @EventSubscriber(eventClass = PullEvent.Abort.class)
+  public void onPullAbort(PullEvent.Abort event) {
+    update();
+  }
 }
