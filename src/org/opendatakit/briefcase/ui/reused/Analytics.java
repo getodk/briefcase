@@ -57,11 +57,21 @@ public class Analytics {
   }
 
   public void enter(String screenName) {
-    buildScreenViewHit().screenName(screenName).sessionControl("start").sendAsync();
+    buildScreenViewHit()
+        .documentTitle(screenName)
+        .documentPath(screenName.toLowerCase())
+        .screenName(screenName)
+        .sessionControl("start")
+        .sendAsync();
   }
 
   public void leave(String screenName) {
-    buildScreenViewHit().screenName(screenName).sessionControl("end").sendAsync();
+    buildScreenViewHit()
+        .documentTitle(screenName)
+        .documentPath(screenName.toLowerCase())
+        .screenName(screenName)
+        .sessionControl("end")
+        .sendAsync();
   }
 
   public void event(String category, String action, String label, Integer value) {
