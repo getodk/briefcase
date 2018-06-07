@@ -89,7 +89,7 @@ public class ExportPanel {
       } else {
         analytics.event("Export", "Export", "Configuration errors", null);
         showErrorDialog(getForm().getContainer(), errors.stream().collect(joining("\n")), "Export errors");
-        form.unsetExporting();
+        form.unsetExporting(appPreferences.getRememberPasswords().orElse(false));
       }
     });
 
@@ -199,7 +199,7 @@ public class ExportPanel {
       log.error("Error while exporting forms", t);
       showErrorDialog(getForm().getContainer(), "Unexpected error. See logs", "Export errors");
     } finally {
-      form.unsetExporting();
+      form.unsetExporting(appPreferences.getRememberPasswords().orElse(false));
     }
   }
 
