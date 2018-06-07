@@ -43,7 +43,11 @@ public class SettingsPanel {
     appPreferences.getPullInParallel().ifPresent(form::setPullInParallel);
     appPreferences.getRememberPasswords().ifPresent(form::setRememberPasswords);
     appPreferences.getSendUsageData().ifPresent(form::setSendUsageData);
-    appPreferences.getHttpProxy().ifPresent(form::setHttpProxy);
+    appPreferences.getHttpProxy().ifPresent(httpProxy -> {
+      form.enableUseHttpProxy();
+      form.setHttpProxy(httpProxy);
+      form.updateHttpProxyFields();
+    });
 
     form.onStorageLocation(path -> {
       Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(path);
