@@ -73,11 +73,7 @@ public class SettingsPanelForm {
 
     storageLocationClearButton.addActionListener(__ -> this.clearStorageLocation());
 
-    useHttpProxyField.addActionListener(__ -> {
-      if (!useHttpProxyField.isSelected())
-        unsetHttpProxy();
-      updateProxyFields();
-    });
+    useHttpProxyField.addActionListener(__ -> updateHttpProxyFields());
 
     httpProxyHostField.addFocusListener(onFocusLost(() -> OptionalProduct.all(
         Optional.ofNullable(httpProxyHostField.getText()),
@@ -89,12 +85,25 @@ public class SettingsPanelForm {
         Optional.ofNullable(httpProxyPortField.getValue()).map(o -> (Integer) o)
     ).map(HttpHost::new).ifPresent(this::setHttpProxy));
 
-    updateProxyFields();
+    updateProxyFields(useHttpProxyField.isSelected());
   }
 
-  private void updateProxyFields() {
-    httpProxyHostField.setEnabled(useHttpProxyField.isSelected());
-    httpProxyPortField.setEnabled(useHttpProxyField.isSelected());
+  void updateHttpProxyFields() {
+    if (useHttpProxyField.isSelected()) {
+      httpProxyHostField.setEnabled(true);
+      httpProxyPortField.setEnabled(true);
+    } else {
+      httpProxyHostField.setEnabled(false);
+      httpProxyHostField.setText("127.0.0.1");
+      httpProxyPortField.setEnabled(false);
+      httpProxyPortField.setValue(8080);
+      onClearHttpProxyCallbacks.forEach(Runnable::run);
+    }
+  }
+
+  private void updateProxyFields(boolean enabled) {
+    httpProxyHostField.setEnabled(enabled);
+    httpProxyPortField.setEnabled(enabled);
   }
 
   void setStorageLocation(Path path) {
@@ -116,18 +125,14 @@ public class SettingsPanelForm {
     onClearStorageLocationCallbacks.add(onClear);
   }
 
-  void setHttpProxy(HttpHost proxy) {
+  void enableUseHttpProxy() {
     useHttpProxyField.setSelected(true);
+  }
+
+  void setHttpProxy(HttpHost proxy) {
     httpProxyHostField.setText(proxy.getHostName());
     httpProxyPortField.setValue(proxy.getPort());
     onHttpProxyCallbacks.forEach(callback -> callback.accept(proxy));
-    updateProxyFields();
-  }
-
-  private void unsetHttpProxy() {
-    httpProxyHostField.setText("127.0.0.1");
-    httpProxyPortField.setValue(8080);
-    onClearHttpProxyCallbacks.forEach(Runnable::run);
   }
 
   void onHttpProxy(Consumer<HttpHost> onSet, Runnable onClear) {
