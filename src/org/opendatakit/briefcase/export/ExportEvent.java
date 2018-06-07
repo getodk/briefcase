@@ -45,6 +45,14 @@ public final class ExportEvent {
     return new ExportEvent(form.getFormId(), String.format("Failure: %s", cause), false);
   }
 
+  public static ExportEvent failureSubmission(FormDefinition form, String instanceId, Throwable cause) {
+    return new ExportEvent(
+        form.getFormId(),
+        String.format("Can't export submission %s of form ID %s. Cause: %s", instanceId, form.getFormId(), cause.getMessage()),
+        false
+    );
+  }
+
   public static ExportEvent successForm(FormDefinition formDef, int total) {
     return new ExportEvent(formDef.getFormId(), String.format("Exported %d submission%s", total, sUnlessOne(total)), true);
   }

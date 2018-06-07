@@ -34,6 +34,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -41,9 +43,11 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.IllegalBlockSizeException;
+import org.bushe.swing.event.EventBus;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.model.CryptoException;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
@@ -65,21 +69,28 @@ class SubmissionParser {
    * Each file gets briefly parsed to obtain their submission date and use it as
    * the sorting criteria and for filtering.
    *
-   * @param formDir   the {@link Path} directory of the form
+   * @param formDef
    * @param dateRange a {@link DateRange} to filter submissions that are contained in it
    */
-  static List<Path> getOrderedListOfSubmissionFiles(Path formDir, DateRange dateRange) {
-    Path instancesDir = formDir.resolve("instances");
+  static List<Path> getOrderedListOfSubmissionFiles(FormDefinition formDef, DateRange dateRange) {
+    Path instancesDir = formDef.getFormDir().resolve("instances");
     if (!Files.exists(instancesDir) || !Files.isReadable(instancesDir))
       return Collections.emptyList();
-    return list(instancesDir)
+    // TODO Migrate this code to Try<Pair<Path, Option<OffsetDate>>> to be able to filter failed parsing attempts
+    List<Pair<Path, OffsetDateTime>> paths = new ArrayList<>();
+    list(instancesDir)
         .filter(UncheckedFiles::isInstanceDir)
-        .map(instanceDir -> instanceDir.resolve("submission.xml"))
-        // Pair each path with the parsed submission date
-        .map(submissionPath -> Pair.of(
-            submissionPath,
-            readSubmissionDate(submissionPath).orElse(OffsetDateTime.MIN)
-        ))
+        .forEach(instanceDir -> {
+          Path submissionFile = instanceDir.resolve("submission.xml");
+          try {
+            Optional<OffsetDateTime> submissionDate = readSubmissionDate(submissionFile);
+            paths.add(Pair.of(submissionFile, submissionDate.orElse(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC))));
+          } catch (Throwable t) {
+            log.error("Can't read submission date", t);
+            EventBus.publish(ExportEvent.failureSubmission(formDef, instanceDir.getFileName().toString(), t));
+          }
+        });
+    return paths.stream()
         // Filter out submissions outside the given date range
         .filter(pair -> dateRange.contains(pair.getRight()))
         // Sort them and return a list of paths
@@ -189,8 +200,7 @@ class SubmissionParser {
       tempDoc.parse(parser);
       return Optional.of(tempDoc);
     } catch (IOException | XmlPullParserException e) {
-      log.warn("Can't parse submission {} {}", submission.getParent().getParent().getParent().getFileName(), submission.getParent().getFileName(), e);
-      return Optional.empty();
+      throw new BriefcaseException(e);
     }
   }
 
