@@ -92,12 +92,12 @@ class ConfigurationPanelPageObject {
     fixture.show();
   }
 
-  void disable() {
-    GuiActionRunner.execute(() -> component.setEnabled(false));
+  void disable(boolean savePasswordsConsent) {
+    GuiActionRunner.execute(() -> component.setEnabled(false, savePasswordsConsent));
   }
 
-  void enable() {
-    GuiActionRunner.execute(() -> component.setEnabled(true));
+  void enable(boolean savePasswordsConsent) {
+    GuiActionRunner.execute(() -> component.setEnabled(true, savePasswordsConsent));
   }
 
   public JButton choosePemFileButton() {

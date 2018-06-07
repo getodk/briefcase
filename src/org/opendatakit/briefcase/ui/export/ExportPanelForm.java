@@ -104,16 +104,16 @@ public class ExportPanelForm {
 
   void setExporting() {
     exportProgressBar.setVisible(true);
-    confPanel.setEnabled(false);
+    confPanel.setEnabled(false, false);
     formsTable.setEnabled(false);
     selectAllButton.setEnabled(false);
     clearAllButton.setEnabled(false);
     exportButton.setEnabled(false);
   }
 
-  void unsetExporting() {
+  void unsetExporting(boolean savePasswordsConsent) {
     exportProgressBar.setVisible(false);
-    confPanel.setEnabled(true);
+    confPanel.setEnabled(true, savePasswordsConsent);
     formsTable.setEnabled(true);
     selectAllButton.setEnabled(true);
     clearAllButton.setEnabled(true);
