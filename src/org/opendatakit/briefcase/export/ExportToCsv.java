@@ -41,9 +41,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,32 +104,45 @@ public class ExportToCsv {
     files.put(formDef.getModel(), mainFile);
 
     SubmissionParser
-        .getOrderedListOfSubmissionFiles(formDef.getFormDir(), configuration.getDateRange())
+        .getOrderedListOfSubmissionFiles(formDef, configuration.getDateRange())
         .stream()
         .map(path -> SubmissionParser.parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey()))
         .filter(Optional::isPresent)
         .map(Optional::get)
-        // While we iterate over each submission, take a peek, and
-        // write lines on each repeat group CSV file
-        .peek(submission -> repeatGroups.forEach(groupModel -> append(getRepeatCsvLine(
-            groupModel,
-            submission.getElements(groupModel.fqn()),
-            exportMedia,
-            configuration.getExportMediaPath(),
-            submission.getInstanceId(),
-            submission.getWorkingDir()
-        ), files.get(groupModel))))
-        // Write lines in the main CSV file
         .forEach(submission -> {
           // Increment the export count and maybe report progress
           exportTracker.incAndReport();
-          append(getMainSubmissionLines(
-              submission,
-              formDef.getModel(),
-              formDef.isFileEncryptedForm(),
-              exportMedia,
-              configuration.getExportMediaPath()
-          ), mainFile);
+
+          String mainLine = null;
+          Stream<Pair<String, Model>> repeatLines = Stream.empty();
+          try {
+            mainLine = getMainSubmissionLines(
+                submission,
+                formDef.getModel(),
+                formDef.isFileEncryptedForm(),
+                exportMedia,
+                configuration.getExportMediaPath()
+            );
+            repeatLines = repeatGroups.stream().map(groupModel -> Pair.of(getRepeatCsvLine(
+                groupModel,
+                submission.getElements(groupModel.fqn()),
+                exportMedia,
+                configuration.getExportMediaPath(),
+                submission.getInstanceId(),
+                submission.getWorkingDir()
+            ), groupModel));
+          } catch (Throwable t) {
+            log.error("Can't produce CSV lines", t);
+            EventBus.publish(ExportEvent.failureSubmission(formDef, submission.getInstanceId(), t));
+          }
+
+          if (mainLine != null) {
+            // Write lines in the main CSV file
+            append(mainLine, mainFile);
+            // While we iterate over each submission, take a peek, and
+            // write lines on each repeat group CSV file
+            repeatLines.forEach(pair -> append(pair.getLeft(), files.get(pair.getRight())));
+          }
         });
 
     // Flush and close output streams

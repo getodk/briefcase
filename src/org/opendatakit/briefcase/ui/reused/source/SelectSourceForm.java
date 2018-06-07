@@ -73,7 +73,7 @@ public class SelectSourceForm extends JComponent {
     container = new JPanel();
     container.setLayout(new GridBagLayout());
     actionLabel = new JLabel();
-    actionLabel.setText("Pull Data From");
+    actionLabel.setText("Pull from");
     GridBagConstraints gbc;
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
