@@ -98,7 +98,7 @@ public class ExportToCsv {
         .orElse(stripIllegalChars(formDef.getFormName()) + ".csv");
     OutputStreamWriter mainFile = getOutputStreamWriter(
         exportDir.resolve(mainFileName),
-        configuration.getOverwriteExistingFiles().orElse(true),
+        configuration.getOverwriteExistingFiles().orElse(false),
         getMainHeader(formDef.getModel(), formDef.isFileEncryptedForm())
     );
     files.put(formDef.getModel(), mainFile);
