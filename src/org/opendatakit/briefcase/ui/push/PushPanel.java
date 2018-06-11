@@ -54,6 +54,7 @@ public class PushPanel {
   private final BriefcasePreferences tabPreferences;
   private final BriefcasePreferences appPreferences;
   private final FormCache formCache;
+  private final Analytics analytics;
   private TerminationFuture terminationFuture;
   private Optional<Source> source = Optional.empty();
 
@@ -65,6 +66,7 @@ public class PushPanel {
     this.appPreferences = appPreferences;
     this.formCache = formCache;
     this.terminationFuture = terminationFuture;
+    this.analytics = analytics;
     getContainer().addComponentListener(analytics.buildComponentListener("Push"));
 
     // Register callbacks to view events
@@ -175,6 +177,7 @@ public class PushPanel {
     terminationFuture.reset();
     view.unsetPushing();
     updateActionButtons();
+    analytics.event("Push", "Transfer", "Failure", null);
   }
 
   @EventSubscriber(eventClass = PushEvent.Success.class)
@@ -190,6 +193,7 @@ public class PushPanel {
         appPreferences.put(String.format("%s_push_settings_password", form.getFormDefinition().getFormId()), String.valueOf(event.transferSettings.get().getPassword()));
       });
     }
+    analytics.event("Push", "Transfer", "Success", null);
   }
 
 

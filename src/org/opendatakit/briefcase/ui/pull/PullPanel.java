@@ -50,6 +50,7 @@ public class PullPanel {
   private final PullForms forms;
   private final BriefcasePreferences tabPreferences;
   private final BriefcasePreferences appPreferences;
+  private final Analytics analytics;
   private TerminationFuture terminationFuture;
   private Optional<Source<?>> source = Optional.empty();
 
@@ -60,6 +61,7 @@ public class PullPanel {
     this.tabPreferences = tabPreferences;
     this.appPreferences = appPreferences;
     this.terminationFuture = terminationFuture;
+    this.analytics = analytics;
     getContainer().addComponentListener(analytics.buildComponentListener("Pull"));
 
     // Register callbacks to view events
@@ -154,6 +156,7 @@ public class PullPanel {
     terminationFuture.reset();
     view.unsetPulling();
     updateActionButtons();
+    analytics.event("Pull", "Transfer", "Failure", null);
   }
 
   @EventSubscriber(eventClass = PullEvent.Success.class)
@@ -176,5 +179,6 @@ public class PullPanel {
         ));
       }
     }
+    analytics.event("Pull", "Transfer", "Success", null);
   }
 }
