@@ -16,7 +16,7 @@
 
 package org.opendatakit.briefcase.export;
 
-public final class ExportEvent {
+public class ExportEvent {
   private final String formId;
   private final String statusLine;
   private final boolean success;
@@ -42,7 +42,7 @@ public final class ExportEvent {
   }
 
   public static ExportEvent failure(FormDefinition form, String cause) {
-    return new ExportEvent(form.getFormId(), String.format("Failure: %s", cause), false);
+    return new ExportEvent.Failure(form.getFormId(), String.format("Failure: %s", cause), false);
   }
 
   public static ExportEvent failureSubmission(FormDefinition form, String instanceId, Throwable cause) {
@@ -54,11 +54,11 @@ public final class ExportEvent {
   }
 
   public static ExportEvent successForm(FormDefinition formDef, int total) {
-    return new ExportEvent(formDef.getFormId(), String.format("Exported %d submission%s", total, sUnlessOne(total)), true);
+    return new ExportEvent.Success(formDef.getFormId(), String.format("Exported %d submission%s", total, sUnlessOne(total)), true);
   }
 
   public static ExportEvent partialSuccessForm(FormDefinition formDef, int exported, int total) {
-    return new ExportEvent(formDef.getFormId(), String.format("Exported %d from %d submission%s", exported, total, sUnlessOne(total)), true);
+    return new ExportEvent.Success(formDef.getFormId(), String.format("Exported %d from %d submission%s", exported, total, sUnlessOne(total)), true);
   }
 
   public String getFormId() {
@@ -76,5 +76,17 @@ public final class ExportEvent {
   @SuppressWarnings("checkstyle:MethodName")
   private static String sUnlessOne(int num) {
     return num == 1 ? "" : "s";
+  }
+
+  public static class Failure extends ExportEvent {
+    private Failure(String formId, String statusLine, boolean success) {
+      super(formId, statusLine, success);
+    }
+  }
+
+  public static class Success extends ExportEvent {
+    private Success(String formId, String statusLine, boolean success) {
+      super(formId, statusLine, success);
+    }
   }
 }

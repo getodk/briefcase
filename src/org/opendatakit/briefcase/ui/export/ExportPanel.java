@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.export.ExportToCsv;
 import org.opendatakit.briefcase.export.FormDefinition;
@@ -56,6 +57,7 @@ public class ExportPanel {
   private final ExportPanelForm form;
   private final BriefcasePreferences appPreferences;
   private final BriefcasePreferences preferences;
+  private final Analytics analytics;
   private final FormCache formCache;
 
   ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences preferences, Analytics analytics, FormCache formCache) {
@@ -63,6 +65,7 @@ public class ExportPanel {
     this.form = form;
     this.appPreferences = appPreferences;
     this.preferences = preferences;
+    this.analytics = analytics;
     this.formCache = formCache;
     AnnotationProcessor.process(this);// if not using AOP
     analytics.register(form.getContainer());
@@ -227,5 +230,15 @@ public class ExportPanel {
   public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
     forms.flushTransferSettings();
     form.getConfPanel().savePasswordsConsentRevoked();
+  }
+
+  @EventSubscriber(eventClass = ExportEvent.Success.class)
+  public void onExportSuccess(ExportEvent.Success event) {
+    analytics.event("Export", "Export", "Success", null);
+  }
+
+  @EventSubscriber(eventClass = ExportEvent.Failure.class)
+  public void onExportFailure(ExportEvent.Failure event) {
+    analytics.event("Export", "Export", "Failure", null);
   }
 }
