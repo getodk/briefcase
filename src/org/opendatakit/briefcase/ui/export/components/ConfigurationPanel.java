@@ -98,8 +98,8 @@ public class ConfigurationPanel {
   }
 
   public void setEnabled(boolean enabled, boolean savePasswordsConsent) {
-    form.changeMode(savePasswordsConsent);
     form.setEnabled(enabled);
+    form.changeMode(savePasswordsConsent);
   }
 
   public boolean isValid() {

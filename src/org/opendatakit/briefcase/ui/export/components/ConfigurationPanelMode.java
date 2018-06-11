@@ -41,12 +41,12 @@ class ConfigurationPanelMode {
     return new ConfigurationPanelMode(false, savePasswordsConsent, hasTransferSettings);
   }
 
-  void decorate(JCheckBox pullBeforeField, JLabel pullBeforeOverrideLabel, JComboBox pullBeforeOverrideField, JTextPane textpanel) {
+  void decorate(JCheckBox pullBeforeField, JLabel pullBeforeOverrideLabel, JComboBox pullBeforeOverrideField, JTextPane textpanel, boolean uiLocked) {
     pullBeforeField.setVisible(!isOverridePanel);
-    pullBeforeField.setEnabled(savePasswordsConsent && (!isOverridePanel || hasTransferSettings));
+    pullBeforeField.setEnabled(!uiLocked && savePasswordsConsent && (!isOverridePanel || hasTransferSettings));
     pullBeforeOverrideLabel.setVisible(isOverridePanel);
     pullBeforeOverrideField.setVisible(isOverridePanel);
-    pullBeforeOverrideField.setEnabled(savePasswordsConsent && hasTransferSettings);
+    pullBeforeOverrideField.setEnabled(!uiLocked && savePasswordsConsent && hasTransferSettings);
     textpanel.setVisible(!savePasswordsConsent || !hasTransferSettings || !isOverridePanel);
     textpanel.setText(savePasswordsConsent
         ? hasTransferSettings && isOverridePanel

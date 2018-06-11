@@ -85,6 +85,7 @@ public class ConfigurationPanelForm extends JComponent {
   private final List<Consumer<PullBeforeOverrideOption>> onChangePullBeforeOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeOverwriteExistingFilesCallbacks = new ArrayList<>();
   private final ConfigurationPanelMode mode;
+  private boolean uiLocked = false;
 
   protected ConfigurationPanelForm(ConfigurationPanelMode mode) {
     this.mode = mode;
@@ -100,7 +101,7 @@ public class ConfigurationPanelForm extends JComponent {
     endDatePicker.getComponentDateTextField().setPreferredSize(exportDirField.getPreferredSize());
     endDatePicker.getComponentToggleCalendarButton().setPreferredSize(exportDirChooseButton.getPreferredSize());
     pullBeforeHintPanel.setBackground(new Color(255, 255, 255, 0));
-    mode.decorate(pullBeforeField, pullBeforeOverrideLabel, pullBeforeOverrideField, pullBeforeHintPanel);
+    mode.decorate(pullBeforeField, pullBeforeOverrideLabel, pullBeforeOverrideField, pullBeforeHintPanel, uiLocked);
     GridBagLayout layout = (GridBagLayout) container.getLayout();
     GridBagConstraints constraints = layout.getConstraints(pullBeforeHintPanel);
     constraints.insets = new Insets(0, isMac() ? 6 : isWindows() ? 2 : 0, 0, 0);
@@ -142,6 +143,7 @@ public class ConfigurationPanelForm extends JComponent {
 
   @Override
   public void setEnabled(boolean enabled) {
+    uiLocked = !enabled;
     container.setEnabled(enabled);
     startDatePicker.setEnabled(enabled);
     endDatePicker.setEnabled(enabled);
@@ -248,7 +250,7 @@ public class ConfigurationPanelForm extends JComponent {
 
   void changeMode(boolean savePasswordsConsent) {
     mode.setSavePasswordsConsent(savePasswordsConsent);
-    mode.decorate(pullBeforeField, pullBeforeOverrideLabel, pullBeforeOverrideField, pullBeforeHintPanel);
+    mode.decorate(pullBeforeField, pullBeforeOverrideLabel, pullBeforeOverrideField, pullBeforeHintPanel, uiLocked);
   }
 
   private void createUIComponents() {
