@@ -54,7 +54,7 @@ public class PullPanel {
   private final BriefcasePreferences appPreferences;
   private final Analytics analytics;
   private TerminationFuture terminationFuture;
-  private Optional<Source<?>> source = Optional.empty();
+  private Optional<Source<?>> source;
 
   public PullPanel(PullPanelForm view, PullForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
     AnnotationProcessor.process(this);
@@ -67,7 +67,12 @@ public class PullPanel {
     getContainer().addComponentListener(analytics.buildComponentListener("Pull"));
 
     // Read prefs and load saved remote server if available
-    RemoteServer.readPreferences(tabPreferences).ifPresent(view::preloadSource);
+    this.source = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadSource);
+    this.source.ifPresent(source -> {
+      forms.load(source.getFormList());
+      view.refresh();
+      updateActionButtons();
+    });
 
     // Register callbacks to view events
     view.onSource(source -> {

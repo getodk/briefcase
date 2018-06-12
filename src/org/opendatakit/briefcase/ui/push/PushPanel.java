@@ -58,7 +58,7 @@ public class PushPanel {
   private final FormCache formCache;
   private final Analytics analytics;
   private TerminationFuture terminationFuture;
-  private Optional<Source> source = Optional.empty();
+  private Optional<Source<?>> source;
 
   public PushPanel(PushPanelForm view, PushForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
     AnnotationProcessor.process(this);
@@ -72,9 +72,8 @@ public class PushPanel {
     getContainer().addComponentListener(analytics.buildComponentListener("Push"));
 
     // Read prefs and load saved remote server if available
-    RemoteServer.readPreferences(tabPreferences).ifPresent(view::preloadSource);
-
-    updateActionButtons();
+    this.source = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadSource);
+    this.source.ifPresent(source -> updateActionButtons());
 
     // Register callbacks to view events
     view.onSource(source -> {
