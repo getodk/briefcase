@@ -17,7 +17,9 @@
 package org.opendatakit.briefcase.ui.pull;
 
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0_URL;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
+import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
 
 import java.util.Collections;
@@ -143,6 +145,8 @@ public class PullPanel {
 
   @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
   public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
+    tabPreferences.remove(AGGREGATE_1_0_URL);
+    tabPreferences.remove(USERNAME);
     tabPreferences.remove(PASSWORD);
     appPreferences.removeAll(appPreferences.keys().stream().filter((String key) ->
         key.endsWith("_pull_settings_url")
