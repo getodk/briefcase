@@ -140,7 +140,6 @@ public class RemoteServer {
   public List<RemoteFormDefinition> getFormsList(Http http) {
     return http.execute(Request.get(baseUrl, credentials)
         .resolve("/formList")
-        .withHeader("X-OpenRosa-Version", "1.0")
         .withMapper(body -> {
           Document parse = parse(body);
           Element rootElement = parse.getRootElement();
