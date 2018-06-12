@@ -100,14 +100,22 @@ public class RemoteServer {
   }
 
   public void storePreferences(BriefcasePreferences prefs, boolean storePasswords) {
+    prefs.remove(AGGREGATE_1_0_URL);
+    prefs.remove(USERNAME);
     prefs.remove(PASSWORD);
-    prefs.put(AGGREGATE_1_0_URL, getBaseUrl().toString());
-    credentials.ifPresent(cs -> {
-      prefs.put(USERNAME, cs.getUsername());
-      if (storePasswords)
-        prefs.put(PASSWORD, cs.getPassword());
-    });
 
+    // We only save the Aggregate URL if no credentials are defined or
+    // if they're defined and we have the user's consent to save passwords,
+    // to avoid saving a URL that won't work without credentials.
+    if (!credentials.isPresent() || storePasswords)
+      prefs.put(AGGREGATE_1_0_URL, getBaseUrl().toString());
+
+    // We only save the credentials if we have the user's consent to save
+    // passwords
+    if (credentials.isPresent() && storePasswords) {
+      prefs.put(USERNAME, credentials.get().getUsername());
+      prefs.put(PASSWORD, credentials.get().getPassword());
+    }
   }
 
   public URL getBaseUrl() {
