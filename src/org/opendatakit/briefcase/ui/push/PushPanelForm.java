@@ -22,6 +22,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -145,8 +146,8 @@ public class PushPanelForm {
     pushButton.setVisible(true);
   }
 
-  public void preloadSource(RemoteServer server) {
-    sourcePanel.preload(server);
+  public Optional<Source<?>> preloadSource(RemoteServer server) {
+    return sourcePanel.preload(server);
   }
 
   private void createUIComponents() {
