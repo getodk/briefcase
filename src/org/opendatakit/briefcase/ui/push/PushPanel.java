@@ -71,6 +71,11 @@ public class PushPanel {
     this.analytics = analytics;
     getContainer().addComponentListener(analytics.buildComponentListener("Push"));
 
+    // Read prefs and load saved remote server if available
+    RemoteServer.readPreferences(tabPreferences).ifPresent(view::preloadSource);
+
+    updateActionButtons();
+
     // Register callbacks to view events
     view.onSource(source -> {
       this.source = Optional.of(source);
@@ -94,11 +99,6 @@ public class PushPanel {
     });
 
     view.onCancel(() -> terminationFuture.markAsCancelled(new PushEvent.Abort("Cancelled by the user")));
-
-    // Read prefs and load saved remote server if available
-    RemoteServer.readPreferences(tabPreferences).ifPresent(view::preloadSource);
-
-    updateActionButtons();
   }
 
   public static PushPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {

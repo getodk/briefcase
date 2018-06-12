@@ -66,6 +66,9 @@ public class PullPanel {
     this.analytics = analytics;
     getContainer().addComponentListener(analytics.buildComponentListener("Pull"));
 
+    // Read prefs and load saved remote server if available
+    RemoteServer.readPreferences(tabPreferences).ifPresent(view::preloadSource);
+
     // Register callbacks to view events
     view.onSource(source -> {
       this.source = Optional.of(source);
@@ -93,9 +96,6 @@ public class PullPanel {
     });
 
     view.onCancel(() -> terminationFuture.markAsCancelled(new PullEvent.Abort("Cancelled by the user")));
-
-    // Read prefs and load saved remote server if available
-    RemoteServer.readPreferences(tabPreferences).ifPresent(view::preloadSource);
   }
 
   public static PullPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
