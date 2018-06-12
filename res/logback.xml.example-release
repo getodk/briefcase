@@ -1,18 +1,24 @@
 <configuration>
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-      <pattern>%d [%thread] %-5level %logger{36} - %msg%n</pattern>
-    </encoder>
-  </appender>
-
-  <appender name="Sentry" class="io.sentry.logback.SentryAppender">
+  <appender name="SENTRY" class="io.sentry.logback.SentryAppender">
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
       <level>WARN</level>
     </filter>
   </appender>
 
+  <appender name="ROLLINGFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>briefcase.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>briefcase.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>30</maxHistory>
+      <totalSizeCap>100MB</totalSizeCap>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%d [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
   <root level="info">
-    <appender-ref ref="STDOUT"/>
-    <appender-ref ref="Sentry" />
+    <appender-ref ref="SENTRY" />
+    <appender-ref ref="ROLLINGFILE" />
   </root>
 </configuration>
