@@ -294,7 +294,7 @@ public class ServerUploader {
 
     URI u;
     try {
-      u = AggregateUtils.testServerConnectionWithHeadRequest(serverInfo, "formUpload");
+      u = AggregateUtils.getAggregateActionUri(serverInfo, "formUpload");
     } catch (TransmissionException e) {
       formToTransfer.setStatusString(e.getMessage(), false);
       EventBus.publish(new FormStatusEvent(formToTransfer));
@@ -347,7 +347,7 @@ public class ServerUploader {
       // Get the actual server URL in u, possibly redirected to https.
       // We know we are talking to the server because the head request
       // succeeded and had a Location header field.
-      u = AggregateUtils.testServerConnectionWithHeadRequest(serverInfo, "submission");
+      u = AggregateUtils.getAggregateActionUri(serverInfo, "submission");
     } catch (TransmissionException e) {
       formToTransfer.setStatusString(e.getMessage(), false);
       EventBus.publish(new FormStatusEvent(formToTransfer));
@@ -410,10 +410,6 @@ public class ServerUploader {
     // and try to rename the instance directory to be its instanceID
     action.afterUpload(formToTransfer);
     return outcome;
-  }
-
-  public static final void testServerUploadConnection(ServerConnectionInfo serverInfo, TerminationFuture terminationFuture) throws TransmissionException {
-    AggregateUtils.testServerConnectionWithHeadRequest(serverInfo, "upload"); // for form upload...
   }
 
 }

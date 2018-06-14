@@ -30,13 +30,12 @@ import java.util.Collections;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
+import org.opendatakit.briefcase.reused.http.Response;
 import org.opendatakit.briefcase.util.FormCache;
-import org.opendatakit.briefcase.util.ServerConnectionTest;
 import org.opendatakit.briefcase.util.TransferToServer;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
@@ -67,34 +66,36 @@ public class PushFormToAggregate {
     Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
-    Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
-        .filter(form -> form.getFormId().equals(formid))
-        .map(formDef -> new FormStatus(FormStatus.TransferType.UPLOAD, formDef))
-        .findFirst();
-
-    FormStatus form = maybeFormStatus.orElseThrow(() -> new FormNotFoundException(formid));
-
-    ServerConnectionInfo transferSettings = new ServerConnectionInfo(server, username, password.toCharArray());
-
-    ServerConnectionTest.testPush(transferSettings);
 
     CommonsHttp http = new CommonsHttp();
 
     URL baseUrl;
     try {
-      baseUrl = new URL(transferSettings.getUrl());
+      baseUrl = new URL(server);
     } catch (MalformedURLException e) {
       throw new BriefcaseException(e);
     }
-    RemoteServer remoteServer = RemoteServer.authenticated(
-        baseUrl,
-        new Credentials(
-            transferSettings.getUsername(),
-            new String(transferSettings.getPassword())
-        )
-    );
+    RemoteServer remoteServer = RemoteServer.authenticated(baseUrl, new Credentials(username, password));
 
-    TransferToServer.push(transferSettings, http, remoteServer, forceSendBlank, form);
+    Response<Boolean> response = remoteServer.testPush(http);
+    if (!response.isSuccess())
+      System.err.println(response.isRedirection()
+          ? "Error connecting to Aggregate: Redirection detected"
+          : response.isUnauthorized()
+          ? "Error connecting to Aggregate: Wrong credentials"
+          : response.isNotFound()
+          ? "Error connecting to Aggregate: Aggregate not found"
+          : "Error connecting to Aggregate");
+    else {
+      Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
+          .filter(form -> form.getFormId().equals(formid))
+          .map(formDef -> new FormStatus(FormStatus.TransferType.UPLOAD, formDef))
+          .findFirst();
+
+      FormStatus form = maybeFormStatus.orElseThrow(() -> new FormNotFoundException(formid));
+
+      TransferToServer.push(remoteServer.asServerConnectionInfo(), http, remoteServer, forceSendBlank, form);
+    }
   }
 
 }
