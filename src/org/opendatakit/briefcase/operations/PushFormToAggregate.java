@@ -67,6 +67,23 @@ public class PushFormToAggregate {
     Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
+
+    CommonsHttp http = new CommonsHttp();
+
+    URL baseUrl;
+    try {
+      baseUrl = new URL(server);
+    } catch (MalformedURLException e) {
+      throw new BriefcaseException(e);
+    }
+    RemoteServer remoteServer = RemoteServer.authenticated(
+        baseUrl,
+        new Credentials(
+            username,
+            password
+        )
+    );
+
     Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
         .filter(form -> form.getFormId().equals(formid))
         .map(formDef -> new FormStatus(FormStatus.TransferType.UPLOAD, formDef))
@@ -77,22 +94,6 @@ public class PushFormToAggregate {
     ServerConnectionInfo transferSettings = new ServerConnectionInfo(server, username, password.toCharArray());
 
     ServerConnectionTest.testPush(transferSettings);
-
-    CommonsHttp http = new CommonsHttp();
-
-    URL baseUrl;
-    try {
-      baseUrl = new URL(transferSettings.getUrl());
-    } catch (MalformedURLException e) {
-      throw new BriefcaseException(e);
-    }
-    RemoteServer remoteServer = RemoteServer.authenticated(
-        baseUrl,
-        new Credentials(
-            transferSettings.getUsername(),
-            new String(transferSettings.getPassword())
-        )
-    );
 
     TransferToServer.push(transferSettings, http, remoteServer, forceSendBlank, form);
   }
