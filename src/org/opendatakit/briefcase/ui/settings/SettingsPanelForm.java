@@ -75,15 +75,9 @@ public class SettingsPanelForm {
 
     useHttpProxyField.addActionListener(__ -> updateHttpProxyFields());
 
-    httpProxyHostField.addFocusListener(onFocusLost(() -> OptionalProduct.all(
-        Optional.ofNullable(httpProxyHostField.getText()).map(String::trim).filter(s -> !s.isEmpty()),
-        Optional.ofNullable(httpProxyPortField.getValue()).map(o -> (Integer) o)
-    ).map(HttpHost::new).ifPresent(this::setHttpProxy)));
+    httpProxyHostField.addFocusListener(onFocusLost(this::processHttpProxyFields));
 
-    httpProxyPortField.addChangeListener(__ -> OptionalProduct.all(
-        Optional.ofNullable(httpProxyHostField.getText()).map(String::trim).filter(s -> !s.isEmpty()),
-        Optional.ofNullable(httpProxyPortField.getValue()).map(o -> (Integer) o)
-    ).map(HttpHost::new).ifPresent(this::setHttpProxy));
+    httpProxyPortField.addChangeListener(__ -> processHttpProxyFields());
 
     updateProxyFields(useHttpProxyField.isSelected());
   }
@@ -99,6 +93,13 @@ public class SettingsPanelForm {
       httpProxyPortField.setValue(8080);
       onClearHttpProxyCallbacks.forEach(Runnable::run);
     }
+  }
+
+  private void processHttpProxyFields() {
+    OptionalProduct.all(
+        Optional.ofNullable(httpProxyHostField.getText()).map(String::trim).filter(s -> !s.isEmpty()),
+        Optional.ofNullable(httpProxyPortField.getValue()).map(o -> (Integer) o)
+    ).map(HttpHost::new).ifPresent(this::setHttpProxy);
   }
 
   private void updateProxyFields(boolean enabled) {
