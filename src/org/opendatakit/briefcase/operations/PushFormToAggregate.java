@@ -30,13 +30,12 @@ import java.util.Collections;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
+import org.opendatakit.briefcase.reused.http.Response;
 import org.opendatakit.briefcase.util.FormCache;
-import org.opendatakit.briefcase.util.ServerConnectionTest;
 import org.opendatakit.briefcase.util.TransferToServer;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
@@ -76,26 +75,27 @@ public class PushFormToAggregate {
     } catch (MalformedURLException e) {
       throw new BriefcaseException(e);
     }
-    RemoteServer remoteServer = RemoteServer.authenticated(
-        baseUrl,
-        new Credentials(
-            username,
-            password
-        )
-    );
+    RemoteServer remoteServer = RemoteServer.authenticated(baseUrl, new Credentials(username, password));
 
-    Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
-        .filter(form -> form.getFormId().equals(formid))
-        .map(formDef -> new FormStatus(FormStatus.TransferType.UPLOAD, formDef))
-        .findFirst();
+    Response<Boolean> response = remoteServer.testPush(http);
+    if (!response.isSuccess())
+      System.err.println(response.isRedirection()
+          ? "Error connecting to Aggregate: Redirection detected"
+          : response.isUnauthorized()
+          ? "Error connecting to Aggregate: Wrong credentials"
+          : response.isNotFound()
+          ? "Error connecting to Aggregate: Aggregate not found"
+          : "Error connecting to Aggregate");
+    else {
+      Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
+          .filter(form -> form.getFormId().equals(formid))
+          .map(formDef -> new FormStatus(FormStatus.TransferType.UPLOAD, formDef))
+          .findFirst();
 
-    FormStatus form = maybeFormStatus.orElseThrow(() -> new FormNotFoundException(formid));
+      FormStatus form = maybeFormStatus.orElseThrow(() -> new FormNotFoundException(formid));
 
-    ServerConnectionInfo transferSettings = new ServerConnectionInfo(server, username, password.toCharArray());
-
-    ServerConnectionTest.testPush(transferSettings);
-
-    TransferToServer.push(transferSettings, http, remoteServer, forceSendBlank, form);
+      TransferToServer.push(remoteServer.asServerConnectionInfo(), http, remoteServer, forceSendBlank, form);
+    }
   }
 
 }
