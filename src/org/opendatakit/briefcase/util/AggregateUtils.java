@@ -35,7 +35,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -399,106 +398,6 @@ public class AggregateUtils {
       String msg = description.getFetchDocFailed() + "Unexpected exception: " + e;
       log.warn(msg, e);
       throw new XmlDocumentFetchException(msg);
-    }
-  }
-
-  /**
-   * Send a HEAD request to the server to confirm the validity of the URL and
-   * credentials.
-   *
-   * @param serverInfo
-   * @param actionAddr
-   * @return the confirmed URI of this action.
-   * @throws TransmissionException
-   */
-  public static final URI testServerConnectionWithHeadRequest(ServerConnectionInfo serverInfo,
-                                                              String actionAddr) throws TransmissionException {
-
-    URI u = getAggregateActionUri(serverInfo, actionAddr);
-
-    HttpClient httpClient = WebUtils.createHttpClient();
-
-    // get shared HttpContext so that authentication and cookies are retained.
-    HttpClientContext localContext = WebUtils.getHttpContext();
-
-    WebUtils.setCredentials(localContext, serverInfo, u);
-
-    {
-      // we need to issue a head request
-      HttpHead httpHead = WebUtils.createOpenRosaHttpHead(u);
-
-      // prepare response
-      HttpResponse response = null;
-      try {
-        response = httpClient.execute(httpHead, localContext);
-        int statusCode = response.getStatusLine().getStatusCode();
-        if (statusCode == 401) {
-          // We reset the Http context to force next request to authenticate itself
-          WebUtils.resetHttpContext();
-          throw new TransmissionException("Authentication failure");
-        } else if (statusCode == 204) {
-          Header[] openRosaVersions = response.getHeaders(WebUtils.OPEN_ROSA_VERSION_HEADER);
-          if (openRosaVersions == null || openRosaVersions.length == 0) {
-            String msg = "Header missing: " + WebUtils.OPEN_ROSA_VERSION_HEADER;
-            log.warn(msg);
-            throw new TransmissionException(msg);
-          }
-          Header[] locations = response.getHeaders("Location");
-          if (locations != null && locations.length == 1) {
-            try {
-              URL url = new URL(locations[0].getValue());
-              URI uNew = url.toURI();
-              log.info("Redirection to URI {}", uNew);
-              if (u.getHost().equalsIgnoreCase(uNew.getHost())) {
-                // trust the server to tell us a new location
-                // ... and possibly to use https instead.
-                u = uNew;
-                // At this point, we may have updated the uri to use https.
-                // This occurs only if the Location header keeps the host name
-                // the same. If it specifies a different host name, we error
-                // out.
-                return u;
-              } else {
-                // Don't follow a redirection attempt to a different host.
-                // We can't tell if this is a spoof or not.
-                String msg = "Unexpected redirection attempt";
-                log.warn(msg);
-                throw new TransmissionException(msg);
-              }
-            } catch (Exception e) {
-              String msg = "Unexpected exception: " + e.getLocalizedMessage();
-              log.warn(msg, e);
-              throw new TransmissionException(msg);
-            }
-          } else {
-            String msg = "The url is not ODK Aggregate - status code on Head request: " + statusCode;
-            log.warn(msg);
-            throw new TransmissionException(msg);
-          }
-        } else {
-          // may be a server that does not handle HEAD requests
-          if (response.getEntity() != null) {
-            try {
-              // don't really care about the stream...
-              InputStream is = response.getEntity().getContent();
-              // read to end of stream...
-              final long count = 1024L;
-              while (is.skip(count) == count)
-                ;
-              is.close();
-            } catch (Exception e) {
-              log.error("failed to process http stream", e);
-            }
-          }
-          String msg = "The username or password may be incorrect or the url is not ODK Aggregate - status code on Head request: " + statusCode;
-          log.warn(msg);
-          throw new TransmissionException(msg);
-        }
-      } catch (Exception e) {
-        String msg = "Unexpected exception: " + e.getLocalizedMessage();
-        log.warn(msg, e);
-        throw new TransmissionException(msg);
-      }
     }
   }
 
