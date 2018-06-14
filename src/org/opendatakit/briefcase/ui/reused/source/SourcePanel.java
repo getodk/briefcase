@@ -21,8 +21,10 @@ import static org.opendatakit.briefcase.ui.reused.source.SourcePanel.View.SHOW;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JPanel;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
@@ -114,21 +116,24 @@ public class SourcePanel {
   }
 
   @SuppressWarnings("unchecked")
-  public void preload(RemoteServer server) {
+  public Optional<Source<?>> preload(RemoteServer server) {
     try {
-      sources.stream()
-          .filter(source -> source.accepts(server))
-          .findFirst()
-          // There's no .peek() method in Optional
-          .map(source -> {
-            ((Source<RemoteServer>) source).set(server);
-            return source;
-          })
-          .ifPresent(this::triggerOnSource);
+      Source source = getSource(server);
+      source.set(server);
+      triggerOnSource(source);
+      return Optional.of(source);
     } catch (HttpException e) {
       log.warn("Can't preload source. Resetting view", e);
       reset();
+      return Optional.empty();
     }
+  }
+
+  private Source getSource(RemoteServer server) {
+    return sources.stream()
+            .filter(s -> s.accepts(server))
+            .findFirst()
+            .orElseThrow(BriefcaseException::new);
   }
 
   enum View {

@@ -17,7 +17,9 @@
 package org.opendatakit.briefcase.ui.push;
 
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0_URL;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
+import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.UPLOAD;
 
@@ -56,7 +58,7 @@ public class PushPanel {
   private final FormCache formCache;
   private final Analytics analytics;
   private TerminationFuture terminationFuture;
-  private Optional<Source> source = Optional.empty();
+  private Optional<Source<?>> source;
 
   public PushPanel(PushPanelForm view, PushForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
     AnnotationProcessor.process(this);
@@ -68,6 +70,10 @@ public class PushPanel {
     this.terminationFuture = terminationFuture;
     this.analytics = analytics;
     getContainer().addComponentListener(analytics.buildComponentListener("Push"));
+
+    // Read prefs and load saved remote server if available
+    this.source = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadSource);
+    this.source.ifPresent(source -> updateActionButtons());
 
     // Register callbacks to view events
     view.onSource(source -> {
@@ -92,11 +98,6 @@ public class PushPanel {
     });
 
     view.onCancel(() -> terminationFuture.markAsCancelled(new PushEvent.Abort("Cancelled by the user")));
-
-    // Read prefs and load saved remote server if available
-    RemoteServer.readPreferences(tabPreferences).ifPresent(view::preloadSource);
-
-    updateActionButtons();
   }
 
   public static PushPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
@@ -164,6 +165,8 @@ public class PushPanel {
 
   @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
   public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
+    tabPreferences.remove(AGGREGATE_1_0_URL);
+    tabPreferences.remove(USERNAME);
     tabPreferences.remove(PASSWORD);
     appPreferences.removeAll(appPreferences.keys().stream().filter((String key) ->
         key.endsWith("_push_settings_url")

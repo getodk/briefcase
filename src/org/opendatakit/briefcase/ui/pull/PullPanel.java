@@ -17,7 +17,9 @@
 package org.opendatakit.briefcase.ui.pull;
 
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0_URL;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
+import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
 
 import java.util.Collections;
@@ -52,7 +54,7 @@ public class PullPanel {
   private final BriefcasePreferences appPreferences;
   private final Analytics analytics;
   private TerminationFuture terminationFuture;
-  private Optional<Source<?>> source = Optional.empty();
+  private Optional<Source<?>> source;
 
   public PullPanel(PullPanelForm view, PullForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
     AnnotationProcessor.process(this);
@@ -63,6 +65,14 @@ public class PullPanel {
     this.terminationFuture = terminationFuture;
     this.analytics = analytics;
     getContainer().addComponentListener(analytics.buildComponentListener("Pull"));
+
+    // Read prefs and load saved remote server if available
+    this.source = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadSource);
+    this.source.ifPresent(source -> {
+      forms.load(source.getFormList());
+      view.refresh();
+      updateActionButtons();
+    });
 
     // Register callbacks to view events
     view.onSource(source -> {
@@ -91,9 +101,6 @@ public class PullPanel {
     });
 
     view.onCancel(() -> terminationFuture.markAsCancelled(new PullEvent.Abort("Cancelled by the user")));
-
-    // Read prefs and load saved remote server if available
-    RemoteServer.readPreferences(tabPreferences).ifPresent(view::preloadSource);
   }
 
   public static PullPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
@@ -143,6 +150,8 @@ public class PullPanel {
 
   @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
   public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
+    tabPreferences.remove(AGGREGATE_1_0_URL);
+    tabPreferences.remove(USERNAME);
     tabPreferences.remove(PASSWORD);
     appPreferences.removeAll(appPreferences.keys().stream().filter((String key) ->
         key.endsWith("_pull_settings_url")
