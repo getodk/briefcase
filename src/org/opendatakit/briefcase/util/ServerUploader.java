@@ -412,8 +412,4 @@ public class ServerUploader {
     return outcome;
   }
 
-  public static final void testServerUploadConnection(ServerConnectionInfo serverInfo, TerminationFuture terminationFuture) throws TransmissionException {
-    AggregateUtils.testServerConnectionWithHeadRequest(serverInfo, "upload"); // for form upload...
-  }
-
 }
