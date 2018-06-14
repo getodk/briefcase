@@ -414,30 +414,7 @@ public class AggregateUtils {
   public static final URI testServerConnectionWithHeadRequest(ServerConnectionInfo serverInfo,
                                                               String actionAddr) throws TransmissionException {
 
-    String urlString = serverInfo.getUrl();
-    if (urlString.endsWith("/")) {
-      urlString = urlString + actionAddr;
-    } else {
-      urlString = urlString + "/" + actionAddr;
-    }
-
-    log.info("Parsing URL {}", urlString);
-    URI u;
-    try {
-      URL url = new URL(urlString);
-      u = url.toURI();
-    } catch (MalformedURLException e) {
-      String msg = "Invalid url for " + actionAddr + ". Failed with error: " + e.getMessage();
-      if (!urlString.toLowerCase().startsWith("http://") && !urlString.toLowerCase().startsWith("https://")) {
-        msg += ". Did you forget to prefix the address with 'http://' or 'https://' ?";
-      }
-      log.warn(msg, e);
-      throw new TransmissionException(msg);
-    } catch (URISyntaxException e) {
-      String msg = "Invalid uri for " + actionAddr + ". Failed with error: " + e.getMessage();
-      log.warn(msg, e);
-      throw new TransmissionException(msg);
-    }
+    URI u = getAggregateActionUri(serverInfo, actionAddr);
 
     HttpClient httpClient = WebUtils.createHttpClient();
 
@@ -522,6 +499,32 @@ public class AggregateUtils {
         log.warn(msg, e);
         throw new TransmissionException(msg);
       }
+    }
+  }
+
+  public static URI getAggregateActionUri(ServerConnectionInfo serverInfo, String actionAddr) throws TransmissionException {
+    String urlString = serverInfo.getUrl();
+    if (urlString.endsWith("/")) {
+      urlString = urlString + actionAddr;
+    } else {
+      urlString = urlString + "/" + actionAddr;
+    }
+
+    log.info("Parsing URL {}", urlString);
+    try {
+      URL url = new URL(urlString);
+      return url.toURI();
+    } catch (MalformedURLException e) {
+      String msg = "Invalid url for " + actionAddr + ". Failed with error: " + e.getMessage();
+      if (!urlString.toLowerCase().startsWith("http://") && !urlString.toLowerCase().startsWith("https://")) {
+        msg += ". Did you forget to prefix the address with 'http://' or 'https://' ?";
+      }
+      log.warn(msg, e);
+      throw new TransmissionException(msg);
+    } catch (URISyntaxException e) {
+      String msg = "Invalid uri for " + actionAddr + ". Failed with error: " + e.getMessage();
+      log.warn(msg, e);
+      throw new TransmissionException(msg);
     }
   }
 
