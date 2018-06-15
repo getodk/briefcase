@@ -27,6 +27,11 @@ The main output file has values from any non-repeating group field found at the 
 
 Each repeat group will produce an output CSV file.
 
+The file names of repeat groups depend on their position inside the model tree of the form. Some examples:
+
+- If form X contains a repeat group Y, then the output file for the repeat group will be named X-Y.csv.
+- If form X contains a non-repeat group Y, which contains a repeat group Z, then the output file for the repeat group will be named X-Y-Z.csv.
+
 ### Structure of the file:
 
 | Column name         | Required | Description |
@@ -50,12 +55,19 @@ Each repeat group will produce an output CSV file.
 | Top group        | `{INSTANCE ID}/{GROUP NAME}[{ORDERING}]` | `uuid:00000000-0000-0000-0000-000000000000/group1[1]`           |
 | Descendant group | `{PARENT KEY}/{GROUP NAME}[{ORDERING}]`  | `uuid:00000000-0000-0000-0000-000000000000/group1[1]/group2[1]` |
 
+_Note: the `[{ORDERING}]` part is 1-indexed_
+
 ### `SET-OF-{GROUP NAME}`
 
 |                  | Pattern                      | Example                                                      |
 | ---------------- | ---------------------------- | ------------------------------------------------------------ |
 | Top group        | `{INSTANCE ID}/{GROUP NAME}` | `uuid:00000000-0000-0000-0000-000000000000/group1`           |
 | Descendant group | `{PARENT KEY}/{GROUP NAME}`  | `uuid:00000000-0000-0000-0000-000000000000/group1[1]/group2` |
+
+The SET-OF columns may be named differently in the two output files. For example, if form X contains a non-repeat group Y, which contains a repeat group Z, then:
+
+- The main output file will have a column named SET-OF-Y-Z (the long name of the repeat group).
+- The output file for the repeat group will have a column named SET-OF-Z (only the short name of the repeat group, without the name of its parent group).
 
 ## Values block columns
 
@@ -79,7 +91,6 @@ The fields of a non-repeating group replace their parent's column in a CSV file.
         <field4/>
       </field2>
     </model>
-
     ```
 - The output CSV file will have these columns: `field1,field2-field3,field2-field4`
 - The `field3` and `field4` show up in place of the `field2`, which is not present in the file.
@@ -88,6 +99,24 @@ The fields of a non-repeating group replace their parent's column in a CSV file.
 This will happen in a cascading manner, if there are non-repeating groups inside non-repeating groups.
 
 A very common example of this is the `<meta>` block, which is often used to add the `instanceID` to the submission. This field will get into the CSV inside a column named `meta-instanceID`.
+
+Column headers do not contain the name of the group that contains the repeat group, even if the headers do contain the name of groups within the repeat group. 
+
+- Lets consider the following model:
+
+    ```xml
+    <model>
+      <group1>
+        <repeat1>
+          <group2>
+            <text1/>
+          </group2>
+        </repeat1>
+      </group1>
+    </model>
+    ```
+
+- The column header for text1 will be `group2-text1`, not `group1-repeat1-group2-text1`.
 
 ### Geopoint fields
 
