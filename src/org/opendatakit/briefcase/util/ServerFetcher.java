@@ -42,7 +42,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.DocumentDescription;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -65,6 +64,7 @@ public class ServerFetcher {
   private static final String MD5_COLON_PREFIX = "md5:";
 
   private static final int MAX_ENTRIES = 100;
+  private final Boolean pullInParallel;
 
   ServerConnectionInfo serverInfo;
 
@@ -123,11 +123,12 @@ public class ServerFetcher {
     }
   }
 
-  ServerFetcher(ServerConnectionInfo serverInfo, TerminationFuture future, Path briefcaseDir) {
+  ServerFetcher(ServerConnectionInfo serverInfo, TerminationFuture future, Path briefcaseDir, Boolean pullInParallel) {
     this.briefcaseDir = briefcaseDir;
     AnnotationProcessor.process(this);// if not using AOP
     this.serverInfo = serverInfo;
     this.terminationFuture = future;
+    this.pullInParallel = pullInParallel;
   }
 
   public boolean isCancelled() {
@@ -301,8 +302,8 @@ public class ServerFetcher {
     }
   }
 
-  private ExecutorService getFetchExecutorService() {
-    int downloadThreads = BriefcasePreferences.getBriefcaseParallelPullsProperty() ? MAX_CONNECTIONS_PER_ROUTE : 1;
+  private ExecutorService getFetchExecutorService(Boolean pullInParallel) {
+    int downloadThreads = pullInParallel ? MAX_CONNECTIONS_PER_ROUTE : 1;
     return Executors.newFixedThreadPool(downloadThreads, new DownloadThreadFactory());
   }
 
@@ -312,7 +313,7 @@ public class ServerFetcher {
     int chunkCount = 1;
     boolean allSuccessful = true;
     RemoteFormDefinition fd = getRemoteFormDefinition(fs);
-    ExecutorService execSvc = getFetchExecutorService();
+    ExecutorService execSvc = getFetchExecutorService(pullInParallel);
     CompletionService<SubmissionChunk> chunkCompleter = new ExecutorCompletionService<>(execSvc);
     CompletionService<String> submissionCompleter = new ExecutorCompletionService<>(execSvc);
 

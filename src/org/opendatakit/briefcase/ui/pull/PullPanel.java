@@ -97,7 +97,7 @@ public class PullPanel {
     view.onPull(() -> {
       view.setPulling();
       forms.forEach(FormStatus::clearStatusHistory);
-      source.ifPresent(s -> s.pull(forms.getSelectedForms(), terminationFuture, appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new)));
+      source.ifPresent(s -> s.pull(forms.getSelectedForms(), terminationFuture, appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), BriefcasePreferences.getBriefcaseParallelPullsProperty()));
     });
 
     view.onCancel(() -> terminationFuture.markAsCancelled(new PullEvent.Abort("Cancelled by the user")));
