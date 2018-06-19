@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.ui;
 
-import static java.lang.Boolean.TRUE;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static org.opendatakit.briefcase.ui.BriefcaseCLI.launchLegacyCLI;
@@ -58,7 +57,6 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private static final Logger log = LoggerFactory.getLogger(BaseFormParserForJavaRosa.class.getName());
   private static final String APP_NAME = "ODK Briefcase";
   private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
-  private static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
 
   private final JFrame frame;
   private final TerminationFuture transferTerminationFuture = new TerminationFuture();
@@ -133,14 +131,14 @@ public class MainBriefcaseWindow extends WindowAdapter {
     if (isFirstLaunch(appPreferences)) {
       lockUI();
       showWelcomeMessage();
-      appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
+      appPreferences.setTrackingWarningShowed();
     }
 
     // Starting with Briefcase version 1.10.0, tracking is enabled by default.
     // Users upgrading from previous versions must be warned about this.
     if (isFirstLaunchAfterTrackingUpgrade(appPreferences)) {
       showTrackingWarning();
-      appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
+      appPreferences.setTrackingWarningShowed();
     }
   }
 
