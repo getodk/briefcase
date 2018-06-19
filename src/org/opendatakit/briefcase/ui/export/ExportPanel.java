@@ -194,7 +194,7 @@ public class ExportPanel {
                   new TerminationFuture(),
                   Collections.singletonList(form),
                   appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
-                  BriefcasePreferences.getBriefcaseParallelPullsProperty()
+                  appPreferences.getPullInParallel().orElse(false)
               ));
             BriefcaseFormDefinition formDefinition = (BriefcaseFormDefinition) form.getFormDefinition();
             ExportToCsv.export(FormDefinition.from(formDefinition), configuration, true);
