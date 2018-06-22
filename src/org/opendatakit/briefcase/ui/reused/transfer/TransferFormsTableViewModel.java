@@ -13,18 +13,13 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.ui.pull.components;
+package org.opendatakit.briefcase.ui.reused.transfer;
 
 import static java.awt.Color.DARK_GRAY;
 import static java.awt.Color.LIGHT_GRAY;
-import static javax.swing.JOptionPane.getFrameForComponent;
-import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
-import static org.opendatakit.briefcase.ui.pull.components.PullFormsTableView.EDITABLE_COLS;
-import static org.opendatakit.briefcase.ui.pull.components.PullFormsTableView.HEADERS;
-import static org.opendatakit.briefcase.ui.pull.components.PullFormsTableView.TYPES;
+import static org.opendatakit.briefcase.ui.reused.transfer.TransferFormsTableView.EDITABLE_COLS;
+import static org.opendatakit.briefcase.ui.reused.transfer.TransferFormsTableView.TYPES;
 
-import java.awt.Font;
-import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,19 +27,19 @@ import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.pull.PullForms;
+import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.export.components.ExportFormsTableView;
-import org.opendatakit.briefcase.ui.reused.FontUtils;
+import org.opendatakit.briefcase.ui.reused.UI;
 
-public class PullFormsTableViewModel extends AbstractTableModel {
+public class TransferFormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
   private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
-  private final PullForms forms;
+  private final TransferForms forms;
+  private final String[] headers;
 
-  private static final Font ic_receipt = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
-
-  public PullFormsTableViewModel(PullForms forms) {
+  public TransferFormsTableViewModel(TransferForms forms, String[] headers) {
     this.forms = forms;
+    this.headers = headers;
   }
 
   public void onChange(Runnable callback) {
@@ -61,22 +56,6 @@ public class PullFormsTableViewModel extends AbstractTableModel {
     onChangeCallbacks.forEach(Runnable::run);
   }
 
-  @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
-  private JButton buildDetailButton(FormStatus form) {
-    // Use custom fonts instead of png for easier scaling
-    JButton button = new JButton("\uE900");
-    button.setFont(ic_receipt); // custom font that overrides  with a receipt icon
-    button.setToolTipText("View this form's status history");
-    button.setMargin(new Insets(0, 0, 0, 0));
-
-    button.setForeground(LIGHT_GRAY);
-    button.addActionListener(__ -> {
-      if (!form.getStatusHistory().isEmpty())
-        showDialog(getFrameForComponent(button), form.getFormDefinition(), form.getStatusHistory());
-    });
-    return button;
-  }
-
   private void updateDetailButton(FormStatus form, JButton button) {
     button.setForeground(form.getStatusHistory().isEmpty() ? LIGHT_GRAY : DARK_GRAY);
   }
@@ -88,21 +67,21 @@ public class PullFormsTableViewModel extends AbstractTableModel {
 
   @Override
   public int getColumnCount() {
-    return HEADERS.length;
+    return headers.length;
   }
 
   @Override
   public Object getValueAt(int rowIndex, int columnIndex) {
     FormStatus form = forms.get(rowIndex);
     switch (columnIndex) {
-      case PullFormsTableView.SELECTED_CHECKBOX_COL:
+      case TransferFormsTableView.SELECTED_CHECKBOX_COL:
         return form.isSelected();
-      case PullFormsTableView.FORM_NAME_COL:
+      case TransferFormsTableView.FORM_NAME_COL:
         return form.getFormName();
-      case PullFormsTableView.PULL_STATUS_COL:
+      case TransferFormsTableView.STATUS_COL:
         return form.getStatusString();
-      case PullFormsTableView.DETAIL_BUTTON_COL:
-        return detailButtons.computeIfAbsent(form, this::buildDetailButton);
+      case TransferFormsTableView.DETAIL_BUTTON_COL:
+        return detailButtons.computeIfAbsent(form, UI::buildDetailButton);
       default:
         throw new IllegalStateException("unexpected column choice");
     }
@@ -119,7 +98,7 @@ public class PullFormsTableViewModel extends AbstractTableModel {
         form.setSelected(isSelected);
         triggerChange();
         break;
-      case PullFormsTableView.PULL_STATUS_COL:
+      case TransferFormsTableView.STATUS_COL:
         form.setStatusString((String) aValue, true);
         break;
       default:
@@ -130,7 +109,7 @@ public class PullFormsTableViewModel extends AbstractTableModel {
 
   @Override
   public String getColumnName(int column) {
-    return HEADERS[column];
+    return headers[column];
   }
 
   @Override

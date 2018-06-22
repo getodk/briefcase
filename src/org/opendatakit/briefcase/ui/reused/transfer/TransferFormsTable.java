@@ -13,26 +13,27 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.ui.push.components;
+package org.opendatakit.briefcase.ui.reused.transfer;
 
 import org.bushe.swing.event.annotation.AnnotationProcessor;
-import org.opendatakit.briefcase.push.PushForms;
+import org.opendatakit.briefcase.transfer.TransferForms;
 
-public class PushFormsTable {
-  private final PushFormsTableView view;
-  private final PushFormsTableViewModel viewModel;
-  private final PushForms forms;
+public class TransferFormsTable {
+  private final TransferFormsTableView view;
+  private final TransferFormsTableViewModel viewModel;
+  private final TransferForms forms;
 
-  public PushFormsTable(PushForms forms, PushFormsTableView view, PushFormsTableViewModel viewModel) {
+  public TransferFormsTable(TransferForms forms, TransferFormsTableView view, TransferFormsTableViewModel viewModel) {
     this.viewModel = viewModel;
     this.view = view;
     this.forms = forms;
     AnnotationProcessor.process(this);
   }
 
-  public static PushFormsTable from(PushForms forms) {
-    PushFormsTableViewModel viewModel = new PushFormsTableViewModel(forms);
-    return new PushFormsTable(forms, new PushFormsTableView(viewModel), viewModel);
+  public static TransferFormsTable from(TransferForms forms, String actionName) {
+    String[] headers = TransferFormsTableView.buildHeaders(actionName);
+    TransferFormsTableViewModel viewModel = new TransferFormsTableViewModel(forms, headers);
+    return new TransferFormsTable(forms, new TransferFormsTableView(viewModel, headers), viewModel);
   }
 
   public void onChange(Runnable callback) {
@@ -53,7 +54,7 @@ public class PushFormsTable {
     viewModel.refresh();
   }
 
-  public PushFormsTableView getView() {
+  public TransferFormsTableView getView() {
     return view;
   }
 

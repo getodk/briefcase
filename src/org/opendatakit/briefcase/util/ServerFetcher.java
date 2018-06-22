@@ -512,49 +512,26 @@ public class ServerFetcher {
     String msg = "Fetched instanceID=" + submissionManifest.instanceID;
     log.info(msg);
 
-    if (FileSystemUtils.hasFormSubmissionDirectory(formInstancesDir, submissionManifest.instanceID)) {
-      // create instance directory...
-      File instanceDir = FileSystemUtils.assertFormSubmissionDirectory(formInstancesDir,
-          submissionManifest.instanceID);
+    // create instance directory...
+    File instanceDir = FileSystemUtils.assertFormSubmissionDirectory(formInstancesDir,
+        submissionManifest.instanceID);
 
-      // fetch attachments
-      for (MediaFile m : submissionManifest.attachmentList) {
-        downloadMediaFileIfChanged(instanceDir, m, fs);
-      }
-
-      // write submission file -- we rely on instanceId being unique...
-      File submissionFile = new File(instanceDir, "submission.xml");
-      OutputStreamWriter fo = new OutputStreamWriter(new FileOutputStream(submissionFile), "UTF-8");
-      fo.write(submissionManifest.submissionXml);
-      fo.close();
-
-      // if we get here, we know that this is a completed submission
-      // (because it was in /view/submissionList) and that we safely
-      // copied it into the storage area (because we didn't get any
-      // exceptions).
-      formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
-    } else {
-      // create instance directory...
-      File instanceDir = FileSystemUtils.assertFormSubmissionDirectory(formInstancesDir,
-          submissionManifest.instanceID);
-
-      // fetch attachments
-      for (MediaFile m : submissionManifest.attachmentList) {
-        downloadMediaFileIfChanged(instanceDir, m, fs);
-      }
-
-      // write submission file
-      File submissionFile = new File(instanceDir, "submission.xml");
-      OutputStreamWriter fo = new OutputStreamWriter(new FileOutputStream(submissionFile), "UTF-8");
-      fo.write(submissionManifest.submissionXml);
-      fo.close();
-
-      // if we get here, we know that this is a completed submission
-      // (because it was in /view/submissionList) and that we safely
-      // copied it into the storage area (because we didn't get any
-      // exceptions).
-      formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
+    // fetch attachments
+    for (MediaFile m : submissionManifest.attachmentList) {
+      downloadMediaFileIfChanged(instanceDir, m, fs);
     }
+
+    // write submission file -- we rely on instanceId being unique...
+    File submissionFile = new File(instanceDir, "submission.xml");
+    OutputStreamWriter fo = new OutputStreamWriter(new FileOutputStream(submissionFile), "UTF-8");
+    fo.write(submissionManifest.submissionXml);
+    fo.close();
+
+    // if we get here, we know that this is a completed submission
+    // (because it was in /view/submissionList) and that we safely
+    // copied it into the storage area (because we didn't get any
+    // exceptions).
+    formDatabase.assertRecordedInstanceDirectory(uri, instanceDir);
 
   }
 

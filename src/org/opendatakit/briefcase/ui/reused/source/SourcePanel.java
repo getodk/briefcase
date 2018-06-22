@@ -28,12 +28,11 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
-import org.opendatakit.briefcase.ui.pull.PullPanelForm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SourcePanel {
-  private static final Logger log = LoggerFactory.getLogger(PullPanelForm.class);
+  private static final Logger log = LoggerFactory.getLogger(SourcePanel.class);
   private final SourcePanelForm container = new SourcePanelForm();
   private final List<Source> sources = new ArrayList<>();
   private final List<Consumer<Source<?>>> onSourceCallbacks = new ArrayList<>();

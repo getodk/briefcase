@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.ui.pull;
+package org.opendatakit.briefcase.ui.reused.transfer;
 
 import java.awt.CardLayout;
 import java.awt.FlowLayout;
@@ -30,42 +30,56 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import org.opendatakit.briefcase.reused.RemoteServer;
-import org.opendatakit.briefcase.ui.pull.components.PullFormsTable;
-import org.opendatakit.briefcase.ui.pull.components.PullFormsTableView;
+import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.source.Source;
 import org.opendatakit.briefcase.ui.reused.source.SourcePanel;
 import org.opendatakit.briefcase.ui.reused.source.SourcePanelForm;
 
 @SuppressWarnings("checkstyle:MethodName")
-public class PullPanelForm {
+public class TransferPanelForm {
   public JPanel container;
   private SourcePanel sourcePanel;
   private SourcePanelForm sourcePanelForm;
   private JPanel top;
   private JPanel actions;
-  private final PullFormsTable pullFormsTable;
-  private final PullFormsTableView pullFormsTableView;
+  private final TransferFormsTable formsTable;
+  private final TransferFormsTableView formsTableView;
   private JScrollPane scrollPane;
   private JButton selectAllButton;
   private JButton clearAllButton;
-  private JButton pullButton;
+  private JButton actionButton;
   private JButton cancelButton;
   private JPanel leftActions;
   private JPanel rightActions;
-  private JProgressBar pullProgressBar;
-  private boolean pulling = false;
+  private JProgressBar progressBar;
+  private boolean working = false;
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
-  public PullPanelForm(SourcePanel sourcePanel, PullFormsTable pullFormsTable) {
+  public TransferPanelForm(SourcePanel sourcePanel, TransferFormsTable formsTable, String actionName) {
     this.sourcePanel = sourcePanel;
     this.sourcePanelForm = sourcePanel.getContainer();
-    this.pullFormsTable = pullFormsTable;
-    this.pullFormsTableView = pullFormsTable.getView();
+    this.formsTable = formsTable;
+    this.formsTableView = formsTable.getView();
     $$$setupUI$$$();
+    actionButton.setText(actionName);
 
-    pullFormsTable.onChange(this::triggerOnChange);
-    selectAllButton.addActionListener(__ -> pullFormsTable.selectAll());
-    clearAllButton.addActionListener(__ -> pullFormsTable.clearAll());
+    formsTable.onChange(this::triggerOnChange);
+    selectAllButton.addActionListener(__ -> formsTable.selectAll());
+    clearAllButton.addActionListener(__ -> formsTable.clearAll());
+  }
+
+  public static TransferPanelForm from(TransferForms forms, SourcePanel sourcePanel, String actionName) {
+    TransferFormsTable formsTable = TransferFormsTable.from(forms, actionName);
+    return new TransferPanelForm(sourcePanel, formsTable, actionName);
+  }
+
+  public static TransferPanelForm pull(Http http, TransferForms forms) {
+    return new TransferPanelForm(SourcePanel.pull(http), TransferFormsTable.from(forms, "Pull"), "Pull");
+  }
+
+  public static TransferPanelForm push(Http http, TransferForms forms) {
+    return new TransferPanelForm(SourcePanel.push(http), TransferFormsTable.from(forms, "Push"), "Push");
   }
 
   public void onSource(Consumer<Source<?>> callback) {
@@ -84,8 +98,8 @@ public class PullPanelForm {
     onChangeCallbacks.add(runnable);
   }
 
-  public void onPull(Runnable callback) {
-    pullButton.addActionListener(__ -> callback.run());
+  public void onAction(Runnable callback) {
+    actionButton.addActionListener(__ -> callback.run());
   }
 
   public void onCancel(Runnable callback) {
@@ -93,7 +107,7 @@ public class PullPanelForm {
   }
 
   public void refresh() {
-    pullFormsTable.refresh();
+    formsTable.refresh();
   }
 
   public void showClearAll() {
@@ -107,43 +121,42 @@ public class PullPanelForm {
   }
 
   public void enableSelectAll() {
-    selectAllButton.setEnabled(!pulling);
+    selectAllButton.setEnabled(!working);
   }
 
   public void disableSelectAll() {
     selectAllButton.setEnabled(false);
   }
 
-  public void enablePull() {
-    pullButton.setEnabled(!pulling);
+  public void enableAction() {
+    actionButton.setEnabled(!working);
   }
 
-  public void disablePull() {
-    pullButton.setEnabled(false);
+  public void disableAction() {
+    actionButton.setEnabled(false);
   }
 
-  public void setPulling() {
-    pulling = true;
-    pullProgressBar.setVisible(true);
+  public void setWorking() {
+    working = true;
+    progressBar.setVisible(true);
     sourcePanel.disableInteraction();
-    pullFormsTable.disableInteraction();
+    formsTable.disableInteraction();
     selectAllButton.setEnabled(false);
     clearAllButton.setEnabled(false);
     cancelButton.setVisible(true);
     cancelButton.setEnabled(true);
-    pullButton.setVisible(false);
+    actionButton.setVisible(false);
   }
 
-  public void unsetPulling() {
-    pulling = false;
-    pullProgressBar.setVisible(false);
+  public void unsetWorking() {
+    working = false;
+    progressBar.setVisible(false);
     sourcePanel.enableInteraction();
-    pullFormsTable.enableInteraction();
+    formsTable.enableInteraction();
     selectAllButton.setEnabled(true);
     clearAllButton.setEnabled(true);
     cancelButton.setVisible(false);
-    cancelButton.setEnabled(false);
-    pullButton.setVisible(true);
+    actionButton.setVisible(true);
   }
 
   public Optional<Source<?>> preloadSource(RemoteServer server) {
@@ -207,7 +220,7 @@ public class PullPanelForm {
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(scrollPane, gbc);
-    scrollPane.setViewportView(pullFormsTableView);
+    scrollPane.setViewportView(formsTableView);
     actions = new JPanel();
     actions.setLayout(new GridBagLayout());
     gbc = new GridBagConstraints();
@@ -244,14 +257,14 @@ public class PullPanelForm {
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.BOTH;
     actions.add(rightActions, gbc);
-    pullProgressBar = new JProgressBar();
-    pullProgressBar.setIndeterminate(true);
-    pullProgressBar.setVisible(false);
-    rightActions.add(pullProgressBar);
-    pullButton = new JButton();
-    pullButton.setEnabled(false);
-    pullButton.setText("Pull");
-    rightActions.add(pullButton);
+    progressBar = new JProgressBar();
+    progressBar.setIndeterminate(true);
+    progressBar.setVisible(false);
+    rightActions.add(progressBar);
+    actionButton = new JButton();
+    actionButton.setEnabled(false);
+    actionButton.setText("Action");
+    rightActions.add(actionButton);
     cancelButton = new JButton();
     cancelButton.setText("Cancel");
     cancelButton.setVisible(false);

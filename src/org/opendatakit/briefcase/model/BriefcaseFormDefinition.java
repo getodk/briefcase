@@ -188,17 +188,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
                   throw new BadFormDefinition(msg);
                 }
               } else {
-                if (!tmpFormFile.renameTo(revised)) {
-                  // if cannot rename, try to copy instead (and mark for deletion)
-                  try {
-                    FileUtils.copyFile(tmpFormFile, revised);
-                    tmpFormFile.deleteOnExit();
-                  } catch (IOException e) {
-                    String msg = "Form directory does not contain form (can neither rename nor copy into briefcase directory)";
-                    log.error(msg, e);
-                    throw new BadFormDefinition(msg);
-                  }
-                }
+                renameOrCopyAndMarkForDeletion(tmpFormFile, revised);
               }
               needsMediaUpdate = true;
               // and re-parse the new revised file (since we just updated it...)
@@ -231,17 +221,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
                 throw new BadFormDefinition(msg);
               }
             } else {
-              if (!tmpFormFile.renameTo(briefcaseFormFile)) {
-                // if cannot rename, try to copy instead (and mark for deletion)
-                try {
-                  FileUtils.copyFile(tmpFormFile, briefcaseFormFile);
-                  tmpFormFile.deleteOnExit();
-                } catch (IOException e) {
-                  String msg = "Form directory does not contain form (can neither rename nor copy into briefcase directory)";
-                  log.error(msg, e);
-                  throw new BadFormDefinition(msg);
-                }
-              }
+              renameOrCopyAndMarkForDeletion(tmpFormFile, briefcaseFormFile);
             }
             needsMediaUpdate = true;
             // and re-parse the new form file (since we just updated it...)
@@ -275,6 +255,20 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
       EventBus.publish(new UpdatedBriefcaseFormDefinitionEvent(defn));
     }
     return defn;
+  }
+
+  public static void renameOrCopyAndMarkForDeletion(File source, File target) throws BadFormDefinition {
+    if (!source.renameTo(target)) {
+      // if cannot rename, try to copy instead (and mark for deletion)
+      try {
+        FileUtils.copyFile(source, target);
+        source.deleteOnExit();
+      } catch (IOException e) {
+        String msg = "Form directory does not contain form (can neither rename nor copy into briefcase directory)";
+        log.error(msg, e);
+        throw new BadFormDefinition(msg);
+      }
+    }
   }
 
   private BriefcaseFormDefinition(File briefcaseFormDirectory, JavaRosaParserWrapper formDefn,
