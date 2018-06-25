@@ -59,6 +59,7 @@ public class ExportConfiguration {
   private static final String OVERWRITE_EXISTING_FILES = "overwriteExistingFiles";
   private static final String EXPORT_MEDIA = "exportMedia";
   private static final String EXPORT_MEDIA_OVERRIDE = "exportMediaOverride";
+  private static final String EXPLODE_CHOICE_LISTS = "explodeChoiceLists";
   private static final Predicate<PullBeforeOverrideOption> PULL_BEFORE_ALL_EXCEPT_INHERIT = value -> value != PullBeforeOverrideOption.INHERIT;
   private static final Predicate<ExportMediaOverrideOption> EXPORT_MEDIA_ALL_EXCEPT_INHERIT = value -> value != ExportMediaOverrideOption.INHERIT;
   private Optional<String> exportFileName;
@@ -71,8 +72,9 @@ public class ExportConfiguration {
   private Optional<Boolean> overwriteExistingFiles;
   private Optional<Boolean> exportMedia;
   private Optional<ExportMediaOverrideOption> exportMediaOverride;
+  private Optional<Boolean> explodeChoiceLists;
 
-  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride, Optional<Boolean> overwriteExistingFiles, Optional<Boolean> exportMedia, Optional<ExportMediaOverrideOption> exportMediaOverride) {
+  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride, Optional<Boolean> overwriteExistingFiles, Optional<Boolean> exportMedia, Optional<ExportMediaOverrideOption> exportMediaOverride, Optional<Boolean> explodeChoiceLists) {
     this.exportFileName = exportFileName;
     this.exportDir = exportDir;
     this.pemFile = pemFile;
@@ -83,10 +85,11 @@ public class ExportConfiguration {
     this.overwriteExistingFiles = overwriteExistingFiles;
     this.exportMedia = exportMedia;
     this.exportMediaOverride = exportMediaOverride;
+    this.explodeChoiceLists = explodeChoiceLists;
   }
 
   public static ExportConfiguration empty() {
-    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
@@ -100,7 +103,8 @@ public class ExportConfiguration {
         prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from),
         prefs.nullSafeGet(OVERWRITE_EXISTING_FILES).map(Boolean::valueOf),
         prefs.nullSafeGet(EXPORT_MEDIA).map(Boolean::valueOf),
-        prefs.nullSafeGet(EXPORT_MEDIA_OVERRIDE).map(ExportMediaOverrideOption::valueOf)
+        prefs.nullSafeGet(EXPORT_MEDIA_OVERRIDE).map(ExportMediaOverrideOption::valueOf),
+        prefs.nullSafeGet(EXPLODE_CHOICE_LISTS).map(Boolean::valueOf)
     );
   }
 
@@ -115,7 +119,8 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + PULL_BEFORE_OVERRIDE).map(PullBeforeOverrideOption::from),
         prefs.nullSafeGet(keyPrefix + OVERWRITE_EXISTING_FILES).map(Boolean::valueOf),
         prefs.nullSafeGet(keyPrefix + EXPORT_MEDIA).map(Boolean::valueOf),
-        prefs.nullSafeGet(keyPrefix + EXPORT_MEDIA_OVERRIDE).map(ExportMediaOverrideOption::valueOf)
+        prefs.nullSafeGet(keyPrefix + EXPORT_MEDIA_OVERRIDE).map(ExportMediaOverrideOption::valueOf),
+        prefs.nullSafeGet(keyPrefix + EXPLODE_CHOICE_LISTS).map(Boolean::valueOf)
     );
   }
 
@@ -133,7 +138,8 @@ public class ExportConfiguration {
         keyPrefix + PULL_BEFORE_OVERRIDE,
         keyPrefix + OVERWRITE_EXISTING_FILES,
         keyPrefix + EXPORT_MEDIA,
-        keyPrefix + EXPORT_MEDIA_OVERRIDE
+        keyPrefix + EXPORT_MEDIA_OVERRIDE,
+        keyPrefix + EXPLODE_CHOICE_LISTS
     );
   }
 
@@ -154,6 +160,7 @@ public class ExportConfiguration {
     overwriteExistingFiles.ifPresent(value -> map.put(keyPrefix + OVERWRITE_EXISTING_FILES, value.toString()));
     exportMedia.ifPresent(value -> map.put(keyPrefix + EXPORT_MEDIA, value.toString()));
     exportMediaOverride.filter(EXPORT_MEDIA_ALL_EXCEPT_INHERIT).ifPresent(value -> map.put(keyPrefix + EXPORT_MEDIA_OVERRIDE, value.name()));
+    explodeChoiceLists.ifPresent(value -> map.put(keyPrefix + EXPLODE_CHOICE_LISTS, value.toString()));
     return map;
   }
 
@@ -167,7 +174,8 @@ public class ExportConfiguration {
         pullBeforeOverride,
         overwriteExistingFiles,
         exportMedia,
-        exportMediaOverride
+        exportMediaOverride,
+        explodeChoiceLists
     );
   }
 
@@ -252,6 +260,15 @@ public class ExportConfiguration {
     return this;
   }
 
+  public Optional<Boolean> getExplodeChoiceLists() {
+    return explodeChoiceLists;
+  }
+
+  public ExportConfiguration setExplodedChoiceLists(boolean explodedChoiceLists) {
+    this.explodeChoiceLists = Optional.of(explodedChoiceLists);
+    return this;
+  }
+
   /**
    * Resolves if we need to pull forms depending on the pullBefore and pullBeforeOverride
    * settings with the following algorithm:
@@ -330,6 +347,10 @@ public class ExportConfiguration {
     exportMediaOverride.ifPresent(consumer);
   }
 
+  public void isExplodeChoiceListPresent(Consumer<Boolean> consumer) {
+    explodeChoiceLists.ifPresent(consumer);
+  }
+
   private List<String> getErrors() {
     List<String> errors = new ArrayList<>();
 
@@ -391,7 +412,8 @@ public class ExportConfiguration {
         && !pullBeforeOverride.filter(PULL_BEFORE_ALL_EXCEPT_INHERIT).isPresent()
         && !overwriteExistingFiles.isPresent()
         && !exportMedia.isPresent()
-        && !exportMediaOverride.isPresent();
+        && !exportMediaOverride.isPresent()
+        && !explodeChoiceLists.isPresent();
   }
 
   public boolean isValid() {
@@ -428,7 +450,8 @@ public class ExportConfiguration {
         pullBeforeOverride.isPresent() ? pullBeforeOverride : defaultConfiguration.pullBeforeOverride,
         overwriteExistingFiles.isPresent() ? overwriteExistingFiles : defaultConfiguration.overwriteExistingFiles,
         exportMedia.isPresent() ? exportMedia : defaultConfiguration.exportMedia,
-        exportMediaOverride.isPresent() ? exportMediaOverride : defaultConfiguration.exportMediaOverride
+        exportMediaOverride.isPresent() ? exportMediaOverride : defaultConfiguration.exportMediaOverride,
+        explodeChoiceLists.isPresent() ? explodeChoiceLists : defaultConfiguration.explodeChoiceLists
     );
   }
 
@@ -444,6 +467,7 @@ public class ExportConfiguration {
         ", overwriteExistingFiles=" + overwriteExistingFiles +
         ", exportMedia=" + exportMedia +
         ", exportMediaOverride=" + exportMediaOverride +
+        ", explodeChoiceLists=" + explodeChoiceLists +
         '}';
   }
 
@@ -462,12 +486,13 @@ public class ExportConfiguration {
         Objects.equals(pullBeforeOverride, that.pullBeforeOverride) &&
         Objects.equals(overwriteExistingFiles, that.overwriteExistingFiles) &&
         Objects.equals(exportMedia, that.exportMedia) &&
-        Objects.equals(exportMediaOverride, that.exportMediaOverride);
+        Objects.equals(exportMediaOverride, that.exportMediaOverride) &&
+        Objects.equals(explodeChoiceLists, that.explodeChoiceLists);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, pullBeforeOverride, overwriteExistingFiles, exportMedia, exportMediaOverride);
+    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, pullBeforeOverride, overwriteExistingFiles, exportMedia, exportMediaOverride, explodeChoiceLists);
   }
 
   public static ErrorsOr<PrivateKey> readPemFile(Path pemFile) {

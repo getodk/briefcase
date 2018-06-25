@@ -96,7 +96,8 @@ public class Export {
         Optional.empty(),
         Optional.of(overwriteFiles),
         Optional.of(exportMedia),
-        Optional.empty()
+        Optional.empty(),
+        Optional.of(false)
     );
 
     if (configuration.resolvePullBefore()) {

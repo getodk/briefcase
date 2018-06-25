@@ -141,7 +141,8 @@ class ExportToCsvScenario {
         Optional.empty(),
         Optional.of(overwrite),
         Optional.of(exportMedia),
-        Optional.empty()
+        Optional.empty(),
+        Optional.of(false)
     );
     ExportToCsv.export(formDef, configuration);
   }
