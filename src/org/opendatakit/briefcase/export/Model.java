@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.export;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -266,13 +267,8 @@ class Model {
 
   public List<SelectChoice> getChoices() {
     QuestionDef control = controls.get(fqn());
-    return control.getChoices();
-    // TODO Adapt this code for dynamic choices
-    // List<SelectChoice> staticChoices = Optional.ofNullable(control.getChoices()).orElse(emptyList());
-    // if (!staticChoices.isEmpty())
-    //   return staticChoices;
-    // ItemsetBinding dynamicChoices = control.getDynamicChoices();
-    // return dynamicChoices.getChoices();
+    List<SelectChoice> staticChoices = Optional.ofNullable(control.getChoices()).orElse(emptyList());
+    return !staticChoices.isEmpty() ? staticChoices : control.getDynamicChoices().getChoices();
   }
 
   // TODO This should be defined in JavaRosa, like the DataType enum

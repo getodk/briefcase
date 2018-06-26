@@ -35,6 +35,7 @@ import org.javarosa.core.model.FormDef;
 import org.javarosa.core.model.IDataReference;
 import org.javarosa.core.model.IFormElement;
 import org.javarosa.core.model.QuestionDef;
+import org.javarosa.core.model.instance.InstanceInitializationFactory;
 import org.javarosa.core.model.instance.TreeElement;
 import org.javarosa.core.model.instance.TreeReference;
 import org.javarosa.xform.parse.XFormParser;
@@ -113,9 +114,14 @@ public class FormDefinition {
             .stream()
             .flatMap(FormDefinition::flatten)
             .filter(e -> e instanceof QuestionDef)
-            // TODO populate dynamic choices for itemsets in questions
-            // TODO this should do the trick formDef.populateDynamicChoices(control.getDynamicChoices(), (TreeReference) control.getBind().getReference());
-            .map(e -> (QuestionDef) e)
+            .map(e -> {
+              QuestionDef control = (QuestionDef) e;
+              if (control.getDynamicChoices() != null) {
+                formDef.initialize(false, new InstanceInitializationFactory());
+                formDef.populateDynamicChoices(control.getDynamicChoices(), (TreeReference) control.getBind().getReference());
+              }
+              return control;
+            })
             .collect(toMap(FormDefinition::controlFqn, e -> e));
   }
 

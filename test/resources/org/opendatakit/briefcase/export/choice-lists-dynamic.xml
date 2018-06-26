@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:h="http://www.w3.org/1999/xhtml">
+  <h:head>
+    <h:title>Choice lists - Dynamic</h:title>
+    <model>
+      <instance>
+        <data id="choice-lists-dynamic">
+          <some_string/>
+          <meta>
+            <instanceID/>
+          </meta>
+        </data>
+      </instance>
+      <instance id="some_string_choices">
+        <root>
+          <item>
+            <value>CHOICE_1</value>
+          </item>
+          <item>
+            <value>CHOICE_2</value>
+          </item>
+        </root>
+      </instance>
+      <bind nodeset="/data/some_string" type="string"/>
+      <bind calculate="concat('uuid:', uuid())" nodeset="/data/meta/instanceID" readonly="true()" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <select ref="/data/some_string">
+      <itemset nodeset="instance('some_string_choices')/root/item">
+        <value ref="value"/>
+        <label ref="value"/>
+      </itemset>
+    </select>
+  </h:body>
+</h:html>
