@@ -110,27 +110,32 @@ class ExportToCsvScenario {
     TimeZone.setDefault(zoneBackup);
   }
 
+  // TODO Think of a better way to customize running these exports. Maybe use a Configuration object and a builder
+  void runExportExplodedChoiceLists() {
+    runExport(true, true, null, null, null, true);
+  }
+
   void runExport() {
-    runExport(true, true, null, null, null);
+    runExport(true, true, null, null, null, false);
   }
 
   void runExport(Path pemFile) {
-    runExport(true, true, null, null, pemFile);
+    runExport(true, true, null, null, pemFile, false);
   }
 
   void runExport(boolean overwrite) {
-    runExport(overwrite, true, null, null, null);
+    runExport(overwrite, true, null, null, null, false);
   }
 
   void runExport(boolean overwrite, boolean exportMedia) {
-    runExport(overwrite, exportMedia, null, null, null);
+    runExport(overwrite, exportMedia, null, null, null, false);
   }
 
   void runExport(LocalDate startDate, LocalDate endDate) {
-    runExport(true, true, startDate, endDate, null);
+    runExport(true, true, startDate, endDate, null, false);
   }
 
-  void runExport(boolean overwrite, boolean exportMedia, LocalDate startDate, LocalDate endDate, Path pemFile) {
+  void runExport(boolean overwrite, boolean exportMedia, LocalDate startDate, LocalDate endDate, Path pemFile, boolean explodeChoiceLists) {
     ExportConfiguration configuration = new ExportConfiguration(
         Optional.empty(),
         Optional.of(outputDir.resolve("new")),
@@ -142,7 +147,7 @@ class ExportToCsvScenario {
         Optional.of(overwrite),
         Optional.of(exportMedia),
         Optional.empty(),
-        Optional.of(false)
+        Optional.of(explodeChoiceLists)
     );
     ExportToCsv.export(formDef, configuration);
   }
