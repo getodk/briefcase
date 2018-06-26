@@ -27,6 +27,7 @@ import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.ImageIcon;
@@ -88,6 +89,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     FormCache formCache = appPreferences.getBriefcaseDir()
+        .filter(Files::exists)
         .map(FormCache::from)
         .orElse(FormCache.empty());
 
