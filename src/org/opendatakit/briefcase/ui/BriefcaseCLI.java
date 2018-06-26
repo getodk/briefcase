@@ -318,8 +318,8 @@ public class BriefcaseCLI {
             false,
             Optional.ofNullable(startDateString).map(s -> LocalDate.parse(s.replaceAll("/", "-"))),
             Optional.ofNullable(endDateString).map(s -> LocalDate.parse(s.replaceAll("/", "-"))),
-            Optional.ofNullable(pemKeyFile).map(Paths::get)
-        );
+            Optional.ofNullable(pemKeyFile).map(Paths::get),
+            false);
     } catch (BriefcaseException e) {
       System.err.println("Error: " + e.getMessage());
       log.error("Error", e);

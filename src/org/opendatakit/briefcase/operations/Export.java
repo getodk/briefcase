@@ -56,6 +56,7 @@ public class Export {
   private static final Param<Void> OVERWRITE = Param.flag("oc", "overwrite_csv_export", "Overwrite files during export");
   private static final Param<Path> PEM_FILE = Param.arg("pf", "pem_file", "PEM file for form decryption", Paths::get);
   private static final Param<Void> PULL_BEFORE = Param.flag("pb", "pull_before", "Pull before export");
+  private static final Param<Void> EXPLODE_CHOICE_LISTS = Param.flag("ecl", "explode_choice_lists", "Explode choice list fields");
 
   public static Operation EXPORT_FORM = Operation.of(
       EXPORT,
@@ -68,13 +69,14 @@ public class Export {
           args.has(PULL_BEFORE),
           args.getOptional(START),
           args.getOptional(END),
-          args.getOptional(PEM_FILE)
+          args.getOptional(PEM_FILE),
+          args.has(EXPLODE_CHOICE_LISTS)
       ),
       Arrays.asList(STORAGE_DIR, FORM_ID, FILE, EXPORT_DIR),
-      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE)
+      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE, EXPLODE_CHOICE_LISTS)
   );
 
-  public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, boolean pullBefore, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
+  public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, boolean pullBefore, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile, boolean explodeChoiceLists) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -97,7 +99,7 @@ public class Export {
         Optional.of(overwriteFiles),
         Optional.of(exportMedia),
         Optional.empty(),
-        Optional.of(false)
+        Optional.of(explodeChoiceLists)
     );
 
     if (configuration.resolvePullBefore()) {
