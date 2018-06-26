@@ -28,8 +28,10 @@ import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
@@ -88,8 +90,8 @@ public class MainBriefcaseWindow extends WindowAdapter {
     AnnotationProcessor.process(this);
 
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
-    FormCache formCache = appPreferences.getBriefcaseDir()
-        .filter(Files::exists)
+    Optional<Path> briefcaseDir = appPreferences.getBriefcaseDir().filter(Files::exists);
+    FormCache formCache = briefcaseDir
         .map(FormCache::from)
         .orElse(FormCache.empty());
 
