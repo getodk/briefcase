@@ -91,6 +91,8 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     Optional<Path> briefcaseDir = appPreferences.getBriefcaseDir().filter(Files::exists);
+    if (!briefcaseDir.isPresent())
+      appPreferences.unsetStorageDir();
     FormCache formCache = briefcaseDir
         .map(FormCache::from)
         .orElse(FormCache.empty());
