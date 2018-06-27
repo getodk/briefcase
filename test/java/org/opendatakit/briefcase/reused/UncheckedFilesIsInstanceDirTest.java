@@ -50,7 +50,7 @@ public class UncheckedFilesIsInstanceDirTest {
 
   @Test
   public void a_file_is_not_an_instance_directory() {
-    Path someFile = tempDir.resolve("cocotero.txt");
+    Path someFile = tempDir.resolve("some_file.txt");
     write(someFile, Stream.empty());
     assertThat(isInstanceDir(someFile), is(false));
   }
@@ -63,8 +63,15 @@ public class UncheckedFilesIsInstanceDirTest {
   }
 
   @Test
-  public void an_arbitrarily_named_directory_with_a_submission_dot_xml_file_is_not_an_instance_directory() {
-    Path correctDir = createDirectories(tempDir.resolve("cocotero"));
+  public void an_arbitrarily_named_directory_with_a_submission_dot_xml_file_is_also_an_instance_directory() {
+    Path correctDir = createDirectories(tempDir.resolve("some_directory"));
+    write(correctDir.resolve("submission.xml"), Stream.empty());
+    assertThat(isInstanceDir(createDirectories(correctDir)), is(true));
+  }
+
+  @Test
+  public void a_linux_or_mac_hidden_directoryis_not_an_instance_directory_even_if_it_has_a_submission_dot_xml_file() {
+    Path correctDir = createDirectories(tempDir.resolve(".DS_Store"));
     write(correctDir.resolve("submission.xml"), Stream.empty());
     assertThat(isInstanceDir(createDirectories(correctDir)), is(false));
   }
