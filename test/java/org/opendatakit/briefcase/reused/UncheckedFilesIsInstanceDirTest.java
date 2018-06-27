@@ -56,13 +56,6 @@ public class UncheckedFilesIsInstanceDirTest {
   }
 
   @Test
-  public void an_arbitrary_named_directory_is_not_an_instance_directory() {
-    assertThat(isInstanceDir(createDirectories(tempDir.resolve("cocotero"))), is(false));
-    assertThat(isInstanceDir(createDirectories(tempDir.resolve("uuid1234"))), is(false));
-    assertThat(isInstanceDir(createDirectories(tempDir.resolve("12345678-1234-1234-1234-123456789012"))), is(false));
-  }
-
-  @Test
   public void an_instance_dir_must_match_a_certain_name_and_contain_a_submissions_dot_xml_file() {
     Path correctDir = createDirectories(tempDir.resolve("uuid12345678-1234-1234-1234-123456789012"));
     write(correctDir.resolve("submission.xml"), Stream.empty());
