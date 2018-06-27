@@ -21,12 +21,17 @@ import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_EXIST;
 import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_DATE_RANGE_MESSAGE;
-import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
+import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyPair;
+import java.security.PrivateKey;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -40,7 +45,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import org.bouncycastle.openssl.PEMReader;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.util.ErrorsOr;
 
 public class ExportConfiguration {
   private static final String EXPORT_DIR = "exportDir";
@@ -51,6 +59,7 @@ public class ExportConfiguration {
   private static final String PULL_BEFORE_OVERRIDE = "pullBeforeOverride";
   private static final String OVERWRITE_EXISTING_FILES = "overwriteExistingFiles";
   private static final Predicate<PullBeforeOverrideOption> ALL_EXCEPT_INHERIT = value -> value != INHERIT;
+  private Optional<String> exportFileName;
   private Optional<Path> exportDir;
   private Optional<Path> pemFile;
   private Optional<LocalDate> startDate;
@@ -59,7 +68,8 @@ public class ExportConfiguration {
   private Optional<PullBeforeOverrideOption> pullBeforeOverride;
   private Optional<Boolean> overwriteExistingFiles;
 
-  public ExportConfiguration(Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride, Optional<Boolean> theOverwriteExistingFiles) {
+  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride, Optional<Boolean> theOverwriteExistingFiles) {
+    this.exportFileName = exportFileName;
     this.exportDir = exportDir;
     this.pemFile = pemFile;
     this.startDate = startDate;
@@ -70,11 +80,12 @@ public class ExportConfiguration {
   }
 
   public static ExportConfiguration empty() {
-    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
     return new ExportConfiguration(
+        Optional.empty(),
         prefs.nullSafeGet(EXPORT_DIR).map(Paths::get),
         prefs.nullSafeGet(PEM_FILE).map(Paths::get),
         prefs.nullSafeGet(START_DATE).map(LocalDate::parse),
@@ -87,6 +98,7 @@ public class ExportConfiguration {
 
   public static ExportConfiguration load(BriefcasePreferences prefs, String keyPrefix) {
     return new ExportConfiguration(
+        Optional.empty(),
         prefs.nullSafeGet(keyPrefix + EXPORT_DIR).map(Paths::get),
         prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get),
         prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse),
@@ -133,7 +145,7 @@ public class ExportConfiguration {
 
   public ExportConfiguration copy() {
     return new ExportConfiguration(
-        exportDir,
+        exportFileName, exportDir,
         pemFile,
         startDate,
         endDate,
@@ -232,7 +244,7 @@ public class ExportConfiguration {
   }
 
   private boolean isDateRangeValid() {
-    return !startDate.isPresent() || !endDate.isPresent() || startDate.get().isBefore(endDate.get());
+    return !startDate.isPresent() || !endDate.isPresent() || !startDate.get().isAfter(endDate.get());
   }
 
   public void ifExportDirPresent(Consumer<Path> consumer) {
@@ -351,7 +363,7 @@ public class ExportConfiguration {
 
   public ExportConfiguration fallingBackTo(ExportConfiguration defaultConfiguration) {
     return new ExportConfiguration(
-        exportDir.isPresent() ? exportDir : defaultConfiguration.exportDir,
+        exportFileName, exportDir.isPresent() ? exportDir : defaultConfiguration.exportDir,
         pemFile.isPresent() ? pemFile : defaultConfiguration.pemFile,
         startDate.isPresent() ? startDate : defaultConfiguration.startDate,
         endDate.isPresent() ? endDate : defaultConfiguration.endDate,
@@ -393,5 +405,44 @@ public class ExportConfiguration {
   @Override
   public int hashCode() {
     return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, pullBeforeOverride, overwriteExistingFiles);
+  }
+
+  public static ErrorsOr<PrivateKey> readPemFile(Path pemFile) {
+    try (PEMReader rdr = new PEMReader(new BufferedReader(new InputStreamReader(Files.newInputStream(pemFile), "UTF-8")))) {
+      Optional<Object> o = Optional.ofNullable(rdr.readObject());
+      if (!o.isPresent())
+        return ErrorsOr.errors("The supplied file is not in PEM format.");
+      Optional<PrivateKey> pk = extractPrivateKey(o.get());
+      if (!pk.isPresent())
+        return ErrorsOr.errors("The supplied file does not contain a private key.");
+      return ErrorsOr.some(pk.get());
+    } catch (IOException e) {
+      return ErrorsOr.errors("Briefcase can't read the provided file: " + e.getMessage());
+    }
+  }
+
+  private static Optional<PrivateKey> extractPrivateKey(Object o) {
+    if (o instanceof KeyPair)
+      return Optional.of(((KeyPair) o).getPrivate());
+    if (o instanceof PrivateKey)
+      return Optional.of((PrivateKey) o);
+    return Optional.empty();
+  }
+
+  public Optional<PrivateKey> getPrivateKey() {
+    return pemFile.map(ExportConfiguration::readPemFile).flatMap(ErrorsOr::asOptional);
+  }
+
+  public DateRange getDateRange() {
+    return new DateRange(startDate, endDate);
+  }
+
+  public Path getExportMediaPath() {
+    return exportDir.map(dir -> dir.resolve("media"))
+        .orElseThrow(() -> new BriefcaseException("No export dir configured"));
+  }
+
+  public Optional<String> getExportFileName() {
+    return exportFileName;
   }
 }

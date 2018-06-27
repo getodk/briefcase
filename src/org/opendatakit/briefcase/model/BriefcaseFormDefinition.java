@@ -39,7 +39,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
 
   private static final Logger log = LoggerFactory.getLogger(BriefcaseFormDefinition.class);
   private final File formFolder;
-  private final File revisedFormFile;
+  public final File revisedFormFile;
   private boolean needsMediaUpdate = false;
   private JavaRosaParserWrapper formDefn;
   private PrivateKey privateKey = null;
@@ -80,13 +80,13 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
     needsMediaUpdate = false;
   }
 
-  public static final BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile)
+  public static final BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile, File briefcaseFolder)
       throws BadFormDefinition {
-    return resolveAgainstBriefcaseDefn(tmpFormFile, false);
+    return resolveAgainstBriefcaseDefn(tmpFormFile, false, briefcaseFolder);
   }
 
   public static final BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile,
-                                                                          boolean copyFile) throws BadFormDefinition {
+                                                                          boolean copyFile, File briefcaseFolder) throws BadFormDefinition {
 
     if (!tmpFormFile.exists()) {
       throw new BadFormDefinition("Form directory does not contain form");
@@ -98,14 +98,14 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
     File briefcaseFormFile;
     try {
       newDefn = new JavaRosaParserWrapper(tmpFormFile, readFile(tmpFormFile));
-      briefcaseFormDirectory = FileSystemUtils.getFormDirectory(newDefn.getFormName());
+      briefcaseFormDirectory = FileSystemUtils.getFormDirectory(newDefn.getFormName(), briefcaseFolder);
       briefcaseFormFile = FileSystemUtils.getFormDefinitionFile(briefcaseFormDirectory);
     } catch (ODKIncompleteSubmissionData e) {
       log.warn("bad form definition", e);
       try {
         badForm = true;
         newDefn = null;
-        briefcaseFormDirectory = FileSystemUtils.getFormDirectory("_badForm");
+        briefcaseFormDirectory = FileSystemUtils.getFormDirectory("_badForm", briefcaseFolder);
         briefcaseFormFile = FileSystemUtils.getFormDefinitionFile(briefcaseFormDirectory);
       } catch (FileSystemException ex) {
         log.error("failed to establish storage location for bad form", e);
@@ -188,17 +188,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
                   throw new BadFormDefinition(msg);
                 }
               } else {
-                if (!tmpFormFile.renameTo(revised)) {
-                  // if cannot rename, try to copy instead (and mark for deletion)
-                  try {
-                    FileUtils.copyFile(tmpFormFile, revised);
-                    tmpFormFile.deleteOnExit();
-                  } catch (IOException e) {
-                    String msg = "Form directory does not contain form (can neither rename nor copy into briefcase directory)";
-                    log.error(msg, e);
-                    throw new BadFormDefinition(msg);
-                  }
-                }
+                renameOrCopyAndMarkForDeletion(tmpFormFile, revised);
               }
               needsMediaUpdate = true;
               // and re-parse the new revised file (since we just updated it...)
@@ -231,17 +221,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
                 throw new BadFormDefinition(msg);
               }
             } else {
-              if (!tmpFormFile.renameTo(briefcaseFormFile)) {
-                // if cannot rename, try to copy instead (and mark for deletion)
-                try {
-                  FileUtils.copyFile(tmpFormFile, briefcaseFormFile);
-                  tmpFormFile.deleteOnExit();
-                } catch (IOException e) {
-                  String msg = "Form directory does not contain form (can neither rename nor copy into briefcase directory)";
-                  log.error(msg, e);
-                  throw new BadFormDefinition(msg);
-                }
-              }
+              renameOrCopyAndMarkForDeletion(tmpFormFile, briefcaseFormFile);
             }
             needsMediaUpdate = true;
             // and re-parse the new form file (since we just updated it...)
@@ -275,6 +255,20 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
       EventBus.publish(new UpdatedBriefcaseFormDefinitionEvent(defn));
     }
     return defn;
+  }
+
+  public static void renameOrCopyAndMarkForDeletion(File source, File target) throws BadFormDefinition {
+    if (!source.renameTo(target)) {
+      // if cannot rename, try to copy instead (and mark for deletion)
+      try {
+        FileUtils.copyFile(source, target);
+        source.deleteOnExit();
+      } catch (IOException e) {
+        String msg = "Form directory does not contain form (can neither rename nor copy into briefcase directory)";
+        log.error(msg, e);
+        throw new BadFormDefinition(msg);
+      }
+    }
   }
 
   private BriefcaseFormDefinition(File briefcaseFormDirectory, JavaRosaParserWrapper formDefn,

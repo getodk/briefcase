@@ -100,8 +100,12 @@ public class ExportForms {
     return CUSTOM_CONF_PREFIX + formId + "_";
   }
 
-  public void merge(List<FormStatus> forms) {
-    this.forms.addAll(forms.stream().filter(form -> !formsIndex.containsKey(getFormId(form))).collect(toList()));
+  public void merge(List<FormStatus> incomingForms) {
+    List<String> incomingFormIds = incomingForms.stream().map(ExportForms::getFormId).collect(toList());
+    List<FormStatus> formsToAdd = incomingForms.stream().filter(form -> !formsIndex.containsKey(getFormId(form))).collect(toList());
+    List<FormStatus> formsToRemove = formsIndex.values().stream().filter(form -> !incomingFormIds.contains(getFormId(form))).collect(toList());
+    forms.addAll(formsToAdd);
+    forms.removeAll(formsToRemove);
     rebuildIndex();
   }
 
@@ -194,14 +198,12 @@ public class ExportForms {
     return forms.stream().noneMatch(FormStatus::isSelected);
   }
 
-  public void appendStatus(IFormDefinition formDefinition, String statusUpdate, boolean successful) {
-    FormStatus form = getForm(formDefinition);
-    form.setStatusString(statusUpdate, successful);
-    if (successful) {
+  public void appendStatus(ExportEvent event) {
+    getForm(event.getFormId()).setStatusString(event.getStatusLine(), false);
+    if (event.isSuccess()) {
       LocalDateTime exportDate = LocalDateTime.now();
-      String formId = getFormId(form);
-      lastExportDateTimes.put(formId, exportDate);
-      onSuccessfulExportCallbacks.forEach(callback -> callback.accept(formId, exportDate));
+      lastExportDateTimes.put(event.getFormId(), exportDate);
+      onSuccessfulExportCallbacks.forEach(callback -> callback.accept(event.getFormId(), exportDate));
     }
   }
 

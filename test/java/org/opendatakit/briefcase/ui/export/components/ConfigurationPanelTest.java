@@ -122,7 +122,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   public void default_panel_can_be_disabled() {
     component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
     component.show();
-    component.disable();
+    component.disable(true);
     assertThat(component.exportDirField(), is(not(enabled())));
     assertThat(component.pemFileField(), is(not(enabled())));
     assertThat(component.startDateField(), is(not(enabled())));
@@ -134,8 +134,8 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   public void default_panel_can_be_enabled() {
     component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
     component.show();
-    component.disable();
-    component.enable();
+    component.disable(true);
+    component.enable(true);
     assertThat(component.exportDirField(), is(enabled()));
     assertThat(component.pemFileField(), is(enabled()));
     assertThat(component.startDateField(), is(enabled()));
@@ -198,7 +198,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   public void override_panel_can_be_disabled() {
     component = ConfigurationPanelPageObject.setUpOverridePanel(robot(), ExportConfiguration.empty(), true, true);
     component.show();
-    component.disable();
+    component.disable(true);
     assertThat(component.exportDirField(), is(not(enabled())));
     assertThat(component.pemFileField(), is(not(enabled())));
     assertThat(component.startDateField(), is(not(enabled())));
@@ -212,8 +212,8 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   public void override_panel__can_be_enabled() {
     component = ConfigurationPanelPageObject.setUpOverridePanel(robot(), ExportConfiguration.empty(), true, true);
     component.show();
-    component.disable();
-    component.enable();
+    component.disable(true);
+    component.enable(true);
     assertThat(component.exportDirField(), is(enabled()));
     assertThat(component.pemFileField(), is(enabled()));
     assertThat(component.startDateField(), is(enabled()));

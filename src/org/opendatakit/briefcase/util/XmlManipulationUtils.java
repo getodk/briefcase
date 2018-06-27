@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.util;
 
+import static org.opendatakit.common.utils.WebUtils.parseDate;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -42,7 +44,6 @@ import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.MetadataUpdateException;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
-import org.opendatakit.briefcase.ui.StorageLocation;
 import org.opendatakit.briefcase.util.ServerFetcher.MediaFile;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionChunk;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionManifest;
@@ -265,7 +266,8 @@ public class XmlManipulationUtils {
       try {
         return BadXMLFixer.fixBadXML(submission);
       } catch (CannotFixXMLException e1) {
-        File debugFileLocation = new File(new StorageLocation().getBriefcaseFolder(), "debug");
+        // We just place the debug file in the same folder as the submission we're processing
+        File debugFileLocation = submission.toPath().resolveSibling(submission.toPath().getFileName().toString() + ".debug").toFile();
         try {
           if (!debugFileLocation.exists()) {
             FileUtils.forceMkdir(debugFileLocation);
@@ -778,9 +780,9 @@ public class XmlManipulationUtils {
       }
 
       if (name.equals(SUBMISSION_DATE_ATTRIBUTE_NAME)) {
-        Date oldDate = WebUtils.parseDate(submissionDate);
+        Date oldDate = parseDate(submissionDate);
         String returnDate = root.getAttributeValue(i);
-        Date newDate = WebUtils.parseDate(returnDate);
+        Date newDate = parseDate(returnDate);
         // cross-platform datetime resolution is 1 second.
         if (Math.abs(newDate.getTime() - oldDate.getTime()) > 1000L) {
           String msg = "Original submission file's submissionDate does not match that on server!";

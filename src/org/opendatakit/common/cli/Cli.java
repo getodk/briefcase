@@ -29,7 +29,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.UnrecognizedOptionException;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,9 +135,7 @@ public class Cli {
       log.error("Error", e);
       System.exit(1);
     } catch (Throwable t) {
-      System.err.println("Briefcase unexpected error. Please review the logs and contact maintainers on the following URLs:");
-      System.err.println("\thttps://opendatakit.slack.com/messages/C374LNDK9/");
-      System.err.println("\thttps://forum.opendatakit.org/c/support");
+      System.err.println("Unexpected error in Briefcase. Please review briefcase.log for more information. For help, post to https://forum.opendatakit.org/c/support");
       log.error("Error", t);
       System.exit(1);
     }
@@ -191,7 +189,7 @@ public class Cli {
   }
 
   private static void printVersion() {
-    System.out.println("Briefcase " + BriefcasePreferences.VERSION);
+    System.out.println("Briefcase " + BuildConfig.VERSION);
   }
 
   @Override

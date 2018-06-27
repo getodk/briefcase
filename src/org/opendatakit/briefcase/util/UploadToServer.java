@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 University of Washington.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -17,10 +17,15 @@
 package org.opendatakit.briefcase.util;
 
 import java.io.File;
-
+import java.net.MalformedURLException;
+import java.net.URL;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.http.CommonsHttp;
+import org.opendatakit.briefcase.reused.http.Credentials;
 
 public class UploadToServer implements ITransferToDestAction {
 
@@ -29,29 +34,35 @@ public class UploadToServer implements ITransferToDestAction {
   FormStatus status;
   File formDef;
   File formMediaDir;
-  
+
   UploadToServer(ServerConnectionInfo destinationServerInfo, TerminationFuture terminationFuture, File formDefn, FormStatus status) {
     this.destServerInfo = destinationServerInfo;
     this.terminationFuture = terminationFuture;
     this.status = status;
     this.formDef = formDefn;
-    
+
     String mediaName = formDefn.getName();
     mediaName = mediaName.substring(0, mediaName.lastIndexOf(".")) + "-media";
-    File mediaDir = new File( formDefn.getParentFile(), mediaName);
-    if ( mediaDir.exists() ) {
+    File mediaDir = new File(formDefn.getParentFile(), mediaName);
+    if (mediaDir.exists()) {
       this.formMediaDir = mediaDir;
     } else {
       this.formMediaDir = null;
     }
   }
-  
+
   @Override
   public boolean doAction() {
+    URL url;
+    try {
+      url = new URL(destServerInfo.getUrl());
+    } catch (MalformedURLException e) {
+      throw new BriefcaseException(e);
+    }
+    RemoteServer remoteServer = RemoteServer.authenticated(url, new Credentials(destServerInfo.getUsername(), new String(destServerInfo.getPassword())));
+    ServerUploader uploader = new ServerUploader(destServerInfo, terminationFuture, new CommonsHttp(), remoteServer, true);
 
-    ServerUploader uploader = new ServerUploader(destServerInfo, terminationFuture);
-
-    return uploader.uploadForm( status, formDef, formMediaDir);
+    return uploader.uploadForm(status, formDef, formMediaDir);
   }
 
   @Override

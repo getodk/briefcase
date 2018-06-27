@@ -1,0 +1,23 @@
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:orx="http://openrosa.org/xforms/">
+  <h:head>
+    <h:title>Encrypted Form</h:title>
+    <model>
+      <instance>
+        <data id="encrypted-form">
+          <name/>
+          <orx:meta>
+            <orx:instanceID/>
+          </orx:meta>
+        </data>
+      </instance>
+      <submission method="form-data-post" base64RsaPublicKey="MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8RDcKKUNIAkKrPRd4tOls8X0ZpwYwuofVEER56BRwWIlSnPprE8p9EHbyL2/i6RLlX0Fk9ntdu/t42/jpf7hvf8srsgGk0bV1g22mvYDbk9pRdshfaLmLEagDqmVZA4byXGjxlgR9MXKRZHd2CNv7swR9ZNyHN8GMo+rqC/bsXL5lCxfVFmCbZo8AsemaE8wqQfkH5QHMFCHFbjmaUl+lnVpHa0jo31D7VOnT66tG8S/DjOTPxVZCYF5O9qTttsnvBEAijbU5PF/afHwHbfCj3/a9cQApAfT0BxG6GJyMhrlANkK6E5kWGart/wOgcybvE4El7ZzQT117OwxuZ3XZQIDAQAB"/>
+      <bind nodeset="/data/meta/instanceID" type="string" readonly="true()" calculate="concat('uuid:', uuid())"/>
+      <bind nodeset="/data/name" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <input ref="name">
+      <label>Your name</label>
+    </input>
+  </h:body>
+</h:html>

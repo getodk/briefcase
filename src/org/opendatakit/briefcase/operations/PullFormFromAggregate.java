@@ -20,15 +20,23 @@ import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
 import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
-import static org.opendatakit.briefcase.operations.Common.bootCache;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
 import org.bushe.swing.event.EventBus;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.ServerConnectionInfo;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.http.CommonsHttp;
+import org.opendatakit.briefcase.reused.http.Credentials;
+import org.opendatakit.briefcase.reused.http.Response;
+import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.briefcase.util.RetrieveAvailableFormsFromServer;
-import org.opendatakit.briefcase.util.ServerConnectionTest;
 import org.opendatakit.briefcase.util.TransferFromServer;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
@@ -54,21 +62,41 @@ public class PullFormFromAggregate {
 
   public static void pullFormFromAggregate(String storageDir, String formid, String username, String password, String server) {
     CliEventsCompanion.attach(log);
-    bootCache(storageDir);
-    ServerConnectionInfo transferSettings = new ServerConnectionInfo(server, username, password.toCharArray());
+    Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
+    FormCache formCache = FormCache.from(briefcaseDir);
+    formCache.update();
 
-    ServerConnectionTest.testPull(transferSettings);
+    CommonsHttp http = new CommonsHttp();
 
-    Optional<FormStatus> maybeForm = RetrieveAvailableFormsFromServer.get(transferSettings).stream()
-        .filter(f -> f.getFormDefinition().getFormId().equals(formid))
-        .findFirst();
+    URL baseUrl;
+    try {
+      baseUrl = new URL(server);
+    } catch (MalformedURLException e) {
+      throw new BriefcaseException(e);
+    }
+    RemoteServer remoteServer = RemoteServer.authenticated(baseUrl, new Credentials(username, password));
 
-    if (!maybeForm.isPresent())
-      throw new FormNotFoundException(formid);
+    Response<Boolean> response = remoteServer.testPull(http);
+    if (!response.isSuccess())
+      System.err.println(response.isRedirection()
+          ? "Error connecting to Aggregate: Redirection detected"
+          : response.isUnauthorized()
+          ? "Error connecting to Aggregate: Wrong credentials"
+          : response.isNotFound()
+          ? "Error connecting to Aggregate: Aggregate not found"
+          : "Error connecting to Aggregate");
+    else {
+      Optional<FormStatus> maybeForm = RetrieveAvailableFormsFromServer.get(remoteServer.asServerConnectionInfo()).stream()
+          .filter(f -> f.getFormDefinition().getFormId().equals(formid))
+          .findFirst();
 
-    FormStatus form = maybeForm.get();
-    EventBus.publish(new StartPullEvent(form));
-    TransferFromServer.pull(transferSettings, form);
+      if (!maybeForm.isPresent())
+        throw new FormNotFoundException(formid);
+
+      FormStatus form = maybeForm.get();
+      EventBus.publish(new StartPullEvent(form));
+      TransferFromServer.pull(remoteServer.asServerConnectionInfo(), briefcaseDir, form);
+    }
   }
 
 }

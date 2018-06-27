@@ -45,4 +45,8 @@ public class ErrorsOr<T> {
   public T get() {
     return t.get();
   }
+
+  public Optional<T> asOptional() {
+    return t;
+  }
 }

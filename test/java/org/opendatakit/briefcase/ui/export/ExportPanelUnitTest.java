@@ -29,14 +29,17 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.export.ExportForms;
+import org.opendatakit.briefcase.export.FormDefinition;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusBuilder;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
-import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
 import org.opendatakit.briefcase.ui.reused.NoOpAnalytics;
+import org.opendatakit.briefcase.util.FormCache;
 
 public class ExportPanelUnitTest {
 
@@ -50,12 +53,12 @@ public class ExportPanelUnitTest {
     ExportForms forms = load(initialDefaultConf, new ArrayList<>(), exportPreferences, appPreferences);
     ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(initialDefaultConf, false, true);
     new ExportPanel(
-        new TerminationFuture(),
         forms,
         ExportPanelForm.from(forms, confPanel),
+        appPreferences,
         exportPreferences,
-        Runnable::run,
-        new NoOpAnalytics()
+        new NoOpAnalytics(),
+        FormCache.empty()
     );
 
     assertThat(ExportConfiguration.load(exportPreferences).getExportDir(), isEmpty());
@@ -74,12 +77,12 @@ public class ExportPanelUnitTest {
     ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(initialDefaultConf, true, true);
     ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, confPanel);
     new ExportPanel(
-        new TerminationFuture(),
         forms,
         exportPanelForm,
+        appPreferences,
         exportPreferences,
-        Runnable::run,
-        new NoOpAnalytics()
+        new NoOpAnalytics(),
+        FormCache.empty()
     );
 
     FormStatus form = formsList.get(0);
@@ -105,12 +108,12 @@ public class ExportPanelUnitTest {
     ExportForms forms = load(initialDefaultConf, formsList, exportPreferences, appPreferences);
     ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(initialDefaultConf, true, true);
     new ExportPanel(
-        new TerminationFuture(),
         forms,
         ExportPanelForm.from(forms, confPanel),
+        appPreferences,
         exportPreferences,
-        Runnable::run,
-        new NoOpAnalytics()
+        new NoOpAnalytics(),
+        FormCache.empty()
     );
 
     FormStatus form = formsList.get(0);
@@ -118,7 +121,9 @@ public class ExportPanelUnitTest {
 
     assertThat(exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId)), isEmpty());
 
-    forms.appendStatus(form.getFormDefinition(), "some status update", true);
+    FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());
+    ExportEvent event = ExportEvent.successForm(formDef, 10);
+    forms.appendStatus(event);
 
     assertThat(exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId)), isPresent());
   }

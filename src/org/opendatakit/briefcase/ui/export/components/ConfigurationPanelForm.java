@@ -20,9 +20,9 @@ import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static javax.swing.JOptionPane.YES_OPTION;
 import static javax.swing.JOptionPane.showConfirmDialog;
 import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.INHERIT;
-import static org.opendatakit.briefcase.ui.StorageLocation.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.directory;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.file;
+import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.isMac;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
@@ -30,7 +30,6 @@ import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
 import com.github.lgooddatepicker.components.DatePicker;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -86,6 +85,7 @@ public class ConfigurationPanelForm extends JComponent {
   private final List<Consumer<PullBeforeOverrideOption>> onChangePullBeforeOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeOverwriteExistingFilesCallbacks = new ArrayList<>();
   private final ConfigurationPanelMode mode;
+  private boolean uiLocked = false;
 
   protected ConfigurationPanelForm(ConfigurationPanelMode mode) {
     this.mode = mode;
@@ -101,7 +101,7 @@ public class ConfigurationPanelForm extends JComponent {
     endDatePicker.getComponentDateTextField().setPreferredSize(exportDirField.getPreferredSize());
     endDatePicker.getComponentToggleCalendarButton().setPreferredSize(exportDirChooseButton.getPreferredSize());
     pullBeforeHintPanel.setBackground(new Color(255, 255, 255, 0));
-    mode.decorate(pullBeforeField, pullBeforeOverrideLabel, pullBeforeOverrideField, pullBeforeHintPanel);
+    mode.decorate(pullBeforeField, pullBeforeOverrideLabel, pullBeforeOverrideField, pullBeforeHintPanel, uiLocked);
     GridBagLayout layout = (GridBagLayout) container.getLayout();
     GridBagConstraints constraints = layout.getConstraints(pullBeforeHintPanel);
     constraints.insets = new Insets(0, isMac() ? 6 : isWindows() ? 2 : 0, 0, 0);
@@ -143,15 +143,27 @@ public class ConfigurationPanelForm extends JComponent {
 
   @Override
   public void setEnabled(boolean enabled) {
-    if (enabled) {
-      for (Component c : container.getComponents())
-        c.setEnabled(true);
-      container.setEnabled(true);
-    } else {
-      for (Component c : container.getComponents())
-        c.setEnabled(false);
-      container.setEnabled(false);
-    }
+    uiLocked = !enabled;
+    container.setEnabled(enabled);
+    startDatePicker.setEnabled(enabled);
+    endDatePicker.setEnabled(enabled);
+    exportDirField.setEnabled(enabled);
+    pemFileField.setEnabled(enabled);
+    exportDirChooseButton.setEnabled(enabled);
+    exportDirLabel.setEnabled(enabled);
+    pemFileLabel.setEnabled(enabled);
+    startDateLabel.setEnabled(enabled);
+    endDateLabel.setEnabled(enabled);
+    pemFileButtons.setEnabled(enabled);
+    pemFileChooseButton.setEnabled(enabled);
+    pemFileClearButton.setEnabled(enabled);
+    exportDirButtons.setEnabled(enabled);
+    exportDirCleanButton.setEnabled(enabled);
+    pullBeforeField.setEnabled(enabled);
+    pullBeforeOverrideField.setEnabled(enabled);
+    pullBeforeHintPanel.setEnabled(enabled);
+    pullBeforeOverrideLabel.setEnabled(enabled);
+    overwriteFilesField.setEnabled(enabled);
   }
 
   public void setExportDir(Path path) {
@@ -238,7 +250,7 @@ public class ConfigurationPanelForm extends JComponent {
 
   void changeMode(boolean savePasswordsConsent) {
     mode.setSavePasswordsConsent(savePasswordsConsent);
-    mode.decorate(pullBeforeField, pullBeforeOverrideLabel, pullBeforeOverrideField, pullBeforeHintPanel);
+    mode.decorate(pullBeforeField, pullBeforeOverrideLabel, pullBeforeOverrideField, pullBeforeHintPanel, uiLocked);
   }
 
   private void createUIComponents() {

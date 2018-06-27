@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
@@ -135,22 +136,21 @@ public class ExportFormsTest {
   public void appends_status_history_on_forms() {
     ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
-    forms.appendStatus(form.getFormDefinition(), "some status update", false);
-    forms.appendStatus(form.getFormDefinition(), "some more lines", false);
-
-    assertThat(form.getStatusHistory(), containsString("some status update"));
-    assertThat(form.getStatusHistory(), containsString("some more lines"));
-    assertThat(form.getStatusHistory().split("\n").length, is(3)); // There is a leading \n
+    ExportEvent event = ExportEvent.progress(FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition()), 0.33D);
+    forms.appendStatus(event);
+    assertThat(form.getStatusHistory(), containsString("Exported 33% of the submissions"));
+    assertThat(form.getStatusHistory().split("\n").length, is(2)); // There is a leading \n
   }
 
   @Test
-  public void when_there_is_a_status_history_update_thats_been_successful_it_registers_an_export_date() {
+  public void sets_the_last_export_datetime_when_appending_the_success_of_exporting_a_form() {
     ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
 
     assertThat(forms.getLastExportDateTime(form), isEmpty());
 
-    forms.appendStatus(form.getFormDefinition(), "some status update", true);
+    ExportEvent event = ExportEvent.successForm(FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition()), 10);
+    forms.appendStatus(event);
 
     assertThat(forms.getLastExportDateTime(form), isPresent());
   }
@@ -159,12 +159,14 @@ public class ExportFormsTest {
   public void it_lets_a_third_party_react_to_successful_exports() {
     AtomicInteger count = new AtomicInteger(0);
     ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
-    forms.onSuccessfulExport((form, exportDateTime) -> {
-      if (form.equals(forms.get(0).getFormDefinition().getFormId()))
+    FormStatus form = forms.get(0);
+    forms.onSuccessfulExport((formId, exportDateTime) -> {
+      if (formId.equals(form.getFormDefinition().getFormId()))
         count.incrementAndGet();
     });
 
-    forms.appendStatus(forms.get(0).getFormDefinition(), "some status update", true);
+    ExportEvent event = ExportEvent.successForm(FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition()), 10);
+    forms.appendStatus(event);
 
     assertThat(count.get(), is(1));
   }
