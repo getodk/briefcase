@@ -218,11 +218,9 @@ public class UncheckedFiles {
 
   public static boolean isInstanceDir(Path dir) {
     return Files.isDirectory(dir)
-        // Instance directories follow the pattern "uuid01234567-0123-0123-0123-012345678901"
-        // ("uuid" followed by a UUID string)
-        // This is decided when forms are pulled and written into the storage directory
-        // TODO Extract into an artifact, test, and use everywhere where this convention is used
-        && dir.getFileName().toString().matches("^uuid[\\w]{8}-[\\w]{4}-[\\w]{4}-[\\w]{4}-[\\w]{12}$")
+        // Ignore hidden mac/linux hidden folders
+        && !dir.getFileName().toString().startsWith(".")
+        // Check for presence of a submission.xml file inside
         && Files.exists(dir.resolve("submission.xml"));
   }
 
