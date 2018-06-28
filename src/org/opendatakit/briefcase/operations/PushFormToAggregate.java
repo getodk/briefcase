@@ -20,9 +20,11 @@ import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
 import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
+import static org.opendatakit.briefcase.ui.settings.SettingsPanel.README_CONTENTS;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -32,6 +34,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Response;
@@ -64,6 +67,12 @@ public class PushFormToAggregate {
   private static void pushFormToAggregate(String storageDir, String formid, String username, String password, String server, boolean forceSendBlank) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
+    if (!Files.exists(briefcaseDir)) {
+      System.err.println("The directory " + briefcaseDir.toString() + " doesn't exist. Creating it");
+      UncheckedFiles.createDirectories(briefcaseDir);
+      UncheckedFiles.createDirectories(briefcaseDir.resolve("forms"));
+      UncheckedFiles.write(briefcaseDir.resolve("readme.txt"), README_CONTENTS.getBytes());
+    }
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
 

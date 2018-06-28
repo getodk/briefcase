@@ -24,7 +24,7 @@ import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FormCache;
 
 public class SettingsPanel {
-  private static final String README_CONTENTS = "" +
+  public static final String README_CONTENTS = "" +
       "This ODK Briefcase storage area retains\n" +
       "all the forms and submissions that have been\n" +
       "gathered into it.\n" +
