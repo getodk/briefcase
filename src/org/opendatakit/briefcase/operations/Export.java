@@ -20,7 +20,6 @@ import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePr
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -32,7 +31,6 @@ import org.opendatakit.briefcase.export.ExportToCsv;
 import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.common.cli.Operation;
@@ -69,11 +67,7 @@ public class Export {
 
   public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
     CliEventsCompanion.attach(log);
-    Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
-    if (!Files.exists(briefcaseDir)) {
-      System.err.println("The directory " + briefcaseDir.toString() + " doesn't exist. Creating it");
-      UncheckedFiles.createBriefcaseDir(briefcaseDir);
-    }
+    Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
     Optional<BriefcaseFormDefinition> maybeFormDefinition = formCache.getForms().stream()
