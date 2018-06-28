@@ -20,7 +20,6 @@ import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
 import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
-import static org.opendatakit.briefcase.ui.settings.SettingsPanel.README_CONTENTS;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -68,9 +67,7 @@ public class PullFormFromAggregate {
     Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
     if (!Files.exists(briefcaseDir)) {
       System.err.println("The directory " + briefcaseDir.toString() + " doesn't exist. Creating it");
-      UncheckedFiles.createDirectories(briefcaseDir);
-      UncheckedFiles.createDirectories(briefcaseDir.resolve("forms"));
-      UncheckedFiles.write(briefcaseDir.resolve("readme.txt"), README_CONTENTS.getBytes());
+      UncheckedFiles.createBriefcaseDir(briefcaseDir);
     }
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();

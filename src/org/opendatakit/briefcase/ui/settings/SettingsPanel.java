@@ -24,13 +24,6 @@ import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FormCache;
 
 public class SettingsPanel {
-  public static final String README_CONTENTS = "" +
-      "This ODK Briefcase storage area retains\n" +
-      "all the forms and submissions that have been\n" +
-      "gathered into it.\n" +
-      "\n" +
-      "Users should not navigate into or modify its\n" +
-      "contents unless explicitly directed to do so.\n";
 
   public static final String TAB_NAME = "Settings";
   private final SettingsPanelForm form;
@@ -51,9 +44,7 @@ public class SettingsPanel {
 
     form.onStorageLocation(path -> {
       Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(path);
-      UncheckedFiles.createDirectories(briefcaseDir);
-      UncheckedFiles.createDirectories(briefcaseDir.resolve("forms"));
-      UncheckedFiles.write(briefcaseDir.resolve("readme.txt"), README_CONTENTS.getBytes());
+      UncheckedFiles.createBriefcaseDir(briefcaseDir);
       formCache.setLocation(briefcaseDir);
       formCache.update();
       appPreferences.setStorageDir(path);
