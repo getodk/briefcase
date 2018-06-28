@@ -216,6 +216,15 @@ public class UncheckedFiles {
     }
   }
 
+  public static boolean isFormDir(Path dir) {
+    String dirName = dir.getFileName().toString();
+    return Files.isDirectory(dir)
+        // Ignore hidden mac/linux hidden folders
+        && !dirName.startsWith(".")
+        // Check for presence of the blank form
+        && Files.exists(dir.resolve(dirName + ".xml"));
+  }
+
   public static boolean isInstanceDir(Path dir) {
     return Files.isDirectory(dir)
         // Ignore hidden mac/linux hidden folders
