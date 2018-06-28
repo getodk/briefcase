@@ -87,8 +87,6 @@ public class MainBriefcaseWindow extends WindowAdapter {
   }
 
   private MainBriefcaseWindow() {
-    AnnotationProcessor.process(this);
-
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     Optional<Path> briefcaseDir = appPreferences.getBriefcaseDir().filter(Files::exists);
     if (!briefcaseDir.isPresent())
@@ -135,6 +133,9 @@ public class MainBriefcaseWindow extends WindowAdapter {
     frame.pack();
     frame.setLocationRelativeTo(null);
     frame.setVisible(true);
+
+    // Subscribe to events once the UI is ready to react (lock/unlock)
+    AnnotationProcessor.process(this);
 
     if (isFirstLaunch(appPreferences)) {
       lockUI();
