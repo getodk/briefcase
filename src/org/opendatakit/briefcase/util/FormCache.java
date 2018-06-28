@@ -80,6 +80,7 @@ public class FormCache {
       createFile(cacheFilePath);
       hashByPath = new HashMap<>();
       formDefByPath = new HashMap<>();
+      update();
     }
   }
 
