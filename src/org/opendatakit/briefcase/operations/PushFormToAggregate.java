@@ -23,6 +23,7 @@ import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -64,6 +65,10 @@ public class PushFormToAggregate {
   private static void pushFormToAggregate(String storageDir, String formid, String username, String password, String server, boolean forceSendBlank) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
+
+    if (!Files.exists(briefcaseDir))
+      throw new BriefcaseException("The storage directory doesn't exist");
+
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
 
