@@ -24,12 +24,10 @@ import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
@@ -66,7 +64,7 @@ public class PullFormFromAggregate {
 
   public static void pullFormFromAggregate(String storageDir, String formid, String username, String password, String server, boolean pullInParallel) {
     CliEventsCompanion.attach(log);
-    Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
+    Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
 

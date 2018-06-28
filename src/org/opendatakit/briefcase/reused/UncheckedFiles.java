@@ -47,6 +47,13 @@ import org.slf4j.LoggerFactory;
  * This class holds unchecked versions of some methods in {@link Files}.
  */
 public class UncheckedFiles {
+  private static final String README_CONTENTS = "" +
+      "This ODK Briefcase storage area retains\n" +
+      "all the forms and submissions that have been\n" +
+      "gathered into it.\n" +
+      "\n" +
+      "Users should not navigate into or modify its\n" +
+      "contents unless explicitly directed to do so.\n";
   private static final Logger log = LoggerFactory.getLogger(UncheckedFiles.class);
 
   public static Path createTempFile(String prefix, String suffix, FileAttribute<?>... attrs) {
@@ -296,5 +303,11 @@ public class UncheckedFiles {
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+  }
+
+  public static void createBriefcaseDir(Path briefcaseDir) {
+    createDirectories(briefcaseDir);
+    createDirectories(briefcaseDir.resolve("forms"));
+    write(briefcaseDir.resolve("readme.txt"), README_CONTENTS.getBytes());
   }
 }
