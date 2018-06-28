@@ -5,6 +5,7 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.createFile;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.delete;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InvalidClassException;
@@ -65,6 +66,10 @@ public class FormCache {
            ObjectInputStream ois = new ObjectInputStream(in)) {
         hashByPath = (Map<String, String>) ois.readObject();
         formDefByPath = (Map<String, BriefcaseFormDefinition>) ois.readObject();
+      } catch (EOFException e) {
+        // The file was corrupt. Since we can't do much about it, ignore the stacktrace
+        log.warn("Can't read forms cache file: EOF");
+        delete(cacheFilePath);
       } catch (InvalidClassException e) {
         log.warn("The serialized forms cache is incompatible due to an update on Briefcase");
         delete(cacheFilePath);
