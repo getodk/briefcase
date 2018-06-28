@@ -16,8 +16,6 @@
 
 package org.opendatakit.briefcase.model;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Security;
@@ -31,7 +29,6 @@ import java.util.prefs.Preferences;
 import org.apache.http.HttpHost;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.StorageLocationEvent;
 
@@ -41,12 +38,11 @@ import org.opendatakit.briefcase.reused.StorageLocationEvent;
  */
 public class BriefcasePreferences {
 
-  public static final String GOOGLE_TRACKING_ID = BuildConfig.GOOGLE_TRACKING_ID;
   public static final String USERNAME = "username";
   public static final String PASSWORD = "password";
   public static final String AGGREGATE_1_0_URL = "url_1_0";
 
-  public static final String BRIEFCASE_DIR_PROPERTY = "briefcaseDir";
+  private static final String BRIEFCASE_DIR_PROPERTY = "briefcaseDir";
   private static final String BRIEFCASE_PROXY_HOST_PROPERTY = "briefcaseProxyHost";
   private static final String BRIEFCASE_PROXY_PORT_PROPERTY = "briefcaseProxyPort";
   private static final String BRIEFCASE_PARALLEL_PULLS_PROPERTY = "briefcaseParallelPulls";
@@ -165,50 +161,6 @@ public class BriefcasePreferences {
     keys.forEach(this::remove);
   }
 
-  public static void setBriefcaseDirectoryProperty(String value) {
-    if (value == null) {
-      Preference.APPLICATION_SCOPED.remove(BRIEFCASE_DIR_PROPERTY);
-    } else {
-      Preference.APPLICATION_SCOPED.put(BRIEFCASE_DIR_PROPERTY, value);
-    }
-  }
-
-  public String getBriefcaseDirectoryOrNull() {
-    return get(BRIEFCASE_DIR_PROPERTY, null);
-  }
-
-  public String getBriefcaseDirectoryOrUserHome() {
-    try {
-      return get(BRIEFCASE_DIR_PROPERTY, Files.createTempDirectory("briefcase").toString());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  public static void setBriefcaseProxyProperty(HttpHost value) {
-    if (value == null) {
-      Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PROXY_HOST_PROPERTY);
-      Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PROXY_PORT_PROPERTY);
-    } else {
-      Preference.APPLICATION_SCOPED.put(BRIEFCASE_PROXY_HOST_PROPERTY, value.getHostName());
-      Preference.APPLICATION_SCOPED.put(BRIEFCASE_PROXY_PORT_PROPERTY, Integer.toString(value.getPort()));
-    }
-  }
-
-  public static void setBriefcaseParallelPullsProperty(Boolean value) {
-    if (value == null) {
-      Preference.APPLICATION_SCOPED.remove(BRIEFCASE_PARALLEL_PULLS_PROPERTY);
-    } else {
-      Preference.APPLICATION_SCOPED.put(BRIEFCASE_PARALLEL_PULLS_PROPERTY, value.toString());
-    }
-  }
-
-  public static Boolean getBriefcaseParallelPullsProperty() {
-    return Boolean.valueOf(
-        Preference.APPLICATION_SCOPED.get(BRIEFCASE_PARALLEL_PULLS_PROPERTY, Boolean.FALSE.toString())
-    );
-  }
-
   public Optional<Path> getBriefcaseDir() {
     return nullSafeGet(BRIEFCASE_DIR_PROPERTY).map(Paths::get).map(BriefcasePreferences::buildBriefcaseDir);
   }
@@ -323,15 +275,6 @@ public class BriefcasePreferences {
   }
 
   /**
-   * Persist the user's decision to allow/disallow their behaviour being tracked.
-   *
-   * @param value (required) the boolean value representing the user's decision.
-   */
-  public static void setBriefcaseTrackingConsentProperty(boolean value) {
-    setBooleanProperty(BRIEFCASE_TRACKING_CONSENT_PROPERTY, value);
-  }
-
-  /**
    * Get the user's persisted decision regarding their consent to being tracked.
    *
    * @return the boolean representation of the user's consent to being tracked.
@@ -342,14 +285,6 @@ public class BriefcasePreferences {
 
   public static boolean getStorePasswordsConsentProperty() {
     return getBooleanProperty(BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY);
-  }
-
-  public static void setStorePasswordsConsentProperty(boolean value) {
-    setBooleanProperty(BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY, value);
-  }
-
-  private static void setBooleanProperty(String key, boolean value) {
-    Preference.APPLICATION_SCOPED.put(key, Boolean.valueOf(value).toString());
   }
 
   private static boolean getBooleanProperty(String key) {
