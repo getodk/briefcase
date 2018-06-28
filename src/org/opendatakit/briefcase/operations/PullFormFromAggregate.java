@@ -23,17 +23,13 @@ import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
-import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Response;
@@ -64,11 +60,7 @@ public class PullFormFromAggregate {
 
   public static void pullFormFromAggregate(String storageDir, String formid, String username, String password, String server) {
     CliEventsCompanion.attach(log);
-    Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
-    if (!Files.exists(briefcaseDir)) {
-      System.err.println("The directory " + briefcaseDir.toString() + " doesn't exist. Creating it");
-      UncheckedFiles.createBriefcaseDir(briefcaseDir);
-    }
+    Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
 
