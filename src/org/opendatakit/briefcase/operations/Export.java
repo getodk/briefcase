@@ -19,7 +19,6 @@ import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePrefix;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
-import static org.opendatakit.briefcase.ui.settings.SettingsPanel.README_CONTENTS;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -73,9 +72,7 @@ public class Export {
     Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
     if (!Files.exists(briefcaseDir)) {
       System.err.println("The directory " + briefcaseDir.toString() + " doesn't exist. Creating it");
-      UncheckedFiles.createDirectories(briefcaseDir);
-      UncheckedFiles.createDirectories(briefcaseDir.resolve("forms"));
-      UncheckedFiles.write(briefcaseDir.resolve("readme.txt"), README_CONTENTS.getBytes());
+      UncheckedFiles.createBriefcaseDir(briefcaseDir);
     }
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
