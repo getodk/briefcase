@@ -71,7 +71,7 @@ public class UncheckedFilesIsInstanceDirTest {
 
   @Test
   public void a_linux_or_mac_hidden_directory_is_not_an_instance_directory_even_if_it_has_a_submission_dot_xml_file() {
-    Path correctDir = createDirectories(tempDir.resolve(".DS_Store"));
+    Path correctDir = createDirectories(tempDir.resolve(".some_hidden_directory"));
     write(correctDir.resolve("submission.xml"), Stream.empty());
     assertThat(isInstanceDir(createDirectories(correctDir)), is(false));
   }
