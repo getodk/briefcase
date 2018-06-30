@@ -30,7 +30,6 @@ import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.append;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.newOutputStreamWriter;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.walk;
 import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 
 import java.io.OutputStreamWriter;
@@ -66,11 +65,9 @@ public class ExportToCsv {
    */
   public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration, boolean exportMedia) {
     long start = System.nanoTime();
-    // Create an export tracker object with the total number of submissions we have to export
-    long submissionCount = walk(formDef.getFormDir().resolve("instances"))
-        .filter(UncheckedFiles::isInstanceDir)
-        .count();
-    ExportProcessTracker exportTracker = new ExportProcessTracker(formDef, submissionCount);
+    List<Path> submissionFiles = SubmissionParser.getOrderedListOfSubmissionFiles(formDef, configuration.getDateRange());
+
+    ExportProcessTracker exportTracker = new ExportProcessTracker(formDef, submissionFiles.size());
     exportTracker.start();
 
     // Compute and create the export directory
@@ -103,8 +100,7 @@ public class ExportToCsv {
     );
     files.put(formDef.getModel(), mainFile);
 
-    SubmissionParser
-        .getOrderedListOfSubmissionFiles(formDef, configuration.getDateRange())
+    submissionFiles
         .stream()
         .map(path -> SubmissionParser.parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey()))
         .filter(Optional::isPresent)
