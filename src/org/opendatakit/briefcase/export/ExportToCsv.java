@@ -19,7 +19,7 @@ package org.opendatakit.briefcase.export;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-import static java.util.stream.Collectors.toConcurrentMap;
+import static java.util.Comparator.comparing;
 import static org.opendatakit.briefcase.export.CsvMapper.getMainHeader;
 import static org.opendatakit.briefcase.export.CsvMapper.getMainSubmissionLines;
 import static org.opendatakit.briefcase.export.CsvMapper.getRepeatCsvLine;
@@ -27,19 +27,22 @@ import static org.opendatakit.briefcase.export.CsvMapper.getRepeatHeader;
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_EXPORTED;
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.append;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.newOutputStreamWriter;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.walk;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 
-import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -65,84 +68,29 @@ public class ExportToCsv {
    */
   public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration, boolean exportMedia) {
     long start = System.nanoTime();
-    List<Path> submissionFiles = SubmissionParser.getOrderedListOfSubmissionFiles(formDef, configuration.getDateRange());
-
-    ExportProcessTracker exportTracker = new ExportProcessTracker(formDef, submissionFiles.size());
+    // Create an export tracker object with the total number of submissions we have to export
+    long submissionCount = walk(formDef.getFormDir().resolve("instances"))
+        .filter(UncheckedFiles::isInstanceDir)
+        .count();
+    ExportProcessTracker exportTracker = new ExportProcessTracker(formDef, submissionCount);
     exportTracker.start();
 
     // Compute and create the export directory
     Path exportDir = configuration.getExportDir().orElseThrow(() -> new BriefcaseException("No export dir defined"));
     createDirectories(exportDir);
 
-    // Get the repeat group models ready for later use
-    List<Model> repeatGroups = formDef.getModel().getRepeatableFields();
+    List<OutputFile> outputFiles = new ArrayList<>();
+    outputFiles.add(OutputFile.mainFile(formDef, configuration, exportMedia));
+    outputFiles.addAll(formDef.getModel().getRepeatableFields().stream().map(groupModel -> OutputFile.repeatFile(formDef, groupModel, configuration, exportMedia)).collect(Collectors.toList()));
 
-    // Get a Map with all the files we need to produce:
-    // - One per repeat group
-    // - One for the main CSV file
-    String repeatFileNameBase = configuration.getExportFileName()
-        .map(UncheckedFiles::stripFileExtension)
-        .orElse(stripIllegalChars(formDef.getFormName()));
-    Map<Model, OutputStreamWriter> files = repeatGroups.stream().collect(toConcurrentMap(
-        group -> group,
-        group -> getOutputStreamWriter(
-            exportDir.resolve(repeatFileNameBase + "-" + group.getName() + ".csv"),
-            configuration.getOverwriteExistingFiles().orElse(true),
-            getRepeatHeader(group)
-        )
-    ));
-    String mainFileName = configuration.getExportFileName()
-        .orElse(stripIllegalChars(formDef.getFormName()) + ".csv");
-    OutputStreamWriter mainFile = getOutputStreamWriter(
-        exportDir.resolve(mainFileName),
-        configuration.getOverwriteExistingFiles().orElse(false),
-        getMainHeader(formDef.getModel(), formDef.isFileEncryptedForm())
-    );
-    files.put(formDef.getModel(), mainFile);
-
-    submissionFiles
-        .stream()
+    SubmissionParser
+        .getListOfSubmissionFiles(formDef, configuration.getDateRange())
         .map(path -> SubmissionParser.parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey()))
         .filter(Optional::isPresent)
         .map(Optional::get)
-        .forEach(submission -> {
-          // Increment the export count and maybe report progress
-          exportTracker.incAndReport();
+        .forEach(submission -> outputFiles.forEach(of -> of.append(submission)));
 
-          String mainLine = null;
-          Stream<Pair<String, Model>> repeatLines = Stream.empty();
-          try {
-            mainLine = getMainSubmissionLines(
-                submission,
-                formDef.getModel(),
-                formDef.isFileEncryptedForm(),
-                exportMedia,
-                configuration.getExportMediaPath()
-            );
-            repeatLines = repeatGroups.stream().map(groupModel -> Pair.of(getRepeatCsvLine(
-                groupModel,
-                submission.getElements(groupModel.fqn()),
-                exportMedia,
-                configuration.getExportMediaPath(),
-                submission.getInstanceId(),
-                submission.getWorkingDir()
-            ), groupModel));
-          } catch (Throwable t) {
-            log.error("Can't produce CSV lines", t);
-            EventBus.publish(ExportEvent.failureSubmission(formDef, submission.getInstanceId(), t));
-          }
-
-          if (mainLine != null) {
-            // Write lines in the main CSV file
-            append(mainLine, mainFile);
-            // While we iterate over each submission, take a peek, and
-            // write lines on each repeat group CSV file
-            repeatLines.forEach(pair -> append(pair.getLeft(), files.get(pair.getRight())));
-          }
-        });
-
-    // Flush and close output streams
-    files.values().forEach(UncheckedFiles::close);
+    outputFiles.forEach(OutputFile::persist);
 
     exportTracker.end();
 
@@ -162,13 +110,86 @@ public class ExportToCsv {
     return exportOutcome;
   }
 
-  private static OutputStreamWriter getOutputStreamWriter(Path outputFile, Boolean overwrite, String header) {
-    if (Files.exists(outputFile) && !overwrite)
-      return newOutputStreamWriter(outputFile, APPEND);
-    // If we are not appending, open the file, truncate it if it already exists, and write the header
-    OutputStreamWriter osw = newOutputStreamWriter(outputFile, CREATE, TRUNCATE_EXISTING);
-    append(header, osw);
-    return osw;
-  }
+  // TODO Invert the relation between Submission and OutputFile to make OutputFile a mapper of Submission to avoid having to aggregate all lines into the List
+  static class OutputFile {
+    private static final OffsetDateTime MIN_SUBMISSION_DATE = OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, OffsetDateTime.now().getOffset());
+    private final String header;
+    private final Path output;
+    private final boolean overwrite;
+    private final List<Pair<OffsetDateTime, String>> linesBySubmissionDate = new ArrayList<>();
+    private final Function<Submission, Pair<OffsetDateTime, String>> submissionMapper;
 
+    OutputFile(String header, Path output, boolean overwrite, Function<Submission, Pair<OffsetDateTime, String>> submissionMapper) {
+      this.header = header;
+      this.output = output;
+      this.overwrite = overwrite;
+      this.submissionMapper = submissionMapper;
+    }
+
+    static OutputFile mainFile(FormDefinition formDefinition, ExportConfiguration configuration, boolean exportMedia) {
+      Path output = configuration.getExportDir()
+          .orElseThrow(BriefcaseException::new)
+          .resolve(configuration.getExportFileName().orElse(stripIllegalChars(formDefinition.getFormName()) + ".csv"));
+      Function<Submission, Pair<OffsetDateTime, String>> submissionMapper = submission -> Pair.of(
+          submission.getSubmissionDate().orElse(MIN_SUBMISSION_DATE),
+          getMainSubmissionLines(
+              submission,
+              formDefinition.getModel(),
+              formDefinition.isFileEncryptedForm(),
+              exportMedia,
+              configuration.getExportMediaPath()
+          )
+      );
+      return new OutputFile(
+          getMainHeader(formDefinition.getModel(), formDefinition.isFileEncryptedForm()),
+          output,
+          configuration.getOverwriteExistingFiles().orElse(false),
+          submissionMapper
+      );
+    }
+
+    static OutputFile repeatFile(FormDefinition formDefinition, Model model, ExportConfiguration configuration, boolean exportMedia) {
+      String repeatFileNameBase = configuration.getExportFileName()
+          .map(UncheckedFiles::stripFileExtension)
+          .orElse(stripIllegalChars(formDefinition.getFormName()));
+      Path output = configuration.getExportDir()
+          .orElseThrow(BriefcaseException::new)
+          .resolve(repeatFileNameBase + "-" + model.getName() + ".csv");
+      Function<Submission, Pair<OffsetDateTime, String>> submissionMapper = submission -> Pair.of(
+          submission.getSubmissionDate().orElse(MIN_SUBMISSION_DATE),
+          getRepeatCsvLine(
+              model,
+              submission.getElements(model.fqn()),
+              exportMedia,
+              configuration.getExportMediaPath(),
+              submission.getInstanceId(),
+              submission.getWorkingDir()
+          )
+      );
+      return new OutputFile(
+          getRepeatHeader(model),
+          output,
+          configuration.getOverwriteExistingFiles().orElse(false),
+          submissionMapper
+      );
+    }
+
+    public void append(Submission submission) {
+      linesBySubmissionDate.add(submissionMapper.apply(submission));
+    }
+
+    void persist() {
+      Stream<String> lines = linesBySubmissionDate.stream()
+          // TODO Check why, oh why, we always get a null element in the list
+          .filter(Objects::nonNull)
+          .sorted(comparing(Pair::getLeft))
+          .map(Pair::getRight);
+      // TODO Optimize this and write in the file once
+      if (Files.exists(output) && !overwrite)
+        write(output, "\n".getBytes(), APPEND);
+      else
+        write(output, (header + "\n").getBytes(), CREATE, TRUNCATE_EXISTING);
+      write(output, lines, APPEND);
+    }
+  }
 }

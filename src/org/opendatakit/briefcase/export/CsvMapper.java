@@ -103,7 +103,7 @@ class CsvMapper {
     sb.append(",").append("KEY");
     if (isEncrypted)
       sb.append(",").append("isValidated");
-    return sb.toString() + "\n";
+    return sb.toString();
   }
 
   /**
@@ -119,7 +119,7 @@ class CsvMapper {
     sb.append(",").append("PARENT_KEY");
     sb.append(",").append("KEY");
     sb.append(",").append("SET-OF-").append(groupModel.getName());
-    return sb.toString().substring(1) + "\n";
+    return sb.toString().substring(1);
   }
 
   /**
@@ -150,7 +150,7 @@ class CsvMapper {
     sb.append(",").append(submission.getInstanceId());
     if (isEncrypted)
       sb.append(",").append(submission.getValidationStatus().asCsvValue());
-    return sb.toString() + "\n";
+    return sb.toString();
   }
 
   /**
@@ -199,7 +199,7 @@ class CsvMapper {
       sb2.append(",").append(encode(element.getParentLocalId(instanceId), false));
       sb2.append(",").append(encode(element.getCurrentLocalId(instanceId), false));
       sb2.append(",").append(encode(element.getGroupLocalId(instanceId), false));
-      sb.append(sb2.toString().substring(1)).append("\n");
+      sb.append(sb2.toString().substring(1));
     });
     return sb.toString();
   }
