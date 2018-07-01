@@ -16,39 +16,24 @@
 
 package org.opendatakit.briefcase.export;
 
-import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-import static java.util.Comparator.comparing;
-import static org.opendatakit.briefcase.export.CsvMapper.getMainHeader;
-import static org.opendatakit.briefcase.export.CsvMapper.getMainSubmissionLines;
-import static org.opendatakit.briefcase.export.CsvMapper.getRepeatCsvLine;
-import static org.opendatakit.briefcase.export.CsvMapper.getRepeatHeader;
+import static java.util.stream.Collectors.groupingByConcurrent;
+import static java.util.stream.Collectors.reducing;
+import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_EXPORTED;
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
+import static org.opendatakit.briefcase.export.SubmissionParser.getListOfSubmissionFiles;
+import static org.opendatakit.briefcase.export.SubmissionParser.parseSubmission;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.walk;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
-import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.concurrent.ConcurrentMap;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.Pair;
-import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,136 +45,75 @@ public class ExportToCsv {
    * <p>
    * If the form has repeat groups, each repeat group will be exported into a separate CSV file.
    *
-   * @param formDef       the {@link BriefcaseFormDefinition} form definition of the form to be exported
-   * @param configuration the {@link ExportConfiguration} export configuration
-   * @param exportMedia   a {@link Boolean} indicating if media files attached to each submission must be also exported
+   * @param formDefinition the {@link BriefcaseFormDefinition} form definition of the form to be exported
+   * @param configuration  the {@link ExportConfiguration} export configuration
+   * @param exportMedia    a {@link Boolean} indicating if media files attached to each submission must be also exported
    * @return an {@link ExportOutcome} with the export operation's outcome
    * @see ExportConfiguration
    */
-  public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration, boolean exportMedia) {
-    long start = System.nanoTime();
+  public static ExportOutcome export(FormDefinition formDefinition, ExportConfiguration configuration, boolean exportMedia) {
     // Create an export tracker object with the total number of submissions we have to export
-    long submissionCount = walk(formDef.getFormDir().resolve("instances"))
-        .filter(UncheckedFiles::isInstanceDir)
-        .count();
-    ExportProcessTracker exportTracker = new ExportProcessTracker(formDef, submissionCount);
+    ExportProcessTracker exportTracker = new ExportProcessTracker(formDefinition);
     exportTracker.start();
+    log.debug("Start export");
+    // List all submission files we want to export
+    List<Path> submissionFiles = getListOfSubmissionFiles(formDefinition, configuration.getDateRange());
+    log.debug("Files listed");
+    exportTracker.trackTotal(submissionFiles.size());
 
     // Compute and create the export directory
-    Path exportDir = configuration.getExportDir().orElseThrow(() -> new BriefcaseException("No export dir defined"));
-    createDirectories(exportDir);
+    createDirectories(configuration.getExportDir().orElseThrow(() -> new BriefcaseException("No export dir defined")));
 
-    List<OutputFile> outputFiles = new ArrayList<>();
-    outputFiles.add(OutputFile.mainFile(formDef, configuration, exportMedia));
-    outputFiles.addAll(formDef.getModel().getRepeatableFields().stream().map(groupModel -> OutputFile.repeatFile(formDef, groupModel, configuration, exportMedia)).collect(Collectors.toList()));
+    // Prepare the list of csv files we will export
+    List<Csv> csvs = new ArrayList<>();
+    csvs.add(Csv.main(formDefinition, configuration, exportMedia));
+    csvs.addAll(formDefinition.getModel().getRepeatableFields().stream()
+        .map(groupModel -> Csv.repeat(formDefinition, groupModel, configuration, exportMedia))
+        .collect(toList()));
 
-    SubmissionParser
-        .getListOfSubmissionFiles(formDef, configuration.getDateRange())
-        .map(path -> SubmissionParser.parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey()))
+    // Prepare the output file
+    csvs.forEach(Csv::prepareOutput);
+
+    ConcurrentMap<String, CsvLines> collect = submissionFiles.parallelStream()
+        // Parse the submission and leave only those OK to be exported
+        .map(path -> parseSubmission(path, formDefinition.isFileEncryptedForm(), configuration.getPrivateKey()))
         .filter(Optional::isPresent)
         .map(Optional::get)
-        .forEach(submission -> outputFiles.forEach(of -> of.append(submission)));
+        // Track the submission
+        .peek(s -> exportTracker.incAndReport())
+        // Transform each submission into a list of CsvLines (one per output Csv)
+        .flatMap(submission -> csvs.stream()
+            .map(Csv::getMapper)
+            .map(mapper -> mapper.apply(submission)))
+        // Group and merge the CsvLines by the model they belong to
+        .collect(groupingByConcurrent(
+            CsvLines::getModelFqn,
+            reducing(CsvLines.empty(), CsvLines::merge)
+        ));
 
-    outputFiles.forEach(OutputFile::persist);
+    log.debug("Submissions transformed to csv lines");
 
+    // Write lines to each output Csv
+    csvs.forEach(csv -> csv.appendLines(
+        Optional.ofNullable(collect.get(csv.getModelFqn())).orElse(CsvLines.empty())
+    ));
+
+    log.debug("Files written");
+
+    // Mark the end of the export and report
     exportTracker.end();
 
     ExportOutcome exportOutcome = exportTracker.computeOutcome();
     if (exportOutcome == ALL_EXPORTED)
-      EventBus.publish(ExportEvent.successForm(formDef, (int) exportTracker.total));
+      EventBus.publish(ExportEvent.successForm(formDefinition, (int) exportTracker.total));
 
     if (exportOutcome == SOME_SKIPPED)
-      EventBus.publish(ExportEvent.partialSuccessForm(formDef, (int) exportTracker.exported, (int) exportTracker.total));
+      EventBus.publish(ExportEvent.partialSuccessForm(formDefinition, (int) exportTracker.exported, (int) exportTracker.total));
 
     if (exportOutcome == ALL_SKIPPED)
-      EventBus.publish(ExportEvent.failure(formDef, "All submissions have been skipped"));
+      EventBus.publish(ExportEvent.failure(formDefinition, "All submissions have been skipped"));
 
-    long end = System.nanoTime();
-    LocalTime duration = LocalTime.ofNanoOfDay(end - start);
-    log.info("Exported in {}", duration.format(DateTimeFormatter.ISO_TIME));
     return exportOutcome;
   }
 
-  // TODO Invert the relation between Submission and OutputFile to make OutputFile a mapper of Submission to avoid having to aggregate all lines into the List
-  static class OutputFile {
-    private static final OffsetDateTime MIN_SUBMISSION_DATE = OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, OffsetDateTime.now().getOffset());
-    private final String header;
-    private final Path output;
-    private final boolean overwrite;
-    private final List<Pair<OffsetDateTime, String>> linesBySubmissionDate = new ArrayList<>();
-    private final Function<Submission, Pair<OffsetDateTime, String>> submissionMapper;
-
-    OutputFile(String header, Path output, boolean overwrite, Function<Submission, Pair<OffsetDateTime, String>> submissionMapper) {
-      this.header = header;
-      this.output = output;
-      this.overwrite = overwrite;
-      this.submissionMapper = submissionMapper;
-    }
-
-    static OutputFile mainFile(FormDefinition formDefinition, ExportConfiguration configuration, boolean exportMedia) {
-      Path output = configuration.getExportDir()
-          .orElseThrow(BriefcaseException::new)
-          .resolve(configuration.getExportFileName().orElse(stripIllegalChars(formDefinition.getFormName()) + ".csv"));
-      Function<Submission, Pair<OffsetDateTime, String>> submissionMapper = submission -> Pair.of(
-          submission.getSubmissionDate().orElse(MIN_SUBMISSION_DATE),
-          getMainSubmissionLines(
-              submission,
-              formDefinition.getModel(),
-              formDefinition.isFileEncryptedForm(),
-              exportMedia,
-              configuration.getExportMediaPath()
-          )
-      );
-      return new OutputFile(
-          getMainHeader(formDefinition.getModel(), formDefinition.isFileEncryptedForm()),
-          output,
-          configuration.getOverwriteExistingFiles().orElse(false),
-          submissionMapper
-      );
-    }
-
-    static OutputFile repeatFile(FormDefinition formDefinition, Model model, ExportConfiguration configuration, boolean exportMedia) {
-      String repeatFileNameBase = configuration.getExportFileName()
-          .map(UncheckedFiles::stripFileExtension)
-          .orElse(stripIllegalChars(formDefinition.getFormName()));
-      Path output = configuration.getExportDir()
-          .orElseThrow(BriefcaseException::new)
-          .resolve(repeatFileNameBase + "-" + model.getName() + ".csv");
-      Function<Submission, Pair<OffsetDateTime, String>> submissionMapper = submission -> Pair.of(
-          submission.getSubmissionDate().orElse(MIN_SUBMISSION_DATE),
-          getRepeatCsvLine(
-              model,
-              submission.getElements(model.fqn()),
-              exportMedia,
-              configuration.getExportMediaPath(),
-              submission.getInstanceId(),
-              submission.getWorkingDir()
-          )
-      );
-      return new OutputFile(
-          getRepeatHeader(model),
-          output,
-          configuration.getOverwriteExistingFiles().orElse(false),
-          submissionMapper
-      );
-    }
-
-    public void append(Submission submission) {
-      linesBySubmissionDate.add(submissionMapper.apply(submission));
-    }
-
-    void persist() {
-      Stream<String> lines = linesBySubmissionDate.stream()
-          // TODO Check why, oh why, we always get a null element in the list
-          .filter(Objects::nonNull)
-          .sorted(comparing(Pair::getLeft))
-          .map(Pair::getRight);
-      // TODO Optimize this and write in the file once
-      if (Files.exists(output) && !overwrite)
-        write(output, "\n".getBytes(), APPEND);
-      else
-        write(output, (header + "\n").getBytes(), CREATE, TRUNCATE_EXISTING);
-      write(output, lines, APPEND);
-    }
-  }
 }

@@ -19,6 +19,7 @@ import static java.text.DateFormat.getDateInstance;
 import static java.text.DateFormat.getDateTimeInstance;
 import static java.text.DateFormat.getTimeInstance;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.javarosa.core.model.DataType.BINARY;
@@ -38,6 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DateFormat;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -182,26 +184,38 @@ class CsvMapper {
    * @param workingDir      the {@link Path} to the working directory of the {@link Submission} instance that it's being exported
    * @return a {@link List} of CSV compatible {@link String} lines
    */
-  static String getRepeatCsvLine(Model groupModel, List<XmlElement> elements, boolean exportMedia, Path exportMediaPath, String instanceId, Path workingDir) {
-    StringBuilder sb = new StringBuilder();
-    elements.forEach(element -> {
+  static List<String> getRepeatCsvLines(Model groupModel, List<XmlElement> elements, boolean exportMedia, Path exportMediaPath, String instanceId, Path workingDir) {
+    return elements.stream().map(element -> {
       String localId = element.getCurrentLocalId(instanceId);
-      StringBuilder sb2 = new StringBuilder();
-      groupModel.forEach(field -> getMapper(field).apply(
-          localId,
-          workingDir,
-          field,
-          element.findElement(field.getName()),
-          exportMedia,
-          exportMediaPath
-      ).forEach(pair -> sb2.append(",").append(encode(pair.getRight(), pair.getLeft().startsWith("meta") || pair.getLeft().startsWith("SET-OF")))));
+      List<String> cols = new ArrayList<>();
+      Stream<String> meta = groupModel
+          .flatMap2(field -> {
+            FieldMapper mapper = getMapper(field);
+            List<Pair<String, String>> apply = mapper.apply(
+                localId,
+                workingDir,
+                field,
+                element.findElement(field.getName()),
+                exportMedia,
+                exportMediaPath
+            );
+            Stream<Pair<String, String>> stream = apply.stream();
+            Stream<String> meta1 = stream.map(pair -> encode(
+                pair.getRight(),
+                pair.getLeft().startsWith("meta") || pair.getLeft().startsWith("SET-OF")
+            ));
+            return meta1;
+          });
+      List<String> collect = meta
+          .collect(toList());
+      cols.addAll(collect);
 
-      sb2.append(",").append(encode(element.getParentLocalId(instanceId), false));
-      sb2.append(",").append(encode(element.getCurrentLocalId(instanceId), false));
-      sb2.append(",").append(encode(element.getGroupLocalId(instanceId), false));
-      sb.append(sb2.toString().substring(1));
-    });
-    return sb.toString();
+      cols.add(encode(element.getParentLocalId(instanceId), false));
+      cols.add(encode(element.getCurrentLocalId(instanceId), false));
+      cols.add(encode(element.getGroupLocalId(instanceId), false));
+      return cols.stream().collect(joining(","));
+    })
+        .collect(toList());
   }
 
   private static FieldMapper getMapper(Model field) {
