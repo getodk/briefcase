@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.ui;
 
-import static java.lang.Boolean.TRUE;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static org.opendatakit.briefcase.ui.BriefcaseCLI.launchLegacyCLI;
@@ -27,8 +26,11 @@ import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
@@ -58,7 +60,6 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private static final Logger log = LoggerFactory.getLogger(BaseFormParserForJavaRosa.class.getName());
   private static final String APP_NAME = "ODK Briefcase";
   private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
-  private static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
 
   private final JFrame frame;
   private final TerminationFuture transferTerminationFuture = new TerminationFuture();
@@ -84,10 +85,11 @@ public class MainBriefcaseWindow extends WindowAdapter {
   }
 
   private MainBriefcaseWindow() {
-    AnnotationProcessor.process(this);
-
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
-    FormCache formCache = appPreferences.getBriefcaseDir()
+    Optional<Path> briefcaseDir = appPreferences.getBriefcaseDir().filter(Files::exists);
+    if (!briefcaseDir.isPresent())
+      appPreferences.unsetStorageDir();
+    FormCache formCache = briefcaseDir
         .map(FormCache::from)
         .orElse(FormCache.empty());
 
@@ -130,17 +132,20 @@ public class MainBriefcaseWindow extends WindowAdapter {
     frame.setLocationRelativeTo(null);
     frame.setVisible(true);
 
+    // Subscribe to events once the UI is ready to react (lock/unlock)
+    AnnotationProcessor.process(this);
+
     if (isFirstLaunch(appPreferences)) {
       lockUI();
       showWelcomeMessage();
-      appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
+      appPreferences.setTrackingWarningShowed();
     }
 
     // Starting with Briefcase version 1.10.0, tracking is enabled by default.
     // Users upgrading from previous versions must be warned about this.
     if (isFirstLaunchAfterTrackingUpgrade(appPreferences)) {
       showTrackingWarning();
-      appPreferences.put(TRACKING_WARNING_SHOWED_PREF_KEY, TRUE.toString());
+      appPreferences.setTrackingWarningShowed();
     }
   }
 

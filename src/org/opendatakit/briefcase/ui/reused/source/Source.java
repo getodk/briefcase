@@ -175,7 +175,7 @@ public interface Source<T> {
    * @param forms             {@link List} of forms to be pulled
    * @param terminationFuture object that to make the operation cancellable
    */
-  void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir);
+  void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel);
 
   /**
    * Pushes forms to this configured {@link Source}.
@@ -239,8 +239,8 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir) {
-      TransferAction.transferServerToBriefcase(server.asServerConnectionInfo(), terminationFuture, forms, briefcaseDir);
+    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel) {
+      TransferAction.transferServerToBriefcase(server.asServerConnectionInfo(), terminationFuture, forms, briefcaseDir, pullInParallel);
     }
 
     @Override
@@ -318,7 +318,7 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir) {
+    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel) {
       TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), terminationFuture, forms);
     }
 
@@ -394,7 +394,7 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir) {
+    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel) {
       SwingUtilities.invokeLater(() -> FormInstaller.install(briefcaseDir, form));
     }
 

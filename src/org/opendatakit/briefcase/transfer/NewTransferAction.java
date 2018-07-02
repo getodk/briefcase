@@ -30,12 +30,13 @@ import org.slf4j.LoggerFactory;
 public class NewTransferAction {
   private static final Logger log = LoggerFactory.getLogger(NewTransferAction.class);
 
-  public static void transferServerToBriefcase(ServerConnectionInfo transferSettings, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Path briefcaseDir) {
+  public static void transferServerToBriefcase(ServerConnectionInfo transferSettings, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Path briefcaseDir, Boolean pullInParallel) {
     TransferFromServer action = new TransferFromServer(
         transferSettings,
         terminationFuture,
         formsToTransfer,
-        briefcaseDir
+        briefcaseDir,
+        pullInParallel
     );
     try {
       boolean allSuccessful = action.doAction();

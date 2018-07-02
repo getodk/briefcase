@@ -26,6 +26,7 @@ import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,6 +81,7 @@ public class FormCache {
       createFile(cacheFilePath);
       hashByPath = new HashMap<>();
       formDefByPath = new HashMap<>();
+      update();
     }
   }
 
@@ -109,19 +111,21 @@ public class FormCache {
   public void update() {
     briefcaseDir.ifPresent(path -> {
       Set<String> scannedFiles = new HashSet<>();
-      list(path.resolve("forms")).forEach(formDir -> {
-        Path form = getFormFilePath(formDir);
-        scannedFiles.add(form.toString());
-        String hash = FileSystemUtils.getMd5Hash(form.toFile());
-        if (isFormNewOrChanged(form, hash)) {
-          try {
-            formDefByPath.put(form.toString(), new BriefcaseFormDefinition(form.getParent().toFile(), form.toFile()));
-            hashByPath.put(form.toString(), hash);
-          } catch (BadFormDefinition e) {
-            log.warn("Can't parse form file", e);
-          }
-        }
-      });
+      list(path.resolve("forms"))
+          .filter(UncheckedFiles::isFormDir)
+          .forEach(formDir -> {
+            Path form = getFormFilePath(formDir);
+            scannedFiles.add(form.toString());
+            String hash = FileSystemUtils.getMd5Hash(form.toFile());
+            if (isFormNewOrChanged(form, hash)) {
+              try {
+                formDefByPath.put(form.toString(), new BriefcaseFormDefinition(form.getParent().toFile(), form.toFile()));
+                hashByPath.put(form.toString(), hash);
+              } catch (BadFormDefinition e) {
+                log.warn("Can't parse form file", e);
+              }
+            }
+          });
       // Warning: Remove map entries by mutating the key set works because the key set is a view on the map
       hashByPath.keySet().removeIf(negate(scannedFiles::contains));
       formDefByPath.keySet().removeIf(negate(scannedFiles::contains));

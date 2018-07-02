@@ -66,7 +66,7 @@ class Submission {
     this.cipherFactory = cipherFactory;
     this.signature = signature;
     // Precalculate this for later use when sorting submissions
-    this.submissionDateEpoch = metaData.getSubmissionDate().orElse(OffsetDateTime.MIN).toInstant().toEpochMilli();
+    this.submissionDateEpoch = metaData.getSubmissionDate().orElse(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, OffsetDateTime.now().getOffset())).toInstant().toEpochMilli();
   }
 
   /**

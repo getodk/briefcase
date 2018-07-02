@@ -15,6 +15,11 @@
  */
 package org.opendatakit.briefcase.operations;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.common.cli.Param;
 
 class Common {
@@ -23,4 +28,13 @@ class Common {
   static final Param<String> ODK_USERNAME = Param.arg("u", "odk_username", "ODK Username");
   static final Param<String> ODK_PASSWORD = Param.arg("p", "odk_password", "ODK Password");
   static final Param<String> AGGREGATE_SERVER = Param.arg("url", "aggregate_url", "Aggregate server URL");
+
+  static Path getOrCreateBriefcaseDir(String storageDir) {
+    Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
+    if (!Files.exists(briefcaseDir)) {
+      System.err.println("The directory " + briefcaseDir.toString() + " doesn't exist. Creating it");
+      UncheckedFiles.createBriefcaseDir(briefcaseDir);
+    }
+    return briefcaseDir;
+  }
 }

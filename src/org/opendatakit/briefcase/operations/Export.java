@@ -67,7 +67,7 @@ public class Export {
 
   public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
     CliEventsCompanion.attach(log);
-    Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
+    Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
     Optional<BriefcaseFormDefinition> maybeFormDefinition = formCache.getForms().stream()

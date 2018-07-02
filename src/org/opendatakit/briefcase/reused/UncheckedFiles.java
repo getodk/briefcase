@@ -47,6 +47,13 @@ import org.slf4j.LoggerFactory;
  * This class holds unchecked versions of some methods in {@link Files}.
  */
 public class UncheckedFiles {
+  private static final String README_CONTENTS = "" +
+      "This ODK Briefcase storage area retains\n" +
+      "all the forms and submissions that have been\n" +
+      "gathered into it.\n" +
+      "\n" +
+      "Users should not navigate into or modify its\n" +
+      "contents unless explicitly directed to do so.\n";
   private static final Logger log = LoggerFactory.getLogger(UncheckedFiles.class);
 
   public static Path createTempFile(String prefix, String suffix, FileAttribute<?>... attrs) {
@@ -216,13 +223,20 @@ public class UncheckedFiles {
     }
   }
 
+  public static boolean isFormDir(Path dir) {
+    String dirName = dir.getFileName().toString();
+    return Files.isDirectory(dir)
+        // Ignore hidden mac/linux hidden folders
+        && !dirName.startsWith(".")
+        // Check for presence of the blank form
+        && Files.exists(dir.resolve(dirName + ".xml"));
+  }
+
   public static boolean isInstanceDir(Path dir) {
     return Files.isDirectory(dir)
-        // Instance directories follow the pattern "uuid01234567-0123-0123-0123-012345678901"
-        // ("uuid" followed by a UUID string)
-        // This is decided when forms are pulled and written into the storage directory
-        // TODO Extract into an artifact, test, and use everywhere where this convention is used
-        && dir.getFileName().toString().matches("^uuid[\\w]{8}-[\\w]{4}-[\\w]{4}-[\\w]{4}-[\\w]{12}$")
+        // Ignore hidden mac/linux hidden folders
+        && !dir.getFileName().toString().startsWith(".")
+        // Check for presence of a submission.xml file inside
         && Files.exists(dir.resolve("submission.xml"));
   }
 
@@ -289,5 +303,11 @@ public class UncheckedFiles {
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+  }
+
+  public static void createBriefcaseDir(Path briefcaseDir) {
+    createDirectories(briefcaseDir);
+    createDirectories(briefcaseDir.resolve("forms"));
+    write(briefcaseDir.resolve("readme.txt"), README_CONTENTS.getBytes());
   }
 }

@@ -31,19 +31,21 @@ public class TransferFromServer implements ITransferFromSourceAction {
   final ServerConnectionInfo originServerInfo;
   final TerminationFuture terminationFuture;
   final List<FormStatus> formsToTransfer;
+  private final Boolean pullInParallel;
   private Path briefcaseDir;
 
-  public TransferFromServer(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Path briefcaseDir) {
+  public TransferFromServer(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Path briefcaseDir, Boolean pullInParallel) {
     this.originServerInfo = originServerInfo;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
     this.briefcaseDir = briefcaseDir;
+    this.pullInParallel = pullInParallel;
   }
 
   @Override
   public boolean doAction() {
 
-    ServerFetcher fetcher = new ServerFetcher(originServerInfo, terminationFuture, briefcaseDir);
+    ServerFetcher fetcher = new ServerFetcher(originServerInfo, terminationFuture, briefcaseDir, pullInParallel);
 
     return fetcher.downloadFormAndSubmissionFiles(formsToTransfer);
   }
@@ -53,9 +55,9 @@ public class TransferFromServer implements ITransferFromSourceAction {
     return false;
   }
 
-  public static void pull(ServerConnectionInfo transferSettings, Path briefcaseDir, FormStatus... forms) {
+  public static void pull(ServerConnectionInfo transferSettings, Path briefcaseDir, Boolean pullInParallel, FormStatus... forms) {
     List<FormStatus> formList = Arrays.asList(forms);
-    TransferFromServer action = new TransferFromServer(transferSettings, new TerminationFuture(), formList, briefcaseDir);
+    TransferFromServer action = new TransferFromServer(transferSettings, new TerminationFuture(), formList, briefcaseDir, pullInParallel);
 
     try {
       boolean allSuccessful = action.doAction();
