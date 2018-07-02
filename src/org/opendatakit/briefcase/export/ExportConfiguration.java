@@ -70,7 +70,7 @@ public class ExportConfiguration {
   private Optional<Boolean> overwriteExistingFiles;
   private Optional<Boolean> exportMedia;
 
-  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride, Optional<Boolean> theOverwriteExistingFiles, Optional<Boolean> exportMedia) {
+  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<PullBeforeOverrideOption> pullBeforeOverride, Optional<Boolean> overwriteExistingFiles, Optional<Boolean> exportMedia) {
     this.exportFileName = exportFileName;
     this.exportDir = exportDir;
     this.pemFile = pemFile;
@@ -78,7 +78,7 @@ public class ExportConfiguration {
     this.endDate = endDate;
     this.pullBefore = pullBefore;
     this.pullBeforeOverride = pullBeforeOverride;
-    this.overwriteExistingFiles = theOverwriteExistingFiles;
+    this.overwriteExistingFiles = overwriteExistingFiles;
     this.exportMedia = exportMedia;
   }
 
