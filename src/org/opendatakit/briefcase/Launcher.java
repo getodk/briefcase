@@ -82,15 +82,11 @@ public class Launcher {
             runLegacyCli(commandLine, cli::printHelp);
         })
         .onError(throwable -> {
-          if (throwable instanceof BriefcaseException) {
-            System.err.println("Error: " + throwable.getMessage());
-            log.error("Error", throwable);
-            System.exit(1);
-          } else {
-            System.err.println("Unexpected error in Briefcase. Please review briefcase.log for more information. For help, post to https://forum.opendatakit.org/c/support");
-            log.error("Error", throwable);
-            System.exit(1);
-          }
+          System.err.println(throwable instanceof BriefcaseException
+              ? "Error: " + throwable.getMessage()
+              : "Unexpected error in Briefcase. Please review briefcase.log for more information. For help, post to https://forum.opendatakit.org/c/support");
+          log.error("Error", throwable);
+          System.exit(1);
         })
         .run(args);
   }
