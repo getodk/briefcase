@@ -48,6 +48,7 @@ public class Export {
   private static final Param<Void> EXCLUDE_MEDIA = Param.flag("em", "exclude_media_export", "Exclude media in export");
   private static final Param<Void> OVERWRITE = Param.flag("oc", "overwrite_csv_export", "Overwrite files during export");
   private static final Param<Path> PEM_FILE = Param.arg("pf", "pem_file", "PEM file for form decryption", Paths::get);
+  private static final Param<Void> PULL_BEFORE = Param.flag("pb", "pull_before", "Pull before export");
 
   public static Operation EXPORT_FORM = Operation.of(
       EXPORT,
@@ -62,7 +63,7 @@ public class Export {
           args.getOptional(PEM_FILE)
       ),
       Arrays.asList(STORAGE_DIR, FORM_ID, FILE, EXPORT_DIR),
-      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END)
+      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END,PULL_BEFORE)
   );
 
   public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
