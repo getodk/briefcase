@@ -28,7 +28,6 @@ import static org.opendatakit.briefcase.util.FindDirectoryStructure.isMac;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
 
 import com.github.lgooddatepicker.components.DatePicker;
-
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -50,7 +49,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-
 import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.StringUtils;
