@@ -68,7 +68,7 @@ public class TransferFromServer implements ITransferFromSourceAction {
         throw new PullFromServerException(formList);
     } catch (Exception e) {
       EventBus.publish(new PullEvent.Failure());
-      throw new PullFromServerException(formList);
+      throw new PullFromServerException(formList, e);
     }
   }
 
