@@ -58,6 +58,7 @@ public class SettingsPanelForm {
   private JSpinner httpProxyPortField;
   private JLabel httpProxyPortLabel;
   private JLabel httpProxyJostLabel;
+  private JButton reloadCacheButton;
   private final List<Consumer<Path>> onStorageLocationCallbacks = new ArrayList<>();
   private final List<Runnable> onClearStorageLocationCallbacks = new ArrayList<>();
   private final List<Consumer<HttpHost>> onHttpProxyCallbacks = new ArrayList<>();
@@ -176,6 +177,10 @@ public class SettingsPanelForm {
     sendUsageDataField.setSelected(enabled);
   }
 
+  void onReloadCache(Runnable callback) {
+    reloadCacheButton.addActionListener(__ -> callback.run());
+  }
+
   private void createUIComponents() {
   }
 
@@ -239,11 +244,26 @@ public class SettingsPanelForm {
     storageLocationContainer.add(spacer1, gbc);
     final JPanel spacer2 = new JPanel();
     gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.gridwidth = 4;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    storageLocationContainer.add(spacer2, gbc);
+    reloadCacheButton = new JButton();
+    reloadCacheButton.setText("Reload forms from storage location");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 2;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    storageLocationContainer.add(reloadCacheButton, gbc);
+    final JPanel spacer3 = new JPanel();
+    gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 2;
     gbc.gridwidth = 5;
     gbc.fill = GridBagConstraints.VERTICAL;
-    container.add(spacer2, gbc);
+    container.add(spacer3, gbc);
     pullInParallelField = new JCheckBox();
     pullInParallelField.setText("Pull submissions in parallel (experimental)");
     gbc = new GridBagConstraints();
@@ -276,13 +296,13 @@ public class SettingsPanelForm {
     gbc.gridwidth = 5;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(useHttpProxyField, gbc);
-    final JPanel spacer3 = new JPanel();
+    final JPanel spacer4 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 10;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.insets = new Insets(0, 0, 0, 20);
-    container.add(spacer3, gbc);
+    container.add(spacer4, gbc);
     httpProxyJostLabel = new JLabel();
     httpProxyJostLabel.setText("Host");
     gbc = new GridBagConstraints();
@@ -299,12 +319,12 @@ public class SettingsPanelForm {
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(httpProxyHostField, gbc);
-    final JPanel spacer4 = new JPanel();
+    final JPanel spacer5 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 3;
     gbc.gridy = 10;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(spacer4, gbc);
+    container.add(spacer5, gbc);
     httpProxyPortLabel = new JLabel();
     httpProxyPortLabel.setText("Port");
     gbc = new GridBagConstraints();
@@ -312,13 +332,13 @@ public class SettingsPanelForm {
     gbc.gridy = 11;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(httpProxyPortLabel, gbc);
-    final JPanel spacer5 = new JPanel();
+    final JPanel spacer6 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 5;
     gbc.gridy = 10;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(spacer5, gbc);
+    container.add(spacer6, gbc);
     httpProxyPortField.setPreferredSize(new Dimension(150, 30));
     gbc = new GridBagConstraints();
     gbc.gridx = 4;
@@ -326,56 +346,63 @@ public class SettingsPanelForm {
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(httpProxyPortField, gbc);
-    final JPanel spacer6 = new JPanel();
+    final JPanel spacer7 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 8;
     gbc.gridwidth = 5;
     gbc.fill = GridBagConstraints.VERTICAL;
-    container.add(spacer6, gbc);
-    final JPanel spacer7 = new JPanel();
-    gbc = new GridBagConstraints();
-    gbc.gridx = 6;
-    gbc.gridy = 1;
-    gbc.gridheight = 11;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(spacer7, gbc);
     final JPanel spacer8 = new JPanel();
     gbc = new GridBagConstraints();
-    gbc.gridx = 0;
+    gbc.gridx = 6;
     gbc.gridy = 1;
     gbc.gridheight = 11;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(spacer8, gbc);
     final JPanel spacer9 = new JPanel();
     gbc = new GridBagConstraints();
-    gbc.gridx = 1;
-    gbc.gridy = 0;
-    gbc.gridwidth = 5;
-    gbc.fill = GridBagConstraints.VERTICAL;
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.gridheight = 11;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(spacer9, gbc);
     final JPanel spacer10 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 12;
+    gbc.gridy = 0;
     gbc.gridwidth = 5;
-    gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer10, gbc);
     final JPanel spacer11 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 6;
+    gbc.gridy = 13;
     gbc.gridwidth = 5;
+    gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer11, gbc);
     final JPanel spacer12 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 4;
+    gbc.gridy = 6;
     gbc.gridwidth = 5;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer12, gbc);
+    final JPanel spacer13 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 1;
+    gbc.gridy = 4;
+    gbc.gridwidth = 5;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    container.add(spacer13, gbc);
+    final JPanel spacer14 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 1;
+    gbc.gridy = 12;
+    gbc.gridwidth = 5;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    container.add(spacer14, gbc);
   }
 
   /**
