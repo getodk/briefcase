@@ -16,6 +16,9 @@
 
 package org.opendatakit.briefcase.reused.http;
 
+import static org.apache.http.client.config.CookieSpecs.STANDARD;
+import static org.apache.http.client.config.RequestConfig.custom;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.SocketTimeoutException;
@@ -35,7 +38,10 @@ public class CommonsHttp implements Http {
   @Override
   public <T> Response<T> execute(Request<T> request) {
     // Always instantiate a new Executor to avoid side-effects between executions
-    Executor executor = Executor.newInstance(HttpClientBuilder.create().build());
+    Executor executor = Executor.newInstance(HttpClientBuilder
+        .create()
+        .setDefaultRequestConfig(custom().setCookieSpec(STANDARD).build())
+        .build());
     // Apply auth settings if credentials are received
     request.ifCredentials((URL url, Credentials credentials) -> executor.auth(
         HttpHost.create(url.getHost()),
