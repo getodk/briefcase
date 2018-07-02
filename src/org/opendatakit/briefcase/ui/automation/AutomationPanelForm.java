@@ -7,8 +7,6 @@ import java.awt.GridBagLayout;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JButton;
@@ -16,6 +14,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import org.opendatakit.briefcase.automation.AutomationConfiguration;
 import org.opendatakit.briefcase.util.StringUtils;
 
 @SuppressWarnings("checkstyle:MethodName")
@@ -25,8 +24,7 @@ public class AutomationPanelForm {
   private JTextField scriptDirField;
   private JButton scriptDirChooseButton;
   private JButton generateScriptButton;
-
-  private List<Consumer<Path>> onSelectScriptDirCallbacks = new ArrayList<>();
+  private AutomationConfiguration automationConfiguration = AutomationConfiguration.empty();
 
   public AutomationPanelForm() {
     $$$setupUI$$$();
@@ -36,17 +34,13 @@ public class AutomationPanelForm {
             .ifPresent(file -> setScriptDir(Paths.get(file.toURI()))));
   }
 
-  void onSelectScriptDir(Consumer<Path> callback) {
-    onSelectScriptDirCallbacks.add(callback);
-  }
-
-  void onGenerate(Runnable callback) {
-    generateScriptButton.addActionListener(__ -> callback.run());
+  void onGenerate(Consumer<AutomationConfiguration> callback) {
+    generateScriptButton.addActionListener(__ -> callback.accept(automationConfiguration));
   }
 
   private void setScriptDir(Path path) {
     scriptDirField.setText(path.toString());
-    onSelectScriptDirCallbacks.forEach(consumer -> consumer.accept(path));
+    automationConfiguration.setScriptLocation(path);
   }
 
   private static Optional<File> fileFrom(JTextField textField) {

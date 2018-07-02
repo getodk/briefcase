@@ -62,7 +62,6 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
 
   private final JFrame frame;
-  private AutomationPanel automationPanel;
   private final TerminationFuture transferTerminationFuture = new TerminationFuture();
   private final JTabbedPane tabbedPane;
   private final Map<String, Integer> tabTitleIndexes = new HashMap<>();
@@ -124,7 +123,8 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
     Component settingsPanel = SettingsPanel.from(appPreferences, analytics, formCache).getContainer();
 
-    addPane(AutomationPanel.TAB_NAME, AutomationPanel.from().getContainer());
+    AutomationPanel automationPanel = AutomationPanel.from(appPreferences, formCache);
+    addPane(AutomationPanel.TAB_NAME, automationPanel.getContainer());
 
     addPane(SettingsPanel.TAB_NAME, settingsPanel);
 
