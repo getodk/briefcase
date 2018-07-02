@@ -73,6 +73,7 @@ public class Launcher {
               ? "Error: " + throwable.getMessage()
               : "Unexpected error in Briefcase. Please review briefcase.log for more information. For help, post to https://forum.opendatakit.org/c/support");
           log.error("Error", throwable);
+          sentry.ifPresent(client -> client.sendException(throwable));
           System.exit(1);
         })
         .run(args);
