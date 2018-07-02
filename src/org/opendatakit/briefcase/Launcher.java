@@ -31,6 +31,7 @@ import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.launchGUI;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.getOsName;
 
 import io.sentry.Sentry;
+import io.sentry.SentryClient;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.common.cli.Cli;
@@ -77,7 +78,7 @@ public class Launcher {
         .run(args);
   }
 
-  private static void initSentryClient(BriefcasePreferences appPreferences) {
+  private static SentryClient initSentryClient(BriefcasePreferences appPreferences) {
     Sentry.init(String.format(
         "%s?release=%s&stacktrace.app.packages=org.opendatakit&tags=os:%s,jvm:%s",
         SENTRY_DSN,
@@ -86,11 +87,15 @@ public class Launcher {
         System.getProperty("java.version")
     ));
 
+    SentryClient sentry = Sentry.getStoredClient();
+
     // Add a callback that will prevent sending crash reports to Sentry
     // if the user disables tracking
-    Sentry.getStoredClient().addShouldSendEventCallback(event -> appPreferences
+    sentry.addShouldSendEventCallback(event -> appPreferences
         .nullSafeGet(BRIEFCASE_TRACKING_CONSENT_PROPERTY)
         .map(Boolean::valueOf)
         .orElse(true));
+
+    return sentry;
   }
 }
