@@ -60,11 +60,10 @@ public class ExportToCsv {
    *
    * @param formDef       the {@link BriefcaseFormDefinition} form definition of the form to be exported
    * @param configuration the {@link ExportConfiguration} export configuration
-   * @param exportMedia   a {@link Boolean} indicating if media files attached to each submission must be also exported
    * @return an {@link ExportOutcome} with the export operation's outcome
    * @see ExportConfiguration
    */
-  public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration, boolean exportMedia) {
+  public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration) {
     long start = System.nanoTime();
     // Create an export tracker object with the total number of submissions we have to export
     long submissionCount = walk(formDef.getFormDir().resolve("instances"))
@@ -120,13 +119,13 @@ public class ExportToCsv {
                 submission,
                 formDef.getModel(),
                 formDef.isFileEncryptedForm(),
-                exportMedia,
+                configuration.getExportMedia().orElse(true),
                 configuration.getExportMediaPath()
             );
             repeatLines = repeatGroups.stream().map(groupModel -> Pair.of(getRepeatCsvLine(
                 groupModel,
                 submission.getElements(groupModel.fqn()),
-                exportMedia,
+                configuration.getExportMedia().orElse(true),
                 configuration.getExportMediaPath(),
                 submission.getInstanceId(),
                 submission.getWorkingDir()
