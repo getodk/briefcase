@@ -85,6 +85,7 @@ public class ConfigurationPanelForm extends JComponent {
   private final List<Consumer<Boolean>> onChangePullBeforeCallbacks = new ArrayList<>();
   private final List<Consumer<PullBeforeOverrideOption>> onChangePullBeforeOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeOverwriteExistingFilesCallbacks = new ArrayList<>();
+  private final List<Consumer<Boolean>> onChangeExportMediaCallbacks = new ArrayList<>();
   private final ConfigurationPanelMode mode;
   private boolean uiLocked = false;
 
@@ -132,6 +133,7 @@ public class ConfigurationPanelForm extends JComponent {
       if (!overwriteFilesField.isSelected() || confirmOverwriteFiles())
         triggerOverwriteExistingFiles();
     });
+    exportMediaField.addActionListener(__ -> triggerChangeExportMedia());
   }
 
   public static ConfigurationPanelForm overridePanel(boolean savePasswordsConsent, boolean hasTransferSettings) {
@@ -221,6 +223,10 @@ public class ConfigurationPanelForm extends JComponent {
     overwriteFilesField.setSelected(value);
   }
 
+  void setExportMedia(boolean value) {
+    exportMediaField.setSelected(value);
+  }
+
   void onSelectExportDir(Consumer<Path> callback) {
     onSelectExportDirCallbacks.add(callback);
   }
@@ -247,6 +253,10 @@ public class ConfigurationPanelForm extends JComponent {
 
   void onChangeOverwriteExistingFiles(Consumer<Boolean> callback) {
     onChangeOverwriteExistingFilesCallbacks.add(callback);
+  }
+
+  void onChangeExportMedia(Consumer<Boolean> callback) {
+    onChangeExportMediaCallbacks.add(callback);
   }
 
   void changeMode(boolean savePasswordsConsent) {
@@ -307,6 +317,9 @@ public class ConfigurationPanelForm extends JComponent {
     onChangeOverwriteExistingFilesCallbacks.forEach(callback -> callback.accept(overwriteFilesField.isSelected()));
   }
 
+  private void triggerChangeExportMedia() {
+    onChangeExportMediaCallbacks.forEach(callback -> callback.accept(exportMediaField.isSelected()));
+  }
 
   private boolean confirmOverwriteFiles() {
     if (showConfirmDialog(this, "Overwrite existing files?", "", YES_NO_OPTION, PLAIN_MESSAGE) == YES_OPTION)
