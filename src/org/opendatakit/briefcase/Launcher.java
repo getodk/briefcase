@@ -32,7 +32,10 @@ import static org.opendatakit.briefcase.util.FindDirectoryStructure.getOsName;
 
 import io.sentry.Sentry;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.common.cli.Cli;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Main launcher for Briefcase
@@ -41,6 +44,8 @@ import org.opendatakit.common.cli.Cli;
  * Briefcase with some command-line args
  */
 public class Launcher {
+  private static final Logger log = LoggerFactory.getLogger(Launcher.class);
+
   public static void main(String[] args) {
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     if (!appPreferences.hasKey(BRIEFCASE_TRACKING_CONSENT_PROPERTY))
@@ -75,6 +80,17 @@ public class Launcher {
             launchGUI();
           else
             runLegacyCli(commandLine, cli::printHelp);
+        })
+        .onError(throwable -> {
+          if (throwable instanceof BriefcaseException) {
+            System.err.println("Error: " + throwable.getMessage());
+            log.error("Error", throwable);
+            System.exit(1);
+          } else {
+            System.err.println("Unexpected error in Briefcase. Please review briefcase.log for more information. For help, post to https://forum.opendatakit.org/c/support");
+            log.error("Error", throwable);
+            System.exit(1);
+          }
         })
         .run(args);
   }
