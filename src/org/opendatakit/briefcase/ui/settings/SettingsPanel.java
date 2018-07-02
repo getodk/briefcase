@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.ui.settings;
 
 import java.nio.file.Path;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
@@ -60,6 +61,10 @@ public class SettingsPanel {
       analytics.enableTracking(enabled, false);
     });
     form.onHttpProxy(appPreferences::setHttpProxy, appPreferences::unsetHttpProxy);
+    form.onReloadCache(() -> {
+      formCache.update();
+      JOptionPane.showMessageDialog(getContainer(), "The form cache has been successfully reloaded");
+    });
   }
 
   public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
