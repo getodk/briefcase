@@ -135,7 +135,14 @@ public class Cli {
       if (executedOperations.isEmpty())
         otherwiseCallbacks.forEach(callback -> callback.accept(this, cli));
     } catch (Throwable t) {
-      onErrorCallbacks.forEach(callback -> callback.accept(t));
+      if (!onErrorCallbacks.isEmpty())
+        onErrorCallbacks.forEach(callback -> callback.accept(t));
+      else {
+        System.err.println("Error: " + t.getMessage());
+        System.err.println("No error callbacks have been defined");
+        log.error("Error", t);
+        System.exit(1);
+      }
     }
   }
 
