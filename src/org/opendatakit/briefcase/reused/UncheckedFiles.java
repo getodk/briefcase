@@ -235,9 +235,17 @@ public class UncheckedFiles {
   public static boolean isInstanceDir(Path dir) {
     return Files.isDirectory(dir)
         // Ignore hidden mac/linux hidden folders
-        && !dir.getFileName().toString().startsWith(".")
+        && !isHidden(dir)
         // Check for presence of a submission.xml file inside
         && Files.exists(dir.resolve("submission.xml"));
+  }
+
+  private static boolean isHidden(Path path) {
+    try {
+      return Files.isHidden(path);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   public static String readFirstLine(Path path) {
