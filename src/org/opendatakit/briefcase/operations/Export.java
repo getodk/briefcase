@@ -16,7 +16,9 @@
 package org.opendatakit.briefcase.operations;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
+import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePrefix;
+import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 
@@ -25,12 +27,16 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportToCsv;
 import org.opendatakit.briefcase.export.FormDefinition;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.*;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.transfer.NewTransferAction;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.common.cli.Operation;
@@ -58,15 +64,16 @@ public class Export {
           args.get(FILE),
           !args.has(EXCLUDE_MEDIA),
           args.has(OVERWRITE),
+          args.has(PULL_BEFORE),
           args.getOptional(START),
           args.getOptional(END),
           args.getOptional(PEM_FILE)
       ),
       Arrays.asList(STORAGE_DIR, FORM_ID, FILE, EXPORT_DIR),
-      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END,PULL_BEFORE)
+      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE)
   );
 
-  public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
+  public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, boolean pullBefore, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -84,10 +91,38 @@ public class Export {
         maybePemFile,
         startDate,
         endDate,
-        Optional.empty(),
+        Optional.of(pullBefore),
         Optional.empty(),
         Optional.of(overwriteFiles)
     );
+
+
+    if (configuration.resolvePullBefore()) {
+      BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
+      FormStatus formStatus = new FormStatus(FormStatus.TransferType.EXPORT, formDefinition);
+
+      System.out.println("Pull before command specified for "+formid);
+
+      String urlKey = String.format("%s_pull_settings_url", formid);
+      String username = "";
+      String password = "";
+
+      ServerConnectionInfo transferSettings = new ServerConnectionInfo(
+          appPreferences.nullSafeGet(urlKey)
+              .orElseThrow(() -> new RuntimeException("Null value saved for " + urlKey)), username,
+          password.toCharArray()
+      );
+
+      NewTransferAction.transferServerToBriefcase(
+          transferSettings,
+          new TerminationFuture(),
+          Collections.singletonList(formStatus),
+          briefcaseDir,
+          appPreferences.getPullInParallel().orElse(false)
+      );
+    }
+
+
     ExportToCsv.export(FormDefinition.from(formDefinition), configuration, exportMedia);
 
     BriefcasePreferences.forClass(ExportPanel.class).put(buildExportDateTimePrefix(formDefinition.getFormId()), LocalDateTime.now().format(ISO_DATE_TIME));
