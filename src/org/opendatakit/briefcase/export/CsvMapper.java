@@ -307,7 +307,8 @@ class CsvMapper {
         maybeElement.flatMap(element -> element.findElement(field.getName())),
         exportMedia,
         exportMediaPath
-    ));
+    ).stream())
+        .collect(toList());
   }
 
   @SuppressWarnings("checkstyle:OverloadMethodsDeclarationOrder")
