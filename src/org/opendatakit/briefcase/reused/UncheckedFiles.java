@@ -38,6 +38,7 @@ import java.nio.file.attribute.FileAttribute;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -153,7 +154,7 @@ public class UncheckedFiles {
     }
   }
 
-  public static String getMd5Hash(Path file) {
+  public static Optional<String> getMd5Hash(Path file) {
     try {
       // CTS (6/15/2010) : stream file through digest instead of handing
       // it the
@@ -168,7 +169,7 @@ public class UncheckedFiles {
 
       if (lLength > Integer.MAX_VALUE) {
         log.error("File is too large");
-        return null;
+        return Optional.empty();
       }
 
       int length = (int) lLength;
@@ -193,18 +194,17 @@ public class UncheckedFiles {
       while (md5.length() < 32)
         md5 = "0" + md5;
       is.close();
-      return md5;
+      return Optional.of(md5);
 
     } catch (NoSuchAlgorithmException e) {
       log.error("MD5 calculation failed", e);
-      return null;
-
+      return Optional.empty();
     } catch (FileNotFoundException e) {
       log.error("No File", e);
-      return null;
+      return Optional.empty();
     } catch (IOException e) {
       log.error("Problem reading from file", e);
-      return null;
+      return Optional.empty();
     }
 
   }

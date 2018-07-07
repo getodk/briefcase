@@ -265,13 +265,13 @@ class CsvMapper {
 
     // TODO Refactor this and add semantics
     if (destFile.exists() && binaryFile.exists()) {
-      binaryFileHash = getMd5Hash(binaryFile.toPath());
+      binaryFileHash = getMd5Hash(binaryFile.toPath()).orElse(null);
 
       while (destFile.exists()) {
         if (fileHashMap.containsKey(destFile.getName())) {
           destFileHash = fileHashMap.get(destFile.getName());
         } else {
-          destFileHash = getMd5Hash(destFile.toPath());
+          destFileHash = getMd5Hash(destFile.toPath()).orElse(null);
           if (destFileHash != null) {
             fileHashMap.put(destFile.getName(), destFileHash);
           }
