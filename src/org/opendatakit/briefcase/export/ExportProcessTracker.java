@@ -32,13 +32,12 @@ public class ExportProcessTracker {
   private static final int STEP_SIZE = 1;
   private final FormDefinition form;
   private long start = System.nanoTime();
-  final long total;
+  long total = 0;
   long exported;
   private int lastReportedPercentage = 0;
 
-  public ExportProcessTracker(FormDefinition form, long total) {
+  ExportProcessTracker(FormDefinition form) {
     this.form = form;
-    this.total = total;
   }
 
   public void incAndReport() {
@@ -69,5 +68,9 @@ public class ExportProcessTracker {
     LocalTime duration = LocalTime.ofNanoOfDay(end - start);
     log.info("Exported in {}", duration.format(DateTimeFormatter.ISO_TIME));
     EventBus.publish(ExportEvent.end(form, exported));
+  }
+
+  void trackTotal(int total) {
+    this.total = total;
   }
 }
