@@ -67,13 +67,13 @@ final class CsvFieldMappers {
     mappers.put(GEOPOINT, simpleMapper(CsvFieldMappers::geopoint, 4));
 
     // Binary fields require knowledge of the export configuration and working dir
-    mappers.put(BINARY, (__, workingDir, field, element, exportMediaPath, exportMedia, explodeChoiceLists) -> element
-        .map(e -> binary(e, exportMedia, workingDir, exportMediaPath))
+    mappers.put(BINARY, (__, workingDir, field, element, exportMediaPath, exportMedia, explodeChoiceLists, configuration) -> element
+        .map(e -> binary(e, configuration.getExportMedia().orElse(true), workingDir, configuration.getExportMediaPath()))
         .orElse(empty(field.fqn())));
 
     // Null fields encode groups (repeating and non-repeating), therefore,
     // they require the full context
-    mappers.put(NULL, (localId, workingDir, model, element, exportMediaPath, exportMedia, explodeChoiceLists) -> {
+    mappers.put(NULL, (localId, workingDir, model, element, exportMediaPath, exportMedia, explodeChoiceLists, configuration) -> {
       if (model.isRepeatable())
         return element.map(e -> repeatableGroup(localId, model, e))
             .orElse(empty("SET-OF-" + model.getParent().fqn(), 1));
@@ -81,7 +81,7 @@ final class CsvFieldMappers {
       if (model.isEmpty() && !model.isRoot())
         return element.map(CsvFieldMappers::text).orElse(empty(model.fqn()));
 
-      return nonRepeatableGroup(localId, workingDir, model, element, exportMedia, exportMediaPath, explodeChoiceLists);
+      return nonRepeatableGroup(localId, workingDir, model, element, configuration.getExportMedia().orElse(true), configuration.getExportMediaPath(), configuration.getExplodeChoiceLists().orElse(false), configuration);
     });
   }
 
@@ -121,7 +121,7 @@ final class CsvFieldMappers {
   }
 
   private static CsvFieldMapper simpleMapper(Function<XmlElement, Stream<Pair<String, String>>> mapper, int outputSize) {
-    return (localId, workingDir, model, element, exportMediaPath, exportMedia, explodeChoiceLists) -> element
+    return (localId, workingDir, model, element, exportMediaPath, exportMedia, explodeChoiceLists, configuration) -> element
         .map(mapper)
         .orElse(empty(model.fqn(), outputSize));
   }
@@ -220,15 +220,16 @@ final class CsvFieldMappers {
         : Stream.of(Pair.of(current.fqn(), localId + "/" + current.fqn(shift)));
   }
 
-  private static Stream<Pair<String, String>> nonRepeatableGroup(String localId, Path workingDir, Model current, Optional<XmlElement> maybeElement, boolean exportMedia, Path exportMediaPath, boolean explodeChoiceLists) {
+  private static Stream<Pair<String, String>> nonRepeatableGroup(String localId, Path workingDir, Model current, Optional<XmlElement> maybeElement, boolean exportMedia, Path exportMediaPath, boolean explodeChoiceLists, ExportConfiguration configuration) {
     return current.flatMap(field -> getMapper(field, explodeChoiceLists).apply(
         localId,
         workingDir,
         field,
         maybeElement.flatMap(element -> element.findElement(field.getName())),
-        exportMediaPath,
-        exportMedia,
-        explodeChoiceLists
+        configuration.getExportMediaPath(),
+        configuration.getExportMedia().orElse(true),
+        configuration.getExplodeChoiceLists().orElse(false),
+        configuration
     ));
   }
 

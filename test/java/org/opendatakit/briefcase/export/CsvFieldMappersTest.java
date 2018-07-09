@@ -414,6 +414,18 @@ public class CsvFieldMappersTest {
     }
 
     private List<Pair<String, String>> mapValue(XmlElement value, boolean exportMedia) {
+      ExportConfiguration configuration = new ExportConfiguration(
+          Optional.of("test_output.csv"),
+          Optional.of(getOutputMediaDir().getParent()),
+          Optional.empty(),
+          Optional.empty(),
+          Optional.empty(),
+          Optional.of(false),
+          Optional.empty(),
+          Optional.of(true),
+          Optional.of(exportMedia),
+          Optional.of(false)
+      );
       return CsvFieldMappers
           .getMapper(fieldModel, false)
           .apply(
@@ -423,7 +435,8 @@ public class CsvFieldMappersTest {
               Optional.of(value),
               getOutputMediaDir(),
               exportMedia,
-              false
+              false,
+              configuration
           )
           .collect(toList());
     }
