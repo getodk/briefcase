@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.util;
 
+import static org.apache.http.client.config.CookieSpecs.STANDARD;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -225,6 +227,7 @@ public final class WebUtils {
         .setMaxRedirects(1)
         .setCircularRedirectsAllowed(true)
         .setTargetPreferredAuthSchemes(targetPreferredAuthSchemes)
+        .setCookieSpec(STANDARD)
         .build();
 
     HttpClientBuilder clientBuilder = HttpClientBuilder.create()
