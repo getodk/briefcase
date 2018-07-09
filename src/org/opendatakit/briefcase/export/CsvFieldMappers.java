@@ -168,7 +168,7 @@ final class CsvFieldMappers {
 
     String sourceFilename = element.getValue();
 
-    if (!configuration.getExportMedia().orElse(true))
+    if (!configuration.resolveExportMedia())
       return Stream.of(Pair.of(element.fqn(), sourceFilename));
 
     if (!Files.exists(configuration.getExportMediaPath()))

@@ -246,10 +246,6 @@ public class ExportConfiguration {
     return this;
   }
 
-  public Optional<Boolean> getExportMedia() {
-    return exportMedia;
-  }
-
   public ExportConfiguration setExportMedia(boolean exportMedia) {
     this.exportMedia = Optional.of(exportMedia);
     return this;
