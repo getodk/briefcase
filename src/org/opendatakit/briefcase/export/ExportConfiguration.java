@@ -237,8 +237,8 @@ public class ExportConfiguration {
     return this;
   }
 
-  public Optional<Boolean> getOverwriteExistingFiles() {
-    return overwriteExistingFiles;
+  public boolean resolveOverwriteExistingFiles() {
+    return overwriteExistingFiles.orElse(false);
   }
 
   public ExportConfiguration setOverwriteExistingFiles(Boolean value) {

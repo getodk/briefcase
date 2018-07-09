@@ -47,7 +47,7 @@ class Csv {
         getMainHeader(formDefinition.getModel(), formDefinition.isFileEncryptedForm(), configuration.resolveExplodeChoiceLists()),
         output,
         true,
-        configuration.getOverwriteExistingFiles().orElse(false),
+        configuration.resolveOverwriteExistingFiles(),
         CsvSubmissionMappers.main(formDefinition, configuration)
     );
   }
@@ -67,7 +67,7 @@ class Csv {
         getRepeatHeader(groupModel, configuration.resolveExplodeChoiceLists()),
         output,
         false,
-        configuration.getOverwriteExistingFiles().orElse(false),
+        configuration.resolveOverwriteExistingFiles(),
         CsvSubmissionMappers.repeat(groupModel, configuration)
     );
   }
