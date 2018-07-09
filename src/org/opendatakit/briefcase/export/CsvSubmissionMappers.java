@@ -53,13 +53,14 @@ final class CsvSubmissionMappers {
     return submission -> {
       List<String> cols = new ArrayList<>();
       cols.add(encode(submission.getSubmissionDate().map(CsvSubmissionMappers::format).orElse(null), false));
-      cols.addAll(formDefinition.getModel().flatMap(field -> getMapper(field).apply(
+      cols.addAll(formDefinition.getModel().flatMap(field -> getMapper(field, configuration.getExplodeChoiceLists().orElse(false)).apply(
           submission.getInstanceId(),
           submission.getWorkingDir(),
           field,
           submission.findElement(field.getName()),
           configuration.getExportMediaPath(),
-          configuration.resolveExportMedia()
+          configuration.resolveExportMedia(),
+          configuration.getExplodeChoiceLists().orElse(false)
       ).map(value -> encodeMainValue(field, value))).collect(Collectors.toList()));
       cols.add(submission.getInstanceId());
       if (formDefinition.isFileEncryptedForm())
@@ -82,13 +83,14 @@ final class CsvSubmissionMappers {
         submission.getSubmissionDate().orElse(MIN_SUBMISSION_DATE),
         submission.getElements(groupModel.fqn()).stream().map(element -> {
           List<String> cols = new ArrayList<>();
-          cols.addAll(groupModel.flatMap(field -> getMapper(field).apply(
+          cols.addAll(groupModel.flatMap(field -> getMapper(field, configuration.getExplodeChoiceLists().orElse(false)).apply(
               element.getCurrentLocalId(submission.getInstanceId()),
               submission.getWorkingDir(),
               field,
               element.findElement(field.getName()),
               configuration.getExportMediaPath(),
-              configuration.resolveExportMedia()
+              configuration.resolveExportMedia(),
+              configuration.getExplodeChoiceLists().orElse(false)
           ).map(CsvSubmissionMappers::encodeRepeatValue)).collect(toList()));
           cols.add(encode(element.getParentLocalId(submission.getInstanceId()), false));
           cols.add(encode(element.getCurrentLocalId(submission.getInstanceId()), false));

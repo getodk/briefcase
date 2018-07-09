@@ -25,9 +25,9 @@ import org.opendatakit.briefcase.reused.Pair;
 
 class ExplodeChoiceLists {
   static CsvFieldMapper decorate(CsvFieldMapper mapper) {
-    return (localId, workingDir, model, element, exportMedia, exportMediaPath) -> {
+    return (localId, workingDir, model, element, exportMedia, exportMediaPath, explodeChoiceLists) -> {
       List<Pair<String, String>> output = new ArrayList<>();
-      output.addAll(mapper.apply(localId, workingDir, model, element, exportMedia, exportMediaPath).collect(toList()));
+      output.addAll(mapper.apply(localId, workingDir, model, element, exportMedia, exportMediaPath, explodeChoiceLists).collect(toList()));
       if (model.isChoiceList()) {
         List<String> values = Arrays.stream(element
             .flatMap(XmlElement::maybeValue)

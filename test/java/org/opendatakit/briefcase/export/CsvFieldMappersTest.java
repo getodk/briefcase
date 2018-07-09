@@ -34,6 +34,7 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -307,7 +308,7 @@ public class CsvFieldMappersTest {
       instanceTreeElement.setParent(rootTreeElement);
       fieldTreeElement.setParent(instanceTreeElement);
 
-      return new Model(fieldTreeElement);
+      return new Model(fieldTreeElement, Collections.emptyMap());
     }
 
     private static Scenario group(String instanceId, DataType dataType, int fieldCount, boolean repeatable) {
@@ -335,7 +336,7 @@ public class CsvFieldMappersTest {
       groupTreeElement.setParent(instanceTreeElement);
       instanceTreeElement.setParent(rootTreeElement);
 
-      return new Scenario(instanceId, "data", "group", new Model(groupTreeElement));
+      return new Scenario(instanceId, "data", "group", new Model(groupTreeElement, Collections.emptyMap()));
     }
 
     static Scenario repeatGroup(String instanceId, DataType dataType, int fieldCount) {
@@ -414,14 +415,15 @@ public class CsvFieldMappersTest {
 
     private List<Pair<String, String>> mapValue(XmlElement value, boolean exportMedia) {
       return CsvFieldMappers
-          .getMapper(fieldModel)
+          .getMapper(fieldModel, false)
           .apply(
               instanceId,
               getWorkDir(),
               fieldModel,
               Optional.of(value),
               getOutputMediaDir(),
-              exportMedia
+              exportMedia,
+              false
           )
           .collect(toList());
     }
