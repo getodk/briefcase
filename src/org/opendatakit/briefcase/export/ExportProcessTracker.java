@@ -40,7 +40,7 @@ public class ExportProcessTracker {
     this.form = form;
   }
 
-  public void incAndReport() {
+  synchronized void incAndReport() {
     exported++;
     int percentage = (int) (exported * 100 / total);
     if (percentage > lastReportedPercentage && percentage % STEP_SIZE == 0) {

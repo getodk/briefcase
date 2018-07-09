@@ -49,7 +49,7 @@ final class CsvSubmissionMappers {
    * Factory that will produce {@link CsvLines} corresponding to the main output file
    * of a form.
    */
-  static CsvSubmissionMapper main(FormDefinition formDefinition, ExportConfiguration configuration, boolean exportMedia) {
+  static CsvSubmissionMapper main(FormDefinition formDefinition, ExportConfiguration configuration) {
     return submission -> {
       List<String> cols = new ArrayList<>();
       cols.add(encode(submission.getSubmissionDate().map(CsvSubmissionMappers::format).orElse(null), false));
@@ -59,7 +59,7 @@ final class CsvSubmissionMappers {
           field,
           submission.findElement(field.getName()),
           configuration.getExportMediaPath(),
-          exportMedia
+          configuration.getExportMedia().orElse(true)
       ).map(value -> encodeMainValue(field, value))).collect(Collectors.toList()));
       cols.add(submission.getInstanceId());
       if (formDefinition.isFileEncryptedForm())
@@ -76,7 +76,7 @@ final class CsvSubmissionMappers {
    * Factory that will produce {@link CsvLines} corresponding to any repeat output file
    * of a form.
    */
-  static CsvSubmissionMapper repeat(Model groupModel, ExportConfiguration configuration, boolean exportMedia) {
+  static CsvSubmissionMapper repeat(Model groupModel, ExportConfiguration configuration) {
     return submission -> CsvLines.of(
         groupModel.fqn(),
         submission.getSubmissionDate().orElse(MIN_SUBMISSION_DATE),
@@ -88,7 +88,7 @@ final class CsvSubmissionMappers {
               field,
               element.findElement(field.getName()),
               configuration.getExportMediaPath(),
-              exportMedia
+              configuration.getExportMedia().orElse(true)
           ).map(CsvSubmissionMappers::encodeRepeatValue)).collect(toList()));
           cols.add(encode(element.getParentLocalId(submission.getInstanceId()), false));
           cols.add(encode(element.getCurrentLocalId(submission.getInstanceId()), false));

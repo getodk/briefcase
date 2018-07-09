@@ -15,7 +15,6 @@
  */
 package org.opendatakit.briefcase.export;
 
-import static java.util.Comparator.comparingLong;
 import static java.util.stream.Collectors.toList;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
@@ -78,7 +77,7 @@ class SubmissionParser {
    * @param formDef
    * @param dateRange a {@link DateRange} to filter submissions that are contained in it
    */
-  static List<Path> getOrderedListOfSubmissionFiles(FormDefinition formDef, DateRange dateRange) {
+  static List<Path> getListOfSubmissionFiles(FormDefinition formDef, DateRange dateRange) {
     Path instancesDir = formDef.getFormDir().resolve("instances");
     if (!Files.exists(instancesDir) || !Files.isReadable(instancesDir))
       return Collections.emptyList();
@@ -96,11 +95,9 @@ class SubmissionParser {
             EventBus.publish(ExportEvent.failureSubmission(formDef, instanceDir.getFileName().toString(), t));
           }
         });
-    return paths.stream()
+    return paths.parallelStream()
         // Filter out submissions outside the given date range
         .filter(pair -> dateRange.contains(pair.getRight()))
-        // Sort them and return a list of paths
-        .sorted(comparingLong(pair -> pair.getRight().toInstant().toEpochMilli()))
         .map(Pair::getLeft)
         .collect(toList());
   }

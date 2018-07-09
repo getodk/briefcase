@@ -38,7 +38,7 @@ class Csv {
   /**
    * Factory for the main CSV export file of a form.
    */
-  static Csv main(FormDefinition formDefinition, ExportConfiguration configuration, boolean exportMedia) {
+  static Csv main(FormDefinition formDefinition, ExportConfiguration configuration) {
     Path output = configuration.getExportDir()
         .orElseThrow(BriefcaseException::new)
         .resolve(configuration.getExportFileName().orElse(stripIllegalChars(formDefinition.getFormName()) + ".csv"));
@@ -48,14 +48,14 @@ class Csv {
         output,
         true,
         configuration.getOverwriteExistingFiles().orElse(false),
-        CsvSubmissionMappers.main(formDefinition, configuration, exportMedia)
+        CsvSubmissionMappers.main(formDefinition, configuration)
     );
   }
 
   /**
    * Factory of any repeat CSV export file.
    */
-  static Csv repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration, boolean exportMedia) {
+  static Csv repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration) {
     String repeatFileNameBase = configuration.getExportFileName()
         .map(UncheckedFiles::stripFileExtension)
         .orElse(stripIllegalChars(formDefinition.getFormName()));
@@ -68,7 +68,7 @@ class Csv {
         output,
         false,
         configuration.getOverwriteExistingFiles().orElse(false),
-        CsvSubmissionMappers.repeat(groupModel, configuration, exportMedia)
+        CsvSubmissionMappers.repeat(groupModel, configuration)
     );
   }
 
