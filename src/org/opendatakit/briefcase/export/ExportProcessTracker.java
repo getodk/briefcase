@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 public class ExportProcessTracker {
   private static final Logger log = LoggerFactory.getLogger(ExportProcessTracker.class);
 
-  private static final int STEP_SIZE = 1;
   private final FormDefinition form;
   private long start = System.nanoTime();
   long total = 0;
@@ -43,7 +42,7 @@ public class ExportProcessTracker {
   synchronized void incAndReport() {
     exported++;
     int percentage = (int) (exported * 100 / total);
-    if (percentage > lastReportedPercentage && percentage % STEP_SIZE == 0) {
+    if (percentage > lastReportedPercentage) {
       EventBus.publish(ExportEvent.progress(form, percentage / 100D));
       lastReportedPercentage = percentage;
     }
