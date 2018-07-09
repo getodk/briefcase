@@ -424,6 +424,7 @@ public class CsvFieldMappersTest {
           Optional.empty(),
           Optional.of(true),
           Optional.of(exportMedia),
+          Optional.empty(),
           Optional.of(false)
       );
       return CsvFieldMappers
@@ -433,9 +434,6 @@ public class CsvFieldMappersTest {
               getWorkDir(),
               fieldModel,
               Optional.of(value),
-              getOutputMediaDir(),
-              exportMedia,
-              false,
               configuration
           )
           .collect(toList());

@@ -59,9 +59,6 @@ final class CsvSubmissionMappers {
           submission.getWorkingDir(),
           field,
           submission.findElement(field.getName()),
-          configuration.getExportMediaPath(),
-          configuration.resolveExportMedia(),
-          configuration.getExplodeChoiceLists().orElse(false),
           configuration
       ).map(value -> encodeMainValue(field, value))).collect(Collectors.toList()));
       cols.add(submission.getInstanceId());
@@ -90,9 +87,6 @@ final class CsvSubmissionMappers {
               submission.getWorkingDir(),
               field,
               element.findElement(field.getName()),
-              configuration.getExportMediaPath(),
-              configuration.resolveExportMedia(),
-              configuration.getExplodeChoiceLists().orElse(false),
               configuration
           ).map(CsvSubmissionMappers::encodeRepeatValue)).collect(toList()));
           cols.add(encode(element.getParentLocalId(submission.getInstanceId()), false));
