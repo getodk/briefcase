@@ -101,8 +101,8 @@ public class ExportToCsv {
     );
     files.put(formDef.getModel(), mainFile);
 
-    SubmissionParser
-        .getOrderedListOfSubmissionFiles(formDef, configuration.getDateRange())
+    List<Path> submissionFiles = SubmissionParser.getOrderedListOfSubmissionFiles(formDef, configuration.getDateRange());
+    submissionFiles
         .stream()
         .map(path -> SubmissionParser.parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey()))
         .filter(Optional::isPresent)
