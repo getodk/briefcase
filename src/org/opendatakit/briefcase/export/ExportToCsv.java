@@ -63,13 +63,8 @@ public class ExportToCsv {
    */
   public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration) {
     // Create an export tracker object with the total number of submissions we have to export
-    long submissionCount = walk(formDef.getFormDir().resolve("instances"))
-        .filter(UncheckedFiles::isInstanceDir)
-        .count();
     ExportProcessTracker exportTracker = new ExportProcessTracker(formDef);
     exportTracker.start();
-
-    exportTracker.trackTotal((int) submissionCount);
 
     // Compute and create the export directory
     Path exportDir = configuration.getExportDir().orElseThrow(() -> new BriefcaseException("No export dir defined"));
@@ -102,6 +97,7 @@ public class ExportToCsv {
     files.put(formDef.getModel(), mainFile);
 
     List<Path> submissionFiles = SubmissionParser.getOrderedListOfSubmissionFiles(formDef, configuration.getDateRange());
+    exportTracker.trackTotal(submissionFiles.size());
     submissionFiles
         .stream()
         .map(path -> SubmissionParser.parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey()))
