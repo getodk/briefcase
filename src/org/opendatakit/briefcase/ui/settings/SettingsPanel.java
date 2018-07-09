@@ -63,7 +63,7 @@ public class SettingsPanel {
     form.onHttpProxy(appPreferences::setHttpProxy, appPreferences::unsetHttpProxy);
     form.onReloadCache(() -> {
       formCache.update();
-      JOptionPane.showMessageDialog(getContainer(), "The form cache has been successfully reloaded");
+      JOptionPane.showMessageDialog(getContainer(), "Forms successfully reloaded from storage location.");
     });
   }
 
