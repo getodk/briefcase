@@ -221,7 +221,7 @@ final class CsvFieldMappers {
   }
 
   private static Stream<Pair<String, String>> nonRepeatableGroup(String localId, Path workingDir, Model current, Optional<XmlElement> maybeElement, ExportConfiguration configuration) {
-    return current.flatMap(field -> getMapper(field, configuration.getExplodeChoiceLists().orElse(false)).apply(
+    return current.flatMap(field -> getMapper(field, configuration.resolveExplodeChoiceLists()).apply(
         localId,
         workingDir,
         field,

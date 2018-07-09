@@ -54,7 +54,7 @@ final class CsvSubmissionMappers {
     return submission -> {
       List<String> cols = new ArrayList<>();
       cols.add(encode(submission.getSubmissionDate().map(CsvSubmissionMappers::format).orElse(null), false));
-      cols.addAll(formDefinition.getModel().flatMap(field -> getMapper(field, configuration.getExplodeChoiceLists().orElse(false)).apply(
+      cols.addAll(formDefinition.getModel().flatMap(field -> getMapper(field, configuration.resolveExplodeChoiceLists()).apply(
           submission.getInstanceId(),
           submission.getWorkingDir(),
           field,
@@ -82,7 +82,7 @@ final class CsvSubmissionMappers {
         submission.getSubmissionDate().orElse(MIN_SUBMISSION_DATE),
         submission.getElements(groupModel.fqn()).stream().map(element -> {
           List<String> cols = new ArrayList<>();
-          cols.addAll(groupModel.flatMap(field -> getMapper(field, configuration.getExplodeChoiceLists().orElse(false)).apply(
+          cols.addAll(groupModel.flatMap(field -> getMapper(field, configuration.resolveExplodeChoiceLists()).apply(
               element.getCurrentLocalId(submission.getInstanceId()),
               submission.getWorkingDir(),
               field,

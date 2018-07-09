@@ -256,8 +256,8 @@ public class ExportConfiguration {
     return this;
   }
 
-  public Optional<Boolean> getExplodeChoiceLists() {
-    return explodeChoiceLists;
+  public boolean resolveExplodeChoiceLists() {
+    return explodeChoiceLists.orElse(false);
   }
 
   public ExportConfiguration setExplodedChoiceLists(boolean explodedChoiceLists) {

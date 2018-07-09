@@ -44,7 +44,7 @@ class Csv {
         .resolve(configuration.getExportFileName().orElse(stripIllegalChars(formDefinition.getFormName()) + ".csv"));
     return new Csv(
         formDefinition.getModel().fqn(),
-        getMainHeader(formDefinition.getModel(), formDefinition.isFileEncryptedForm(), configuration.getExplodeChoiceLists().orElse(false)),
+        getMainHeader(formDefinition.getModel(), formDefinition.isFileEncryptedForm(), configuration.resolveExplodeChoiceLists()),
         output,
         true,
         configuration.getOverwriteExistingFiles().orElse(false),
@@ -64,7 +64,7 @@ class Csv {
         .resolve(repeatFileNameBase + "-" + groupModel.getName() + ".csv");
     return new Csv(
         groupModel.fqn(),
-        getRepeatHeader(groupModel, configuration.getExplodeChoiceLists().orElse(false)),
+        getRepeatHeader(groupModel, configuration.resolveExplodeChoiceLists()),
         output,
         false,
         configuration.getOverwriteExistingFiles().orElse(false),
