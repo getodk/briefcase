@@ -38,7 +38,6 @@ import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
-import org.opendatakit.aggregate.parser.BaseFormParserForJavaRosa;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -57,7 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MainBriefcaseWindow extends WindowAdapter {
-  private static final Logger log = LoggerFactory.getLogger(BaseFormParserForJavaRosa.class.getName());
+  private static final Logger log = LoggerFactory.getLogger(MainBriefcaseWindow.class.getName());
   private static final String APP_NAME = "ODK Briefcase";
   private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
 
