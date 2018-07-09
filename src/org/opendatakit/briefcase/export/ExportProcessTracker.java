@@ -20,11 +20,18 @@ import static org.opendatakit.briefcase.export.ExportOutcome.ALL_EXPORTED;
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import org.bushe.swing.event.EventBus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExportProcessTracker {
+  private static final Logger log = LoggerFactory.getLogger(ExportProcessTracker.class);
+
   private static final int STEP_SIZE = 1;
   private final FormDefinition form;
+  private long start = System.nanoTime();
   final long total;
   long exported;
   private int lastReportedPercentage = 0;
@@ -53,10 +60,14 @@ public class ExportProcessTracker {
 
   public void start() {
     exported = 0;
+    start = System.nanoTime();
     EventBus.publish(ExportEvent.start(form));
   }
 
   public void end() {
+    long end = System.nanoTime();
+    LocalTime duration = LocalTime.ofNanoOfDay(end - start);
+    log.info("Exported in {}", duration.format(DateTimeFormatter.ISO_TIME));
     EventBus.publish(ExportEvent.end(form, exported));
   }
 }

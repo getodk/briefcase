@@ -36,8 +36,6 @@ import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,7 +62,6 @@ public class ExportToCsv {
    * @see ExportConfiguration
    */
   public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration) {
-    long start = System.nanoTime();
     // Create an export tracker object with the total number of submissions we have to export
     long submissionCount = walk(formDef.getFormDir().resolve("instances"))
         .filter(UncheckedFiles::isInstanceDir)
@@ -159,9 +156,6 @@ public class ExportToCsv {
     if (exportOutcome == ALL_SKIPPED)
       EventBus.publish(ExportEvent.failure(formDef, "All submissions have been skipped"));
 
-    long end = System.nanoTime();
-    LocalTime duration = LocalTime.ofNanoOfDay(end - start);
-    log.info("Exported in {}", duration.format(DateTimeFormatter.ISO_TIME));
     return exportOutcome;
   }
 
