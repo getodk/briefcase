@@ -87,6 +87,9 @@ public class FormInstaller {
             EventBus.publish(new FormStatusEvent(form));
           });
 
+    // Create an empty instances directory
+    UncheckedFiles.createDirectories(targetFormDir.resolve("instances"));
+
     form.setStatusString("Success", true);
     EventBus.publish(new FormStatusEvent(form));
   }
