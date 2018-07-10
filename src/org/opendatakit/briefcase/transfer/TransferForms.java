@@ -65,6 +65,7 @@ public class TransferForms {
    */
   public void load(List<FormStatus> forms) {
     this.forms = forms;
+    rebuildIndex();
     triggerOnChange();
   }
 
