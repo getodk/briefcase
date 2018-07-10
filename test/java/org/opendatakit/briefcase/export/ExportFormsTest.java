@@ -19,7 +19,7 @@ import static com.github.npathai.hamcrestopt.OptionalMatchers.isEmpty;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAndIs;
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -80,12 +80,11 @@ public class ExportFormsTest {
     forms.putConfiguration(firstForm, VALID_CONFIGURATION);
 
     assertThat(forms.hasConfiguration(firstForm), is(true));
-    assertThat(forms.getConfiguration(firstForm.getFormDefinition().getFormId()), is(VALID_CONFIGURATION));
-    assertThat(forms.getConfiguration(firstForm.getFormDefinition().getFormId()), is(VALID_CONFIGURATION));
+    assertThat(forms.getConfiguration(firstForm.getFormName()), is(VALID_CONFIGURATION));
 
     forms.putConfiguration(secondForm, INVALID_CONFIGURATION);
-    assertThat(forms.getCustomConfigurations().values(), hasSize(2));
-    assertThat(forms.getCustomConfigurations().values(), contains(VALID_CONFIGURATION, INVALID_CONFIGURATION));
+    assertThat(forms.getCustomConfigurationsByFormName().values(), hasSize(2));
+    assertThat(forms.getCustomConfigurationsByFormName().values(), containsInAnyOrder(VALID_CONFIGURATION, INVALID_CONFIGURATION));
 
     forms.removeConfiguration(firstForm);
 
@@ -160,8 +159,8 @@ public class ExportFormsTest {
     AtomicInteger count = new AtomicInteger(0);
     ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
-    forms.onSuccessfulExport((formId, exportDateTime) -> {
-      if (formId.equals(form.getFormDefinition().getFormId()))
+    forms.onSuccessfulExport((formName, exportDateTime) -> {
+      if (formName.equals(form.getFormName()))
         count.incrementAndGet();
     });
 
@@ -176,10 +175,10 @@ public class ExportFormsTest {
     LocalDateTime exportDateTime = LocalDateTime.now();
     List<FormStatus> formsList = buildFormStatusList(10);
     FormStatus form = formsList.get(0);
-    String formId = form.getFormDefinition().getFormId();
+    String formName = form.getFormName();
     BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
-    exportPreferences.putAll(VALID_CONFIGURATION.asMap(buildCustomConfPrefix(formId)));
-    exportPreferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME));
+    exportPreferences.putAll(VALID_CONFIGURATION.asMap(buildCustomConfPrefix(formName)));
+    exportPreferences.put(ExportForms.buildExportDateTimePrefix(formName), exportDateTime.format(ISO_DATE_TIME));
     BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
 
     ExportForms forms = ExportForms.load(ExportConfiguration.empty(), formsList, exportPreferences, appPreferences);
@@ -201,13 +200,13 @@ public class ExportFormsTest {
     List<FormStatus> formsList = Arrays.asList(formWithTransferSettings, formWithoutTransferSettings);
     BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
-    appPreferences.put(String.format("%s_pull_settings_url", formWithTransferSettings.getFormDefinition().getFormId()), expectedTransferSettings.getUrl());
-    appPreferences.put(String.format("%s_pull_settings_username", formWithTransferSettings.getFormDefinition().getFormId()), expectedTransferSettings.getUsername());
-    appPreferences.put(String.format("%s_pull_settings_password", formWithTransferSettings.getFormDefinition().getFormId()), String.valueOf(expectedTransferSettings.getPassword()));
+    appPreferences.put(String.format("%s_pull_settings_url", formWithTransferSettings.getFormName()), expectedTransferSettings.getUrl());
+    appPreferences.put(String.format("%s_pull_settings_username", formWithTransferSettings.getFormName()), expectedTransferSettings.getUsername());
+    appPreferences.put(String.format("%s_pull_settings_password", formWithTransferSettings.getFormName()), String.valueOf(expectedTransferSettings.getPassword()));
 
     ExportForms forms = ExportForms.load(ExportConfiguration.empty(), formsList, exportPreferences, appPreferences);
 
-    assertThat(forms.getTransferSettings(formWithoutTransferSettings.getFormDefinition().getFormId()), isEmpty());
-    assertThat(forms.getTransferSettings(formWithTransferSettings.getFormDefinition().getFormId()), isPresentAndIs(expectedTransferSettings));
+    assertThat(forms.getTransferSettings(formWithoutTransferSettings.getFormName()), isEmpty());
+    assertThat(forms.getTransferSettings(formWithTransferSettings.getFormName()), isPresentAndIs(expectedTransferSettings));
   }
 }

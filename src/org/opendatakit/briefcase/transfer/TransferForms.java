@@ -55,10 +55,6 @@ public class TransferForms {
     return new TransferForms(forms);
   }
 
-  private static String getFormId(FormStatus form) {
-    return form.getFormDefinition().getFormId();
-  }
-
   /**
    * Replaces the current list of {@link FormStatus} instances with
    * the incoming list.
@@ -80,9 +76,9 @@ public class TransferForms {
    * instances isn't lost.
    */
   public void merge(List<FormStatus> incomingForms) {
-    List<String> incomingFormIds = incomingForms.stream().map(TransferForms::getFormId).collect(toList());
-    List<FormStatus> formsToAdd = incomingForms.stream().filter(form -> !formsIndex.containsKey(getFormId(form))).collect(toList());
-    List<FormStatus> formsToRemove = formsIndex.values().stream().filter(form -> !incomingFormIds.contains(getFormId(form))).collect(toList());
+    List<String> incomingFormNames = incomingForms.stream().map(FormStatus::getFormName).collect(toList());
+    List<FormStatus> formsToAdd = incomingForms.stream().filter(form -> !formsIndex.containsKey(form.getFormName())).collect(toList());
+    List<FormStatus> formsToRemove = formsIndex.values().stream().filter(form -> !incomingFormNames.contains(form.getFormName())).collect(toList());
     forms.addAll(formsToAdd);
     forms.removeAll(formsToRemove);
     rebuildIndex();
@@ -161,7 +157,7 @@ public class TransferForms {
   }
 
   private void rebuildIndex() {
-    formsIndex = forms.stream().collect(toMap(TransferForms::getFormId, form -> form));
+    formsIndex = forms.stream().collect(toMap(FormStatus::getFormName, form -> form));
   }
 
   /**

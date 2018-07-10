@@ -17,12 +17,12 @@
 package org.opendatakit.briefcase.export;
 
 public class ExportEvent {
-  private final String formId;
+  private final String formName;
   private final String statusLine;
   private final boolean success;
 
-  private ExportEvent(String formId, String statusLine, boolean success) {
-    this.formId = formId;
+  private ExportEvent(String formName, String statusLine, boolean success) {
+    this.formName = formName;
     this.statusLine = statusLine;
     this.success = success;
   }
@@ -30,39 +30,39 @@ public class ExportEvent {
   public static ExportEvent progress(FormDefinition form, double percentage) {
     int base100Percentage = new Double(percentage * 100).intValue();
     String statusLine = String.format("Exported %s%% of the submissions", base100Percentage);
-    return new ExportEvent(form.getFormId(), statusLine, false);
+    return new ExportEvent(form.getFormName(), statusLine, false);
   }
 
   public static ExportEvent start(FormDefinition form) {
-    return new ExportEvent(form.getFormId(), "Export has started", false);
+    return new ExportEvent(form.getFormName(), "Export has started", false);
   }
 
   public static ExportEvent end(FormDefinition form, long exported) {
-    return new ExportEvent(form.getFormId(), "Export has ended", false);
+    return new ExportEvent(form.getFormName(), "Export has ended", false);
   }
 
   public static ExportEvent failure(FormDefinition form, String cause) {
-    return new ExportEvent.Failure(form.getFormId(), String.format("Failure: %s", cause), false);
+    return new ExportEvent.Failure(form.getFormName(), String.format("Failure: %s", cause), false);
   }
 
   public static ExportEvent failureSubmission(FormDefinition form, String instanceId, Throwable cause) {
     return new ExportEvent(
-        form.getFormId(),
-        String.format("Can't export submission %s of form ID %s. Cause: %s", instanceId, form.getFormId(), cause.getMessage()),
+        form.getFormName(),
+        String.format("Can't export submission %s of form %s. Cause: %s", instanceId, form.getFormName(), cause.getMessage()),
         false
     );
   }
 
   public static ExportEvent successForm(FormDefinition formDef, int total) {
-    return new ExportEvent.Success(formDef.getFormId(), String.format("Exported %d submission%s", total, sUnlessOne(total)), true);
+    return new ExportEvent.Success(formDef.getFormName(), String.format("Exported %d submission%s", total, sUnlessOne(total)), true);
   }
 
   public static ExportEvent partialSuccessForm(FormDefinition formDef, int exported, int total) {
-    return new ExportEvent.Success(formDef.getFormId(), String.format("Exported %d from %d submission%s", exported, total, sUnlessOne(total)), true);
+    return new ExportEvent.Success(formDef.getFormName(), String.format("Exported %d from %d submission%s", exported, total, sUnlessOne(total)), true);
   }
 
-  public String getFormId() {
-    return formId;
+  public String getFormName() {
+    return formName;
   }
 
   public String getStatusLine() {
@@ -79,14 +79,14 @@ public class ExportEvent {
   }
 
   public static class Failure extends ExportEvent {
-    private Failure(String formId, String statusLine, boolean success) {
-      super(formId, statusLine, success);
+    private Failure(String formName, String statusLine, boolean success) {
+      super(formName, statusLine, success);
     }
   }
 
   public static class Success extends ExportEvent {
-    private Success(String formId, String statusLine, boolean success) {
-      super(formId, statusLine, success);
+    private Success(String formName, String statusLine, boolean success) {
+      super(formName, statusLine, success);
     }
   }
 }

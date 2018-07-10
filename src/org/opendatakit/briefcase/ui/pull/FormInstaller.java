@@ -31,6 +31,7 @@ import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 /**
  * This class has UI/CLI independent methods to install forms into
