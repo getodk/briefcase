@@ -23,10 +23,14 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class PullFromServerException extends BriefcaseException {
   public PullFromServerException(List<FormStatus> forms, Throwable cause) {
-    super("Failure pulling forms from server. FormIds: " + forms.stream().map(f -> f.getFormDefinition().getFormId()).collect(joining(", ")), cause);
+    super(buildMessage(forms), cause);
   }
 
   public PullFromServerException(List<FormStatus> forms) {
-    super("Failure pulling forms from server. FormIds: " + forms.stream().map(f -> f.getFormDefinition().getFormId()).collect(joining(", ")));
+    super(buildMessage(forms));
+  }
+
+  private static String buildMessage(List<FormStatus> forms) {
+    return "Failure pulling forms from server. FormIds: " + forms.stream().map(f -> f.getFormDefinition().getFormId()).collect(joining(", "));
   }
 }
