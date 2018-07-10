@@ -1,17 +1,18 @@
 package org.opendatakit.briefcase.ui.automation;
 
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.JPanel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.opendatakit.briefcase.automation.AutomationConfiguration;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.util.FormCache;
@@ -32,31 +33,38 @@ public class AutomationPanel {
     view.onGenerate(config -> {
       System.out.println(config.getScriptLocation());
       if (isWindows())
-        generateScript("automation.bat",  config);
+        generateScript("automation.bat", config);
       else
         generateScript("automation.sh", config);
     });
   }
 
   private void generateScript(String scriptName, AutomationConfiguration configuration) {
-    Path scriptDirPath = configuration.getScriptLocation().orElseThrow(() -> new BriefcaseException("No script location directory defined"));
-    String storageDir = appPreferences.getBriefcaseDir().orElseThrow(() -> new BriefcaseException("")).getParent().toString();
-    String template = "java -jar briefcase.jar --export --form_id {0} --storage_directory " +
-        storageDir + " --export_directory /tmp --export_filename {1}.csv";
+    Path scriptDirPath = configuration.getScriptLocation().orElseThrow(BriefcaseException::new);
+    Path storageDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new).getParent();
+    String template = "java -jar {0} --export --form_id {1} --storage_directory {2} --export_directory {3} --export_filename {4}.csv";
+
+    List<String> scriptLines = formCache.getForms()
+        .stream()
+        .map(form -> MessageFormat.format(
+            template,
+            "briefcase.jar",
+            form.getFormId(),
+            storageDir.toString(),
+            "/tmp",
+            form.getFormName()
+        ))
+
+        .collect(Collectors.toList());
     try {
-      PrintWriter writer = new PrintWriter(scriptDirPath.toFile() + File.pathSeparator + scriptName);
-      List<BriefcaseFormDefinition> forms = formCache.getForms();
-      System.out.println(forms.size());
-      System.out.println(storageDir);
-      for (BriefcaseFormDefinition form: forms) {
-        Object[] params = new Object[]{form.getFormId(), form.getFormName()};
-        String command = MessageFormat.format(template, params);
-        writer.println(command);
-        writer.close();
-      }
-      writer.close();
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
+      Files.write(
+          scriptDirPath.resolve(scriptName),
+          scriptLines,
+          CREATE,
+          TRUNCATE_EXISTING
+      );
+    } catch (IOException e) {
+      throw new BriefcaseException(e);
     }
 
   }
