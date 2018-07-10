@@ -1,8 +1,8 @@
 package org.opendatakit.briefcase.ui.automation;
 
-import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
 
 import java.io.IOException;
 import java.nio.file.Files;
