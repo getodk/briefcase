@@ -31,8 +31,13 @@ import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.launchGUI;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.getOsName;
 
 import io.sentry.Sentry;
+import io.sentry.SentryClient;
+import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.common.cli.Cli;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Main launcher for Briefcase
@@ -41,27 +46,14 @@ import org.opendatakit.common.cli.Cli;
  * Briefcase with some command-line args
  */
 public class Launcher {
+  private static final Logger log = LoggerFactory.getLogger(Launcher.class);
+
   public static void main(String[] args) {
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     if (!appPreferences.hasKey(BRIEFCASE_TRACKING_CONSENT_PROPERTY))
       appPreferences.put(BRIEFCASE_TRACKING_CONSENT_PROPERTY, TRUE.toString());
 
-    if (SENTRY_ENABLED) {
-      Sentry.init(String.format(
-          "%s?release=%s&stacktrace.app.packages=org.opendatakit&tags=os:%s,jvm:%s",
-          SENTRY_DSN,
-          VERSION,
-          getOsName(),
-          System.getProperty("java.version")
-      ));
-
-      // Add a callback that will prevent sending crash reports to Sentry
-      // if the user disables tracking
-      Sentry.getStoredClient().addShouldSendEventCallback(event -> appPreferences
-          .nullSafeGet(BRIEFCASE_TRACKING_CONSENT_PROPERTY)
-          .map(Boolean::valueOf)
-          .orElse(true));
-    }
+    Optional<SentryClient> sentry = SENTRY_ENABLED ? Optional.of(initSentryClient(appPreferences)) : Optional.empty();
 
     new Cli()
         .deprecate(DEPRECATED_PULL_AGGREGATE, PULL_FORM_FROM_AGGREGATE)
@@ -76,6 +68,35 @@ public class Launcher {
           else
             runLegacyCli(commandLine, cli::printHelp);
         })
+        .onError(throwable -> {
+          System.err.println(throwable instanceof BriefcaseException
+              ? "Error: " + throwable.getMessage()
+              : "Unexpected error in Briefcase. Please review briefcase.log for more information. For help, post to https://forum.opendatakit.org/c/support");
+          log.error("Error", throwable);
+          sentry.ifPresent(client -> client.sendException(throwable));
+          System.exit(1);
+        })
         .run(args);
+  }
+
+  private static SentryClient initSentryClient(BriefcasePreferences appPreferences) {
+    Sentry.init(String.format(
+        "%s?release=%s&stacktrace.app.packages=org.opendatakit&tags=os:%s,jvm:%s",
+        SENTRY_DSN,
+        VERSION,
+        getOsName(),
+        System.getProperty("java.version")
+    ));
+
+    SentryClient sentry = Sentry.getStoredClient();
+
+    // Add a callback that will prevent sending crash reports to Sentry
+    // if the user disables tracking
+    sentry.addShouldSendEventCallback(event -> appPreferences
+        .nullSafeGet(BRIEFCASE_TRACKING_CONSENT_PROPERTY)
+        .map(Boolean::valueOf)
+        .orElse(true));
+
+    return sentry;
   }
 }
