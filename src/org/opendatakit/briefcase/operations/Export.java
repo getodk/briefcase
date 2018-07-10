@@ -85,9 +85,10 @@ public class Export {
         endDate,
         Optional.empty(),
         Optional.empty(),
-        Optional.of(overwriteFiles)
+        Optional.of(overwriteFiles),
+        Optional.of(exportMedia)
     );
-    ExportToCsv.export(FormDefinition.from(formDefinition), configuration, exportMedia);
+    ExportToCsv.export(FormDefinition.from(formDefinition), configuration);
 
     BriefcasePreferences.forClass(ExportPanel.class).put(buildExportDateTimePrefix(formDefinition.getFormId()), LocalDateTime.now().format(ISO_DATE_TIME));
   }
