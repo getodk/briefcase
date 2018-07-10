@@ -101,25 +101,30 @@ public class Export {
       BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
       FormStatus formStatus = new FormStatus(FormStatus.TransferType.EXPORT, formDefinition);
 
-      System.out.println("Pull before command specified for "+formid);
+      System.out.println("Pull before command specified for " + formid);
 
       String urlKey = String.format("%s_pull_settings_url", formid);
-      String username = "";
-      String password = "";
+      String usernameKey = String.format("%s_pull_settings_username", formid);
+      String passwordKey = String.format("%s_pull_settings_password", formid);
 
-      ServerConnectionInfo transferSettings = new ServerConnectionInfo(
-          appPreferences.nullSafeGet(urlKey)
-              .orElseThrow(() -> new RuntimeException("Null value saved for " + urlKey)), username,
-          password.toCharArray()
-      );
+      if (appPreferences.hasKey(urlKey) && appPreferences.hasKey(usernameKey) && appPreferences.hasKey(passwordKey)) {
+        ServerConnectionInfo transferSettings = new ServerConnectionInfo(
+            appPreferences.nullSafeGet(urlKey)
+                .orElseThrow(() -> new RuntimeException("Null value saved for " + urlKey)), appPreferences.nullSafeGet(usernameKey)
+            .orElseThrow(() -> new RuntimeException("Null value saved for " + usernameKey)),
+            appPreferences.nullSafeGet(passwordKey)
+                .orElseThrow(() -> new RuntimeException("Null value saved for " + passwordKey)).toCharArray()
+        );
 
-      NewTransferAction.transferServerToBriefcase(
-          transferSettings,
-          new TerminationFuture(),
-          Collections.singletonList(formStatus),
-          briefcaseDir,
-          appPreferences.getPullInParallel().orElse(false)
-      );
+        NewTransferAction.transferServerToBriefcase(
+            transferSettings,
+            new TerminationFuture(),
+            Collections.singletonList(formStatus),
+            briefcaseDir,
+            appPreferences.getPullInParallel().orElse(false)
+        );
+      }
+
     }
 
 
