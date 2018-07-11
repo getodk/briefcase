@@ -52,14 +52,12 @@ class Model {
    * Iterates over the children of this instance and returns the flatmapped result of mapping
    * each child using the given mapper function.
    *
-   * @param mapper {@link Function} that takes a model and returns a {@link List} of type T
-   * @param <T>    Type parameter of the output {@link List}
-   * @return a {@link List} of type T
+   * @param mapper {@link Function} that takes a model and returns a {@link Stream} of type T
+   * @param <T>    Type parameter of the output {@link Stream}
+   * @return a {@link Stream} of type T
    */
-  <T> List<T> flatMap(Function<Model, List<T>> mapper) {
-    return children().stream()
-        .flatMap(child -> mapper.apply(child).stream())
-        .collect(toList());
+  <T> Stream<T> flatMap(Function<Model, Stream<T>> mapper) {
+    return children().stream().flatMap(mapper);
   }
 
   /**

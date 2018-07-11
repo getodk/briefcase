@@ -49,7 +49,6 @@ class Submission {
   private final ValidationStatus validationStatus;
   private final Optional<CipherFactory> cipherFactory;
   private final Optional<byte[]> signature;
-  private final long submissionDateEpoch;
   /**
    * This index is lazily constructed
    *
@@ -65,8 +64,6 @@ class Submission {
     this.validationStatus = validationStatus;
     this.cipherFactory = cipherFactory;
     this.signature = signature;
-    // Precalculate this for later use when sorting submissions
-    this.submissionDateEpoch = metaData.getSubmissionDate().orElse(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, OffsetDateTime.now().getOffset())).toInstant().toEpochMilli();
   }
 
   /**
@@ -167,17 +164,6 @@ class Submission {
    */
   public Optional<OffsetDateTime> getSubmissionDate() {
     return metaData.getSubmissionDate();
-  }
-
-  /**
-   * Returns the submission date epoch in milliseconds, which is evaluated to
-   * {@link OffsetDateTime#MIN} if no submission date is parsed from the
-   * submission's xml file.
-   *
-   * @return a {@link Long} epoch of the submission date in milliseconds
-   */
-  long getSubmissionDateEpoch() {
-    return submissionDateEpoch;
   }
 
   /**

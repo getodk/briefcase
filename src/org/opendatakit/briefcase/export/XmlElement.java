@@ -40,7 +40,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 public class XmlElement {
   private final Element element;
 
-  private XmlElement(Element element) {
+  XmlElement(Element element) {
     this.element = element;
   }
 
