@@ -31,11 +31,7 @@ public class AutomationPanel {
     this.appPreferences = appPreferences;
 
     view.onGenerate(config -> {
-      System.out.println(config.getScriptLocation());
-      if (isWindows())
-        generateScript("automation.bat", config);
-      else
-        generateScript("automation.sh", config);
+      generateScript(isWindows() ? "automation.bat" : "automation.sh", config);
     });
   }
 

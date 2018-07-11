@@ -24,7 +24,6 @@ public class AutomationPanelForm {
   private JTextField scriptDirField;
   private JButton scriptDirChooseButton;
   private JButton generateScriptButton;
-  private AutomationConfiguration automationConfiguration = AutomationConfiguration.empty();
 
   public AutomationPanelForm() {
     $$$setupUI$$$();
@@ -35,12 +34,13 @@ public class AutomationPanelForm {
   }
 
   void onGenerate(Consumer<AutomationConfiguration> callback) {
-    generateScriptButton.addActionListener(__ -> callback.accept(automationConfiguration));
+    AutomationConfiguration config = AutomationConfiguration.empty();
+    config.setScriptLocation(Paths.get(scriptDirField.getText()));
+    generateScriptButton.addActionListener(__ -> callback.accept(config));
   }
 
   private void setScriptDir(Path path) {
     scriptDirField.setText(path.toString());
-    automationConfiguration.setScriptLocation(path);
   }
 
   private static Optional<File> fileFrom(JTextField textField) {
