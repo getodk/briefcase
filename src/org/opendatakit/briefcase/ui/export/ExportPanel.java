@@ -74,8 +74,8 @@ public class ExportPanel {
         forms.updateDefaultConfiguration(form.getConfPanel().getConfiguration())
     );
 
-    forms.onSuccessfulExport((String formId, LocalDateTime exportDateTime) ->
-        preferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME))
+    forms.onSuccessfulExport((String formName, LocalDateTime exportDateTime) ->
+        preferences.put(ExportForms.buildExportDateTimePrefix(formName), exportDateTime.format(ISO_DATE_TIME))
     );
 
     form.onChange(() -> {
@@ -103,7 +103,7 @@ public class ExportPanel {
   private List<String> getErrors() {
     // Segregating this validation from the export process to move it to ExportConfiguration on the future
     return forms.getSelectedForms().stream().flatMap(formStatus -> {
-      ExportConfiguration exportConfiguration = forms.getConfiguration(formStatus.getFormDefinition().getFormId());
+      ExportConfiguration exportConfiguration = forms.getConfiguration(formStatus.getFormName());
       boolean needsPemFile = ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFileEncryptedForm() || ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFieldEncryptedForm();
 
       if (needsPemFile && !exportConfiguration.isPemFilePresent())
@@ -125,13 +125,13 @@ public class ExportPanel {
       preferences.putAll(form.getConfPanel().getConfiguration().asMap());
 
     // Clean all custom conf keys
-    forms.forEach(formId ->
-        preferences.removeAll(ExportConfiguration.keys(buildCustomConfPrefix(formId)))
+    forms.forEach(formStatus ->
+        preferences.removeAll(ExportConfiguration.keys(buildCustomConfPrefix(formStatus.getFormName())))
     );
 
     // Put custom confs
-    forms.getCustomConfigurations().forEach((formId, configuration) ->
-        preferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
+    forms.getCustomConfigurationsByFormName().forEach((formName, configuration) ->
+        preferences.putAll(configuration.asMap(buildCustomConfPrefix(formName)))
     );
   }
 
@@ -186,10 +186,10 @@ public class ExportPanel {
           .parallelStream()
           .peek(FormStatus::clearStatusHistory)
           .forEach(form -> {
-            String formId = form.getFormDefinition().getFormId();
-            ExportConfiguration configuration = forms.getConfiguration(formId);
+            String formName = form.getFormName();
+            ExportConfiguration configuration = forms.getConfiguration(formName);
             if (configuration.resolvePullBefore())
-              forms.getTransferSettings(formId).ifPresent(sci -> NewTransferAction.transferServerToBriefcase(
+              forms.getTransferSettings(formName).ifPresent(sci -> NewTransferAction.transferServerToBriefcase(
                   sci,
                   new TerminationFuture(),
                   Collections.singletonList(form),

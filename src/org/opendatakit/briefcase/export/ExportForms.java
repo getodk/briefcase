@@ -28,7 +28,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.IFormDefinition;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 
 public class ExportForms {
@@ -36,16 +35,16 @@ public class ExportForms {
   private static final String CUSTOM_CONF_PREFIX = "custom_";
   private final List<FormStatus> forms;
   private ExportConfiguration defaultConfiguration;
-  private final Map<String, ExportConfiguration> customConfigurations;
+  private final Map<String, ExportConfiguration> customConfigurationsByFormName;
   private final Map<String, LocalDateTime> lastExportDateTimes;
   private final Map<String, ServerConnectionInfo> transferSettings;
   private final List<BiConsumer<String, LocalDateTime>> onSuccessfulExportCallbacks = new ArrayList<>();
   private Map<String, FormStatus> formsIndex = new HashMap<>();
 
-  public ExportForms(List<FormStatus> forms, ExportConfiguration defaultConfiguration, Map<String, ExportConfiguration> configurations, Map<String, LocalDateTime> lastExportDateTimes, Map<String, ServerConnectionInfo> transferSettings) {
+  public ExportForms(List<FormStatus> forms, ExportConfiguration defaultConfiguration, Map<String, ExportConfiguration> customConfigurationsByFormName, Map<String, LocalDateTime> lastExportDateTimes, Map<String, ServerConnectionInfo> transferSettings) {
     this.forms = forms;
     this.defaultConfiguration = defaultConfiguration;
-    this.customConfigurations = configurations;
+    this.customConfigurationsByFormName = customConfigurationsByFormName;
     this.lastExportDateTimes = lastExportDateTimes;
     this.transferSettings = transferSettings;
     rebuildIndex();
@@ -54,22 +53,21 @@ public class ExportForms {
   public static ExportForms load(ExportConfiguration defaultConfiguration, List<FormStatus> forms, BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences) {
     // This should be a simple Map filtering block but we'll have to wait for Vavr.io
 
-    Map<String, ExportConfiguration> configurations = new HashMap<>();
+    Map<String, ExportConfiguration> configurationsByFormName = new HashMap<>();
     Map<String, LocalDateTime> lastExportDateTimes = new HashMap<>();
     Map<String, ServerConnectionInfo> transferSettings = new HashMap<>();
     forms.forEach(form -> {
-      String formId = getFormId(form);
-      ExportConfiguration load = ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId));
+      ExportConfiguration load = ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(form.getFormName()));
       if (!load.isEmpty())
-        configurations.put(formId, load);
-      exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId))
+        configurationsByFormName.put(form.getFormName(), load);
+      exportPreferences.nullSafeGet(buildExportDateTimePrefix(form.getFormName()))
           .map(LocalDateTime::parse)
-          .ifPresent(dateTime -> lastExportDateTimes.put(formId, dateTime));
-      String urlKey = String.format("%s_pull_settings_url", formId);
-      String usernameKey = String.format("%s_pull_settings_username", formId);
-      String passwordKey = String.format("%s_pull_settings_password", formId);
+          .ifPresent(dateTime -> lastExportDateTimes.put(form.getFormName(), dateTime));
+      String urlKey = String.format("%s_pull_settings_url", form.getFormName());
+      String usernameKey = String.format("%s_pull_settings_username", form.getFormName());
+      String passwordKey = String.format("%s_pull_settings_password", form.getFormName());
       if (appPreferences.hasKey(urlKey) && appPreferences.hasKey(usernameKey) && appPreferences.hasKey(passwordKey))
-        transferSettings.put(formId, new ServerConnectionInfo(
+        transferSettings.put(form.getFormName(), new ServerConnectionInfo(
             appPreferences.nullSafeGet(urlKey)
                 .orElseThrow(() -> new RuntimeException("Null value saved for " + urlKey)),
             appPreferences.nullSafeGet(usernameKey)
@@ -82,28 +80,24 @@ public class ExportForms {
     return new ExportForms(
         forms,
         defaultConfiguration,
-        configurations,
+        configurationsByFormName,
         lastExportDateTimes,
         transferSettings
     );
   }
 
-  private static String getFormId(FormStatus form) {
-    return form.getFormDefinition().getFormId();
+  public static String buildExportDateTimePrefix(String formName) {
+    return EXPORT_DATE_PREFIX + formName;
   }
 
-  public static String buildExportDateTimePrefix(String formId) {
-    return EXPORT_DATE_PREFIX + formId;
-  }
-
-  public static String buildCustomConfPrefix(String formId) {
-    return CUSTOM_CONF_PREFIX + formId + "_";
+  public static String buildCustomConfPrefix(String formName) {
+    return CUSTOM_CONF_PREFIX + formName + "_";
   }
 
   public void merge(List<FormStatus> incomingForms) {
-    List<String> incomingFormIds = incomingForms.stream().map(ExportForms::getFormId).collect(toList());
-    List<FormStatus> formsToAdd = incomingForms.stream().filter(form -> !formsIndex.containsKey(getFormId(form))).collect(toList());
-    List<FormStatus> formsToRemove = formsIndex.values().stream().filter(form -> !incomingFormIds.contains(getFormId(form))).collect(toList());
+    List<String> incomingFormNames = incomingForms.stream().map(FormStatus::getFormName).collect(toList());
+    List<FormStatus> formsToAdd = incomingForms.stream().filter(form -> !formsIndex.containsKey(form.getFormName())).collect(toList());
+    List<FormStatus> formsToRemove = formsIndex.values().stream().filter(form -> !incomingFormNames.contains(form.getFormName())).collect(toList());
     forms.addAll(formsToAdd);
     forms.removeAll(formsToRemove);
     rebuildIndex();
@@ -117,59 +111,59 @@ public class ExportForms {
     return forms.get(rowIndex);
   }
 
-  public void forEach(Consumer<String> callback) {
-    forms.stream().map(ExportForms::getFormId).forEach(callback);
+  public void forEach(Consumer<FormStatus> callback) {
+    forms.forEach(callback);
   }
 
   public boolean hasConfiguration(FormStatus form) {
-    return customConfigurations.containsKey(getFormId(form));
+    return customConfigurationsByFormName.containsKey(form.getFormName());
   }
 
   public Optional<ExportConfiguration> getCustomConfiguration(FormStatus form) {
-    return Optional.ofNullable(customConfigurations.get(getFormId(form)));
+    return Optional.ofNullable(customConfigurationsByFormName.get(form.getFormName()));
   }
 
-  public Map<String, ExportConfiguration> getCustomConfigurations() {
-    return customConfigurations;
+  public Map<String, ExportConfiguration> getCustomConfigurationsByFormName() {
+    return customConfigurationsByFormName;
   }
 
   public void updateDefaultConfiguration(ExportConfiguration configuration) {
     defaultConfiguration = configuration;
   }
 
-  public ExportConfiguration getConfiguration(String formId) {
-    return Optional.ofNullable(customConfigurations.get(formId))
+  public ExportConfiguration getConfiguration(String formName) {
+    return Optional.ofNullable(customConfigurationsByFormName.get(formName))
         .orElse(ExportConfiguration.empty())
         .fallingBackTo(defaultConfiguration);
   }
 
   public void removeConfiguration(FormStatus form) {
-    customConfigurations.remove(getFormId(form));
+    customConfigurationsByFormName.remove(form.getFormName());
   }
 
   public void putConfiguration(FormStatus form, ExportConfiguration configuration) {
-    customConfigurations.put(getFormId(form), configuration);
+    customConfigurationsByFormName.put(form.getFormName(), configuration);
   }
 
   public boolean hasTransferSettings(FormStatus form) {
-    return transferSettings.containsKey(form.getFormDefinition().getFormId());
+    return transferSettings.containsKey(form.getFormName());
   }
 
-  public Optional<ServerConnectionInfo> getTransferSettings(String formId) {
-    return Optional.ofNullable(transferSettings.get(formId));
+  public Optional<ServerConnectionInfo> getTransferSettings(String formName) {
+    return Optional.ofNullable(transferSettings.get(formName));
   }
 
   public void putTransferSettings(FormStatus form, ServerConnectionInfo transferSettings) {
-    this.transferSettings.put(getFormId(form), transferSettings);
+    this.transferSettings.put(form.getFormName(), transferSettings);
   }
 
   public void removeTransferSettings(FormStatus form) {
-    transferSettings.remove(getFormId(form));
+    transferSettings.remove(form.getFormName());
   }
 
   public boolean allSelectedFormsHaveConfiguration() {
     return getSelectedForms().stream()
-        .map(ExportForms::getFormId)
+        .map(FormStatus::getFormName)
         .map(this::getConfiguration)
         .allMatch(ExportConfiguration::isValid);
   }
@@ -199,33 +193,29 @@ public class ExportForms {
   }
 
   public void appendStatus(ExportEvent event) {
-    getForm(event.getFormId()).setStatusString(event.getStatusLine(), false);
+    getForm(event.getFormName()).setStatusString(event.getStatusLine(), false);
     if (event.isSuccess()) {
       LocalDateTime exportDate = LocalDateTime.now();
-      lastExportDateTimes.put(event.getFormId(), exportDate);
-      onSuccessfulExportCallbacks.forEach(callback -> callback.accept(event.getFormId(), exportDate));
+      lastExportDateTimes.put(event.getFormName(), exportDate);
+      onSuccessfulExportCallbacks.forEach(callback -> callback.accept(event.getFormName(), exportDate));
     }
   }
 
   public Optional<LocalDateTime> getLastExportDateTime(FormStatus form) {
-    return Optional.ofNullable(lastExportDateTimes.get(getFormId(form)));
+    return Optional.ofNullable(lastExportDateTimes.get(form.getFormName()));
   }
 
   public void onSuccessfulExport(BiConsumer<String, LocalDateTime> callback) {
     onSuccessfulExportCallbacks.add(callback);
   }
 
-  private FormStatus getForm(IFormDefinition formDefinition) {
-    return getForm(formDefinition.getFormId());
-  }
-
-  private FormStatus getForm(String formId) {
-    return Optional.ofNullable(formsIndex.get(formId))
-        .orElseThrow(() -> new RuntimeException("Form with form ID " + formId + " not found"));
+  private FormStatus getForm(String formName) {
+    return Optional.ofNullable(formsIndex.get(formName))
+        .orElseThrow(() -> new RuntimeException("Form " + formName + " not found"));
   }
 
   private void rebuildIndex() {
-    formsIndex = forms.stream().collect(toMap(ExportForms::getFormId, form -> form));
+    formsIndex = forms.stream().collect(toMap(FormStatus::getFormName, form -> form));
   }
 
   public void flushTransferSettings() {

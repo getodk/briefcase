@@ -31,6 +31,7 @@ import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 /**
  * This class has UI/CLI independent methods to install forms into
@@ -85,6 +86,9 @@ public class FormInstaller {
             form.setStatusString("Installed " + sourcePath.getFileName() + " media file", true);
             EventBus.publish(new FormStatusEvent(form));
           });
+
+    // Create an empty instances directory
+    UncheckedFiles.createDirectories(targetFormDir.resolve("instances"));
 
     form.setStatusString("Success", true);
     EventBus.publish(new FormStatusEvent(form));

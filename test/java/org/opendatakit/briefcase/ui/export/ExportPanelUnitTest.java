@@ -86,17 +86,17 @@ public class ExportPanelUnitTest {
     );
 
     FormStatus form = formsList.get(0);
-    String formId = form.getFormDefinition().getFormId();
+    String formName = form.getFormDefinition().getFormName();
 
     ExportConfiguration conf = ExportConfiguration.empty();
     conf.setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()));
 
-    assertThat(ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), isEmpty());
+    assertThat(ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formName)).getExportDir(), isEmpty());
 
     forms.putConfiguration(form, conf);
     exportPanelForm.getFormsTable().getViewModel().triggerChange();
 
-    assertThat(ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), isPresent());
+    assertThat(ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formName)).getExportDir(), isPresent());
   }
 
   @Test
@@ -117,14 +117,14 @@ public class ExportPanelUnitTest {
     );
 
     FormStatus form = formsList.get(0);
-    String formId = form.getFormDefinition().getFormId();
+    String formName = form.getFormName();
 
-    assertThat(exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId)), isEmpty());
+    assertThat(exportPreferences.nullSafeGet(buildExportDateTimePrefix(formName)), isEmpty());
 
     FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());
     ExportEvent event = ExportEvent.successForm(formDef, 10);
     forms.appendStatus(event);
 
-    assertThat(exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId)), isPresent());
+    assertThat(exportPreferences.nullSafeGet(buildExportDateTimePrefix(formName)), isPresent());
   }
 }
