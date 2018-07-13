@@ -15,7 +15,6 @@
  */
 package org.opendatakit.briefcase.export;
 
-import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.INHERIT;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_DIRECTORY;
@@ -60,7 +59,7 @@ public class ExportConfiguration {
   private static final String OVERWRITE_EXISTING_FILES = "overwriteExistingFiles";
   private static final String EXPORT_MEDIA = "exportMedia";
   private static final String EXPORT_MEDIA_OVERRIDE = "exportMediaOverride";
-  private static final Predicate<PullBeforeOverrideOption> ALL_EXCEPT_INHERIT = value -> value != INHERIT;
+  private static final Predicate<PullBeforeOverrideOption> PULL_BEFORE_ALL_EXCEPT_INHERIT = value -> value != PullBeforeOverrideOption.INHERIT;
   private static final Predicate<ExportMediaOverrideOption> EXPORT_MEDIA_ALL_EXCEPT_INHERIT = value -> value != ExportMediaOverrideOption.INHERIT;
   private Optional<String> exportFileName;
   private Optional<Path> exportDir;
@@ -151,7 +150,7 @@ public class ExportConfiguration {
     startDate.ifPresent(value -> map.put(keyPrefix + START_DATE, value.format(DateTimeFormatter.ISO_DATE)));
     endDate.ifPresent(value -> map.put(keyPrefix + END_DATE, value.format(DateTimeFormatter.ISO_DATE)));
     pullBefore.ifPresent(value -> map.put(keyPrefix + PULL_BEFORE, value.toString()));
-    pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).ifPresent(value -> map.put(keyPrefix + PULL_BEFORE_OVERRIDE, value.name()));
+    pullBeforeOverride.filter(PULL_BEFORE_ALL_EXCEPT_INHERIT).ifPresent(value -> map.put(keyPrefix + PULL_BEFORE_OVERRIDE, value.name()));
     overwriteExistingFiles.ifPresent(value -> map.put(keyPrefix + OVERWRITE_EXISTING_FILES, value.toString()));
     exportMedia.ifPresent(value -> map.put(keyPrefix + EXPORT_MEDIA, value.toString()));
     exportMediaOverride.filter(EXPORT_MEDIA_ALL_EXCEPT_INHERIT).ifPresent(value -> map.put(keyPrefix + EXPORT_MEDIA_OVERRIDE, value.name()));
@@ -273,7 +272,7 @@ public class ExportConfiguration {
    */
   public boolean resolvePullBefore() {
     return Stream.of(
-        pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).flatMap(PullBeforeOverrideOption::asBoolean),
+        pullBeforeOverride.filter(PULL_BEFORE_ALL_EXCEPT_INHERIT).flatMap(PullBeforeOverrideOption::asBoolean),
         pullBefore
     ).filter(Optional::isPresent).map(Optional::get).findFirst().orElse(false);
   }
@@ -376,7 +375,7 @@ public class ExportConfiguration {
         && !startDate.isPresent()
         && !endDate.isPresent()
         && !pullBefore.isPresent()
-        && !pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).isPresent()
+        && !pullBeforeOverride.filter(PULL_BEFORE_ALL_EXCEPT_INHERIT).isPresent()
         && !overwriteExistingFiles.isPresent()
         && !exportMedia.isPresent()
         && !exportMediaOverride.isPresent();
