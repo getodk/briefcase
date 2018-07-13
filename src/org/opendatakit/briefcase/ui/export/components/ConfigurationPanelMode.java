@@ -41,7 +41,7 @@ class ConfigurationPanelMode {
     return new ConfigurationPanelMode(false, savePasswordsConsent, hasTransferSettings);
   }
 
-  void decorate(JCheckBox pullBeforeField, JLabel pullBeforeOverrideLabel, JComboBox pullBeforeOverrideField, JTextPane textpanel, boolean uiLocked) {
+  void decorate(JCheckBox pullBeforeField, JLabel pullBeforeOverrideLabel, JComboBox pullBeforeOverrideField, JTextPane textpanel, JCheckBox exportMediaField, JComboBox exportMediaOverrideField, JLabel exportMediaOverrideLabel, boolean uiLocked) {
     pullBeforeField.setVisible(!isOverridePanel);
     pullBeforeField.setEnabled(!uiLocked && savePasswordsConsent && (!isOverridePanel || hasTransferSettings));
     pullBeforeOverrideLabel.setVisible(isOverridePanel);
@@ -54,7 +54,9 @@ class ConfigurationPanelMode {
         : REQUIRE_PULL_TEXT
         : REQUIRE_SAVE_PASSWORDS
     );
-
+    exportMediaField.setVisible(!isOverridePanel);
+    exportMediaOverrideField.setVisible(isOverridePanel);
+    exportMediaOverrideLabel.setVisible(isOverridePanel);
   }
 
   boolean isExportDirCleanable() {
