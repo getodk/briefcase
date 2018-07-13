@@ -49,6 +49,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import org.opendatakit.briefcase.export.ExportMediaOverrideOption;
 import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.StringUtils;
@@ -95,6 +96,8 @@ public class ConfigurationPanelForm extends JComponent {
     endDatePicker = createDatePicker();
     pullBeforeOverrideField = new JComboBox<>(PullBeforeOverrideOption.values());
     pullBeforeOverrideField.setSelectedItem(INHERIT);
+    exportMediaOverrideField = new JComboBox<>(ExportMediaOverrideOption.values());
+    exportMediaOverrideField.setSelectedItem(ExportMediaOverrideOption.INHERIT);
     $$$setupUI$$$();
     startDatePicker.getSettings().setGapBeforeButtonPixels(0);
     startDatePicker.getComponentDateTextField().setPreferredSize(exportDirField.getPreferredSize());
@@ -524,7 +527,6 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.gridy = 7;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(exportMediaOverrideLabel, gbc);
-    exportMediaOverrideField = new JComboBox();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 7;
