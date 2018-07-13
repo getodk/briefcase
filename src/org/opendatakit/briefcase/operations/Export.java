@@ -86,7 +86,8 @@ public class Export {
         Optional.empty(),
         Optional.empty(),
         Optional.of(overwriteFiles),
-        Optional.of(exportMedia)
+        Optional.of(exportMedia),
+        Optional.empty()
     );
     ExportToCsv.export(FormDefinition.from(formDefinition), configuration);
 

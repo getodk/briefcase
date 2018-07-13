@@ -37,6 +37,7 @@ public class ConfigurationPanel {
     configuration.ifPullBeforeOverridePresent(form::setPullBeforeOverride);
     configuration.ifOverwriteExistingFilesPresent(form::setOverwriteExistingFiles);
     form.setExportMedia(configuration.getExportMedia().orElse(true));
+    configuration.ifExportMediaOverridePresent(form::setExportMediaOverride);
 
     form.onSelectExportDir(path -> {
       configuration.setExportDir(path);
@@ -68,6 +69,10 @@ public class ConfigurationPanel {
     });
     form.onChangeExportMedia(exportMedia ->  {
       configuration.setExportMedia(exportMedia);
+      triggerOnChange();
+    });
+    form.onChangeExportMediaOverride(exportMediaOverrideOption ->  {
+      configuration.setExportMediaOverride(exportMediaOverrideOption);
       triggerOnChange();
     });
   }

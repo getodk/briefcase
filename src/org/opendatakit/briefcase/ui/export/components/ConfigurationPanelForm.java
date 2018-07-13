@@ -86,6 +86,7 @@ public class ConfigurationPanelForm extends JComponent {
   private final List<Consumer<PullBeforeOverrideOption>> onChangePullBeforeOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeOverwriteExistingFilesCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeExportMediaCallbacks = new ArrayList<>();
+  private final List<Consumer<ExportMediaOverrideOption>> onChangeExportMediaOverrideCallbacks = new ArrayList<>();
   private final ConfigurationPanelMode mode;
   private boolean uiLocked = false;
 
@@ -136,6 +137,7 @@ public class ConfigurationPanelForm extends JComponent {
         triggerOverwriteExistingFiles();
     });
     exportMediaField.addActionListener(__ -> triggerChangeExportMedia());
+    exportMediaOverrideField.addActionListener(__ -> triggerChangeExportMediaOverride());
   }
 
   public static ConfigurationPanelForm overridePanel(boolean savePasswordsConsent, boolean hasTransferSettings) {
@@ -229,6 +231,10 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaField.setSelected(value);
   }
 
+  void setExportMediaOverride(ExportMediaOverrideOption value) {
+    exportMediaOverrideField.setSelectedItem(value);
+  }
+
   void onSelectExportDir(Consumer<Path> callback) {
     onSelectExportDirCallbacks.add(callback);
   }
@@ -259,6 +265,10 @@ public class ConfigurationPanelForm extends JComponent {
 
   void onChangeExportMedia(Consumer<Boolean> callback) {
     onChangeExportMediaCallbacks.add(callback);
+  }
+
+  void onChangeExportMediaOverride(Consumer<ExportMediaOverrideOption> callback) {
+    onChangeExportMediaOverrideCallbacks.add(callback);
   }
 
   void changeMode(boolean savePasswordsConsent) {
@@ -321,6 +331,10 @@ public class ConfigurationPanelForm extends JComponent {
 
   private void triggerChangeExportMedia() {
     onChangeExportMediaCallbacks.forEach(callback -> callback.accept(exportMediaField.isSelected()));
+  }
+
+  private void triggerChangeExportMediaOverride() {
+    onChangeExportMediaOverrideCallbacks.forEach(callback -> callback.accept((ExportMediaOverrideOption) exportMediaOverrideField.getSelectedItem()));
   }
 
   private boolean confirmOverwriteFiles() {
