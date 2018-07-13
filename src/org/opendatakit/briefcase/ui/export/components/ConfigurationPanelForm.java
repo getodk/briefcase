@@ -95,7 +95,7 @@ public class ConfigurationPanelForm extends JComponent {
     startDatePicker = createDatePicker();
     endDatePicker = createDatePicker();
     pullBeforeOverrideField = new JComboBox<>(PullBeforeOverrideOption.values());
-    pullBeforeOverrideField.setSelectedItem(INHERIT);
+    pullBeforeOverrideField.setSelectedItem(PullBeforeOverrideOption.INHERIT);
     exportMediaOverrideField = new JComboBox<>(ExportMediaOverrideOption.values());
     exportMediaOverrideField.setSelectedItem(ExportMediaOverrideOption.INHERIT);
     $$$setupUI$$$();
@@ -467,7 +467,7 @@ public class ConfigurationPanelForm extends JComponent {
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 8;
-    gbc.anchor = GridBagConstraints.WEST;
+    gbc.anchor = GridBagConstraints.EAST;
     container.add(pullBeforeOverrideLabel, gbc);
     exportDirButtons = new JPanel();
     exportDirButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
