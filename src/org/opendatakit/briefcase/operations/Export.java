@@ -16,9 +16,7 @@
 package org.opendatakit.briefcase.operations;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
-import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePrefix;
-import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 
@@ -28,14 +26,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportToCsv;
 import org.opendatakit.briefcase.export.FormDefinition;
-import org.opendatakit.briefcase.model.*;
-import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.ServerConnectionInfo;
+import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.transfer.NewTransferAction;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.FormCache;
@@ -43,6 +43,7 @@ import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 public class Export {
   private static final Logger log = LoggerFactory.getLogger(Export.class);
