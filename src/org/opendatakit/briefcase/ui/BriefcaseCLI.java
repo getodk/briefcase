@@ -17,10 +17,9 @@
 
 package org.opendatakit.briefcase.ui;
 
-import org.apache.commons.cli.*;
-import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.opendatakit.briefcase.operations.Export.export;
+import static org.opendatakit.briefcase.operations.ImportFromODK.importODK;
+import static org.opendatakit.briefcase.operations.PullFormFromAggregate.pullFormFromAggregate;
 
 import java.nio.file.Paths;
 import java.text.DateFormat;
@@ -28,9 +27,16 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Optional;
 
-import static org.opendatakit.briefcase.operations.Export.export;
-import static org.opendatakit.briefcase.operations.ImportFromODK.importODK;
-import static org.opendatakit.briefcase.operations.PullFormFromAggregate.pullFormFromAggregate;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Command line interface contributed by Nafundi
