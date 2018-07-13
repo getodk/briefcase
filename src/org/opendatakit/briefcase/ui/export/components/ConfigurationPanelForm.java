@@ -19,7 +19,6 @@ import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static javax.swing.JOptionPane.YES_OPTION;
 import static javax.swing.JOptionPane.showConfirmDialog;
-import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.INHERIT;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.directory;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.file;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
@@ -76,9 +75,9 @@ public class ConfigurationPanelForm extends JComponent {
   JTextPane pullBeforeHintPanel;
   JLabel pullBeforeOverrideLabel;
   private JCheckBox overwriteFilesField;
-  private JCheckBox exportMediaField;
-  private JComboBox exportMediaOverrideField;
-  private JLabel exportMediaOverrideLabel;
+  JCheckBox exportMediaField;
+  JComboBox exportMediaOverrideField;
+  JLabel exportMediaOverrideLabel;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
@@ -106,7 +105,7 @@ public class ConfigurationPanelForm extends JComponent {
     endDatePicker.getComponentDateTextField().setPreferredSize(exportDirField.getPreferredSize());
     endDatePicker.getComponentToggleCalendarButton().setPreferredSize(exportDirChooseButton.getPreferredSize());
     pullBeforeHintPanel.setBackground(new Color(255, 255, 255, 0));
-    mode.decorate(pullBeforeField, pullBeforeOverrideLabel, pullBeforeOverrideField, pullBeforeHintPanel, exportMediaField, exportMediaOverrideField, exportMediaOverrideLabel, uiLocked);
+    mode.decorate(this, uiLocked);
     GridBagLayout layout = (GridBagLayout) container.getLayout();
     GridBagConstraints constraints = layout.getConstraints(pullBeforeHintPanel);
     constraints.insets = new Insets(0, isMac() ? 6 : isWindows() ? 2 : 0, 0, 0);
@@ -264,7 +263,7 @@ public class ConfigurationPanelForm extends JComponent {
 
   void changeMode(boolean savePasswordsConsent) {
     mode.setSavePasswordsConsent(savePasswordsConsent);
-    mode.decorate(pullBeforeField, pullBeforeOverrideLabel, pullBeforeOverrideField, pullBeforeHintPanel, exportMediaField, exportMediaOverrideField, exportMediaOverrideLabel, uiLocked);
+    mode.decorate(this, uiLocked);
   }
 
   private void createUIComponents() {

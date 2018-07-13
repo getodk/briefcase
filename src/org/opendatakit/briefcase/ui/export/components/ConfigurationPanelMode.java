@@ -15,11 +15,6 @@
  */
 package org.opendatakit.briefcase.ui.export.components;
 
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JTextPane;
-
 class ConfigurationPanelMode {
   static final String REQUIRE_PULL_TEXT = "Requires manually pulling from Aggregate once";
   static final String REQUIRE_SAVE_PASSWORDS = "Requires Remember passwords in Settings";
@@ -41,22 +36,22 @@ class ConfigurationPanelMode {
     return new ConfigurationPanelMode(false, savePasswordsConsent, hasTransferSettings);
   }
 
-  void decorate(JCheckBox pullBeforeField, JLabel pullBeforeOverrideLabel, JComboBox pullBeforeOverrideField, JTextPane pullBeforeHintPanel, JCheckBox exportMediaField, JComboBox exportMediaOverrideField, JLabel exportMediaOverrideLabel, boolean uiLocked) {
-    pullBeforeField.setVisible(!isOverridePanel);
-    pullBeforeField.setEnabled(!uiLocked && savePasswordsConsent && (!isOverridePanel || hasTransferSettings));
-    pullBeforeOverrideLabel.setVisible(isOverridePanel);
-    pullBeforeOverrideField.setVisible(isOverridePanel);
-    pullBeforeOverrideField.setEnabled(!uiLocked && savePasswordsConsent && hasTransferSettings);
-    pullBeforeHintPanel.setVisible(!savePasswordsConsent || !hasTransferSettings || !isOverridePanel);
-    pullBeforeHintPanel.setText(savePasswordsConsent
+  void decorate(ConfigurationPanelForm form, boolean uiLocked) {
+    form.pullBeforeField.setVisible(!isOverridePanel);
+    form.pullBeforeField.setEnabled(!uiLocked && savePasswordsConsent && (!isOverridePanel || hasTransferSettings));
+    form.pullBeforeOverrideLabel.setVisible(isOverridePanel);
+    form.pullBeforeOverrideField.setVisible(isOverridePanel);
+    form.pullBeforeOverrideField.setEnabled(!uiLocked && savePasswordsConsent && hasTransferSettings);
+    form.pullBeforeHintPanel.setVisible(!savePasswordsConsent || !hasTransferSettings || !isOverridePanel);
+    form.pullBeforeHintPanel.setText(savePasswordsConsent
         ? hasTransferSettings && isOverridePanel
         ? ""
         : REQUIRE_PULL_TEXT
         : REQUIRE_SAVE_PASSWORDS
     );
-    exportMediaField.setVisible(!isOverridePanel);
-    exportMediaOverrideField.setVisible(isOverridePanel);
-    exportMediaOverrideLabel.setVisible(isOverridePanel);
+    form.exportMediaField.setVisible(!isOverridePanel);
+    form.exportMediaOverrideField.setVisible(isOverridePanel);
+    form.exportMediaOverrideLabel.setVisible(isOverridePanel);
   }
 
   boolean isExportDirCleanable() {
