@@ -172,6 +172,19 @@ public class ExportConfigurationTest {
   }
 
   @Test
+  public void resolves_if_we_need_to_export_media_files_depending_on_a_pair_or_fields() {
+    assertThat(empty().resolveExportMedia(), is(true));
+    assertThat(empty().setExportMedia(true).resolveExportMedia(), is(true));
+    assertThat(empty().setExportMedia(false).resolveExportMedia(), is(false));
+    assertThat(empty().setExportMedia(true).setExportMediaOverride(ExportMediaOverrideOption.INHERIT).resolveExportMedia(), is(true));
+    assertThat(empty().setExportMedia(true).setExportMediaOverride(ExportMediaOverrideOption.EXPORT_MEDIA).resolveExportMedia(), is(true));
+    assertThat(empty().setExportMedia(true).setExportMediaOverride(ExportMediaOverrideOption.DONT_EXPORT_MEDIA).resolveExportMedia(), is(false));
+    assertThat(empty().setExportMedia(false).setExportMediaOverride(ExportMediaOverrideOption.INHERIT).resolveExportMedia(), is(false));
+    assertThat(empty().setExportMedia(false).setExportMediaOverride(ExportMediaOverrideOption.EXPORT_MEDIA).resolveExportMedia(), is(true));
+    assertThat(empty().setExportMedia(false).setExportMediaOverride(ExportMediaOverrideOption.DONT_EXPORT_MEDIA).resolveExportMedia(), is(false));
+  }
+
+  @Test
   public void has_an_API_similar_to_Optional_for_some_of_its_members() {
     ExportConfiguration emptyConfig = empty();
     assertThat(emptyConfig.mapExportDir(Object::toString), OptionalMatchers.isEmpty());

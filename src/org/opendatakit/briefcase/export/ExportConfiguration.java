@@ -277,6 +277,27 @@ public class ExportConfiguration {
     ).filter(Optional::isPresent).map(Optional::get).findFirst().orElse(false);
   }
 
+  /**
+   * Resolves if we need to export media files depending on the exportMedia and exportMediaOverride
+   * settings with the following algorithm:
+   * <ul>
+   * <li>if the exportMediaOverride Optional holds an {@link ExportMediaOverrideOption} value
+   * different than {@link ExportMediaOverrideOption#INHERIT}, then it returns its associated
+   * boolean value</li>
+   * <li>if the exportMedia Optional holds a Boolean value, then it returns it.</li>
+   * <li>otherwise, it returns false</li>
+   * </ul>
+   * See the tests on ExportConfigurationTests to see all the specific cases.
+   *
+   * @return false if the algorithm resolves that we don't need to export media files, true otherwise
+   */
+  public boolean resolveExportMedia() {
+    return Stream.of(
+        exportMediaOverride.filter(EXPORT_MEDIA_ALL_EXCEPT_INHERIT).flatMap(ExportMediaOverrideOption::asBoolean),
+        exportMedia
+    ).filter(Optional::isPresent).map(Optional::get).findFirst().orElse(true);
+  }
+
   private boolean isDateRangeValid() {
     return !startDate.isPresent() || !endDate.isPresent() || !startDate.get().isAfter(endDate.get());
   }
