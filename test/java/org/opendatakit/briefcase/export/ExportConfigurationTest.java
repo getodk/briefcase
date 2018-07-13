@@ -162,13 +162,15 @@ public class ExportConfigurationTest {
 
   @Test
   public void resolves_if_we_need_to_pull_depending_on_a_pair_or_fields() {
-    ExportConfiguration config = empty();
-    assertThat(config.setPullBefore(true).setPullBeforeOverride(INHERIT).resolvePullBefore(), is(true));
-    assertThat(config.setPullBefore(true).setPullBeforeOverride(PULL).resolvePullBefore(), is(true));
-    assertThat(config.setPullBefore(true).setPullBeforeOverride(DONT_PULL).resolvePullBefore(), is(false));
-    assertThat(config.setPullBefore(false).setPullBeforeOverride(INHERIT).resolvePullBefore(), is(false));
-    assertThat(config.setPullBefore(false).setPullBeforeOverride(PULL).resolvePullBefore(), is(true));
-    assertThat(config.setPullBefore(false).setPullBeforeOverride(DONT_PULL).resolvePullBefore(), is(false));
+    assertThat(empty().resolvePullBefore(), is(false));
+    assertThat(empty().setPullBefore(true).resolvePullBefore(), is(true));
+    assertThat(empty().setPullBefore(false).resolvePullBefore(), is(false));
+    assertThat(empty().setPullBefore(true).setPullBeforeOverride(PullBeforeOverrideOption.INHERIT).resolvePullBefore(), is(true));
+    assertThat(empty().setPullBefore(true).setPullBeforeOverride(PullBeforeOverrideOption.PULL).resolvePullBefore(), is(true));
+    assertThat(empty().setPullBefore(true).setPullBeforeOverride(PullBeforeOverrideOption.DONT_PULL).resolvePullBefore(), is(false));
+    assertThat(empty().setPullBefore(false).setPullBeforeOverride(PullBeforeOverrideOption.INHERIT).resolvePullBefore(), is(false));
+    assertThat(empty().setPullBefore(false).setPullBeforeOverride(PullBeforeOverrideOption.PULL).resolvePullBefore(), is(true));
+    assertThat(empty().setPullBefore(false).setPullBeforeOverride(PullBeforeOverrideOption.DONT_PULL).resolvePullBefore(), is(false));
   }
 
   @Test
