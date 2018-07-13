@@ -247,10 +247,6 @@ public class ExportConfiguration {
     return this;
   }
 
-  public Optional<ExportMediaOverrideOption> getExportMediaOverride() {
-    return exportMediaOverride;
-  }
-
   public ExportConfiguration setExportMediaOverride(ExportMediaOverrideOption exportMediaOverride) {
     this.exportMediaOverride = Optional.ofNullable(exportMediaOverride);
     return this;
@@ -328,10 +324,6 @@ public class ExportConfiguration {
 
   public void ifOverwriteExistingFilesPresent(Consumer<Boolean> consumer) {
     overwriteExistingFiles.ifPresent(consumer);
-  }
-
-  public void ifExportMediaPresent(Consumer<Boolean> consumer) {
-    exportMedia.ifPresent(consumer);
   }
 
   public void ifExportMediaOverridePresent(Consumer<ExportMediaOverrideOption> consumer) {
