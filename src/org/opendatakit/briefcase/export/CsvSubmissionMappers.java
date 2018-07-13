@@ -59,7 +59,7 @@ final class CsvSubmissionMappers {
           field,
           submission.findElement(field.getName()),
           configuration.getExportMediaPath(),
-          configuration.getExportMedia().orElse(true)
+          configuration.resolveExportMedia()
       ).map(value -> encodeMainValue(field, value))).collect(Collectors.toList()));
       cols.add(submission.getInstanceId());
       if (formDefinition.isFileEncryptedForm())
@@ -88,7 +88,7 @@ final class CsvSubmissionMappers {
               field,
               element.findElement(field.getName()),
               configuration.getExportMediaPath(),
-              configuration.getExportMedia().orElse(true)
+              configuration.resolveExportMedia()
           ).map(CsvSubmissionMappers::encodeRepeatValue)).collect(toList()));
           cols.add(encode(element.getParentLocalId(submission.getInstanceId()), false));
           cols.add(encode(element.getCurrentLocalId(submission.getInstanceId()), false));
