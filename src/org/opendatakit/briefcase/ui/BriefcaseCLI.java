@@ -17,25 +17,20 @@
 
 package org.opendatakit.briefcase.ui;
 
-import static org.opendatakit.briefcase.operations.Export.export;
-import static org.opendatakit.briefcase.operations.ImportFromODK.importODK;
-import static org.opendatakit.briefcase.operations.PullFormFromAggregate.pullFormFromAggregate;
+import org.apache.commons.cli.*;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Optional;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.opendatakit.briefcase.operations.Export.export;
+import static org.opendatakit.briefcase.operations.ImportFromODK.importODK;
+import static org.opendatakit.briefcase.operations.PullFormFromAggregate.pullFormFromAggregate;
 
 /**
  * Command line interface contributed by Nafundi
@@ -55,7 +50,6 @@ public class BriefcaseCLI {
   private static final String ODK_PASSWORD = "odk_password";
   private static final String ODK_USERNAME = "odk_username";
   private static final String OVERWRITE_CSV_EXPORT = "overwrite_csv_export";
-  private static final String PULL_BEFORE_EXPORT = "pull_before";
   private static final String STORAGE_DIRECTORY = "storage_directory";
   private static final String ODK_DIR = "odk_directory";
   private static final String HELP = "help";
@@ -297,7 +291,6 @@ public class BriefcaseCLI {
     // note that we invert incoming value
     boolean exportMedia = !cli.hasOption(EXCLUDE_MEDIA_EXPORT);
     boolean overwrite = cli.hasOption(OVERWRITE_CSV_EXPORT);
-    boolean pullBefore = cli.hasOption(PULL_BEFORE_EXPORT);
     String odkDir = cli.getOptionValue(ODK_DIR);
     String pemKeyFile = cli.getOptionValue(PEM_FILE);
 
@@ -316,7 +309,7 @@ public class BriefcaseCLI {
             fileName,
             exportMedia,
             overwrite,
-            pullBefore,
+            false,
             Optional.ofNullable(startDateString).map(s -> LocalDate.parse(s.replaceAll("/", "-"))),
             Optional.ofNullable(endDateString).map(s -> LocalDate.parse(s.replaceAll("/", "-"))),
             Optional.ofNullable(pemKeyFile).map(Paths::get)

@@ -101,8 +101,6 @@ public class Export {
       BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
       FormStatus formStatus = new FormStatus(FormStatus.TransferType.EXPORT, formDefinition);
 
-      System.out.println("Pull before command specified for " + formid);
-
       String urlKey = String.format("%s_pull_settings_url", formid);
       String usernameKey = String.format("%s_pull_settings_username", formid);
       String passwordKey = String.format("%s_pull_settings_password", formid);
