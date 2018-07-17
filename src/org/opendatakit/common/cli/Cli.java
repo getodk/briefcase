@@ -18,10 +18,13 @@ package org.opendatakit.common.cli;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.apache.commons.cli.CommandLine;
@@ -30,7 +33,6 @@ import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +50,8 @@ public class Cli {
   private final Set<Operation> operations = new HashSet<>();
   private final Set<BiConsumer<Cli, CommandLine>> otherwiseCallbacks = new HashSet<>();
   private final Set<Operation> executedOperations = new HashSet<>();
+
+  private final List<Consumer<Throwable>> onErrorCallbacks = new ArrayList<>();
 
   public Cli() {
     register(Operation.of(SHOW_HELP, args -> printHelp()));
@@ -130,15 +134,25 @@ public class Cli {
 
       if (executedOperations.isEmpty())
         otherwiseCallbacks.forEach(callback -> callback.accept(this, cli));
-    } catch (BriefcaseException e) {
-      System.err.println("Error: " + e.getMessage());
-      log.error("Error", e);
-      System.exit(1);
     } catch (Throwable t) {
-      System.err.println("Unexpected error in Briefcase. Please review briefcase.log for more information. For help, post to https://forum.opendatakit.org/c/support");
-      log.error("Error", t);
-      System.exit(1);
+      if (!onErrorCallbacks.isEmpty())
+        onErrorCallbacks.forEach(callback -> callback.accept(t));
+      else {
+        System.err.println("Error: " + t.getMessage());
+        System.err.println("No error callbacks have been defined");
+        log.error("Error", t);
+        System.exit(1);
+      }
     }
+  }
+
+  /**
+   * This method lets third parties react when the launched operations produce an
+   * uncaught exception that raises up to this class.
+   */
+  public Cli onError(Consumer<Throwable> callback) {
+    onErrorCallbacks.add(callback);
+    return this;
   }
 
   /**

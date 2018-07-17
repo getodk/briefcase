@@ -94,9 +94,9 @@ public class Export {
         endDate,
         Optional.of(pullBefore),
         Optional.empty(),
-        Optional.of(overwriteFiles)
+        Optional.of(overwriteFiles),
+        Optional.of(exportMedia)
     );
-
 
     if (configuration.resolvePullBefore()) {
       BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
@@ -126,8 +126,7 @@ public class Export {
 
     }
 
-
-    ExportToCsv.export(FormDefinition.from(formDefinition), configuration, exportMedia);
+    ExportToCsv.export(FormDefinition.from(formDefinition), configuration);
 
     BriefcasePreferences.forClass(ExportPanel.class).put(buildExportDateTimePrefix(formDefinition.getFormId()), LocalDateTime.now().format(ISO_DATE_TIME));
   }

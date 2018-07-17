@@ -15,8 +15,8 @@
  */
 package org.opendatakit.briefcase.export;
 
-import static java.util.Comparator.comparingLong;
 import static java.util.stream.Collectors.toList;
+import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static org.opendatakit.briefcase.export.CipherFactory.signatureDecrypter;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createTempDirectory;
@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,6 +44,9 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.IllegalBlockSizeException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import org.bushe.swing.event.EventBus;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
@@ -61,6 +65,7 @@ import org.xmlpull.v1.XmlPullParserException;
  */
 class SubmissionParser {
   private static final Logger log = LoggerFactory.getLogger(SubmissionParser.class);
+  private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 
   /**
    * Returns an sorted {@link List} of {@link Path} instances pointing to all the
@@ -72,7 +77,7 @@ class SubmissionParser {
    * @param formDef
    * @param dateRange a {@link DateRange} to filter submissions that are contained in it
    */
-  static List<Path> getOrderedListOfSubmissionFiles(FormDefinition formDef, DateRange dateRange) {
+  static List<Path> getListOfSubmissionFiles(FormDefinition formDef, DateRange dateRange) {
     Path instancesDir = formDef.getFormDir().resolve("instances");
     if (!Files.exists(instancesDir) || !Files.isReadable(instancesDir))
       return Collections.emptyList();
@@ -90,11 +95,9 @@ class SubmissionParser {
             EventBus.publish(ExportEvent.failureSubmission(formDef, instanceDir.getFileName().toString(), t));
           }
         });
-    return paths.stream()
+    return paths.parallelStream()
         // Filter out submissions outside the given date range
         .filter(pair -> dateRange.contains(pair.getRight()))
-        // Sort them and return a list of paths
-        .sorted(comparingLong(pair -> pair.getRight().toInstant().toEpochMilli()))
         .map(Pair::getLeft)
         .collect(toList());
   }
@@ -146,11 +149,37 @@ class SubmissionParser {
   }
 
   private static Optional<OffsetDateTime> readSubmissionDate(Path path) {
-    return parse(path).flatMap(document -> {
-      XmlElement root = XmlElement.of(document);
-      SubmissionMetaData metaData = new SubmissionMetaData(root);
-      return metaData.getSubmissionDate();
-    });
+    try (InputStream is = Files.newInputStream(path);
+         InputStreamReader isr = new InputStreamReader(is, "UTF-8")) {
+      return parseAttribute(isr, "submissionDate")
+          .map(SubmissionMetaData::regularizeDateTime)
+          .map(OffsetDateTime::parse);
+    } catch (IOException e) {
+      throw new CryptoException("Can't decrypt file", e);
+    }
+  }
+
+  private static Optional<String> parseAttribute(Reader ioReader, String attributeName) {
+    Optional<String> result = Optional.empty();
+    try {
+      XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(ioReader);
+
+      while (reader.hasNext()) {
+        int eventCode = reader.next();
+        if (eventCode == START_ELEMENT) {
+          int c = reader.getAttributeCount();
+          for (int i = 0; !result.isPresent() && i < c; ++i) {
+            if (reader.getAttributeLocalName(i).equals(attributeName)) {
+              result = Optional.of(reader.getAttributeValue(i));
+            }
+          }
+          break;
+        }
+      }
+    } catch (XMLStreamException e) {
+      e.printStackTrace();
+    }
+    return result;
   }
 
 

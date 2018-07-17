@@ -21,8 +21,16 @@ import java.util.List;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
-public class PullFromServerException extends BriefcaseException {
-  public PullFromServerException(List<FormStatus> forms) {
-    super("Failure pulling forms from server. FormIds: " + forms.stream().map(f -> f.getFormDefinition().getFormId()).collect(joining(", ")));
+class PullFromServerException extends BriefcaseException {
+  PullFromServerException(List<FormStatus> forms, Throwable cause) {
+    super(buildMessage(forms), cause);
+  }
+
+  PullFromServerException(List<FormStatus> forms) {
+    super(buildMessage(forms));
+  }
+
+  private static String buildMessage(List<FormStatus> forms) {
+    return "Failure pulling forms from server. FormIds: " + forms.stream().map(f -> f.getFormDefinition().getFormId()).collect(joining(", "));
   }
 }

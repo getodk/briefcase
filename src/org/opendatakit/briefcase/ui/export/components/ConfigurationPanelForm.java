@@ -28,7 +28,6 @@ import static org.opendatakit.briefcase.util.FindDirectoryStructure.isMac;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
 
 import com.github.lgooddatepicker.components.DatePicker;
-
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -50,7 +49,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-
 import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.StringUtils;
@@ -77,6 +75,7 @@ public class ConfigurationPanelForm extends JComponent {
   JTextPane pullBeforeHintPanel;
   JLabel pullBeforeOverrideLabel;
   private JCheckBox overwriteFilesField;
+  private JCheckBox exportMediaField;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
@@ -84,6 +83,7 @@ public class ConfigurationPanelForm extends JComponent {
   private final List<Consumer<Boolean>> onChangePullBeforeCallbacks = new ArrayList<>();
   private final List<Consumer<PullBeforeOverrideOption>> onChangePullBeforeOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeOverwriteExistingFilesCallbacks = new ArrayList<>();
+  private final List<Consumer<Boolean>> onChangeExportMediaCallbacks = new ArrayList<>();
   private final ConfigurationPanelMode mode;
   private boolean uiLocked = false;
 
@@ -131,6 +131,7 @@ public class ConfigurationPanelForm extends JComponent {
       if (!overwriteFilesField.isSelected() || confirmOverwriteFiles())
         triggerOverwriteExistingFiles();
     });
+    exportMediaField.addActionListener(__ -> triggerChangeExportMedia());
   }
 
   public static ConfigurationPanelForm overridePanel(boolean savePasswordsConsent, boolean hasTransferSettings) {
@@ -220,6 +221,10 @@ public class ConfigurationPanelForm extends JComponent {
     overwriteFilesField.setSelected(value);
   }
 
+  void setExportMedia(boolean value) {
+    exportMediaField.setSelected(value);
+  }
+
   void onSelectExportDir(Consumer<Path> callback) {
     onSelectExportDirCallbacks.add(callback);
   }
@@ -246,6 +251,10 @@ public class ConfigurationPanelForm extends JComponent {
 
   void onChangeOverwriteExistingFiles(Consumer<Boolean> callback) {
     onChangeOverwriteExistingFilesCallbacks.add(callback);
+  }
+
+  void onChangeExportMedia(Consumer<Boolean> callback) {
+    onChangeExportMediaCallbacks.add(callback);
   }
 
   void changeMode(boolean savePasswordsConsent) {
@@ -306,6 +315,9 @@ public class ConfigurationPanelForm extends JComponent {
     onChangeOverwriteExistingFilesCallbacks.forEach(callback -> callback.accept(overwriteFilesField.isSelected()));
   }
 
+  private void triggerChangeExportMedia() {
+    onChangeExportMediaCallbacks.forEach(callback -> callback.accept(exportMediaField.isSelected()));
+  }
 
   private boolean confirmOverwriteFiles() {
     if (showConfirmDialog(this, "Overwrite existing files?", "", YES_NO_OPTION, PLAIN_MESSAGE) == YES_OPTION)
@@ -415,7 +427,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeField.setText("Pull before export");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 5;
+    gbc.gridy = 6;
     gbc.gridwidth = 2;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(pullBeforeField, gbc);
@@ -428,13 +440,13 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeHintPanel.setText("Some hint will be shown here");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 7;
+    gbc.gridy = 8;
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(pullBeforeHintPanel, gbc);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 6;
+    gbc.gridy = 7;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(pullBeforeOverrideField, gbc);
@@ -449,7 +461,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeOverrideLabel.setText("Pull before export");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 6;
+    gbc.gridy = 7;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(pullBeforeOverrideLabel, gbc);
     exportDirButtons = new JPanel();
@@ -486,16 +498,23 @@ public class ConfigurationPanelForm extends JComponent {
     overwriteFilesField.setText("Overwrite existing files");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 9;
+    gbc.gridy = 10;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(overwriteFilesField, gbc);
     final JPanel spacer6 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 8;
+    gbc.gridy = 9;
     gbc.gridwidth = 3;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer6, gbc);
+    exportMediaField = new JCheckBox();
+    exportMediaField.setText("Export media files");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 5;
+    gbc.anchor = GridBagConstraints.WEST;
+    container.add(exportMediaField, gbc);
   }
 
   /**

@@ -197,7 +197,7 @@ public class ExportPanel {
                   appPreferences.getPullInParallel().orElse(false)
               ));
             BriefcaseFormDefinition formDefinition = (BriefcaseFormDefinition) form.getFormDefinition();
-            ExportToCsv.export(FormDefinition.from(formDefinition), configuration, true);
+            ExportToCsv.export(FormDefinition.from(formDefinition), configuration);
           });
     } catch (Throwable t) {
       log.error("Error while exporting forms", t);

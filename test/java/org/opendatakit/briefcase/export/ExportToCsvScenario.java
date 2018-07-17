@@ -139,9 +139,10 @@ class ExportToCsvScenario {
         Optional.ofNullable(endDate),
         Optional.of(false),
         Optional.empty(),
-        Optional.of(overwrite)
+        Optional.of(overwrite),
+        Optional.of(exportMedia)
     );
-    ExportToCsv.export(formDef, configuration, exportMedia);
+    ExportToCsv.export(formDef, configuration);
   }
 
   void assertSameContent() {
