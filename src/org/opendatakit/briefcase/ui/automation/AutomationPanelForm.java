@@ -24,6 +24,7 @@ public class AutomationPanelForm {
   private JTextField scriptDirField;
   private JButton scriptDirChooseButton;
   private JButton generateScriptButton;
+  private JButton changeDefaultConfigurationButton;
 
   public AutomationPanelForm() {
     $$$setupUI$$$();
@@ -31,6 +32,10 @@ public class AutomationPanelForm {
         directory(container, fileFrom(scriptDirField))
             .choose()
             .ifPresent(file -> setScriptDir(Paths.get(file.toURI()))));
+  }
+
+  void onSetExportConfiguration(Runnable runnable) {
+    changeDefaultConfigurationButton.addActionListener(__ -> runnable.run());
   }
 
   void onGenerate(Consumer<AutomationConfiguration> callback) {
@@ -93,13 +98,13 @@ public class AutomationPanelForm {
     generateScriptButton.setText("Generate Script");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 2;
+    gbc.gridy = 5;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(generateScriptButton, gbc);
     final JPanel spacer2 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 3;
+    gbc.gridy = 6;
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer2, gbc);
@@ -109,6 +114,25 @@ public class AutomationPanelForm {
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer3, gbc);
+    changeDefaultConfigurationButton = new JButton();
+    changeDefaultConfigurationButton.setText("Change default configuration");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 3;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(changeDefaultConfigurationButton, gbc);
+    final JPanel spacer4 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 4;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    container.add(spacer4, gbc);
+    final JPanel spacer5 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 2;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    container.add(spacer5, gbc);
   }
 
   /**
