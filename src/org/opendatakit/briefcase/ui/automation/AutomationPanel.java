@@ -9,16 +9,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.swing.JPanel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.opendatakit.briefcase.automation.AutomationConfiguration;
-import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.ui.export.ExportPanel;
-import org.opendatakit.briefcase.ui.export.components.ConfigurationDialog;
 import org.opendatakit.briefcase.util.FormCache;
 
 public class AutomationPanel {
@@ -36,20 +32,6 @@ public class AutomationPanel {
 
     view.onGenerate(config -> {
       generateScript(isWindows() ? "automation.bat" : "automation.sh", config);
-    });
-
-    view.onSetExportConfiguration(() -> {
-      BriefcasePreferences exportPreferences = BriefcasePreferences.forClass(ExportPanel.class);
-      Optional<ExportConfiguration> defaultConfiguration = Optional.of(ExportConfiguration.load(exportPreferences));
-      ConfigurationDialog dialog = ConfigurationDialog.from(defaultConfiguration, true, BriefcasePreferences.getStorePasswordsConsentProperty());
-      dialog.onOK(configuration -> {
-        if (configuration.isEmpty()) {
-          // TODO
-        } else {
-          // TODO
-        }
-      });
-      dialog.open();
     });
   }
 

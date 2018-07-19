@@ -15,6 +15,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.opendatakit.briefcase.automation.AutomationConfiguration;
+import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.ui.export.components.ConfigurationDialog;
 import org.opendatakit.briefcase.util.StringUtils;
 
 @SuppressWarnings("checkstyle:MethodName")
@@ -26,26 +29,39 @@ public class AutomationPanelForm {
   private JButton generateScriptButton;
   private JButton changeDefaultConfigurationButton;
 
+  private AutomationConfiguration configuration = AutomationConfiguration.empty();
+
   public AutomationPanelForm() {
     $$$setupUI$$$();
     scriptDirChooseButton.addActionListener(__ ->
         directory(container, fileFrom(scriptDirField))
             .choose()
             .ifPresent(file -> setScriptDir(Paths.get(file.toURI()))));
+    changeDefaultConfigurationButton.addActionListener(__ -> setExportConfiguration());
+    if (configuration.getExportConfiguration().isPresent()) {
+      changeDefaultConfigurationButton.setText("Change export configuration");
+    }
   }
 
-  void onSetExportConfiguration(Runnable runnable) {
-    changeDefaultConfigurationButton.addActionListener(__ -> runnable.run());
+  private void setExportConfiguration() {
+    Optional<ExportConfiguration> defaultConfiguration = configuration.getExportConfiguration();
+    ConfigurationDialog dialog = ConfigurationDialog.from(defaultConfiguration, true, BriefcasePreferences.getStorePasswordsConsentProperty());
+    dialog.onOK(config -> {
+      configuration.setExportConfiguration(config);
+    });
+    dialog.open();
+    if (configuration.getExportConfiguration().isPresent()) {
+      changeDefaultConfigurationButton.setText("Change export configuration");
+    }
   }
 
   void onGenerate(Consumer<AutomationConfiguration> callback) {
-    AutomationConfiguration config = AutomationConfiguration.empty();
-    config.setScriptLocation(Paths.get(scriptDirField.getText()));
-    generateScriptButton.addActionListener(__ -> callback.accept(config));
+    generateScriptButton.addActionListener(__ -> callback.accept(configuration));
   }
 
   private void setScriptDir(Path path) {
     scriptDirField.setText(path.toString());
+    configuration.setScriptLocation(Paths.get(scriptDirField.getText()));
   }
 
   private static Optional<File> fileFrom(JTextField textField) {
@@ -115,7 +131,7 @@ public class AutomationPanelForm {
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer3, gbc);
     changeDefaultConfigurationButton = new JButton();
-    changeDefaultConfigurationButton.setText("Change default configuration");
+    changeDefaultConfigurationButton.setText("Set export configuration");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 3;

@@ -69,7 +69,7 @@
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
         <properties>
-          <text value="Change default configuration"/>
+          <text value="Set export configuration"/>
         </properties>
       </component>
       <vspacer id="5284b">
