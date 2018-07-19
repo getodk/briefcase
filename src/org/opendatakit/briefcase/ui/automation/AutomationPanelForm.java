@@ -29,7 +29,7 @@ public class AutomationPanelForm {
   private JButton generateScriptButton;
   private JButton changeDefaultConfigurationButton;
 
-  private AutomationConfiguration configuration = AutomationConfiguration.empty();
+  private Optional<ExportConfiguration> exportConfiguration = Optional.empty();
 
   public AutomationPanelForm() {
     $$$setupUI$$$();
@@ -38,30 +38,34 @@ public class AutomationPanelForm {
             .choose()
             .ifPresent(file -> setScriptDir(Paths.get(file.toURI()))));
     changeDefaultConfigurationButton.addActionListener(__ -> setExportConfiguration());
-    if (configuration.getExportConfiguration().isPresent()) {
+    if (exportConfiguration.isPresent()) {
       changeDefaultConfigurationButton.setText("Change export configuration");
     }
   }
 
   private void setExportConfiguration() {
-    Optional<ExportConfiguration> defaultConfiguration = configuration.getExportConfiguration();
-    ConfigurationDialog dialog = ConfigurationDialog.from(defaultConfiguration, true, BriefcasePreferences.getStorePasswordsConsentProperty());
+    ConfigurationDialog dialog = ConfigurationDialog.from(exportConfiguration, true, BriefcasePreferences.getStorePasswordsConsentProperty());
     dialog.onOK(config -> {
-      configuration.setExportConfiguration(config);
+      exportConfiguration = Optional.ofNullable(config);
     });
     dialog.open();
-    if (configuration.getExportConfiguration().isPresent()) {
+    if (exportConfiguration.isPresent()) {
       changeDefaultConfigurationButton.setText("Change export configuration");
     }
   }
 
   void onGenerate(Consumer<AutomationConfiguration> callback) {
-    generateScriptButton.addActionListener(__ -> callback.accept(configuration));
+    generateScriptButton.addActionListener(__ -> {
+      AutomationConfiguration automationConfiguration = new AutomationConfiguration(
+          Optional.ofNullable(Paths.get(scriptDirField.getText())),
+          exportConfiguration
+      );
+      callback.accept(automationConfiguration);
+    });
   }
 
   private void setScriptDir(Path path) {
     scriptDirField.setText(path.toString());
-    configuration.setScriptLocation(Paths.get(scriptDirField.getText()));
   }
 
   private static Optional<File> fileFrom(JTextField textField) {
