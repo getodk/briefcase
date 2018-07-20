@@ -30,6 +30,7 @@ import org.opendatakit.briefcase.model.InMemoryPreferences;
 import org.opendatakit.briefcase.ui.reused.NoOpAnalytics;
 import org.opendatakit.briefcase.util.FormCache;
 
+// TODO Adapt to new UI behavior
 class ExportPanelPageObject {
   private final ExportPanel component;
   private final FrameFixture fixture;
@@ -64,7 +65,7 @@ class ExportPanelPageObject {
   }
 
   void setExportDirectory(String value) {
-    GuiActionRunner.execute(() -> component.getForm().getConfPanel().getForm().setExportDir(Paths.get(value)));
+//    GuiActionRunner.execute(() -> component.getForm().getConfPanel().getForm().setExportDir(Paths.get(value)));
   }
 
   void selectFormATRow(int row) {

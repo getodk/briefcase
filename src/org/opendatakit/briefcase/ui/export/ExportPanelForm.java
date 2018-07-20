@@ -19,22 +19,23 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
+import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
-import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
-import org.opendatakit.briefcase.ui.export.components.ConfigurationPanelForm;
 import org.opendatakit.briefcase.ui.export.components.ExportFormsTable;
 import org.opendatakit.briefcase.ui.export.components.ExportFormsTableView;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportPanelForm {
-  private final ConfigurationPanel confPanel;
-  private final ConfigurationPanelForm confPanelForm;
   private final ExportFormsTable formsTable;
   private final ExportFormsTableView formsTableForm;
   private JPanel container;
@@ -47,10 +48,11 @@ public class ExportPanelForm {
   private JProgressBar exportProgressBar;
   private JPanel defaultConfPanel;
   private JButton setDefaultConfButton;
+  private Optional<ExportConfiguration> defaultConf = Optional.empty();
+  private List<Consumer<ExportConfiguration>> onDefaultConfSetCallbacks = new ArrayList<>();
+  private List<Runnable> onDefaultConfResetCallbacks = new ArrayList<>();
 
-  private ExportPanelForm(ConfigurationPanel confPanel, ExportFormsTable formsTable) {
-    this.confPanel = confPanel;
-    this.confPanelForm = confPanel.getForm();
+  private ExportPanelForm(ExportFormsTable formsTable) {
     this.formsTable = formsTable;
     this.formsTableForm = formsTable.getView();
     $$$setupUI$$$();
@@ -59,19 +61,14 @@ public class ExportPanelForm {
     clearAllButton.addActionListener(__ -> formsTable.clearAll());
   }
 
-  public static ExportPanelForm from(ExportForms forms, ConfigurationPanel confPanel) {
+  public static ExportPanelForm from(ExportForms forms) {
     return new ExportPanelForm(
-        confPanel,
         ExportFormsTable.from(forms)
     );
   }
 
   public JPanel getContainer() {
     return container;
-  }
-
-  public ConfigurationPanel getConfPanel() {
-    return confPanel;
   }
 
   public ExportFormsTable getFormsTable() {
@@ -83,7 +80,6 @@ public class ExportPanelForm {
   }
 
   void onChange(Runnable callback) {
-    confPanel.onChange(callback);
     formsTable.onChange(callback);
   }
 
@@ -107,24 +103,32 @@ public class ExportPanelForm {
 
   void setExporting() {
     exportProgressBar.setVisible(true);
-    confPanel.setEnabled(false, false);
     formsTable.setEnabled(false);
     selectAllButton.setEnabled(false);
     clearAllButton.setEnabled(false);
     exportButton.setEnabled(false);
+    setDefaultConfButton.setEnabled(false);
   }
 
-  void unsetExporting(boolean savePasswordsConsent) {
+  void unsetExporting() {
     exportProgressBar.setVisible(false);
-    confPanel.setEnabled(true, savePasswordsConsent);
     formsTable.setEnabled(true);
     selectAllButton.setEnabled(true);
     clearAllButton.setEnabled(true);
     exportButton.setEnabled(true);
+    setDefaultConfButton.setEnabled(true);
   }
 
   public void refresh() {
     formsTable.refresh();
+  }
+
+  public void onDefaultConfSet(Consumer<ExportConfiguration> callback) {
+    onDefaultConfSetCallbacks.add(callback);
+  }
+
+  public void onDefaultConfReset(Runnable callback) {
+    onDefaultConfResetCallbacks.add(callback);
   }
 
   private void createUIComponents() {

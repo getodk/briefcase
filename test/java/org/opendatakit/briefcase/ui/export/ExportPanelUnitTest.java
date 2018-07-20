@@ -54,7 +54,7 @@ public class ExportPanelUnitTest {
     ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(initialDefaultConf, false, true);
     new ExportPanel(
         forms,
-        ExportPanelForm.from(forms, confPanel),
+        ExportPanelForm.from(forms),
         appPreferences,
         exportPreferences,
         new NoOpAnalytics(),
@@ -74,8 +74,7 @@ public class ExportPanelUnitTest {
     List<FormStatus> formsList = FormStatusBuilder.buildFormStatusList(10);
     initialDefaultConf = ExportConfiguration.empty();
     ExportForms forms = load(initialDefaultConf, formsList, exportPreferences, appPreferences);
-    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(initialDefaultConf, true, true);
-    ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, confPanel);
+    ExportPanelForm exportPanelForm = ExportPanelForm.from(forms);
     new ExportPanel(
         forms,
         exportPanelForm,
@@ -106,10 +105,9 @@ public class ExportPanelUnitTest {
     List<FormStatus> formsList = FormStatusBuilder.buildFormStatusList(10);
     initialDefaultConf = ExportConfiguration.empty();
     ExportForms forms = load(initialDefaultConf, formsList, exportPreferences, appPreferences);
-    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(initialDefaultConf, true, true);
     new ExportPanel(
         forms,
-        ExportPanelForm.from(forms, confPanel),
+        ExportPanelForm.from(forms),
         appPreferences,
         exportPreferences,
         new NoOpAnalytics(),
