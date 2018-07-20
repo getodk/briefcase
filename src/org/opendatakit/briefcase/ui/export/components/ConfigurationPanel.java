@@ -79,10 +79,10 @@ public class ConfigurationPanel {
     );
   }
 
-  public static ConfigurationPanel defaultPanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent, boolean hasTransferSettings) {
+  public static ConfigurationPanel defaultPanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent) {
     return new ConfigurationPanel(
         initialConfiguration,
-        ConfigurationPanelForm.defaultPanel(savePasswordsConsent, hasTransferSettings)
+        ConfigurationPanelForm.defaultPanel(savePasswordsConsent)
     );
   }
 

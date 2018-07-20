@@ -138,8 +138,8 @@ public class ConfigurationPanelForm extends JComponent {
     return new ConfigurationPanelForm(ConfigurationPanelMode.overridePanel(savePasswordsConsent, hasTransferSettings));
   }
 
-  public static ConfigurationPanelForm defaultPanel(boolean savePasswordsConsent, boolean hasTransferSettings) {
-    return new ConfigurationPanelForm(ConfigurationPanelMode.defaultPanel(savePasswordsConsent, hasTransferSettings));
+  public static ConfigurationPanelForm defaultPanel(boolean savePasswordsConsent) {
+    return new ConfigurationPanelForm(ConfigurationPanelMode.defaultPanel(savePasswordsConsent));
   }
 
   @Override

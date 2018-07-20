@@ -37,8 +37,8 @@ class ConfigurationPanelMode {
     return new ConfigurationPanelMode(true, savePasswordsConsent, hasTransferSettings);
   }
 
-  static ConfigurationPanelMode defaultPanel(boolean savePasswordsConsent, boolean hasTransferSettings) {
-    return new ConfigurationPanelMode(false, savePasswordsConsent, hasTransferSettings);
+  static ConfigurationPanelMode defaultPanel(boolean savePasswordsConsent) {
+    return new ConfigurationPanelMode(false, savePasswordsConsent, false);
   }
 
   void decorate(JCheckBox pullBeforeField, JLabel pullBeforeOverrideLabel, JComboBox pullBeforeOverrideField, JTextPane textpanel, boolean uiLocked) {

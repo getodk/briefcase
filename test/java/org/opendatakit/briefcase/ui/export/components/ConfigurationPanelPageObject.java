@@ -70,7 +70,7 @@ class ConfigurationPanelPageObject {
 
   static ConfigurationPanelPageObject setUpDefaultPanel(Robot robot, ExportConfiguration initialConfiguration, boolean savePasswordsConsent, boolean hasTransferSettings) {
     return execute(() -> {
-      ConfigurationPanel configurationPanel = ConfigurationPanel.defaultPanel(initialConfiguration, savePasswordsConsent, hasTransferSettings);
+      ConfigurationPanel configurationPanel = ConfigurationPanel.defaultPanel(initialConfiguration, savePasswordsConsent);
       JFrame testFrame = new JFrame();
       testFrame.add(configurationPanel.getForm().container);
       FrameFixture window = new FrameFixture(robot, testFrame);

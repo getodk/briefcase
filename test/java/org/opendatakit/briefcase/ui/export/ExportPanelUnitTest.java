@@ -51,7 +51,7 @@ public class ExportPanelUnitTest {
     BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     initialDefaultConf = ExportConfiguration.empty();
     ExportForms forms = load(initialDefaultConf, new ArrayList<>(), exportPreferences, appPreferences);
-    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(initialDefaultConf, false, true);
+    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(initialDefaultConf, false);
     new ExportPanel(
         forms,
         ExportPanelForm.from(forms),
