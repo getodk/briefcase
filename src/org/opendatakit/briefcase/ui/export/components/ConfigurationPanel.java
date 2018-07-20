@@ -22,9 +22,9 @@ import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
 
 public class ConfigurationPanel {
   private final ExportConfiguration configuration;
-  private final List<Runnable> onChangeCallbacks = new ArrayList<>();
   final ConfigurationPanelForm form;
   private final ConfigurationPanelMode mode;
+  private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
   ConfigurationPanel(ExportConfiguration initialConfiguration, ConfigurationPanelForm form, ConfigurationPanelMode mode) {
     this.configuration = initialConfiguration.copy();
