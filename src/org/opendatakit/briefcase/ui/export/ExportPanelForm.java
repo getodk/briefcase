@@ -74,7 +74,7 @@ public class ExportPanelForm {
     });
   }
 
-  private void setDefaultConf(ExportConfiguration conf) {
+  void setDefaultConf(ExportConfiguration conf) {
     defaultConf = Optional.of(conf);
     onDefaultConfSetCallbacks.forEach(callback -> callback.accept(conf));
     setDefaultConfButton.setText("Edit Default Configuration");
