@@ -30,26 +30,29 @@ public class ConfigurationDialog {
     if (!confPanel.isEmpty())
       form.enableClearAll();
 
+    if (!confPanel.isValid())
+      form.disableOK();
+
     confPanel.onChange(() -> {
       if (!confPanel.getConfiguration().isEmpty())
         form.enableClearAll();
       else
         form.disableClearAll();
 
-      if (this.confPanel.getConfiguration().isValidAsCustomConf())
+      if (this.confPanel.isValid())
         form.enableOK();
       else
         form.disableOK();
     });
   }
 
-  static ConfigurationDialog from(Optional<ExportConfiguration> configuration, boolean hasTransferSettings, boolean savePasswordsConsent) {
+  public static ConfigurationDialog from(Optional<ExportConfiguration> configuration, boolean hasTransferSettings, boolean savePasswordsConsent) {
     ConfigurationPanel confPanel = ConfigurationPanel.overridePanel(configuration.orElse(ExportConfiguration.empty()), savePasswordsConsent, hasTransferSettings);
     ConfigurationDialogForm form = new ConfigurationDialogForm(confPanel.getForm());
     return new ConfigurationDialog(form, confPanel);
   }
 
-  void onOK(Consumer<ExportConfiguration> callback) {
+  public void onOK(Consumer<ExportConfiguration> callback) {
     form.onOK(() -> callback.accept(confPanel.getConfiguration()));
   }
 
