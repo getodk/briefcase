@@ -134,12 +134,8 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaField.addActionListener(__ -> triggerChangeExportMedia());
   }
 
-  public static ConfigurationPanelForm overridePanel(boolean savePasswordsConsent, boolean hasTransferSettings) {
-    return new ConfigurationPanelForm(ConfigurationPanelMode.overridePanel(savePasswordsConsent, hasTransferSettings));
-  }
-
-  public static ConfigurationPanelForm defaultPanel(boolean savePasswordsConsent) {
-    return new ConfigurationPanelForm(ConfigurationPanelMode.defaultPanel(savePasswordsConsent));
+  public static ConfigurationPanelForm from(ConfigurationPanelMode mode) {
+    return new ConfigurationPanelForm(mode);
   }
 
   @Override
