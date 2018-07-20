@@ -152,9 +152,9 @@ public class ExportPanel {
   }
 
   public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
-    ExportConfiguration defaultConfiguration = ExportConfiguration.load(exportPreferences);
-    ExportForms forms = ExportForms.load(defaultConfiguration, toFormStatuses(formCache.getForms()), exportPreferences, appPreferences);
-    ExportPanelForm form = ExportPanelForm.from(forms, appPreferences);
+    ExportConfiguration initialDefaultConf = ExportConfiguration.load(exportPreferences);
+    ExportForms forms = ExportForms.load(initialDefaultConf, toFormStatuses(formCache.getForms()), exportPreferences, appPreferences);
+    ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, initialDefaultConf);
     return new ExportPanel(
         forms,
         form,

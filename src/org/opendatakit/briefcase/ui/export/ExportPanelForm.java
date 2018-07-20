@@ -54,10 +54,15 @@ public class ExportPanelForm {
   private List<Consumer<ExportConfiguration>> onDefaultConfSetCallbacks = new ArrayList<>();
   private List<Runnable> onDefaultConfResetCallbacks = new ArrayList<>();
 
-  private ExportPanelForm(ExportFormsTable formsTable, BriefcasePreferences appPreferences) {
+  private ExportPanelForm(ExportFormsTable formsTable, BriefcasePreferences appPreferences, ExportConfiguration initialConf) {
     this.formsTable = formsTable;
     this.formsTableForm = formsTable.getView();
     $$$setupUI$$$();
+
+    if (!initialConf.isEmpty())
+      setDefaultConf(initialConf);
+    else
+      resetDefaultConf();
 
     selectAllButton.addActionListener(__ -> formsTable.selectAll());
     clearAllButton.addActionListener(__ -> formsTable.clearAll());
@@ -81,10 +86,11 @@ public class ExportPanelForm {
     setDefaultConfButton.setText("Set Default Configuration");
   }
 
-  public static ExportPanelForm from(ExportForms forms, BriefcasePreferences appPreferences) {
+  public static ExportPanelForm from(ExportForms forms, BriefcasePreferences appPreferences, ExportConfiguration defaultConf) {
     return new ExportPanelForm(
         ExportFormsTable.from(forms),
-        appPreferences
+        appPreferences,
+        defaultConf
     );
   }
 
