@@ -57,6 +57,10 @@ class ConfigurationPanelMode {
 
   }
 
+  public boolean isOverridePanel() {
+    return isOverridePanel;
+  }
+
   boolean isExportDirCleanable() {
     return isOverridePanel;
   }
