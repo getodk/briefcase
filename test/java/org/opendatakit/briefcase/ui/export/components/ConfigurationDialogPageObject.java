@@ -38,7 +38,7 @@ class ConfigurationDialogPageObject {
   }
 
   static ConfigurationDialogPageObject setUp(Robot robot, ExportConfiguration configuration) {
-    ConfigurationDialog dialog = execute(() -> ConfigurationDialog.from(Optional.ofNullable(configuration), true, true));
+    ConfigurationDialog dialog = execute(() -> ConfigurationDialog.overridePanel(Optional.ofNullable(configuration), "Test form", true, true));
     DialogFixture fixture = new DialogFixture(robot, dialog.form);
     return new ConfigurationDialogPageObject(dialog, fixture);
   }
