@@ -75,6 +75,7 @@ public class ExportPanel {
       preferences.putAll(conf.asMap());
       updateExportButton();
     });
+
     form.onDefaultConfReset(() -> {
       forms.updateDefaultConfiguration(ExportConfiguration.empty());
       preferences.removeAll(ExportConfiguration.keys());
@@ -153,7 +154,7 @@ public class ExportPanel {
   public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
     ExportConfiguration defaultConfiguration = ExportConfiguration.load(exportPreferences);
     ExportForms forms = ExportForms.load(defaultConfiguration, toFormStatuses(formCache.getForms()), exportPreferences, appPreferences);
-    ExportPanelForm form = ExportPanelForm.from(forms);
+    ExportPanelForm form = ExportPanelForm.from(forms, appPreferences);
     return new ExportPanel(
         forms,
         form,

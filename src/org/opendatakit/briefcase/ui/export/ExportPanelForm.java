@@ -31,6 +31,8 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.ui.export.components.ConfigurationDialog;
 import org.opendatakit.briefcase.ui.export.components.ExportFormsTable;
 import org.opendatakit.briefcase.ui.export.components.ExportFormsTableView;
 
@@ -52,18 +54,37 @@ public class ExportPanelForm {
   private List<Consumer<ExportConfiguration>> onDefaultConfSetCallbacks = new ArrayList<>();
   private List<Runnable> onDefaultConfResetCallbacks = new ArrayList<>();
 
-  private ExportPanelForm(ExportFormsTable formsTable) {
+  private ExportPanelForm(ExportFormsTable formsTable, BriefcasePreferences appPreferences) {
     this.formsTable = formsTable;
     this.formsTableForm = formsTable.getView();
     $$$setupUI$$$();
 
     selectAllButton.addActionListener(__ -> formsTable.selectAll());
     clearAllButton.addActionListener(__ -> formsTable.clearAll());
+    setDefaultConfButton.addActionListener(ignored -> {
+      ConfigurationDialog dialog = ConfigurationDialog.defaultPanel(defaultConf, appPreferences.getRememberPasswords().orElse(false));
+      dialog.onOK(this::setDefaultConf);
+      dialog.onRemove(this::resetDefaultConf);
+      dialog.open();
+    });
   }
 
-  public static ExportPanelForm from(ExportForms forms) {
+  private void setDefaultConf(ExportConfiguration conf) {
+    defaultConf = Optional.of(conf);
+    onDefaultConfSetCallbacks.forEach(callback -> callback.accept(conf));
+    setDefaultConfButton.setText("Edit Default Configuration");
+  }
+
+  private void resetDefaultConf() {
+    defaultConf = Optional.empty();
+    onDefaultConfResetCallbacks.forEach(Runnable::run);
+    setDefaultConfButton.setText("Set Default Configuration");
+  }
+
+  public static ExportPanelForm from(ExportForms forms, BriefcasePreferences appPreferences) {
     return new ExportPanelForm(
-        ExportFormsTable.from(forms)
+        ExportFormsTable.from(forms),
+        appPreferences
     );
   }
 
