@@ -26,6 +26,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Optional;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -314,6 +315,7 @@ public class BriefcaseCLI {
             fileName,
             exportMedia,
             overwrite,
+            false,
             Optional.ofNullable(startDateString).map(s -> LocalDate.parse(s.replaceAll("/", "-"))),
             Optional.ofNullable(endDateString).map(s -> LocalDate.parse(s.replaceAll("/", "-"))),
             Optional.ofNullable(pemKeyFile).map(Paths::get)
