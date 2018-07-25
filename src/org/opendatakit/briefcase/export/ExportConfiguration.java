@@ -237,7 +237,7 @@ public class ExportConfiguration {
     return this;
   }
 
-  public boolean resolveOverwriteExistingFiles() {
+  boolean resolveOverwriteExistingFiles() {
     return overwriteExistingFiles.orElse(false);
   }
 
@@ -256,13 +256,8 @@ public class ExportConfiguration {
     return this;
   }
 
-  public boolean resolveExplodeChoiceLists() {
+  boolean resolveExplodeChoiceLists() {
     return explodeChoiceLists.orElse(false);
-  }
-
-  public ExportConfiguration setExplodedChoiceLists(boolean explodedChoiceLists) {
-    this.explodeChoiceLists = Optional.of(explodedChoiceLists);
-    return this;
   }
 
   /**
