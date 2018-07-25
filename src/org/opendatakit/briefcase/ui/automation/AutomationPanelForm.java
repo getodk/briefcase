@@ -38,20 +38,12 @@ public class AutomationPanelForm {
             .choose()
             .ifPresent(file -> setScriptDir(Paths.get(file.toURI()))));
     changeDefaultConfigurationButton.addActionListener(__ -> setExportConfiguration());
-    if (exportConfiguration.isPresent()) {
-      changeDefaultConfigurationButton.setText("Change export configuration");
-    }
   }
 
   private void setExportConfiguration() {
     ConfigurationDialog dialog = ConfigurationDialog.from(exportConfiguration, true, BriefcasePreferences.getStorePasswordsConsentProperty());
-    dialog.onOK(config -> {
-      exportConfiguration = Optional.ofNullable(config);
-    });
+    dialog.onOK(config -> exportConfiguration = Optional.ofNullable(config));
     dialog.open();
-    if (exportConfiguration.isPresent()) {
-      changeDefaultConfigurationButton.setText("Change export configuration");
-    }
   }
 
   void onGenerate(Consumer<AutomationConfiguration> callback) {

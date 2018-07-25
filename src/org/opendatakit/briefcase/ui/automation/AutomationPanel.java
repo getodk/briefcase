@@ -30,9 +30,7 @@ public class AutomationPanel {
     this.formCache = formCache;
     this.appPreferences = appPreferences;
 
-    view.onGenerate(config -> {
-      generateScript(isWindows() ? "automation.bat" : "automation.sh", config);
-    });
+    view.onGenerate(config -> generateScript(isWindows() ? "automation.bat" : "automation.sh", config));
   }
 
   private void generateScript(String scriptName, AutomationConfiguration configuration) {

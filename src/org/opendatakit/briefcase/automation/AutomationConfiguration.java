@@ -21,17 +21,7 @@ public class AutomationConfiguration {
     return scriptLocation;
   }
 
-  public AutomationConfiguration setScriptLocation(Path path) {
-    this.scriptLocation = Optional.ofNullable(path);
-    return this;
-  }
-
   public Optional<ExportConfiguration> getExportConfiguration() {
     return exportConfiguration;
-  }
-
-  public AutomationConfiguration setExportConfiguration(ExportConfiguration exportConfiguration) {
-    this.exportConfiguration = Optional.ofNullable(exportConfiguration);
-    return this;
   }
 }
