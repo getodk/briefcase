@@ -29,7 +29,6 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.readAllBytes;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.readFirstLine;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.toURI;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.walk;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 
 import java.nio.file.Files;
@@ -193,14 +192,14 @@ class ExportToCsvScenario {
     Path instanceDir = formDir.resolve("instances").resolve(instanceId);
     createDirectories(instanceDir);
     Path instanceFile = instanceDir.resolve("submission.xml");
-    write(instanceFile, instanceContent.getBytes());
+    UncheckedFiles.write(instanceFile, instanceContent);
   }
 
   void createOutputFile(String dir, String file) {
     createDirectories(outputDir.resolve("old").resolve(dir));
-    write(outputDir.resolve("old").resolve(dir).resolve(file), "Some content".getBytes());
+    UncheckedFiles.write(outputDir.resolve("old").resolve(dir).resolve(file), "Some content");
     createDirectories(outputDir.resolve("new").resolve(dir));
-    write(outputDir.resolve("new").resolve(dir).resolve(file), "Some content".getBytes());
+    UncheckedFiles.write(outputDir.resolve("new").resolve(dir).resolve(file), "Some content");
   }
 
   void assertNoOutputMediaDir() {
