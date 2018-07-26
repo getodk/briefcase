@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.reused;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -66,15 +68,15 @@ public class UncheckedFiles {
 
   public static Path write(Path path, Stream<String> lines, OpenOption... options) {
     try {
-      return Files.write(path, (Iterable<String>) lines::iterator, options);
+      return Files.write(path, (Iterable<String>) lines::iterator, UTF_8, options);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
   }
 
-  public static Path write(Path path, byte[] bytes, OpenOption... options) {
+  public static Path write(Path path, String contents, OpenOption... options) {
     try {
-      return Files.write(path, bytes, options);
+      return Files.write(path, contents.getBytes(UTF_8), options);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -299,6 +301,6 @@ public class UncheckedFiles {
   public static void createBriefcaseDir(Path briefcaseDir) {
     createDirectories(briefcaseDir);
     createDirectories(briefcaseDir.resolve("forms"));
-    write(briefcaseDir.resolve("readme.txt"), README_CONTENTS.getBytes());
+    write(briefcaseDir.resolve("readme.txt"), README_CONTENTS);
   }
 }
