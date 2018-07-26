@@ -37,7 +37,6 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusBuilder;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
-import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
 import org.opendatakit.briefcase.ui.reused.NoOpAnalytics;
 import org.opendatakit.briefcase.util.FormCache;
 
@@ -51,10 +50,10 @@ public class ExportPanelUnitTest {
     BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     initialDefaultConf = ExportConfiguration.empty();
     ExportForms forms = load(initialDefaultConf, new ArrayList<>(), exportPreferences, appPreferences);
-    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(initialDefaultConf, false, true);
+    ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, appPreferences, initialDefaultConf);
     new ExportPanel(
         forms,
-        ExportPanelForm.from(forms, confPanel),
+        exportPanelForm,
         appPreferences,
         exportPreferences,
         new NoOpAnalytics(),
@@ -62,7 +61,7 @@ public class ExportPanelUnitTest {
     );
 
     assertThat(ExportConfiguration.load(exportPreferences).getExportDir(), isEmpty());
-    confPanel.getForm().setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()));
+    exportPanelForm.setDefaultConf(initialDefaultConf.setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri())));
 
     assertThat(ExportConfiguration.load(exportPreferences).getExportDir(), isPresent());
   }
@@ -74,8 +73,7 @@ public class ExportPanelUnitTest {
     List<FormStatus> formsList = FormStatusBuilder.buildFormStatusList(10);
     initialDefaultConf = ExportConfiguration.empty();
     ExportForms forms = load(initialDefaultConf, formsList, exportPreferences, appPreferences);
-    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(initialDefaultConf, true, true);
-    ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, confPanel);
+    ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, appPreferences, initialDefaultConf);
     new ExportPanel(
         forms,
         exportPanelForm,
@@ -106,10 +104,9 @@ public class ExportPanelUnitTest {
     List<FormStatus> formsList = FormStatusBuilder.buildFormStatusList(10);
     initialDefaultConf = ExportConfiguration.empty();
     ExportForms forms = load(initialDefaultConf, formsList, exportPreferences, appPreferences);
-    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(initialDefaultConf, true, true);
     new ExportPanel(
         forms,
-        ExportPanelForm.from(forms, confPanel),
+        ExportPanelForm.from(forms, appPreferences, initialDefaultConf),
         appPreferences,
         exportPreferences,
         new NoOpAnalytics(),

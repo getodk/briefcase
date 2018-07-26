@@ -22,12 +22,14 @@ import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
 
 public class ConfigurationPanel {
   private final ExportConfiguration configuration;
-  private final List<Runnable> onChangeCallbacks = new ArrayList<>();
   final ConfigurationPanelForm form;
+  private final ConfigurationPanelMode mode;
+  private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
-  ConfigurationPanel(ExportConfiguration initialConfiguration, ConfigurationPanelForm form) {
+  ConfigurationPanel(ExportConfiguration initialConfiguration, ConfigurationPanelForm form, ConfigurationPanelMode mode) {
+    this.configuration = initialConfiguration.copy();
     this.form = form;
-    configuration = initialConfiguration.copy();
+    this.mode = mode;
 
     configuration.ifExportDirPresent(form::setExportDir);
     configuration.ifPemFilePresent(form::setPemFile);
@@ -66,23 +68,27 @@ public class ConfigurationPanel {
       configuration.setOverwriteExistingFiles(overwriteExistingFiles);
       triggerOnChange();
     });
-    form.onChangeExportMedia(exportMedia ->  {
+    form.onChangeExportMedia(exportMedia -> {
       configuration.setExportMedia(exportMedia);
       triggerOnChange();
     });
   }
 
   public static ConfigurationPanel overridePanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent, boolean hasTransferSettings) {
+    ConfigurationPanelMode mode = ConfigurationPanelMode.overridePanel(savePasswordsConsent, hasTransferSettings);
     return new ConfigurationPanel(
         initialConfiguration,
-        ConfigurationPanelForm.overridePanel(savePasswordsConsent, hasTransferSettings)
+        ConfigurationPanelForm.from(mode),
+        mode
     );
   }
 
-  public static ConfigurationPanel defaultPanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent, boolean hasTransferSettings) {
+  public static ConfigurationPanel defaultPanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent) {
+    ConfigurationPanelMode mode = ConfigurationPanelMode.defaultPanel(savePasswordsConsent);
     return new ConfigurationPanel(
         initialConfiguration,
-        ConfigurationPanelForm.defaultPanel(savePasswordsConsent, hasTransferSettings)
+        ConfigurationPanelForm.from(mode),
+        mode
     );
   }
 
@@ -108,7 +114,9 @@ public class ConfigurationPanel {
   }
 
   public boolean isValid() {
-    return configuration.isValid();
+    return mode.isOverridePanel()
+        ? configuration.isValidAsCustomConf()
+        : configuration.isValid();
   }
 
   public boolean isEmpty() {

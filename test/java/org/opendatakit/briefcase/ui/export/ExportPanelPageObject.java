@@ -15,14 +15,9 @@
  */
 package org.opendatakit.briefcase.ui.export;
 
-import static org.opendatakit.briefcase.ui.export.components.ExportFormsTableView.SELECTED_CHECKBOX_COL;
-
-import java.nio.file.Paths;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import org.assertj.swing.core.MouseButton;
 import org.assertj.swing.core.Robot;
-import org.assertj.swing.data.TableCell;
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -30,6 +25,7 @@ import org.opendatakit.briefcase.model.InMemoryPreferences;
 import org.opendatakit.briefcase.ui.reused.NoOpAnalytics;
 import org.opendatakit.briefcase.util.FormCache;
 
+// TODO Adapt to new UI behavior
 class ExportPanelPageObject {
   private final ExportPanel component;
   private final FrameFixture fixture;
@@ -61,16 +57,6 @@ class ExportPanelPageObject {
 
   void show() {
     fixture.show();
-  }
-
-  void setExportDirectory(String value) {
-    GuiActionRunner.execute(() -> component.getForm().getConfPanel().getForm().setExportDir(Paths.get(value)));
-  }
-
-  void selectFormATRow(int row) {
-    TableCell cell = TableCell.row(row).column(SELECTED_CHECKBOX_COL);
-    if (fixture.table("forms").cell(cell).value().equals("false"))
-      fixture.table("forms").click(cell, MouseButton.LEFT_BUTTON);
   }
 
   JButton exportButton() {

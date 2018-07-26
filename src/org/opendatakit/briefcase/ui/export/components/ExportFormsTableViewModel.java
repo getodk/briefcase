@@ -78,8 +78,9 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
     updateConfButton(form, button);
     button.addActionListener(__ -> {
       if (enabled) {
-        ConfigurationDialog dialog = ConfigurationDialog.from(
+        ConfigurationDialog dialog = ConfigurationDialog.overridePanel(
             forms.getCustomConfiguration(form),
+            form.getFormName(),
             forms.hasTransferSettings(form),
             BriefcasePreferences.getStorePasswordsConsentProperty()
         );
