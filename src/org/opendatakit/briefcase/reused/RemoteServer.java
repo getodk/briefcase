@@ -211,7 +211,7 @@ public class RemoteServer {
 
   private static Document parse(String content) {
     try (InputStream is = new ByteArrayInputStream(content.getBytes(UTF_8));
-         InputStreamReader isr = new InputStreamReader(is)) {
+         InputStreamReader isr = new InputStreamReader(is, "UTF-8")) {
       Document doc = new Document();
       KXmlParser parser = new KXmlParser();
       parser.setInput(isr);
