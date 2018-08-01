@@ -13,10 +13,12 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import org.opendatakit.briefcase.automation.AutomationConfiguration;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationDialog;
 import org.opendatakit.briefcase.util.StringUtils;
 
@@ -31,7 +33,7 @@ public class AutomationPanelForm {
 
   private Optional<ExportConfiguration> exportConfiguration = Optional.empty();
 
-  public AutomationPanelForm() {
+  public AutomationPanelForm(TransferFormsTable formsTable) {
     $$$setupUI$$$();
     scriptDirChooseButton.addActionListener(__ ->
         directory(container, fileFrom(scriptDirField))
@@ -64,6 +66,10 @@ public class AutomationPanelForm {
     return Optional.ofNullable(textField.getText())
         .filter(StringUtils::nullOrEmpty)
         .map(path -> Paths.get(path).toFile());
+  }
+
+  static AutomationPanelForm from(TransferForms forms) {
+    return new AutomationPanelForm(TransferFormsTable.from(forms, "Export"));
   }
 
   /**

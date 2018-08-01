@@ -2,6 +2,8 @@ package org.opendatakit.briefcase.ui.automation;
 
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
 
 import java.io.IOException;
@@ -13,8 +15,11 @@ import java.util.stream.Collectors;
 import javax.swing.JPanel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.opendatakit.briefcase.automation.AutomationConfiguration;
+import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.FormCache;
 
 public class AutomationPanel {
@@ -64,11 +69,18 @@ public class AutomationPanel {
   }
 
   public static AutomationPanel from(BriefcasePreferences appPreferences, FormCache formCache) {
+    TransferForms forms = TransferForms.from(toFormStatuses(formCache.getForms()));
     return new AutomationPanel(
-        new AutomationPanelForm(),
+        AutomationPanelForm.from(forms),
         appPreferences,
         formCache
     );
+  }
+
+  private static List<FormStatus> toFormStatuses(List<BriefcaseFormDefinition> formDefs) {
+    return formDefs.stream()
+        .map(formDefinition -> new FormStatus(EXPORT, formDefinition))
+        .collect(toList());
   }
 
   public JPanel getContainer() {
