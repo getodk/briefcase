@@ -16,7 +16,6 @@
 package org.opendatakit.briefcase.export;
 
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public enum ExportMediaOverrideOption {
   INHERIT("Use default", null), EXPORT_MEDIA("Export media", true), DONT_EXPORT_MEDIA("Do not export media", false);
@@ -27,17 +26,6 @@ public enum ExportMediaOverrideOption {
   ExportMediaOverrideOption(String label, Boolean value) {
     this.label = label;
     this.value = Optional.ofNullable(value);
-  }
-
-  public static ExportMediaOverrideOption from(String name) {
-    return Stream.of(values())
-        .filter(value -> value.name().equals(name))
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("Unknown ExportMediaOverrideOption value " + name));
-  }
-
-  public static ExportMediaOverrideOption from(Optional<Boolean> maybeValue) {
-    return maybeValue.map(value -> value ? EXPORT_MEDIA : DONT_EXPORT_MEDIA).orElse(INHERIT);
   }
 
   public Optional<Boolean> asBoolean() {
