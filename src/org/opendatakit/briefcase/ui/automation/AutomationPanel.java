@@ -26,12 +26,14 @@ public class AutomationPanel {
   public static final String TAB_NAME = "Automation";
 
   private final AutomationPanelForm view;
+  private final TransferForms forms;
   private final FormCache formCache;
   private final BriefcasePreferences appPreferences;
 
-  public AutomationPanel(AutomationPanelForm view, BriefcasePreferences appPreferences, FormCache formCache) {
+  public AutomationPanel(AutomationPanelForm view, TransferForms forms, BriefcasePreferences appPreferences, FormCache formCache) {
     AnnotationProcessor.process(this);
     this.view = view;
+    this.forms = forms;
     this.formCache = formCache;
     this.appPreferences = appPreferences;
 
@@ -72,6 +74,7 @@ public class AutomationPanel {
     TransferForms forms = TransferForms.from(toFormStatuses(formCache.getForms()));
     return new AutomationPanel(
         AutomationPanelForm.from(forms),
+        forms,
         appPreferences,
         formCache
     );
