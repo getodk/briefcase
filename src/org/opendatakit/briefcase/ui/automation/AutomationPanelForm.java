@@ -53,7 +53,7 @@ public class AutomationPanelForm {
   }
 
   private void setExportConfiguration() {
-    ConfigurationDialog dialog = ConfigurationDialog.from(exportConfiguration, true, BriefcasePreferences.getStorePasswordsConsentProperty());
+    ConfigurationDialog dialog = ConfigurationDialog.defaultPanel(exportConfiguration,BriefcasePreferences.getStorePasswordsConsentProperty());
     dialog.onOK(config -> exportConfiguration = Optional.ofNullable(config));
     dialog.open();
   }
