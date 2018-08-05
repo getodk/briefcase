@@ -31,10 +31,10 @@ public class AutomationPanelForm {
   private JTextField scriptDirField;
   private JButton scriptDirChooseButton;
   private JButton generateScriptButton;
-  private JButton changeDefaultConfigurationButton;
+  private JButton setExportConfigurationButton;
   private JScrollPane scrollPane;
   private final TransferFormsTable formsTable;
-  private  TransferFormsTableView formsTableView;
+  private TransferFormsTableView formsTableView;
 
   private Optional<ExportConfiguration> exportConfiguration = Optional.empty();
 
@@ -48,12 +48,12 @@ public class AutomationPanelForm {
         directory(container, fileFrom(scriptDirField))
             .choose()
             .ifPresent(file -> setScriptDir(Paths.get(file.toURI()))));
-    changeDefaultConfigurationButton.addActionListener(__ -> setExportConfiguration());
+    setExportConfigurationButton.addActionListener(__ -> setExportConfiguration());
     formsTable.onChange(this::triggerOnChange);
   }
 
   private void setExportConfiguration() {
-    ConfigurationDialog dialog = ConfigurationDialog.defaultPanel(exportConfiguration,BriefcasePreferences.getStorePasswordsConsentProperty());
+    ConfigurationDialog dialog = ConfigurationDialog.defaultPanel(exportConfiguration, BriefcasePreferences.getStorePasswordsConsentProperty());
     dialog.onOK(config -> exportConfiguration = Optional.ofNullable(config));
     dialog.open();
   }
@@ -158,13 +158,13 @@ public class AutomationPanelForm {
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer3, gbc);
-    changeDefaultConfigurationButton = new JButton();
-    changeDefaultConfigurationButton.setText("Set export configuration");
+    setExportConfigurationButton = new JButton();
+    setExportConfigurationButton.setText("Set export configuration");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 3;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(changeDefaultConfigurationButton, gbc);
+    container.add(setExportConfigurationButton, gbc);
     final JPanel spacer4 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
