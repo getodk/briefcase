@@ -14,11 +14,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.JPanel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.automation.AutomationConfiguration;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.FormCache;
 
@@ -78,6 +81,22 @@ public class AutomationPanel {
         appPreferences,
         formCache
     );
+  }
+
+  public void updateForms() {
+    forms.merge(toFormStatuses(formCache.getForms()));
+    view.refresh();
+  }
+
+  @EventSubscriber(eventClass = CacheUpdateEvent.class)
+  public void onCacheUpdateEvent(CacheUpdateEvent event) {
+    updateForms();
+    view.refresh();
+  }
+
+  @EventSubscriber(eventClass = FormStatusEvent.class)
+  public void onCacheUpdateEvent(FormStatusEvent event) {
+    view.refresh();
   }
 
   private static List<FormStatus> toFormStatuses(List<BriefcaseFormDefinition> formDefs) {

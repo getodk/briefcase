@@ -90,6 +90,10 @@ public class AutomationPanelForm {
     return new AutomationPanelForm(TransferFormsTable.from(forms, "Export"));
   }
 
+  public void refresh() {
+    formsTable.refresh();
+  }
+
   private void createUIComponents() {
   }
 
