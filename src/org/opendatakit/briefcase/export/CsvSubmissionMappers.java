@@ -131,7 +131,7 @@ final class CsvSubmissionMappers {
     return sb.toString().substring(1);
   }
 
-  private static String encode(String string, boolean allowNulls) {
+  static String encode(String string, boolean allowNulls) {
     if (string == null || string.isEmpty())
       return allowNulls ? "" : "\"\"";
     if (string.contains("\n") || string.contains("\"") || string.contains(","))
@@ -143,16 +143,17 @@ final class CsvSubmissionMappers {
     return getDateTimeInstance().format(new Date(offsetDateTime.toInstant().toEpochMilli()));
   }
 
-  private static String encodeMainValue(Model field, Pair<String, String> value) {
+  static String encodeMainValue(Model field, Pair<String, String> value) {
     return encode(
         value.getRight(),
         EMPTY_COL_WHEN_NULL_DATATYPES.contains(field.getDataType()) || value.getLeft().startsWith("meta")
     );
   }
 
-  private static String encodeRepeatValue(Pair<String, String> pair) {
+  static String encodeRepeatValue(Pair<String, String> pair) {
     return encode(
         pair.getRight(),
+        // It would be really surprising to have meta fields in a repeat. This is the original implementation, though.
         pair.getLeft().startsWith("meta") || pair.getLeft().startsWith("SET-OF")
     );
   }

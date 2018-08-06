@@ -72,17 +72,17 @@ public class CsvFieldMappersTest {
   }
 
   @Test
-  public void date_value() {
+  public void text_value() {
     scenario = nonGroup(DataType.TEXT);
 
-    List<Pair<String, String>> output = scenario.mapSimpleValue("some text");
+    List<Pair<String, String>> output = scenario.mapSimpleValue("some, text");
 
     assertThat(output, hasSize(1));
-    assertThat(output.get(0).getRight(), is("some text"));
+    assertThat(output.get(0).getRight(), is("some, text"));
   }
 
   @Test
-  public void text_value() {
+  public void date_value() {
     scenario = nonGroup(DataType.DATE);
 
     List<Pair<String, String>> output = scenario.mapSimpleValue("2018-01-01");
@@ -287,6 +287,11 @@ public class CsvFieldMappersTest {
     }
 
     static Scenario nonGroup(DataType dataType) {
+      Model fieldModel = createField(dataType);
+      return new Scenario("instance_" + instanceIdSeq++, "data", "field", fieldModel);
+    }
+
+    static Model createField(DataType dataType) {
       TreeElement fieldTreeElement = new TreeElement("field", DEFAULT_MULTIPLICITY);
       fieldTreeElement.setDataType(dataType.value);
 
@@ -302,7 +307,7 @@ public class CsvFieldMappersTest {
       instanceTreeElement.setParent(rootTreeElement);
       fieldTreeElement.setParent(instanceTreeElement);
 
-      return new Scenario("instance_" + instanceIdSeq++, "data", "field", new Model(fieldTreeElement));
+      return new Model(fieldTreeElement);
     }
 
     private static Scenario group(String instanceId, DataType dataType, int fieldCount, boolean repeatable) {
