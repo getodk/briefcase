@@ -25,18 +25,25 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
+
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportToCsv;
 import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.ServerConnectionInfo;
+import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.transfer.NewTransferAction;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 public class Export {
   private static final Logger log = LoggerFactory.getLogger(Export.class);
@@ -48,6 +55,7 @@ public class Export {
   private static final Param<Void> EXCLUDE_MEDIA = Param.flag("em", "exclude_media_export", "Exclude media in export");
   private static final Param<Void> OVERWRITE = Param.flag("oc", "overwrite_csv_export", "Overwrite files during export");
   private static final Param<Path> PEM_FILE = Param.arg("pf", "pem_file", "PEM file for form decryption", Paths::get);
+  private static final Param<Void> PULL_BEFORE = Param.flag("pb", "pull_before", "Pull before export");
 
   public static Operation EXPORT_FORM = Operation.of(
       EXPORT,
@@ -57,15 +65,16 @@ public class Export {
           args.get(FILE),
           !args.has(EXCLUDE_MEDIA),
           args.has(OVERWRITE),
+          args.has(PULL_BEFORE),
           args.getOptional(START),
           args.getOptional(END),
           args.getOptional(PEM_FILE)
       ),
       Arrays.asList(STORAGE_DIR, FORM_ID, FILE, EXPORT_DIR),
-      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END)
+      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE)
   );
 
-  public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
+  public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, boolean pullBefore, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -83,12 +92,41 @@ public class Export {
         maybePemFile,
         startDate,
         endDate,
-        Optional.empty(),
+        Optional.of(pullBefore),
         Optional.empty(),
         Optional.of(overwriteFiles),
         Optional.of(exportMedia),
         Optional.empty()
     );
+
+    if (configuration.resolvePullBefore()) {
+      BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
+      FormStatus formStatus = new FormStatus(FormStatus.TransferType.EXPORT, formDefinition);
+
+      String urlKey = String.format("%s_pull_settings_url", formid);
+      String usernameKey = String.format("%s_pull_settings_username", formid);
+      String passwordKey = String.format("%s_pull_settings_password", formid);
+
+      if (appPreferences.hasKey(urlKey) && appPreferences.hasKey(usernameKey) && appPreferences.hasKey(passwordKey)) {
+        ServerConnectionInfo transferSettings = new ServerConnectionInfo(
+            appPreferences.nullSafeGet(urlKey)
+                .orElseThrow(() -> new RuntimeException("Null value saved for " + urlKey)), appPreferences.nullSafeGet(usernameKey)
+            .orElseThrow(() -> new RuntimeException("Null value saved for " + usernameKey)),
+            appPreferences.nullSafeGet(passwordKey)
+                .orElseThrow(() -> new RuntimeException("Null value saved for " + passwordKey)).toCharArray()
+        );
+
+        NewTransferAction.transferServerToBriefcase(
+            transferSettings,
+            new TerminationFuture(),
+            Collections.singletonList(formStatus),
+            briefcaseDir,
+            appPreferences.getPullInParallel().orElse(false)
+        );
+      }
+
+    }
+
     ExportToCsv.export(FormDefinition.from(formDefinition), configuration);
 
     BriefcasePreferences.forClass(ExportPanel.class).put(buildExportDateTimePrefix(formDefinition.getFormId()), LocalDateTime.now().format(ISO_DATE_TIME));

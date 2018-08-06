@@ -140,12 +140,8 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaOverrideField.addActionListener(__ -> triggerChangeExportMediaOverride());
   }
 
-  public static ConfigurationPanelForm overridePanel(boolean savePasswordsConsent, boolean hasTransferSettings) {
-    return new ConfigurationPanelForm(ConfigurationPanelMode.overridePanel(savePasswordsConsent, hasTransferSettings));
-  }
-
-  public static ConfigurationPanelForm defaultPanel(boolean savePasswordsConsent, boolean hasTransferSettings) {
-    return new ConfigurationPanelForm(ConfigurationPanelMode.defaultPanel(savePasswordsConsent, hasTransferSettings));
+  public static ConfigurationPanelForm from(ConfigurationPanelMode mode) {
+    return new ConfigurationPanelForm(mode);
   }
 
   @Override
@@ -338,7 +334,7 @@ public class ConfigurationPanelForm extends JComponent {
   }
 
   private boolean confirmOverwriteFiles() {
-    if (showConfirmDialog(this, "Overwrite existing files?", "", YES_NO_OPTION, PLAIN_MESSAGE) == YES_OPTION)
+    if (showConfirmDialog(this, "The default behavior is to append to existing files. Are you sure you want to overwrite existing files?", "", YES_NO_OPTION, PLAIN_MESSAGE) == YES_OPTION)
       return true;
     overwriteFilesField.setSelected(false);
     return false;

@@ -81,6 +81,8 @@ public class SettingsPanelForm {
 
     httpProxyPortField.addChangeListener(__ -> processHttpProxyFields());
 
+    reloadCacheButton.setEnabled(false);
+    
     updateProxyFields(useHttpProxyField.isSelected());
   }
 
@@ -114,6 +116,7 @@ public class SettingsPanelForm {
     storageLocationChooseButton.setVisible(false);
     storageLocationClearButton.setVisible(true);
     onStorageLocationCallbacks.forEach(consumer -> consumer.accept(path));
+    reloadCacheButton.setEnabled(true);
   }
 
   private void clearStorageLocation() {
@@ -121,6 +124,7 @@ public class SettingsPanelForm {
     storageLocationChooseButton.setVisible(true);
     storageLocationClearButton.setVisible(false);
     onClearStorageLocationCallbacks.forEach(Runnable::run);
+    reloadCacheButton.setEnabled(false);
   }
 
   void onStorageLocation(Consumer<Path> onSet, Runnable onClear) {

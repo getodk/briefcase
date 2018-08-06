@@ -28,6 +28,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 
 @SuppressWarnings("checkstyle:MethodName")
@@ -41,7 +42,7 @@ public class ConfigurationDialogForm extends JDialog {
   private JPanel actions;
   private ConfigurationPanelForm configurationPanelForm;
 
-  ConfigurationDialogForm(ConfigurationPanelForm form) {
+  ConfigurationDialogForm(ConfigurationPanelForm form, String title) {
     configurationPanelForm = form;
     $$$setupUI$$$();
     setContentPane(dialog);
@@ -53,7 +54,7 @@ public class ConfigurationDialogForm extends JDialog {
     form.endDatePicker.getComponentDateTextField().setPreferredSize(new Dimension(350, 26));
     pack();
     setLocationRelativeTo(null);
-    setTitle("Override Export Configuration");
+    setTitle(title);
 
     okButton.addActionListener(e -> dispose());
     clearAllButton.addActionListener(e -> dispose());

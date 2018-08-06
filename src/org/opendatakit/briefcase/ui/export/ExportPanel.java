@@ -43,7 +43,6 @@ import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.transfer.NewTransferAction;
-import org.opendatakit.briefcase.ui.export.components.ConfigurationPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
@@ -70,16 +69,25 @@ public class ExportPanel {
     AnnotationProcessor.process(this);// if not using AOP
     analytics.register(form.getContainer());
 
-    form.getConfPanel().onChange(() ->
-        forms.updateDefaultConfiguration(form.getConfPanel().getConfiguration())
-    );
+    form.onDefaultConfSet(conf -> {
+      forms.updateDefaultConfiguration(conf);
+      preferences.removeAll(ExportConfiguration.keys());
+      preferences.putAll(conf.asMap());
+      updateExportButton();
+    });
+
+    form.onDefaultConfReset(() -> {
+      forms.updateDefaultConfiguration(ExportConfiguration.empty());
+      preferences.removeAll(ExportConfiguration.keys());
+      updateExportButton();
+    });
 
     forms.onSuccessfulExport((String formId, LocalDateTime exportDateTime) ->
         preferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME))
     );
 
     form.onChange(() -> {
-      updatePreferences();
+      updateCustomConfPreferences();
       updateExportButton();
       updateSelectButtons();
     });
@@ -92,7 +100,7 @@ public class ExportPanel {
       } else {
         analytics.event("Export", "Export", "Configuration errors", null);
         showErrorDialog(getForm().getContainer(), errors.stream().collect(joining("\n")), "Export errors");
-        form.unsetExporting(appPreferences.getRememberPasswords().orElse(false));
+        form.unsetExporting();
       }
     });
 
@@ -116,14 +124,7 @@ public class ExportPanel {
     }).collect(toList());
   }
 
-  private void updatePreferences() {
-    // Clean all default conf keys
-    preferences.removeAll(ExportConfiguration.keys());
-
-    // Put default conf
-    if (form.getConfPanel().isValid())
-      preferences.putAll(form.getConfPanel().getConfiguration().asMap());
-
+  private void updateCustomConfPreferences() {
     // Clean all custom conf keys
     forms.forEach(formId ->
         preferences.removeAll(ExportConfiguration.keys(buildCustomConfPrefix(formId)))
@@ -136,7 +137,7 @@ public class ExportPanel {
   }
 
   private void updateExportButton() {
-    if (forms.someSelected() && (form.getConfPanel().isValid() || forms.allSelectedFormsHaveConfiguration()))
+    if (forms.someSelected() && forms.allSelectedFormsHaveConfiguration())
       form.enableExport();
     else
       form.disableExport();
@@ -151,10 +152,9 @@ public class ExportPanel {
   }
 
   public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
-    ExportConfiguration defaultConfiguration = ExportConfiguration.load(exportPreferences);
-    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(defaultConfiguration, BriefcasePreferences.getStorePasswordsConsentProperty(), true);
-    ExportForms forms = ExportForms.load(defaultConfiguration, toFormStatuses(formCache.getForms()), exportPreferences, appPreferences);
-    ExportPanelForm form = ExportPanelForm.from(forms, confPanel);
+    ExportConfiguration initialDefaultConf = ExportConfiguration.load(exportPreferences);
+    ExportForms forms = ExportForms.load(initialDefaultConf, toFormStatuses(formCache.getForms()), exportPreferences, appPreferences);
+    ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, initialDefaultConf);
     return new ExportPanel(
         forms,
         form,
@@ -203,7 +203,7 @@ public class ExportPanel {
       log.error("Error while exporting forms", t);
       showErrorDialog(getForm().getContainer(), "Unexpected error. See logs", "Export errors");
     } finally {
-      form.unsetExporting(appPreferences.getRememberPasswords().orElse(false));
+      form.unsetExporting();
     }
   }
 
@@ -224,13 +224,11 @@ public class ExportPanel {
   @EventSubscriber(eventClass = SavePasswordsConsentGiven.class)
   public void onSavePasswordsConsentGiven(SavePasswordsConsentGiven event) {
     forms.flushTransferSettings();
-    form.getConfPanel().savePasswordsConsentGiven();
   }
 
   @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
   public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
     forms.flushTransferSettings();
-    form.getConfPanel().savePasswordsConsentRevoked();
   }
 
   @EventSubscriber(eventClass = ExportEvent.Success.class)

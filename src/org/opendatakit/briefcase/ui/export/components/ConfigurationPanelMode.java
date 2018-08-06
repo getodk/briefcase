@@ -32,8 +32,8 @@ class ConfigurationPanelMode {
     return new ConfigurationPanelMode(true, savePasswordsConsent, hasTransferSettings);
   }
 
-  static ConfigurationPanelMode defaultPanel(boolean savePasswordsConsent, boolean hasTransferSettings) {
-    return new ConfigurationPanelMode(false, savePasswordsConsent, hasTransferSettings);
+  static ConfigurationPanelMode defaultPanel(boolean savePasswordsConsent) {
+    return new ConfigurationPanelMode(false, savePasswordsConsent, false);
   }
 
   void decorate(ConfigurationPanelForm form, boolean uiLocked) {
@@ -52,6 +52,10 @@ class ConfigurationPanelMode {
     form.exportMediaField.setVisible(!isOverridePanel);
     form.exportMediaOverrideField.setVisible(isOverridePanel);
     form.exportMediaOverrideLabel.setVisible(isOverridePanel);
+  }
+
+  public boolean isOverridePanel() {
+    return isOverridePanel;
   }
 
   boolean isExportDirCleanable() {

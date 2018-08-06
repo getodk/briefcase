@@ -26,6 +26,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Optional;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -301,7 +302,7 @@ public class BriefcaseCLI {
 
     try {
       if (odkDir != null)
-        importODK(storageDir, Paths.get(odkDir));
+        importODK(storageDir, Paths.get(odkDir), Optional.empty());
 
       if (odkDir == null && server != null)
         pullFormFromAggregate(storageDir, formid, username, password, server, false);
@@ -314,6 +315,7 @@ public class BriefcaseCLI {
             fileName,
             exportMedia,
             overwrite,
+            false,
             Optional.ofNullable(startDateString).map(s -> LocalDate.parse(s.replaceAll("/", "-"))),
             Optional.ofNullable(endDateString).map(s -> LocalDate.parse(s.replaceAll("/", "-"))),
             Optional.ofNullable(pemKeyFile).map(Paths::get)

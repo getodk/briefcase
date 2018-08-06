@@ -16,12 +16,14 @@
 package org.opendatakit.briefcase.operations;
 
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.FormCache;
@@ -40,12 +42,14 @@ public class ImportFromODK {
       IMPORT,
       args -> importODK(
           args.get(STORAGE_DIR),
-          args.get(ODK_DIR)
+          args.get(ODK_DIR),
+          args.getOptional(FORM_ID)
       ),
-      Arrays.asList(STORAGE_DIR, ODK_DIR)
+      Arrays.asList(STORAGE_DIR, ODK_DIR),
+      Arrays.asList(FORM_ID)
   );
 
-  public static void importODK(String storageDir, Path odkDir) {
+  public static void importODK(String storageDir, Path odkDir, Optional<String> formId) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -53,6 +57,7 @@ public class ImportFromODK {
 
     List<FormStatus> forms = FileSystemUtils.getODKFormList(odkDir.toFile()).stream()
         .map(form -> new FormStatus(FormStatus.TransferType.GATHER, form))
+        .filter(form -> formId.map(id -> form.getFormDefinition().getFormId().equals(id)).orElse(true))
         .collect(toList());
 
     TransferFromODK.pull(briefcaseDir, odkDir, forms);
