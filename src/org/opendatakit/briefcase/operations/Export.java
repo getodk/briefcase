@@ -56,7 +56,9 @@ public class Export {
   private static final Param<Void> OVERWRITE = Param.flag("oc", "overwrite_csv_export", "Overwrite files during export");
   private static final Param<Path> PEM_FILE = Param.arg("pf", "pem_file", "PEM file for form decryption", Paths::get);
   private static final Param<Void> PULL_BEFORE = Param.flag("pb", "pull_before", "Pull before export");
-  private static final Param<Void> EXPLODE_CHOICE_LISTS = Param.flag("ecl", "explode_choice_lists", "Explode choice list fields");
+  // Externally, we use "split select multiples" to conform to language used in other apps
+  // Internally, we use "explode" and "choice lists" to conform to JavaRosa's internal domain
+  private static final Param<Void> EXPLODE_CHOICE_LISTS = Param.flag("ssm", "split_select_multiples", "Split select multiple fields");
 
   public static Operation EXPORT_FORM = Operation.of(
       EXPORT,
