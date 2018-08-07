@@ -1,2 +1,2 @@
-SubmissionDate,some_string,some_string/CHOICE_1,some_string/CHOICE_2,meta-instanceID,KEY
-"Apr 26, 2018 8:58:20 AM",CHOICE_1,1,0,uuid:39f3dd36-161e-45cb-a1a4-395831d253a7,uuid:39f3dd36-161e-45cb-a1a4-395831d253a7
+SubmissionDate,some_string,some_string/CHOICE_1,some_string/CHOICE_2,another_string,meta-instanceID,KEY
+"Apr 26, 2018 8:58:20 AM",CHOICE_1,1,0,CHOICE_2,uuid:39f3dd36-161e-45cb-a1a4-395831d253a7,uuid:39f3dd36-161e-45cb-a1a4-395831d253a7

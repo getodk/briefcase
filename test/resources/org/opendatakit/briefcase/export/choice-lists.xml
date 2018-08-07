@@ -6,6 +6,7 @@
       <instance>
         <data id="choice-lists">
           <some_string/>
+          <another_string/>
           <meta>
             <instanceID/>
           </meta>
@@ -26,5 +27,15 @@
         <label>CHOICE 2</label>
       </item>
     </select>
+    <select1 ref="/data/another_string">
+      <item>
+        <value>CHOICE_1</value>
+        <label>CHOICE 1</label>
+      </item>
+      <item>
+        <value>CHOICE_2</value>
+        <label>CHOICE 2</label>
+      </item>
+    </select1>
   </h:body>
 </h:html>
