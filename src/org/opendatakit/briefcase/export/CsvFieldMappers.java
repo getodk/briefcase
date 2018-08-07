@@ -67,13 +67,13 @@ final class CsvFieldMappers {
     mappers.put(GEOPOINT, simpleMapper(CsvFieldMappers::geopoint, 4));
 
     // Binary fields require knowledge of the export configuration and working dir
-    mappers.put(BINARY, (__, workingDir, field, element, exportMediaPath, exportMedia) -> element
-        .map(e -> binary(e, exportMedia, workingDir, exportMediaPath))
+    mappers.put(BINARY, (__, workingDir, field, element, configuration) -> element
+        .map(e -> binary(e, workingDir, configuration))
         .orElse(empty(field.fqn())));
 
     // Null fields encode groups (repeating and non-repeating), therefore,
     // they require the full context
-    mappers.put(NULL, (localId, workingDir, model, element, exportMediaPath, exportMedia) -> {
+    mappers.put(NULL, (localId, workingDir, model, element, configuration) -> {
       if (model.isRepeatable())
         return element.map(e -> repeatableGroup(localId, model, e))
             .orElse(empty("SET-OF-" + model.getParent().fqn(), 1));
@@ -81,14 +81,15 @@ final class CsvFieldMappers {
       if (model.isEmpty() && !model.isRoot())
         return element.map(CsvFieldMappers::text).orElse(empty(model.fqn()));
 
-      return nonRepeatableGroup(localId, workingDir, model, element, exportMedia, exportMediaPath);
+      return nonRepeatableGroup(localId, workingDir, model, element, configuration);
     });
   }
 
-  static CsvFieldMapper getMapper(Model field) {
-    return Optional.ofNullable(mappers.get(field.getDataType()))
+  static CsvFieldMapper getMapper(Model field, boolean explodeChoiceLists) {
+    CsvFieldMapper mapper = Optional.ofNullable(mappers.get(field.getDataType()))
         // If no mapper has been defined, we'll just output the text
         .orElse(simpleMapper(CsvFieldMappers::text));
+    return explodeChoiceLists ? ExplodeChoiceLists.decorate(mapper) : mapper;
   }
 
   /**
@@ -120,7 +121,7 @@ final class CsvFieldMappers {
   }
 
   private static CsvFieldMapper simpleMapper(Function<XmlElement, Stream<Pair<String, String>>> mapper, int outputSize) {
-    return (localId, workingDir, model, element, exportMediaPath, exportMedia) -> element
+    return (localId, workingDir, model, element, configuration) -> element
         .map(mapper)
         .orElse(empty(model.fqn(), outputSize));
   }
@@ -159,7 +160,7 @@ final class CsvFieldMappers {
         .mapToObj(i -> Pair.of(element.fqn() + "-" + tags[i], i < fields.length ? fields[i] : null));
   }
 
-  private static Stream<Pair<String, String>> binary(XmlElement element, boolean exportMedia, Path workingDir, Path exportMediaPath) {
+  private static Stream<Pair<String, String>> binary(XmlElement element, Path workingDir, ExportConfiguration configuration) {
     // TODO We should separate the side effect of writing files to disk from the csv output generation
 
     if (!element.hasValue())
@@ -167,11 +168,11 @@ final class CsvFieldMappers {
 
     String sourceFilename = element.getValue();
 
-    if (!exportMedia)
+    if (!configuration.resolveExportMedia())
       return Stream.of(Pair.of(element.fqn(), sourceFilename));
 
-    if (!Files.exists(exportMediaPath))
-      createDirectories(exportMediaPath);
+    if (!Files.exists(configuration.getExportMediaPath()))
+      createDirectories(configuration.getExportMediaPath());
 
     Path sourceFile = workingDir.resolve(sourceFilename);
 
@@ -181,7 +182,7 @@ final class CsvFieldMappers {
 
     // When the destination file doesn't exist, we copy the source file
     // there and return its path relative to the instance folder
-    Path destinationFile = exportMediaPath.resolve(sourceFilename);
+    Path destinationFile = configuration.getExportMediaPath().resolve(sourceFilename);
     if (!exists(destinationFile)) {
       copy(sourceFile, destinationFile);
       return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(destinationFile.getFileName()).toString()));
@@ -203,7 +204,7 @@ final class CsvFieldMappers {
     int sequenceSuffix = 2;
     Path sequentialDestinationFile;
     do {
-      sequentialDestinationFile = exportMediaPath.resolve(String.format("%s-%d%s", namePart, sequenceSuffix++, extPart));
+      sequentialDestinationFile = configuration.getExportMediaPath().resolve(String.format("%s-%d%s", namePart, sequenceSuffix++, extPart));
     } while (exists(sequentialDestinationFile));
 
     // Now that we have a valid destination file, we copy the source file
@@ -219,13 +220,13 @@ final class CsvFieldMappers {
         : Stream.of(Pair.of(current.fqn(), localId + "/" + current.fqn(shift)));
   }
 
-  private static Stream<Pair<String, String>> nonRepeatableGroup(String localId, Path workingDir, Model current, Optional<XmlElement> maybeElement, boolean exportMedia, Path exportMediaPath) {
-    return current.flatMap(field -> getMapper(field).apply(
+  private static Stream<Pair<String, String>> nonRepeatableGroup(String localId, Path workingDir, Model current, Optional<XmlElement> maybeElement, ExportConfiguration configuration) {
+    return current.flatMap(field -> getMapper(field, configuration.resolveExplodeChoiceLists()).apply(
         localId,
         workingDir,
         field,
         maybeElement.flatMap(element -> element.findElement(field.getName())),
-        exportMediaPath, exportMedia
+        configuration
     ));
   }
 

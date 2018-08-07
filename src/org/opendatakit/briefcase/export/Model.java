@@ -15,23 +15,30 @@
  */
 package org.opendatakit.briefcase.export;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.javarosa.core.model.Constants.DATATYPE_NULL;
+import static org.javarosa.core.model.DataType.CHOICE_LIST;
 import static org.javarosa.core.model.DataType.GEOPOINT;
 import static org.javarosa.core.model.DataType.NULL;
+import static org.opendatakit.briefcase.export.Model.ControlType.SELECT_MULTI;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.javarosa.core.model.DataType;
+import org.javarosa.core.model.QuestionDef;
+import org.javarosa.core.model.SelectChoice;
 import org.javarosa.core.model.instance.TreeElement;
 
 /**
@@ -40,12 +47,14 @@ import org.javarosa.core.model.instance.TreeElement;
  */
 class Model {
   private final TreeElement model;
+  private Map<String, QuestionDef> controls;
 
   /**
    * Main constructor for {@link Model} that takes a {@link TreeElement} as its root.
    */
-  Model(TreeElement model) {
+  Model(TreeElement model, Map<String, QuestionDef> controls) {
     this.model = model;
+    this.controls = controls;
   }
 
   /**
@@ -194,7 +203,7 @@ class Model {
    * @return the {@link Model} parent of this {@link Model} instance
    */
   Model getParent() {
-    return new Model((TreeElement) model.getParent());
+    return new Model((TreeElement) model.getParent(), controls);
   }
 
   /**
@@ -239,7 +248,7 @@ class Model {
     Set<String> fqns = new HashSet<>();
     List<Model> children = new ArrayList<>(model.getNumChildren());
     for (int i = 0, max = model.getNumChildren(); i < max; i++) {
-      Model child = new Model(model.getChildAt(i));
+      Model child = new Model(model.getChildAt(i), controls);
       String fqn = child.fqn();
       if (!fqns.contains(fqn)) {
         children.add(child);
@@ -247,5 +256,58 @@ class Model {
       }
     }
     return children;
+  }
+
+  public boolean isChoiceList() {
+    return Optional.ofNullable(controls.get(fqn()))
+        .map(control -> getDataType() == CHOICE_LIST || ControlType.from(control.getControlType()) == SELECT_MULTI)
+        .orElse(false);
+  }
+
+
+  public List<SelectChoice> getChoices() {
+    QuestionDef control = controls.get(fqn());
+    List<SelectChoice> staticChoices = Optional.ofNullable(control.getChoices()).orElse(emptyList());
+    return !staticChoices.isEmpty() ? staticChoices : control.getDynamicChoices().getChoices();
+  }
+
+  // TODO This should be defined in JavaRosa, like the DataType enum
+  enum ControlType {
+    UNTYPED(-1),
+    INPUT(1),
+    SELECT_ONE(2),
+    SELECT_MULTI(3),
+    TEXTAREA(4),
+    SECRET(5),
+    RANGE(6),
+    UPLOAD(7),
+    SUBMIT(8),
+    TRIGGER(9),
+    IMAGE_CHOOSE(10),
+    LABEL(11),
+    AUDIO_CAPTURE(12),
+    VIDEO_CAPTURE(13),
+    OSM_CAPTURE(14),
+    FILE_CAPTURE(15);
+
+    private int value;
+
+    ControlType(int value) {
+      this.value = value;
+    }
+
+    /**
+     * Returns a {@link ControlType} from its int value
+     *
+     * @param intControlType the int value of the requested DataType
+     * @return the related {@link ControlType} instance
+     */
+    public static ControlType from(int intControlType) {
+      for (ControlType ct : values()) {
+        if (ct.value == intControlType)
+          return ct;
+      }
+      throw new IllegalArgumentException("No ControlType with value " + intControlType);
+    }
   }
 }

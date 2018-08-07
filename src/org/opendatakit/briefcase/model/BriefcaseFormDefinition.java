@@ -41,7 +41,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
   private final File formFolder;
   public final File revisedFormFile;
   private boolean needsMediaUpdate = false;
-  private JavaRosaParserWrapper formDefn;
+  public JavaRosaParserWrapper formDefn;
   private PrivateKey privateKey = null;
 
   private static final String readFile(File formDefinitionFile) throws BadFormDefinition {

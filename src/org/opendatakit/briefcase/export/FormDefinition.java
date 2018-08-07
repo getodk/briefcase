@@ -16,15 +16,28 @@
 
 package org.opendatakit.briefcase.export;
 
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.javarosa.core.model.FormDef;
+import org.javarosa.core.model.IDataReference;
+import org.javarosa.core.model.IFormElement;
+import org.javarosa.core.model.QuestionDef;
+import org.javarosa.core.model.instance.InstanceInitializationFactory;
 import org.javarosa.core.model.instance.TreeElement;
+import org.javarosa.core.model.instance.TreeReference;
 import org.javarosa.xform.parse.XFormParser;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
@@ -74,7 +87,7 @@ public class FormDefinition {
           formFile,
           formDef.getName(),
           isEncrypted,
-          new Model(formDef.getMainInstance().getRoot())
+          new Model(formDef.getMainInstance().getRoot(), getFormControls(formDef))
       );
     } catch (IOException e) {
       throw new ParsingException(e);
@@ -85,14 +98,57 @@ public class FormDefinition {
    * Factory that reads all necessary info from a {@link BriefcaseFormDefinition} to create
    * a new {@link FormDefinition} instance.
    */
-  public static FormDefinition from(BriefcaseFormDefinition fd) {
+  public static FormDefinition from(BriefcaseFormDefinition briefcaseFormDefinition) {
     return new FormDefinition(
-        fd.getFormId(),
-        fd.getFormDefinitionFile().toPath(),
-        fd.getFormName(),
-        fd.isFileEncryptedForm(),
-        new Model(fd.getSubmissionElement())
+        briefcaseFormDefinition.getFormId(),
+        briefcaseFormDefinition.getFormDefinitionFile().toPath(),
+        briefcaseFormDefinition.getFormName(),
+        briefcaseFormDefinition.isFileEncryptedForm(),
+        // TODO Improve getting the FormDef out of the BriefcaseFormDefinition
+        new Model(briefcaseFormDefinition.getSubmissionElement(), getFormControls(briefcaseFormDefinition.formDefn.rootJavaRosaFormDef))
     );
+  }
+
+  private static Map<String, QuestionDef> getFormControls(FormDef formDef) {
+    return formDef.getChildren()
+            .stream()
+            .flatMap(FormDefinition::flatten)
+            .filter(e -> e instanceof QuestionDef)
+            .map(e -> {
+              QuestionDef control = (QuestionDef) e;
+              if (control.getDynamicChoices() != null) {
+                formDef.initialize(false, new InstanceInitializationFactory());
+                formDef.populateDynamicChoices(control.getDynamicChoices(), (TreeReference) control.getBind().getReference());
+              }
+              return control;
+            })
+            .collect(toMap(FormDefinition::controlFqn, e -> e));
+  }
+
+  private static String controlFqn(QuestionDef e) {
+    IDataReference bind = e.getBind();
+    TreeReference reference = (TreeReference) bind.getReference();
+
+    List<String> names = new ArrayList<>();
+    for (int i = 0; i < reference.size(); i++) {
+      names.add(reference.getName(i));
+    }
+    return names
+        .subList(1, names.size())
+        .stream()
+        .collect(joining("-"));
+  }
+
+  private static Stream<IFormElement> flatten(IFormElement e) {
+    Stream<IFormElement> e1 = Stream.of(e);
+    List<IFormElement> children = childrenOf(e);
+    Stream<IFormElement> b = children.stream()
+        .flatMap(e2 -> childrenOf(e2).size() == 0 ? Stream.of(e2) : flatten(e2));
+    return Stream.concat(e1, b);
+  }
+
+  private static List<IFormElement> childrenOf(IFormElement e) {
+    return Optional.ofNullable(e.getChildren()).orElse(Collections.emptyList());
   }
 
   private static String parseFormId(TreeElement root) {

@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:h="http://www.w3.org/1999/xhtml">
+  <h:head>
+    <h:title>Choice lists</h:title>
+    <model>
+      <instance>
+        <data id="choice-lists">
+          <some_string/>
+          <another_string/>
+          <meta>
+            <instanceID/>
+          </meta>
+        </data>
+      </instance>
+      <bind nodeset="/data/some_string" type="string"/>
+      <bind calculate="concat('uuid:', uuid())" nodeset="/data/meta/instanceID" readonly="true()" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <select ref="/data/some_string">
+      <item>
+        <value>CHOICE_1</value>
+        <label>CHOICE 1</label>
+      </item>
+      <item>
+        <value>CHOICE_2</value>
+        <label>CHOICE 2</label>
+      </item>
+    </select>
+    <select1 ref="/data/another_string">
+      <item>
+        <value>CHOICE_1</value>
+        <label>CHOICE 1</label>
+      </item>
+      <item>
+        <value>CHOICE_2</value>
+        <label>CHOICE 2</label>
+      </item>
+    </select1>
+  </h:body>
+</h:html>

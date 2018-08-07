@@ -282,7 +282,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
   /**
    * The ODK Id that uniquely identifies the form
    */
-  protected transient final FormDef rootJavaRosaFormDef;
+  public transient final FormDef rootJavaRosaFormDef;
   protected final XFormParameters rootElementDefn;
   protected transient final TreeElement trueSubmissionElement;
   protected transient final TreeElement submissionElement;

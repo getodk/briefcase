@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.javarosa.core.model.DataType;
+import org.javarosa.core.model.SelectChoice;
 import org.opendatakit.briefcase.reused.Pair;
 
 final class CsvSubmissionMappers {
@@ -53,13 +54,12 @@ final class CsvSubmissionMappers {
     return submission -> {
       List<String> cols = new ArrayList<>();
       cols.add(encode(submission.getSubmissionDate().map(CsvSubmissionMappers::format).orElse(null), false));
-      cols.addAll(formDefinition.getModel().flatMap(field -> getMapper(field).apply(
+      cols.addAll(formDefinition.getModel().flatMap(field -> getMapper(field, configuration.resolveExplodeChoiceLists()).apply(
           submission.getInstanceId(),
           submission.getWorkingDir(),
           field,
           submission.findElement(field.getName()),
-          configuration.getExportMediaPath(),
-          configuration.resolveExportMedia()
+          configuration
       ).map(value -> encodeMainValue(field, value))).collect(Collectors.toList()));
       cols.add(submission.getInstanceId());
       if (formDefinition.isFileEncryptedForm())
@@ -82,13 +82,12 @@ final class CsvSubmissionMappers {
         submission.getSubmissionDate().orElse(MIN_SUBMISSION_DATE),
         submission.getElements(groupModel.fqn()).stream().map(element -> {
           List<String> cols = new ArrayList<>();
-          cols.addAll(groupModel.flatMap(field -> getMapper(field).apply(
+          cols.addAll(groupModel.flatMap(field -> getMapper(field, configuration.resolveExplodeChoiceLists()).apply(
               element.getCurrentLocalId(submission.getInstanceId()),
               submission.getWorkingDir(),
               field,
               element.findElement(field.getName()),
-              configuration.getExportMediaPath(),
-              configuration.resolveExportMedia()
+              configuration
           ).map(CsvSubmissionMappers::encodeRepeatValue)).collect(toList()));
           cols.add(encode(element.getParentLocalId(submission.getInstanceId()), false));
           cols.add(encode(element.getCurrentLocalId(submission.getInstanceId()), false));
@@ -105,10 +104,18 @@ final class CsvSubmissionMappers {
    * @param isEncrypted {@link Boolean} indicating if the form is encrypted
    * @return a {@link String} with the main form's header column names
    */
-  static String getMainHeader(Model model, boolean isEncrypted) {
+  static String getMainHeader(Model model, boolean isEncrypted, boolean explodeChoiceLists) {
     StringBuilder sb = new StringBuilder();
     sb.append("SubmissionDate");
-    model.forEach(field -> field.getNames().forEach(name -> sb.append(",").append(name)));
+    model.forEach(field -> {
+      List<String> names = new ArrayList<>();
+      names.addAll(field.getNames());
+      if (field.isChoiceList() && explodeChoiceLists) {
+        List<SelectChoice> choices = field.getChoices();
+        names.addAll(choices.stream().map(choice -> field.getName() + "/" + choice.getValue()).collect(toList()));
+      }
+      names.forEach(name -> sb.append(",").append(name));
+    });
     sb.append(",").append("KEY");
     if (isEncrypted)
       sb.append(",").append("isValidated");
@@ -121,10 +128,15 @@ final class CsvSubmissionMappers {
    * @param groupModel {@link Model} of the group
    * @return a {@link String} with a repeat group's header column names
    */
-  static String getRepeatHeader(Model groupModel) {
+  static String getRepeatHeader(Model groupModel, boolean explodeChoiceLists) {
     int shift = groupModel.countAncestors();
     StringBuilder sb = new StringBuilder();
-    groupModel.forEach(m -> m.getNames(shift).forEach(name -> sb.append(",").append(name)));
+    groupModel.forEach(field -> {
+      List<String> names = field.getNames(shift);
+      if (field.isChoiceList() && explodeChoiceLists)
+        names.addAll(field.getChoices().stream().map(choice -> field.getName() + "/" + choice.getValue()).collect(toList()));
+      names.forEach(name -> sb.append(",").append(name));
+    });
     sb.append(",").append("PARENT_KEY");
     sb.append(",").append("KEY");
     sb.append(",").append("SET-OF-").append(groupModel.getName());
