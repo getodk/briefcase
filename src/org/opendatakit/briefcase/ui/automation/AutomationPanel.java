@@ -48,12 +48,12 @@ public class AutomationPanel {
     Path storageDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new).getParent();
     String template = "java -jar {0} --export --form_id {1} --storage_directory {2} --export_directory {3} --export_filename {4}.csv";
 
-    List<String> scriptLines = formCache.getForms()
+    List<String> scriptLines = forms.getSelectedForms()
         .stream()
         .map(form -> MessageFormat.format(
             template,
             "briefcase.jar",
-            form.getFormId(),
+            form.getFormDefinition().getFormId(),
             storageDir.toString(),
             "/tmp",
             form.getFormName()
