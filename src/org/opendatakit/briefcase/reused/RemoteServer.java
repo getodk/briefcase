@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.reused;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.javarosa.xform.parse.XFormParser.getXMLText;
@@ -166,7 +167,7 @@ public class RemoteServer {
         .orElseThrow(BriefcaseException::new);
 
     Path tmpFile = UncheckedFiles.createTempFile("briefcase_", "_form_definition");
-    UncheckedFiles.write(tmpFile, blankForm.getBytes());
+    UncheckedFiles.write(tmpFile, blankForm);
     return tmpFile;
   }
 
@@ -209,8 +210,8 @@ public class RemoteServer {
   }
 
   private static Document parse(String content) {
-    try (InputStream is = new ByteArrayInputStream(content.getBytes());
-         InputStreamReader isr = new InputStreamReader(is)) {
+    try (InputStream is = new ByteArrayInputStream(content.getBytes(UTF_8));
+         InputStreamReader isr = new InputStreamReader(is, "UTF-8")) {
       Document doc = new Document();
       KXmlParser parser = new KXmlParser();
       parser.setInput(isr);

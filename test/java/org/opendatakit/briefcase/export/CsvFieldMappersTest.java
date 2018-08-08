@@ -30,7 +30,6 @@ import static org.opendatakit.briefcase.export.CsvFieldMappersTest.Scenario.repe
 import static org.opendatakit.briefcase.matchers.PathMatchers.exists;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createTempDirectory;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -141,7 +140,7 @@ public class CsvFieldMappersTest {
   @Test
   public void binary_value_given_user_does_not_want_to_export_media_files() {
     scenario = nonGroup(DataType.BINARY);
-    write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString().getBytes());
+    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
 
     List<Pair<String, String>> outputWithoutMedia = scenario.mapSimpleValue("some_file.bin", false);
 
@@ -153,7 +152,7 @@ public class CsvFieldMappersTest {
   @Test
   public void binary_value_given_user_wants_to_export_media_files() {
     scenario = nonGroup(DataType.BINARY);
-    write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString().getBytes());
+    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
 
     List<Pair<String, String>> outputWithMedia = scenario.mapSimpleValue("some_file.bin", true);
 
@@ -178,7 +177,7 @@ public class CsvFieldMappersTest {
   @Test
   public void binary_value_given_output_file_does_not_exist() {
     scenario = nonGroup(DataType.BINARY);
-    write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString().getBytes());
+    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
 
     List<Pair<String, String>> outputWithMedia = scenario.mapSimpleValue("some_file.bin", true);
 
@@ -197,8 +196,8 @@ public class CsvFieldMappersTest {
   public void binary_value_given_exact_same_output_file_exist() {
     scenario = nonGroup(DataType.BINARY);
     String fileContents = UUID.randomUUID().toString();
-    write(scenario.getWorkDir().resolve("some_file.bin"), fileContents.getBytes());
-    write(scenario.getOutputMediaDir().resolve("some_file.bin"), fileContents.getBytes());
+    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), fileContents);
+    UncheckedFiles.write(scenario.getOutputMediaDir().resolve("some_file.bin"), fileContents);
 
     List<Pair<String, String>> outputWithMedia = scenario.mapSimpleValue("some_file.bin", true);
 
@@ -216,8 +215,8 @@ public class CsvFieldMappersTest {
   @Test
   public void binary_value_given_different_output_file_exist() {
     scenario = nonGroup(DataType.BINARY);
-    write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString().getBytes());
-    write(scenario.getOutputMediaDir().resolve("some_file.bin"), UUID.randomUUID().toString().getBytes());
+    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    UncheckedFiles.write(scenario.getOutputMediaDir().resolve("some_file.bin"), UUID.randomUUID().toString());
 
     List<Pair<String, String>> outputWithMedia = scenario.mapSimpleValue("some_file.bin", true);
 
@@ -234,9 +233,9 @@ public class CsvFieldMappersTest {
   @Test
   public void binary_value_given_different_output_files_exist() {
     scenario = nonGroup(DataType.BINARY);
-    write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString().getBytes());
-    write(scenario.getOutputMediaDir().resolve("some_file.bin"), UUID.randomUUID().toString().getBytes());
-    write(scenario.getOutputMediaDir().resolve("some_file-2.bin"), UUID.randomUUID().toString().getBytes());
+    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    UncheckedFiles.write(scenario.getOutputMediaDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    UncheckedFiles.write(scenario.getOutputMediaDir().resolve("some_file-2.bin"), UUID.randomUUID().toString());
 
     List<Pair<String, String>> outputWithMedia = scenario.mapSimpleValue("some_file.bin", true);
 
