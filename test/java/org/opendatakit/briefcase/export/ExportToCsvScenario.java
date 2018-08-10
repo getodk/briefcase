@@ -144,6 +144,7 @@ class ExportToCsvScenario {
         Optional.of(false),
         Optional.empty(),
         Optional.of(overwrite),
+        Optional.empty(),
         Optional.of(exportMedia),
         Optional.empty(),
         Optional.of(explodeChoiceLists)

@@ -445,6 +445,7 @@ public class CsvFieldMappersTest {
           Optional.of(false),
           Optional.empty(),
           Optional.of(true),
+          Optional.empty(),
           Optional.of(exportMedia),
           Optional.empty(),
           Optional.of(false)
