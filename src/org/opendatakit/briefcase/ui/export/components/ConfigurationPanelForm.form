@@ -223,13 +223,6 @@
           <text value="Export media files"/>
         </properties>
       </component>
-      <component id="e1b24" class="javax.swing.JComboBox" binding="exportMediaOverrideField" custom-create="true">
-        <constraints>
-          <grid row="8" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
-        </constraints>
-        <properties/>
-      </component>
       <component id="bd9c9" class="javax.swing.JCheckBox" binding="overwriteFilesField">
         <constraints>
           <grid row="6" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
@@ -251,6 +244,12 @@
       <nested-form id="fd598" form-file="org/opendatakit/briefcase/ui/export/components/CustomConfBoolean.form" binding="overwriteFilesOverrideField" custom-create="true">
         <constraints>
           <grid row="9" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </nested-form>
+      <nested-form id="d42b7" form-file="org/opendatakit/briefcase/ui/export/components/CustomConfBoolean.form" binding="exportMediaOverrideField" custom-create="true">
+        <constraints>
+          <grid row="8" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
       </nested-form>

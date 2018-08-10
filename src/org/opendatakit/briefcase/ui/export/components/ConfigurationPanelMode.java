@@ -51,6 +51,7 @@ class ConfigurationPanelMode {
     );
     form.exportMediaField.setVisible(!isOverridePanel);
     form.exportMediaOverrideField.setVisible(isOverridePanel);
+    form.exportMediaOverrideField.setVisible(isOverridePanel);
     form.exportMediaOverrideLabel.setVisible(isOverridePanel);
 
     form.overwriteFilesField.setVisible(!isOverridePanel);

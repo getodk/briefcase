@@ -48,7 +48,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-import org.opendatakit.briefcase.export.ExportMediaOverrideOption;
 import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.StringUtils;
@@ -76,10 +75,10 @@ public class ConfigurationPanelForm extends JComponent {
   JLabel pullBeforeOverrideLabel;
   JCheckBox overwriteFilesField;
   JCheckBox exportMediaField;
-  JComboBox exportMediaOverrideField;
   JLabel exportMediaOverrideLabel;
   JLabel overwriteFilesOverrideLabel;
   CustomConfBoolean overwriteFilesOverrideField;
+  CustomConfBoolean exportMediaOverrideField;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
@@ -89,7 +88,7 @@ public class ConfigurationPanelForm extends JComponent {
   private final List<Consumer<Boolean>> onChangeOverwriteExistingFilesCallbacks = new ArrayList<>();
   private final List<Consumer<CustomConfBoolean.Value>> onChangeOverwriteFilesOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeExportMediaCallbacks = new ArrayList<>();
-  private final List<Consumer<ExportMediaOverrideOption>> onChangeExportMediaOverrideCallbacks = new ArrayList<>();
+  private final List<Consumer<CustomConfBoolean.Value>> onChangeExportMediaOverrideCallbacks = new ArrayList<>();
   private final ConfigurationPanelMode mode;
   private boolean uiLocked = false;
 
@@ -99,10 +98,9 @@ public class ConfigurationPanelForm extends JComponent {
     endDatePicker = createDatePicker();
     pullBeforeOverrideField = new JComboBox<>(PullBeforeOverrideOption.values());
     pullBeforeOverrideField.setSelectedItem(PullBeforeOverrideOption.INHERIT);
-    exportMediaOverrideField = new JComboBox<>(ExportMediaOverrideOption.values());
-    exportMediaOverrideField.setSelectedItem(ExportMediaOverrideOption.INHERIT);
+    exportMediaOverrideField = new CustomConfBoolean(Optional.empty());
     overwriteFilesOverrideField = new CustomConfBoolean(Optional.empty());
-    overwriteFilesOverrideField.onChange(__ -> triggerOverwriteFilesOverride());
+
     $$$setupUI$$$();
     startDatePicker.getSettings().setGapBeforeButtonPixels(0);
     startDatePicker.getComponentDateTextField().setPreferredSize(exportDirField.getPreferredSize());
@@ -142,7 +140,8 @@ public class ConfigurationPanelForm extends JComponent {
         triggerOverwriteExistingFiles();
     });
     exportMediaField.addActionListener(__ -> triggerChangeExportMedia());
-    exportMediaOverrideField.addActionListener(__ -> triggerChangeExportMediaOverride());
+    exportMediaOverrideField.onChange(__ -> triggerChangeExportMediaOverride());
+    overwriteFilesOverrideField.onChange(__ -> triggerOverwriteFilesOverride());
   }
 
   public static ConfigurationPanelForm from(ConfigurationPanelMode mode) {
@@ -236,8 +235,8 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaField.setSelected(value);
   }
 
-  void setExportMediaOverride(ExportMediaOverrideOption value) {
-    exportMediaOverrideField.setSelectedItem(value);
+  void setExportMediaOverride(CustomConfBoolean.Value value) {
+    exportMediaOverrideField.set(value);
   }
 
   void onSelectExportDir(Consumer<Path> callback) {
@@ -276,7 +275,7 @@ public class ConfigurationPanelForm extends JComponent {
     onChangeExportMediaCallbacks.add(callback);
   }
 
-  void onChangeExportMediaOverride(Consumer<ExportMediaOverrideOption> callback) {
+  void onChangeExportMediaOverride(Consumer<CustomConfBoolean.Value> callback) {
     onChangeExportMediaOverrideCallbacks.add(callback);
   }
 
@@ -346,7 +345,7 @@ public class ConfigurationPanelForm extends JComponent {
   }
 
   private void triggerChangeExportMediaOverride() {
-    onChangeExportMediaOverrideCallbacks.forEach(callback -> callback.accept((ExportMediaOverrideOption) exportMediaOverrideField.getSelectedItem()));
+    onChangeExportMediaOverrideCallbacks.forEach(callback -> callback.accept(exportMediaOverrideField.get()));
   }
 
   private boolean confirmOverwriteFiles() {
@@ -545,12 +544,6 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.gridy = 8;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(exportMediaOverrideLabel, gbc);
-    gbc = new GridBagConstraints();
-    gbc.gridx = 2;
-    gbc.gridy = 8;
-    gbc.anchor = GridBagConstraints.WEST;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(exportMediaOverrideField, gbc);
     overwriteFilesField = new JCheckBox();
     overwriteFilesField.setText("Overwrite existing files");
     gbc = new GridBagConstraints();
@@ -570,6 +563,11 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.gridy = 9;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(overwriteFilesOverrideField.$$$getRootComponent$$$(), gbc);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 8;
+    gbc.anchor = GridBagConstraints.WEST;
+    container.add(exportMediaOverrideField.$$$getRootComponent$$$(), gbc);
   }
 
   /**

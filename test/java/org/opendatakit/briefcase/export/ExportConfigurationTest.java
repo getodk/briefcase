@@ -43,6 +43,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
+import org.opendatakit.briefcase.ui.export.components.CustomConfBoolean;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportConfigurationTest {
@@ -178,12 +179,12 @@ public class ExportConfigurationTest {
     assertThat(empty().resolveExportMedia(), is(true));
     assertThat(empty().setExportMedia(true).resolveExportMedia(), is(true));
     assertThat(empty().setExportMedia(false).resolveExportMedia(), is(false));
-    assertThat(empty().setExportMedia(true).setExportMediaOverride(ExportMediaOverrideOption.INHERIT).resolveExportMedia(), is(true));
-    assertThat(empty().setExportMedia(true).setExportMediaOverride(ExportMediaOverrideOption.EXPORT_MEDIA).resolveExportMedia(), is(true));
-    assertThat(empty().setExportMedia(true).setExportMediaOverride(ExportMediaOverrideOption.DONT_EXPORT_MEDIA).resolveExportMedia(), is(false));
-    assertThat(empty().setExportMedia(false).setExportMediaOverride(ExportMediaOverrideOption.INHERIT).resolveExportMedia(), is(false));
-    assertThat(empty().setExportMedia(false).setExportMediaOverride(ExportMediaOverrideOption.EXPORT_MEDIA).resolveExportMedia(), is(true));
-    assertThat(empty().setExportMedia(false).setExportMediaOverride(ExportMediaOverrideOption.DONT_EXPORT_MEDIA).resolveExportMedia(), is(false));
+    assertThat(empty().setExportMedia(true).setExportMediaOverride(CustomConfBoolean.Value.INHERIT).resolveExportMedia(), is(true));
+    assertThat(empty().setExportMedia(true).setExportMediaOverride(CustomConfBoolean.Value.YES).resolveExportMedia(), is(true));
+    assertThat(empty().setExportMedia(true).setExportMediaOverride(CustomConfBoolean.Value.NO).resolveExportMedia(), is(false));
+    assertThat(empty().setExportMedia(false).setExportMediaOverride(CustomConfBoolean.Value.INHERIT).resolveExportMedia(), is(false));
+    assertThat(empty().setExportMedia(false).setExportMediaOverride(CustomConfBoolean.Value.YES).resolveExportMedia(), is(true));
+    assertThat(empty().setExportMedia(false).setExportMediaOverride(CustomConfBoolean.Value.NO).resolveExportMedia(), is(false));
   }
 
   @Test
