@@ -115,7 +115,7 @@
       </component>
       <component id="6925f" class="javax.swing.JTextPane" binding="pullBeforeHintPanel">
         <constraints>
-          <grid row="10" column="2" row-span="1" col-span="2" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+          <grid row="11" column="2" row-span="1" col-span="2" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="50"/>
           </grid>
           <gridbag weightx="0.0" weighty="0.0"/>
@@ -131,7 +131,7 @@
       </component>
       <component id="9a017" class="javax.swing.JComboBox" binding="pullBeforeOverrideField" custom-create="true">
         <constraints>
-          <grid row="9" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="10" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
         <properties/>
@@ -144,7 +144,7 @@
       </vspacer>
       <component id="443be" class="javax.swing.JLabel" binding="pullBeforeOverrideLabel">
         <constraints>
-          <grid row="9" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="10" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
         <properties>
@@ -201,7 +201,7 @@
       </grid>
       <vspacer id="1c95d">
         <constraints>
-          <grid row="11" column="0" row-span="1" col-span="3" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <grid row="12" column="0" row-span="1" col-span="3" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
       </vspacer>
@@ -239,6 +239,21 @@
           <text value="Overwrite existing files"/>
         </properties>
       </component>
+      <component id="46378" class="javax.swing.JLabel" binding="overwriteFilesOverrideLabel">
+        <constraints>
+          <grid row="9" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+        <properties>
+          <text value="Overwrite existing files"/>
+        </properties>
+      </component>
+      <nested-form id="fd598" form-file="org/opendatakit/briefcase/ui/export/components/CustomConfBoolean.form" binding="overwriteFilesOverrideField" custom-create="true">
+        <constraints>
+          <grid row="9" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </nested-form>
     </children>
   </grid>
 </form>
