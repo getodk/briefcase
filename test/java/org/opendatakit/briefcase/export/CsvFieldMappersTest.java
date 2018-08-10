@@ -82,6 +82,29 @@ public class CsvFieldMappersTest {
   }
 
   @Test
+  public void decimal_value() {
+    scenario = nonGroup(DataType.DECIMAL);
+
+    List<Pair<String, String>> output = scenario.mapSimpleValue("1.234");
+
+    assertThat(output, hasSize(1));
+    assertThat(output.get(0).getRight(), is("1.234"));
+  }
+
+  @Test
+  public void decimal_value_locale_ES() {
+    // es_ES locale formats decimal numbers using a comma as the decimal separator
+    // This would break the CSV file's structure
+    Locale.setDefault(Locale.forLanguageTag("es_ES"));
+    scenario = nonGroup(DataType.DECIMAL);
+
+    List<Pair<String, String>> output = scenario.mapSimpleValue("1.234");
+
+    assertThat(output, hasSize(1));
+    assertThat(output.get(0).getRight(), is("1.234"));
+  }
+
+  @Test
   public void date_value() {
     scenario = nonGroup(DataType.DATE);
 
