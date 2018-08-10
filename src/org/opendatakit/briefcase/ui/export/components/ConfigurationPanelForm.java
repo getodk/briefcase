@@ -441,7 +441,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeField.setText("Pull before export");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 6;
+    gbc.gridy = 7;
     gbc.gridwidth = 2;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(pullBeforeField, gbc);
@@ -454,13 +454,13 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeHintPanel.setText("Some hint will be shown here");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 9;
+    gbc.gridy = 10;
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(pullBeforeHintPanel, gbc);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 8;
+    gbc.gridy = 9;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(pullBeforeOverrideField, gbc);
@@ -475,7 +475,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeOverrideLabel.setText("Pull before export");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 8;
+    gbc.gridy = 9;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(pullBeforeOverrideLabel, gbc);
     exportDirButtons = new JPanel();
@@ -508,17 +508,10 @@ public class ConfigurationPanelForm extends JComponent {
     pemFileChooseButton.setText("Choose...");
     pemFileChooseButton.setVisible(true);
     pemFileButtons.add(pemFileChooseButton);
-    overwriteFilesField = new JCheckBox();
-    overwriteFilesField.setText("Overwrite existing files");
-    gbc = new GridBagConstraints();
-    gbc.gridx = 2;
-    gbc.gridy = 11;
-    gbc.anchor = GridBagConstraints.WEST;
-    container.add(overwriteFilesField, gbc);
     final JPanel spacer6 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 10;
+    gbc.gridy = 11;
     gbc.gridwidth = 3;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer6, gbc);
@@ -533,15 +526,22 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaOverrideLabel.setText("Export media files");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 7;
+    gbc.gridy = 8;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(exportMediaOverrideLabel, gbc);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 7;
+    gbc.gridy = 8;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(exportMediaOverrideField, gbc);
+    overwriteFilesField = new JCheckBox();
+    overwriteFilesField.setText("Overwrite existing files");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 6;
+    gbc.anchor = GridBagConstraints.WEST;
+    container.add(overwriteFilesField, gbc);
   }
 
   /**
