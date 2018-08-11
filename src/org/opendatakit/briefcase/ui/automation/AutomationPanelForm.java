@@ -68,10 +68,6 @@ public class AutomationPanelForm {
     });
   }
 
-  void onChange(Runnable runnable) {
-    onChandeCallbacks.add(runnable);
-  }
-
   private void triggerOnChange() {
     onChandeCallbacks.forEach(Runnable::run);
   }
