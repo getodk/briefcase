@@ -22,6 +22,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
+import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.FormCache;
 
@@ -74,10 +75,10 @@ public class AutomationPanel {
 
   }
 
-  public static AutomationPanel from(BriefcasePreferences appPreferences, FormCache formCache) {
+  public static AutomationPanel from(Http http, BriefcasePreferences appPreferences, FormCache formCache) {
     TransferForms forms = TransferForms.from(toFormStatuses(formCache.getForms()));
     return new AutomationPanel(
-        AutomationPanelForm.from(forms),
+        AutomationPanelForm.from(http, forms),
         forms,
         appPreferences,
         formCache

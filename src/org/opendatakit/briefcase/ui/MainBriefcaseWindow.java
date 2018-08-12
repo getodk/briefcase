@@ -123,7 +123,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
     Component settingsPanel = SettingsPanel.from(appPreferences, analytics, formCache).getContainer();
 
-    AutomationPanel automationPanel = AutomationPanel.from(appPreferences, formCache);
+    AutomationPanel automationPanel = AutomationPanel.from(http, appPreferences, formCache);
     addPane(AutomationPanel.TAB_NAME, automationPanel.getContainer());
 
     addPane(SettingsPanel.TAB_NAME, settingsPanel);
