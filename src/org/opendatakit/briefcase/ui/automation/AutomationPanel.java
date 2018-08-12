@@ -67,6 +67,7 @@ public class AutomationPanel {
           CREATE,
           TRUNCATE_EXISTING
       );
+      view.showConfirmation();
     } catch (IOException e) {
       throw new BriefcaseException(e);
     }

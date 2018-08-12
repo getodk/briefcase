@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -88,6 +89,10 @@ public class AutomationPanelForm {
 
   public void refresh() {
     formsTable.refresh();
+  }
+
+  public void showConfirmation() {
+    JOptionPane.showMessageDialog(container, "Script Generated");
   }
 
   private void createUIComponents() {
