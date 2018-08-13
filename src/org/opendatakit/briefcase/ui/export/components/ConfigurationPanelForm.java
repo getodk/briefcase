@@ -224,12 +224,9 @@ public class ConfigurationPanelForm extends JComponent {
     overwriteFilesOverrideField.set(value.getOverride());
   }
 
-  void setExportMedia(boolean value) {
-    exportMediaField.setSelected(value);
-  }
-
-  void setExportMediaOverride(TriStateBoolean value) {
-    exportMediaOverrideField.set(value);
+  void setExportMedia(OverridableBoolean value) {
+    exportMediaField.setSelected(value.get(true));
+    exportMediaOverrideField.set(value.getOverride());
   }
 
   void onSelectExportDir(Consumer<Path> callback) {

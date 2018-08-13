@@ -445,8 +445,7 @@ public class CsvFieldMappersTest {
           Optional.empty(),
           OverridableBoolean.FALSE,
           OverridableBoolean.TRUE,
-          Optional.of(exportMedia),
-          Optional.empty(),
+          OverridableBoolean.of(exportMedia),
           Optional.of(false)
       );
       return CsvFieldMappers

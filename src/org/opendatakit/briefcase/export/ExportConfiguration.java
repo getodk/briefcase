@@ -69,11 +69,10 @@ public class ExportConfiguration {
   private Optional<LocalDate> endDate;
   public OverridableBoolean pullBefore;
   public OverridableBoolean overwriteFiles;
-  private Optional<Boolean> exportMedia;
-  private Optional<TriStateBoolean> exportMediaOverride;
+  public OverridableBoolean exportMedia;
   private Optional<Boolean> explodeChoiceLists;
 
-  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, Optional<Boolean> exportMedia, Optional<TriStateBoolean> exportMediaOverride, Optional<Boolean> explodeChoiceLists) {
+  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, Optional<Boolean> explodeChoiceLists) {
     this.exportFileName = exportFileName;
     this.exportDir = exportDir;
     this.pemFile = pemFile;
@@ -82,12 +81,11 @@ public class ExportConfiguration {
     this.pullBefore = pullBefore;
     this.overwriteFiles = overwriteFiles;
     this.exportMedia = exportMedia;
-    this.exportMediaOverride = exportMediaOverride;
     this.explodeChoiceLists = explodeChoiceLists;
   }
 
   public static ExportConfiguration empty() {
-    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), OverridableBoolean.empty(), OverridableBoolean.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), OverridableBoolean.empty(), OverridableBoolean.empty(), OverridableBoolean.empty(), Optional.empty());
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
@@ -99,8 +97,7 @@ public class ExportConfiguration {
         prefs.nullSafeGet(END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(PULL_BEFORE).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty),
         prefs.nullSafeGet(OVERWRITE_FILES).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty),
-        prefs.nullSafeGet(EXPORT_MEDIA).map(Boolean::valueOf),
-        prefs.nullSafeGet(EXPORT_MEDIA_OVERRIDE).map(TriStateBoolean::from),
+        prefs.nullSafeGet(EXPORT_MEDIA).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty),
         prefs.nullSafeGet(EXPLODE_CHOICE_LISTS).map(Boolean::valueOf)
     );
   }
@@ -114,8 +111,7 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + PULL_BEFORE).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty),
         prefs.nullSafeGet(keyPrefix + OVERWRITE_FILES).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty),
-        prefs.nullSafeGet(keyPrefix + EXPORT_MEDIA).map(Boolean::valueOf),
-        prefs.nullSafeGet(keyPrefix + EXPORT_MEDIA_OVERRIDE).map(TriStateBoolean::from),
+        prefs.nullSafeGet(keyPrefix + EXPORT_MEDIA).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty),
         prefs.nullSafeGet(keyPrefix + EXPLODE_CHOICE_LISTS).map(Boolean::valueOf)
     );
   }
@@ -133,7 +129,6 @@ public class ExportConfiguration {
         keyPrefix + PULL_BEFORE,
         keyPrefix + OVERWRITE_FILES,
         keyPrefix + EXPORT_MEDIA,
-        keyPrefix + EXPORT_MEDIA_OVERRIDE,
         keyPrefix + EXPLODE_CHOICE_LISTS
     );
   }
@@ -152,8 +147,7 @@ public class ExportConfiguration {
     endDate.ifPresent(value -> map.put(keyPrefix + END_DATE, value.format(DateTimeFormatter.ISO_DATE)));
     map.put(keyPrefix + PULL_BEFORE, pullBefore.serialize());
     map.put(keyPrefix + OVERWRITE_FILES, overwriteFiles.serialize());
-    exportMedia.ifPresent(value -> map.put(keyPrefix + EXPORT_MEDIA, value.toString()));
-    exportMediaOverride.filter(TriStateBoolean::isNotUndetermined).ifPresent(value -> map.put(keyPrefix + EXPORT_MEDIA_OVERRIDE, value.name()));
+    map.put(keyPrefix + EXPORT_MEDIA, exportMedia.serialize());
     explodeChoiceLists.ifPresent(value -> map.put(keyPrefix + EXPLODE_CHOICE_LISTS, value.toString()));
     return map;
   }
@@ -167,7 +161,6 @@ public class ExportConfiguration {
         pullBefore,
         overwriteFiles,
         exportMedia,
-        exportMediaOverride,
         explodeChoiceLists
     );
   }
@@ -212,16 +205,6 @@ public class ExportConfiguration {
     return this;
   }
 
-  public ExportConfiguration setExportMedia(boolean exportMedia) {
-    this.exportMedia = Optional.of(exportMedia);
-    return this;
-  }
-
-  public ExportConfiguration setExportMediaOverride(TriStateBoolean value) {
-    this.exportMediaOverride = Optional.of(value);
-    return this;
-  }
-
   boolean resolveExplodeChoiceLists() {
     return explodeChoiceLists.orElse(false);
   }
@@ -259,10 +242,7 @@ public class ExportConfiguration {
    * @return false if the algorithm resolves that we don't need to export media files, true otherwise
    */
   public boolean resolveExportMedia() {
-    return firstPresent(
-        exportMediaOverride.filter(TriStateBoolean::isNotUndetermined).flatMap(TriStateBoolean::maybeGetBooleanValue),
-        exportMedia
-    ).orElse(true);
+    return exportMedia.resolve(true);
   }
 
   /**
@@ -301,10 +281,6 @@ public class ExportConfiguration {
 
   public void ifEndDatePresent(Consumer<LocalDate> consumer) {
     endDate.ifPresent(consumer);
-  }
-
-  public void ifExportMediaOverridePresent(Consumer<TriStateBoolean> consumer) {
-    exportMediaOverride.ifPresent(consumer);
   }
 
   private List<String> getErrors() {
@@ -366,8 +342,7 @@ public class ExportConfiguration {
         && !endDate.isPresent()
         && pullBefore.isEmpty()
         && overwriteFiles.isEmpty()
-        && !exportMedia.isPresent()
-        && !exportMediaOverride.filter(TriStateBoolean::isNotUndetermined).isPresent()
+        && exportMedia.isEmpty()
         && !explodeChoiceLists.isPresent();
   }
 
@@ -403,8 +378,7 @@ public class ExportConfiguration {
         endDate.isPresent() ? endDate : defaultConfiguration.endDate,
         pullBefore.fallingBackTo(defaultConfiguration.pullBefore),
         overwriteFiles.fallingBackTo(defaultConfiguration.overwriteFiles),
-        exportMedia.isPresent() ? exportMedia : defaultConfiguration.exportMedia,
-        exportMediaOverride.isPresent() ? exportMediaOverride : defaultConfiguration.exportMediaOverride,
+        exportMedia.fallingBackTo(defaultConfiguration.exportMedia),
         explodeChoiceLists.isPresent() ? explodeChoiceLists : defaultConfiguration.explodeChoiceLists
     );
   }
@@ -419,7 +393,6 @@ public class ExportConfiguration {
         ", pullBefore=" + pullBefore +
         ", overwriteFiles=" + overwriteFiles +
         ", exportMedia=" + exportMedia +
-        ", exportMediaOverride=" + exportMediaOverride +
         ", explodeChoiceLists=" + explodeChoiceLists +
         '}';
   }
@@ -438,13 +411,12 @@ public class ExportConfiguration {
         Objects.equals(pullBefore, that.pullBefore) &&
         Objects.equals(overwriteFiles, that.overwriteFiles) &&
         Objects.equals(exportMedia, that.exportMedia) &&
-        Objects.equals(exportMediaOverride, that.exportMediaOverride) &&
         Objects.equals(explodeChoiceLists, that.explodeChoiceLists);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, overwriteFiles, exportMedia, exportMediaOverride, explodeChoiceLists);
+    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, overwriteFiles, exportMedia, explodeChoiceLists);
   }
 
   public static ErrorsOr<PrivateKey> readPemFile(Path pemFile) {

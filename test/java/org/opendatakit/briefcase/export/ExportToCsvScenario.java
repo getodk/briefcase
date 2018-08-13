@@ -144,8 +144,7 @@ class ExportToCsvScenario {
         Optional.ofNullable(endDate),
         OverridableBoolean.of(false),
         OverridableBoolean.of(overwrite),
-        Optional.of(exportMedia),
-        Optional.empty(),
+        OverridableBoolean.of(exportMedia),
         Optional.of(explodeChoiceLists)
     );
     ExportToCsv.export(formDef, configuration);

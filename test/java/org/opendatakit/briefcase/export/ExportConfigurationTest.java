@@ -171,21 +171,13 @@ public class ExportConfigurationTest {
   }
 
   @Test
-  public void defaults_to_false_when_pull_before_is_empty() {
-    assertThat(empty().resolvePullBefore(), is(false));
+  public void defaults_to_true_when_the_export_media_param_is_empty() {
+    assertThat(empty().resolveExportMedia(), is(true));
   }
 
   @Test
-  public void resolves_if_we_need_to_export_media_files_depending_on_a_pair_or_fields() {
-    assertThat(empty().resolveExportMedia(), is(true));
-    assertThat(empty().setExportMedia(true).resolveExportMedia(), is(true));
-    assertThat(empty().setExportMedia(false).resolveExportMedia(), is(false));
-    assertThat(empty().setExportMedia(true).setExportMediaOverride(UNDETERMINED).resolveExportMedia(), is(true));
-    assertThat(empty().setExportMedia(true).setExportMediaOverride(TRUE).resolveExportMedia(), is(true));
-    assertThat(empty().setExportMedia(true).setExportMediaOverride(FALSE).resolveExportMedia(), is(false));
-    assertThat(empty().setExportMedia(false).setExportMediaOverride(UNDETERMINED).resolveExportMedia(), is(false));
-    assertThat(empty().setExportMedia(false).setExportMediaOverride(TRUE).resolveExportMedia(), is(true));
-    assertThat(empty().setExportMedia(false).setExportMediaOverride(FALSE).resolveExportMedia(), is(false));
+  public void defaults_to_false_when_pull_before_is_empty() {
+    assertThat(empty().resolvePullBefore(), is(false));
   }
 
   @Test

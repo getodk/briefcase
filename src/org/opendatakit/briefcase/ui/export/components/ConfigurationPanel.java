@@ -37,8 +37,7 @@ public class ConfigurationPanel {
     configuration.ifEndDatePresent(form::setEndDate);
     form.setPullBefore(configuration.pullBefore);
     form.setOverwriteFiles(configuration.overwriteFiles);
-    form.setExportMedia(configuration.resolveExportMedia());
-    configuration.ifExportMediaOverridePresent(form::setExportMediaOverride);
+    form.setExportMedia(configuration.exportMedia);
 
     form.onSelectExportDir(path -> {
       configuration.setExportDir(path);
@@ -72,12 +71,12 @@ public class ConfigurationPanel {
        configuration.overwriteFiles.overrideWith(value);
        triggerOnChange();
     });
-    form.onChangeExportMedia(exportMedia -> {
-      configuration.setExportMedia(exportMedia);
+    form.onChangeExportMedia(value -> {
+      configuration.exportMedia.set(value);
       triggerOnChange();
     });
-    form.onChangeExportMediaOverride(exportMediaOverrideOption ->  {
-      configuration.setExportMediaOverride(exportMediaOverrideOption);
+    form.onChangeExportMediaOverride(value ->  {
+      configuration.exportMedia.overrideWith(value);
       triggerOnChange();
     });
   }

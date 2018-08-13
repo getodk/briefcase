@@ -99,8 +99,7 @@ public class Export {
         endDate,
         OverridableBoolean.of(pullBefore),
         OverridableBoolean.of(overwriteFiles),
-        Optional.of(exportMedia),
-        Optional.empty(),
+        OverridableBoolean.of(exportMedia),
         Optional.of(explodeChoiceLists)
     );
 
