@@ -67,21 +67,19 @@ public class ExportConfiguration {
   private Optional<Path> pemFile;
   private Optional<LocalDate> startDate;
   private Optional<LocalDate> endDate;
-  private Optional<Boolean> pullBefore;
-  private Optional<TriStateBoolean> pullBeforeOverride;
+  public OverridableBoolean pullBefore;
   public OverridableBoolean overwriteFiles;
   private Optional<Boolean> exportMedia;
   private Optional<TriStateBoolean> exportMediaOverride;
   private Optional<Boolean> explodeChoiceLists;
 
-  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<TriStateBoolean> pullBeforeOverride, OverridableBoolean overwriteFiles, Optional<Boolean> exportMedia, Optional<TriStateBoolean> exportMediaOverride, Optional<Boolean> explodeChoiceLists) {
+  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, Optional<Boolean> exportMedia, Optional<TriStateBoolean> exportMediaOverride, Optional<Boolean> explodeChoiceLists) {
     this.exportFileName = exportFileName;
     this.exportDir = exportDir;
     this.pemFile = pemFile;
     this.startDate = startDate;
     this.endDate = endDate;
     this.pullBefore = pullBefore;
-    this.pullBeforeOverride = pullBeforeOverride;
     this.overwriteFiles = overwriteFiles;
     this.exportMedia = exportMedia;
     this.exportMediaOverride = exportMediaOverride;
@@ -89,7 +87,7 @@ public class ExportConfiguration {
   }
 
   public static ExportConfiguration empty() {
-    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), OverridableBoolean.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), OverridableBoolean.empty(), OverridableBoolean.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
@@ -99,8 +97,7 @@ public class ExportConfiguration {
         prefs.nullSafeGet(PEM_FILE).map(Paths::get),
         prefs.nullSafeGet(START_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(END_DATE).map(LocalDate::parse),
-        prefs.nullSafeGet(PULL_BEFORE).map(Boolean::valueOf),
-        prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(TriStateBoolean::from),
+        prefs.nullSafeGet(PULL_BEFORE).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty),
         prefs.nullSafeGet(OVERWRITE_FILES).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty),
         prefs.nullSafeGet(EXPORT_MEDIA).map(Boolean::valueOf),
         prefs.nullSafeGet(EXPORT_MEDIA_OVERRIDE).map(TriStateBoolean::from),
@@ -115,8 +112,7 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get),
         prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse),
-        prefs.nullSafeGet(keyPrefix + PULL_BEFORE).map(Boolean::valueOf),
-        prefs.nullSafeGet(keyPrefix + PULL_BEFORE_OVERRIDE).map(TriStateBoolean::from),
+        prefs.nullSafeGet(keyPrefix + PULL_BEFORE).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty),
         prefs.nullSafeGet(keyPrefix + OVERWRITE_FILES).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty),
         prefs.nullSafeGet(keyPrefix + EXPORT_MEDIA).map(Boolean::valueOf),
         prefs.nullSafeGet(keyPrefix + EXPORT_MEDIA_OVERRIDE).map(TriStateBoolean::from),
@@ -135,7 +131,6 @@ public class ExportConfiguration {
         keyPrefix + START_DATE,
         keyPrefix + END_DATE,
         keyPrefix + PULL_BEFORE,
-        keyPrefix + PULL_BEFORE_OVERRIDE,
         keyPrefix + OVERWRITE_FILES,
         keyPrefix + EXPORT_MEDIA,
         keyPrefix + EXPORT_MEDIA_OVERRIDE,
@@ -155,8 +150,7 @@ public class ExportConfiguration {
     pemFile.ifPresent(value -> map.put(keyPrefix + PEM_FILE, value.toString()));
     startDate.ifPresent(value -> map.put(keyPrefix + START_DATE, value.format(DateTimeFormatter.ISO_DATE)));
     endDate.ifPresent(value -> map.put(keyPrefix + END_DATE, value.format(DateTimeFormatter.ISO_DATE)));
-    pullBefore.ifPresent(value -> map.put(keyPrefix + PULL_BEFORE, value.toString()));
-    pullBeforeOverride.filter(TriStateBoolean::isNotUndetermined).ifPresent(value -> map.put(keyPrefix + PULL_BEFORE_OVERRIDE, value.name()));
+    map.put(keyPrefix + PULL_BEFORE, pullBefore.serialize());
     map.put(keyPrefix + OVERWRITE_FILES, overwriteFiles.serialize());
     exportMedia.ifPresent(value -> map.put(keyPrefix + EXPORT_MEDIA, value.toString()));
     exportMediaOverride.filter(TriStateBoolean::isNotUndetermined).ifPresent(value -> map.put(keyPrefix + EXPORT_MEDIA_OVERRIDE, value.name()));
@@ -171,7 +165,6 @@ public class ExportConfiguration {
         startDate,
         endDate,
         pullBefore,
-        pullBeforeOverride,
         overwriteFiles,
         exportMedia,
         exportMediaOverride,
@@ -219,24 +212,6 @@ public class ExportConfiguration {
     return this;
   }
 
-  public Optional<Boolean> getPullBefore() {
-    return pullBefore;
-  }
-
-  public ExportConfiguration setPullBefore(Boolean value) {
-    this.pullBefore = Optional.ofNullable(value);
-    return this;
-  }
-
-  public Optional<TriStateBoolean> getPullBeforeOverride() {
-    return pullBeforeOverride;
-  }
-
-  public ExportConfiguration setPullBeforeOverride(TriStateBoolean value) {
-    this.pullBeforeOverride = Optional.ofNullable(value);
-    return this;
-  }
-
   public ExportConfiguration setExportMedia(boolean exportMedia) {
     this.exportMedia = Optional.of(exportMedia);
     return this;
@@ -266,10 +241,7 @@ public class ExportConfiguration {
    * @return true if the algorithm resolves that we need to pull forms, false otherwise
    */
   public boolean resolvePullBefore() {
-    return firstPresent(
-        pullBeforeOverride.filter(TriStateBoolean::isNotUndetermined).flatMap(TriStateBoolean::maybeGetBooleanValue),
-        pullBefore
-    ).orElse(false);
+    return pullBefore.resolve(false);
   }
 
   /**
@@ -329,14 +301,6 @@ public class ExportConfiguration {
 
   public void ifEndDatePresent(Consumer<LocalDate> consumer) {
     endDate.ifPresent(consumer);
-  }
-
-  public void ifPullBeforePresent(Consumer<Boolean> consumer) {
-    pullBefore.ifPresent(consumer);
-  }
-
-  public void ifPullBeforeOverridePresent(Consumer<TriStateBoolean> consumer) {
-    pullBeforeOverride.ifPresent(consumer);
   }
 
   public void ifExportMediaOverridePresent(Consumer<TriStateBoolean> consumer) {
@@ -400,8 +364,7 @@ public class ExportConfiguration {
         && !pemFile.isPresent()
         && !startDate.isPresent()
         && !endDate.isPresent()
-        && !pullBefore.isPresent()
-        && !pullBeforeOverride.filter(TriStateBoolean::isNotUndetermined).isPresent()
+        && pullBefore.isEmpty()
         && overwriteFiles.isEmpty()
         && !exportMedia.isPresent()
         && !exportMediaOverride.filter(TriStateBoolean::isNotUndetermined).isPresent()
@@ -438,8 +401,7 @@ public class ExportConfiguration {
         pemFile.isPresent() ? pemFile : defaultConfiguration.pemFile,
         startDate.isPresent() ? startDate : defaultConfiguration.startDate,
         endDate.isPresent() ? endDate : defaultConfiguration.endDate,
-        pullBefore.isPresent() ? pullBefore : defaultConfiguration.pullBefore,
-        pullBeforeOverride.isPresent() ? pullBeforeOverride : defaultConfiguration.pullBeforeOverride,
+        pullBefore.fallingBackTo(defaultConfiguration.pullBefore),
         overwriteFiles.fallingBackTo(defaultConfiguration.overwriteFiles),
         exportMedia.isPresent() ? exportMedia : defaultConfiguration.exportMedia,
         exportMediaOverride.isPresent() ? exportMediaOverride : defaultConfiguration.exportMediaOverride,
@@ -455,7 +417,6 @@ public class ExportConfiguration {
         ", startDate=" + startDate +
         ", endDate=" + endDate +
         ", pullBefore=" + pullBefore +
-        ", pullBeforeOverride=" + pullBeforeOverride +
         ", overwriteFiles=" + overwriteFiles +
         ", exportMedia=" + exportMedia +
         ", exportMediaOverride=" + exportMediaOverride +
@@ -475,7 +436,6 @@ public class ExportConfiguration {
         Objects.equals(startDate, that.startDate) &&
         Objects.equals(endDate, that.endDate) &&
         Objects.equals(pullBefore, that.pullBefore) &&
-        Objects.equals(pullBeforeOverride, that.pullBeforeOverride) &&
         Objects.equals(overwriteFiles, that.overwriteFiles) &&
         Objects.equals(exportMedia, that.exportMedia) &&
         Objects.equals(exportMediaOverride, that.exportMediaOverride) &&
@@ -484,7 +444,7 @@ public class ExportConfiguration {
 
   @Override
   public int hashCode() {
-    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, pullBeforeOverride, overwriteFiles, exportMedia, exportMediaOverride, explodeChoiceLists);
+    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, overwriteFiles, exportMedia, exportMediaOverride, explodeChoiceLists);
   }
 
   public static ErrorsOr<PrivateKey> readPemFile(Path pemFile) {

@@ -27,9 +27,9 @@ import static org.opendatakit.briefcase.export.ExportConfiguration.empty;
 import static org.opendatakit.briefcase.export.ExportConfiguration.load;
 import static org.opendatakit.briefcase.matchers.ExportConfigurationMatchers.isEmpty;
 import static org.opendatakit.briefcase.matchers.ExportConfigurationMatchers.isValid;
-import static org.opendatakit.briefcase.reused.TriStateBoolean.UNDETERMINED;
 import static org.opendatakit.briefcase.reused.TriStateBoolean.FALSE;
 import static org.opendatakit.briefcase.reused.TriStateBoolean.TRUE;
+import static org.opendatakit.briefcase.reused.TriStateBoolean.UNDETERMINED;
 
 import com.github.npathai.hamcrestopt.OptionalMatchers;
 import java.io.File;
@@ -111,15 +111,25 @@ public class ExportConfigurationTest {
     assertThat(empty().setPemFile(Paths.get("/some/file.pem")), not(isEmpty()));
     assertThat(empty().setStartDate(LocalDate.of(2018, 1, 1)), not(isEmpty()));
     assertThat(empty().setEndDate(LocalDate.of(2018, 1, 1)), not(isEmpty()));
-    assertThat(empty().setPullBefore(true), not(isEmpty()));
-    assertThat(empty().setPullBeforeOverride(TRUE), not(isEmpty()));
+    ExportConfiguration emptyOne = empty();
+    emptyOne.pullBefore.set(true);
+    assertThat(emptyOne, not(isEmpty()));
+    ExportConfiguration emptyTwo = empty();
+    emptyTwo.pullBefore.overrideWith(TRUE);
+    assertThat(emptyTwo, not(isEmpty()));
   }
 
   @Test
   public void a_configuration_is_empty_if_pull_before_override_contains_INHERIT() {
-    assertThat(empty().setPullBeforeOverride(UNDETERMINED), isEmpty());
-    assertThat(empty().setPullBeforeOverride(TRUE), not(isEmpty()));
-    assertThat(empty().setPullBeforeOverride(FALSE), not(isEmpty()));
+    ExportConfiguration emptyOne = empty();
+    emptyOne.pullBefore.overrideWith(UNDETERMINED);
+    assertThat(emptyOne, isEmpty());
+    ExportConfiguration emptyTwo = empty();
+    emptyTwo.pullBefore.overrideWith(TRUE);
+    assertThat(emptyTwo, not(isEmpty()));
+    ExportConfiguration emptyThree = empty();
+    emptyThree.pullBefore.overrideWith(FALSE);
+    assertThat(emptyThree, not(isEmpty()));
   }
 
   @Test
@@ -161,16 +171,8 @@ public class ExportConfigurationTest {
   }
 
   @Test
-  public void resolves_if_we_need_to_pull_depending_on_a_pair_or_fields() {
+  public void defaults_to_false_when_pull_before_is_empty() {
     assertThat(empty().resolvePullBefore(), is(false));
-    assertThat(empty().setPullBefore(true).resolvePullBefore(), is(true));
-    assertThat(empty().setPullBefore(false).resolvePullBefore(), is(false));
-    assertThat(empty().setPullBefore(true).setPullBeforeOverride(UNDETERMINED).resolvePullBefore(), is(true));
-    assertThat(empty().setPullBefore(true).setPullBeforeOverride(TRUE).resolvePullBefore(), is(true));
-    assertThat(empty().setPullBefore(true).setPullBeforeOverride(FALSE).resolvePullBefore(), is(false));
-    assertThat(empty().setPullBefore(false).setPullBeforeOverride(UNDETERMINED).resolvePullBefore(), is(false));
-    assertThat(empty().setPullBefore(false).setPullBeforeOverride(TRUE).resolvePullBefore(), is(true));
-    assertThat(empty().setPullBefore(false).setPullBeforeOverride(FALSE).resolvePullBefore(), is(false));
   }
 
   @Test

@@ -18,7 +18,7 @@ package org.opendatakit.briefcase.ui.export.components;
 import java.util.ArrayList;
 import java.util.List;
 import org.opendatakit.briefcase.export.ExportConfiguration;
-import org.opendatakit.briefcase.reused.TriStateBoolean;
+import org.opendatakit.briefcase.reused.OverridableBoolean;
 
 public class ConfigurationPanel {
   private final ExportConfiguration configuration;
@@ -35,8 +35,7 @@ public class ConfigurationPanel {
     configuration.ifPemFilePresent(form::setPemFile);
     configuration.ifStartDatePresent(form::setStartDate);
     configuration.ifEndDatePresent(form::setEndDate);
-    configuration.ifPullBeforePresent(form::setPullBefore);
-    configuration.ifPullBeforeOverridePresent(form::setPullBeforeOverride);
+    form.setPullBefore(configuration.pullBefore);
     form.setOverwriteFiles(configuration.overwriteFiles);
     form.setExportMedia(configuration.resolveExportMedia());
     configuration.ifExportMediaOverridePresent(form::setExportMediaOverride);
@@ -57,12 +56,12 @@ public class ConfigurationPanel {
       configuration.setEndDate(date);
       triggerOnChange();
     });
-    form.onChangePullBefore(pullBefore -> {
-      configuration.setPullBefore(pullBefore);
+    form.onChangePullBefore(value -> {
+      configuration.pullBefore.set(value);
       triggerOnChange();
     });
-    form.onChangePullBeforeOverride(pullBeforeOverrideOption -> {
-      configuration.setPullBeforeOverride(pullBeforeOverrideOption);
+    form.onChangePullBeforeOverride(value -> {
+      configuration.pullBefore.overrideWith(value);
       triggerOnChange();
     });
     form.onChangeOverwriteExistingFiles(value -> {
@@ -137,8 +136,7 @@ public class ConfigurationPanel {
   }
 
   public void savePasswordsConsentRevoked() {
-    form.setPullBefore(false);
-    form.setPullBeforeOverride(TriStateBoolean.UNDETERMINED);
+    form.setPullBefore(OverridableBoolean.empty());
     form.changeMode(false);
   }
 }

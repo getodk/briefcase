@@ -214,12 +214,9 @@ public class ConfigurationPanelForm extends JComponent {
     endDatePicker.setDate(LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
   }
 
-  void setPullBefore(boolean value) {
-    pullBeforeField.setSelected(value);
-  }
-
-  void setPullBeforeOverride(TriStateBoolean value) {
-    pullBeforeOverrideField.set(value);
+  void setPullBefore(OverridableBoolean value) {
+    pullBeforeField.setSelected(value.get(false));
+    pullBeforeOverrideField.set(value.getOverride());
   }
 
   void setOverwriteFiles(OverridableBoolean value) {
