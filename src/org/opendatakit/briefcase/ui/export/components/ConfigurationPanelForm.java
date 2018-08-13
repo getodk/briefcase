@@ -70,7 +70,7 @@ public class ConfigurationPanelForm extends JComponent {
   private JPanel exportDirButtons;
   private JButton exportDirCleanButton;
   JCheckBox pullBeforeField;
-  JComboBox<PullBeforeOverrideOption> pullBeforeOverrideField;
+  CustomConfBoolean pullBeforeOverrideField;
   JTextPane pullBeforeHintPanel;
   JLabel pullBeforeOverrideLabel;
   JCheckBox overwriteFilesField;
@@ -84,7 +84,7 @@ public class ConfigurationPanelForm extends JComponent {
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectEndDateCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangePullBeforeCallbacks = new ArrayList<>();
-  private final List<Consumer<PullBeforeOverrideOption>> onChangePullBeforeOverrideCallbacks = new ArrayList<>();
+  private final List<Consumer<CustomConfBoolean.Value>> onChangePullBeforeOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeOverwriteExistingFilesCallbacks = new ArrayList<>();
   private final List<Consumer<CustomConfBoolean.Value>> onChangeOverwriteFilesOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeExportMediaCallbacks = new ArrayList<>();
@@ -96,8 +96,7 @@ public class ConfigurationPanelForm extends JComponent {
     this.mode = mode;
     startDatePicker = createDatePicker();
     endDatePicker = createDatePicker();
-    pullBeforeOverrideField = new JComboBox<>(PullBeforeOverrideOption.values());
-    pullBeforeOverrideField.setSelectedItem(PullBeforeOverrideOption.INHERIT);
+    pullBeforeOverrideField = new CustomConfBoolean(Optional.empty());
     exportMediaOverrideField = new CustomConfBoolean(Optional.empty());
     overwriteFilesOverrideField = new CustomConfBoolean(Optional.empty());
 
@@ -134,7 +133,7 @@ public class ConfigurationPanelForm extends JComponent {
       onSelectEndDateCallbacks.forEach(consumer -> consumer.accept(event.getNewDate()));
     });
     pullBeforeField.addActionListener(__ -> triggerChangePullBefore());
-    pullBeforeOverrideField.addActionListener(__ -> triggerChangePullBeforeOverride());
+    pullBeforeOverrideField.onChange(__ -> triggerChangePullBeforeOverride());
     overwriteFilesField.addActionListener(__ -> {
       if (!overwriteFilesField.isSelected() || confirmOverwriteFiles())
         triggerOverwriteExistingFiles();
@@ -219,8 +218,8 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeField.setSelected(value);
   }
 
-  void setPullBeforeOverride(PullBeforeOverrideOption value) {
-    pullBeforeOverrideField.setSelectedItem(value);
+  void setPullBeforeOverride(CustomConfBoolean.Value value) {
+    pullBeforeOverrideField.set(value);
   }
 
   void setOverwriteExistingFiles(boolean value) {
@@ -259,7 +258,7 @@ public class ConfigurationPanelForm extends JComponent {
     onChangePullBeforeCallbacks.add(callback);
   }
 
-  void onChangePullBeforeOverride(Consumer<PullBeforeOverrideOption> callback) {
+  void onChangePullBeforeOverride(Consumer<CustomConfBoolean.Value> callback) {
     onChangePullBeforeOverrideCallbacks.add(callback);
   }
 
@@ -329,7 +328,7 @@ public class ConfigurationPanelForm extends JComponent {
   }
 
   private void triggerChangePullBeforeOverride() {
-    onChangePullBeforeOverrideCallbacks.forEach(callback -> callback.accept((PullBeforeOverrideOption) pullBeforeOverrideField.getSelectedItem()));
+    onChangePullBeforeOverrideCallbacks.forEach(callback -> callback.accept(pullBeforeOverrideField.get()));
   }
 
   private void triggerOverwriteExistingFiles() {
@@ -473,12 +472,6 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(pullBeforeHintPanel, gbc);
-    gbc = new GridBagConstraints();
-    gbc.gridx = 2;
-    gbc.gridy = 10;
-    gbc.anchor = GridBagConstraints.WEST;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(pullBeforeOverrideField, gbc);
     final JPanel spacer5 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
@@ -568,6 +561,11 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.gridy = 8;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(exportMediaOverrideField.$$$getRootComponent$$$(), gbc);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 10;
+    gbc.anchor = GridBagConstraints.WEST;
+    container.add(pullBeforeOverrideField.$$$getRootComponent$$$(), gbc);
   }
 
   /**

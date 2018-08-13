@@ -136,7 +136,7 @@ class ConfigurationPanelPageObject {
     return component.form.pullBeforeOverrideLabel;
   }
 
-  public JComboBox<PullBeforeOverrideOption> pullBeforeOverrideField() {
+  public CustomConfBoolean pullBeforeOverrideField() {
     return component.form.pullBeforeOverrideField;
   }
 
@@ -193,11 +193,11 @@ class ConfigurationPanelPageObject {
     uncheckedSleep(50);
   }
 
-  public void setPullBeforeOverride(PullBeforeOverrideOption option) {
+  public void setPullBeforeOverride(CustomConfBoolean.Value option) {
     invokeLater(() -> {
-      JComboBox<PullBeforeOverrideOption> field = component.form.pullBeforeOverrideField;
-      field.setSelectedItem(option);
-      Arrays.asList(field.getActionListeners()).forEach(al -> al.actionPerformed(new ActionEvent(field, 1, "")));
+      CustomConfBoolean field = component.form.pullBeforeOverrideField;
+      field.set(option);
+      field.setInternal(option);
     });
     uncheckedSleep(50);
   }
