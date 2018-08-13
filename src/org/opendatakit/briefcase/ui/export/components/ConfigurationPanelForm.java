@@ -82,11 +82,11 @@ public class ConfigurationPanelForm extends JComponent {
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectEndDateCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangePullBeforeCallbacks = new ArrayList<>();
-  private final List<Consumer<Value>> onChangePullBeforeOverrideCallbacks = new ArrayList<>();
+  private final List<Consumer<TriStateBoolean>> onChangePullBeforeOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeOverwriteExistingFilesCallbacks = new ArrayList<>();
-  private final List<Consumer<Value>> onChangeOverwriteFilesOverrideCallbacks = new ArrayList<>();
+  private final List<Consumer<TriStateBoolean>> onChangeOverwriteFilesOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeExportMediaCallbacks = new ArrayList<>();
-  private final List<Consumer<Value>> onChangeExportMediaOverrideCallbacks = new ArrayList<>();
+  private final List<Consumer<TriStateBoolean>> onChangeExportMediaOverrideCallbacks = new ArrayList<>();
   private final ConfigurationPanelMode mode;
   private boolean uiLocked = false;
 
@@ -216,7 +216,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeField.setSelected(value);
   }
 
-  void setPullBeforeOverride(Value value) {
+  void setPullBeforeOverride(TriStateBoolean value) {
     pullBeforeOverrideField.set(value);
   }
 
@@ -224,7 +224,7 @@ public class ConfigurationPanelForm extends JComponent {
     overwriteFilesField.setSelected(value);
   }
 
-  void setOverwriteFilesOverride(Value value) {
+  void setOverwriteFilesOverride(TriStateBoolean value) {
     overwriteFilesOverrideField.set(value);
   }
 
@@ -232,7 +232,7 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaField.setSelected(value);
   }
 
-  void setExportMediaOverride(Value value) {
+  void setExportMediaOverride(TriStateBoolean value) {
     exportMediaOverrideField.set(value);
   }
 
@@ -256,7 +256,7 @@ public class ConfigurationPanelForm extends JComponent {
     onChangePullBeforeCallbacks.add(callback);
   }
 
-  void onChangePullBeforeOverride(Consumer<Value> callback) {
+  void onChangePullBeforeOverride(Consumer<TriStateBoolean> callback) {
     onChangePullBeforeOverrideCallbacks.add(callback);
   }
 
@@ -264,7 +264,7 @@ public class ConfigurationPanelForm extends JComponent {
     onChangeOverwriteExistingFilesCallbacks.add(callback);
   }
 
-  void onChangeOverwriteFilesOverride(Consumer<Value> callback) {
+  void onChangeOverwriteFilesOverride(Consumer<TriStateBoolean> callback) {
     onChangeOverwriteFilesOverrideCallbacks.add(callback);
   }
 
@@ -272,7 +272,7 @@ public class ConfigurationPanelForm extends JComponent {
     onChangeExportMediaCallbacks.add(callback);
   }
 
-  void onChangeExportMediaOverride(Consumer<Value> callback) {
+  void onChangeExportMediaOverride(Consumer<TriStateBoolean> callback) {
     onChangeExportMediaOverrideCallbacks.add(callback);
   }
 

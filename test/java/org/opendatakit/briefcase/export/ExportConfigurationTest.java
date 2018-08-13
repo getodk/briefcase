@@ -27,9 +27,9 @@ import static org.opendatakit.briefcase.export.ExportConfiguration.empty;
 import static org.opendatakit.briefcase.export.ExportConfiguration.load;
 import static org.opendatakit.briefcase.matchers.ExportConfigurationMatchers.isEmpty;
 import static org.opendatakit.briefcase.matchers.ExportConfigurationMatchers.isValid;
-import static org.opendatakit.briefcase.ui.export.components.Value.INHERIT;
-import static org.opendatakit.briefcase.ui.export.components.Value.NO;
-import static org.opendatakit.briefcase.ui.export.components.Value.YES;
+import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.UNDETERMINED;
+import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.FALSE;
+import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.TRUE;
 
 import com.github.npathai.hamcrestopt.OptionalMatchers;
 import java.io.File;
@@ -112,14 +112,14 @@ public class ExportConfigurationTest {
     assertThat(empty().setStartDate(LocalDate.of(2018, 1, 1)), not(isEmpty()));
     assertThat(empty().setEndDate(LocalDate.of(2018, 1, 1)), not(isEmpty()));
     assertThat(empty().setPullBefore(true), not(isEmpty()));
-    assertThat(empty().setPullBeforeOverride(YES), not(isEmpty()));
+    assertThat(empty().setPullBeforeOverride(TRUE), not(isEmpty()));
   }
 
   @Test
   public void a_configuration_is_empty_if_pull_before_override_contains_INHERIT() {
-    assertThat(empty().setPullBeforeOverride(INHERIT), isEmpty());
-    assertThat(empty().setPullBeforeOverride(YES), not(isEmpty()));
-    assertThat(empty().setPullBeforeOverride(NO), not(isEmpty()));
+    assertThat(empty().setPullBeforeOverride(UNDETERMINED), isEmpty());
+    assertThat(empty().setPullBeforeOverride(TRUE), not(isEmpty()));
+    assertThat(empty().setPullBeforeOverride(FALSE), not(isEmpty()));
   }
 
   @Test
@@ -165,12 +165,12 @@ public class ExportConfigurationTest {
     assertThat(empty().resolvePullBefore(), is(false));
     assertThat(empty().setPullBefore(true).resolvePullBefore(), is(true));
     assertThat(empty().setPullBefore(false).resolvePullBefore(), is(false));
-    assertThat(empty().setPullBefore(true).setPullBeforeOverride(INHERIT).resolvePullBefore(), is(true));
-    assertThat(empty().setPullBefore(true).setPullBeforeOverride(YES).resolvePullBefore(), is(true));
-    assertThat(empty().setPullBefore(true).setPullBeforeOverride(NO).resolvePullBefore(), is(false));
-    assertThat(empty().setPullBefore(false).setPullBeforeOverride(INHERIT).resolvePullBefore(), is(false));
-    assertThat(empty().setPullBefore(false).setPullBeforeOverride(YES).resolvePullBefore(), is(true));
-    assertThat(empty().setPullBefore(false).setPullBeforeOverride(NO).resolvePullBefore(), is(false));
+    assertThat(empty().setPullBefore(true).setPullBeforeOverride(UNDETERMINED).resolvePullBefore(), is(true));
+    assertThat(empty().setPullBefore(true).setPullBeforeOverride(TRUE).resolvePullBefore(), is(true));
+    assertThat(empty().setPullBefore(true).setPullBeforeOverride(FALSE).resolvePullBefore(), is(false));
+    assertThat(empty().setPullBefore(false).setPullBeforeOverride(UNDETERMINED).resolvePullBefore(), is(false));
+    assertThat(empty().setPullBefore(false).setPullBeforeOverride(TRUE).resolvePullBefore(), is(true));
+    assertThat(empty().setPullBefore(false).setPullBeforeOverride(FALSE).resolvePullBefore(), is(false));
   }
 
   @Test
@@ -178,12 +178,12 @@ public class ExportConfigurationTest {
     assertThat(empty().resolveExportMedia(), is(true));
     assertThat(empty().setExportMedia(true).resolveExportMedia(), is(true));
     assertThat(empty().setExportMedia(false).resolveExportMedia(), is(false));
-    assertThat(empty().setExportMedia(true).setExportMediaOverride(INHERIT).resolveExportMedia(), is(true));
-    assertThat(empty().setExportMedia(true).setExportMediaOverride(YES).resolveExportMedia(), is(true));
-    assertThat(empty().setExportMedia(true).setExportMediaOverride(NO).resolveExportMedia(), is(false));
-    assertThat(empty().setExportMedia(false).setExportMediaOverride(INHERIT).resolveExportMedia(), is(false));
-    assertThat(empty().setExportMedia(false).setExportMediaOverride(YES).resolveExportMedia(), is(true));
-    assertThat(empty().setExportMedia(false).setExportMediaOverride(NO).resolveExportMedia(), is(false));
+    assertThat(empty().setExportMedia(true).setExportMediaOverride(UNDETERMINED).resolveExportMedia(), is(true));
+    assertThat(empty().setExportMedia(true).setExportMediaOverride(TRUE).resolveExportMedia(), is(true));
+    assertThat(empty().setExportMedia(true).setExportMediaOverride(FALSE).resolveExportMedia(), is(false));
+    assertThat(empty().setExportMedia(false).setExportMediaOverride(UNDETERMINED).resolveExportMedia(), is(false));
+    assertThat(empty().setExportMedia(false).setExportMediaOverride(TRUE).resolveExportMedia(), is(true));
+    assertThat(empty().setExportMedia(false).setExportMediaOverride(FALSE).resolveExportMedia(), is(false));
   }
 
   @Test

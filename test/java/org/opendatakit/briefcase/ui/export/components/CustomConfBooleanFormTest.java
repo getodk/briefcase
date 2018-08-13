@@ -4,9 +4,9 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.selected;
-import static org.opendatakit.briefcase.ui.export.components.Value.INHERIT;
-import static org.opendatakit.briefcase.ui.export.components.Value.NO;
-import static org.opendatakit.briefcase.ui.export.components.Value.YES;
+import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.UNDETERMINED;
+import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.FALSE;
+import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.TRUE;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,7 +33,7 @@ public class CustomConfBooleanFormTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void it_can_have_an_initial_value_different_than_inherit() {
-    component = CustomConfBooleanPageObject.setUp(robot(), Optional.of(YES));
+    component = CustomConfBooleanPageObject.setUp(robot(), Optional.of(TRUE));
     component.show();
 
     assertThat(component.inherit(), is(not(selected())));
@@ -44,10 +44,10 @@ public class CustomConfBooleanFormTest extends AssertJSwingJUnitTestCase {
   @Test
   public void selecting_a_different_option_unselects_others() {
     // This test verifies that all radio buttons belong to the same ButtonGroup
-    component = CustomConfBooleanPageObject.setUp(robot(), Optional.of(YES));
+    component = CustomConfBooleanPageObject.setUp(robot(), Optional.of(TRUE));
     component.show();
 
-    component.set(NO);
+    component.set(FALSE);
 
     assertThat(component.inherit(), is(not(selected())));
     assertThat(component.yes(), is(not(selected())));
@@ -56,25 +56,25 @@ public class CustomConfBooleanFormTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void lets_third_parties_subscribe_to_change_events() {
-    Wrapper<Value> lastValue = new Wrapper<>(INHERIT);
+    Wrapper<TriStateBoolean> lastValue = new Wrapper<>(UNDETERMINED);
     component = CustomConfBooleanPageObject.setUp(robot(), Optional.of(lastValue.get()));
     component.onChange(lastValue::set);
     component.show();
 
-    component.set(YES);
+    component.set(TRUE);
 
-    assertThat(lastValue.get(), is(YES));
+    assertThat(lastValue.get(), is(TRUE));
   }
 
   @Test
   public void avoids_sending_duplicate_events() {
     final AtomicInteger changeCounts = new AtomicInteger(0);
-    component = CustomConfBooleanPageObject.setUp(robot(), Optional.of(NO));
+    component = CustomConfBooleanPageObject.setUp(robot(), Optional.of(FALSE));
     component.onChange(__ -> changeCounts.incrementAndGet());
     component.show();
 
-    component.set(YES);
-    component.set(YES);
+    component.set(TRUE);
+    component.set(TRUE);
 
     assertThat(changeCounts.get(), is(1));
   }

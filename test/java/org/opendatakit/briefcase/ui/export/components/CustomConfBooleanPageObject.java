@@ -33,7 +33,7 @@ class CustomConfBooleanPageObject {
     this.fixture = fixture;
   }
 
-  static CustomConfBooleanPageObject setUp(Robot robot, Optional<Value> initialValue) {
+  static CustomConfBooleanPageObject setUp(Robot robot, Optional<TriStateBoolean> initialValue) {
     CustomConfBooleanForm component = execute(() -> new CustomConfBooleanForm(initialValue));
     JFrame frame = execute(() -> {
       JFrame f = new JFrame();
@@ -48,7 +48,7 @@ class CustomConfBooleanPageObject {
     fixture.show();
   }
 
-  public void onChange(Consumer<Value> callback) {
+  public void onChange(Consumer<TriStateBoolean> callback) {
     component.onChange(callback);
   }
 
@@ -64,20 +64,20 @@ class CustomConfBooleanPageObject {
     return component.no;
   }
 
-  void set(Value value) {
+  void set(TriStateBoolean value) {
     execute(() -> {
       component.set(value);
       component.setInternal(value);
     });
   }
 
-  private JRadioButton getRadioButton(Value value) {
+  private JRadioButton getRadioButton(TriStateBoolean value) {
     switch (value) {
-      case INHERIT:
+      case UNDETERMINED:
         return component.inherit;
-      case YES:
+      case TRUE:
         return component.yes;
-      case NO:
+      case FALSE:
         return component.no;
       default:
         throw new IllegalArgumentException("Unknown radio button for " + value);

@@ -1,8 +1,8 @@
 package org.opendatakit.briefcase.ui.export.components;
 
-import static org.opendatakit.briefcase.ui.export.components.Value.INHERIT;
-import static org.opendatakit.briefcase.ui.export.components.Value.NO;
-import static org.opendatakit.briefcase.ui.export.components.Value.YES;
+import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.UNDETERMINED;
+import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.FALSE;
+import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.TRUE;
 
 import java.awt.FlowLayout;
 import java.util.ArrayList;
@@ -20,23 +20,23 @@ public class CustomConfBooleanForm {
   JRadioButton inherit;
   JRadioButton yes;
   JRadioButton no;
-  private final List<Consumer<Value>> onChangeCallbacks = new ArrayList<>();
-  private Value lastValue;
+  private final List<Consumer<TriStateBoolean>> onChangeCallbacks = new ArrayList<>();
+  private TriStateBoolean lastValue;
 
-  public CustomConfBooleanForm(Optional<Value> initialValue) {
+  public CustomConfBooleanForm(Optional<TriStateBoolean> initialValue) {
     ButtonGroup buttonGroup = new ButtonGroup();
     buttonGroup.add(inherit);
     buttonGroup.add(yes);
     buttonGroup.add(no);
 
-    switch (initialValue.orElse(INHERIT)) {
-      case INHERIT:
+    switch (initialValue.orElse(UNDETERMINED)) {
+      case UNDETERMINED:
         inherit.setSelected(true);
         break;
-      case YES:
+      case TRUE:
         yes.setSelected(true);
         break;
-      case NO:
+      case FALSE:
         no.setSelected(true);
         break;
       default:
@@ -47,24 +47,24 @@ public class CustomConfBooleanForm {
         throw new IllegalArgumentException("Unsupported value " + initialValue);
     }
 
-    inherit.addActionListener(__ -> setInternal(INHERIT));
-    yes.addActionListener(__ -> setInternal(YES));
-    no.addActionListener(__ -> setInternal(NO));
+    inherit.addActionListener(__ -> setInternal(UNDETERMINED));
+    yes.addActionListener(__ -> setInternal(TRUE));
+    no.addActionListener(__ -> setInternal(FALSE));
   }
 
-  public void onChange(Consumer<Value> callback) {
+  public void onChange(Consumer<TriStateBoolean> callback) {
     onChangeCallbacks.add(callback);
   }
 
-  public void set(Value value) {
+  public void set(TriStateBoolean value) {
     switch (value) {
-      case INHERIT:
+      case UNDETERMINED:
         inherit.setSelected(true);
         break;
-      case YES:
+      case TRUE:
         yes.setSelected(true);
         break;
-      case NO:
+      case FALSE:
         no.setSelected(true);
         break;
       default:
@@ -72,7 +72,7 @@ public class CustomConfBooleanForm {
     }
   }
 
-  void setInternal(Value value) {
+  void setInternal(TriStateBoolean value) {
     if (lastValue != value) {
       lastValue = value;
       onChangeCallbacks.forEach(callback -> callback.accept(value));
@@ -90,7 +90,7 @@ public class CustomConfBooleanForm {
     no.setEnabled(enabled);
   }
 
-  public Value get() {
+  public TriStateBoolean get() {
     return lastValue;
   }
 
