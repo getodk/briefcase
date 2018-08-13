@@ -1,8 +1,8 @@
 package org.opendatakit.briefcase.ui.export.components;
 
-import static org.opendatakit.briefcase.ui.export.components.CustomConfBoolean.Value.INHERIT;
-import static org.opendatakit.briefcase.ui.export.components.CustomConfBoolean.Value.NO;
-import static org.opendatakit.briefcase.ui.export.components.CustomConfBoolean.Value.YES;
+import static org.opendatakit.briefcase.ui.export.components.CustomConfBooleanForm.Value.INHERIT;
+import static org.opendatakit.briefcase.ui.export.components.CustomConfBooleanForm.Value.NO;
+import static org.opendatakit.briefcase.ui.export.components.CustomConfBooleanForm.Value.YES;
 
 import java.awt.FlowLayout;
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
 @SuppressWarnings({"checkstyle:CommentsIndentation", "checkstyle:MethodName"})
-public class CustomConfBoolean {
+public class CustomConfBooleanForm {
   private JPanel container;
   JRadioButton inherit;
   JRadioButton yes;
@@ -23,7 +23,7 @@ public class CustomConfBoolean {
   private final List<Consumer<Value>> onChangeCallbacks = new ArrayList<>();
   private Value lastValue;
 
-  public CustomConfBoolean(Optional<Value> initialValue) {
+  public CustomConfBooleanForm(Optional<Value> initialValue) {
     ButtonGroup buttonGroup = new ButtonGroup();
     buttonGroup.add(inherit);
     buttonGroup.add(yes);

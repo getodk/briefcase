@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextPane;
@@ -41,7 +40,6 @@ import org.assertj.swing.exception.WaitTimedOutError;
 import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.fixture.JFileChooserFixture;
 import org.opendatakit.briefcase.export.ExportConfiguration;
-import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
 
 class ConfigurationPanelPageObject {
   private static Path TEST_FOLDER;
@@ -136,7 +134,7 @@ class ConfigurationPanelPageObject {
     return component.form.pullBeforeOverrideLabel;
   }
 
-  public CustomConfBoolean pullBeforeOverrideField() {
+  public CustomConfBooleanForm pullBeforeOverrideField() {
     return component.form.pullBeforeOverrideField;
   }
 
@@ -193,9 +191,9 @@ class ConfigurationPanelPageObject {
     uncheckedSleep(50);
   }
 
-  public void setPullBeforeOverride(CustomConfBoolean.Value option) {
+  public void setPullBeforeOverride(CustomConfBooleanForm.Value option) {
     invokeLater(() -> {
-      CustomConfBoolean field = component.form.pullBeforeOverrideField;
+      CustomConfBooleanForm field = component.form.pullBeforeOverrideField;
       field.set(option);
       field.setInternal(option);
     });

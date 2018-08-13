@@ -234,19 +234,19 @@
           <text value="Overwrite existing files"/>
         </properties>
       </component>
-      <nested-form id="fd598" form-file="org/opendatakit/briefcase/ui/export/components/CustomConfBoolean.form" binding="overwriteFilesOverrideField" custom-create="true">
+      <nested-form id="fd598" form-file="org/opendatakit/briefcase/ui/export/components/CustomConfBooleanForm.form" binding="overwriteFilesOverrideField" custom-create="true">
         <constraints>
           <grid row="9" column="2" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
       </nested-form>
-      <nested-form id="d42b7" form-file="org/opendatakit/briefcase/ui/export/components/CustomConfBoolean.form" binding="exportMediaOverrideField" custom-create="true">
+      <nested-form id="d42b7" form-file="org/opendatakit/briefcase/ui/export/components/CustomConfBooleanForm.form" binding="exportMediaOverrideField" custom-create="true">
         <constraints>
           <grid row="8" column="2" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
       </nested-form>
-      <nested-form id="facf4" form-file="org/opendatakit/briefcase/ui/export/components/CustomConfBoolean.form" binding="pullBeforeOverrideField" custom-create="true">
+      <nested-form id="facf4" form-file="org/opendatakit/briefcase/ui/export/components/CustomConfBooleanForm.form" binding="pullBeforeOverrideField" custom-create="true">
         <constraints>
           <grid row="10" column="2" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>

@@ -42,13 +42,11 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.StringUtils;
 
@@ -70,25 +68,25 @@ public class ConfigurationPanelForm extends JComponent {
   private JPanel exportDirButtons;
   private JButton exportDirCleanButton;
   JCheckBox pullBeforeField;
-  CustomConfBoolean pullBeforeOverrideField;
+  CustomConfBooleanForm pullBeforeOverrideField;
   JTextPane pullBeforeHintPanel;
   JLabel pullBeforeOverrideLabel;
   JCheckBox overwriteFilesField;
   JCheckBox exportMediaField;
   JLabel exportMediaOverrideLabel;
   JLabel overwriteFilesOverrideLabel;
-  CustomConfBoolean overwriteFilesOverrideField;
-  CustomConfBoolean exportMediaOverrideField;
+  CustomConfBooleanForm overwriteFilesOverrideField;
+  CustomConfBooleanForm exportMediaOverrideField;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectEndDateCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangePullBeforeCallbacks = new ArrayList<>();
-  private final List<Consumer<CustomConfBoolean.Value>> onChangePullBeforeOverrideCallbacks = new ArrayList<>();
+  private final List<Consumer<CustomConfBooleanForm.Value>> onChangePullBeforeOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeOverwriteExistingFilesCallbacks = new ArrayList<>();
-  private final List<Consumer<CustomConfBoolean.Value>> onChangeOverwriteFilesOverrideCallbacks = new ArrayList<>();
+  private final List<Consumer<CustomConfBooleanForm.Value>> onChangeOverwriteFilesOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeExportMediaCallbacks = new ArrayList<>();
-  private final List<Consumer<CustomConfBoolean.Value>> onChangeExportMediaOverrideCallbacks = new ArrayList<>();
+  private final List<Consumer<CustomConfBooleanForm.Value>> onChangeExportMediaOverrideCallbacks = new ArrayList<>();
   private final ConfigurationPanelMode mode;
   private boolean uiLocked = false;
 
@@ -96,9 +94,9 @@ public class ConfigurationPanelForm extends JComponent {
     this.mode = mode;
     startDatePicker = createDatePicker();
     endDatePicker = createDatePicker();
-    pullBeforeOverrideField = new CustomConfBoolean(Optional.empty());
-    exportMediaOverrideField = new CustomConfBoolean(Optional.empty());
-    overwriteFilesOverrideField = new CustomConfBoolean(Optional.empty());
+    pullBeforeOverrideField = new CustomConfBooleanForm(Optional.empty());
+    exportMediaOverrideField = new CustomConfBooleanForm(Optional.empty());
+    overwriteFilesOverrideField = new CustomConfBooleanForm(Optional.empty());
 
     $$$setupUI$$$();
     startDatePicker.getSettings().setGapBeforeButtonPixels(0);
@@ -218,7 +216,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeField.setSelected(value);
   }
 
-  void setPullBeforeOverride(CustomConfBoolean.Value value) {
+  void setPullBeforeOverride(CustomConfBooleanForm.Value value) {
     pullBeforeOverrideField.set(value);
   }
 
@@ -226,7 +224,7 @@ public class ConfigurationPanelForm extends JComponent {
     overwriteFilesField.setSelected(value);
   }
 
-  void setOverwriteFilesOverride(CustomConfBoolean.Value value) {
+  void setOverwriteFilesOverride(CustomConfBooleanForm.Value value) {
     overwriteFilesOverrideField.set(value);
   }
 
@@ -234,7 +232,7 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaField.setSelected(value);
   }
 
-  void setExportMediaOverride(CustomConfBoolean.Value value) {
+  void setExportMediaOverride(CustomConfBooleanForm.Value value) {
     exportMediaOverrideField.set(value);
   }
 
@@ -258,7 +256,7 @@ public class ConfigurationPanelForm extends JComponent {
     onChangePullBeforeCallbacks.add(callback);
   }
 
-  void onChangePullBeforeOverride(Consumer<CustomConfBoolean.Value> callback) {
+  void onChangePullBeforeOverride(Consumer<CustomConfBooleanForm.Value> callback) {
     onChangePullBeforeOverrideCallbacks.add(callback);
   }
 
@@ -266,7 +264,7 @@ public class ConfigurationPanelForm extends JComponent {
     onChangeOverwriteExistingFilesCallbacks.add(callback);
   }
 
-  void onChangeOverwriteFilesOverride(Consumer<CustomConfBoolean.Value> callback) {
+  void onChangeOverwriteFilesOverride(Consumer<CustomConfBooleanForm.Value> callback) {
     onChangeOverwriteFilesOverrideCallbacks.add(callback);
   }
 
@@ -274,7 +272,7 @@ public class ConfigurationPanelForm extends JComponent {
     onChangeExportMediaCallbacks.add(callback);
   }
 
-  void onChangeExportMediaOverride(Consumer<CustomConfBoolean.Value> callback) {
+  void onChangeExportMediaOverride(Consumer<CustomConfBooleanForm.Value> callback) {
     onChangeExportMediaOverrideCallbacks.add(callback);
   }
 

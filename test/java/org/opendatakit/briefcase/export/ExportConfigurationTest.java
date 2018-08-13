@@ -27,9 +27,9 @@ import static org.opendatakit.briefcase.export.ExportConfiguration.empty;
 import static org.opendatakit.briefcase.export.ExportConfiguration.load;
 import static org.opendatakit.briefcase.matchers.ExportConfigurationMatchers.isEmpty;
 import static org.opendatakit.briefcase.matchers.ExportConfigurationMatchers.isValid;
-import static org.opendatakit.briefcase.ui.export.components.CustomConfBoolean.Value.INHERIT;
-import static org.opendatakit.briefcase.ui.export.components.CustomConfBoolean.Value.NO;
-import static org.opendatakit.briefcase.ui.export.components.CustomConfBoolean.Value.YES;
+import static org.opendatakit.briefcase.ui.export.components.CustomConfBooleanForm.Value.INHERIT;
+import static org.opendatakit.briefcase.ui.export.components.CustomConfBooleanForm.Value.NO;
+import static org.opendatakit.briefcase.ui.export.components.CustomConfBooleanForm.Value.YES;
 
 import com.github.npathai.hamcrestopt.OptionalMatchers;
 import java.io.File;

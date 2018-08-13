@@ -17,8 +17,6 @@ package org.opendatakit.briefcase.ui.export.components;
 
 import static org.assertj.swing.edt.GuiActionRunner.execute;
 
-import java.awt.event.ActionEvent;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JFrame;
@@ -27,16 +25,16 @@ import org.assertj.swing.core.Robot;
 import org.assertj.swing.fixture.FrameFixture;
 
 class CustomConfBooleanPageObject {
-  private final CustomConfBoolean component;
+  private final CustomConfBooleanForm component;
   private final FrameFixture fixture;
 
-  private CustomConfBooleanPageObject(CustomConfBoolean component, FrameFixture fixture) {
+  private CustomConfBooleanPageObject(CustomConfBooleanForm component, FrameFixture fixture) {
     this.component = component;
     this.fixture = fixture;
   }
 
-  static CustomConfBooleanPageObject setUp(Robot robot, Optional<CustomConfBoolean.Value> initialValue) {
-    CustomConfBoolean component = execute(() -> new CustomConfBoolean(initialValue));
+  static CustomConfBooleanPageObject setUp(Robot robot, Optional<CustomConfBooleanForm.Value> initialValue) {
+    CustomConfBooleanForm component = execute(() -> new CustomConfBooleanForm(initialValue));
     JFrame frame = execute(() -> {
       JFrame f = new JFrame();
       f.add(component.$$$getRootComponent$$$());
@@ -50,7 +48,7 @@ class CustomConfBooleanPageObject {
     fixture.show();
   }
 
-  public void onChange(Consumer<CustomConfBoolean.Value> callback) {
+  public void onChange(Consumer<CustomConfBooleanForm.Value> callback) {
     component.onChange(callback);
   }
 
@@ -66,14 +64,14 @@ class CustomConfBooleanPageObject {
     return component.no;
   }
 
-  void set(CustomConfBoolean.Value value) {
+  void set(CustomConfBooleanForm.Value value) {
     execute(() -> {
       component.set(value);
       component.setInternal(value);
     });
   }
 
-  private JRadioButton getRadioButton(CustomConfBoolean.Value value) {
+  private JRadioButton getRadioButton(CustomConfBooleanForm.Value value) {
     switch (value) {
       case INHERIT:
         return component.inherit;

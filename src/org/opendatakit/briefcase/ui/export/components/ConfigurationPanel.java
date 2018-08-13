@@ -18,7 +18,6 @@ package org.opendatakit.briefcase.ui.export.components;
 import java.util.ArrayList;
 import java.util.List;
 import org.opendatakit.briefcase.export.ExportConfiguration;
-import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
 
 public class ConfigurationPanel {
   private final ExportConfiguration configuration;
@@ -139,7 +138,7 @@ public class ConfigurationPanel {
 
   public void savePasswordsConsentRevoked() {
     form.setPullBefore(false);
-    form.setPullBeforeOverride(CustomConfBoolean.Value.INHERIT);
+    form.setPullBeforeOverride(CustomConfBooleanForm.Value.INHERIT);
     form.changeMode(false);
   }
 }

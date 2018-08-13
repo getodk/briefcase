@@ -4,16 +4,16 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.selected;
-import static org.opendatakit.briefcase.ui.export.components.CustomConfBoolean.Value.INHERIT;
-import static org.opendatakit.briefcase.ui.export.components.CustomConfBoolean.Value.NO;
-import static org.opendatakit.briefcase.ui.export.components.CustomConfBoolean.Value.YES;
+import static org.opendatakit.briefcase.ui.export.components.CustomConfBooleanForm.Value.INHERIT;
+import static org.opendatakit.briefcase.ui.export.components.CustomConfBooleanForm.Value.NO;
+import static org.opendatakit.briefcase.ui.export.components.CustomConfBooleanForm.Value.YES;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.Test;
 
-public class CustomConfBooleanTest extends AssertJSwingJUnitTestCase {
+public class CustomConfBooleanFormTest extends AssertJSwingJUnitTestCase {
   private CustomConfBooleanPageObject component;
 
   @Override
@@ -56,7 +56,7 @@ public class CustomConfBooleanTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void lets_third_parties_subscribe_to_change_events() {
-    Wrapper<CustomConfBoolean.Value> lastValue = new Wrapper<>(INHERIT);
+    Wrapper<CustomConfBooleanForm.Value> lastValue = new Wrapper<>(INHERIT);
     component = CustomConfBooleanPageObject.setUp(robot(), Optional.of(lastValue.get()));
     component.onChange(lastValue::set);
     component.show();

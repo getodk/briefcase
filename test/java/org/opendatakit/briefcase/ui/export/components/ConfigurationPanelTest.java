@@ -24,7 +24,7 @@ import static org.opendatakit.briefcase.matchers.GenericUIMatchers.containsText;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.enabled;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.selected;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.visible;
-import static org.opendatakit.briefcase.ui.export.components.CustomConfBoolean.Value.YES;
+import static org.opendatakit.briefcase.ui.export.components.CustomConfBooleanForm.Value.YES;
 
 import java.nio.file.Paths;
 import java.time.LocalDate;
