@@ -1,8 +1,8 @@
 package org.opendatakit.briefcase.ui.export.components;
 
-import static org.opendatakit.briefcase.ui.export.components.CustomConfBooleanForm.Value.INHERIT;
-import static org.opendatakit.briefcase.ui.export.components.CustomConfBooleanForm.Value.NO;
-import static org.opendatakit.briefcase.ui.export.components.CustomConfBooleanForm.Value.YES;
+import static org.opendatakit.briefcase.ui.export.components.Value.INHERIT;
+import static org.opendatakit.briefcase.ui.export.components.Value.NO;
+import static org.opendatakit.briefcase.ui.export.components.Value.YES;
 
 import java.awt.FlowLayout;
 import java.util.ArrayList;
@@ -127,20 +127,6 @@ public class CustomConfBooleanForm {
    */
   public JComponent $$$getRootComponent$$$() {
     return container;
-  }
-
-  public enum Value {
-    INHERIT(Optional.empty()), YES(Optional.of(true)), NO(Optional.of(false));
-
-    private final Optional<Boolean> booleanValue;
-
-    Value(Optional<Boolean> booleanValue) {
-      this.booleanValue = booleanValue;
-    }
-
-    public Optional<Boolean> getBooleanValue() {
-      return booleanValue;
-    }
   }
 
 }

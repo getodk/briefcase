@@ -191,7 +191,7 @@ class ConfigurationPanelPageObject {
     uncheckedSleep(50);
   }
 
-  public void setPullBeforeOverride(CustomConfBooleanForm.Value option) {
+  public void setPullBeforeOverride(Value option) {
     invokeLater(() -> {
       CustomConfBooleanForm field = component.form.pullBeforeOverrideField;
       field.set(option);

@@ -33,7 +33,7 @@ class CustomConfBooleanPageObject {
     this.fixture = fixture;
   }
 
-  static CustomConfBooleanPageObject setUp(Robot robot, Optional<CustomConfBooleanForm.Value> initialValue) {
+  static CustomConfBooleanPageObject setUp(Robot robot, Optional<Value> initialValue) {
     CustomConfBooleanForm component = execute(() -> new CustomConfBooleanForm(initialValue));
     JFrame frame = execute(() -> {
       JFrame f = new JFrame();
@@ -48,7 +48,7 @@ class CustomConfBooleanPageObject {
     fixture.show();
   }
 
-  public void onChange(Consumer<CustomConfBooleanForm.Value> callback) {
+  public void onChange(Consumer<Value> callback) {
     component.onChange(callback);
   }
 
@@ -64,14 +64,14 @@ class CustomConfBooleanPageObject {
     return component.no;
   }
 
-  void set(CustomConfBooleanForm.Value value) {
+  void set(Value value) {
     execute(() -> {
       component.set(value);
       component.setInternal(value);
     });
   }
 
-  private JRadioButton getRadioButton(CustomConfBooleanForm.Value value) {
+  private JRadioButton getRadioButton(Value value) {
     switch (value) {
       case INHERIT:
         return component.inherit;

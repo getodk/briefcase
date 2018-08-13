@@ -138,7 +138,7 @@ public class ConfigurationPanel {
 
   public void savePasswordsConsentRevoked() {
     form.setPullBefore(false);
-    form.setPullBeforeOverride(CustomConfBooleanForm.Value.INHERIT);
+    form.setPullBeforeOverride(Value.INHERIT);
     form.changeMode(false);
   }
 }

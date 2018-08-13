@@ -47,7 +47,7 @@ import java.util.function.Predicate;
 import org.bouncycastle.openssl.PEMReader;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.ui.export.components.CustomConfBooleanForm;
+import org.opendatakit.briefcase.ui.export.components.Value;
 import org.opendatakit.briefcase.util.ErrorsOr;
 
 public class ExportConfiguration {
@@ -64,21 +64,21 @@ public class ExportConfiguration {
   private static final String EXPLODE_CHOICE_LISTS = "explodeChoiceLists";
   private static final Predicate<PullBeforeOverrideOption> PULL_BEFORE_ALL_EXCEPT_INHERIT = value -> value != PullBeforeOverrideOption.INHERIT;
   private static final Predicate<ExportMediaOverrideOption> EXPORT_MEDIA_ALL_EXCEPT_INHERIT = value -> value != ExportMediaOverrideOption.INHERIT;
-  private static final Predicate<CustomConfBooleanForm.Value> ALL_EXCEPT_INHERIT = value -> value != CustomConfBooleanForm.Value.INHERIT;
+  private static final Predicate<Value> ALL_EXCEPT_INHERIT = value -> value != Value.INHERIT;
   private Optional<String> exportFileName;
   private Optional<Path> exportDir;
   private Optional<Path> pemFile;
   private Optional<LocalDate> startDate;
   private Optional<LocalDate> endDate;
   private Optional<Boolean> pullBefore;
-  private Optional<CustomConfBooleanForm.Value> pullBeforeOverride;
+  private Optional<Value> pullBeforeOverride;
   private Optional<Boolean> overwriteExistingFiles;
-  private Optional<CustomConfBooleanForm.Value> overwriteFilesOverride;
+  private Optional<Value> overwriteFilesOverride;
   private Optional<Boolean> exportMedia;
-  private Optional<CustomConfBooleanForm.Value> exportMediaOverride;
+  private Optional<Value> exportMediaOverride;
   private Optional<Boolean> explodeChoiceLists;
 
-  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<CustomConfBooleanForm.Value> pullBeforeOverride, Optional<Boolean> overwriteExistingFiles, Optional<CustomConfBooleanForm.Value> overwriteFilesOverride, Optional<Boolean> exportMedia, Optional<CustomConfBooleanForm.Value> exportMediaOverride, Optional<Boolean> explodeChoiceLists) {
+  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Boolean> pullBefore, Optional<Value> pullBeforeOverride, Optional<Boolean> overwriteExistingFiles, Optional<Value> overwriteFilesOverride, Optional<Boolean> exportMedia, Optional<Value> exportMediaOverride, Optional<Boolean> explodeChoiceLists) {
     this.exportFileName = exportFileName;
     this.exportDir = exportDir;
     this.pemFile = pemFile;
@@ -105,11 +105,11 @@ public class ExportConfiguration {
         prefs.nullSafeGet(START_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(PULL_BEFORE).map(Boolean::valueOf),
-        prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(CustomConfBooleanForm.Value::valueOf),
+        prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(Value::valueOf),
         prefs.nullSafeGet(OVERWRITE_EXISTING_FILES).map(Boolean::valueOf),
-        prefs.nullSafeGet(OVERWRITE_FILES_OVERRIDE).map(CustomConfBooleanForm.Value::valueOf),
+        prefs.nullSafeGet(OVERWRITE_FILES_OVERRIDE).map(Value::valueOf),
         prefs.nullSafeGet(EXPORT_MEDIA).map(Boolean::valueOf),
-        prefs.nullSafeGet(EXPORT_MEDIA_OVERRIDE).map(CustomConfBooleanForm.Value::valueOf),
+        prefs.nullSafeGet(EXPORT_MEDIA_OVERRIDE).map(Value::valueOf),
         prefs.nullSafeGet(EXPLODE_CHOICE_LISTS).map(Boolean::valueOf)
     );
   }
@@ -122,11 +122,11 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + PULL_BEFORE).map(Boolean::valueOf),
-        prefs.nullSafeGet(keyPrefix + PULL_BEFORE_OVERRIDE).map(CustomConfBooleanForm.Value::valueOf),
+        prefs.nullSafeGet(keyPrefix + PULL_BEFORE_OVERRIDE).map(Value::valueOf),
         prefs.nullSafeGet(keyPrefix + OVERWRITE_EXISTING_FILES).map(Boolean::valueOf),
-        prefs.nullSafeGet(keyPrefix + OVERWRITE_FILES_OVERRIDE).map(CustomConfBooleanForm.Value::valueOf),
+        prefs.nullSafeGet(keyPrefix + OVERWRITE_FILES_OVERRIDE).map(Value::valueOf),
         prefs.nullSafeGet(keyPrefix + EXPORT_MEDIA).map(Boolean::valueOf),
-        prefs.nullSafeGet(keyPrefix + EXPORT_MEDIA_OVERRIDE).map(CustomConfBooleanForm.Value::valueOf),
+        prefs.nullSafeGet(keyPrefix + EXPORT_MEDIA_OVERRIDE).map(Value::valueOf),
         prefs.nullSafeGet(keyPrefix + EXPLODE_CHOICE_LISTS).map(Boolean::valueOf)
     );
   }
@@ -238,11 +238,11 @@ public class ExportConfiguration {
     return this;
   }
 
-  public Optional<CustomConfBooleanForm.Value> getPullBeforeOverride() {
+  public Optional<Value> getPullBeforeOverride() {
     return pullBeforeOverride;
   }
 
-  public ExportConfiguration setPullBeforeOverride(CustomConfBooleanForm.Value value) {
+  public ExportConfiguration setPullBeforeOverride(Value value) {
     this.pullBeforeOverride = Optional.ofNullable(value);
     return this;
   }
@@ -252,7 +252,7 @@ public class ExportConfiguration {
     return this;
   }
 
-  public ExportConfiguration setOverwriteFilesOverride(CustomConfBooleanForm.Value value) {
+  public ExportConfiguration setOverwriteFilesOverride(Value value) {
     this.overwriteFilesOverride = Optional.of(value);
     return this;
   }
@@ -262,7 +262,7 @@ public class ExportConfiguration {
     return this;
   }
 
-  public ExportConfiguration setExportMediaOverride(CustomConfBooleanForm.Value value) {
+  public ExportConfiguration setExportMediaOverride(Value value) {
     this.exportMediaOverride = Optional.of(value);
     return this;
   }
@@ -287,7 +287,7 @@ public class ExportConfiguration {
    */
   public boolean resolvePullBefore() {
     return firstPresent(
-        pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).flatMap(CustomConfBooleanForm.Value::getBooleanValue),
+        pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).flatMap(Value::getBooleanValue),
         pullBefore
     ).orElse(false);
   }
@@ -308,7 +308,7 @@ public class ExportConfiguration {
    */
   public boolean resolveExportMedia() {
     return firstPresent(
-        exportMediaOverride.filter(ALL_EXCEPT_INHERIT).flatMap(CustomConfBooleanForm.Value::getBooleanValue),
+        exportMediaOverride.filter(ALL_EXCEPT_INHERIT).flatMap(Value::getBooleanValue),
         exportMedia
     ).orElse(true);
   }
@@ -317,8 +317,8 @@ public class ExportConfiguration {
    * Resolves if we need to overwrite files depending on the overwriteExistingFiles and overwriteFilesOverride
    * settings with the following algorithm:
    * <ul>
-   * <li>if the overwriteFilesOverride Optional holds an {@link CustomConfBooleanForm.Value} value
-   * different than {@link CustomConfBooleanForm.Value#INHERIT}, then it returns its associated
+   * <li>if the overwriteFilesOverride Optional holds an {@link Value} value
+   * different than {@link Value#INHERIT}, then it returns its associated
    * boolean value</li>
    * <li>if the overwriteExistingFiles Optional holds a Boolean value, then it returns it.</li>
    * <li>otherwise, it returns false</li>
@@ -329,7 +329,7 @@ public class ExportConfiguration {
    */
   boolean resolveOverwriteExistingFiles() {
     return firstPresent(
-        overwriteFilesOverride.filter(ALL_EXCEPT_INHERIT).flatMap(CustomConfBooleanForm.Value::getBooleanValue),
+        overwriteFilesOverride.filter(ALL_EXCEPT_INHERIT).flatMap(Value::getBooleanValue),
         overwriteExistingFiles
     ).orElse(true);
   }
@@ -358,7 +358,7 @@ public class ExportConfiguration {
     pullBefore.ifPresent(consumer);
   }
 
-  public void ifPullBeforeOverridePresent(Consumer<CustomConfBooleanForm.Value> consumer) {
+  public void ifPullBeforeOverridePresent(Consumer<Value> consumer) {
     pullBeforeOverride.ifPresent(consumer);
   }
 
@@ -366,11 +366,11 @@ public class ExportConfiguration {
     overwriteExistingFiles.ifPresent(consumer);
   }
 
-  public void ifOverwriteFilesOverridePresent(Consumer<CustomConfBooleanForm.Value> consumer) {
+  public void ifOverwriteFilesOverridePresent(Consumer<Value> consumer) {
     overwriteFilesOverride.ifPresent(consumer);
   }
 
-  public void ifExportMediaOverridePresent(Consumer<CustomConfBooleanForm.Value> consumer) {
+  public void ifExportMediaOverridePresent(Consumer<Value> consumer) {
     exportMediaOverride.ifPresent(consumer);
   }
 
