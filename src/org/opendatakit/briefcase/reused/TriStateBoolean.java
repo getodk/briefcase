@@ -30,4 +30,8 @@ public enum TriStateBoolean {
       return FALSE;
     throw new IllegalArgumentException("Unsupported value " + value);
   }
+
+  public static boolean notUndetermined(TriStateBoolean value) {
+    return value != UNDETERMINED;
+  }
 }

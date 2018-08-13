@@ -43,7 +43,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import org.bouncycastle.openssl.PEMReader;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -62,9 +61,6 @@ public class ExportConfiguration {
   private static final String EXPORT_MEDIA = "exportMedia";
   private static final String EXPORT_MEDIA_OVERRIDE = "exportMediaOverride";
   private static final String EXPLODE_CHOICE_LISTS = "explodeChoiceLists";
-  private static final Predicate<PullBeforeOverrideOption> PULL_BEFORE_ALL_EXCEPT_INHERIT = value -> value != PullBeforeOverrideOption.INHERIT;
-  private static final Predicate<ExportMediaOverrideOption> EXPORT_MEDIA_ALL_EXCEPT_INHERIT = value -> value != ExportMediaOverrideOption.INHERIT;
-  private static final Predicate<TriStateBoolean> ALL_EXCEPT_INHERIT = value -> value != TriStateBoolean.UNDETERMINED;
   private Optional<String> exportFileName;
   private Optional<Path> exportDir;
   private Optional<Path> pemFile;
@@ -164,11 +160,11 @@ public class ExportConfiguration {
     startDate.ifPresent(value -> map.put(keyPrefix + START_DATE, value.format(DateTimeFormatter.ISO_DATE)));
     endDate.ifPresent(value -> map.put(keyPrefix + END_DATE, value.format(DateTimeFormatter.ISO_DATE)));
     pullBefore.ifPresent(value -> map.put(keyPrefix + PULL_BEFORE, value.toString()));
-    pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).ifPresent(value -> map.put(keyPrefix + PULL_BEFORE_OVERRIDE, value.name()));
+    pullBeforeOverride.filter(TriStateBoolean::notUndetermined).ifPresent(value -> map.put(keyPrefix + PULL_BEFORE_OVERRIDE, value.name()));
     overwriteExistingFiles.ifPresent(value -> map.put(keyPrefix + OVERWRITE_EXISTING_FILES, value.toString()));
-    overwriteFilesOverride.filter(ALL_EXCEPT_INHERIT).ifPresent(value -> map.put(keyPrefix + OVERWRITE_FILES_OVERRIDE, value.name()));
+    overwriteFilesOverride.filter(TriStateBoolean::notUndetermined).ifPresent(value -> map.put(keyPrefix + OVERWRITE_FILES_OVERRIDE, value.name()));
     exportMedia.ifPresent(value -> map.put(keyPrefix + EXPORT_MEDIA, value.toString()));
-    exportMediaOverride.filter(ALL_EXCEPT_INHERIT).ifPresent(value -> map.put(keyPrefix + EXPORT_MEDIA_OVERRIDE, value.name()));
+    exportMediaOverride.filter(TriStateBoolean::notUndetermined).ifPresent(value -> map.put(keyPrefix + EXPORT_MEDIA_OVERRIDE, value.name()));
     explodeChoiceLists.ifPresent(value -> map.put(keyPrefix + EXPLODE_CHOICE_LISTS, value.toString()));
     return map;
   }
@@ -275,8 +271,8 @@ public class ExportConfiguration {
    * Resolves if we need to pull forms depending on the pullBefore and pullBeforeOverride
    * settings with the following algorithm:
    * <ul>
-   * <li>if the pullBeforeOverride Optional holds a {@link PullBeforeOverrideOption} value
-   * different than {@link PullBeforeOverrideOption#INHERIT}, then it returns its associated
+   * <li>if the pullBeforeOverride Optional holds a {@link TriStateBoolean} value
+   * different than {@link TriStateBoolean#UNDETERMINED}, then it returns its associated
    * boolean value</li>
    * <li>if the pullBefore Optional holds a Boolean value, then it returns it.</li>
    * <li>otherwise, it returns false</li>
@@ -287,7 +283,7 @@ public class ExportConfiguration {
    */
   public boolean resolvePullBefore() {
     return firstPresent(
-        pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).flatMap(TriStateBoolean::getBooleanValue),
+        pullBeforeOverride.filter(TriStateBoolean::notUndetermined).flatMap(TriStateBoolean::getBooleanValue),
         pullBefore
     ).orElse(false);
   }
@@ -296,8 +292,8 @@ public class ExportConfiguration {
    * Resolves if we need to export media files depending on the exportMedia and exportMediaOverride
    * settings with the following algorithm:
    * <ul>
-   * <li>if the exportMediaOverride Optional holds an {@link ExportMediaOverrideOption} value
-   * different than {@link ExportMediaOverrideOption#INHERIT}, then it returns its associated
+   * <li>if the exportMediaOverride Optional holds an {@link TriStateBoolean} value
+   * different than {@link TriStateBoolean#UNDETERMINED}, then it returns its associated
    * boolean value</li>
    * <li>if the exportMedia Optional holds a Boolean value, then it returns it.</li>
    * <li>otherwise, it returns false</li>
@@ -308,7 +304,7 @@ public class ExportConfiguration {
    */
   public boolean resolveExportMedia() {
     return firstPresent(
-        exportMediaOverride.filter(ALL_EXCEPT_INHERIT).flatMap(TriStateBoolean::getBooleanValue),
+        exportMediaOverride.filter(TriStateBoolean::notUndetermined).flatMap(TriStateBoolean::getBooleanValue),
         exportMedia
     ).orElse(true);
   }
@@ -329,7 +325,7 @@ public class ExportConfiguration {
    */
   boolean resolveOverwriteExistingFiles() {
     return firstPresent(
-        overwriteFilesOverride.filter(ALL_EXCEPT_INHERIT).flatMap(TriStateBoolean::getBooleanValue),
+        overwriteFilesOverride.filter(TriStateBoolean::notUndetermined).flatMap(TriStateBoolean::getBooleanValue),
         overwriteExistingFiles
     ).orElse(true);
   }
@@ -436,11 +432,11 @@ public class ExportConfiguration {
         && !startDate.isPresent()
         && !endDate.isPresent()
         && !pullBefore.isPresent()
-        && !pullBeforeOverride.filter(ALL_EXCEPT_INHERIT).isPresent()
+        && !pullBeforeOverride.filter(TriStateBoolean::notUndetermined).isPresent()
         && !overwriteExistingFiles.isPresent()
-        && !overwriteFilesOverride.filter(ALL_EXCEPT_INHERIT).isPresent()
+        && !overwriteFilesOverride.filter(TriStateBoolean::notUndetermined).isPresent()
         && !exportMedia.isPresent()
-        && !exportMediaOverride.filter(ALL_EXCEPT_INHERIT).isPresent()
+        && !exportMediaOverride.filter(TriStateBoolean::notUndetermined).isPresent()
         && !explodeChoiceLists.isPresent();
   }
 
