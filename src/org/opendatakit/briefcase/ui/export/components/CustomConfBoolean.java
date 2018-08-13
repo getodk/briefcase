@@ -110,7 +110,7 @@ public class CustomConfBoolean {
    */
   private void $$$setupUI$$$() {
     container = new JPanel();
-    container.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+    container.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
     inherit = new JRadioButton();
     inherit.setText("Inherit");
     container.add(inherit);

@@ -554,17 +554,20 @@ public class ConfigurationPanelForm extends JComponent {
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 9;
-    gbc.anchor = GridBagConstraints.WEST;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(overwriteFilesOverrideField.$$$getRootComponent$$$(), gbc);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 8;
-    gbc.anchor = GridBagConstraints.WEST;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(exportMediaOverrideField.$$$getRootComponent$$$(), gbc);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 10;
-    gbc.anchor = GridBagConstraints.WEST;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(pullBeforeOverrideField.$$$getRootComponent$$$(), gbc);
   }
 
