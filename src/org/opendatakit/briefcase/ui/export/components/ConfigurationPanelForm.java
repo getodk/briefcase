@@ -47,6 +47,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import org.opendatakit.briefcase.reused.OverridableBoolean;
 import org.opendatakit.briefcase.reused.TriStateBoolean;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.StringUtils;
@@ -221,12 +222,9 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeOverrideField.set(value);
   }
 
-  void setOverwriteExistingFiles(boolean value) {
-    overwriteFilesField.setSelected(value);
-  }
-
-  void setOverwriteFilesOverride(TriStateBoolean value) {
-    overwriteFilesOverrideField.set(value);
+  void setOverwriteFiles(OverridableBoolean value) {
+    overwriteFilesField.setSelected(value.get(false));
+    overwriteFilesOverrideField.set(value.getOverride());
   }
 
   void setExportMedia(boolean value) {

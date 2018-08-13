@@ -46,6 +46,7 @@ import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.opendatakit.briefcase.reused.OverridableBoolean;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,8 +144,7 @@ class ExportToCsvScenario {
         Optional.ofNullable(endDate),
         Optional.of(false),
         Optional.empty(),
-        Optional.of(overwrite),
-        Optional.empty(),
+        OverridableBoolean.of(overwrite),
         Optional.of(exportMedia),
         Optional.empty(),
         Optional.of(explodeChoiceLists)
