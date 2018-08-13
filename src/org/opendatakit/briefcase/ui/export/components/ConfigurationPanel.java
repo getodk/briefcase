@@ -68,14 +68,14 @@ public class ConfigurationPanel {
       triggerOnChange();
     });
     form.onChangeOverwriteFilesOverride(value -> {
-       configuration.overwriteFiles.overrideWith(value);
-       triggerOnChange();
+      configuration.overwriteFiles.overrideWith(value);
+      triggerOnChange();
     });
     form.onChangeExportMedia(value -> {
       configuration.exportMedia.set(value);
       triggerOnChange();
     });
-    form.onChangeExportMediaOverride(value ->  {
+    form.onChangeExportMediaOverride(value -> {
       configuration.exportMedia.overrideWith(value);
       triggerOnChange();
     });

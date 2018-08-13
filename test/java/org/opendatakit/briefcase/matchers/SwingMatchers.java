@@ -88,7 +88,7 @@ public class SwingMatchers {
     return new TypeSafeMatcher<JTextField>() {
       @Override
       public void describeTo(Description description) {
-        description.appendText("visible");
+        description.appendText("editable");
       }
 
       @Override

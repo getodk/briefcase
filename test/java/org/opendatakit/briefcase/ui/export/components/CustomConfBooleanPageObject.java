@@ -68,7 +68,6 @@ class CustomConfBooleanPageObject {
   void set(TriStateBoolean value) {
     execute(() -> {
       component.set(value);
-      component.setInternal(value);
     });
   }
 

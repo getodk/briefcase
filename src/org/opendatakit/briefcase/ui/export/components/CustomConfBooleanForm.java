@@ -1,8 +1,8 @@
 package org.opendatakit.briefcase.ui.export.components;
 
-import static org.opendatakit.briefcase.reused.TriStateBoolean.UNDETERMINED;
 import static org.opendatakit.briefcase.reused.TriStateBoolean.FALSE;
 import static org.opendatakit.briefcase.reused.TriStateBoolean.TRUE;
+import static org.opendatakit.briefcase.reused.TriStateBoolean.UNDETERMINED;
 
 import java.awt.FlowLayout;
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ public class CustomConfBooleanForm {
   private final List<Consumer<TriStateBoolean>> onChangeCallbacks = new ArrayList<>();
   private TriStateBoolean lastValue;
 
-  public CustomConfBooleanForm(Optional<TriStateBoolean> initialValue) {
+  CustomConfBooleanForm(Optional<TriStateBoolean> initialValue) {
     ButtonGroup buttonGroup = new ButtonGroup();
     buttonGroup.add(inherit);
     buttonGroup.add(yes);
@@ -53,10 +53,17 @@ public class CustomConfBooleanForm {
     no.addActionListener(__ -> setInternal(FALSE));
   }
 
+  /**
+   * Lets third parties react on changes of the internal state of this component
+   */
   public void onChange(Consumer<TriStateBoolean> callback) {
     onChangeCallbacks.add(callback);
   }
 
+  /**
+   * Sets the UI state of this component by selecting one of its three possible
+   * states: UNDETERMINED, TRUE, or FALSE
+   */
   public void set(TriStateBoolean value) {
     switch (value) {
       case UNDETERMINED:
@@ -71,9 +78,14 @@ public class CustomConfBooleanForm {
       default:
         throw new IllegalArgumentException("Unsupported value " + value);
     }
+    setInternal(value);
   }
 
-  void setInternal(TriStateBoolean value) {
+  /**
+   * Updates the internal state of this component by changing the last known value it held
+   * and triggering downstream callbacks
+   */
+  private void setInternal(TriStateBoolean value) {
     if (lastValue != value) {
       lastValue = value;
       onChangeCallbacks.forEach(callback -> callback.accept(value));
@@ -91,6 +103,9 @@ public class CustomConfBooleanForm {
     no.setEnabled(enabled);
   }
 
+  /**
+   * Returns the internal state of this component
+   */
   public TriStateBoolean get() {
     return lastValue;
   }

@@ -15,7 +15,6 @@
  */
 package org.opendatakit.briefcase.export;
 
-import static org.opendatakit.briefcase.reused.OptionalProduct.firstPresent;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_DIRECTORY;

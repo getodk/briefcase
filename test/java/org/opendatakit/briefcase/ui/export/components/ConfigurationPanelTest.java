@@ -253,8 +253,6 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     component.setSomeEndDate();
     component.setPullBeforeOverride(TRUE);
 
-    // Note that there are 6 calls instead of 5 because the panel
-    // will implicitly set it to the default UNDETERMINED option on creation
-    assertThat(counter.get(), is(6));
+    assertThat(counter.get(), is(5));
   }
 }

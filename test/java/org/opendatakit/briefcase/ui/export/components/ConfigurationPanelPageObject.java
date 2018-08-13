@@ -193,11 +193,7 @@ class ConfigurationPanelPageObject {
   }
 
   public void setPullBeforeOverride(TriStateBoolean option) {
-    invokeLater(() -> {
-      CustomConfBooleanForm field = component.form.pullBeforeOverrideField;
-      field.set(option);
-      field.setInternal(option);
-    });
+    invokeLater(() -> component.form.pullBeforeOverrideField.set(option));
     uncheckedSleep(50);
   }
 
