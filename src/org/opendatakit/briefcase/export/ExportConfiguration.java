@@ -105,11 +105,11 @@ public class ExportConfiguration {
         prefs.nullSafeGet(START_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(PULL_BEFORE).map(Boolean::valueOf),
-        prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(TriStateBoolean::valueOf),
+        prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(TriStateBoolean::from),
         prefs.nullSafeGet(OVERWRITE_EXISTING_FILES).map(Boolean::valueOf),
-        prefs.nullSafeGet(OVERWRITE_FILES_OVERRIDE).map(TriStateBoolean::valueOf),
+        prefs.nullSafeGet(OVERWRITE_FILES_OVERRIDE).map(TriStateBoolean::from),
         prefs.nullSafeGet(EXPORT_MEDIA).map(Boolean::valueOf),
-        prefs.nullSafeGet(EXPORT_MEDIA_OVERRIDE).map(TriStateBoolean::valueOf),
+        prefs.nullSafeGet(EXPORT_MEDIA_OVERRIDE).map(TriStateBoolean::from),
         prefs.nullSafeGet(EXPLODE_CHOICE_LISTS).map(Boolean::valueOf)
     );
   }
@@ -122,11 +122,11 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + PULL_BEFORE).map(Boolean::valueOf),
-        prefs.nullSafeGet(keyPrefix + PULL_BEFORE_OVERRIDE).map(TriStateBoolean::valueOf),
+        prefs.nullSafeGet(keyPrefix + PULL_BEFORE_OVERRIDE).map(TriStateBoolean::from),
         prefs.nullSafeGet(keyPrefix + OVERWRITE_EXISTING_FILES).map(Boolean::valueOf),
-        prefs.nullSafeGet(keyPrefix + OVERWRITE_FILES_OVERRIDE).map(TriStateBoolean::valueOf),
+        prefs.nullSafeGet(keyPrefix + OVERWRITE_FILES_OVERRIDE).map(TriStateBoolean::from),
         prefs.nullSafeGet(keyPrefix + EXPORT_MEDIA).map(Boolean::valueOf),
-        prefs.nullSafeGet(keyPrefix + EXPORT_MEDIA_OVERRIDE).map(TriStateBoolean::valueOf),
+        prefs.nullSafeGet(keyPrefix + EXPORT_MEDIA_OVERRIDE).map(TriStateBoolean::from),
         prefs.nullSafeGet(keyPrefix + EXPLODE_CHOICE_LISTS).map(Boolean::valueOf)
     );
   }
