@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.ui.export.components;
 import java.util.ArrayList;
 import java.util.List;
 import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.reused.TriStateBoolean;
 
 public class ConfigurationPanel {
   private final ExportConfiguration configuration;

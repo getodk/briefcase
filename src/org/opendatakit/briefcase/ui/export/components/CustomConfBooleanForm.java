@@ -1,8 +1,8 @@
 package org.opendatakit.briefcase.ui.export.components;
 
-import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.UNDETERMINED;
-import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.FALSE;
-import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.TRUE;
+import static org.opendatakit.briefcase.reused.TriStateBoolean.UNDETERMINED;
+import static org.opendatakit.briefcase.reused.TriStateBoolean.FALSE;
+import static org.opendatakit.briefcase.reused.TriStateBoolean.TRUE;
 
 import java.awt.FlowLayout;
 import java.util.ArrayList;
@@ -13,6 +13,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import org.opendatakit.briefcase.reused.TriStateBoolean;
 
 @SuppressWarnings({"checkstyle:CommentsIndentation", "checkstyle:MethodName"})
 public class CustomConfBooleanForm {

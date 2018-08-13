@@ -40,6 +40,7 @@ import org.assertj.swing.exception.WaitTimedOutError;
 import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.fixture.JFileChooserFixture;
 import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.reused.TriStateBoolean;
 
 class ConfigurationPanelPageObject {
   private static Path TEST_FOLDER;

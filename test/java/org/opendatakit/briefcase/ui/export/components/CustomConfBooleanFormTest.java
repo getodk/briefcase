@@ -4,14 +4,15 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.selected;
-import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.UNDETERMINED;
-import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.FALSE;
-import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.TRUE;
+import static org.opendatakit.briefcase.reused.TriStateBoolean.UNDETERMINED;
+import static org.opendatakit.briefcase.reused.TriStateBoolean.FALSE;
+import static org.opendatakit.briefcase.reused.TriStateBoolean.TRUE;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.Test;
+import org.opendatakit.briefcase.reused.TriStateBoolean;
 
 public class CustomConfBooleanFormTest extends AssertJSwingJUnitTestCase {
   private CustomConfBooleanPageObject component;

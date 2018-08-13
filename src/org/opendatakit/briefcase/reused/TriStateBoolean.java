@@ -1,4 +1,4 @@
-package org.opendatakit.briefcase.ui.export.components;
+package org.opendatakit.briefcase.reused;
 
 import java.util.Optional;
 

@@ -27,9 +27,9 @@ import static org.opendatakit.briefcase.export.ExportConfiguration.empty;
 import static org.opendatakit.briefcase.export.ExportConfiguration.load;
 import static org.opendatakit.briefcase.matchers.ExportConfigurationMatchers.isEmpty;
 import static org.opendatakit.briefcase.matchers.ExportConfigurationMatchers.isValid;
-import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.UNDETERMINED;
-import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.FALSE;
-import static org.opendatakit.briefcase.ui.export.components.TriStateBoolean.TRUE;
+import static org.opendatakit.briefcase.reused.TriStateBoolean.UNDETERMINED;
+import static org.opendatakit.briefcase.reused.TriStateBoolean.FALSE;
+import static org.opendatakit.briefcase.reused.TriStateBoolean.TRUE;
 
 import com.github.npathai.hamcrestopt.OptionalMatchers;
 import java.io.File;

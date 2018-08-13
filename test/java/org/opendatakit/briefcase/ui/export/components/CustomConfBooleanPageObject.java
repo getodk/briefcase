@@ -23,6 +23,7 @@ import javax.swing.JFrame;
 import javax.swing.JRadioButton;
 import org.assertj.swing.core.Robot;
 import org.assertj.swing.fixture.FrameFixture;
+import org.opendatakit.briefcase.reused.TriStateBoolean;
 
 class CustomConfBooleanPageObject {
   private final CustomConfBooleanForm component;

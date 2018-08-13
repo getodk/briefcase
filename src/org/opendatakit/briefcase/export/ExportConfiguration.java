@@ -47,7 +47,7 @@ import java.util.function.Predicate;
 import org.bouncycastle.openssl.PEMReader;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.ui.export.components.TriStateBoolean;
+import org.opendatakit.briefcase.reused.TriStateBoolean;
 import org.opendatakit.briefcase.util.ErrorsOr;
 
 public class ExportConfiguration {
