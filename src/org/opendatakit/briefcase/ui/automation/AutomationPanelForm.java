@@ -24,6 +24,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationDialog;
+import org.opendatakit.briefcase.ui.reused.source.Source;
 import org.opendatakit.briefcase.ui.reused.source.SourcePanel;
 import org.opendatakit.briefcase.ui.reused.source.SourcePanelForm;
 import org.opendatakit.briefcase.util.StringUtils;
@@ -53,7 +54,7 @@ public class AutomationPanelForm {
     this.formsTableView = formsTable.getView();
     this.pullSourcePanel = pullSourcePanel;
     this.pullSourcePanelForm = pullSourcePanel.getContainer();
-    this.pullSourcePanel = pushSourcePanel;
+    this.pushSourcePanel = pushSourcePanel;
     this.pushSourcePanelForm = pushSourcePanel.getContainer();
     $$$setupUI$$$();
     scriptDirChooseButton.addActionListener(__ ->
@@ -78,6 +79,14 @@ public class AutomationPanelForm {
       );
       callback.accept(automationConfiguration);
     });
+  }
+
+  void onPullSource(Consumer<Source<?>> callback) {
+    pullSourcePanel.onSource(callback);
+  }
+
+  void onPushSource(Consumer<Source<?>> callback) {
+    pushSourcePanel.onSource(callback);
   }
 
   private void triggerOnChange() {
@@ -173,8 +182,9 @@ public class AutomationPanelForm {
     setExportConfigurationButton = new JButton();
     setExportConfigurationButton.setText("Set export configuration");
     gbc = new GridBagConstraints();
-    gbc.gridx = 2;
+    gbc.gridx = 0;
     gbc.gridy = 7;
+    gbc.gridwidth = 5;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(setExportConfigurationButton, gbc);
     final JPanel spacer4 = new JPanel();
@@ -191,8 +201,11 @@ public class AutomationPanelForm {
     container.add(spacer5, gbc);
     scrollPane = new JScrollPane();
     gbc = new GridBagConstraints();
-    gbc.gridx = 2;
+    gbc.gridx = 0;
     gbc.gridy = 9;
+    gbc.gridwidth = 5;
+    gbc.weightx = 1.0;
+    gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(scrollPane, gbc);
     scrollPane.setViewportView(formsTableView);
