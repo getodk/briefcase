@@ -35,8 +35,8 @@ import org.slf4j.LoggerFactory;
 
 public class ImportFromODK {
   private static final Logger log = LoggerFactory.getLogger(ImportFromODK.class);
-  private static final Param<Void> IMPORT = Param.flag("pc", "pull_collect", "Pull from Collect");
-  private static final Param<Path> ODK_DIR = Param.arg("od", "odk_directory", "ODK directory", Paths::get);
+  public static final Param<Void> IMPORT = Param.flag("pc", "pull_collect", "Pull from Collect");
+  public static final Param<Path> ODK_DIR = Param.arg("od", "odk_directory", "ODK directory", Paths::get);
 
   public static final Operation IMPORT_FROM_ODK = Operation.of(
       IMPORT,

@@ -130,6 +130,10 @@ public class Param<T> {
         .apply(value);
   }
 
+  public String getLongOption() {
+    return this.option.getLongOpt();
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

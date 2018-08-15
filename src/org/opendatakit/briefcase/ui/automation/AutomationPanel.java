@@ -10,7 +10,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.swing.JPanel;
@@ -27,6 +29,7 @@ import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.source.Source;
 import org.opendatakit.briefcase.util.FormCache;
+import org.opendatakit.common.cli.Param;
 
 public class AutomationPanel {
   public static final String TAB_NAME = "Automation";
@@ -57,9 +60,19 @@ public class AutomationPanel {
     Path scriptDirPath = configuration.getScriptLocation().orElseThrow(BriefcaseException::new);
     Path storageDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new).getParent();
     String exportTemplate = "java -jar {0} --export --form_id {1} --storage_directory {2} --export_directory {3} --export_filename {4}.csv";
+    String pullTemplate = "java -jar {0} --pull_aggregate --form_id {1} --storage_directory {2}{3}";
+    List<String> scriptLines = new ArrayList<>();
 
-    List<String> scriptLines = pullSource.orElseThrow(BriefcaseException::new).pullScriptLines(forms.getSelectedForms(), appPreferences);
-    List<String> pushInstructions = pushSource.orElseThrow(BriefcaseException::new).pushScriptLines(forms.getSelectedForms(), appPreferences);
+    List<String> pullInstructions = forms.getSelectedForms()
+        .stream()
+        .map(form -> MessageFormat.format(
+            pullTemplate,
+            "briefcase.jar",
+            form.getFormDefinition().getFormId(),
+            storageDir.toString(),
+            getParams(pullSource)
+        )).collect(toList());
+    scriptLines.addAll(pullInstructions);
     List<String> exportInstructions = forms.getSelectedForms()
         .stream()
         .map(form -> MessageFormat.format(
@@ -77,6 +90,16 @@ public class AutomationPanel {
     scriptLines.add("");
     scriptLines.addAll(exportInstructions);
 
+    String pushTemplate = "java -jar {0} --push_aggregate --form_id {1} --storage_directory {2} {3}";
+    List<String> pushInstructions = forms.getSelectedForms()
+        .stream()
+        .map(form -> MessageFormat.format(
+            pushTemplate,
+            "briefcase.jar",
+            form.getFormDefinition().getFormId(),
+            storageDir.toString(),
+            getParams(pushSource)
+        )).collect(toList());
     // Add two blank lines before adding push instructions
     scriptLines.add("");
     scriptLines.add("");
@@ -93,6 +116,16 @@ public class AutomationPanel {
       throw new BriefcaseException(e);
     }
 
+  }
+
+  private String getParams(Optional<Source<?>> pullSource) {
+    Map<Param, String> keyValues = pullSource.orElseThrow(BriefcaseException::new).getCliParams();
+    StringBuilder commands = new StringBuilder("");
+    keyValues.forEach((param, value) -> {
+      String commandPair = " --" + param.getLongOption() + " " + value;
+      commands.append(commandPair);
+    });
+    return commands.toString();
   }
 
   public static AutomationPanel from(Http http, BriefcasePreferences appPreferences, FormCache formCache) {

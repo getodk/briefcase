@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 public class PullFormFromAggregate {
   private static final Logger log = LoggerFactory.getLogger(PullFormFromAggregate.class);
   public static final Param<Void> DEPRECATED_PULL_AGGREGATE = Param.flag("pa", "Pull form from an Aggregate instance");
-  private static final Param<Void> PULL_AGGREGATE = Param.flag("plla", "pull_aggregate", "Pull form from an Aggregate instance");
+  public static final Param<Void> PULL_AGGREGATE = Param.flag("plla", "pull_aggregate", "Pull form from an Aggregate instance");
   private static final Param<Void> PULL_IN_PARALLEL = Param.flag("pp", "parallel_pull", "Pull submissions in parallel");
 
   public static Operation PULL_FORM_FROM_AGGREGATE = Operation.of(

@@ -23,9 +23,10 @@ import java.awt.Container;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.MessageFormat;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -34,6 +35,8 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.operations.Common;
+import org.opendatakit.briefcase.operations.ImportFromODK;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Credentials;
@@ -44,6 +47,7 @@ import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.BadFormDefinition;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferAction;
+import org.opendatakit.common.cli.Param;
 
 /**
  * This interface represents a source (for lack of a better name) for pulling
@@ -193,14 +197,11 @@ public interface Source<T> {
   String getDescription();
 
   /**
-   * Returns pull instructions for forms
+   * Return cli params of this source
    *
-   * @param forms {@link List} of forms to be pulled
-   * @return lines of instructions to pull
+   * @return cliParams
    */
-  List<String> pullScriptLines(List<FormStatus> forms, BriefcasePreferences appPreferences);
-
-  List<String> pushScriptLines(List<FormStatus> forms, BriefcasePreferences appPreferences);
+  Map<Param, String> getCliParams();
 
   class Aggregate implements Source<RemoteServer> {
     private final Http http;
@@ -266,45 +267,12 @@ public interface Source<T> {
     }
 
     @Override
-    public List<String> pullScriptLines(List<FormStatus> forms, BriefcasePreferences appPreferences) {
-      String template = "java -jar {0} --pull_aggregate --form_id {1} --storage_directory {2} --aggregate_url {3} --odk_username {4} --odk_password {5}";
-      Path storageDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new).getParent();
-      String username = server.getCredentials().orElse(new Credentials("", "")).getUsername();
-      String password = server.getCredentials().orElse(new Credentials("", "")).getPassword();
-
-      List<String> pullInstructions = forms.stream()
-          .map(form -> MessageFormat.format(
-              template,
-              "briefcase.jar",
-              form.getFormDefinition().getFormId(),
-              storageDir.toString(),
-              server.getBaseUrl(),
-              username,
-              password
-          ))
-          .collect(Collectors.toList());
-      return pullInstructions;
-    }
-
-    @Override
-    public List<String> pushScriptLines(List<FormStatus> forms, BriefcasePreferences appPreferences) {
-      String template = "java -jar {0} --push_aggregate --form_id {1} --storage_directory {2} --aggregate_url {3} --odk_username {4} --odk_password {5}";
-      Path storageDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new).getParent();
-      String username = server.getCredentials().orElse(new Credentials("", "")).getUsername();
-      String password = server.getCredentials().orElse(new Credentials("", "")).getPassword();
-
-      List<String> pushInstructions = forms.stream()
-          .map(form -> MessageFormat.format(
-              template,
-              "briefcase.jar",
-              form.getFormDefinition().getFormId(),
-              storageDir.toString(),
-              server.getBaseUrl(),
-              username,
-              password
-          ))
-          .collect(Collectors.toList());
-      return pushInstructions;
+    public Map<Param, String> getCliParams() {
+      Map<Param, String> keyValues = new HashMap<>();
+      keyValues.put(Common.AGGREGATE_SERVER, server.getBaseUrl().toString());
+      keyValues.put(Common.ODK_USERNAME, server.getCredentials().map(Credentials::getUsername).orElse(""));
+      keyValues.put(Common.ODK_PASSWORD, server.getCredentials().map(Credentials::getPassword).orElse(""));
+      return keyValues;
     }
 
     @Override
@@ -387,23 +355,10 @@ public interface Source<T> {
     }
 
     @Override
-    public List<String> pullScriptLines(List<FormStatus> forms, BriefcasePreferences appPreferences) {
-      String template = "java -jar {0} --pull_collect --form_id {1} --storage_directory {2} --odk_directory {3}";
-      Path storageDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new).getParent();
-      List<String> pullInstructions = forms.stream()
-          .map(form -> MessageFormat.format(
-              template,
-              "briefcase.jar",
-              form.getFormDefinition().getFormId(),
-              storageDir.toString(),
-              path.toString()
-          )).collect(Collectors.toList());
-      return pullInstructions;
-    }
-
-    @Override
-    public List<String> pushScriptLines(List<FormStatus> forms, BriefcasePreferences appPreferences) {
-      throw new BriefcaseException("Not yet implemented for CustomDir");
+    public Map<Param, String> getCliParams() {
+      Map<Param, String> keyValues = new HashMap<>();
+      keyValues.put(ImportFromODK.ODK_DIR, path.toString());
+      return keyValues;
     }
 
     @Override
@@ -483,13 +438,8 @@ public interface Source<T> {
     }
 
     @Override
-    public List<String> pullScriptLines(List<FormStatus> forms, BriefcasePreferences appPreferences) {
-      throw new BriefcaseException("Not yet implemented for FormInComputer");
-    }
-
-    @Override
-    public List<String> pushScriptLines(List<FormStatus> forms, BriefcasePreferences appPreferences) {
-      throw new BriefcaseException("Not yet implemented for FormInComputer");
+    public Map<Param, String> getCliParams() {
+      return new HashMap<>();
     }
 
     @Override
