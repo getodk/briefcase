@@ -3,7 +3,6 @@ package org.opendatakit.briefcase.ui.automation;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
 
@@ -24,7 +23,6 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
-import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.source.Source;
@@ -48,34 +46,9 @@ public class AutomationPanel {
     this.formCache = formCache;
     this.appPreferences = appPreferences;
 
-    // Read prefs and load saved remote server if available
-    this.pullSource = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadPullSource);
-    this.pullSource.ifPresent(source -> {
-      forms.load(source.getFormList());
-      view.refresh();
-    });
+    view.onPullSource(pullSource -> this.pullSource = Optional.of(pullSource));
 
-    view.onPullSource(pullSource -> {
-      this.pullSource = Optional.of(pullSource);
-      Source.clearAllPreferences(tabPreferences);
-      pullSource.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
-      forms.load(pullSource.getFormList());
-      view.refresh();
-    });
-
-    view.onPushSource(pushSource -> {
-      Source.clearAllPreferences(tabPreferences);
-      pushSource.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
-      forms.load(pushSource.getFormList());
-      view.refresh();
-    });
-
-    // Read prefs and load saved remote server if available
-    this.pushSource = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadPushSource);
-    this.pushSource.ifPresent(source -> {
-      forms.load(source.getFormList());
-      view.refresh();
-    });
+    view.onPushSource(pushSource -> this.pushSource = Optional.of(pushSource));
 
     view.onGenerate(config -> generateScript(isWindows() ? "automation.bat" : "automation.sh", config));
   }
