@@ -123,6 +123,10 @@ public class RemoteServer {
     return baseUrl;
   }
 
+  public Optional<Credentials> getCredentials() {
+    return credentials;
+  }
+
   public ServerConnectionInfo asServerConnectionInfo() {
     return new ServerConnectionInfo(
         baseUrl.toString(),

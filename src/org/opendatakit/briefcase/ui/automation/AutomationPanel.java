@@ -3,6 +3,7 @@ package org.opendatakit.briefcase.ui.automation;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
 
@@ -11,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.swing.JPanel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
@@ -22,8 +24,10 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
+import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
+import org.opendatakit.briefcase.ui.reused.source.Source;
 import org.opendatakit.briefcase.util.FormCache;
 
 public class AutomationPanel {
@@ -34,12 +38,44 @@ public class AutomationPanel {
   private final FormCache formCache;
   private final BriefcasePreferences appPreferences;
 
-  public AutomationPanel(AutomationPanelForm view, TransferForms forms, BriefcasePreferences appPreferences, FormCache formCache) {
+  private Optional<Source<?>> pullSource;
+  private Optional<Source<?>> pushSource;
+
+  public AutomationPanel(AutomationPanelForm view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, FormCache formCache) {
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
     this.formCache = formCache;
     this.appPreferences = appPreferences;
+
+    // Read prefs and load saved remote server if available
+    this.pullSource = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadPullSource);
+    this.pullSource.ifPresent(source -> {
+      forms.load(source.getFormList());
+      view.refresh();
+    });
+
+    view.onPullSource(pullSource -> {
+      this.pullSource = Optional.of(pullSource);
+      Source.clearAllPreferences(tabPreferences);
+      pullSource.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
+      forms.load(pullSource.getFormList());
+      view.refresh();
+    });
+
+    view.onPushSource(pushSource -> {
+      Source.clearAllPreferences(tabPreferences);
+      pushSource.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
+      forms.load(pushSource.getFormList());
+      view.refresh();
+    });
+
+    // Read prefs and load saved remote server if available
+    this.pushSource = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadPushSource);
+    this.pushSource.ifPresent(source -> {
+      forms.load(source.getFormList());
+      view.refresh();
+    });
 
     view.onGenerate(config -> generateScript(isWindows() ? "automation.bat" : "automation.sh", config));
   }
@@ -47,20 +83,31 @@ public class AutomationPanel {
   private void generateScript(String scriptName, AutomationConfiguration configuration) {
     Path scriptDirPath = configuration.getScriptLocation().orElseThrow(BriefcaseException::new);
     Path storageDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new).getParent();
-    String template = "java -jar {0} --export --form_id {1} --storage_directory {2} --export_directory {3} --export_filename {4}.csv";
+    String exportTemplate = "java -jar {0} --export --form_id {1} --storage_directory {2} --export_directory {3} --export_filename {4}.csv";
 
-    List<String> scriptLines = forms.getSelectedForms()
+    List<String> scriptLines = pullSource.orElseThrow(BriefcaseException::new).pullScriptLines(forms.getSelectedForms(), appPreferences);
+    List<String> pushInstructions = pushSource.orElseThrow(BriefcaseException::new).pushScriptLines(forms.getSelectedForms(), appPreferences);
+    List<String> exportInstructions = forms.getSelectedForms()
         .stream()
         .map(form -> MessageFormat.format(
-            template,
+            exportTemplate,
             "briefcase.jar",
             form.getFormDefinition().getFormId(),
             storageDir.toString(),
             "/tmp",
             form.getFormName()
         ))
-
         .collect(Collectors.toList());
+
+    // Add two blank lines before adding export instructions
+    scriptLines.add("");
+    scriptLines.add("");
+    scriptLines.addAll(exportInstructions);
+
+    // Add two blank lines before adding push instructions
+    scriptLines.add("");
+    scriptLines.add("");
+    scriptLines.addAll(pushInstructions);
     try {
       Files.write(
           scriptDirPath.resolve(scriptName),
@@ -80,6 +127,7 @@ public class AutomationPanel {
     return new AutomationPanel(
         AutomationPanelForm.from(http, forms),
         forms,
+        BriefcasePreferences.forClass(AutomationPanel.class),
         appPreferences,
         formCache
     );

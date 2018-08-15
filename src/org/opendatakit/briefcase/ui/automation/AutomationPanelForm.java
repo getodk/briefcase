@@ -21,6 +21,7 @@ import javax.swing.JTextField;
 import org.opendatakit.briefcase.automation.AutomationConfiguration;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.export.components.ConfigurationDialog;
@@ -87,6 +88,14 @@ public class AutomationPanelForm {
 
   void onPushSource(Consumer<Source<?>> callback) {
     pushSourcePanel.onSource(callback);
+  }
+
+  public Optional<Source<?>> preloadPullSource(RemoteServer server) {
+    return pushSourcePanel.preload(server);
+  }
+
+  public Optional<Source<?>> preloadPushSource(RemoteServer server) {
+    return pushSourcePanel.preload(server);
   }
 
   private void triggerOnChange() {

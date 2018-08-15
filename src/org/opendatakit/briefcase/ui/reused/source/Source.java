@@ -23,6 +23,7 @@ import java.awt.Container;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +36,7 @@ import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
 import org.opendatakit.briefcase.ui.pull.FormInstaller;
@@ -190,6 +192,16 @@ public interface Source<T> {
    */
   String getDescription();
 
+  /**
+   * Returns pull instructions for forms
+   *
+   * @param forms {@link List} of forms to be pulled
+   * @return lines of instructions to pull
+   */
+  List<String> pullScriptLines(List<FormStatus> forms, BriefcasePreferences appPreferences);
+
+  List<String> pushScriptLines(List<FormStatus> forms, BriefcasePreferences appPreferences);
+
   class Aggregate implements Source<RemoteServer> {
     private final Http http;
     private RemoteServer.Test serverTester;
@@ -251,6 +263,48 @@ public interface Source<T> {
     @Override
     public String getDescription() {
       return server.getBaseUrl().toString();
+    }
+
+    @Override
+    public List<String> pullScriptLines(List<FormStatus> forms, BriefcasePreferences appPreferences) {
+      String template = "java -jar {0} --pull_aggregate --form_id {1} --storage_directory {2} --aggregate_url {3} --odk_username {4} --odk_password {5}";
+      Path storageDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new).getParent();
+      String username = server.getCredentials().orElse(new Credentials("", "")).getUsername();
+      String password = server.getCredentials().orElse(new Credentials("", "")).getPassword();
+
+      List<String> pullInstructions = forms.stream()
+          .map(form -> MessageFormat.format(
+              template,
+              "briefcase.jar",
+              form.getFormDefinition().getFormId(),
+              storageDir.toString(),
+              server.getBaseUrl(),
+              username,
+              password
+          ))
+          .collect(Collectors.toList());
+      return pullInstructions;
+    }
+
+    @Override
+    public List<String> pushScriptLines(List<FormStatus> forms, BriefcasePreferences appPreferences) {
+      String template = "java -jar {0} --push_aggregate --form_id {1} --storage_directory {2} --aggregate_url {3} --odk_username {4} --odk_password {5}";
+      Path storageDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new).getParent();
+      String username = server.getCredentials().orElse(new Credentials("", "")).getUsername();
+      String password = server.getCredentials().orElse(new Credentials("", "")).getPassword();
+
+      List<String> pushInstructions = forms.stream()
+          .map(form -> MessageFormat.format(
+              template,
+              "briefcase.jar",
+              form.getFormDefinition().getFormId(),
+              storageDir.toString(),
+              server.getBaseUrl(),
+              username,
+              password
+          ))
+          .collect(Collectors.toList());
+      return pushInstructions;
     }
 
     @Override
@@ -333,6 +387,26 @@ public interface Source<T> {
     }
 
     @Override
+    public List<String> pullScriptLines(List<FormStatus> forms, BriefcasePreferences appPreferences) {
+      String template = "java -jar {0} --pull_collect --form_id {1} --storage_directory {2} --odk_directory {3}";
+      Path storageDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new).getParent();
+      List<String> pullInstructions = forms.stream()
+          .map(form -> MessageFormat.format(
+              template,
+              "briefcase.jar",
+              form.getFormDefinition().getFormId(),
+              storageDir.toString(),
+              path.toString()
+          )).collect(Collectors.toList());
+      return pullInstructions;
+    }
+
+    @Override
+    public List<String> pushScriptLines(List<FormStatus> forms, BriefcasePreferences appPreferences) {
+      throw new BriefcaseException("Not yet implemented for CustomDir");
+    }
+
+    @Override
     public String toString() {
       return "Collect directory";
     }
@@ -406,6 +480,16 @@ public interface Source<T> {
     @Override
     public String getDescription() {
       return String.format("%s at %s", form.getFormName(), path.toString());
+    }
+
+    @Override
+    public List<String> pullScriptLines(List<FormStatus> forms, BriefcasePreferences appPreferences) {
+      throw new BriefcaseException("Not yet implemented for FormInComputer");
+    }
+
+    @Override
+    public List<String> pushScriptLines(List<FormStatus> forms, BriefcasePreferences appPreferences) {
+      throw new BriefcaseException("Not yet implemented for FormInComputer");
     }
 
     @Override
