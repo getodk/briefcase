@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 public class PushFormToAggregate {
   private static final Logger log = LoggerFactory.getLogger(PushFormToAggregate.class);
-  private static final Param<Void> PUSH_AGGREGATE = Param.flag("psha", "push_aggregate", "Push form to an Aggregate instance");
+  public static final Param<Void> PUSH_AGGREGATE = Param.flag("psha", "push_aggregate", "Push form to an Aggregate instance");
   private static final Param<Void> FORCE_SEND_BLANK = Param.flag("fsb", "force_send_blank", "Force sending the blank form to the Aggregate instance");
 
   public static Operation PUSH_FORM_TO_AGGREGATE = Operation.of(

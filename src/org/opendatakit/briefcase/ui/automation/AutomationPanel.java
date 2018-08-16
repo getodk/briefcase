@@ -60,17 +60,17 @@ public class AutomationPanel {
     Path scriptDirPath = configuration.getScriptLocation().orElseThrow(BriefcaseException::new);
     Path storageDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new).getParent();
     String exportTemplate = "java -jar {0} --export --form_id {1} --storage_directory {2} --export_directory {3} --export_filename {4}.csv";
-    String pullTemplate = "java -jar {0} --pull_aggregate --form_id {1} --storage_directory {2}{3}";
+    String template = "java -jar {0} --form_id {1} --storage_directory {2}{3}";
     List<String> scriptLines = new ArrayList<>();
 
     List<String> pullInstructions = forms.getSelectedForms()
         .stream()
         .map(form -> MessageFormat.format(
-            pullTemplate,
+            template,
             "briefcase.jar",
             form.getFormDefinition().getFormId(),
             storageDir.toString(),
-            getParams(pullSource)
+            getParams(pullSource.orElseThrow(BriefcaseException::new).getPullCliParams())
         )).collect(toList());
     scriptLines.addAll(pullInstructions);
     List<String> exportInstructions = forms.getSelectedForms()
@@ -90,15 +90,14 @@ public class AutomationPanel {
     scriptLines.add("");
     scriptLines.addAll(exportInstructions);
 
-    String pushTemplate = "java -jar {0} --push_aggregate --form_id {1} --storage_directory {2} {3}";
     List<String> pushInstructions = forms.getSelectedForms()
         .stream()
         .map(form -> MessageFormat.format(
-            pushTemplate,
+            template,
             "briefcase.jar",
             form.getFormDefinition().getFormId(),
             storageDir.toString(),
-            getParams(pushSource)
+            getParams(pushSource.orElseThrow(BriefcaseException::new).getPushCliParams())
         )).collect(toList());
     // Add two blank lines before adding push instructions
     scriptLines.add("");
@@ -118,8 +117,7 @@ public class AutomationPanel {
 
   }
 
-  private String getParams(Optional<Source<?>> pullSource) {
-    Map<Param, String> keyValues = pullSource.orElseThrow(BriefcaseException::new).getCliParams();
+  private String getParams(Map<Param, String> keyValues) {
     StringBuilder commands = new StringBuilder("");
     keyValues.forEach((param, value) -> {
       String commandPair = " --" + param.getLongOption() + " " + value;

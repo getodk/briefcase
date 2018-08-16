@@ -37,6 +37,8 @@ import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.operations.Common;
 import org.opendatakit.briefcase.operations.ImportFromODK;
+import org.opendatakit.briefcase.operations.PullFormFromAggregate;
+import org.opendatakit.briefcase.operations.PushFormToAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Credentials;
@@ -201,7 +203,17 @@ public interface Source<T> {
    *
    * @return cliParams
    */
-  Map<Param, String> getCliParams();
+  default Map<Param, String> getPullCliParams() {
+    return new HashMap<>();
+  }
+
+  /**
+   *
+   * @return
+   */
+  default Map<Param, String> getPushCliParams() {
+    return new HashMap<>();
+  }
 
   class Aggregate implements Source<RemoteServer> {
     private final Http http;
@@ -267,11 +279,22 @@ public interface Source<T> {
     }
 
     @Override
-    public Map<Param, String> getCliParams() {
+    public Map<Param, String> getPullCliParams() {
       Map<Param, String> keyValues = new HashMap<>();
       keyValues.put(Common.AGGREGATE_SERVER, server.getBaseUrl().toString());
       keyValues.put(Common.ODK_USERNAME, server.getCredentials().map(Credentials::getUsername).orElse(""));
       keyValues.put(Common.ODK_PASSWORD, server.getCredentials().map(Credentials::getPassword).orElse(""));
+      keyValues.put(PullFormFromAggregate.PULL_AGGREGATE, "");
+      return keyValues;
+    }
+
+    @Override
+    public Map<Param, String> getPushCliParams() {
+      Map<Param, String> keyValues = new HashMap<>();
+      keyValues.put(Common.AGGREGATE_SERVER, server.getBaseUrl().toString());
+      keyValues.put(Common.ODK_USERNAME, server.getCredentials().map(Credentials::getUsername).orElse(""));
+      keyValues.put(Common.ODK_PASSWORD, server.getCredentials().map(Credentials::getPassword).orElse(""));
+      keyValues.put(PushFormToAggregate.PUSH_AGGREGATE, "");
       return keyValues;
     }
 
@@ -355,9 +378,10 @@ public interface Source<T> {
     }
 
     @Override
-    public Map<Param, String> getCliParams() {
+    public Map<Param, String> getPullCliParams() {
       Map<Param, String> keyValues = new HashMap<>();
       keyValues.put(ImportFromODK.ODK_DIR, path.toString());
+      keyValues.put(ImportFromODK.IMPORT, "");
       return keyValues;
     }
 
@@ -435,11 +459,6 @@ public interface Source<T> {
     @Override
     public String getDescription() {
       return String.format("%s at %s", form.getFormName(), path.toString());
-    }
-
-    @Override
-    public Map<Param, String> getCliParams() {
-      return new HashMap<>();
     }
 
     @Override
