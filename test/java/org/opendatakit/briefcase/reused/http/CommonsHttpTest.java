@@ -32,7 +32,7 @@ public class CommonsHttpTest {
   public void can_execute_a_GET_request() throws MalformedURLException {
     Http http = new CommonsHttp();
     Response<String> output = http.execute(Request.get(new URL("https://docs.opendatakit.org/")));
-    assertThat(output.orElseThrow(BriefcaseException::new), containsString("Welcome to Open Data Kit"));
+    assertThat(output.orElseThrow(BriefcaseException::new), containsString("Open Data Kit"));
   }
 
   @Test
