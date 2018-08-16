@@ -88,17 +88,7 @@ public class ExportConfiguration {
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
-    return new ExportConfiguration(
-        Optional.empty(),
-        prefs.nullSafeGet(EXPORT_DIR).map(Paths::get),
-        prefs.nullSafeGet(PEM_FILE).map(Paths::get),
-        prefs.nullSafeGet(START_DATE).map(LocalDate::parse),
-        prefs.nullSafeGet(END_DATE).map(LocalDate::parse),
-        readOverridableBoolean(prefs, PULL_BEFORE, PULL_BEFORE_OVERRIDE),
-        readOverridableBoolean(prefs, OVERWRITE_FILES, OVERWRITE_FILES_OVERRIDE),
-        readOverridableBoolean(prefs, EXPORT_MEDIA, EXPORT_MEDIA_OVERRIDE),
-        prefs.nullSafeGet(EXPLODE_CHOICE_LISTS).map(Boolean::valueOf)
-    );
+    return load(prefs, "");
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs, String keyPrefix) {
