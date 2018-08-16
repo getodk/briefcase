@@ -88,12 +88,9 @@ public class ExportConfiguration {
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
-    OverridableBoolean pullBefore = prefs.nullSafeGet(PULL_BEFORE).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty);
-    prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(TriStateBoolean::from).ifPresent(pullBefore::overrideWith);
-    OverridableBoolean overwriteFiles = prefs.nullSafeGet(OVERWRITE_FILES).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty);
-    prefs.nullSafeGet(OVERWRITE_FILES_OVERRIDE).map(TriStateBoolean::from).ifPresent(pullBefore::overrideWith);
-    OverridableBoolean exportMedia = prefs.nullSafeGet(EXPORT_MEDIA).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty);
-    prefs.nullSafeGet(EXPORT_MEDIA_OVERRIDE).map(TriStateBoolean::from).ifPresent(pullBefore::overrideWith);
+    OverridableBoolean pullBefore = readOverridableBoolean(prefs, PULL_BEFORE, PULL_BEFORE_OVERRIDE);
+    OverridableBoolean overwriteFiles = readOverridableBoolean(prefs, OVERWRITE_FILES, OVERWRITE_FILES_OVERRIDE);
+    OverridableBoolean exportMedia = readOverridableBoolean(prefs, EXPORT_MEDIA, EXPORT_MEDIA_OVERRIDE);
     return new ExportConfiguration(
         Optional.empty(),
         prefs.nullSafeGet(EXPORT_DIR).map(Paths::get),
@@ -114,11 +111,17 @@ public class ExportConfiguration {
         prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get),
         prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse),
-        prefs.nullSafeGet(keyPrefix + PULL_BEFORE).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty),
-        prefs.nullSafeGet(keyPrefix + OVERWRITE_FILES).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty),
-        prefs.nullSafeGet(keyPrefix + EXPORT_MEDIA).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty),
+        readOverridableBoolean(prefs, keyPrefix + PULL_BEFORE, keyPrefix + PULL_BEFORE_OVERRIDE),
+        readOverridableBoolean(prefs, keyPrefix + OVERWRITE_FILES, keyPrefix + OVERWRITE_FILES_OVERRIDE),
+        readOverridableBoolean(prefs, keyPrefix + EXPORT_MEDIA, keyPrefix + EXPORT_MEDIA_OVERRIDE),
         prefs.nullSafeGet(keyPrefix + EXPLODE_CHOICE_LISTS).map(Boolean::valueOf)
     );
+  }
+
+  public static OverridableBoolean readOverridableBoolean(BriefcasePreferences prefs, String mainKey, String overrideKey) {
+    OverridableBoolean ob = prefs.nullSafeGet(mainKey).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty);
+    prefs.nullSafeGet(overrideKey).map(TriStateBoolean::from).ifPresent(ob::overrideWith);
+    return ob;
   }
 
   public static List<String> keys() {
