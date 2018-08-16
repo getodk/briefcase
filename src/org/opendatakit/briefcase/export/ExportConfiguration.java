@@ -88,15 +88,21 @@ public class ExportConfiguration {
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
+    OverridableBoolean pullBefore = prefs.nullSafeGet(PULL_BEFORE).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty);
+    prefs.nullSafeGet(PULL_BEFORE_OVERRIDE).map(TriStateBoolean::from).ifPresent(pullBefore::overrideWith);
+    OverridableBoolean overwriteFiles = prefs.nullSafeGet(OVERWRITE_FILES).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty);
+    prefs.nullSafeGet(OVERWRITE_FILES_OVERRIDE).map(TriStateBoolean::from).ifPresent(pullBefore::overrideWith);
+    OverridableBoolean exportMedia = prefs.nullSafeGet(EXPORT_MEDIA).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty);
+    prefs.nullSafeGet(EXPORT_MEDIA_OVERRIDE).map(TriStateBoolean::from).ifPresent(pullBefore::overrideWith);
     return new ExportConfiguration(
         Optional.empty(),
         prefs.nullSafeGet(EXPORT_DIR).map(Paths::get),
         prefs.nullSafeGet(PEM_FILE).map(Paths::get),
         prefs.nullSafeGet(START_DATE).map(LocalDate::parse),
         prefs.nullSafeGet(END_DATE).map(LocalDate::parse),
-        prefs.nullSafeGet(PULL_BEFORE).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty),
-        prefs.nullSafeGet(OVERWRITE_FILES).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty),
-        prefs.nullSafeGet(EXPORT_MEDIA).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty),
+        pullBefore,
+        overwriteFiles,
+        exportMedia,
         prefs.nullSafeGet(EXPLODE_CHOICE_LISTS).map(Boolean::valueOf)
     );
   }
