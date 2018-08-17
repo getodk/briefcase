@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
 
 public class MainBriefcaseWindow extends WindowAdapter {
   private static final Logger log = LoggerFactory.getLogger(MainBriefcaseWindow.class.getName());
-  private static final String APP_NAME = "ODK Briefcase";
+  public static final String APP_NAME = "ODK Briefcase";
   private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
 
   private final JFrame frame;

@@ -19,61 +19,63 @@ package org.opendatakit.briefcase.ui.settings;
 import java.nio.file.Path;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
+import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.APP_NAME;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FormCache;
 
 public class SettingsPanel {
 
-  public static final String TAB_NAME = "Settings";
-  private final SettingsPanelForm form;
+    public static final String TAB_NAME = "Settings";
+    private final SettingsPanelForm form;
 
-  @SuppressWarnings("checkstyle:Indentation")
-  public SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
-    this.form = form;
+    @SuppressWarnings("checkstyle:Indentation")
+    public SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
+        this.form = form;
 
-    appPreferences.getBriefcaseDir().ifPresent(path -> form.setStorageLocation(path.getParent()));
-    appPreferences.getPullInParallel().ifPresent(form::setPullInParallel);
-    appPreferences.getRememberPasswords().ifPresent(form::setRememberPasswords);
-    appPreferences.getSendUsageData().ifPresent(form::setSendUsageData);
-    appPreferences.getHttpProxy().ifPresent(httpProxy -> {
-      form.enableUseHttpProxy();
-      form.setHttpProxy(httpProxy);
-      form.updateHttpProxyFields();
-    });
+        appPreferences.getBriefcaseDir().ifPresent(path -> form.setStorageLocation(path.getParent()));
+        appPreferences.getPullInParallel().ifPresent(form::setPullInParallel);
+        appPreferences.getRememberPasswords().ifPresent(form::setRememberPasswords);
+        appPreferences.getSendUsageData().ifPresent(form::setSendUsageData);
+        appPreferences.getHttpProxy().ifPresent(httpProxy -> {
+            form.enableUseHttpProxy();
+            form.setHttpProxy(httpProxy);
+            form.updateHttpProxyFields();
+        });
 
-    form.onStorageLocation(path -> {
-      Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(path);
-      UncheckedFiles.createBriefcaseDir(briefcaseDir);
-      formCache.setLocation(briefcaseDir);
-      formCache.update();
-      appPreferences.setStorageDir(path);
-    }, () -> {
-      formCache.unsetLocation();
-      formCache.update();
-      appPreferences.unsetStorageDir();
-    });
-    form.onPullInParallelChange(appPreferences::setPullInParallel);
-    form.onRememberPasswordsChange(appPreferences::setRememberPasswords);
-    form.onSendUsageDataChange(enabled -> {
-      appPreferences.setSendUsage(enabled);
-      analytics.enableTracking(enabled, false);
-    });
-    form.onHttpProxy(appPreferences::setHttpProxy, appPreferences::unsetHttpProxy);
-    form.onReloadCache(() -> {
-      formCache.update();
-      JOptionPane.showMessageDialog(getContainer(), "Forms successfully reloaded from storage location.", "", JOptionPane.PLAIN_MESSAGE);
-    });
-  }
+        form.onStorageLocation(path -> {
+            Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(path);
+            UncheckedFiles.createBriefcaseDir(briefcaseDir);
+            formCache.setLocation(briefcaseDir);
+            formCache.update();
+            appPreferences.setStorageDir(path);
+        }, () -> {
+            formCache.unsetLocation();
+            formCache.update();
+            appPreferences.unsetStorageDir();
+        });
+        form.onPullInParallelChange(appPreferences::setPullInParallel);
+        form.onRememberPasswordsChange(appPreferences::setRememberPasswords);
+        form.onSendUsageDataChange(enabled -> {
+            appPreferences.setSendUsage(enabled);
+            analytics.enableTracking(enabled, false);
+        });
+        form.onHttpProxy(appPreferences::setHttpProxy, appPreferences::unsetHttpProxy);
+        form.onReloadCache(() -> {
+            formCache.update();
+            JOptionPane.showMessageDialog(getContainer(), "Forms successfully reloaded from storage location.", APP_NAME, JOptionPane.PLAIN_MESSAGE);
+        });
+    }
 
-  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
-    SettingsPanelForm settingsPanelForm = new SettingsPanelForm();
-    return new SettingsPanel(settingsPanelForm, appPreferences, analytics, formCache);
-  }
+    public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
+        SettingsPanelForm settingsPanelForm = new SettingsPanelForm();
+        return new SettingsPanel(settingsPanelForm, appPreferences, analytics, formCache);
+    }
 
-  public JPanel getContainer() {
-    return form.container;
-  }
+    public JPanel getContainer() {
+        return form.container;
+    }
 
 }
