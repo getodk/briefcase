@@ -22,9 +22,10 @@ import javax.swing.JPanel;
 
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
-import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.APP_NAME;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FormCache;
+
+import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.APP_NAME;
 
 public class SettingsPanel {
 
