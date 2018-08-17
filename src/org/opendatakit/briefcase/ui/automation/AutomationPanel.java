@@ -63,11 +63,13 @@ public class AutomationPanel {
     String template = "java -jar {0} --form_id {1} --storage_directory {2}{3}";
     List<String> scriptLines = new ArrayList<>();
 
+    writeBriefcaseJarTwoScript(scriptLines);
+    String briefcaseJar = isWindows() ? "%JAR%" : "$JAR";
     List<String> pullInstructions = forms.getSelectedForms()
         .stream()
         .map(form -> MessageFormat.format(
             template,
-            "briefcase.jar",
+            briefcaseJar,
             form.getFormDefinition().getFormId(),
             storageDir.toString(),
             getParams(pullSource.orElseThrow(BriefcaseException::new).getPullCliParams())
@@ -77,7 +79,7 @@ public class AutomationPanel {
         .stream()
         .map(form -> MessageFormat.format(
             exportTemplate,
-            "briefcase.jar",
+            briefcaseJar,
             form.getFormDefinition().getFormId(),
             storageDir.toString(),
             "/tmp",
@@ -94,7 +96,7 @@ public class AutomationPanel {
         .stream()
         .map(form -> MessageFormat.format(
             template,
-            "briefcase.jar",
+            briefcaseJar,
             form.getFormDefinition().getFormId(),
             storageDir.toString(),
             getParams(pushSource.orElseThrow(BriefcaseException::new).getPushCliParams())
@@ -115,6 +117,15 @@ public class AutomationPanel {
       throw new BriefcaseException(e);
     }
 
+  }
+
+  private void writeBriefcaseJarTwoScript(List<String> scriptLines) {
+    String jarPath = System.getProperty("java.class.path");
+    if (isWindows()) {
+      scriptLines.add("IF \"%1\"==\"\" SET \"JAR=" + jarPath + "\") ELSE ( SET \"JAR=%1\"\n\n");
+    } else {
+      scriptLines.add("VAR=${1:-" + jarPath + "}\n\n");
+    }
   }
 
   private String getParams(Map<Param, String> keyValues) {
