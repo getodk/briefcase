@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextPane;
@@ -41,7 +40,7 @@ import org.assertj.swing.exception.WaitTimedOutError;
 import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.fixture.JFileChooserFixture;
 import org.opendatakit.briefcase.export.ExportConfiguration;
-import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
+import org.opendatakit.briefcase.reused.TriStateBoolean;
 
 class ConfigurationPanelPageObject {
   private static Path TEST_FOLDER;
@@ -136,7 +135,7 @@ class ConfigurationPanelPageObject {
     return component.form.pullBeforeOverrideLabel;
   }
 
-  public JComboBox<PullBeforeOverrideOption> pullBeforeOverrideField() {
+  public CustomConfBooleanForm pullBeforeOverrideField() {
     return component.form.pullBeforeOverrideField;
   }
 
@@ -193,12 +192,8 @@ class ConfigurationPanelPageObject {
     uncheckedSleep(50);
   }
 
-  public void setPullBeforeOverride(PullBeforeOverrideOption option) {
-    invokeLater(() -> {
-      JComboBox<PullBeforeOverrideOption> field = component.form.pullBeforeOverrideField;
-      field.setSelectedItem(option);
-      Arrays.asList(field.getActionListeners()).forEach(al -> al.actionPerformed(new ActionEvent(field, 1, "")));
-    });
+  public void setPullBeforeOverride(TriStateBoolean option) {
+    invokeLater(() -> component.form.pullBeforeOverrideField.set(option));
     uncheckedSleep(50);
   }
 

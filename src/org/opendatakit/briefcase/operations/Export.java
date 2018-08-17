@@ -36,6 +36,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.reused.OverridableBoolean;
 import org.opendatakit.briefcase.transfer.NewTransferAction;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.FormCache;
@@ -96,11 +97,9 @@ public class Export {
         maybePemFile,
         startDate,
         endDate,
-        Optional.of(pullBefore),
-        Optional.empty(),
-        Optional.of(overwriteFiles),
-        Optional.of(exportMedia),
-        Optional.empty(),
+        OverridableBoolean.of(pullBefore),
+        OverridableBoolean.of(overwriteFiles),
+        OverridableBoolean.of(exportMedia),
         Optional.of(explodeChoiceLists)
     );
 

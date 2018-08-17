@@ -20,12 +20,11 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.PULL;
 import static org.opendatakit.briefcase.matchers.GenericUIMatchers.containsText;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.enabled;
-import static org.opendatakit.briefcase.matchers.SwingMatchers.hasSelectedItem;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.selected;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.visible;
+import static org.opendatakit.briefcase.reused.TriStateBoolean.TRUE;
 
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -108,7 +107,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     expectedConfiguration.setPemFile(Paths.get("/some/file.pem"));
     expectedConfiguration.setStartDate(LocalDate.of(2018, 1, 1));
     expectedConfiguration.setEndDate(LocalDate.of(2019, 1, 1));
-    expectedConfiguration.setPullBefore(true);
+    expectedConfiguration.pullBefore.set(true);
     component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), expectedConfiguration, true, true);
     component.show();
     assertThat(component.exportDirField(), containsText(expectedConfiguration.getExportDir().get().toString()));
@@ -158,7 +157,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     assertThat(conf.getPemFile(), isPresent());
     assertThat(conf.getStartDate(), isPresent());
     assertThat(conf.getEndDate(), isPresent());
-    assertThat(conf.getPullBefore(), isPresent());
+    assertThat(conf.pullBefore.isEmpty(), is(false));
   }
 
   @Test
@@ -184,14 +183,14 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     expectedConfiguration.setPemFile(Paths.get("/some/file.pem"));
     expectedConfiguration.setStartDate(LocalDate.of(2018, 1, 1));
     expectedConfiguration.setEndDate(LocalDate.of(2019, 1, 1));
-    expectedConfiguration.setPullBeforeOverride(PULL);
+    expectedConfiguration.pullBefore.overrideWith(TRUE);
     component = ConfigurationPanelPageObject.setUpOverridePanel(robot(), expectedConfiguration, true, true);
     component.show();
     assertThat(component.exportDirField(), containsText(expectedConfiguration.getExportDir().get().toString()));
     assertThat(component.pemFileField(), containsText(expectedConfiguration.getPemFile().get().toString()));
     assertThat(component.startDateField().getDate(), is(expectedConfiguration.getStartDate().get()));
     assertThat(component.endDateField().getDate(), is(expectedConfiguration.getEndDate().get()));
-    assertThat(component.pullBeforeOverrideField(), hasSelectedItem(PULL));
+    assertThat(component.pullBeforeOverrideField().get(), is(TRUE));
   }
 
   @Test
@@ -204,7 +203,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     assertThat(component.startDateField(), is(not(enabled())));
     assertThat(component.endDateField(), is(not(enabled())));
     assertThat(component.pullBeforeOverrideLabel(), is(not(enabled())));
-    assertThat(component.pullBeforeOverrideField(), is(not(enabled())));
+    assertThat(component.pullBeforeOverrideField().$$$getRootComponent$$$(), is(not(enabled())));
     assertThat(component.pullBeforeHintPanel(), is(not(enabled())));
   }
 
@@ -219,7 +218,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     assertThat(component.startDateField(), is(enabled()));
     assertThat(component.endDateField(), is(enabled()));
     assertThat(component.pullBeforeOverrideLabel(), is(enabled()));
-    assertThat(component.pullBeforeOverrideField(), is(enabled()));
+    assertThat(component.pullBeforeOverrideField().$$$getRootComponent$$$(), is(enabled()));
     assertThat(component.pullBeforeHintPanel(), is(enabled()));
   }
 
@@ -232,13 +231,13 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     component.setSomeExportDir();
     component.setSomeStartDate();
     component.setSomeEndDate();
-    component.setPullBeforeOverride(PULL);
+    component.setPullBeforeOverride(TRUE);
     ExportConfiguration conf = component.getConfiguration();
     assertThat(conf.getExportDir(), isPresent());
     assertThat(conf.getPemFile(), isPresent());
     assertThat(conf.getStartDate(), isPresent());
     assertThat(conf.getEndDate(), isPresent());
-    assertThat(conf.getPullBeforeOverride(), isPresent());
+    assertThat(conf.pullBefore.isEmpty(), is(false));
   }
 
   @Test
@@ -252,10 +251,8 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     component.setSomeExportDir();
     component.setSomeStartDate();
     component.setSomeEndDate();
-    component.setPullBeforeOverride(PULL);
+    component.setPullBeforeOverride(TRUE);
 
-    // Note that there are 6 calls instead of 5 because the panel
-    // will implicitly set it to the default INHERIT option on creation
-    assertThat(counter.get(), CoreMatchers.is(6));
+    assertThat(counter.get(), is(5));
   }
 }

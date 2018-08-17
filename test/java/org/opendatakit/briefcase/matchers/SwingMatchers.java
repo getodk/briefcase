@@ -16,10 +16,10 @@
 package org.opendatakit.briefcase.matchers;
 
 import java.util.Objects;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.text.JTextComponent;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -46,16 +46,21 @@ public class SwingMatchers {
     };
   }
 
-  public static Matcher<JCheckBox> selected() {
-    return new TypeSafeMatcher<JCheckBox>() {
+  public static Matcher<JToggleButton> selected() {
+    return new TypeSafeMatcher<JToggleButton>() {
       @Override
-      protected boolean matchesSafely(JCheckBox item) {
+      protected boolean matchesSafely(JToggleButton item) {
         return item != null && item.isSelected();
       }
 
       @Override
       public void describeTo(Description description) {
         description.appendText("selected");
+      }
+
+      @Override
+      protected void describeMismatchSafely(JToggleButton item, Description mismatchDescription) {
+        mismatchDescription.appendText("was not selected");
       }
     };
   }
@@ -83,7 +88,7 @@ public class SwingMatchers {
     return new TypeSafeMatcher<JTextField>() {
       @Override
       public void describeTo(Description description) {
-        description.appendText("visible");
+        description.appendText("editable");
       }
 
       @Override
