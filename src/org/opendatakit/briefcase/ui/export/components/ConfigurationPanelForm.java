@@ -42,14 +42,13 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-import org.opendatakit.briefcase.export.ExportMediaOverrideOption;
-import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
+import org.opendatakit.briefcase.reused.OverridableBoolean;
+import org.opendatakit.briefcase.reused.TriStateBoolean;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.StringUtils;
 
@@ -71,22 +70,25 @@ public class ConfigurationPanelForm extends JComponent {
   private JPanel exportDirButtons;
   private JButton exportDirCleanButton;
   JCheckBox pullBeforeField;
-  JComboBox<PullBeforeOverrideOption> pullBeforeOverrideField;
+  CustomConfBooleanForm pullBeforeOverrideField;
   JTextPane pullBeforeHintPanel;
   JLabel pullBeforeOverrideLabel;
-  private JCheckBox overwriteFilesField;
+  JCheckBox overwriteFilesField;
   JCheckBox exportMediaField;
-  JComboBox exportMediaOverrideField;
   JLabel exportMediaOverrideLabel;
+  JLabel overwriteFilesOverrideLabel;
+  CustomConfBooleanForm overwriteFilesOverrideField;
+  CustomConfBooleanForm exportMediaOverrideField;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectEndDateCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangePullBeforeCallbacks = new ArrayList<>();
-  private final List<Consumer<PullBeforeOverrideOption>> onChangePullBeforeOverrideCallbacks = new ArrayList<>();
+  private final List<Consumer<TriStateBoolean>> onChangePullBeforeOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeOverwriteExistingFilesCallbacks = new ArrayList<>();
+  private final List<Consumer<TriStateBoolean>> onChangeOverwriteFilesOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeExportMediaCallbacks = new ArrayList<>();
-  private final List<Consumer<ExportMediaOverrideOption>> onChangeExportMediaOverrideCallbacks = new ArrayList<>();
+  private final List<Consumer<TriStateBoolean>> onChangeExportMediaOverrideCallbacks = new ArrayList<>();
   private final ConfigurationPanelMode mode;
   private boolean uiLocked = false;
 
@@ -94,10 +96,10 @@ public class ConfigurationPanelForm extends JComponent {
     this.mode = mode;
     startDatePicker = createDatePicker();
     endDatePicker = createDatePicker();
-    pullBeforeOverrideField = new JComboBox<>(PullBeforeOverrideOption.values());
-    pullBeforeOverrideField.setSelectedItem(PullBeforeOverrideOption.INHERIT);
-    exportMediaOverrideField = new JComboBox<>(ExportMediaOverrideOption.values());
-    exportMediaOverrideField.setSelectedItem(ExportMediaOverrideOption.INHERIT);
+    pullBeforeOverrideField = new CustomConfBooleanForm(Optional.empty());
+    exportMediaOverrideField = new CustomConfBooleanForm(Optional.empty());
+    overwriteFilesOverrideField = new CustomConfBooleanForm(Optional.empty());
+
     $$$setupUI$$$();
     startDatePicker.getSettings().setGapBeforeButtonPixels(0);
     startDatePicker.getComponentDateTextField().setPreferredSize(exportDirField.getPreferredSize());
@@ -131,13 +133,14 @@ public class ConfigurationPanelForm extends JComponent {
       onSelectEndDateCallbacks.forEach(consumer -> consumer.accept(event.getNewDate()));
     });
     pullBeforeField.addActionListener(__ -> triggerChangePullBefore());
-    pullBeforeOverrideField.addActionListener(__ -> triggerChangePullBeforeOverride());
+    pullBeforeOverrideField.onChange(__ -> triggerChangePullBeforeOverride());
     overwriteFilesField.addActionListener(__ -> {
       if (!overwriteFilesField.isSelected() || confirmOverwriteFiles())
         triggerOverwriteExistingFiles();
     });
     exportMediaField.addActionListener(__ -> triggerChangeExportMedia());
-    exportMediaOverrideField.addActionListener(__ -> triggerChangeExportMediaOverride());
+    exportMediaOverrideField.onChange(__ -> triggerChangeExportMediaOverride());
+    overwriteFilesOverrideField.onChange(__ -> triggerOverwriteFilesOverride());
   }
 
   public static ConfigurationPanelForm from(ConfigurationPanelMode mode) {
@@ -211,24 +214,19 @@ public class ConfigurationPanelForm extends JComponent {
     endDatePicker.setDate(LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
   }
 
-  void setPullBefore(boolean value) {
-    pullBeforeField.setSelected(value);
+  void setPullBefore(OverridableBoolean value) {
+    pullBeforeField.setSelected(value.get(false));
+    pullBeforeOverrideField.set(value.getOverride());
   }
 
-  void setPullBeforeOverride(PullBeforeOverrideOption value) {
-    pullBeforeOverrideField.setSelectedItem(value);
+  void setOverwriteFiles(OverridableBoolean value) {
+    overwriteFilesField.setSelected(value.get(false));
+    overwriteFilesOverrideField.set(value.getOverride());
   }
 
-  void setOverwriteExistingFiles(boolean value) {
-    overwriteFilesField.setSelected(value);
-  }
-
-  void setExportMedia(boolean value) {
-    exportMediaField.setSelected(value);
-  }
-
-  void setExportMediaOverride(ExportMediaOverrideOption value) {
-    exportMediaOverrideField.setSelectedItem(value);
+  void setExportMedia(OverridableBoolean value) {
+    exportMediaField.setSelected(value.get(true));
+    exportMediaOverrideField.set(value.getOverride());
   }
 
   void onSelectExportDir(Consumer<Path> callback) {
@@ -251,7 +249,7 @@ public class ConfigurationPanelForm extends JComponent {
     onChangePullBeforeCallbacks.add(callback);
   }
 
-  void onChangePullBeforeOverride(Consumer<PullBeforeOverrideOption> callback) {
+  void onChangePullBeforeOverride(Consumer<TriStateBoolean> callback) {
     onChangePullBeforeOverrideCallbacks.add(callback);
   }
 
@@ -259,11 +257,15 @@ public class ConfigurationPanelForm extends JComponent {
     onChangeOverwriteExistingFilesCallbacks.add(callback);
   }
 
+  void onChangeOverwriteFilesOverride(Consumer<TriStateBoolean> callback) {
+    onChangeOverwriteFilesOverrideCallbacks.add(callback);
+  }
+
   void onChangeExportMedia(Consumer<Boolean> callback) {
     onChangeExportMediaCallbacks.add(callback);
   }
 
-  void onChangeExportMediaOverride(Consumer<ExportMediaOverrideOption> callback) {
+  void onChangeExportMediaOverride(Consumer<TriStateBoolean> callback) {
     onChangeExportMediaOverrideCallbacks.add(callback);
   }
 
@@ -317,12 +319,15 @@ public class ConfigurationPanelForm extends JComponent {
   }
 
   private void triggerChangePullBeforeOverride() {
-    onChangePullBeforeOverrideCallbacks.forEach(callback -> callback.accept((PullBeforeOverrideOption) pullBeforeOverrideField.getSelectedItem()));
+    onChangePullBeforeOverrideCallbacks.forEach(callback -> callback.accept(pullBeforeOverrideField.get()));
   }
-
 
   private void triggerOverwriteExistingFiles() {
     onChangeOverwriteExistingFilesCallbacks.forEach(callback -> callback.accept(overwriteFilesField.isSelected()));
+  }
+
+  private void triggerOverwriteFilesOverride() {
+    onChangeOverwriteFilesOverrideCallbacks.forEach(callback -> callback.accept(overwriteFilesOverrideField.get()));
   }
 
   private void triggerChangeExportMedia() {
@@ -330,7 +335,7 @@ public class ConfigurationPanelForm extends JComponent {
   }
 
   private void triggerChangeExportMediaOverride() {
-    onChangeExportMediaOverrideCallbacks.forEach(callback -> callback.accept((ExportMediaOverrideOption) exportMediaOverrideField.getSelectedItem()));
+    onChangeExportMediaOverrideCallbacks.forEach(callback -> callback.accept(exportMediaOverrideField.get()));
   }
 
   private boolean confirmOverwriteFiles() {
@@ -441,7 +446,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeField.setText("Pull before export");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 6;
+    gbc.gridy = 7;
     gbc.gridwidth = 2;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(pullBeforeField, gbc);
@@ -454,16 +459,10 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeHintPanel.setText("Some hint will be shown here");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 9;
+    gbc.gridy = 11;
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(pullBeforeHintPanel, gbc);
-    gbc = new GridBagConstraints();
-    gbc.gridx = 2;
-    gbc.gridy = 8;
-    gbc.anchor = GridBagConstraints.WEST;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(pullBeforeOverrideField, gbc);
     final JPanel spacer5 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
@@ -475,7 +474,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeOverrideLabel.setText("Pull before export");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 8;
+    gbc.gridy = 10;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(pullBeforeOverrideLabel, gbc);
     exportDirButtons = new JPanel();
@@ -508,17 +507,10 @@ public class ConfigurationPanelForm extends JComponent {
     pemFileChooseButton.setText("Choose...");
     pemFileChooseButton.setVisible(true);
     pemFileButtons.add(pemFileChooseButton);
-    overwriteFilesField = new JCheckBox();
-    overwriteFilesField.setText("Overwrite existing files");
-    gbc = new GridBagConstraints();
-    gbc.gridx = 2;
-    gbc.gridy = 11;
-    gbc.anchor = GridBagConstraints.WEST;
-    container.add(overwriteFilesField, gbc);
     final JPanel spacer6 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 10;
+    gbc.gridy = 12;
     gbc.gridwidth = 3;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer6, gbc);
@@ -533,15 +525,41 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaOverrideLabel.setText("Export media files");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 7;
+    gbc.gridy = 8;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(exportMediaOverrideLabel, gbc);
+    overwriteFilesField = new JCheckBox();
+    overwriteFilesField.setText("Overwrite existing files");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 7;
+    gbc.gridy = 6;
     gbc.anchor = GridBagConstraints.WEST;
+    container.add(overwriteFilesField, gbc);
+    overwriteFilesOverrideLabel = new JLabel();
+    overwriteFilesOverrideLabel.setText("Overwrite existing files");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 9;
+    gbc.anchor = GridBagConstraints.EAST;
+    container.add(overwriteFilesOverrideLabel, gbc);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 9;
+    gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(exportMediaOverrideField, gbc);
+    container.add(overwriteFilesOverrideField.$$$getRootComponent$$$(), gbc);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 8;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(exportMediaOverrideField.$$$getRootComponent$$$(), gbc);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 10;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(pullBeforeOverrideField.$$$getRootComponent$$$(), gbc);
   }
 
   /**

@@ -16,6 +16,7 @@
 package org.opendatakit.briefcase.reused;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * This class represents the type-safe Application of an arbitrary amount of {@link Optional} values.
@@ -43,6 +44,14 @@ public interface OptionalProduct {
     if (t.isPresent() && u.isPresent())
       return new OptionalProduct2.Some<>(t.get(), u.get());
     return new OptionalProduct2.None<>();
+  }
+
+  @SafeVarargs
+  static <T> Optional<T> firstPresent(Optional<T>... optionals) {
+    return Stream.of(optionals)
+        .filter(Optional::isPresent)
+        .findFirst()
+        .flatMap(o -> o);
   }
 
   interface OptionalProduct2<T, U> {

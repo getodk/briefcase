@@ -25,11 +25,11 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.opendatakit.briefcase.export.ExportConfiguration.empty;
 import static org.opendatakit.briefcase.export.ExportConfiguration.load;
-import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.DONT_PULL;
-import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.INHERIT;
-import static org.opendatakit.briefcase.export.PullBeforeOverrideOption.PULL;
 import static org.opendatakit.briefcase.matchers.ExportConfigurationMatchers.isEmpty;
 import static org.opendatakit.briefcase.matchers.ExportConfigurationMatchers.isValid;
+import static org.opendatakit.briefcase.reused.TriStateBoolean.FALSE;
+import static org.opendatakit.briefcase.reused.TriStateBoolean.TRUE;
+import static org.opendatakit.briefcase.reused.TriStateBoolean.UNDETERMINED;
 
 import com.github.npathai.hamcrestopt.OptionalMatchers;
 import java.io.File;
@@ -111,15 +111,25 @@ public class ExportConfigurationTest {
     assertThat(empty().setPemFile(Paths.get("/some/file.pem")), not(isEmpty()));
     assertThat(empty().setStartDate(LocalDate.of(2018, 1, 1)), not(isEmpty()));
     assertThat(empty().setEndDate(LocalDate.of(2018, 1, 1)), not(isEmpty()));
-    assertThat(empty().setPullBefore(true), not(isEmpty()));
-    assertThat(empty().setPullBeforeOverride(PULL), not(isEmpty()));
+    ExportConfiguration emptyOne = empty();
+    emptyOne.pullBefore.set(true);
+    assertThat(emptyOne, not(isEmpty()));
+    ExportConfiguration emptyTwo = empty();
+    emptyTwo.pullBefore.overrideWith(TRUE);
+    assertThat(emptyTwo, not(isEmpty()));
   }
 
   @Test
   public void a_configuration_is_empty_if_pull_before_override_contains_INHERIT() {
-    assertThat(empty().setPullBeforeOverride(INHERIT), isEmpty());
-    assertThat(empty().setPullBeforeOverride(PULL), not(isEmpty()));
-    assertThat(empty().setPullBeforeOverride(DONT_PULL), not(isEmpty()));
+    ExportConfiguration emptyOne = empty();
+    emptyOne.pullBefore.overrideWith(UNDETERMINED);
+    assertThat(emptyOne, isEmpty());
+    ExportConfiguration emptyTwo = empty();
+    emptyTwo.pullBefore.overrideWith(TRUE);
+    assertThat(emptyTwo, not(isEmpty()));
+    ExportConfiguration emptyThree = empty();
+    emptyThree.pullBefore.overrideWith(FALSE);
+    assertThat(emptyThree, not(isEmpty()));
   }
 
   @Test
@@ -161,29 +171,13 @@ public class ExportConfigurationTest {
   }
 
   @Test
-  public void resolves_if_we_need_to_pull_depending_on_a_pair_or_fields() {
-    assertThat(empty().resolvePullBefore(), is(false));
-    assertThat(empty().setPullBefore(true).resolvePullBefore(), is(true));
-    assertThat(empty().setPullBefore(false).resolvePullBefore(), is(false));
-    assertThat(empty().setPullBefore(true).setPullBeforeOverride(PullBeforeOverrideOption.INHERIT).resolvePullBefore(), is(true));
-    assertThat(empty().setPullBefore(true).setPullBeforeOverride(PullBeforeOverrideOption.PULL).resolvePullBefore(), is(true));
-    assertThat(empty().setPullBefore(true).setPullBeforeOverride(PullBeforeOverrideOption.DONT_PULL).resolvePullBefore(), is(false));
-    assertThat(empty().setPullBefore(false).setPullBeforeOverride(PullBeforeOverrideOption.INHERIT).resolvePullBefore(), is(false));
-    assertThat(empty().setPullBefore(false).setPullBeforeOverride(PullBeforeOverrideOption.PULL).resolvePullBefore(), is(true));
-    assertThat(empty().setPullBefore(false).setPullBeforeOverride(PullBeforeOverrideOption.DONT_PULL).resolvePullBefore(), is(false));
+  public void defaults_to_true_when_the_export_media_param_is_empty() {
+    assertThat(empty().resolveExportMedia(), is(true));
   }
 
   @Test
-  public void resolves_if_we_need_to_export_media_files_depending_on_a_pair_or_fields() {
-    assertThat(empty().resolveExportMedia(), is(true));
-    assertThat(empty().setExportMedia(true).resolveExportMedia(), is(true));
-    assertThat(empty().setExportMedia(false).resolveExportMedia(), is(false));
-    assertThat(empty().setExportMedia(true).setExportMediaOverride(ExportMediaOverrideOption.INHERIT).resolveExportMedia(), is(true));
-    assertThat(empty().setExportMedia(true).setExportMediaOverride(ExportMediaOverrideOption.EXPORT_MEDIA).resolveExportMedia(), is(true));
-    assertThat(empty().setExportMedia(true).setExportMediaOverride(ExportMediaOverrideOption.DONT_EXPORT_MEDIA).resolveExportMedia(), is(false));
-    assertThat(empty().setExportMedia(false).setExportMediaOverride(ExportMediaOverrideOption.INHERIT).resolveExportMedia(), is(false));
-    assertThat(empty().setExportMedia(false).setExportMediaOverride(ExportMediaOverrideOption.EXPORT_MEDIA).resolveExportMedia(), is(true));
-    assertThat(empty().setExportMedia(false).setExportMediaOverride(ExportMediaOverrideOption.DONT_EXPORT_MEDIA).resolveExportMedia(), is(false));
+  public void defaults_to_false_when_pull_before_is_empty() {
+    assertThat(empty().resolvePullBefore(), is(false));
   }
 
   @Test

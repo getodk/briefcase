@@ -47,6 +47,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
+import org.opendatakit.briefcase.reused.OverridableBoolean;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 
@@ -442,11 +443,9 @@ public class CsvFieldMappersTest {
           Optional.empty(),
           Optional.empty(),
           Optional.empty(),
-          Optional.of(false),
-          Optional.empty(),
-          Optional.of(true),
-          Optional.of(exportMedia),
-          Optional.empty(),
+          OverridableBoolean.FALSE,
+          OverridableBoolean.TRUE,
+          OverridableBoolean.of(exportMedia),
           Optional.of(false)
       );
       return CsvFieldMappers

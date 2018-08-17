@@ -46,6 +46,7 @@ import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.opendatakit.briefcase.reused.OverridableBoolean;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,11 +142,9 @@ class ExportToCsvScenario {
         Optional.ofNullable(pemFile),
         Optional.ofNullable(startDate),
         Optional.ofNullable(endDate),
-        Optional.of(false),
-        Optional.empty(),
-        Optional.of(overwrite),
-        Optional.of(exportMedia),
-        Optional.empty(),
+        OverridableBoolean.of(false),
+        OverridableBoolean.of(overwrite),
+        OverridableBoolean.of(exportMedia),
         Optional.of(explodeChoiceLists)
     );
     ExportToCsv.export(formDef, configuration);

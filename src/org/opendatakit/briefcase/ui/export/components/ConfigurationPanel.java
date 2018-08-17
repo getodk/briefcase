@@ -18,7 +18,7 @@ package org.opendatakit.briefcase.ui.export.components;
 import java.util.ArrayList;
 import java.util.List;
 import org.opendatakit.briefcase.export.ExportConfiguration;
-import org.opendatakit.briefcase.export.PullBeforeOverrideOption;
+import org.opendatakit.briefcase.reused.OverridableBoolean;
 
 public class ConfigurationPanel {
   private final ExportConfiguration configuration;
@@ -35,11 +35,9 @@ public class ConfigurationPanel {
     configuration.ifPemFilePresent(form::setPemFile);
     configuration.ifStartDatePresent(form::setStartDate);
     configuration.ifEndDatePresent(form::setEndDate);
-    configuration.ifPullBeforePresent(form::setPullBefore);
-    configuration.ifPullBeforeOverridePresent(form::setPullBeforeOverride);
-    configuration.ifOverwriteExistingFilesPresent(form::setOverwriteExistingFiles);
-    form.setExportMedia(configuration.resolveExportMedia());
-    configuration.ifExportMediaOverridePresent(form::setExportMediaOverride);
+    form.setPullBefore(configuration.pullBefore);
+    form.setOverwriteFiles(configuration.overwriteFiles);
+    form.setExportMedia(configuration.exportMedia);
 
     form.onSelectExportDir(path -> {
       configuration.setExportDir(path);
@@ -57,24 +55,28 @@ public class ConfigurationPanel {
       configuration.setEndDate(date);
       triggerOnChange();
     });
-    form.onChangePullBefore(pullBefore -> {
-      configuration.setPullBefore(pullBefore);
+    form.onChangePullBefore(value -> {
+      configuration.pullBefore.set(value);
       triggerOnChange();
     });
-    form.onChangePullBeforeOverride(pullBeforeOverrideOption -> {
-      configuration.setPullBeforeOverride(pullBeforeOverrideOption);
+    form.onChangePullBeforeOverride(value -> {
+      configuration.pullBefore.overrideWith(value);
       triggerOnChange();
     });
-    form.onChangeOverwriteExistingFiles(overwriteExistingFiles -> {
-      configuration.setOverwriteExistingFiles(overwriteExistingFiles);
+    form.onChangeOverwriteExistingFiles(value -> {
+      configuration.overwriteFiles.set(value);
       triggerOnChange();
     });
-    form.onChangeExportMedia(exportMedia -> {
-      configuration.setExportMedia(exportMedia);
+    form.onChangeOverwriteFilesOverride(value -> {
+      configuration.overwriteFiles.overrideWith(value);
       triggerOnChange();
     });
-    form.onChangeExportMediaOverride(exportMediaOverrideOption ->  {
-      configuration.setExportMediaOverride(exportMediaOverrideOption);
+    form.onChangeExportMedia(value -> {
+      configuration.exportMedia.set(value);
+      triggerOnChange();
+    });
+    form.onChangeExportMediaOverride(value -> {
+      configuration.exportMedia.overrideWith(value);
       triggerOnChange();
     });
   }
@@ -133,8 +135,7 @@ public class ConfigurationPanel {
   }
 
   public void savePasswordsConsentRevoked() {
-    form.setPullBefore(false);
-    form.setPullBeforeOverride(PullBeforeOverrideOption.INHERIT);
+    form.setPullBefore(OverridableBoolean.empty());
     form.changeMode(false);
   }
 }
