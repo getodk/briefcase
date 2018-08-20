@@ -63,7 +63,8 @@ public class AutomationPanel {
     String template = "java -jar {0} --form_id {1} --storage_directory {2}{3}";
     List<String> scriptLines = new ArrayList<>();
 
-    writeBriefcaseJarTwoScript(scriptLines);
+    List<String> jarInstructions = writeBriefcaseJarTwoScript();
+    scriptLines.addAll(jarInstructions);
     String briefcaseJar = isWindows() ? "%JAR%" : "$JAR";
     List<String> pullInstructions = forms.getSelectedForms()
         .stream()
@@ -119,13 +120,15 @@ public class AutomationPanel {
 
   }
 
-  private void writeBriefcaseJarTwoScript(List<String> scriptLines) {
+  private List<String> writeBriefcaseJarTwoScript() {
+    List<String> scriptLines = new ArrayList<>();
     String jarPath = System.getProperty("java.class.path");
     if (isWindows()) {
       scriptLines.add("IF \"%1\"==\"\" SET \"JAR=" + jarPath + "\") ELSE ( SET \"JAR=%1\"\n\n");
     } else {
       scriptLines.add("VAR=${1:-" + jarPath + "}\n\n");
     }
+    return scriptLines;
   }
 
   private String getParams(Map<Param, String> keyValues) {
