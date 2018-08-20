@@ -30,8 +30,8 @@ public class TransferFormsTable {
     AnnotationProcessor.process(this);
   }
 
-  public static TransferFormsTable from(TransferForms forms, String actionName) {
-    String[] headers = TransferFormsTableView.buildHeaders(actionName);
+  public static TransferFormsTable from(TransferForms forms) {
+    String[] headers = TransferFormsTableView.buildHeaders();
     TransferFormsTableViewModel viewModel = new TransferFormsTableViewModel(forms, headers);
     return new TransferFormsTable(forms, new TransferFormsTableView(viewModel, headers), viewModel);
   }

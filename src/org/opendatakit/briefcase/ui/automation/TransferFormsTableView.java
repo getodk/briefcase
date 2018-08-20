@@ -31,13 +31,15 @@ import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.UI;
 
 public class TransferFormsTableView extends JTable {
-  static final Class[] TYPES = new Class[]{Boolean.class, String.class, String.class, JButton.class};
-  static final boolean[] EDITABLE_COLS = new boolean[]{true, false, false, false};
+  static final Class[] TYPES = new Class[]{Boolean.class, String.class, Boolean.class, Boolean.class, Boolean.class, JButton.class};
+  static final boolean[] EDITABLE_COLS = new boolean[]{true, false, true, true, true, false};
 
   static final int SELECTED_CHECKBOX_COL = 0;
   static final int FORM_NAME_COL = 1;
-  static final int STATUS_COL = 2;
-  static final int DETAIL_BUTTON_COL = 3;
+  static final int PULL_COL = 2;
+  static final int PUSH_COL = 3;
+  static final int EXPORT_COL = 4;
+  static final int DETAIL_BUTTON_COL = 5;
   private final String[] headers;
 
   public TransferFormsTableView(TransferFormsTableViewModel model, String[] headers) {
@@ -48,7 +50,9 @@ public class TransferFormsTableView extends JTable {
     addMouseListener(new MouseAdapterBuilder().onClick(this::relayClickToButton).build());
 
     Dimension formNameDims = getHeaderDimension(getHeader(FORM_NAME_COL));
-    Dimension statusDims = getHeaderDimension(getHeader(STATUS_COL));
+    Dimension pullDims = getHeaderDimension(getHeader(PULL_COL));
+    Dimension pushDims = getHeaderDimension(getHeader(PUSH_COL));
+    Dimension exportDims = getHeaderDimension(getHeader(EXPORT_COL));
 
     setRowHeight(28);
 
@@ -58,8 +62,12 @@ public class TransferFormsTableView extends JTable {
     columns.getColumn(SELECTED_CHECKBOX_COL).setPreferredWidth(40);
     columns.getColumn(FORM_NAME_COL).setMinWidth(formNameDims.width + 25);
     columns.getColumn(FORM_NAME_COL).setPreferredWidth(formNameDims.width + 25);
-    columns.getColumn(STATUS_COL).setMinWidth(statusDims.width + 25);
-    columns.getColumn(STATUS_COL).setPreferredWidth(statusDims.width + 25);
+    columns.getColumn(PULL_COL).setMinWidth(pullDims.width + 25);
+    columns.getColumn(PULL_COL).setPreferredWidth(pullDims.width + 25);
+    columns.getColumn(PUSH_COL).setMinWidth(pushDims.width + 25);
+    columns.getColumn(PUSH_COL).setPreferredWidth(pushDims.width + 25);
+    columns.getColumn(EXPORT_COL).setMinWidth(exportDims.width + 25);
+    columns.getColumn(EXPORT_COL).setPreferredWidth(exportDims.width + 25);
     columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(UI::cellWithButton);
     columns.getColumn(DETAIL_BUTTON_COL).setMinWidth(40);
     columns.getColumn(DETAIL_BUTTON_COL).setMaxWidth(40);
@@ -72,8 +80,8 @@ public class TransferFormsTableView extends JTable {
     sorter.sort();
   }
 
-  public static String[] buildHeaders(String actionName) {
-    return new String[]{"", "Form Name", actionName + " Status", ""};
+  public static String[] buildHeaders() {
+    return new String[]{"", "Form Name", "Push", "Pull", "Export", ""};
   }
 
   private Dimension getHeaderDimension(String header) {

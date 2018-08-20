@@ -104,7 +104,7 @@ public class AutomationPanelForm {
   }
 
   static AutomationPanelForm from(Http http, TransferForms forms) {
-    return new AutomationPanelForm(SourcePanel.pull(http), SourcePanel.push(http), TransferFormsTable.from(forms, "Export"));
+    return new AutomationPanelForm(SourcePanel.pull(http), SourcePanel.push(http), TransferFormsTable.from(forms));
   }
 
   public void refresh() {
