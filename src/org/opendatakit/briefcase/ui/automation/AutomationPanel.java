@@ -63,7 +63,7 @@ public class AutomationPanel {
     String template = "java -jar {0} --form_id {1} --storage_directory {2}{3}";
     List<String> scriptLines = new ArrayList<>();
 
-    List<String> jarInstructions = writeBriefcaseJarTwoScript();
+    List<String> jarInstructions = writeBriefcaseJarToScript();
     scriptLines.addAll(jarInstructions);
     String briefcaseJar = isWindows() ? "%JAR%" : "$JAR";
     List<String> pullInstructions = forms.getSelectedForms()
@@ -120,7 +120,7 @@ public class AutomationPanel {
 
   }
 
-  private List<String> writeBriefcaseJarTwoScript() {
+  private List<String> writeBriefcaseJarToScript() {
     List<String> scriptLines = new ArrayList<>();
     String jarPath = System.getProperty("java.class.path");
     if (isWindows()) {
