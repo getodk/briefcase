@@ -68,6 +68,7 @@ public class AutomationPanel {
     String briefcaseJar = isWindows() ? "%JAR%" : "$JAR";
     List<String> pullInstructions = forms.getSelectedForms()
         .stream()
+        .filter(FormStatus::isPullSelected)
         .map(form -> MessageFormat.format(
             template,
             briefcaseJar,
@@ -78,6 +79,7 @@ public class AutomationPanel {
     scriptLines.addAll(pullInstructions);
     List<String> exportInstructions = forms.getSelectedForms()
         .stream()
+        .filter(FormStatus::isExportSelected)
         .map(form -> MessageFormat.format(
             exportTemplate,
             briefcaseJar,
@@ -95,6 +97,7 @@ public class AutomationPanel {
 
     List<String> pushInstructions = forms.getSelectedForms()
         .stream()
+        .filter(FormStatus::isPushSelected)
         .map(form -> MessageFormat.format(
             template,
             briefcaseJar,

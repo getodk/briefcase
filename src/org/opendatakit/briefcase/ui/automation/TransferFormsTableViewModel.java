@@ -79,11 +79,11 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
       case TransferFormsTableView.FORM_NAME_COL:
         return form.getFormName();
       case TransferFormsTableView.PULL_COL:
-        return false;
+        return form.isPullSelected();
       case TransferFormsTableView.PUSH_COL:
-        return false;
+        return form.isPushSelected();
       case TransferFormsTableView.EXPORT_COL:
-        return false;
+        return form.isExportSelected();
       case TransferFormsTableView.DETAIL_BUTTON_COL:
         return detailButtons.computeIfAbsent(form, UI::buildDetailButton);
       default:
@@ -103,10 +103,19 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
         triggerChange();
         break;
       case TransferFormsTableView.PULL_COL:
+        Boolean isPullSelected = (Boolean) aValue;
+        form.setPullSelected(isPullSelected);
+        triggerChange();
         break;
       case TransferFormsTableView.PUSH_COL:
+        Boolean isPushSelected = (Boolean) aValue;
+        form.setPushSelected(isPushSelected);
+        triggerChange();
         break;
       case TransferFormsTableView.EXPORT_COL:
+        Boolean isExportSelected = (Boolean) aValue;
+        form.setExportSelected(isExportSelected);
+        triggerChange();
         break;
       default:
         throw new IllegalStateException("unexpected column choice");
