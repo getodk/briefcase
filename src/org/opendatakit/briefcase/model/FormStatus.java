@@ -28,9 +28,6 @@ public class FormStatus {
   private String statusString = "";
   private final StringBuilder statusHistory = new StringBuilder();
   private boolean isSuccessful = true;
-  private boolean isPullSelected = false;
-  private boolean isPushSelected = false;
-  private boolean isExportSelected = false;
 
   public FormStatus(TransferType transferType, IFormDefinition form) {
     this.transferType = transferType;
@@ -47,30 +44,6 @@ public class FormStatus {
 
   public synchronized void setSelected(boolean isSelected) {
     this.isSelected = isSelected;
-  }
-
-  public synchronized  boolean isPullSelected() {
-    return isPullSelected;
-  }
-
-  public synchronized  void setPullSelected(boolean isPullSelected) {
-    this.isPullSelected = isPullSelected;
-  }
-
-  public synchronized  boolean isPushSelected() {
-    return isPushSelected;
-  }
-
-  public synchronized  void setPushSelected(boolean isPushSelected) {
-    this.isPushSelected = isPushSelected;
-  }
-
-  public synchronized  boolean isExportSelected() {
-    return isExportSelected;
-  }
-
-  public synchronized void setExportSelected(boolean isExportSelected) {
-    this.isExportSelected = isExportSelected;
   }
 
   public synchronized String getStatusString() {

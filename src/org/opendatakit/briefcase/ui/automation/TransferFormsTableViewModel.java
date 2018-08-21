@@ -79,11 +79,11 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
       case TransferFormsTableView.FORM_NAME_COL:
         return form.getFormName();
       case TransferFormsTableView.PULL_COL:
-        return form.isPullSelected();
+        return forms.isPullSelected(form);
       case TransferFormsTableView.PUSH_COL:
-        return form.isPushSelected();
+        return forms.isPushSelected(form);
       case TransferFormsTableView.EXPORT_COL:
-        return form.isExportSelected();
+        return forms.isExportSelected(form);
       case TransferFormsTableView.DETAIL_BUTTON_COL:
         return detailButtons.computeIfAbsent(form, UI::buildDetailButton);
       default:
@@ -104,17 +104,17 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
         break;
       case TransferFormsTableView.PULL_COL:
         Boolean isPullSelected = (Boolean) aValue;
-        form.setPullSelected(isPullSelected);
+        forms.setPullSelected(form, isPullSelected);
         triggerChange();
         break;
       case TransferFormsTableView.PUSH_COL:
         Boolean isPushSelected = (Boolean) aValue;
-        form.setPushSelected(isPushSelected);
+        forms.setPushSelected(form, isPushSelected);
         triggerChange();
         break;
       case TransferFormsTableView.EXPORT_COL:
         Boolean isExportSelected = (Boolean) aValue;
-        form.setExportSelected(isExportSelected);
+        forms.setExportSelected(form, isExportSelected);
         triggerChange();
         break;
       default:

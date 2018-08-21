@@ -35,6 +35,10 @@ public class TransferForms {
   private Map<String, FormStatus> formsIndex = new HashMap<>();
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
+  private Map<FormStatus, Boolean> pullSelected = new HashMap<>();
+  private Map<FormStatus, Boolean> pushSelected = new HashMap<>();
+  private Map<FormStatus, Boolean> exportSelected = new HashMap<>();
+
   private TransferForms(List<FormStatus> forms) {
     this.forms = forms;
     rebuildIndex();
@@ -135,6 +139,50 @@ public class TransferForms {
     return forms.stream().filter(FormStatus::isSelected).collect(toList());
   }
 
+  public List<FormStatus> getPullSelectedForms() {
+    return pullSelected.keySet()
+        .stream()
+        .filter(this::isPullSelected)
+        .collect(toList());
+  }
+
+  public List<FormStatus> getPushSelectedForms() {
+    return pushSelected.keySet()
+        .stream()
+        .filter(this::isPushSelected)
+        .collect(toList());
+  }
+
+  public List<FormStatus> getExportSelectedForms() {
+    return exportSelected.keySet()
+        .stream()
+        .filter(this::isExportSelected)
+        .collect(toList());
+  }
+
+  public Boolean isPullSelected(FormStatus form) {
+    return pullSelected.get(form) == null ? false : pullSelected.get(form);
+  }
+
+  public void setPullSelected(FormStatus form, Boolean selected) {
+    pullSelected.put(form, selected);
+  }
+
+  public Boolean isPushSelected(FormStatus form) {
+    return pushSelected.get(form) == null ? false : pushSelected.get(form);
+  }
+
+  public void setPushSelected(FormStatus form, Boolean selected) {
+    pushSelected.put(form, selected);
+  }
+
+  public boolean isExportSelected(FormStatus form) {
+    return exportSelected.get(form) == null ? false : exportSelected.get(form);
+  }
+
+  public void setExportSelected(FormStatus form, Boolean selected) {
+    exportSelected.put(form, selected);
+  }
   /**
    * Returns true if at least one {@link FormStatus} instance has been
    * marked as selected, false otherwise.
