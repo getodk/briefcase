@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.ui.settings;
 
+import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.APP_NAME;
+
 import java.nio.file.Path;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -63,7 +65,7 @@ public class SettingsPanel {
     form.onHttpProxy(appPreferences::setHttpProxy, appPreferences::unsetHttpProxy);
     form.onReloadCache(() -> {
       formCache.update();
-      JOptionPane.showMessageDialog(getContainer(), "Forms successfully reloaded from storage location.");
+      JOptionPane.showMessageDialog(getContainer(), "Forms successfully reloaded from storage location.", APP_NAME, JOptionPane.PLAIN_MESSAGE);
     });
   }
 
