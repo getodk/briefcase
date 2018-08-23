@@ -55,7 +55,6 @@ import org.bushe.swing.event.EventBus;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.model.CryptoException;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
@@ -234,11 +233,12 @@ class SubmissionParser {
       tempDoc.parse(parser);
       return Optional.of(tempDoc);
     } catch (IOException | XmlPullParserException e) {
+      log.error("Can't parse submission", e);
       if (!exists(errorsDir))
         createDirectories(errorsDir);
       copy(submission, errorsDir.resolve("failed_submission_" + errorSeq.getAndIncrement() + ".xml"));
       log.info("Failed submission XML file moved to the output errors directory at " + errorsDir);
-      throw new BriefcaseException(e);
+      return Optional.empty();
     }
   }
 
