@@ -452,4 +452,8 @@ public class ExportConfiguration {
   public Optional<String> getExportFileName() {
     return exportFileName;
   }
+
+  public Path getErrorsDir(String formName) {
+    return exportDir.map(dir -> dir.resolve(formName + " - errors")).orElseThrow(BriefcaseException::new);
+  }
 }
