@@ -255,7 +255,7 @@ public class ExportConfiguration {
    * @return false if the algorithm resolves that we don't need to overwrite files, true otherwise
    */
   boolean resolveOverwriteExistingFiles() {
-    return overwriteFiles.resolve(true);
+    return overwriteFiles.resolve(false);
   }
 
   private boolean isDateRangeValid() {
