@@ -326,4 +326,12 @@ public class UncheckedFiles {
     createDirectories(briefcaseDir.resolve("forms"));
     write(briefcaseDir.resolve("readme.txt"), README_CONTENTS);
   }
+
+  public static Path move(Path source, Path target, CopyOption... options) {
+    try {
+      return Files.move(source, target, options);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
 }

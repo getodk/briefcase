@@ -74,7 +74,7 @@ public class ExportToCsv {
     // Generate csv lines grouped by the fqdn of the model they belong to
     Map<String, CsvLines> csvLinesPerModel = submissionFiles.parallelStream()
         // Parse the submission and leave only those OK to be exported
-        .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey()))
+        .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey(), configuration.getErrorsDir(formDef.getFormName())))
         .filter(Optional::isPresent)
         .map(Optional::get)
         // Track the submission

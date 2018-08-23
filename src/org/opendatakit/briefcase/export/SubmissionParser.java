@@ -19,7 +19,10 @@ import static java.util.stream.Collectors.toList;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static org.opendatakit.briefcase.export.CipherFactory.signatureDecrypter;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createTempDirectory;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.stripFileExtension;
 
@@ -40,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -66,6 +70,7 @@ import org.xmlpull.v1.XmlPullParserException;
 class SubmissionParser {
   private static final Logger log = LoggerFactory.getLogger(SubmissionParser.class);
   private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+  private static final AtomicInteger errorSeq = new AtomicInteger(1);
 
   /**
    * Returns an sorted {@link List} of {@link Path} instances pointing to all the
@@ -118,11 +123,11 @@ class SubmissionParser {
    *                    {@link Optional#empty()} otherwise
    * @return the {@link Submission} wrapped inside an {@link Optional} when it meets all the
    *     criteria, or {@link Optional#empty()} otherwise
-   * @see #decrypt(Submission)
+   * @see #decrypt(Submission, Path)
    */
-  static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey) {
+  static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, Path errorsDir) {
     Path workingDir = isEncrypted ? createTempDirectory("briefcase") : path.getParent();
-    return parse(path).flatMap(document -> {
+    return parse(path, errorsDir).flatMap(document -> {
       XmlElement root = XmlElement.of(document);
       SubmissionMetaData metaData = new SubmissionMetaData(root);
 
@@ -142,7 +147,7 @@ class SubmissionParser {
       Submission submission = Submission.notValidated(path, workingDir, root, metaData, cipherFactory, signature);
       return isEncrypted
           // If it's encrypted, validate the parsed contents with the attached signature
-          ? decrypt(submission).map(s -> s.copy(ValidationStatus.of(isValid(submission, s))))
+          ? decrypt(submission, errorsDir).map(s -> s.copy(ValidationStatus.of(isValid(submission, s))))
           // Return the original submission otherwise
           : Optional.of(submission);
     });
@@ -183,7 +188,7 @@ class SubmissionParser {
   }
 
 
-  private static Optional<Submission> decrypt(Submission submission) {
+  private static Optional<Submission> decrypt(Submission submission, Path errorsDir) {
     List<Path> mediaPaths = submission.getMediaPaths();
 
     if (mediaPaths.size() != submission.countMedia())
@@ -197,7 +202,7 @@ class SubmissionParser {
     Path decryptedSubmission = decryptFile(submission.getEncryptedFilePath(), submission.getWorkingDir(), submission.getNextCipher());
 
     // Parse the document and, if everything goes well, return a decripted copy of the submission
-    return parse(decryptedSubmission).map(document -> submission.copy(decryptedSubmission, document));
+    return parse(decryptedSubmission, errorsDir).map(document -> submission.copy(decryptedSubmission, document));
   }
 
   private static Path decryptFile(Path encFile, Path workingDir, Cipher cipher) {
@@ -219,7 +224,7 @@ class SubmissionParser {
     }
   }
 
-  private static Optional<Document> parse(Path submission) {
+  private static Optional<Document> parse(Path submission, Path errorsDir) {
     try (InputStream is = Files.newInputStream(submission);
          InputStreamReader isr = new InputStreamReader(is, "UTF-8")) {
       Document tempDoc = new Document();
@@ -229,6 +234,10 @@ class SubmissionParser {
       tempDoc.parse(parser);
       return Optional.of(tempDoc);
     } catch (IOException | XmlPullParserException e) {
+      if (!exists(errorsDir))
+        createDirectories(errorsDir);
+      copy(submission, errorsDir.resolve("failed_submission_" + errorSeq.getAndIncrement() + ".xml"));
+      log.info("Failed submission XML file moved to the output errors directory at " + errorsDir);
       throw new BriefcaseException(e);
     }
   }
