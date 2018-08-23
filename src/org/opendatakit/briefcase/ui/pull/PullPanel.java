@@ -36,13 +36,17 @@ import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.ODKOptionPane;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.source.Source;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PullPanel {
+  private static final Logger log = LoggerFactory.getLogger(PullPanel.class);
   public static final String TAB_NAME = "Pull";
   private final TransferPanelForm view;
   private final TransferForms forms;
@@ -63,11 +67,15 @@ public class PullPanel {
     getContainer().addComponentListener(analytics.buildComponentListener("Pull"));
 
     // Read prefs and load saved remote server if available
-    this.source = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadSource);
-    this.source.ifPresent(source -> {
-      forms.load(source.getFormList());
-      view.refresh();
-      updateActionButtons();
+    source = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadSource);
+    source.ifPresent(source -> {
+      try {
+        forms.load(source.getFormList());
+        view.refresh();
+        updateActionButtons();
+      } catch (HttpException e) {
+        log.warn("Unable to get form list from {}: {}", source.getDescription(), e.toString());
+      }
     });
 
     // Register callbacks to view events
