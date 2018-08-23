@@ -97,8 +97,8 @@ public class TransferAction {
     backgroundExecutorService.execute(new GatherTransferRunnable(src, formsToTransfer));
   }
 
-  public static void transferServerToBriefcase(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Path briefcaseDir, Boolean pullInParallel) {
-    TransferFromServer source = new TransferFromServer(originServerInfo, terminationFuture, formsToTransfer, briefcaseDir, pullInParallel);
+  public static void transferServerToBriefcase(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete) {
+    TransferFromServer source = new TransferFromServer(originServerInfo, terminationFuture, formsToTransfer, briefcaseDir, pullInParallel, includeIncomplete);
     backgroundRun(source, formsToTransfer);
   }
 

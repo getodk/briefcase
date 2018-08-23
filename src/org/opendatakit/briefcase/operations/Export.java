@@ -27,7 +27,6 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
-
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportToCsv;
 import org.opendatakit.briefcase.export.FormDefinition;
@@ -125,7 +124,8 @@ public class Export {
             new TerminationFuture(),
             Collections.singletonList(formStatus),
             briefcaseDir,
-            appPreferences.getPullInParallel().orElse(false)
+            appPreferences.getPullInParallel().orElse(false),
+            false
         );
       }
 

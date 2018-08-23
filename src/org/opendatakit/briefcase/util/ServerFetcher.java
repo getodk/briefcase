@@ -73,6 +73,7 @@ public class ServerFetcher {
   public static String SUCCESS_STATUS = "Success.";
   public static String FAILED_STATUS = "Failed.";
   private final Path briefcaseDir;
+  private final Boolean includeIncomplete;
 
   public static class FormListException extends Exception {
 
@@ -123,8 +124,9 @@ public class ServerFetcher {
     }
   }
 
-  ServerFetcher(ServerConnectionInfo serverInfo, TerminationFuture future, Path briefcaseDir, Boolean pullInParallel) {
+  ServerFetcher(ServerConnectionInfo serverInfo, TerminationFuture future, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete) {
     this.briefcaseDir = briefcaseDir;
+    this.includeIncomplete = includeIncomplete;
     AnnotationProcessor.process(this);// if not using AOP
     this.serverInfo = serverInfo;
     this.terminationFuture = future;
@@ -408,6 +410,8 @@ public class ServerFetcher {
       params.put("numEntries", Integer.toString(MAX_ENTRIES));
       params.put("formId", formId);
       params.put("cursor", cursor);
+      if (includeIncomplete)
+        params.put("includeIncomplete", "true");
       return WebUtils.createLinkWithProperties(baseUrl, params);
     }
 
