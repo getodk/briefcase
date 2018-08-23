@@ -305,7 +305,7 @@ public class BriefcaseCLI {
         importODK(storageDir, Paths.get(odkDir), Optional.empty());
 
       if (odkDir == null && server != null)
-        pullFormFromAggregate(storageDir, formid, username, password, server, false);
+        pullFormFromAggregate(storageDir, formid, username, password, server, false, false);
 
       if (exportPath != null)
         export(
