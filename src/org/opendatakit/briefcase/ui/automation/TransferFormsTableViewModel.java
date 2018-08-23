@@ -100,6 +100,7 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
       case ExportFormsTableView.SELECTED_CHECKBOX_COL:
         Boolean isSelected = (Boolean) aValue;
         form.setSelected(isSelected);
+        toggleOperations(form, isSelected);
         triggerChange();
         break;
       case TransferFormsTableView.PULL_COL:
@@ -121,6 +122,12 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
         throw new IllegalStateException("unexpected column choice");
     }
     fireTableCellUpdated(rowIndex, columnIndex);
+  }
+
+  private void toggleOperations(FormStatus form, Boolean isSelected) {
+    forms.setPullSelected(form, isSelected);
+    forms.setPushSelected(form, isSelected);
+    forms.setExportSelected(form, isSelected);
   }
 
   @Override
