@@ -17,18 +17,18 @@ package org.opendatakit.briefcase.ui.export.components;
 
 import static javax.swing.SortOrder.ASCENDING;
 
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
-import javax.swing.JButton;
-import javax.swing.JTable;
-import javax.swing.RowSorter;
-import javax.swing.SortOrder;
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.UI;
+import org.opendatakit.briefcase.util.FindDirectoryStructure;
 
 public class ExportFormsTableView extends JTable {
   static final String[] HEADERS = new String[]{"", "", "Form Name", "Export Status", "Last Export", ""};
@@ -51,6 +51,13 @@ public class ExportFormsTableView extends JTable {
     Dimension formNameDims = getHeaderDimension(HEADERS[FORM_NAME_COL]);
     Dimension exportStatusDims = getHeaderDimension(HEADERS[EXPORT_STATUS_COL]);
     Dimension lastExportDims = getHeaderDimension(HEADERS[LAST_EXPORT_COL]);
+
+    JTableHeader header = getTableHeader();
+    if (FindDirectoryStructure.isWindows()) {
+      Border border = BorderFactory.createLineBorder(Color.GRAY);
+      header.setBackground(Color.GRAY);
+      header.setBorder(border);
+    }
 
     setRowHeight(28);
 
