@@ -51,6 +51,10 @@ public class SelectSourceForm extends JComponent {
     sourceComboBox.addItem(source);
   }
 
+  public Optional<Source> getSelectedSource() {
+    return Optional.ofNullable((Source) sourceComboBox.getSelectedItem());
+  }
+
   @Override
   public void setEnabled(boolean enabled) {
     super.setEnabled(enabled);

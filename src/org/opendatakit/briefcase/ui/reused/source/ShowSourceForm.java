@@ -32,26 +32,44 @@ public class ShowSourceForm extends JComponent {
   private JLabel sourceLabel;
   private JButton resetButton;
   private JLabel actionLabel;
+  private JButton reloadButton;
   private List<Runnable> onResetCallbacks = new ArrayList<>();
+  private List<Runnable> onReloadCallbacks = new ArrayList<>();
+  private Operation type;
 
-  private ShowSourceForm(String action) {
+  private ShowSourceForm(String action, Operation type) {
     $$$setupUI$$$();
     this.action = action;
+    this.type = type;
 
     resetButton.addActionListener(__ -> onResetCallbacks.forEach(Runnable::run));
+    if (type.equals(Operation.PULL)) {
+      reloadButton.addActionListener(__ -> onReloadCallbacks.forEach(Runnable::run));
+    } else {
+      reloadButton.setVisible(false);
+    }
   }
 
-  static ShowSourceForm empty(String action) {
-    return new ShowSourceForm(action);
+  static ShowSourceForm pull(String action) {
+    return new ShowSourceForm(action, Operation.PULL);
+  }
+
+  static ShowSourceForm push(String action) {
+    return new ShowSourceForm(action, Operation.PUSH);
   }
 
   void onReset(Runnable callback) {
     onResetCallbacks.add(callback);
   }
 
+  void onReload(Runnable callback) {
+    onReloadCallbacks.add(callback);
+  }
+
   void showSource(Source source) {
     actionLabel.setText(action + ": " + source.toString());
     sourceLabel.setText(source.getDescription());
+    reloadButton.setVisible(source instanceof Source.Aggregate);
   }
 
   private void createUIComponents() {
@@ -66,6 +84,7 @@ public class ShowSourceForm extends JComponent {
   public void setEnabled(boolean enabled) {
     super.setEnabled(enabled);
     resetButton.setEnabled(enabled);
+    reloadButton.setEnabled(enabled);
   }
 
   /**
@@ -98,7 +117,7 @@ public class ShowSourceForm extends JComponent {
     resetButton = new JButton();
     resetButton.setText("Reset");
     gbc = new GridBagConstraints();
-    gbc.gridx = 2;
+    gbc.gridx = 4;
     gbc.gridy = 0;
     gbc.gridheight = 2;
     gbc.anchor = GridBagConstraints.EAST;
@@ -110,6 +129,21 @@ public class ShowSourceForm extends JComponent {
     gbc.gridheight = 2;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(spacer1, gbc);
+    reloadButton = new JButton();
+    reloadButton.setText("Reload");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 0;
+    gbc.gridheight = 2;
+    gbc.anchor = GridBagConstraints.EAST;
+    container.add(reloadButton, gbc);
+    final JPanel spacer2 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 3;
+    gbc.gridy = 0;
+    gbc.gridheight = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(spacer2, gbc);
   }
 
   /**
@@ -118,4 +152,9 @@ public class ShowSourceForm extends JComponent {
   public JComponent $$$getRootComponent$$$() {
     return container;
   }
+
+  private enum Operation {
+    PUSH, PULL
+  }
+
 }
