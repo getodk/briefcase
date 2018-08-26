@@ -58,7 +58,7 @@ public class CsvSubmissionMappersEncodeMainValueTest {
         {"INTEGER encodes an empty string", createField(DataType.INTEGER), ESCAPED_EMPTY_STRING_VALUE},
         {"DECIMAL encodes an empty string", createField(DataType.DECIMAL), ESCAPED_EMPTY_STRING_VALUE},
         {"CHOICE encodes an empty string", createField(DataType.CHOICE), ESCAPED_EMPTY_STRING_VALUE},
-        {"CHOICE_LIST encodes an empty string", createField(DataType.CHOICE_LIST), ESCAPED_EMPTY_STRING_VALUE},
+        {"MULTIPLE_ITEMS encodes an empty string", createField(DataType.MULTIPLE_ITEMS), ESCAPED_EMPTY_STRING_VALUE},
         {"BOOLEAN encodes an empty string", createField(DataType.BOOLEAN), ESCAPED_EMPTY_STRING_VALUE},
         {"BARCODE encodes an empty string", createField(DataType.BARCODE), ESCAPED_EMPTY_STRING_VALUE},
         {"BINARY encodes an empty string", createField(DataType.BINARY), ESCAPED_EMPTY_STRING_VALUE},

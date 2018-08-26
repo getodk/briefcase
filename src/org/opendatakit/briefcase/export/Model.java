@@ -20,8 +20,8 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.javarosa.core.model.Constants.DATATYPE_NULL;
-import static org.javarosa.core.model.DataType.CHOICE_LIST;
 import static org.javarosa.core.model.DataType.GEOPOINT;
+import static org.javarosa.core.model.DataType.MULTIPLE_ITEMS;
 import static org.javarosa.core.model.DataType.NULL;
 import static org.opendatakit.briefcase.export.Model.ControlType.SELECT_MULTI;
 
@@ -260,7 +260,7 @@ class Model {
 
   public boolean isChoiceList() {
     return Optional.ofNullable(controls.get(fqn()))
-        .map(control -> getDataType() == CHOICE_LIST || ControlType.from(control.getControlType()) == SELECT_MULTI)
+        .map(control -> getDataType() == MULTIPLE_ITEMS || ControlType.from(control.getControlType()) == SELECT_MULTI)
         .orElse(false);
   }
 
