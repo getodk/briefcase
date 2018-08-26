@@ -186,6 +186,13 @@ public interface Source<T> {
   void push(List<FormStatus> forms, TerminationFuture terminationFuture);
 
   /**
+   * Returns whether or not this {@link Source} supports reloading.
+   *
+   * @return true if it supports reload, false otherwise
+   */
+  boolean canBeReloaded();
+
+  /**
    * Returns a textual description of this {@link Source}.
    */
   String getDescription();
@@ -246,6 +253,11 @@ public interface Source<T> {
     @Override
     public void push(List<FormStatus> forms, TerminationFuture terminationFuture) {
       TransferAction.transferBriefcaseToServer(server.asServerConnectionInfo(), terminationFuture, forms, http, server);
+    }
+
+    @Override
+    public boolean canBeReloaded() {
+      return true;
     }
 
     @Override
@@ -328,6 +340,11 @@ public interface Source<T> {
     }
 
     @Override
+    public boolean canBeReloaded() {
+      return false;
+    }
+
+    @Override
     public String getDescription() {
       return path.toString();
     }
@@ -401,6 +418,11 @@ public interface Source<T> {
     @Override
     public void push(List<FormStatus> forms, TerminationFuture terminationFuture) {
       throw new BriefcaseException("Can't push to this source");
+    }
+
+    @Override
+    public boolean canBeReloaded() {
+      return false;
     }
 
     @Override

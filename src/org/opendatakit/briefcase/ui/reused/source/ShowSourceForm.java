@@ -20,6 +20,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -35,27 +37,37 @@ public class ShowSourceForm extends JComponent {
   private JButton reloadButton;
   private List<Runnable> onResetCallbacks = new ArrayList<>();
   private List<Runnable> onReloadCallbacks = new ArrayList<>();
-  private Operation type;
+  private boolean showReloadButton;
 
-  private ShowSourceForm(String action, Operation type) {
+  private ShowSourceForm(String action, boolean showReloadButton) {
     $$$setupUI$$$();
     this.action = action;
-    this.type = type;
+    this.showReloadButton = showReloadButton;
 
     resetButton.addActionListener(__ -> onResetCallbacks.forEach(Runnable::run));
-    if (type.equals(Operation.PULL)) {
-      reloadButton.addActionListener(__ -> onReloadCallbacks.forEach(Runnable::run));
-    } else {
+    reloadButton.addActionListener(__ -> onReloadCallbacks.forEach(Runnable::run));
+
+    onReloadCallbacks.add(() -> {
+      reloadButton.setEnabled(false);
+      TimerTask task = new TimerTask() {
+        public void run() {
+          reloadButton.setEnabled(true);
+        }
+      };
+      Timer timer = new Timer();
+      long delayMillis = 5000L;
+      timer.schedule(task, delayMillis);
+    });
+    if (!showReloadButton)
       reloadButton.setVisible(false);
-    }
   }
 
   static ShowSourceForm pull(String action) {
-    return new ShowSourceForm(action, Operation.PULL);
+    return new ShowSourceForm(action, true);
   }
 
   static ShowSourceForm push(String action) {
-    return new ShowSourceForm(action, Operation.PUSH);
+    return new ShowSourceForm(action, false);
   }
 
   void onReset(Runnable callback) {
@@ -69,7 +81,7 @@ public class ShowSourceForm extends JComponent {
   void showSource(Source source) {
     actionLabel.setText(action + ": " + source.toString());
     sourceLabel.setText(source.getDescription());
-    reloadButton.setVisible(source instanceof Source.Aggregate);
+    reloadButton.setVisible(source.canBeReloaded() && showReloadButton);
   }
 
   private void createUIComponents() {
@@ -151,10 +163,6 @@ public class ShowSourceForm extends JComponent {
    */
   public JComponent $$$getRootComponent$$$() {
     return container;
-  }
-
-  private enum Operation {
-    PUSH, PULL
   }
 
 }
