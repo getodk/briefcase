@@ -19,10 +19,12 @@ import static javax.swing.SortOrder.ASCENDING;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
@@ -33,7 +35,6 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.UI;
-import org.opendatakit.briefcase.util.FindDirectoryStructure;
 
 public class TransferFormsTableView extends JTable {
   static final Class[] TYPES = new Class[]{Boolean.class, String.class, String.class, JButton.class};
@@ -56,11 +57,8 @@ public class TransferFormsTableView extends JTable {
     Dimension statusDims = getHeaderDimension(getHeader(STATUS_COL));
 
     JTableHeader header = getTableHeader();
-    if (FindDirectoryStructure.isWindows()) {
-      Border border = BorderFactory.createLineBorder(Color.GRAY);
-      header.setBackground(Color.GRAY);
-      header.setBorder(border);
-    }
+    header.setOpaque(false);
+    header.setBackground(new Color(229,229,229));
 
     setRowHeight(28);
 

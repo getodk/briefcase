@@ -19,6 +19,7 @@ import static javax.swing.SortOrder.ASCENDING;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 import javax.swing.BorderFactory;
@@ -33,7 +34,6 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.UI;
-import org.opendatakit.briefcase.util.FindDirectoryStructure;
 
 public class ExportFormsTableView extends JTable {
   static final String[] HEADERS = new String[]{"", "", "Form Name", "Export Status", "Last Export", ""};
@@ -58,11 +58,8 @@ public class ExportFormsTableView extends JTable {
     Dimension lastExportDims = getHeaderDimension(HEADERS[LAST_EXPORT_COL]);
 
     JTableHeader header = getTableHeader();
-    if (FindDirectoryStructure.isWindows()) {
-      Border border = BorderFactory.createLineBorder(Color.GRAY);
-      header.setBackground(Color.GRAY);
-      header.setBorder(border);
-    }
+    header.setOpaque(false);
+    header.setBackground(new Color(229,229,229));
 
     setRowHeight(28);
 
