@@ -24,8 +24,10 @@ import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
 import static org.opendatakit.briefcase.export.SubmissionParser.getListOfSubmissionFiles;
 import static org.opendatakit.briefcase.export.SubmissionParser.parseSubmission;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.*;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -82,7 +84,7 @@ public class ExportToCsv {
     // Generate csv lines grouped by the fqdn of the model they belong to
     Map<String, CsvLines> csvLinesPerModel = submissionFiles.parallelStream()
         // Parse the submission and leave only those OK to be exported
-        .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey(), errorsDir, errorSeq, p -> {
+        .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey(), p -> {
           if (!exists(errorsDir))
             createDirectories(errorsDir);
           copy(p, errorsDir.resolve("failed_submission_" + errorSeq.getAndIncrement() + ".xml"));

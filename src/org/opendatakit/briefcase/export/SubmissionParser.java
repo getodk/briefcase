@@ -19,10 +19,7 @@ import static java.util.stream.Collectors.toList;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static org.opendatakit.briefcase.export.CipherFactory.signatureDecrypter;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createTempDirectory;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.stripFileExtension;
 
@@ -43,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -120,14 +116,13 @@ class SubmissionParser {
    * @param privateKey  the {@link PrivateKey} to be used to decrypt the submissions,
    *                    wrapped inside an {@link Optional} when the form is encrypted, or
    *                    {@link Optional#empty()} otherwise
-   * @param errorSeq
    * @return the {@link Submission} wrapped inside an {@link Optional} when it meets all the
    *     criteria, or {@link Optional#empty()} otherwise
-   * @see #decrypt(Submission, Path, AtomicInteger, Consumer)
+   * @see #decrypt(Submission, Consumer)
    */
-  static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, Path errorsDir, AtomicInteger errorSeq, Consumer<Path> onParsingError) {
+  static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, Consumer<Path> onParsingError) {
     Path workingDir = isEncrypted ? createTempDirectory("briefcase") : path.getParent();
-    return parse(path, errorsDir, errorSeq, onParsingError).flatMap(document -> {
+    return parse(path, onParsingError).flatMap(document -> {
       XmlElement root = XmlElement.of(document);
       SubmissionMetaData metaData = new SubmissionMetaData(root);
 
@@ -147,7 +142,7 @@ class SubmissionParser {
       Submission submission = Submission.notValidated(path, workingDir, root, metaData, cipherFactory, signature);
       return isEncrypted
           // If it's encrypted, validate the parsed contents with the attached signature
-          ? decrypt(submission, errorsDir, errorSeq, onParsingError).map(s -> s.copy(ValidationStatus.of(isValid(submission, s))))
+          ? decrypt(submission, onParsingError).map(s -> s.copy(ValidationStatus.of(isValid(submission, s))))
           // Return the original submission otherwise
           : Optional.of(submission);
     });
@@ -188,7 +183,7 @@ class SubmissionParser {
   }
 
 
-  private static Optional<Submission> decrypt(Submission submission, Path errorsDir, AtomicInteger errorSeq, Consumer<Path> onParsingError) {
+  private static Optional<Submission> decrypt(Submission submission, Consumer<Path> onParsingError) {
     List<Path> mediaPaths = submission.getMediaPaths();
 
     if (mediaPaths.size() != submission.countMedia())
@@ -202,7 +197,7 @@ class SubmissionParser {
     Path decryptedSubmission = decryptFile(submission.getEncryptedFilePath(), submission.getWorkingDir(), submission.getNextCipher());
 
     // Parse the document and, if everything goes well, return a decripted copy of the submission
-    return parse(decryptedSubmission, errorsDir, errorSeq, onParsingError).map(document -> submission.copy(decryptedSubmission, document));
+    return parse(decryptedSubmission, onParsingError).map(document -> submission.copy(decryptedSubmission, document));
   }
 
   private static Path decryptFile(Path encFile, Path workingDir, Cipher cipher) {
@@ -224,7 +219,7 @@ class SubmissionParser {
     }
   }
 
-  private static Optional<Document> parse(Path submission, Path errorsDir, AtomicInteger errorSeq, Consumer<Path> onParsingError) {
+  private static Optional<Document> parse(Path submission, Consumer<Path> onParsingError) {
     try (InputStream is = Files.newInputStream(submission);
          InputStreamReader isr = new InputStreamReader(is, "UTF-8")) {
       Document tempDoc = new Document();
