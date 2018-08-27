@@ -20,12 +20,11 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ShowSourceForm extends JComponent {
@@ -38,6 +37,8 @@ public class ShowSourceForm extends JComponent {
   private List<Runnable> onResetCallbacks = new ArrayList<>();
   private List<Runnable> onReloadCallbacks = new ArrayList<>();
   private boolean showReloadButton;
+  private boolean reloadTimerElapsed;
+  private boolean reloadOperationCompleted;
 
   private ShowSourceForm(String action, boolean showReloadButton) {
     $$$setupUI$$$();
@@ -49,14 +50,11 @@ public class ShowSourceForm extends JComponent {
 
     onReloadCallbacks.add(() -> {
       reloadButton.setEnabled(false);
-      TimerTask task = new TimerTask() {
-        public void run() {
-          reloadButton.setEnabled(true);
-        }
-      };
-      Timer timer = new Timer();
-      long delayMillis = 5000L;
-      timer.schedule(task, delayMillis);
+      this.reloadTimerElapsed = false;
+      this.reloadOperationCompleted = false;
+      Timer t = new Timer(5000, (e) -> markReloadTimerElapsed());
+      t.setRepeats(false);
+      t.start();
     });
     if (!showReloadButton)
       reloadButton.setVisible(false);
@@ -82,6 +80,7 @@ public class ShowSourceForm extends JComponent {
     actionLabel.setText(action + ": " + source.toString());
     sourceLabel.setText(source.getDescription());
     reloadButton.setVisible(source.canBeReloaded() && showReloadButton);
+    markReloadOperationCompleted();
   }
 
   private void createUIComponents() {
@@ -97,6 +96,21 @@ public class ShowSourceForm extends JComponent {
     super.setEnabled(enabled);
     resetButton.setEnabled(enabled);
     reloadButton.setEnabled(enabled);
+  }
+
+  private void markReloadTimerElapsed() {
+    this.reloadTimerElapsed = true;
+    updateReloadButton();
+  }
+
+  private void markReloadOperationCompleted() {
+    this.reloadOperationCompleted = true;
+    updateReloadButton();
+  }
+
+  private void updateReloadButton() {
+    if (this.reloadTimerElapsed && this.reloadOperationCompleted)
+      reloadButton.setEnabled(true);
   }
 
   /**
