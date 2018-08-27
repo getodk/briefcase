@@ -73,10 +73,16 @@ public class ExportToCsv {
 
     csvs.forEach(Csv::prepareOutputFiles);
 
+    // Reset errors management for this export attemp
+    Path errorsDir = configuration.getErrorsDir(formDef.getFormName());
+    AtomicInteger errorSeq = new AtomicInteger(1);
+    if (exists(errorsDir))
+      deleteRecursive(errorsDir);
+
     // Generate csv lines grouped by the fqdn of the model they belong to
     Map<String, CsvLines> csvLinesPerModel = submissionFiles.parallelStream()
         // Parse the submission and leave only those OK to be exported
-        .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey(), configuration.getErrorsDir(formDef.getFormName()), new AtomicInteger(1)))
+        .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey(), errorsDir, errorSeq))
         .filter(Optional::isPresent)
         .map(Optional::get)
         // Track the submission
