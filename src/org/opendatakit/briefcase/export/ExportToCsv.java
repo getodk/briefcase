@@ -82,7 +82,12 @@ public class ExportToCsv {
     // Generate csv lines grouped by the fqdn of the model they belong to
     Map<String, CsvLines> csvLinesPerModel = submissionFiles.parallelStream()
         // Parse the submission and leave only those OK to be exported
-        .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey(), errorsDir, errorSeq, p -> {}))
+        .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey(), errorsDir, errorSeq, p -> {
+          if (!exists(errorsDir))
+            createDirectories(errorsDir);
+          copy(p, errorsDir.resolve("failed_submission_" + errorSeq.getAndIncrement() + ".xml"));
+          log.info("Failed submission XML file moved to the output errors directory at " + errorsDir);
+        }))
         .filter(Optional::isPresent)
         .map(Optional::get)
         // Track the submission

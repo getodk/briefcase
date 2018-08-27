@@ -235,10 +235,6 @@ class SubmissionParser {
       return Optional.of(tempDoc);
     } catch (IOException | XmlPullParserException e) {
       log.error("Can't parse submission", e);
-      if (!exists(errorsDir))
-        createDirectories(errorsDir);
-      copy(submission, errorsDir.resolve("failed_submission_" + errorSeq.getAndIncrement() + ".xml"));
-      log.info("Failed submission XML file moved to the output errors directory at " + errorsDir);
       onParsingError.accept(submission);
       return Optional.empty();
     }
