@@ -17,7 +17,6 @@ package org.opendatakit.briefcase.ui.export.components;
 
 import static javax.swing.SortOrder.ASCENDING;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
@@ -25,11 +24,11 @@ import javax.swing.JButton;
 import javax.swing.JTable;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
-import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
+import org.opendatakit.briefcase.ui.reused.TableCustomizer;
 import org.opendatakit.briefcase.ui.reused.UI;
 
 public class ExportFormsTableView extends JTable {
@@ -50,15 +49,12 @@ public class ExportFormsTableView extends JTable {
 
     addMouseListener(new MouseAdapterBuilder().onClick(this::relayClickToButton).build());
 
-    Dimension formNameDims = getHeaderDimension(HEADERS[FORM_NAME_COL]);
-    Dimension exportStatusDims = getHeaderDimension(HEADERS[EXPORT_STATUS_COL]);
-    Dimension lastExportDims = getHeaderDimension(HEADERS[LAST_EXPORT_COL]);
+    Dimension formNameDims = TableCustomizer.getHeaderDimension(HEADERS[FORM_NAME_COL], this);
+    Dimension exportStatusDims = TableCustomizer.getHeaderDimension(HEADERS[EXPORT_STATUS_COL], this);
+    Dimension lastExportDims = TableCustomizer.getHeaderDimension(HEADERS[LAST_EXPORT_COL], this);
 
-    JTableHeader header = getTableHeader();
-    header.setOpaque(false);
-    header.setBackground(new Color(229,229,229));
-
-    setRowHeight(28);
+    TableCustomizer.customizeHeader(getTableHeader());
+    TableCustomizer.customizeTable(this);
 
     TableColumnModel columns = getColumnModel();
     columns.getColumn(SELECTED_CHECKBOX_COL).setMinWidth(40);
@@ -85,14 +81,6 @@ public class ExportFormsTableView extends JTable {
     setRowSorter(sorter);
     sorter.sort();
   }
-
-  private Dimension getHeaderDimension(String header) {
-    return getTableHeader()
-        .getDefaultRenderer()
-        .getTableCellRendererComponent(null, header, false, false, 0, 0)
-        .getPreferredSize();
-  }
-
 
   private void relayClickToButton(MouseEvent event) {
     int column = getColumnModel().getColumnIndexAtX(event.getX());
