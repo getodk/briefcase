@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -122,11 +123,11 @@ class SubmissionParser {
    * @param errorSeq
    * @return the {@link Submission} wrapped inside an {@link Optional} when it meets all the
    *     criteria, or {@link Optional#empty()} otherwise
-   * @see #decrypt(Submission, Path, AtomicInteger)
+   * @see #decrypt(Submission, Path, AtomicInteger, Consumer)
    */
-  static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, Path errorsDir, AtomicInteger errorSeq) {
+  static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, Path errorsDir, AtomicInteger errorSeq, Consumer<Path> onParsingError) {
     Path workingDir = isEncrypted ? createTempDirectory("briefcase") : path.getParent();
-    return parse(path, errorsDir, errorSeq).flatMap(document -> {
+    return parse(path, errorsDir, errorSeq, onParsingError).flatMap(document -> {
       XmlElement root = XmlElement.of(document);
       SubmissionMetaData metaData = new SubmissionMetaData(root);
 
@@ -146,7 +147,7 @@ class SubmissionParser {
       Submission submission = Submission.notValidated(path, workingDir, root, metaData, cipherFactory, signature);
       return isEncrypted
           // If it's encrypted, validate the parsed contents with the attached signature
-          ? decrypt(submission, errorsDir, errorSeq).map(s -> s.copy(ValidationStatus.of(isValid(submission, s))))
+          ? decrypt(submission, errorsDir, errorSeq, onParsingError).map(s -> s.copy(ValidationStatus.of(isValid(submission, s))))
           // Return the original submission otherwise
           : Optional.of(submission);
     });
@@ -187,7 +188,7 @@ class SubmissionParser {
   }
 
 
-  private static Optional<Submission> decrypt(Submission submission, Path errorsDir, AtomicInteger errorSeq) {
+  private static Optional<Submission> decrypt(Submission submission, Path errorsDir, AtomicInteger errorSeq, Consumer<Path> onParsingError) {
     List<Path> mediaPaths = submission.getMediaPaths();
 
     if (mediaPaths.size() != submission.countMedia())
@@ -201,7 +202,7 @@ class SubmissionParser {
     Path decryptedSubmission = decryptFile(submission.getEncryptedFilePath(), submission.getWorkingDir(), submission.getNextCipher());
 
     // Parse the document and, if everything goes well, return a decripted copy of the submission
-    return parse(decryptedSubmission, errorsDir, errorSeq).map(document -> submission.copy(decryptedSubmission, document));
+    return parse(decryptedSubmission, errorsDir, errorSeq, onParsingError).map(document -> submission.copy(decryptedSubmission, document));
   }
 
   private static Path decryptFile(Path encFile, Path workingDir, Cipher cipher) {
@@ -223,7 +224,7 @@ class SubmissionParser {
     }
   }
 
-  private static Optional<Document> parse(Path submission, Path errorsDir, AtomicInteger errorSeq) {
+  private static Optional<Document> parse(Path submission, Path errorsDir, AtomicInteger errorSeq, Consumer<Path> onParsingError) {
     try (InputStream is = Files.newInputStream(submission);
          InputStreamReader isr = new InputStreamReader(is, "UTF-8")) {
       Document tempDoc = new Document();
@@ -238,6 +239,7 @@ class SubmissionParser {
         createDirectories(errorsDir);
       copy(submission, errorsDir.resolve("failed_submission_" + errorSeq.getAndIncrement() + ".xml"));
       log.info("Failed submission XML file moved to the output errors directory at " + errorsDir);
+      onParsingError.accept(submission);
       return Optional.empty();
     }
   }
