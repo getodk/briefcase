@@ -24,6 +24,7 @@ import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
 import static org.opendatakit.briefcase.export.SubmissionParser.getListOfSubmissionFiles;
 import static org.opendatakit.briefcase.export.SubmissionParser.parseSubmission;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.*;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 
 import java.nio.file.Path;
@@ -31,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -74,7 +76,7 @@ public class ExportToCsv {
     // Generate csv lines grouped by the fqdn of the model they belong to
     Map<String, CsvLines> csvLinesPerModel = submissionFiles.parallelStream()
         // Parse the submission and leave only those OK to be exported
-        .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey(), configuration.getErrorsDir(formDef.getFormName())))
+        .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey(), configuration.getErrorsDir(formDef.getFormName()), new AtomicInteger(1)))
         .filter(Optional::isPresent)
         .map(Optional::get)
         // Track the submission

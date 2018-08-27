@@ -69,7 +69,6 @@ import org.xmlpull.v1.XmlPullParserException;
 class SubmissionParser {
   private static final Logger log = LoggerFactory.getLogger(SubmissionParser.class);
   private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-  private static final AtomicInteger errorSeq = new AtomicInteger(1);
 
   /**
    * Returns an sorted {@link List} of {@link Path} instances pointing to all the
@@ -120,13 +119,14 @@ class SubmissionParser {
    * @param privateKey  the {@link PrivateKey} to be used to decrypt the submissions,
    *                    wrapped inside an {@link Optional} when the form is encrypted, or
    *                    {@link Optional#empty()} otherwise
+   * @param errorSeq
    * @return the {@link Submission} wrapped inside an {@link Optional} when it meets all the
    *     criteria, or {@link Optional#empty()} otherwise
-   * @see #decrypt(Submission, Path)
+   * @see #decrypt(Submission, Path, AtomicInteger)
    */
-  static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, Path errorsDir) {
+  static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, Path errorsDir, AtomicInteger errorSeq) {
     Path workingDir = isEncrypted ? createTempDirectory("briefcase") : path.getParent();
-    return parse(path, errorsDir).flatMap(document -> {
+    return parse(path, errorsDir, errorSeq).flatMap(document -> {
       XmlElement root = XmlElement.of(document);
       SubmissionMetaData metaData = new SubmissionMetaData(root);
 
@@ -146,7 +146,7 @@ class SubmissionParser {
       Submission submission = Submission.notValidated(path, workingDir, root, metaData, cipherFactory, signature);
       return isEncrypted
           // If it's encrypted, validate the parsed contents with the attached signature
-          ? decrypt(submission, errorsDir).map(s -> s.copy(ValidationStatus.of(isValid(submission, s))))
+          ? decrypt(submission, errorsDir, errorSeq).map(s -> s.copy(ValidationStatus.of(isValid(submission, s))))
           // Return the original submission otherwise
           : Optional.of(submission);
     });
@@ -187,7 +187,7 @@ class SubmissionParser {
   }
 
 
-  private static Optional<Submission> decrypt(Submission submission, Path errorsDir) {
+  private static Optional<Submission> decrypt(Submission submission, Path errorsDir, AtomicInteger errorSeq) {
     List<Path> mediaPaths = submission.getMediaPaths();
 
     if (mediaPaths.size() != submission.countMedia())
@@ -201,7 +201,7 @@ class SubmissionParser {
     Path decryptedSubmission = decryptFile(submission.getEncryptedFilePath(), submission.getWorkingDir(), submission.getNextCipher());
 
     // Parse the document and, if everything goes well, return a decripted copy of the submission
-    return parse(decryptedSubmission, errorsDir).map(document -> submission.copy(decryptedSubmission, document));
+    return parse(decryptedSubmission, errorsDir, errorSeq).map(document -> submission.copy(decryptedSubmission, document));
   }
 
   private static Path decryptFile(Path encFile, Path workingDir, Cipher cipher) {
@@ -223,7 +223,7 @@ class SubmissionParser {
     }
   }
 
-  private static Optional<Document> parse(Path submission, Path errorsDir) {
+  private static Optional<Document> parse(Path submission, Path errorsDir, AtomicInteger errorSeq) {
     try (InputStream is = Files.newInputStream(submission);
          InputStreamReader isr = new InputStreamReader(is, "UTF-8")) {
       Document tempDoc = new Document();
