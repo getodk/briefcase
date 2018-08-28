@@ -15,43 +15,43 @@
  */
 package org.opendatakit.briefcase.ui.reused;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import javax.swing.JTable;
-import javax.swing.UIManager;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumnModel;
+
+import static java.awt.Color.lightGray;
+import static javax.swing.UIManager.getBorder;
+import static javax.swing.UIManager.getColor;
 
 public class TableCustomizer {
 
   /**
-   * for header customization.
-   *
-   * @param header
+   * Sets properties of the given {@link JTableHeader} to improve its
+   * visual appearance across all platforms (Mac, Windows, and Linux).
    */
   public static void customizeHeader(JTableHeader header) {
-    // to make the background color is available.
-    header.setOpaque(false);
-    header.setBackground(UIManager.getColor("ToolBar.background"));
-    header.setBorder(UIManager.getBorder("MenuBar.border"));
+    header.setOpaque(false); // to make the background color is available.
+    header.setBackground(getColor("ToolBar.background"));
+    header.setBorder(getBorder("MenuBar.border"));
   }
 
   /**
-   * for table customization.
-   *
-   * @param table
+   * Sets properties of the given {@link JTable} to improve the visual
+   * appearance of table across all platforms (Mac, Windows, and Linux).
    */
   public static void customizeTable(JTable table) {
-    table.setGridColor(Color.lightGray);
+    table.setGridColor(lightGray);
     table.setRowHeight(28);
+
+    TableColumnModel columns = table.getColumnModel();
   }
 
   /**
-   * to get a dimension from specific header.
-   *
-   * @param table
-   * @param header
+   * Returns the {@link Dimension} of the given header in the given {@link JTable}
+   * using its related cell renderer component's preferred size.
    */
-  public static Dimension getHeaderDimension(String header, JTable table) {
+  public static Dimension getHeaderDimension(JTable table, String header) {
     return table.getTableHeader()
         .getDefaultRenderer()
         .getTableCellRendererComponent(null, header, false, false, 0, 0)

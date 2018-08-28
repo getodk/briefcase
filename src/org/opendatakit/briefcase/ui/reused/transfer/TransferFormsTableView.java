@@ -28,8 +28,11 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
-import org.opendatakit.briefcase.ui.reused.TableCustomizer;
 import org.opendatakit.briefcase.ui.reused.UI;
+
+import static org.opendatakit.briefcase.ui.reused.TableCustomizer.getHeaderDimension;
+import static org.opendatakit.briefcase.ui.reused.TableCustomizer.customizeHeader;
+import static org.opendatakit.briefcase.ui.reused.TableCustomizer.customizeTable;
 
 public class TransferFormsTableView extends JTable {
   static final Class[] TYPES = new Class[]{Boolean.class, String.class, String.class, JButton.class};
@@ -48,11 +51,11 @@ public class TransferFormsTableView extends JTable {
 
     addMouseListener(new MouseAdapterBuilder().onClick(this::relayClickToButton).build());
 
-    Dimension formNameDims = TableCustomizer.getHeaderDimension(getHeader(FORM_NAME_COL), this);
-    Dimension statusDims = TableCustomizer.getHeaderDimension(getHeader(STATUS_COL), this);
+    Dimension formNameDims = getHeaderDimension(this, getHeader(FORM_NAME_COL));
+    Dimension statusDims = getHeaderDimension(this, getHeader(STATUS_COL));
 
-    TableCustomizer.customizeHeader(getTableHeader());
-    TableCustomizer.customizeTable(this);
+    customizeHeader(getTableHeader());
+    customizeTable(this);
 
     TableColumnModel columns = getColumnModel();
     columns.getColumn(SELECTED_CHECKBOX_COL).setMinWidth(40);

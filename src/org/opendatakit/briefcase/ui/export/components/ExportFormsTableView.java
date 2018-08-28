@@ -28,8 +28,11 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
-import org.opendatakit.briefcase.ui.reused.TableCustomizer;
 import org.opendatakit.briefcase.ui.reused.UI;
+
+import static org.opendatakit.briefcase.ui.reused.TableCustomizer.getHeaderDimension;
+import static org.opendatakit.briefcase.ui.reused.TableCustomizer.customizeHeader;
+import static org.opendatakit.briefcase.ui.reused.TableCustomizer.customizeTable;
 
 public class ExportFormsTableView extends JTable {
   static final String[] HEADERS = new String[]{"", "", "Form Name", "Export Status", "Last Export", ""};
@@ -49,12 +52,12 @@ public class ExportFormsTableView extends JTable {
 
     addMouseListener(new MouseAdapterBuilder().onClick(this::relayClickToButton).build());
 
-    Dimension formNameDims = TableCustomizer.getHeaderDimension(HEADERS[FORM_NAME_COL], this);
-    Dimension exportStatusDims = TableCustomizer.getHeaderDimension(HEADERS[EXPORT_STATUS_COL], this);
-    Dimension lastExportDims = TableCustomizer.getHeaderDimension(HEADERS[LAST_EXPORT_COL], this);
+    Dimension formNameDims = getHeaderDimension(this, HEADERS[FORM_NAME_COL]);
+    Dimension exportStatusDims = getHeaderDimension(this, HEADERS[EXPORT_STATUS_COL]);
+    Dimension lastExportDims = getHeaderDimension(this, HEADERS[LAST_EXPORT_COL]);
 
-    TableCustomizer.customizeHeader(getTableHeader());
-    TableCustomizer.customizeTable(this);
+    customizeHeader(getTableHeader());
+    customizeTable(this);
 
     TableColumnModel columns = getColumnModel();
     columns.getColumn(SELECTED_CHECKBOX_COL).setMinWidth(40);
