@@ -43,6 +43,7 @@ import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -339,7 +340,9 @@ public class ConfigurationPanelForm extends JComponent {
   }
 
   private boolean confirmOverwriteFiles() {
-    if (showConfirmDialog(this, "The default behavior is to append to existing files. Are you sure you want to overwrite existing files?", "", YES_NO_OPTION, PLAIN_MESSAGE) == YES_OPTION)
+    JDialog dialog = new JDialog();
+    dialog.setAlwaysOnTop(true);
+    if (showConfirmDialog(dialog, "The default behavior is to append to existing files. Are you sure you want to overwrite existing files?", "", YES_NO_OPTION, PLAIN_MESSAGE) == YES_OPTION)
       return true;
     overwriteFilesField.setSelected(false);
     return false;
