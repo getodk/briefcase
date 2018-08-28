@@ -15,14 +15,13 @@
  */
 package org.opendatakit.briefcase.ui.reused;
 
-import java.awt.Dimension;
-import javax.swing.JTable;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableColumnModel;
-
 import static java.awt.Color.lightGray;
 import static javax.swing.UIManager.getBorder;
 import static javax.swing.UIManager.getColor;
+
+import java.awt.Dimension;
+import javax.swing.JTable;
+import javax.swing.table.JTableHeader;
 
 public class TableCustomizer {
 
@@ -43,8 +42,6 @@ public class TableCustomizer {
   public static void customizeTable(JTable table) {
     table.setGridColor(lightGray);
     table.setRowHeight(28);
-
-    TableColumnModel columns = table.getColumnModel();
   }
 
   /**

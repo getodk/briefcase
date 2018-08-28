@@ -16,6 +16,9 @@
 package org.opendatakit.briefcase.ui.reused.transfer;
 
 import static javax.swing.SortOrder.ASCENDING;
+import static org.opendatakit.briefcase.ui.reused.TableCustomizer.customizeHeader;
+import static org.opendatakit.briefcase.ui.reused.TableCustomizer.customizeTable;
+import static org.opendatakit.briefcase.ui.reused.TableCustomizer.getHeaderDimension;
 
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
@@ -29,10 +32,6 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.UI;
-
-import static org.opendatakit.briefcase.ui.reused.TableCustomizer.getHeaderDimension;
-import static org.opendatakit.briefcase.ui.reused.TableCustomizer.customizeHeader;
-import static org.opendatakit.briefcase.ui.reused.TableCustomizer.customizeTable;
 
 public class TransferFormsTableView extends JTable {
   static final Class[] TYPES = new Class[]{Boolean.class, String.class, String.class, JButton.class};
