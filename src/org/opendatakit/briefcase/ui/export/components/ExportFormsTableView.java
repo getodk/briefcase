@@ -16,6 +16,9 @@
 package org.opendatakit.briefcase.ui.export.components;
 
 import static javax.swing.SortOrder.ASCENDING;
+import static org.opendatakit.briefcase.ui.reused.TableCustomizer.customizeHeader;
+import static org.opendatakit.briefcase.ui.reused.TableCustomizer.customizeTable;
+import static org.opendatakit.briefcase.ui.reused.TableCustomizer.getHeaderDimension;
 
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
@@ -48,11 +51,12 @@ public class ExportFormsTableView extends JTable {
 
     addMouseListener(new MouseAdapterBuilder().onClick(this::relayClickToButton).build());
 
-    Dimension formNameDims = getHeaderDimension(HEADERS[FORM_NAME_COL]);
-    Dimension exportStatusDims = getHeaderDimension(HEADERS[EXPORT_STATUS_COL]);
-    Dimension lastExportDims = getHeaderDimension(HEADERS[LAST_EXPORT_COL]);
+    Dimension formNameDims = getHeaderDimension(this, HEADERS[FORM_NAME_COL]);
+    Dimension exportStatusDims = getHeaderDimension(this, HEADERS[EXPORT_STATUS_COL]);
+    Dimension lastExportDims = getHeaderDimension(this, HEADERS[LAST_EXPORT_COL]);
 
-    setRowHeight(28);
+    customizeHeader(getTableHeader());
+    customizeTable(this);
 
     TableColumnModel columns = getColumnModel();
     columns.getColumn(SELECTED_CHECKBOX_COL).setMinWidth(40);
@@ -79,14 +83,6 @@ public class ExportFormsTableView extends JTable {
     setRowSorter(sorter);
     sorter.sort();
   }
-
-  private Dimension getHeaderDimension(String header) {
-    return getTableHeader()
-        .getDefaultRenderer()
-        .getTableCellRendererComponent(null, header, false, false, 0, 0)
-        .getPreferredSize();
-  }
-
 
   private void relayClickToButton(MouseEvent event) {
     int column = getColumnModel().getColumnIndexAtX(event.getX());

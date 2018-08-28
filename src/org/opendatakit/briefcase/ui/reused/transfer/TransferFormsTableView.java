@@ -16,6 +16,9 @@
 package org.opendatakit.briefcase.ui.reused.transfer;
 
 import static javax.swing.SortOrder.ASCENDING;
+import static org.opendatakit.briefcase.ui.reused.TableCustomizer.customizeHeader;
+import static org.opendatakit.briefcase.ui.reused.TableCustomizer.customizeTable;
+import static org.opendatakit.briefcase.ui.reused.TableCustomizer.getHeaderDimension;
 
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
@@ -47,10 +50,11 @@ public class TransferFormsTableView extends JTable {
 
     addMouseListener(new MouseAdapterBuilder().onClick(this::relayClickToButton).build());
 
-    Dimension formNameDims = getHeaderDimension(getHeader(FORM_NAME_COL));
-    Dimension statusDims = getHeaderDimension(getHeader(STATUS_COL));
+    Dimension formNameDims = getHeaderDimension(this, getHeader(FORM_NAME_COL));
+    Dimension statusDims = getHeaderDimension(this, getHeader(STATUS_COL));
 
-    setRowHeight(28);
+    customizeHeader(getTableHeader());
+    customizeTable(this);
 
     TableColumnModel columns = getColumnModel();
     columns.getColumn(SELECTED_CHECKBOX_COL).setMinWidth(40);
@@ -75,14 +79,6 @@ public class TransferFormsTableView extends JTable {
   public static String[] buildHeaders(String actionName) {
     return new String[]{"", "Form Name", actionName + " Status", ""};
   }
-
-  private Dimension getHeaderDimension(String header) {
-    return getTableHeader()
-        .getDefaultRenderer()
-        .getTableCellRendererComponent(null, header, false, false, 0, 0)
-        .getPreferredSize();
-  }
-
 
   private void relayClickToButton(MouseEvent event) {
     int column = getColumnModel().getColumnIndexAtX(event.getX());
