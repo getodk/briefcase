@@ -24,6 +24,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ShowSourceForm extends JComponent {
@@ -32,26 +33,54 @@ public class ShowSourceForm extends JComponent {
   private JLabel sourceLabel;
   private JButton resetButton;
   private JLabel actionLabel;
+  private JButton reloadButton;
   private List<Runnable> onResetCallbacks = new ArrayList<>();
+  private List<Runnable> onReloadCallbacks = new ArrayList<>();
+  private boolean showReloadButton;
+  private boolean reloadTimerElapsed;
+  private boolean reloadOperationCompleted;
 
-  private ShowSourceForm(String action) {
+  private ShowSourceForm(String action, boolean showReloadButton) {
     $$$setupUI$$$();
     this.action = action;
+    this.showReloadButton = showReloadButton;
 
     resetButton.addActionListener(__ -> onResetCallbacks.forEach(Runnable::run));
+    reloadButton.addActionListener(__ -> onReloadCallbacks.forEach(Runnable::run));
+
+    onReloadCallbacks.add(() -> {
+      reloadButton.setEnabled(false);
+      reloadTimerElapsed = false;
+      reloadOperationCompleted = false;
+      Timer t = new Timer(5000, (e) -> markReloadTimerElapsed());
+      t.setRepeats(false);
+      t.start();
+    });
+    if (!showReloadButton)
+      reloadButton.setVisible(false);
   }
 
-  static ShowSourceForm empty(String action) {
-    return new ShowSourceForm(action);
+  static ShowSourceForm pull(String action) {
+    return new ShowSourceForm(action, true);
+  }
+
+  static ShowSourceForm push(String action) {
+    return new ShowSourceForm(action, false);
   }
 
   void onReset(Runnable callback) {
     onResetCallbacks.add(callback);
   }
 
+  void onReload(Runnable callback) {
+    onReloadCallbacks.add(callback);
+  }
+
   void showSource(Source source) {
     actionLabel.setText(action + ": " + source.toString());
     sourceLabel.setText(source.getDescription());
+    reloadButton.setVisible(source.canBeReloaded() && showReloadButton);
+    markReloadOperationCompleted();
   }
 
   private void createUIComponents() {
@@ -66,6 +95,22 @@ public class ShowSourceForm extends JComponent {
   public void setEnabled(boolean enabled) {
     super.setEnabled(enabled);
     resetButton.setEnabled(enabled);
+    reloadButton.setEnabled(enabled);
+  }
+
+  private void markReloadTimerElapsed() {
+    reloadTimerElapsed = true;
+    updateReloadButton();
+  }
+
+  private void markReloadOperationCompleted() {
+    reloadOperationCompleted = true;
+    updateReloadButton();
+  }
+
+  private void updateReloadButton() {
+    if (reloadTimerElapsed && reloadOperationCompleted)
+      reloadButton.setEnabled(true);
   }
 
   /**
@@ -98,7 +143,7 @@ public class ShowSourceForm extends JComponent {
     resetButton = new JButton();
     resetButton.setText("Reset");
     gbc = new GridBagConstraints();
-    gbc.gridx = 2;
+    gbc.gridx = 4;
     gbc.gridy = 0;
     gbc.gridheight = 2;
     gbc.anchor = GridBagConstraints.EAST;
@@ -110,6 +155,21 @@ public class ShowSourceForm extends JComponent {
     gbc.gridheight = 2;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(spacer1, gbc);
+    reloadButton = new JButton();
+    reloadButton.setText("Reload");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 0;
+    gbc.gridheight = 2;
+    gbc.anchor = GridBagConstraints.EAST;
+    container.add(reloadButton, gbc);
+    final JPanel spacer2 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 3;
+    gbc.gridy = 0;
+    gbc.gridheight = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(spacer2, gbc);
   }
 
   /**
@@ -118,4 +178,5 @@ public class ShowSourceForm extends JComponent {
   public JComponent $$$getRootComponent$$$() {
     return container;
   }
+
 }
