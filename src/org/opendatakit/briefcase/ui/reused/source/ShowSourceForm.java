@@ -50,8 +50,8 @@ public class ShowSourceForm extends JComponent {
 
     onReloadCallbacks.add(() -> {
       reloadButton.setEnabled(false);
-      this.reloadTimerElapsed = false;
-      this.reloadOperationCompleted = false;
+      reloadTimerElapsed = false;
+      reloadOperationCompleted = false;
       Timer t = new Timer(5000, (e) -> markReloadTimerElapsed());
       t.setRepeats(false);
       t.start();
@@ -99,17 +99,17 @@ public class ShowSourceForm extends JComponent {
   }
 
   private void markReloadTimerElapsed() {
-    this.reloadTimerElapsed = true;
+    reloadTimerElapsed = true;
     updateReloadButton();
   }
 
   private void markReloadOperationCompleted() {
-    this.reloadOperationCompleted = true;
+    reloadOperationCompleted = true;
     updateReloadButton();
   }
 
   private void updateReloadButton() {
-    if (this.reloadTimerElapsed && this.reloadOperationCompleted)
+    if (reloadTimerElapsed && reloadOperationCompleted)
       reloadButton.setEnabled(true);
   }
 
