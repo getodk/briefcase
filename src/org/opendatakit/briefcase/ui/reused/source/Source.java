@@ -174,8 +174,10 @@ public interface Source<T> {
    *
    * @param forms             {@link List} of forms to be pulled
    * @param terminationFuture object that to make the operation cancellable
+   * @param includeIncomplete when passed true, it enables requesting the incomplete
+   *                          submissions. This needs to be supported by the selected source
    */
-  void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel);
+  void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete);
 
   /**
    * Pushes forms to this configured {@link Source}.
@@ -239,8 +241,8 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel) {
-      TransferAction.transferServerToBriefcase(server.asServerConnectionInfo(), terminationFuture, forms, briefcaseDir, pullInParallel);
+    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete) {
+      TransferAction.transferServerToBriefcase(server.asServerConnectionInfo(), terminationFuture, forms, briefcaseDir, pullInParallel, includeIncomplete);
     }
 
     @Override
@@ -318,7 +320,7 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel) {
+    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete) {
       TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), terminationFuture, forms);
     }
 
@@ -394,7 +396,7 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel) {
+    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete) {
       SwingUtilities.invokeLater(() -> FormInstaller.install(briefcaseDir, form));
     }
 

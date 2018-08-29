@@ -32,20 +32,22 @@ public class TransferFromServer implements ITransferFromSourceAction {
   final TerminationFuture terminationFuture;
   final List<FormStatus> formsToTransfer;
   private final Boolean pullInParallel;
+  private final Boolean includeIncomplete;
   private Path briefcaseDir;
 
-  public TransferFromServer(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Path briefcaseDir, Boolean pullInParallel) {
+  public TransferFromServer(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete) {
     this.originServerInfo = originServerInfo;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
     this.briefcaseDir = briefcaseDir;
     this.pullInParallel = pullInParallel;
+    this.includeIncomplete = includeIncomplete;
   }
 
   @Override
   public boolean doAction() {
 
-    ServerFetcher fetcher = new ServerFetcher(originServerInfo, terminationFuture, briefcaseDir, pullInParallel);
+    ServerFetcher fetcher = new ServerFetcher(originServerInfo, terminationFuture, briefcaseDir, pullInParallel, includeIncomplete);
 
     return fetcher.downloadFormAndSubmissionFiles(formsToTransfer);
   }
@@ -55,9 +57,9 @@ public class TransferFromServer implements ITransferFromSourceAction {
     return false;
   }
 
-  public static void pull(ServerConnectionInfo transferSettings, Path briefcaseDir, Boolean pullInParallel, FormStatus... forms) {
+  public static void pull(ServerConnectionInfo transferSettings, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, FormStatus... forms) {
     List<FormStatus> formList = Arrays.asList(forms);
-    TransferFromServer action = new TransferFromServer(transferSettings, new TerminationFuture(), formList, briefcaseDir, pullInParallel);
+    TransferFromServer action = new TransferFromServer(transferSettings, new TerminationFuture(), formList, briefcaseDir, pullInParallel, includeIncomplete);
 
     try {
       boolean allSuccessful = action.doAction();

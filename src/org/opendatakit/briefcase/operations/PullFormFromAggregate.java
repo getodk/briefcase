@@ -25,7 +25,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Optional;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -47,6 +46,7 @@ public class PullFormFromAggregate {
   public static final Param<Void> DEPRECATED_PULL_AGGREGATE = Param.flag("pa", "Pull form from an Aggregate instance");
   private static final Param<Void> PULL_AGGREGATE = Param.flag("plla", "pull_aggregate", "Pull form from an Aggregate instance");
   private static final Param<Void> PULL_IN_PARALLEL = Param.flag("pp", "parallel_pull", "Pull submissions in parallel");
+  private static final Param<Void> INCLUDE_INCOMPLETE = Param.flag("ii", "include_incomplete", "Include incomplete submissions");
 
   public static Operation PULL_FORM_FROM_AGGREGATE = Operation.of(
       PULL_AGGREGATE,
@@ -56,13 +56,14 @@ public class PullFormFromAggregate {
           args.get(ODK_USERNAME),
           args.get(ODK_PASSWORD),
           args.get(AGGREGATE_SERVER),
-          args.has(PULL_IN_PARALLEL)
+          args.has(PULL_IN_PARALLEL),
+          args.has(INCLUDE_INCOMPLETE)
       ),
       Arrays.asList(STORAGE_DIR, FORM_ID, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER),
-      Collections.singletonList(PULL_IN_PARALLEL)
+      Arrays.asList(PULL_IN_PARALLEL, INCLUDE_INCOMPLETE)
   );
 
-  public static void pullFormFromAggregate(String storageDir, String formid, String username, String password, String server, boolean pullInParallel) {
+  public static void pullFormFromAggregate(String storageDir, String formid, String username, String password, String server, boolean pullInParallel, boolean includeIncomplete) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -97,7 +98,7 @@ public class PullFormFromAggregate {
 
       FormStatus form = maybeForm.get();
       EventBus.publish(new StartPullEvent(form));
-      TransferFromServer.pull(remoteServer.asServerConnectionInfo(), briefcaseDir, pullInParallel, form);
+      TransferFromServer.pull(remoteServer.asServerConnectionInfo(), briefcaseDir, pullInParallel, includeIncomplete, form);
     }
   }
 
