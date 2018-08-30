@@ -24,13 +24,18 @@ import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
 import static org.opendatakit.briefcase.export.SubmissionParser.getListOfSubmissionFiles;
 import static org.opendatakit.briefcase.export.SubmissionParser.parseSubmission;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -71,10 +76,12 @@ public class ExportToCsv {
 
     csvs.forEach(Csv::prepareOutputFiles);
 
+    Consumer<Path> onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
+
     // Generate csv lines grouped by the fqdn of the model they belong to
     Map<String, CsvLines> csvLinesPerModel = submissionFiles.parallelStream()
         // Parse the submission and leave only those OK to be exported
-        .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey()))
+        .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey(), onParsingError))
         .filter(Optional::isPresent)
         .map(Optional::get)
         // Track the submission
@@ -109,6 +116,19 @@ public class ExportToCsv {
       EventBus.publish(ExportEvent.failure(formDef, "All submissions have been skipped"));
 
     return exportOutcome;
+  }
+
+  private static Consumer<Path> buildParsingErrorCallback(Path errorsDir) {
+    AtomicInteger errorSeq = new AtomicInteger(1);
+    // Remove errors from a previous export attempt
+    if (exists(errorsDir))
+      deleteRecursive(errorsDir);
+    return path -> {
+      if (!exists(errorsDir))
+        createDirectories(errorsDir);
+      copy(path, errorsDir.resolve("failed_submission_" + errorSeq.getAndIncrement() + ".xml"));
+      log.info("Failed submission XML file moved to the output errors directory at " + errorsDir);
+    };
   }
 
 }
