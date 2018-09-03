@@ -42,7 +42,7 @@ public class RetrieveAvailableFormsFromServer {
     List<RemoteFormDefinition> formDefs;
     formDefs = ServerFetcher.retrieveAvailableFormsFromServer(originServerInfo, terminationFuture);
     for (IFormDefinition fd : formDefs) {
-      formStatuses.add(new FormStatus(FormStatus.TransferType.GATHER, fd));
+      formStatuses.add(new FormStatus(fd));
     }
   }
 
