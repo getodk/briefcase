@@ -32,13 +32,11 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -161,16 +159,6 @@ public class RemoteServer {
         .orElse(emptyList());
   }
 
-  public Path getForm(Http http, RemoteFormDefinition formDef) {
-    String blankForm = http.execute(Request.get(baseUrl, credentials)
-        .resolve("/formXml?formId=" + formDef.getFormId()))
-        .orElseThrow(BriefcaseException::new);
-
-    Path tmpFile = UncheckedFiles.createTempFile("briefcase_", "_form_definition");
-    UncheckedFiles.write(tmpFile, blankForm);
-    return tmpFile;
-  }
-
   private static RemoteFormDefinition toRemoteFormDefinition(Map<String, String> keyValues) {
     return new RemoteFormDefinition(
         Optional.ofNullable(keyValues.get("name")).orElseThrow(BriefcaseException::new),
@@ -203,15 +191,9 @@ public class RemoteServer {
         .collect(toList());
   }
 
-  public void ifCredentials(Consumer<Credentials> consumer, Runnable elseBlock) {
-    credentials.ifPresent(consumer);
-    if (!credentials.isPresent())
-      elseBlock.run();
-  }
-
   private static Document parse(String content) {
     try (InputStream is = new ByteArrayInputStream(content.getBytes(UTF_8));
-         InputStreamReader isr = new InputStreamReader(is, "UTF-8")) {
+         InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
       Document doc = new Document();
       KXmlParser parser = new KXmlParser();
       parser.setInput(isr);

@@ -18,7 +18,6 @@ package org.opendatakit.briefcase.ui.export.components;
 import java.util.ArrayList;
 import java.util.List;
 import org.opendatakit.briefcase.export.ExportConfiguration;
-import org.opendatakit.briefcase.reused.OverridableBoolean;
 
 public class ConfigurationPanel {
   private final ExportConfiguration configuration;
@@ -26,7 +25,7 @@ public class ConfigurationPanel {
   private final ConfigurationPanelMode mode;
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
-  ConfigurationPanel(ExportConfiguration initialConfiguration, ConfigurationPanelForm form, ConfigurationPanelMode mode) {
+  private ConfigurationPanel(ExportConfiguration initialConfiguration, ConfigurationPanelForm form, ConfigurationPanelMode mode) {
     this.configuration = initialConfiguration.copy();
     this.form = form;
     this.mode = mode;
@@ -81,7 +80,7 @@ public class ConfigurationPanel {
     });
   }
 
-  public static ConfigurationPanel overridePanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent, boolean hasTransferSettings) {
+  static ConfigurationPanel overridePanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent, boolean hasTransferSettings) {
     ConfigurationPanelMode mode = ConfigurationPanelMode.overridePanel(savePasswordsConsent, hasTransferSettings);
     return new ConfigurationPanel(
         initialConfiguration,
@@ -90,7 +89,7 @@ public class ConfigurationPanel {
     );
   }
 
-  public static ConfigurationPanel defaultPanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent) {
+  static ConfigurationPanel defaultPanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent) {
     ConfigurationPanelMode mode = ConfigurationPanelMode.defaultPanel(savePasswordsConsent);
     return new ConfigurationPanel(
         initialConfiguration,
@@ -120,7 +119,7 @@ public class ConfigurationPanel {
     form.changeMode(savePasswordsConsent);
   }
 
-  public boolean isValid() {
+  boolean isValid() {
     return mode.isOverridePanel()
         ? configuration.isValidAsCustomConf()
         : configuration.isValid();
@@ -130,12 +129,4 @@ public class ConfigurationPanel {
     return configuration.isEmpty();
   }
 
-  public void savePasswordsConsentGiven() {
-    form.changeMode(true);
-  }
-
-  public void savePasswordsConsentRevoked() {
-    form.setPullBefore(OverridableBoolean.empty());
-    form.changeMode(false);
-  }
 }

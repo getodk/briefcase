@@ -29,8 +29,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Set;
-import java.util.TreeSet;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,12 +59,12 @@ public class DatabaseUtils {
   private PreparedStatement insertRecordedInstanceQuery = null;
   private PreparedStatement deleteRecordedInstanceQuery = null;
 
-  public DatabaseUtils(File formDir) throws FileSystemException, SQLException {
+  private DatabaseUtils(File formDir) throws FileSystemException, SQLException {
     this.formDir = formDir;
     connect();
   }
 
-  public void connect() throws FileSystemException, SQLException {
+  private void connect() throws FileSystemException, SQLException {
     if (connection == null) {
       connection = getConnection(getFormDatabaseUrl(formDir));
     }
@@ -131,7 +129,7 @@ public class DatabaseUtils {
   }
 
   // recorded instances have known instanceIds
-  public synchronized void putRecordedInstanceDirectory(String instanceId, File instanceDir) {
+  private synchronized void putRecordedInstanceDirectory(String instanceId, File instanceDir) {
     try {
       assertRecordedInstanceTable();
 
@@ -173,7 +171,7 @@ public class DatabaseUtils {
 
   // ask whether we have the recorded instance in this briefcase
   // return null if we don't.
-  public synchronized File hasRecordedInstance(String instanceId) {
+  synchronized File hasRecordedInstance(String instanceId) {
     try {
       assertRecordedInstanceTable();
 
@@ -199,13 +197,12 @@ public class DatabaseUtils {
     }
   }
 
-  public synchronized void assertRecordedInstanceDirectory(String instanceId, File dir) {
+  synchronized void assertRecordedInstanceDirectory(String instanceId, File dir) {
     forgetRecordedInstance(instanceId);
     putRecordedInstanceDirectory(instanceId, dir);
   }
 
-  public synchronized void updateInstanceLists(Set<File> instanceList) {
-    Set<File> workingSet = new TreeSet<>(instanceList);
+  synchronized void updateInstanceLists() {
     // scan the database's reported set of directories and remove all that are not in the set
     try (Statement stmt = connection.createStatement()) {
       assertRecordedInstanceTable();
@@ -215,8 +212,6 @@ public class DatabaseUtils {
           File f = new File(formDir, values.getString(2));
           if (!f.exists() || !f.isDirectory()) {
             forgetRecordedInstance(instanceId);
-          } else {
-            workingSet.remove(f);
           }
         }
       }
@@ -225,11 +220,11 @@ public class DatabaseUtils {
     }
   }
 
-  public static DatabaseUtils newInstance(File formDirectory) throws FileSystemException, SQLException {
+  static DatabaseUtils newInstance(File formDirectory) throws FileSystemException, SQLException {
     return new DatabaseUtils(formDirectory);
   }
 
-  static Connection getConnection(String jdbcUrl) throws SQLException {
+  private static Connection getConnection(String jdbcUrl) throws SQLException {
     loadDriver(jdbcUrl);
     return DriverManager.getConnection(jdbcUrl);
   }

@@ -59,7 +59,7 @@ class ConfigurationPanelMode {
     form.overwriteFilesOverrideField.setVisible(isOverridePanel);
   }
 
-  public boolean isOverridePanel() {
+  boolean isOverridePanel() {
     return isOverridePanel;
   }
 

@@ -37,7 +37,7 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
   private final TransferForms forms;
   private final String[] headers;
 
-  public TransferFormsTableViewModel(TransferForms forms, String[] headers) {
+  TransferFormsTableViewModel(TransferForms forms, String[] headers) {
     this.forms = forms;
     this.headers = headers;
   }

@@ -19,7 +19,6 @@ package org.opendatakit.briefcase.export;
 import static java.util.stream.Collectors.groupingByConcurrent;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
-
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_EXPORTED;
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
@@ -36,9 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +62,7 @@ public class ExportToCsv {
    * <p>
    * If the form has repeat groups, each repeat group will be exported into a separate CSV file.
    *
-   * @param formDef       the {@link BriefcaseFormDefinition} form definition of the form to be exported
+   * @param formDef       the {@link FormDefinition} form definition of the form to be exported
    * @param configuration the {@link ExportConfiguration} export configuration
    * @return an {@link ExportOutcome} with the export operation's outcome
    * @see ExportConfiguration

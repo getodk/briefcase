@@ -63,14 +63,14 @@ public class ExportFormsTable {
     return viewModel;
   }
 
+  public void setEnabled(boolean enabled) {
+    view.setEnabled(enabled);
+    viewModel.setEnabled(enabled);
+  }
+
   @EventSubscriber(eventClass = ExportEvent.class)
   public void onExportEvent(ExportEvent event) {
     forms.appendStatus(event);
     viewModel.refresh();
-  }
-
-  public void setEnabled(boolean enabled) {
-    view.setEnabled(enabled);
-    viewModel.setEnabled(enabled);
   }
 }

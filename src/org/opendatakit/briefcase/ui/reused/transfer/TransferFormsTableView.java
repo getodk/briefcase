@@ -43,7 +43,7 @@ public class TransferFormsTableView extends JTable {
   static final int DETAIL_BUTTON_COL = 3;
   private final String[] headers;
 
-  public TransferFormsTableView(TransferFormsTableViewModel model, String[] headers) {
+  TransferFormsTableView(TransferFormsTableViewModel model, String[] headers) {
     super(model);
     this.headers = headers;
     setName("forms");
@@ -76,7 +76,7 @@ public class TransferFormsTableView extends JTable {
     sorter.sort();
   }
 
-  public static String[] buildHeaders(String actionName) {
+  static String[] buildHeaders(String actionName) {
     return new String[]{"", "Form Name", actionName + " Status", ""};
   }
 
@@ -103,7 +103,7 @@ public class TransferFormsTableView extends JTable {
     return sorter;
   }
 
-  public String getHeader(int column) {
+  private String getHeader(int column) {
     return headers[column];
   }
 }

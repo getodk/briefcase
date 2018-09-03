@@ -29,8 +29,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Pair;
 
@@ -48,7 +46,7 @@ public class Request<T> {
   private final Function<String, T> bodyMapper;
   final List<Pair<String, String>> headers;
 
-  public Request(Method method, URL url, Optional<Credentials> credentials, Function<String, T> bodyMapper, List<Pair<String, String>> headers) {
+  private Request(Method method, URL url, Optional<Credentials> credentials, Function<String, T> bodyMapper, List<Pair<String, String>> headers) {
     this.method = method;
     this.url = url;
     this.credentials = credentials;
@@ -92,15 +90,7 @@ public class Request<T> {
     return new Request<>(method, url, credentials, bodyMapper.andThen(newBodyMapper), headers);
   }
 
-  public Request<T> withHeader(String name, String value) {
-    List<Pair<String, String>> newHeaders = Stream.concat(
-        headers.stream(),
-        Stream.of(Pair.of(name, value))
-    ).collect(Collectors.toList());
-    return new Request<>(method, url, credentials, bodyMapper, newHeaders);
-  }
-
-  public void ifCredentials(BiConsumer<URL, Credentials> consumer) {
+  void ifCredentials(BiConsumer<URL, Credentials> consumer) {
     credentials.ifPresent(c -> consumer.accept(url, c));
   }
 
@@ -131,7 +121,7 @@ public class Request<T> {
     return method + " " + url + " " + credentials.map(Credentials::toString).orElse("(no credentials)");
   }
 
-  public URI asUri() {
+  URI asUri() {
     try {
       return url.toURI();
     } catch (URISyntaxException e) {

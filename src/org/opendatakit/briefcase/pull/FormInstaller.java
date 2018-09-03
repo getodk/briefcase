@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.ui.pull;
+package org.opendatakit.briefcase.pull;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
@@ -30,7 +30,6 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
-import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
 /**

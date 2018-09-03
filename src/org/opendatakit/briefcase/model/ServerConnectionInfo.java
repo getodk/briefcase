@@ -53,6 +53,7 @@ public class ServerConnectionInfo {
 
   @Override
   public String toString() {
+    //noinspection ReplaceAllDot
     return "ServerConnectionInfo{" +
         "url='" + url + '\'' +
         ", username='" + username + '\'' +
