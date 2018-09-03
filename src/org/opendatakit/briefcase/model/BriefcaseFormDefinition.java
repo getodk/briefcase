@@ -357,11 +357,6 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
   }
 
   @Override
-  public LocationType getFormLocation() {
-    return LocationType.LOCAL;
-  }
-
-  @Override
   public boolean equals(Object obj) {
     if (obj instanceof BriefcaseFormDefinition) {
       BriefcaseFormDefinition lf = (BriefcaseFormDefinition) obj;

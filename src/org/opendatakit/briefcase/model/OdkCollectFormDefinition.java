@@ -70,31 +70,16 @@ public class OdkCollectFormDefinition implements IFormDefinition {
     return getFormName();
   }
 
-  /*
-   * (non-Javadoc)
-   *
-   * @see org.opendatakit.briefcase.model.IFormDefinition#getFormName()
-   */
   @Override
   public String getFormName() {
     return formDefn.getFormName();
   }
 
-  /*
-   * (non-Javadoc)
-   *
-   * @see org.opendatakit.briefcase.model.IFormDefinition#getFormId()
-   */
   @Override
   public String getFormId() {
     return formDefn.getSubmissionElementDefn().formId;
   }
 
-  /*
-   * (non-Javadoc)
-   *
-   * @see org.opendatakit.briefcase.model.IFormDefinition#getVersionString()
-   */
   @Override
   public String getVersionString() {
     return formDefn.getSubmissionElementDefn().modelVersion;
@@ -105,11 +90,6 @@ public class OdkCollectFormDefinition implements IFormDefinition {
   }
 
   @Override
-  public LocationType getFormLocation() {
-    return LocationType.LOCAL;
-  }
-
-  @Override
   public boolean equals(Object obj) {
     if (obj instanceof OdkCollectFormDefinition) {
       OdkCollectFormDefinition lf = (OdkCollectFormDefinition) obj;
@@ -117,7 +97,8 @@ public class OdkCollectFormDefinition implements IFormDefinition {
       String id = getFormId();
       String versionString = getVersionString();
 
-      return (id.equals(lf.getFormId()) && ((versionString == null) ? (lf.getVersionString() == null)
+      return (id.equals(lf.getFormId()) && ((versionString == null)
+          ? (lf.getVersionString() == null)
           : versionString.equals(lf.getVersionString())));
     }
 

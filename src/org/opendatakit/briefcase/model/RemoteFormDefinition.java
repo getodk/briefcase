@@ -33,11 +33,6 @@ public class RemoteFormDefinition implements IFormDefinition {
   }
 
   @Override
-  public LocationType getFormLocation() {
-    return LocationType.REMOTE;
-  }
-
-  @Override
   public String getFormName() {
     return formName;
   }
