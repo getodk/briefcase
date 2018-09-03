@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.util;
 
-import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -30,13 +29,13 @@ import org.opendatakit.briefcase.model.CryptoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EncryptionInformation {
+class EncryptionInformation {
 
   private static final Logger log = LoggerFactory.getLogger(EncryptionInformation.class);
 
   private CipherFactory cipherFactory;
 
-  public EncryptionInformation(String base64EncryptedSymmetricKey, String instanceId, PrivateKey rsaPrivateKey) throws CryptoException {
+  EncryptionInformation(String base64EncryptedSymmetricKey, String instanceId, PrivateKey rsaPrivateKey) throws CryptoException {
 
     try {
       // construct the base64-encoded RSA-encrypted symmetric key
@@ -47,19 +46,15 @@ public class EncryptionInformation {
       byte[] encryptedSymmetricKey = Base64.decodeBase64(base64EncryptedSymmetricKey);
       byte[] decryptedKey = pkCipher.doFinal(encryptedSymmetricKey);
       cipherFactory = new CipherFactory(instanceId, decryptedKey);
-    } catch (NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | InvalidKeyException
-        | NoSuchPaddingException e) {
+    } catch (NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | InvalidKeyException | NoSuchPaddingException e) {
       String msg = "Error decrypting base64EncryptedKey";
       log.error(msg, e);
       throw new CryptoException(msg + " Cause: " + e.toString());
     }
   }
 
-  Cipher getCipher(String context) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
-    return cipherFactory.getCipher(context);
+  Cipher getCipher() throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
+    return cipherFactory.getCipher();
   }
 
-  public Cipher getCipher(String context, String fieldName) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, UnsupportedEncodingException {
-    return cipherFactory.getCipher(context, fieldName);
-  }
 }

@@ -113,7 +113,7 @@ public interface Response<T> {
     private final int httpCode;
     private final String name;
 
-    public Redirection(int httpCode, String name) {
+    Redirection(int httpCode, String name) {
       this.httpCode = httpCode;
       this.name = name;
     }
@@ -168,7 +168,7 @@ public interface Response<T> {
     private final int httpCode;
     private final String name;
 
-    public ClientError(int httpCode, String name) {
+    ClientError(int httpCode, String name) {
       this.httpCode = httpCode;
       this.name = name;
     }
@@ -223,7 +223,7 @@ public interface Response<T> {
     private final int httpCode;
     private final String name;
 
-    public ServerError(int httpCode, String name) {
+    ServerError(int httpCode, String name) {
       this.httpCode = httpCode;
       this.name = name;
     }

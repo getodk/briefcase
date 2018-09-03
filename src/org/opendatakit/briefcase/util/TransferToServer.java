@@ -18,7 +18,6 @@ package org.opendatakit.briefcase.util;
 
 import java.util.Arrays;
 import java.util.List;
-
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
@@ -32,12 +31,11 @@ public class TransferToServer implements ITransferToDestAction {
   private final Http http;
   private final RemoteServer server;
   private final boolean forceSendBlank;
-  ServerConnectionInfo destServerInfo;
-  TerminationFuture terminationFuture;
-  List<FormStatus> formsToTransfer;
+  private ServerConnectionInfo destServerInfo;
+  private TerminationFuture terminationFuture;
+  private List<FormStatus> formsToTransfer;
 
-  public TransferToServer(ServerConnectionInfo destServerInfo,
-                          TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Http http, RemoteServer server, boolean forceSendBlank) {
+  TransferToServer(ServerConnectionInfo destServerInfo, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Http http, RemoteServer server, boolean forceSendBlank) {
     this.destServerInfo = destServerInfo;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
@@ -50,7 +48,7 @@ public class TransferToServer implements ITransferToDestAction {
   public boolean doAction() {
     ServerUploader uploader = new ServerUploader(destServerInfo, terminationFuture, http, server, forceSendBlank);
 
-    return uploader.uploadFormAndSubmissionFiles( formsToTransfer);
+    return uploader.uploadFormAndSubmissionFiles(formsToTransfer);
   }
 
   public static void push(ServerConnectionInfo transferSettings, CommonsHttp http, RemoteServer server, boolean forceSendBlank, FormStatus... forms) {

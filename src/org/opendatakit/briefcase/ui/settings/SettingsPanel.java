@@ -32,7 +32,7 @@ public class SettingsPanel {
   private final SettingsPanelForm form;
 
   @SuppressWarnings("checkstyle:Indentation")
-  public SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
+  private SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
     this.form = form;
 
     appPreferences.getBriefcaseDir().ifPresent(path -> form.setStorageLocation(path.getParent()));

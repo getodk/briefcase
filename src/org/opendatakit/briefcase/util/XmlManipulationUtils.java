@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.util;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.opendatakit.common.utils.WebUtils.parseDate;
 
 import java.io.File;
@@ -52,7 +53,7 @@ import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-public class XmlManipulationUtils {
+class XmlManipulationUtils {
 
   private static final String ODK_ID_PARAMETER_EQUALS = "odkId=";
 
@@ -77,11 +78,11 @@ public class XmlManipulationUtils {
   private static final String INSTANCE_ID_ATTRIBUTE_NAME = "instanceID";
   private static final String SUBMISSION_DATE_ATTRIBUTE_NAME = "submissionDate";
 
-  private static final boolean isXformsListNamespacedElement(Element e) {
+  private static boolean isXformsListNamespacedElement(Element e) {
     return e.getNamespace().equalsIgnoreCase(NAMESPACE_OPENROSA_ORG_XFORMS_XFORMS_LIST);
   }
 
-  private static final boolean isXformsManifestNamespacedElement(Element e) {
+  private static boolean isXformsManifestNamespacedElement(Element e) {
     return e.getNamespace().equalsIgnoreCase(NAMESPACE_OPENROSA_ORG_XFORMS_XFORMS_MANIFEST);
   }
 
@@ -92,14 +93,10 @@ public class XmlManipulationUtils {
   private static final String OPEN_ROSA_INSTANCE_ID = "instanceID";
   private static final String BASE64_ENCRYPTED_FIELD_KEY = "base64EncryptedFieldKey";
 
-  private static final String UTF_8 = "UTF-8";
 
   /**
    * Traverse submission looking for OpenRosa metadata tag (with or without
    * namespace).
-   *
-   * @param parent
-   * @return
    */
   private static Element findMetaTag(Element parent, String rootUri) {
     for (int i = 0; i < parent.getChildCount(); ++i) {
@@ -127,10 +124,8 @@ public class XmlManipulationUtils {
 
   /**
    * Find the OpenRosa instanceID defined for this record, if any.
-   *
-   * @return
    */
-  public static String getOpenRosaInstanceId(Element root) {
+  private static String getOpenRosaInstanceId(Element root) {
     String rootUri = root.getNamespace();
     Element meta = findMetaTag(root, rootUri);
     if (meta != null) {
@@ -156,11 +151,8 @@ public class XmlManipulationUtils {
 
   /**
    * Encrypted field-level encryption key.
-   *
-   * @param root
-   * @return
    */
-  public static String getBase64EncryptedFieldKey(Element root) {
+  private static String getBase64EncryptedFieldKey(Element root) {
     String rootUri = root.getNamespace();
     Element meta = findMetaTag(root, rootUri);
     if (meta != null) {
@@ -184,9 +176,9 @@ public class XmlManipulationUtils {
   }
 
   public static class FormInstanceMetadata {
-    public final XFormParameters xparam;
+    final XFormParameters xparam;
     public final String instanceId; // this may be null
-    public final String base64EncryptedFieldKey; // this may be null
+    final String base64EncryptedFieldKey; // this may be null
 
     FormInstanceMetadata(XFormParameters xparam, String instanceId, String base64EncryptedFieldKey) {
       this.xparam = xparam;
@@ -195,15 +187,12 @@ public class XmlManipulationUtils {
     }
   }
 
-  ;
-
   private static final String FORM_ID_ATTRIBUTE_NAME = "id";
   private static final String EMPTY_STRING = "";
   private static final String NAMESPACE_ATTRIBUTE = "xmlns";
   private static final String MODEL_VERSION_ATTRIBUTE_NAME = "version";
 
-  public static FormInstanceMetadata getFormInstanceMetadata(Element root) throws ParsingException {
-
+  static FormInstanceMetadata getFormInstanceMetadata(Element root) throws ParsingException {
     // check for odk id
     String formId = root.getAttributeValue(null, FORM_ID_ATTRIBUTE_NAME);
 
@@ -229,39 +218,16 @@ public class XmlManipulationUtils {
     return new FormInstanceMetadata(new XFormParameters(formId, modelVersionString), instanceId, base64EncryptedFieldKey);
   }
 
-  public static Document parseXml(File submission) throws ParsingException, FileSystemException {
-
+  static Document parseXml(File submission) throws ParsingException, FileSystemException {
     // parse the xml document...
-    Document doc = null;
-    try {
-      InputStream is = null;
-      InputStreamReader isr = null;
-      try {
-        is = new FileInputStream(submission);
-        isr = new InputStreamReader(is, UTF_8);
-        Document tempDoc = new Document();
-        KXmlParser parser = new KXmlParser();
-        parser.setInput(isr);
-        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-        tempDoc.parse(parser);
-        isr.close();
-        doc = tempDoc;
-      } finally {
-        if (isr != null) {
-          try {
-            isr.close();
-          } catch (Exception e) {
-            // no-op
-          }
-        }
-        if (is != null) {
-          try {
-            is.close();
-          } catch (Exception e) {
-            // no-op
-          }
-        }
-      }
+    Document doc;
+    try (InputStream is = new FileInputStream(submission); InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
+      Document tempDoc = new Document();
+      KXmlParser parser = new KXmlParser();
+      parser.setInput(isr);
+      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      tempDoc.parse(parser);
+      doc = tempDoc;
     } catch (XmlPullParserException e) {
       try {
         return BadXMLFixer.fixBadXML(submission);
@@ -288,8 +254,7 @@ public class XmlManipulationUtils {
     return doc;
   }
 
-  public static final List<RemoteFormDefinition> parseFormListResponse(boolean isOpenRosaResponse,
-                                                                       Document formListDoc) throws ParsingException {
+  static List<RemoteFormDefinition> parseFormListResponse(boolean isOpenRosaResponse, Document formListDoc) throws ParsingException {
     // This gets a list of available forms from the specified server.
     List<RemoteFormDefinition> formList = new ArrayList<>();
 
@@ -312,7 +277,7 @@ public class XmlManipulationUtils {
           // e.g., whitespace (text)
           continue;
         }
-        Element xformElement = (Element) xformsElement.getElement(i);
+        Element xformElement = xformsElement.getElement(i);
         if (!isXformsListNamespacedElement(xformElement)) {
           // someone else's extension?
           continue;
@@ -328,7 +293,6 @@ public class XmlManipulationUtils {
         String formName = null;
         String version = null;
         String majorMinorVersion = null;
-        String description = null;
         String downloadUrl = null;
         String manifestUrl = null;
         // don't process descriptionUrl
@@ -344,41 +308,45 @@ public class XmlManipulationUtils {
             continue;
           }
           String tag = child.getName();
-          if (tag.equals("formID")) {
-            formId = XFormParser.getXMLText(child, true);
-            if (formId != null && formId.length() == 0) {
-              formId = null;
-            }
-          } else if (tag.equals("name")) {
-            formName = XFormParser.getXMLText(child, true);
-            if (formName != null && formName.length() == 0) {
-              formName = null;
-            }
-          } else if (tag.equals("version")) {
-            version = XFormParser.getXMLText(child, true);
-            if (version != null && version.length() == 0) {
-              version = null;
-            }
-          } else if (tag.equals("majorMinorVersion")) {
-            majorMinorVersion = XFormParser.getXMLText(child, true);
-            if (majorMinorVersion != null && majorMinorVersion.length() == 0) {
-              majorMinorVersion = null;
-            }
-          } else if (tag.equals("descriptionText")) {
-            description = XFormParser.getXMLText(child, true);
-            if (description != null && description.length() == 0) {
-              description = null;
-            }
-          } else if (tag.equals("downloadUrl")) {
-            downloadUrl = XFormParser.getXMLText(child, true);
-            if (downloadUrl != null && downloadUrl.length() == 0) {
-              downloadUrl = null;
-            }
-          } else if (tag.equals("manifestUrl")) {
-            manifestUrl = XFormParser.getXMLText(child, true);
-            if (manifestUrl != null && manifestUrl.length() == 0) {
-              manifestUrl = null;
-            }
+          switch (tag) {
+            case "formID":
+              formId = XFormParser.getXMLText(child, true);
+              if (formId != null && formId.length() == 0) {
+                formId = null;
+              }
+              break;
+            case "name":
+              formName = XFormParser.getXMLText(child, true);
+              if (formName != null && formName.length() == 0) {
+                formName = null;
+              }
+              break;
+            case "version":
+              version = XFormParser.getXMLText(child, true);
+              if (version != null && version.length() == 0) {
+                version = null;
+              }
+              break;
+            case "majorMinorVersion":
+              majorMinorVersion = XFormParser.getXMLText(child, true);
+              if (majorMinorVersion != null && majorMinorVersion.length() == 0) {
+                majorMinorVersion = null;
+              }
+              break;
+            case "descriptionText":
+              break;
+            case "downloadUrl":
+              downloadUrl = XFormParser.getXMLText(child, true);
+              if (downloadUrl != null && downloadUrl.length() == 0) {
+                downloadUrl = null;
+              }
+              break;
+            case "manifestUrl":
+              manifestUrl = XFormParser.getXMLText(child, true);
+              if (manifestUrl != null && manifestUrl.length() == 0) {
+                manifestUrl = null;
+              }
+              break;
           }
         }
         if (formId == null || downloadUrl == null || formName == null) {
@@ -465,8 +433,8 @@ public class XmlManipulationUtils {
     return formList;
   }
 
-  public static final List<MediaFile> parseFormManifestResponse(boolean isOpenRosaResponse,
-                                                                Document doc) throws ParsingException {
+  static List<MediaFile> parseFormManifestResponse(boolean isOpenRosaResponse,
+                                                   Document doc) throws ParsingException {
 
     List<MediaFile> files = new ArrayList<>();
 
@@ -492,7 +460,7 @@ public class XmlManipulationUtils {
         // e.g., whitespace (text)
         continue;
       }
-      Element mediaFileElement = (Element) manifestElement.getElement(i);
+      Element mediaFileElement = manifestElement.getElement(i);
       if (!isXformsManifestNamespacedElement(mediaFileElement)) {
         // someone else's extension?
         continue;
@@ -515,21 +483,25 @@ public class XmlManipulationUtils {
             continue;
           }
           String tag = child.getName();
-          if (tag.equals("filename")) {
-            filename = XFormParser.getXMLText(child, true);
-            if (filename != null && filename.length() == 0) {
-              filename = null;
-            }
-          } else if (tag.equals("hash")) {
-            hash = XFormParser.getXMLText(child, true);
-            if (hash != null && hash.length() == 0) {
-              hash = null;
-            }
-          } else if (tag.equals("downloadUrl")) {
-            downloadUrl = XFormParser.getXMLText(child, true);
-            if (downloadUrl != null && downloadUrl.length() == 0) {
-              downloadUrl = null;
-            }
+          switch (tag) {
+            case "filename":
+              filename = XFormParser.getXMLText(child, true);
+              if (filename != null && filename.length() == 0) {
+                filename = null;
+              }
+              break;
+            case "hash":
+              hash = XFormParser.getXMLText(child, true);
+              if (hash != null && hash.length() == 0) {
+                hash = null;
+              }
+              break;
+            case "downloadUrl":
+              downloadUrl = XFormParser.getXMLText(child, true);
+              if (downloadUrl != null && downloadUrl.length() == 0) {
+                downloadUrl = null;
+              }
+              break;
           }
         }
         if (filename == null || downloadUrl == null || hash == null) {
@@ -543,7 +515,7 @@ public class XmlManipulationUtils {
     return files;
   }
 
-  public static final SubmissionChunk parseSubmissionDownloadListResponse(Document doc)
+  static SubmissionChunk parseSubmissionDownloadListResponse(Document doc)
       throws ParsingException {
     List<String> uriList = new ArrayList<>();
     String websafeCursorString = "";
@@ -569,7 +541,7 @@ public class XmlManipulationUtils {
         // e.g., whitespace (text)
         continue;
       }
-      Element subElement = (Element) idChunkElement.getElement(i);
+      Element subElement = idChunkElement.getElement(i);
       namespace = subElement.getNamespace();
       if (!namespace.equalsIgnoreCase(NAMESPACE_OPENDATAKIT_ORG_SUBMISSIONS)) {
         // someone else's extension?
@@ -584,7 +556,7 @@ public class XmlManipulationUtils {
             // e.g., whitespace (text)
             continue;
           }
-          Element idElement = (Element) subElement.getElement(j);
+          Element idElement = subElement.getElement(j);
           namespace = idElement.getNamespace();
           if (!namespace.equalsIgnoreCase(NAMESPACE_OPENDATAKIT_ORG_SUBMISSIONS)) {
             // someone else's extension?
@@ -615,7 +587,7 @@ public class XmlManipulationUtils {
     return new SubmissionChunk(uriList, websafeCursorString);
   }
 
-  public static final SubmissionManifest parseDownloadSubmissionResponse(Document doc)
+  static SubmissionManifest parseDownloadSubmissionResponse(Document doc)
       throws ParsingException {
 
     // and parse the document...
@@ -644,7 +616,7 @@ public class XmlManipulationUtils {
         // e.g., whitespace (text)
         continue;
       }
-      Element subElement = (Element) submissionElement.getElement(i);
+      Element subElement = submissionElement.getElement(i);
       namespace = subElement.getNamespace();
       if (!namespace.equalsIgnoreCase(NAMESPACE_OPENDATAKIT_ORG_SUBMISSIONS)) {
         // someone else's extension?
@@ -659,7 +631,7 @@ public class XmlManipulationUtils {
             // e.g., whitespace (text)
             continue;
           }
-          rootSubmissionElement = (Element) subElement.getElement(j);
+          rootSubmissionElement = subElement.getElement(j);
           break;
         }
         if (rootSubmissionElement == null) {
@@ -680,7 +652,7 @@ public class XmlManipulationUtils {
             // e.g., whitespace (text)
             continue;
           }
-          Element mediaSubElement = (Element) subElement.getElement(j);
+          Element mediaSubElement = subElement.getElement(j);
           name = mediaSubElement.getName();
           if (name.equalsIgnoreCase("filename")) {
             filename = XFormParser.getXMLText(mediaSubElement, true);
@@ -698,9 +670,6 @@ public class XmlManipulationUtils {
 
     if (rootSubmissionElement == null) {
       throw new ParsingException("No submission body found");
-    }
-    if (instanceID == null) {
-      throw new ParsingException("instanceID attribute value is null");
     }
 
     // write submission to a string
@@ -728,7 +697,7 @@ public class XmlManipulationUtils {
     return new SubmissionManifest(instanceID, fo.toString(), attachmentList);
   }
 
-  public static final String updateSubmissionMetadata(File submissionFile, Document doc)
+  static String updateSubmissionMetadata(File submissionFile, Document doc)
       throws MetadataUpdateException {
 
     Element root = doc.getRootElement();
@@ -740,10 +709,10 @@ public class XmlManipulationUtils {
     String submissionDate = metadata.getAttributeValue("", SUBMISSION_DATE_ATTRIBUTE_NAME);
 
     // read the original document...
-    Document originalDoc = null;
+    Document originalDoc;
     try {
       FileInputStream fs = new FileInputStream(submissionFile);
-      InputStreamReader fr = new InputStreamReader(fs, "UTF-8");
+      InputStreamReader fr = new InputStreamReader(fs, UTF_8);
       originalDoc = new Document();
       KXmlParser parser = new KXmlParser();
       parser.setInput(fr);
@@ -815,7 +784,7 @@ public class XmlManipulationUtils {
       FileOutputStream fos = new FileOutputStream(revisedFile, false);
 
       KXmlSerializer serializer = new KXmlSerializer();
-      serializer.setOutput(fos, "UTF-8");
+      serializer.setOutput(fos, UTF_8.name());
       originalDoc.write(serializer);
       serializer.flush();
       fos.close();

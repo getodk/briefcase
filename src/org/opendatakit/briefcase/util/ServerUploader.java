@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.bushe.swing.event.EventBus;
@@ -46,11 +47,9 @@ import org.opendatakit.briefcase.util.ServerFetcher.SubmissionChunk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ServerUploader {
+class ServerUploader {
 
   private static final Logger log = LoggerFactory.getLogger(ServerUploader.class);
-
-  private final int MAX_ENTRIES = 100;
 
   private final ServerConnectionInfo serverInfo;
   private final TerminationFuture terminationFuture;
@@ -67,7 +66,7 @@ public class ServerUploader {
     this.forceSendBlank = forceSendBlank;
   }
 
-  public boolean isCancelled() {
+  private boolean isCancelled() {
     return terminationFuture.isCancelled();
   }
 
@@ -85,7 +84,7 @@ public class ServerUploader {
       instanceID = XmlManipulationUtils.updateSubmissionMetadata(file, result.doc);
     }
 
-    public void afterUpload(FormStatus formToTransfer) {
+    void afterUpload(FormStatus formToTransfer) {
       if (instanceID == null)
         return;
 
@@ -93,10 +92,10 @@ public class ServerUploader {
       File instancesParentDir = instanceDir.getParentFile();
 
       File newInstanceDir = FileSystemUtils.getFormSubmissionDirectory(instancesParentDir, instanceID);
-      if (!newInstanceDir.equals(instanceDir)) {
+      if (!Objects.equals(newInstanceDir, instanceDir)) {
         try {
           log.info("Moving {} to {}", instanceDir, newInstanceDir);
-          FileUtils.moveDirectory(instanceDir, newInstanceDir);
+          FileUtils.moveDirectory(instanceDir, Objects.requireNonNull(newInstanceDir));
           /*
            * We might be tempted to do:
            * formDatabase.putRecordedInstanceDirectory(instanceID, newInstanceDir);
@@ -145,6 +144,7 @@ public class ServerUploader {
       EventBus.publish(new FormStatusEvent(fs));
 
       Map<String, String> params = new HashMap<>();
+      int MAX_ENTRIES = 100;
       params.put("numEntries", Integer.toString(MAX_ENTRIES));
       params.put("formId", fs.getFormDefinition().getFormId());
       params.put("cursor", websafeCursorString);
@@ -154,9 +154,9 @@ public class ServerUploader {
       try {
         DocumentDescription submissionChunkDescription = new DocumentDescription(
             "Fetch of instanceIds (submission download chunk) failed.  Detailed error: ",
-            "Fetch of instanceIds (submission download chunk) failed.", "submission download chunk",
+            "submission download chunk",
             terminationFuture);
-        result = AggregateUtils.getXmlDocument(fullUrl, serverInfo, false, submissionChunkDescription, null);
+        result = AggregateUtils.getXmlDocument(fullUrl, serverInfo, false, submissionChunkDescription);
       } catch (XmlDocumentFetchException e) {
         fs.setStatusString("Not all submissions retrieved: Error fetching list of instanceIds: " + e.getMessage(), false);
         EventBus.publish(new FormStatusEvent(fs));
@@ -182,7 +182,7 @@ public class ServerUploader {
     }
   }
 
-  public boolean uploadFormAndSubmissionFiles(List<FormStatus> formsToTransfer) {
+  boolean uploadFormAndSubmissionFiles(List<FormStatus> formsToTransfer) {
 
     boolean allSuccessful = true;
 
@@ -234,14 +234,14 @@ public class ServerUploader {
         formDatabase = DatabaseUtils.newInstance(briefcaseLfd.getFormDirectory());
 
         // make sure all the local instances are in the database...
-        formDatabase.updateInstanceLists(briefcaseInstances);
+        formDatabase.updateInstanceLists();
 
         // exclude submissions the server reported as already submitted
         subtractServerInstances(formToTransfer, formDatabase, briefcaseInstances);
 
         int i = 1;
         for (File briefcaseInstance : briefcaseInstances) {
-          outcome = uploadSubmission(formDatabase, formToTransfer, u, i++, briefcaseInstances.size(), briefcaseInstance);
+          outcome = uploadSubmission(formToTransfer, u, i++, briefcaseInstances.size(), briefcaseInstance);
           thisFormSuccessful = thisFormSuccessful & outcome;
           allSuccessful = allSuccessful & outcome;
           // and stop this loop quickly if we're cancelled...
@@ -289,7 +289,7 @@ public class ServerUploader {
     return server.containsForm(http, form.getFormDefinition().getFormId());
   }
 
-  public boolean uploadForm(FormStatus formToTransfer, File briefcaseFormDefFile, File briefcaseFormMediaDir) {
+  boolean uploadForm(FormStatus formToTransfer, File briefcaseFormDefFile, File briefcaseFormMediaDir) {
     // very similar to upload submissions...
 
     URI u;
@@ -335,7 +335,7 @@ public class ServerUploader {
     }
 
     DocumentDescription formDefinitionUploadDescription = new DocumentDescription("Form definition upload failed.  Detailed error: ",
-        "Form definition upload failed.", "form definition", terminationFuture);
+        "form definition", terminationFuture);
 
     return AggregateUtils.uploadFilesToServer(serverInfo, u, "form_def_file", briefcaseFormDefFile, files,
         formDefinitionUploadDescription, null, terminationFuture, formToTransfer);
@@ -356,7 +356,7 @@ public class ServerUploader {
     return u;
   }
 
-  private final boolean uploadSubmission(DatabaseUtils formDatabase, FormStatus formToTransfer, URI u, int count, int totalCount, File instanceDirectory) {
+  private boolean uploadSubmission(FormStatus formToTransfer, URI u, int count, int totalCount, File instanceDirectory) {
 
     // We have the actual server URL in u, possibly redirected to https.
     // We know we are talking to the server because the head request
@@ -382,7 +382,7 @@ public class ServerUploader {
     // or that we won't attempt to upload. For OpenRosa servers,
     // we'll upload just about everything...
     List<File> files = new ArrayList<>();
-    for (File f : allFiles) {
+    for (File f : Objects.requireNonNull(allFiles)) {
       String fileName = f.getName();
       if (fileName.startsWith(".")) {
         // potential Apple file attributes file -- ignore it
@@ -403,7 +403,7 @@ public class ServerUploader {
     }
 
     DocumentDescription submissionUploadDescription = new DocumentDescription("Submission upload failed.  Detailed error: ",
-        "Submission upload failed.", "submission (" + count + " of " + totalCount + ")", terminationFuture);
+        "submission (" + count + " of " + totalCount + ")", terminationFuture);
     boolean outcome = AggregateUtils.uploadFilesToServer(serverInfo, u, "xml_submission_file", file, files,
         submissionUploadDescription, action, terminationFuture, formToTransfer);
 

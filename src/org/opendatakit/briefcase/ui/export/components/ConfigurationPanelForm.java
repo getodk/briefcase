@@ -93,7 +93,7 @@ public class ConfigurationPanelForm extends JComponent {
   private final ConfigurationPanelMode mode;
   private boolean uiLocked = false;
 
-  protected ConfigurationPanelForm(ConfigurationPanelMode mode) {
+  private ConfigurationPanelForm(ConfigurationPanelMode mode) {
     this.mode = mode;
     startDatePicker = createDatePicker();
     endDatePicker = createDatePicker();

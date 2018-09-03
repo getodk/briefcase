@@ -36,6 +36,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
+import org.opendatakit.briefcase.pull.FormInstaller;
 import org.opendatakit.briefcase.util.BadFormDefinition;
 import org.opendatakit.briefcase.util.FormCache;
 

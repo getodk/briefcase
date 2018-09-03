@@ -65,7 +65,7 @@ public class SettingsPanelForm {
   private final List<Consumer<HttpHost>> onHttpProxyCallbacks = new ArrayList<>();
   private final List<Runnable> onClearHttpProxyCallbacks = new ArrayList<>();
 
-  public SettingsPanelForm() {
+  SettingsPanelForm() {
     httpProxyPortField = new JIntegerSpinner(8080, 0, 65535, 1);
     $$$setupUI$$$();
 
@@ -82,7 +82,7 @@ public class SettingsPanelForm {
     httpProxyPortField.addChangeListener(__ -> processHttpProxyFields());
 
     reloadCacheButton.setEnabled(false);
-    
+
     updateProxyFields(useHttpProxyField.isSelected());
   }
 

@@ -16,7 +16,8 @@
 
 package org.opendatakit.briefcase.export;
 
-import java.io.UnsupportedEncodingException;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -50,14 +51,14 @@ final class CipherFactory {
     // this is the md5 hash of the instanceID and the symmetric key
     try {
       MessageDigest md = MessageDigest.getInstance("MD5");
-      md.update(instanceId.getBytes("UTF-8"));
+      md.update(instanceId.getBytes(UTF_8));
       md.update(symmetricKeyBytes);
       byte[] messageDigest = md.digest();
       ivSeedArray = new byte[IV_BYTE_LENGTH];
       for (int i = 0; i < IV_BYTE_LENGTH; ++i) {
         ivSeedArray[i] = messageDigest[(i % messageDigest.length)];
       }
-    } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+    } catch (NoSuchAlgorithmException e) {
       String msg = "Error constructing ivSeedArray";
       log.error(msg, e);
       throw new CryptoException(msg + " Cause: " + e);

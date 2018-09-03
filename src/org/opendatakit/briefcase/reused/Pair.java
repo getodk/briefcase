@@ -64,11 +64,4 @@ public class Pair<T, U> {
     return Objects.hash(left, right);
   }
 
-  public <M> Triplet<T, M, U> intersperse(M middle) {
-    return new Triplet<>(left, middle, right);
-  }
-
-  public <LL> Triplet<LL, T, U> prepend(LL newLeft) {
-    return new Triplet<>(newLeft, left, right);
-  }
 }

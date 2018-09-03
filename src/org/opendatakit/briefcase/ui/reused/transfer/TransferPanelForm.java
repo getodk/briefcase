@@ -56,7 +56,7 @@ public class TransferPanelForm {
   private boolean working = false;
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
-  public TransferPanelForm(SourcePanel sourcePanel, TransferFormsTable formsTable, String actionName) {
+  private TransferPanelForm(SourcePanel sourcePanel, TransferFormsTable formsTable, String actionName) {
     this.sourcePanel = sourcePanel;
     this.sourcePanelForm = sourcePanel.getContainer();
     this.formsTable = formsTable;

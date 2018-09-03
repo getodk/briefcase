@@ -51,7 +51,7 @@ public class SelectSourceForm extends JComponent {
     sourceComboBox.addItem(source);
   }
 
-  public Optional<Source> getSelectedSource() {
+  Optional<Source> getSelectedSource() {
     return Optional.ofNullable((Source) sourceComboBox.getSelectedItem());
   }
 

@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.util;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,12 +29,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
 import java.util.List;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -59,7 +59,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParser;
 
-public class AggregateUtils {
+class AggregateUtils {
 
   private static final Logger log = LoggerFactory.getLogger(AggregateUtils.class);
 
@@ -67,13 +67,13 @@ public class AggregateUtils {
 
   private static final CharSequence HTTP_CONTENT_TYPE_APPLICATION_XML = "application/xml";
 
-  public static interface ResponseAction {
+  public interface ResponseAction {
     void doAction(DocumentFetchResult result) throws MetadataUpdateException;
   }
 
-  public static class DocumentFetchResult {
-    public final Document doc;
-    public final boolean isOpenRosaResponse;
+  static class DocumentFetchResult {
+    final Document doc;
+    final boolean isOpenRosaResponse;
 
     DocumentFetchResult(Document doc, boolean isOpenRosaResponse) {
       this.doc = doc;
@@ -85,15 +85,8 @@ public class AggregateUtils {
    * Common routine to download a document from the downloadUrl and save the
    * contents in the file 'f'. Shared by media file download and form file
    * download.
-   *
-   * @param f
-   * @param downloadUrl
-   * @throws URISyntaxException
-   * @throws IOException
-   * @throws ClientProtocolException
-   * @throws TransmissionException
    */
-  public static final void commonDownloadFile(ServerConnectionInfo serverInfo, File f, String downloadUrl) throws URISyntaxException, IOException, TransmissionException {
+  static void commonDownloadFile(ServerConnectionInfo serverInfo, File f, String downloadUrl) throws URISyntaxException, IOException, TransmissionException {
 
     log.info("Downloading URL {} into {}", downloadUrl, f);
 
@@ -101,7 +94,7 @@ public class AggregateUtils {
     // (1) don't have it
     // (2) don't know if it is changed because the hash is not md5
     // (3) know it is changed
-    URI u = null;
+    URI u;
     try {
       log.info("Parsing URL {}", downloadUrl);
       URL uurl = new URL(downloadUrl);
@@ -110,7 +103,6 @@ public class AggregateUtils {
       log.warn("bad download url", e);
       throw e;
     }
-
 
 
     HttpClient httpclient = WebUtils.createHttpClient();
@@ -123,7 +115,7 @@ public class AggregateUtils {
 
     WebUtils.setCredentials(localContext, serverInfo, u);
 
-    HttpResponse response = null;
+    HttpResponse response;
     // try
     {
       response = httpclient.execute(req, localContext);
@@ -158,17 +150,10 @@ public class AggregateUtils {
    * Common method for returning a parsed xml document given a url and the http
    * context and client objects involved in the web connection. The document is
    * the body of the response entity and should be xml.
-   *
-   * @param urlString
-   * @return
    */
-  public static final DocumentFetchResult getXmlDocument(String urlString,
-                                                         ServerConnectionInfo serverInfo, boolean alwaysResetCredentials,
-                                                         DocumentDescription description, ResponseAction action)
-      throws XmlDocumentFetchException {
-
+  static DocumentFetchResult getXmlDocument(String urlString, ServerConnectionInfo serverInfo, boolean alwaysResetCredentials, DocumentDescription description) throws XmlDocumentFetchException {
     log.info("Parsing URL {}", urlString);
-    URI u = null;
+    URI u;
     try {
       URL url = new URL(urlString);
       u = url.toURI();
@@ -190,11 +175,10 @@ public class AggregateUtils {
 
     int[] validStatusList = {200};
 
-    return httpRetrieveXmlDocument(req, validStatusList, serverInfo, alwaysResetCredentials,
-        description, action);
+    return httpRetrieveXmlDocument(req, validStatusList, serverInfo, alwaysResetCredentials, description, null);
   }
 
-  private static final void flushEntityBytes(HttpEntity entity) {
+  private static void flushEntityBytes(HttpEntity entity) {
     if (entity != null) {
       // something is amiss -- read and discard any response body.
       try {
@@ -202,8 +186,8 @@ public class AggregateUtils {
         InputStream is = entity.getContent();
         // read to end of stream...
         final long count = 1024L;
-        while (is.skip(count) == count)
-          ;
+        //noinspection StatementWithEmptyBody
+        while (is.skip(count) == count) ;
         is.close();
       } catch (Exception e) {
         log.error("failed to flush http content", e);
@@ -215,13 +199,8 @@ public class AggregateUtils {
    * Common method for returning a parsed xml document given a url and the http
    * context and client objects involved in the web connection. The document is
    * the body of the response entity and should be xml.
-   *
-   * @return
    */
-  private static final DocumentFetchResult httpRetrieveXmlDocument(HttpUriRequest request,
-                                                                   int[] validStatusList, ServerConnectionInfo serverInfo, boolean alwaysResetCredentials,
-                                                                   DocumentDescription description,
-                                                                   ResponseAction action) throws XmlDocumentFetchException {
+  private static DocumentFetchResult httpRetrieveXmlDocument(HttpUriRequest request, int[] validStatusList, ServerConnectionInfo serverInfo, boolean alwaysResetCredentials, DocumentDescription description, ResponseAction action) throws XmlDocumentFetchException {
 
     HttpClient httpClient = WebUtils.createHttpClient();
 
@@ -237,7 +216,7 @@ public class AggregateUtils {
       throw new XmlDocumentFetchException("Transfer of " + description.getDocumentDescriptionType() + " aborted.");
     }
 
-    HttpResponse response = null;
+    HttpResponse response;
     try {
       response = httpClient.execute(request, localContext);
       int statusCode = response.getStatusLine().getStatusCode();
@@ -264,26 +243,21 @@ public class AggregateUtils {
           WebUtils.resetHttpContext();
           ex = new XmlDocumentFetchException("Authentication failure");
         } else if (statusCode == 400) {
-          ex = new XmlDocumentFetchException(description.getFetchDocFailed() + webError + " while accessing: "
-              + uri.toString() + "\nPlease verify that the " + description.getDocumentDescriptionType()
-              + " that is being uploaded is well-formed.");
+          ex = new XmlDocumentFetchException("" +
+              description.getFetchDocFailed() + webError + " while accessing: " + uri.toString() + "\n" +
+              "Please verify that the " + description.getDocumentDescriptionType() + " that is being uploaded is well-formed.");
         } else {
-          ex = new XmlDocumentFetchException(
-              description.getFetchDocFailed()
-                  + webError
-                  + " while accessing: "
-                  + uri.toString()
-                  + "\nPlease verify that the URL, your user credentials and your permissions are all correct.");
+          ex = new XmlDocumentFetchException("" +
+              description.getFetchDocFailed() + webError + " while accessing: " + uri.toString() + "\n" +
+              "Please verify that the URL, your user credentials and your permissions are all correct."
+          );
         }
       } else if (entity == null) {
         log.warn("No entity body returned");
-        ex = new XmlDocumentFetchException(description.getFetchDocFailed()
-            + " Server unexpectedly returned no content");
-      } else if (!(lcContentType.contains(HTTP_CONTENT_TYPE_TEXT_XML) || lcContentType
-          .contains(HTTP_CONTENT_TYPE_APPLICATION_XML))) {
+        ex = new XmlDocumentFetchException(description.getFetchDocFailed() + " Server unexpectedly returned no content");
+      } else if (!(lcContentType.contains(HTTP_CONTENT_TYPE_TEXT_XML) || lcContentType.contains(HTTP_CONTENT_TYPE_APPLICATION_XML))) {
         log.warn("Wrong ContentType: " + entity.getContentType().getValue() + "returned");
-        ex = new XmlDocumentFetchException(description.getFetchDocFailed()
-            + "A non-XML document was returned. A network login screen may be interfering with the transmission to the server.");
+        ex = new XmlDocumentFetchException(description.getFetchDocFailed() + "A non-XML document was returned. A network login screen may be interfering with the transmission to the server.");
       }
 
       if (ex != null) {
@@ -293,35 +267,13 @@ public class AggregateUtils {
       }
 
       // parse the xml document...
-      Document doc = null;
-      try {
-        InputStream is = null;
-        InputStreamReader isr = null;
-        try {
-          is = entity.getContent();
-          isr = new InputStreamReader(is, "UTF-8");
-          doc = new Document();
-          KXmlParser parser = new KXmlParser();
-          parser.setInput(isr);
-          parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-          doc.parse(parser);
-          isr.close();
-        } finally {
-          if (isr != null) {
-            try {
-              isr.close();
-            } catch (Exception e) {
-              // no-op
-            }
-          }
-          if (is != null) {
-            try {
-              is.close();
-            } catch (Exception e) {
-              // no-op
-            }
-          }
-        }
+      Document doc;
+      try (InputStream is = entity.getContent(); InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
+        doc = new Document();
+        KXmlParser parser = new KXmlParser();
+        parser.setInput(isr);
+        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+        doc.parse(parser);
       } catch (Exception e) {
         log.warn("Parsing failed with " + e.getMessage(), e);
         throw new XmlDocumentFetchException(description.getFetchDocFailed());
@@ -401,7 +353,7 @@ public class AggregateUtils {
     }
   }
 
-  public static URI getAggregateActionUri(ServerConnectionInfo serverInfo, String actionAddr) throws TransmissionException {
+  static URI getAggregateActionUri(ServerConnectionInfo serverInfo, String actionAddr) throws TransmissionException {
     String urlString = serverInfo.getUrl();
     if (urlString.endsWith("/")) {
       urlString = urlString + actionAddr;
@@ -427,25 +379,21 @@ public class AggregateUtils {
     }
   }
 
-  public static final boolean uploadFilesToServer(ServerConnectionInfo serverInfo, URI u,
-                                                  String distinguishedFileTagName, File file, List<File> files, DocumentDescription description,
-                                                  SubmissionResponseAction action, TerminationFuture terminationFuture, FormStatus formToTransfer) {
+  static boolean uploadFilesToServer(ServerConnectionInfo serverInfo, URI u, String distinguishedFileTagName, File file, List<File> files, DocumentDescription description, SubmissionResponseAction action, TerminationFuture terminationFuture, FormStatus formToTransfer) {
 
     boolean allSuccessful = true;
-    formToTransfer.setStatusString("Preparing for upload of " + description.getDocumentDescriptionType() + " with "
-        + files.size() + " media attachments", true);
+    formToTransfer.setStatusString("Preparing for upload of " + description.getDocumentDescriptionType() + " with " + files.size() + " media attachments", true);
     EventBus.publish(new FormStatusEvent(formToTransfer));
 
     boolean first = true; // handles case where there are no media files
-    int lastJ = 0;
+    int lastJ;
     int j = 0;
     while (j < files.size() || first) {
       lastJ = j;
       first = false;
 
       if (terminationFuture.isCancelled()) {
-        formToTransfer.setStatusString("Aborting upload of " + description.getDocumentDescriptionType() + " with "
-            + files.size() + " media attachments", true);
+        formToTransfer.setStatusString("Aborting upload of " + description.getDocumentDescriptionType() + " with " + files.size() + " media attachments", true);
         EventBus.publish(new FormStatusEvent(formToTransfer));
         return false;
       }
@@ -475,46 +423,55 @@ public class AggregateUtils {
 
         // we will be processing every one of these, so
         // we only need to deal with the content type determination...
-        if (extension.equals("xml")) {
-          fb = new FileBody(f, ContentType.TEXT_XML);
-          builder.addPart(f.getName(), fb);
-          byteCount += f.length();
-          log.info("added xml file " + f.getName());
-        } else if (extension.equals("jpg")) {
-          fb = new FileBody(f, ContentType.create("image/jpeg"));
-          builder.addPart(f.getName(), fb);
-          byteCount += f.length();
-          log.info("added image file " + f.getName());
-        } else if (extension.equals("3gpp")) {
-          fb = new FileBody(f, ContentType.create("audio/3gpp"));
-          builder.addPart(f.getName(), fb);
-          byteCount += f.length();
-          log.info("added audio file " + f.getName());
-        } else if (extension.equals("3gp")) {
-          fb = new FileBody(f, ContentType.create("video/3gpp"));
-          builder.addPart(f.getName(), fb);
-          byteCount += f.length();
-          log.info("added video file " + f.getName());
-        } else if (extension.equals("mp4")) {
-          fb = new FileBody(f, ContentType.create("video/mp4"));
-          builder.addPart(f.getName(), fb);
-          byteCount += f.length();
-          log.info("added video file " + f.getName());
-        } else if (extension.equals("csv")) {
-          fb = new FileBody(f, ContentType.create("text/csv"));
-          builder.addPart(f.getName(), fb);
-          byteCount += f.length();
-          log.info("added csv file " + f.getName());
-        } else if (extension.equals("xls")) {
-          fb = new FileBody(f, ContentType.create("application/vnd.ms-excel"));
-          builder.addPart(f.getName(), fb);
-          byteCount += f.length();
-          log.info("added xls file " + f.getName());
-        } else {
-          fb = new FileBody(f, ContentType.create("application/octet-stream"));
-          builder.addPart(f.getName(), fb);
-          byteCount += f.length();
-          log.warn("added unrecognized file (application/octet-stream)");
+        switch (extension) {
+          case "xml":
+            fb = new FileBody(f, ContentType.TEXT_XML);
+            builder.addPart(f.getName(), fb);
+            byteCount += f.length();
+            log.info("added xml file " + f.getName());
+            break;
+          case "jpg":
+            fb = new FileBody(f, ContentType.create("image/jpeg"));
+            builder.addPart(f.getName(), fb);
+            byteCount += f.length();
+            log.info("added image file " + f.getName());
+            break;
+          case "3gpp":
+            fb = new FileBody(f, ContentType.create("audio/3gpp"));
+            builder.addPart(f.getName(), fb);
+            byteCount += f.length();
+            log.info("added audio file " + f.getName());
+            break;
+          case "3gp":
+            fb = new FileBody(f, ContentType.create("video/3gpp"));
+            builder.addPart(f.getName(), fb);
+            byteCount += f.length();
+            log.info("added video file " + f.getName());
+            break;
+          case "mp4":
+            fb = new FileBody(f, ContentType.create("video/mp4"));
+            builder.addPart(f.getName(), fb);
+            byteCount += f.length();
+            log.info("added video file " + f.getName());
+            break;
+          case "csv":
+            fb = new FileBody(f, ContentType.create("text/csv"));
+            builder.addPart(f.getName(), fb);
+            byteCount += f.length();
+            log.info("added csv file " + f.getName());
+            break;
+          case "xls":
+            fb = new FileBody(f, ContentType.create("application/vnd.ms-excel"));
+            builder.addPart(f.getName(), fb);
+            byteCount += f.length();
+            log.info("added xls file " + f.getName());
+            break;
+          default:
+            fb = new FileBody(f, ContentType.create("application/octet-stream"));
+            builder.addPart(f.getName(), fb);
+            byteCount += f.length();
+            log.warn("added unrecognized file (application/octet-stream)");
+            break;
         }
 
         // we've added at least one attachment to the request...
@@ -523,7 +480,7 @@ public class AggregateUtils {
             // more than 100 attachments or the next file would exceed the 10MB threshold...
             log.info("Extremely long post is being split into multiple posts");
             try {
-              StringBody sb = new StringBody("yes", ContentType.DEFAULT_TEXT.withCharset(Charset.forName("UTF-8")));
+              StringBody sb = new StringBody("yes", ContentType.DEFAULT_TEXT.withCharset(UTF_8));
               builder.addPart("*isIncomplete*", sb);
             } catch (Exception e) {
               log.error("impossible condition", e);

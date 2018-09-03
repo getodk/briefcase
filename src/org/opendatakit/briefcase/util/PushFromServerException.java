@@ -21,8 +21,8 @@ import java.util.List;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
-public class PushFromServerException extends BriefcaseException {
-  public PushFromServerException(List<FormStatus> forms) {
+class PushFromServerException extends BriefcaseException {
+  PushFromServerException(List<FormStatus> forms) {
     super("Failure pushing forms to server. FormIds: " + forms.stream().map(f -> f.getFormDefinition().getFormId()).collect(joining(", ")));
   }
 }

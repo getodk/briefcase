@@ -15,9 +15,7 @@
  */
 package org.opendatakit.briefcase.export;
 
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-
 import static org.opendatakit.briefcase.export.ValidationStatus.NOT_VALIDATED;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.checksumOf;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.stripFileExtension;
@@ -32,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.crypto.Cipher;
-
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -127,7 +124,7 @@ class Submission {
       signatureParts.add(decryptedFile.getFileName() + "::" + getMd5Hash(decryptedFile.toFile()));
     }
     signatureParts.add(originalSubmission.path.getFileName().toString() + "::" + getMd5Hash(path.toFile()));
-    return signatureParts.stream().collect(joining("\n")) + "\n";
+    return String.join("\n", signatureParts) + "\n";
   }
 
   /**

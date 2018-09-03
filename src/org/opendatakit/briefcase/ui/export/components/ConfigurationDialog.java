@@ -23,7 +23,7 @@ public class ConfigurationDialog {
   final ConfigurationDialogForm form;
   private final ConfigurationPanel confPanel;
 
-  ConfigurationDialog(ConfigurationDialogForm form, ConfigurationPanel confPanel) {
+  private ConfigurationDialog(ConfigurationDialogForm form, ConfigurationPanel confPanel) {
     this.form = form;
     this.confPanel = confPanel;
 
@@ -46,7 +46,7 @@ public class ConfigurationDialog {
     });
   }
 
-  public static ConfigurationDialog overridePanel(Optional<ExportConfiguration> configuration, String formName, boolean hasTransferSettings, boolean savePasswordsConsent) {
+  static ConfigurationDialog overridePanel(Optional<ExportConfiguration> configuration, String formName, boolean hasTransferSettings, boolean savePasswordsConsent) {
     ConfigurationPanel confPanel = ConfigurationPanel.overridePanel(configuration.orElse(ExportConfiguration.empty()), savePasswordsConsent, hasTransferSettings);
     ConfigurationDialogForm form = new ConfigurationDialogForm(confPanel.getForm(), "Override " + formName + " Export Configuration");
     return new ConfigurationDialog(form, confPanel);
@@ -70,7 +70,7 @@ public class ConfigurationDialog {
     form.open();
   }
 
-  public ConfigurationPanel getConfPanel() {
+  ConfigurationPanel getConfPanel() {
     return confPanel;
   }
 }

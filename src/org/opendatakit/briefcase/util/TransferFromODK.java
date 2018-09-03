@@ -45,11 +45,11 @@ public class TransferFromODK implements ITransferFromSourceAction {
   private FilenameFilter fileEndsWithXml = (__, name) -> name.endsWith(".xml");
 
   private Path briefcaseDir;
-  final File odkOriginDir;
-  final TerminationFuture terminationFuture;
-  final List<FormStatus> formsToTransfer;
+  private final File odkOriginDir;
+  private final TerminationFuture terminationFuture;
+  private final List<FormStatus> formsToTransfer;
 
-  public TransferFromODK(Path briefcaseDir, File odkOriginDir, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) {
+  TransferFromODK(Path briefcaseDir, File odkOriginDir, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) {
     this.briefcaseDir = briefcaseDir;
     this.odkOriginDir = odkOriginDir;
     this.terminationFuture = terminationFuture;
@@ -170,15 +170,13 @@ public class TransferFromODK implements ITransferFromSourceAction {
             // protects against someone having "formname" and "formname_2"
             // and us mistaking "formname_2_2009-01-02_15_10_03" as containing
             // instance data for "formname" instead of "formname_2"
-            boolean outcome = afterName.matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}.*");
-            return outcome;
+            return afterName.matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}.*");
           });
 
           if (odkFormInstanceDirs != null) {
             int instanceCount = 1;
             for (File dir : odkFormInstanceDirs) {
               if (terminationFuture.isCancelled()) {
-                allSuccessful = isSuccessful = false;
                 fs.setStatusString("aborting retrieving submissions...", true);
                 EventBus.publish(new FormStatusEvent(fs));
                 return false;
@@ -240,7 +238,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                   if (contents == null || contents.length == 0)
                     break;
                   if (contents.length == 1) {
-                    String itsInstanceId = null;
+                    String itsInstanceId;
                     try {
                       XmlManipulationUtils.FormInstanceMetadata formInstanceMetadata =
                           XmlManipulationUtils.getFormInstanceMetadata(XmlManipulationUtils.parseXml(contents[0])
@@ -298,6 +296,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                 } else {
                   // delete the full xml file (keep only the submission.xml)
                   File odkSubmissionFile = new File(scratchInstance, fullXml.getName());
+                  //noinspection ResultOfMethodCallIgnored
                   odkSubmissionFile.delete();
                 }
 
@@ -340,11 +339,6 @@ public class TransferFromODK implements ITransferFromSourceAction {
       }
     }
     return allSuccessful;
-  }
-
-  @Override
-  public boolean isSourceDeletable() {
-    return true;
   }
 
   @Override

@@ -23,7 +23,7 @@ public class TransferFormsTable {
   private final TransferFormsTableViewModel viewModel;
   private final TransferForms forms;
 
-  public TransferFormsTable(TransferForms forms, TransferFormsTableView view, TransferFormsTableViewModel viewModel) {
+  private TransferFormsTable(TransferForms forms, TransferFormsTableView view, TransferFormsTableViewModel viewModel) {
     this.viewModel = viewModel;
     this.view = view;
     this.forms = forms;
@@ -40,17 +40,17 @@ public class TransferFormsTable {
     viewModel.onChange(callback);
   }
 
-  public void selectAll() {
+  void selectAll() {
     forms.selectAll();
     viewModel.refresh();
   }
 
-  public void clearAll() {
+  void clearAll() {
     forms.clearAll();
     viewModel.refresh();
   }
 
-  public void refresh() {
+  void refresh() {
     viewModel.refresh();
   }
 
@@ -58,11 +58,11 @@ public class TransferFormsTable {
     return view;
   }
 
-  public void enableInteraction() {
+  void enableInteraction() {
     view.setEnabled(true);
   }
 
-  public void disableInteraction() {
+  void disableInteraction() {
     view.setEnabled(false);
   }
 }
