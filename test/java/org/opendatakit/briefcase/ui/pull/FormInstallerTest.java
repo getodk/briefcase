@@ -23,7 +23,6 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.opendatakit.briefcase.matchers.IterableMatchers.containsAtLeast;
-import static org.opendatakit.briefcase.model.FormStatus.TransferType.GATHER;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -207,7 +206,7 @@ public class FormInstallerTest {
   }
 
   private static FormStatus buildForm(Path formPath) throws BadFormDefinition {
-    return new FormStatus(GATHER, new OdkCollectFormDefinition(formPath.toFile()));
+    return new FormStatus(new OdkCollectFormDefinition(formPath.toFile()));
   }
 
   private static Path getPath(String fileName) throws URISyntaxException {

@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.ui.reused.source;
 
-import static org.opendatakit.briefcase.model.FormStatus.TransferType.GATHER;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 
 import java.awt.Container;
@@ -234,7 +233,7 @@ public interface Source<T> {
     @Override
     public List<FormStatus> getFormList() {
       return server.getFormsList(http).stream()
-          .map(rfd -> new FormStatus(GATHER, rfd))
+          .map(FormStatus::new)
           .collect(Collectors.toList());
     }
 
@@ -243,7 +242,7 @@ public interface Source<T> {
       server.storePreferences(prefs, storePasswords);
     }
 
-    public static void clearPreferences(BriefcasePreferences prefs) {
+    static void clearPreferences(BriefcasePreferences prefs) {
       prefs.removeAll(RemoteServer.PREFERENCE_KEYS);
     }
 
@@ -318,7 +317,7 @@ public interface Source<T> {
     @Override
     public List<FormStatus> getFormList() {
       return FileSystemUtils.getODKFormList(path.toFile()).stream()
-          .map(formDef -> new FormStatus(GATHER, formDef))
+          .map(FormStatus::new)
           .collect(Collectors.toList());
     }
 
@@ -327,7 +326,7 @@ public interface Source<T> {
       // No prefs to store
     }
 
-    public static void clearPreferences(BriefcasePreferences prefs) {
+    static void clearPreferences(BriefcasePreferences prefs) {
       // No prefs to clear
     }
 
@@ -381,7 +380,7 @@ public interface Source<T> {
 
       try {
         path = selectedFile.get();
-        set(new FormStatus(GATHER, new OdkCollectFormDefinition(path.toFile())));
+        set(new FormStatus(new OdkCollectFormDefinition(path.toFile())));
       } catch (BadFormDefinition e) {
         ODKOptionPane.showErrorDialog(container, "Bad form definition file. Please select another file.", "Wrong file");
       }
@@ -408,7 +407,7 @@ public interface Source<T> {
       // No prefs to store
     }
 
-    public static void clearPreferences(BriefcasePreferences prefs) {
+    static void clearPreferences(BriefcasePreferences prefs) {
       // No prefs to clear
     }
 

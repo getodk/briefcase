@@ -19,7 +19,6 @@ import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static java.util.stream.Collectors.toList;
 
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
-import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 
 import java.time.LocalDateTime;
@@ -166,14 +165,14 @@ public class ExportPanel {
     );
   }
 
-  public void updateForms() {
+  void updateForms() {
     forms.merge(toFormStatuses(formCache.getForms()));
     form.refresh();
   }
 
   private static List<FormStatus> toFormStatuses(List<BriefcaseFormDefinition> formDefs) {
     return formDefs.stream()
-        .map(formDefinition -> new FormStatus(EXPORT, formDefinition))
+        .map(FormStatus::new)
         .collect(toList());
   }
 
