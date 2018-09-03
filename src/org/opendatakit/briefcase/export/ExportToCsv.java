@@ -72,7 +72,9 @@ public class ExportToCsv {
     ExportProcessTracker exportTracker = new ExportProcessTracker(formDef);
     exportTracker.start();
 
-    List<Path> submissionFiles = getListOfSubmissionFiles(formDef, configuration.getDateRange());
+    SubmissionExportErrorCallback onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
+
+    List<Path> submissionFiles = getListOfSubmissionFiles(formDef, configuration.getDateRange(), onParsingError);
     exportTracker.trackTotal(submissionFiles.size());
 
     createDirectories(configuration.getExportDir());
@@ -87,8 +89,6 @@ public class ExportToCsv {
         .collect(toList()));
 
     csvs.forEach(Csv::prepareOutputFiles);
-
-    SubmissionExportErrorCallback onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
 
     // Generate csv lines grouped by the fqdn of the model they belong to
     Map<String, CsvLines> csvLinesPerModel = submissionFiles.parallelStream()
