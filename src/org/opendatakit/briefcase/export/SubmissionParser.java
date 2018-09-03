@@ -73,7 +73,7 @@ class SubmissionParser {
    * Each file gets briefly parsed to obtain their submission date and use it as
    * the sorting criteria and for filtering.
    */
-  static List<Path> getListOfSubmissionFiles(FormDefinition formDef, DateRange dateRange) {
+  static List<Path> getListOfSubmissionFiles(FormDefinition formDef, DateRange dateRange, SubmissionExportErrorCallback onParsingError) {
     Path instancesDir = formDef.getFormDir().resolve("instances");
     if (!Files.exists(instancesDir) || !Files.isReadable(instancesDir))
       return Collections.emptyList();
@@ -84,7 +84,7 @@ class SubmissionParser {
         .forEach(instanceDir -> {
           Path submissionFile = instanceDir.resolve("submission.xml");
           try {
-            Optional<OffsetDateTime> submissionDate = readSubmissionDate(submissionFile);
+            Optional<OffsetDateTime> submissionDate = readSubmissionDate(submissionFile, onParsingError);
             paths.add(Pair.of(submissionFile, submissionDate.orElse(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC))));
           } catch (Throwable t) {
             log.error("Can't read submission date", t);
@@ -144,10 +144,10 @@ class SubmissionParser {
     });
   }
 
-  private static Optional<OffsetDateTime> readSubmissionDate(Path path) {
+  private static Optional<OffsetDateTime> readSubmissionDate(Path path, SubmissionExportErrorCallback onParsingError) {
     try (InputStream is = Files.newInputStream(path);
          InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
-      return parseAttribute(isr, "submissionDate")
+      return parseAttribute(path, isr, "submissionDate", onParsingError)
           .map(SubmissionMetaData::regularizeDateTime)
           .map(OffsetDateTime::parse);
     } catch (IOException e) {
@@ -155,27 +155,19 @@ class SubmissionParser {
     }
   }
 
-  private static Optional<String> parseAttribute(Reader ioReader, String attributeName) {
-    Optional<String> result = Optional.empty();
+  private static Optional<String> parseAttribute(Path submission, Reader ioReader, String attributeName, SubmissionExportErrorCallback onParsingError) {
     try {
       XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(ioReader);
-
-      while (reader.hasNext()) {
-        int eventCode = reader.next();
-        if (eventCode == START_ELEMENT) {
-          int c = reader.getAttributeCount();
-          for (int i = 0; !result.isPresent() && i < c; ++i) {
-            if (reader.getAttributeLocalName(i).equals(attributeName)) {
-              result = Optional.of(reader.getAttributeValue(i));
-            }
-          }
-          break;
-        }
-      }
+      while (reader.hasNext())
+        if (reader.next() == START_ELEMENT)
+          for (int i = 0, c = reader.getAttributeCount(); i < c; ++i)
+            if (reader.getAttributeLocalName(i).equals(attributeName))
+              return Optional.of(reader.getAttributeValue(i));
     } catch (XMLStreamException e) {
-      e.printStackTrace();
+      log.error("Can't parse submission", e);
+      onParsingError.accept(submission, "parsing error");
     }
-    return result;
+    return Optional.empty();
   }
 
 
