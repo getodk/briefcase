@@ -33,7 +33,6 @@ import static com.github.dreamhead.moco.Moco.uri;
 import static com.github.dreamhead.moco.Runner.running;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import com.github.dreamhead.moco.HttpServer;
@@ -57,19 +56,19 @@ public class CommonsHttpTest {
   @Test
   public void can_execute_a_GET_request() throws Exception {
     server.request(and(by(uri("/")), by(method(GET)))).response("foo");
-    running(server, () -> {
-      Response<String> output = http.execute(Request.get(BASE_URL));
-      assertThat(output.orElseThrow(BriefcaseException::new), containsString("foo"));
-    });
+    running(server, () -> assertThat(
+        http.execute(Request.get(BASE_URL)).orElseThrow(BriefcaseException::new),
+        containsString("foo")
+    ));
   }
 
   @Test
   public void can_execute_a_HEAD_request() throws Exception {
     server.request(and(by(uri("/")), by(method(HEAD)))).response("foo");
-    running(server, () -> {
-      Response<String> output = http.execute(Request.head(BASE_URL));
-      assertThat(output, instanceOf(Response.Success.class));
-    });
+    running(server, () -> assertThat(
+        http.execute(Request.head(BASE_URL)),
+        instanceOf(Response.Success.class)
+    ));
   }
 
   @Test
@@ -99,8 +98,35 @@ public class CommonsHttpTest {
     )).response("foo");
 
     running(server, () -> assertThat(
-        http.execute(Request.get(BASE_URL, Credentials.from("username", "password"))).isSuccess(),
-        is(true)
+        http.execute(Request.get(BASE_URL, Credentials.from("username", "password"))),
+        instanceOf(Response.Success.class)
+    ));
+  }
+
+  @Test
+  public void can_handle_5xx_errors() throws Exception {
+    server.request(and(by(uri("/")), by(method(GET)))).response(status(500));
+    running(server, () -> assertThat(
+        http.execute(Request.get(BASE_URL)),
+        instanceOf(Response.ServerError.class)
+    ));
+  }
+
+  @Test
+  public void can_handle_4xx_errors() throws Exception {
+    server.request(and(by(uri("/")), by(method(GET)))).response(status(400));
+    running(server, () -> assertThat(
+        http.execute(Request.get(BASE_URL)),
+        instanceOf(Response.ClientError.class)
+    ));
+  }
+
+  @Test
+  public void can_handle_3xx_errors() throws Exception {
+    server.request(and(by(uri("/")), by(method(GET)))).response(status(302));
+    running(server, () -> assertThat(
+        http.execute(Request.get(BASE_URL)),
+        instanceOf(Response.Redirection.class)
     ));
   }
 

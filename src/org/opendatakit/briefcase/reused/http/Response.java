@@ -47,9 +47,13 @@ public interface Response<T> {
   T orElse(T defaultValue);
 
   T orElseThrow(Supplier<? extends RuntimeException> supplier);
+
   boolean isSuccess();
+
   boolean isFailure();
+
   boolean isUnauthorized();
+
   boolean isNotFound();
 
   boolean isRedirection();
@@ -125,7 +129,7 @@ public interface Response<T> {
 
     @Override
     public <U> Response<U> map(Function<T, U> outputMapper) {
-      return new ClientError<>(httpCode, name);
+      return new Redirection<>(httpCode, name);
     }
 
     @Override
@@ -235,7 +239,7 @@ public interface Response<T> {
 
     @Override
     public <U> Response<U> map(Function<T, U> outputMapper) {
-      return new ClientError<>(httpCode, name);
+      return new ServerError<>(httpCode, name);
     }
 
     @Override
