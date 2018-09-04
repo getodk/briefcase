@@ -16,12 +16,13 @@
 
 package org.opendatakit.common.cli;
 
-
 import static java.nio.charset.StandardCharsets.UTF_8;
+
 import static org.junit.Assert.assertThat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
