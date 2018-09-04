@@ -34,9 +34,9 @@ import static com.github.dreamhead.moco.Runner.running;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.reused.http.HttpHelpers.getUrl;
 
 import com.github.dreamhead.moco.HttpServer;
-import java.net.MalformedURLException;
 import java.net.URL;
 import org.junit.Before;
 import org.junit.Test;
@@ -128,13 +128,5 @@ public class CommonsHttpTest {
         http.execute(Request.get(BASE_URL)),
         instanceOf(Response.Redirection.class)
     ));
-  }
-
-  private static URL getUrl(String url) {
-    try {
-      return new URL(url);
-    } catch (MalformedURLException e) {
-      throw new RuntimeException(e);
-    }
   }
 }
