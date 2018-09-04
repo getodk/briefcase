@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.reused.http;
 
 import static java.util.Collections.emptyList;
+
 import static org.opendatakit.briefcase.reused.http.Request.Method.GET;
 import static org.opendatakit.briefcase.reused.http.Request.Method.HEAD;
 
@@ -29,6 +30,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Pair;
 
@@ -60,6 +62,10 @@ public class Request<T> {
 
   public static Request<String> get(URL url, Optional<Credentials> credentials) {
     return new Request<>(GET, url, credentials, Function.identity(), emptyList());
+  }
+
+  public static Request<String> get(URL url, Credentials credentials) {
+    return new Request<>(GET, url, Optional.of(credentials), Function.identity(), emptyList());
   }
 
   public static Request<String> head(URL url) {
