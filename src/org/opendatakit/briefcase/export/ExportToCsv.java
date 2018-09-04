@@ -84,6 +84,12 @@ public class ExportToCsv {
         .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey(), onParsingError))
         .filter(Optional::isPresent)
         .map(Optional::get)
+        .filter(submission -> {
+          boolean valid = submission.isValid();
+          if (!valid)
+            onParsingError.accept(submission.getPath());
+          return valid;
+        })
         // Track the submission
         .peek(s -> exportTracker.incAndReport())
         // Use the mapper of each Csv instance to map the submission into their respective outputs
