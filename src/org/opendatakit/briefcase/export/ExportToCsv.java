@@ -19,6 +19,7 @@ package org.opendatakit.briefcase.export;
 import static java.util.stream.Collectors.groupingByConcurrent;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
+
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_EXPORTED;
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -69,7 +71,7 @@ public class ExportToCsv {
     //  - one for each repeat group
     List<Csv> csvs = new ArrayList<>();
     csvs.add(Csv.main(formDef, configuration));
-    csvs.addAll(formDef.getModel().getRepeatableFields().stream()
+    csvs.addAll(formDef.getRepeatableFields().stream()
         .map(groupModel -> Csv.repeat(formDef, groupModel, configuration))
         .collect(toList()));
 
@@ -84,7 +86,7 @@ public class ExportToCsv {
         .filter(Optional::isPresent)
         .map(Optional::get)
         .filter(submission -> {
-          boolean valid = submission.isValid();
+          boolean valid = submission.isValid(formDef.hasRepeatableFields());
           if (!valid)
             onParsingError.accept(submission.getPath(), "invalid submission");
           return valid;

@@ -17,6 +17,7 @@ package org.opendatakit.briefcase.export;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+
 import static org.opendatakit.briefcase.export.ValidationStatus.NOT_VALIDATED;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.checksumOf;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.stripFileExtension;
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.crypto.Cipher;
+
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -88,18 +90,21 @@ class Submission {
     return path;
   }
 
-  public boolean isValid() {
-    return metaData.getInstanceId().isPresent();
+  public boolean isValid(boolean formHasRepeatableFields) {
+    return !formHasRepeatableFields || metaData.getInstanceId().isPresent();
   }
 
   /**
    * Returns the submission's instance ID.
    *
    * @return a {@link String} with the submission's instance ID
-   * @throws BriefcaseException if there is no instance ID
+   * @throws BriefcaseException if there is no instance ID and the form has repeatable fields
    */
-  String getInstanceId() {
-    return metaData.getInstanceId().orElseThrow(() -> new BriefcaseException("No instance ID found"));
+  String getInstanceId(boolean formHasRepeatableFields) {
+    Optional<String> maybeInstanceId = metaData.getInstanceId();
+    return formHasRepeatableFields
+        ? maybeInstanceId.orElseThrow(() -> new BriefcaseException("The form has repeat groups and this submission has no instance ID"))
+        : maybeInstanceId.orElse("");
   }
 
   /**
@@ -158,7 +163,7 @@ class Submission {
    *
    * @return a new {@link Cipher} instance
    * @throws BriefcaseException if no CipherFactory is present
-   * @see SubmissionParser#decrypt(Submission)
+   * @see SubmissionParser#decrypt(Submission, SubmissionExportErrorCallback)
    */
   Cipher getNextCipher() {
     return cipherFactory.map(CipherFactory::next).orElseThrow(() -> new BriefcaseException("No Cipher configured"));
