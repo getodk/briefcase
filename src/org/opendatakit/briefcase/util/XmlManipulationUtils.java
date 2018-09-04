@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.util;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+
 import static org.opendatakit.common.utils.WebUtils.parseDate;
 
 import java.io.File;
@@ -32,6 +33,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import org.apache.commons.io.FileUtils;
 import org.javarosa.xform.parse.XFormParser;
 import org.kxml2.io.KXmlParser;
@@ -53,6 +55,7 @@ import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+@SuppressWarnings("checkstyle:MissingSwitchDefault")
 class XmlManipulationUtils {
 
   private static final String ODK_ID_PARAMETER_EQUALS = "odkId=";
