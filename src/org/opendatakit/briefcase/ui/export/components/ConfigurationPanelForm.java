@@ -23,8 +23,8 @@ import static org.opendatakit.briefcase.ui.reused.FileChooser.directory;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.file;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
-import static org.opendatakit.briefcase.util.FindDirectoryStructure.isMac;
-import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
+import static org.opendatakit.briefcase.util.Host.isMac;
+import static org.opendatakit.briefcase.util.Host.isWindows;
 
 import com.github.lgooddatepicker.components.DatePicker;
 import java.awt.Color;

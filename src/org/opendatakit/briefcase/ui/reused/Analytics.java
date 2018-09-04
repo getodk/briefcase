@@ -15,8 +15,8 @@
  */
 package org.opendatakit.briefcase.ui.reused;
 
-import static org.opendatakit.briefcase.util.FindDirectoryStructure.isUnix;
-import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
+import static org.opendatakit.briefcase.util.Host.isLinux;
+import static org.opendatakit.briefcase.util.Host.isWindows;
 
 import com.brsanthu.googleanalytics.GoogleAnalytics;
 import com.brsanthu.googleanalytics.request.EventHit;
@@ -33,7 +33,7 @@ public class Analytics {
   private static final String LINUX_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36";
   private static final String WINDOWS_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36";
   private static final String MAC_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/603.3.8 (KHTML, like Gecko)";
-  private static final String USER_AGENT = isWindows() ? WINDOWS_USER_AGENT : isUnix() ? LINUX_USER_AGENT : MAC_USER_AGENT;
+  private static final String USER_AGENT = isWindows() ? WINDOWS_USER_AGENT : isLinux() ? LINUX_USER_AGENT : MAC_USER_AGENT;
 
   private final GoogleAnalytics ga;
   private final String version;

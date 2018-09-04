@@ -19,8 +19,8 @@ import static javax.swing.JFileChooser.DIRECTORIES_ONLY;
 import static javax.swing.JFileChooser.FILES_ONLY;
 import static javax.swing.JFileChooser.OPEN_DIALOG;
 import static org.opendatakit.briefcase.util.FileSystemUtils.FORMS_DIR;
-import static org.opendatakit.briefcase.util.FindDirectoryStructure.isUnix;
-import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
+import static org.opendatakit.briefcase.util.Host.isLinux;
+import static org.opendatakit.briefcase.util.Host.isWindows;
 
 import java.awt.Container;
 import java.awt.Dialog;
@@ -77,7 +77,7 @@ public interface FileChooser {
 
     JFileChooser fileChooser = buildFileChooser(initialLocation, "Choose a directory", DIRECTORIES_ONLY, fileFilter);
 
-    return isUnix() || isWindows()
+    return isLinux() || isWindows()
         ? new SwingFileChooser(parent, fileChooser, filter, filterDescription)
         : new NativeFileChooser(parent, buildFileDialog(parent, initialLocation, fileChooser), fileChooser, filter, filterDescription);
   }
@@ -90,7 +90,7 @@ public interface FileChooser {
     Optional<FileFilter> fileFilter = Optional.ofNullable(filter).map(f -> createFileFilter(f, filterDescription));
     JFileChooser fileChooser = buildFileChooser(initialFile, "Choose a file", FILES_ONLY, fileFilter);
 
-    return isUnix() || isWindows()
+    return isLinux() || isWindows()
         ? new SwingFileChooser(parent, fileChooser, filter, filterDescription)
         : new NativeFileChooser(parent, buildFileDialog(parent, initialFile, fileChooser), fileChooser, filter, filterDescription);
   }
