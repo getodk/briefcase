@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -76,7 +76,7 @@ public class ExportToCsv {
 
     csvs.forEach(Csv::prepareOutputFiles);
 
-    Consumer<Path> onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
+    BiConsumer<Path, String> onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
 
     // Generate csv lines grouped by the fqdn of the model they belong to
     Map<String, CsvLines> csvLinesPerModel = submissionFiles.parallelStream()
@@ -87,7 +87,7 @@ public class ExportToCsv {
         .filter(submission -> {
           boolean valid = submission.isValid();
           if (!valid)
-            onParsingError.accept(submission.getPath());
+            onParsingError.accept(submission.getPath(), "invalid submission");
           return valid;
         })
         // Track the submission
@@ -124,16 +124,16 @@ public class ExportToCsv {
     return exportOutcome;
   }
 
-  private static Consumer<Path> buildParsingErrorCallback(Path errorsDir) {
+  private static BiConsumer<Path, String> buildParsingErrorCallback(Path errorsDir) {
     AtomicInteger errorSeq = new AtomicInteger(1);
     // Remove errors from a previous export attempt
     if (exists(errorsDir))
       deleteRecursive(errorsDir);
-    return path -> {
+    return (path, message) -> {
       if (!exists(errorsDir))
         createDirectories(errorsDir);
       copy(path, errorsDir.resolve("failed_submission_" + errorSeq.getAndIncrement() + ".xml"));
-      log.info("Failed submission XML file moved to the output errors directory at " + errorsDir);
+      log.info("Failed submission XML file ({}) moved to the output errors directory at {}", message, errorsDir);
     };
   }
 

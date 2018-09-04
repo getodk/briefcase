@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -118,9 +118,9 @@ class SubmissionParser {
    *                    {@link Optional#empty()} otherwise
    * @return the {@link Submission} wrapped inside an {@link Optional} when it meets all the
    *     criteria, or {@link Optional#empty()} otherwise
-   * @see #decrypt(Submission, Consumer)
+   * @see #decrypt(Submission, BiConsumer)
    */
-  static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, Consumer<Path> onParsingError) {
+  static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, BiConsumer<Path, String> onParsingError) {
     Path workingDir = isEncrypted ? createTempDirectory("briefcase") : path.getParent();
     return parse(path, onParsingError).flatMap(document -> {
       XmlElement root = XmlElement.of(document);
@@ -183,7 +183,7 @@ class SubmissionParser {
   }
 
 
-  private static Optional<Submission> decrypt(Submission submission, Consumer<Path> onParsingError) {
+  private static Optional<Submission> decrypt(Submission submission, BiConsumer<Path, String> onParsingError) {
     List<Path> mediaPaths = submission.getMediaPaths();
 
     if (mediaPaths.size() != submission.countMedia())
@@ -219,7 +219,7 @@ class SubmissionParser {
     }
   }
 
-  private static Optional<Document> parse(Path submission, Consumer<Path> onParsingError) {
+  private static Optional<Document> parse(Path submission, BiConsumer<Path, String> onParsingError) {
     try (InputStream is = Files.newInputStream(submission);
          InputStreamReader isr = new InputStreamReader(is, "UTF-8")) {
       Document tempDoc = new Document();
@@ -230,7 +230,7 @@ class SubmissionParser {
       return Optional.of(tempDoc);
     } catch (IOException | XmlPullParserException e) {
       log.error("Can't parse submission", e);
-      onParsingError.accept(submission);
+      onParsingError.accept(submission, "parsing error");
       return Optional.empty();
     }
   }
