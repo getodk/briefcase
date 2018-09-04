@@ -153,7 +153,7 @@ public class ExportToCsv {
       if (!exists(errorsDir))
         createDirectories(errorsDir);
       copy(path, errorsDir.resolve("failed_submission_" + errorSeq.getAndIncrement() + ".xml"));
-      log.info("Failed submission XML file ({}) moved to the output errors directory at {}", message, errorsDir);
+      log.warn("A submission has been excluded from the export output due to some problem ({}). If you didn't expect this, please ask for support at https://forum.opendatakit.org/c/support", message);
     };
   }
 
