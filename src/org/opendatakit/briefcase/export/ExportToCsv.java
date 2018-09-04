@@ -40,11 +40,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ExportToCsv {
   private static final Logger log = LoggerFactory.getLogger(ExportToCsv.class);
+
+  /**
+   * @see #export(FormDefinition, ExportConfiguration, Optional)
+   */
+  public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration) {
+    return export(formDef, configuration, Optional.empty());
+  }
+
+  /**
+   * @see #export(FormDefinition, ExportConfiguration, Optional)
+   */
+  public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration, Analytics analytics) {
+    return export(formDef, configuration, Optional.of(analytics));
+  }
 
   /**
    * Export a form's submissions into some CSV files.
@@ -56,7 +71,7 @@ public class ExportToCsv {
    * @return an {@link ExportOutcome} with the export operation's outcome
    * @see ExportConfiguration
    */
-  public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration) {
+  private static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration, Optional<Analytics> analytics) {
     // Create an export tracker object with the total number of submissions we have to export
     ExportProcessTracker exportTracker = new ExportProcessTracker(formDef);
     exportTracker.start();
@@ -87,8 +102,12 @@ public class ExportToCsv {
         .map(Optional::get)
         .filter(submission -> {
           boolean valid = submission.isValid(formDef.hasRepeatableFields());
-          if (!valid)
+          if (!valid) {
             onParsingError.accept(submission.getPath(), "invalid submission");
+            // Not doing the analytics event through the onParsingError callback
+            // because we only want to track invalid submission
+            analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null));
+          }
           return valid;
         })
         // Track the submission
