@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -76,7 +75,7 @@ public class ExportToCsv {
 
     csvs.forEach(Csv::prepareOutputFiles);
 
-    BiConsumer<Path, String> onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
+    SubmissionExportErrorCallback onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
 
     // Generate csv lines grouped by the fqdn of the model they belong to
     Map<String, CsvLines> csvLinesPerModel = submissionFiles.parallelStream()
@@ -124,7 +123,7 @@ public class ExportToCsv {
     return exportOutcome;
   }
 
-  private static BiConsumer<Path, String> buildParsingErrorCallback(Path errorsDir) {
+  private static SubmissionExportErrorCallback buildParsingErrorCallback(Path errorsDir) {
     AtomicInteger errorSeq = new AtomicInteger(1);
     // Remove errors from a previous export attempt
     if (exists(errorsDir))

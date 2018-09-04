@@ -22,14 +22,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
 @SuppressWarnings({"OptionalGetWithoutIsPresent", "checkstyle:ParameterName"})
 public class SubmissionTest {
 
-  private static final BiConsumer<Path, String> NO_OP = (__, ___) -> {
+  private static final SubmissionExportErrorCallback NO_OP = (__, ___) -> {
   };
 
   @Test
