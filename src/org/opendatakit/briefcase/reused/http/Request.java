@@ -77,7 +77,12 @@ public class Request<T> {
   }
 
   public Request<T> resolve(String path) {
-    return new Request<>(method, url(url.toString() + path), credentials, bodyMapper, headers);
+    // Normalize slashes to ensure that the resulting url
+    // has exactly one slash before the input path
+    String newUrl = url.toString()
+        + (!url.toString().endsWith("/") ? "/" : "")
+        + (path.startsWith("/") ? path.substring(1) : path);
+    return new Request<>(method, url(newUrl), credentials, bodyMapper, headers);
   }
 
   private static URL url(String baseUrl) {
@@ -108,6 +113,18 @@ public class Request<T> {
     return method;
   }
 
+  URI asUri() {
+    try {
+      return url.toURI();
+    } catch (URISyntaxException e) {
+      throw new HttpException(e);
+    }
+  }
+
+  enum Method {
+    GET, HEAD
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -127,15 +144,4 @@ public class Request<T> {
     return method + " " + url + " " + credentials.map(Credentials::toString).orElse("(no credentials)");
   }
 
-  URI asUri() {
-    try {
-      return url.toURI();
-    } catch (URISyntaxException e) {
-      throw new HttpException(e);
-    }
-  }
-
-  enum Method {
-    GET, HEAD
-  }
 }
