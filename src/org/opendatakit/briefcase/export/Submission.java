@@ -84,6 +84,10 @@ class Submission {
     return new Submission(path, workingDir, root, metaData, NOT_VALIDATED, cipherFactory, signature);
   }
 
+  public boolean isValid() {
+    return metaData.getInstanceId().isPresent();
+  }
+
   /**
    * Returns the submission's instance ID.
    *
