@@ -92,14 +92,16 @@ public class ExportPanel {
     });
 
     form.onExport(() -> {
-      form.setExporting();
-      List<String> errors = getErrors();
-      if (errors.isEmpty()) {
-        new Thread(this::export).start();
-      } else {
-        analytics.event("Export", "Export", "Configuration errors", null);
-        showErrorDialog(getForm().getContainer(), errors.stream().collect(joining("\n")), "Export errors");
-        form.unsetExporting();
+      if (forms.someSelected() && forms.allSelectedFormsHaveConfiguration()) {
+        form.setExporting();
+        List<String> errors = getErrors();
+        if (errors.isEmpty()) {
+          new Thread(this::export).start();
+        } else {
+          analytics.event("Export", "Export", "Configuration errors", null);
+          showErrorDialog(getForm().getContainer(), errors.stream().collect(joining("\n")), "Export errors");
+          form.unsetExporting();
+        }
       }
     });
 
