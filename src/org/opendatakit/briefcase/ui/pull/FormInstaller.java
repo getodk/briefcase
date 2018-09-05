@@ -22,6 +22,7 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.walk;
+import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 
 import java.nio.file.Path;
 import java.util.Collections;
@@ -91,7 +92,7 @@ public class FormInstaller {
   }
 
   private static Path getTargetFormDir(Path briefcaseDir, FormStatus form) {
-    return briefcaseDir.resolve("forms").resolve(form.getFormName());
+    return briefcaseDir.resolve("forms").resolve(stripIllegalChars(form.getFormName()));
   }
 
   private static Path getSourceFormFile(FormStatus form) {
