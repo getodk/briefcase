@@ -24,6 +24,7 @@ import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
@@ -102,6 +103,14 @@ public class ExportPanel {
           showErrorDialog(getForm().getContainer(), errors.stream().collect(joining("\n")), "Export errors");
           form.unsetExporting();
         }
+      } else {
+        List<String> requirementMessages = new ArrayList<>();
+        requirementMessages.add("You can't start an export process until you solve these issues:");
+        if (!forms.someSelected())
+          requirementMessages.add("- No forms have been selected. Please, select a form.");
+        if (!forms.allSelectedFormsHaveConfiguration())
+          requirementMessages.add("- Some forms are missing their export directory. Please, ensure that there's a default export directory or that you have set one in all custom configurations.");
+        showErrorDialog(form.getContainer(), String.join("\n", requirementMessages), "You can't export yet");
       }
     });
 
