@@ -42,6 +42,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
 import org.bouncycastle.openssl.PEMReader;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -418,10 +419,10 @@ public class ExportConfiguration {
     try (PEMReader rdr = new PEMReader(new BufferedReader(new InputStreamReader(Files.newInputStream(pemFile), "UTF-8")))) {
       Optional<Object> o = Optional.ofNullable(rdr.readObject());
       if (!o.isPresent())
-        return ErrorsOr.errors("The supplied file is not in PEM format.");
+        return ErrorsOr.errors("The supplied file is not in PEM format");
       Optional<PrivateKey> pk = extractPrivateKey(o.get());
       if (!pk.isPresent())
-        return ErrorsOr.errors("The supplied file does not contain a private key.");
+        return ErrorsOr.errors("The supplied file does not contain a private key");
       return ErrorsOr.some(pk.get());
     } catch (IOException e) {
       return ErrorsOr.errors("Briefcase can't read the provided file: " + e.getMessage());
