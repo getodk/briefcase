@@ -3,6 +3,7 @@ package org.opendatakit.briefcase.export;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+
 import static org.opendatakit.briefcase.export.CsvSubmissionMappers.getMainHeader;
 import static org.opendatakit.briefcase.export.CsvSubmissionMappers.getRepeatHeader;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
@@ -11,7 +12,7 @@ import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
-import org.opendatakit.briefcase.reused.BriefcaseException;
+
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 /**
@@ -39,9 +40,9 @@ class Csv {
    * Factory for the main CSV export file of a form.
    */
   static Csv main(FormDefinition formDefinition, ExportConfiguration configuration) {
-    Path output = configuration.getExportDir()
-        .orElseThrow(BriefcaseException::new)
-        .resolve(configuration.getExportFileName().orElse(stripIllegalChars(formDefinition.getFormName()) + ".csv"));
+    Path output = configuration.getExportDir().resolve(
+        configuration.getExportFileName().orElse(stripIllegalChars(formDefinition.getFormName()) + ".csv")
+    );
     return new Csv(
         formDefinition.getModel().fqn(),
         getMainHeader(formDefinition.getModel(), formDefinition.isFileEncryptedForm(), configuration.resolveExplodeChoiceLists()),
@@ -59,9 +60,9 @@ class Csv {
     String repeatFileNameBase = configuration.getExportFileName()
         .map(UncheckedFiles::stripFileExtension)
         .orElse(stripIllegalChars(formDefinition.getFormName()));
-    Path output = configuration.getExportDir()
-        .orElseThrow(BriefcaseException::new)
-        .resolve(repeatFileNameBase + "-" + groupModel.getName() + ".csv");
+    Path output = configuration.getExportDir().resolve(
+        repeatFileNameBase + "-" + groupModel.getName() + ".csv"
+    );
     return new Csv(
         groupModel.fqn(),
         getRepeatHeader(groupModel, configuration.resolveExplodeChoiceLists()),

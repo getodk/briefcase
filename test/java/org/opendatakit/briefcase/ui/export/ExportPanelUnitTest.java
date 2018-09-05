@@ -17,6 +17,7 @@ package org.opendatakit.briefcase.ui.export;
 
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isEmpty;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
 import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePrefix;
@@ -27,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportEvent;
@@ -60,10 +62,9 @@ public class ExportPanelUnitTest {
         FormCache.empty()
     );
 
-    assertThat(ExportConfiguration.load(exportPreferences).getExportDir(), isEmpty());
     exportPanelForm.setDefaultConf(initialDefaultConf.setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri())));
 
-    assertThat(ExportConfiguration.load(exportPreferences).getExportDir(), isPresent());
+    assertThat(ExportConfiguration.load(exportPreferences).getExportDir(), notNullValue());
   }
 
   @Test
@@ -89,12 +90,10 @@ public class ExportPanelUnitTest {
     ExportConfiguration conf = ExportConfiguration.empty();
     conf.setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()));
 
-    assertThat(ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), isEmpty());
-
     forms.putConfiguration(form, conf);
     exportPanelForm.getFormsTable().getViewModel().triggerChange();
 
-    assertThat(ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), isPresent());
+    assertThat(ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), notNullValue());
   }
 
   @Test

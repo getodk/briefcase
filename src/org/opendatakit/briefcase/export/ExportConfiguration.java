@@ -166,9 +166,8 @@ public class ExportConfiguration {
     );
   }
 
-  // TODO Change this to return a Path or throw a BriefcaseException (we always do that on calling sites)
-  public Optional<Path> getExportDir() {
-    return exportDir;
+  public Path getExportDir() {
+    return exportDir.orElseThrow(BriefcaseException::new);
   }
 
   public ExportConfiguration setExportDir(Path path) {
@@ -189,19 +188,9 @@ public class ExportConfiguration {
     return pemFile.isPresent();
   }
 
-  // TODO Remove this (only used in tests)
-  public Optional<LocalDate> getStartDate() {
-    return startDate;
-  }
-
   public ExportConfiguration setStartDate(LocalDate date) {
     this.startDate = Optional.ofNullable(date);
     return this;
-  }
-
-  // TODO Remove this (only used in tests)
-  public Optional<LocalDate> getEndDate() {
-    return endDate;
   }
 
   public ExportConfiguration setEndDate(LocalDate date) {

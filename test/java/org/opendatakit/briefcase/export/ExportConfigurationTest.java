@@ -18,9 +18,11 @@ package org.opendatakit.briefcase.export;
 import static java.nio.file.Files.createTempDirectory;
 import static java.nio.file.Files.write;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.opendatakit.briefcase.export.ExportConfiguration.empty;
@@ -94,14 +96,9 @@ public class ExportConfigurationTest {
 
   @Test
   public void knows_how_to_clone_an_instance() {
-    ExportConfiguration clonedConfig = validConfig.copy();
-    assertThat(clonedConfig == validConfig, is(false));
-    assertThat(clonedConfig, is(validConfig));
-    // Pump the coverage up making the test go through the getters as well
-    assertThat(clonedConfig.getExportDir(), is(validConfig.getExportDir()));
-    assertThat(clonedConfig.getPemFile(), is(validConfig.getPemFile()));
-    assertThat(clonedConfig.getStartDate(), is(validConfig.getStartDate()));
-    assertThat(clonedConfig.getEndDate(), is(validConfig.getEndDate()));
+    ExportConfiguration copiedConf = validConfig.copy();
+    assertThat(copiedConf, not(sameInstance(validConfig)));
+    assertThat(copiedConf, equalTo(validConfig));
   }
 
   @Test
