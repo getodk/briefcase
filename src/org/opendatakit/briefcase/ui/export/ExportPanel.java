@@ -110,6 +110,7 @@ public class ExportPanel {
           requirementMessages.add("- No forms have been selected. Please, select a form.");
         if (!forms.allSelectedFormsHaveConfiguration())
           requirementMessages.add("- Some forms are missing their export directory. Please, ensure that there's a default export directory or that you have set one in all custom configurations.");
+        requirementMessages.addAll(getErrors().stream().map(s -> "- " + s).collect(toList()));
         showErrorDialog(form.getContainer(), String.join("\n", requirementMessages), "You can't export yet");
       }
     });
@@ -124,11 +125,12 @@ public class ExportPanel {
       boolean needsPemFile = ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFileEncryptedForm() || ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFieldEncryptedForm();
 
       if (needsPemFile && !exportConfiguration.isPemFilePresent())
-        return Stream.of("The form " + formStatus.getFormName() + " is encrypted and you haven't set a PEM file");
+        return Stream.of("The form " + formStatus.getFormName() + " is encrypted. Please, configure a PEM file.");
       if (needsPemFile)
-        return ExportConfiguration.readPemFile(exportConfiguration.getPemFile()
-            .orElseThrow(() -> new RuntimeException("PEM file not present"))
-        ).getErrors().stream();
+        return ExportConfiguration
+            .readPemFile(exportConfiguration.getPemFile().orElseThrow(BriefcaseException::new))
+            .getErrors().stream()
+            .map(s -> "There is a problem with the configured PEM file for the form " + formStatus.getFormName() + ": " + s + ". Please, review configurations.");
       return Stream.empty();
     }).collect(toList());
   }
