@@ -78,6 +78,13 @@ public class ExportForms {
                 .orElseThrow(() -> new RuntimeException("Null value saved for " + passwordKey)).toCharArray()
         ));
 
+      if (appPreferences.hasKey(urlKey) && !appPreferences.hasKey(usernameKey) && !appPreferences.hasKey(passwordKey))
+        transferSettings.put(formId, new ServerConnectionInfo(
+            appPreferences.nullSafeGet(urlKey)
+                .orElseThrow(() -> new RuntimeException("Null value saved for " + urlKey)),
+            null, null
+        ));
+
     });
     return new ExportForms(
         forms,
