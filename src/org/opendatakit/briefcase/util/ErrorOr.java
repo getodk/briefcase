@@ -15,38 +15,38 @@
  */
 package org.opendatakit.briefcase.util;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 // TODO Replace this with an Either<List<String>, T>
-public class ErrorsOr<T> {
-  private final Optional<T> t;
-  private final List<String> errors;
+public class ErrorOr<T> {
+  private final Optional<T> value;
+  private final Optional<String> error;
 
-  public ErrorsOr(Optional<T> t, List<String> errors) {
-    this.t = t;
-    this.errors = errors;
+  private ErrorOr(Optional<T> value, Optional<String> error) {
+    this.value = value;
+    this.error = error;
   }
 
-  public static <U> ErrorsOr<U> some(U u) {
-    return new ErrorsOr<>(Optional.of(u), Collections.emptyList());
+  public static <U> ErrorOr<U> some(U value) {
+    return new ErrorOr<>(Optional.of(value), Optional.empty());
   }
 
-  public static <U> ErrorsOr<U> errors(String... errors) {
-    return new ErrorsOr<>(Optional.empty(), Arrays.asList(errors));
+  public static <U> ErrorOr<U> error(String error) {
+    return new ErrorOr<>(Optional.empty(), Optional.of(error));
   }
 
-  public List<String> getErrors() {
-    return errors;
+  public static <U> ErrorOr<U> from(Optional<U> maybeValue, String errorIfEmpty) {
+    return maybeValue
+        .map(ErrorOr::some)
+        .orElseGet(() -> error(errorIfEmpty));
   }
 
-  public T get() {
-    return t.get();
+  public void ifError(Consumer<String> consumer) {
+    error.ifPresent(consumer);
   }
 
   public Optional<T> asOptional() {
-    return t;
+    return value;
   }
 }

@@ -48,7 +48,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OverridableBoolean;
 import org.opendatakit.briefcase.reused.TriStateBoolean;
-import org.opendatakit.briefcase.util.ErrorsOr;
+import org.opendatakit.briefcase.util.ErrorOr;
 
 public class ExportConfiguration {
   private static final String EXPORT_DIR = "exportDir";
@@ -161,6 +161,7 @@ public class ExportConfiguration {
     );
   }
 
+  // TODO Change this to return a Path or throw a BriefcaseException (we always do that on calling sites)
   public Optional<Path> getExportDir() {
     return exportDir;
   }
@@ -170,8 +171,8 @@ public class ExportConfiguration {
     return this;
   }
 
-  public Optional<Path> getPemFile() {
-    return pemFile;
+  public Path getPemFile() {
+    return pemFile.orElseThrow(BriefcaseException::new);
   }
 
   public ExportConfiguration setPemFile(Path path) {
@@ -183,6 +184,7 @@ public class ExportConfiguration {
     return pemFile.isPresent();
   }
 
+  // TODO Remove this (only used in tests)
   public Optional<LocalDate> getStartDate() {
     return startDate;
   }
@@ -192,6 +194,7 @@ public class ExportConfiguration {
     return this;
   }
 
+  // TODO Remove this (only used in tests)
   public Optional<LocalDate> getEndDate() {
     return endDate;
   }
@@ -415,17 +418,15 @@ public class ExportConfiguration {
     return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, overwriteFiles, exportMedia, explodeChoiceLists);
   }
 
-  public static ErrorsOr<PrivateKey> readPemFile(Path pemFile) {
+  public static ErrorOr<PrivateKey> readPemFile(Path pemFile) {
     try (PEMReader rdr = new PEMReader(new BufferedReader(new InputStreamReader(Files.newInputStream(pemFile), "UTF-8")))) {
       Optional<Object> o = Optional.ofNullable(rdr.readObject());
       if (!o.isPresent())
-        return ErrorsOr.errors("The supplied file is not in PEM format");
+        return ErrorOr.error("The supplied file is not in PEM format");
       Optional<PrivateKey> pk = extractPrivateKey(o.get());
-      if (!pk.isPresent())
-        return ErrorsOr.errors("The supplied file does not contain a private key");
-      return ErrorsOr.some(pk.get());
+      return ErrorOr.from(pk, "The supplied file does not contain a private key");
     } catch (IOException e) {
-      return ErrorsOr.errors("Briefcase can't read the provided file: " + e.getMessage());
+      return ErrorOr.error("Briefcase can't read the provided file: " + e.getMessage());
     }
   }
 
@@ -438,7 +439,7 @@ public class ExportConfiguration {
   }
 
   public Optional<PrivateKey> getPrivateKey() {
-    return pemFile.map(ExportConfiguration::readPemFile).flatMap(ErrorsOr::asOptional);
+    return pemFile.map(ExportConfiguration::readPemFile).flatMap(ErrorOr::asOptional);
   }
 
   public DateRange getDateRange() {

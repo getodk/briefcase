@@ -17,21 +17,19 @@
 package org.opendatakit.briefcase.export;
 
 import java.nio.file.Path;
-import java.security.PrivateKey;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 public class ExportToCsvEncryptionTest {
   private ExportToCsvScenario scenario;
-  private PrivateKey privateKey;
   private Path pemFile;
 
   @Before
   public void setUp() {
     scenario = ExportToCsvScenario.setUp("encrypted-form");
     pemFile = ExportToCsvScenario.getPath("encrypted-form-key.pem");
-    privateKey = ExportConfiguration.readPemFile(pemFile).get();
   }
 
   @After
