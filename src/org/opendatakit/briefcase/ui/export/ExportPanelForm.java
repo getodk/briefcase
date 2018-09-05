@@ -29,6 +29,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
+
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -108,14 +109,6 @@ public class ExportPanelForm {
 
   void onChange(Runnable callback) {
     formsTable.onChange(callback);
-  }
-
-  void enableExport() {
-    exportButton.setEnabled(true);
-  }
-
-  void disableExport() {
-    exportButton.setEnabled(false);
   }
 
   void toggleClearAll() {
@@ -209,7 +202,6 @@ public class ExportPanelForm {
     exportProgressBar.setVisible(false);
     rightActions.add(exportProgressBar);
     exportButton = new JButton();
-    exportButton.setEnabled(false);
     exportButton.setName("export");
     exportButton.setText("Export");
     rightActions.add(exportButton);

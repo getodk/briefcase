@@ -75,13 +75,11 @@ public class ExportPanel {
       forms.updateDefaultConfiguration(conf);
       preferences.removeAll(ExportConfiguration.keys());
       preferences.putAll(conf.asMap());
-      updateExportButton();
     });
 
     form.onDefaultConfReset(() -> {
       forms.updateDefaultConfiguration(ExportConfiguration.empty());
       preferences.removeAll(ExportConfiguration.keys());
-      updateExportButton();
     });
 
     forms.onSuccessfulExport((String formId, LocalDateTime exportDateTime) ->
@@ -90,7 +88,6 @@ public class ExportPanel {
 
     form.onChange(() -> {
       updateCustomConfPreferences();
-      updateExportButton();
       updateSelectButtons();
     });
 
@@ -106,7 +103,6 @@ public class ExportPanel {
       }
     });
 
-    updateExportButton();
     updateSelectButtons();
   }
 
@@ -136,13 +132,6 @@ public class ExportPanel {
     forms.getCustomConfigurations().forEach((formId, configuration) ->
         preferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
     );
-  }
-
-  private void updateExportButton() {
-    if (forms.someSelected() && forms.allSelectedFormsHaveConfiguration())
-      form.enableExport();
-    else
-      form.disableExport();
   }
 
   private void updateSelectButtons() {
