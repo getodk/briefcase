@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+
 import org.javarosa.core.model.FormDef;
 import org.javarosa.core.model.IDataReference;
 import org.javarosa.core.model.IFormElement;
@@ -52,6 +53,7 @@ public class FormDefinition {
   private final Path formFile;
   private final boolean isEncrypted;
   private final Model model;
+  private final List<Model> repeatFields;
 
   private FormDefinition(String id, Path formFile, String name, boolean isEncrypted, Model model) {
     this.id = id;
@@ -59,6 +61,7 @@ public class FormDefinition {
     this.formFile = formFile;
     this.isEncrypted = isEncrypted;
     this.model = model;
+    this.repeatFields = model.getRepeatableFields();
   }
 
   /**
@@ -111,18 +114,18 @@ public class FormDefinition {
 
   private static Map<String, QuestionDef> getFormControls(FormDef formDef) {
     return formDef.getChildren()
-            .stream()
-            .flatMap(FormDefinition::flatten)
-            .filter(e -> e instanceof QuestionDef)
-            .map(e -> {
-              QuestionDef control = (QuestionDef) e;
-              if (control.getDynamicChoices() != null) {
-                formDef.initialize(false, new InstanceInitializationFactory());
-                formDef.populateDynamicChoices(control.getDynamicChoices(), (TreeReference) control.getBind().getReference());
-              }
-              return control;
-            })
-            .collect(toMap(FormDefinition::controlFqn, e -> e));
+        .stream()
+        .flatMap(FormDefinition::flatten)
+        .filter(e -> e instanceof QuestionDef)
+        .map(e -> {
+          QuestionDef control = (QuestionDef) e;
+          if (control.getDynamicChoices() != null) {
+            formDef.initialize(false, new InstanceInitializationFactory());
+            formDef.populateDynamicChoices(control.getDynamicChoices(), (TreeReference) control.getBind().getReference());
+          }
+          return control;
+        })
+        .collect(toMap(FormDefinition::controlFqn, e -> e));
   }
 
   private static String controlFqn(QuestionDef e) {
@@ -194,5 +197,19 @@ public class FormDefinition {
    */
   public String getFormId() {
     return id;
+  }
+
+  /**
+   * Returns the list of repeat group fields
+   */
+  List<Model> getRepeatableFields() {
+    return repeatFields;
+  }
+
+  /**
+   * Returns true if the form definition includes repeat groups, false otherwise.
+   */
+  boolean hasRepeatableFields() {
+    return !repeatFields.isEmpty();
   }
 }
