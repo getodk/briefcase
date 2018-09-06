@@ -16,7 +16,6 @@
 package org.opendatakit.briefcase.ui.export;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
@@ -24,9 +23,9 @@ import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Stream;
 
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
@@ -75,13 +74,11 @@ public class ExportPanel {
       forms.updateDefaultConfiguration(conf);
       preferences.removeAll(ExportConfiguration.keys());
       preferences.putAll(conf.asMap());
-      updateExportButton();
     });
 
     form.onDefaultConfReset(() -> {
       forms.updateDefaultConfiguration(ExportConfiguration.empty());
       preferences.removeAll(ExportConfiguration.keys());
-      updateExportButton();
     });
 
     forms.onSuccessfulExport((String formId, LocalDateTime exportDateTime) ->
@@ -90,40 +87,49 @@ public class ExportPanel {
 
     form.onChange(() -> {
       updateCustomConfPreferences();
-      updateExportButton();
       updateSelectButtons();
     });
 
     form.onExport(() -> {
-      form.setExporting();
       List<String> errors = getErrors();
       if (errors.isEmpty()) {
+        form.setExporting();
         new Thread(this::export).start();
-      } else {
-        analytics.event("Export", "Export", "Configuration errors", null);
-        showErrorDialog(getForm().getContainer(), errors.stream().collect(joining("\n")), "Export errors");
-        form.unsetExporting();
-      }
+      } else
+        showErrorDialog(
+            form.getContainer(),
+            "" +
+                "You can't start an export process until you solve these issues:\n" +
+                String.join("\n", errors),
+            "You can't export yet"
+        );
     });
 
-    updateExportButton();
     updateSelectButtons();
   }
 
   private List<String> getErrors() {
-    // Segregating this validation from the export process to move it to ExportConfiguration on the future
-    return forms.getSelectedForms().stream().flatMap(formStatus -> {
-      ExportConfiguration exportConfiguration = forms.getConfiguration(formStatus.getFormDefinition().getFormId());
+    List<String> errors = new ArrayList<>();
+
+    if (!forms.someSelected())
+      errors.add("- No forms have been selected. Please, select a form.");
+
+    if (!forms.allSelectedFormsHaveConfiguration())
+      errors.add("- Some forms are missing their export directory. Please, ensure that there's a default export directory or that you have set one in all custom configurations.");
+
+    for (FormStatus formStatus : forms.getSelectedForms()) {
+      ExportConfiguration conf = forms.getConfiguration(formStatus.getFormDefinition().getFormId());
       boolean needsPemFile = ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFileEncryptedForm() || ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFieldEncryptedForm();
 
-      if (needsPemFile && !exportConfiguration.isPemFilePresent())
-        return Stream.of("The form " + formStatus.getFormName() + " is encrypted and you haven't set a PEM file");
-      if (needsPemFile)
-        return ExportConfiguration.readPemFile(exportConfiguration.getPemFile()
-            .orElseThrow(() -> new RuntimeException("PEM file not present"))
-        ).getErrors().stream();
-      return Stream.empty();
-    }).collect(toList());
+      if (needsPemFile && !conf.isPemFilePresent())
+        errors.add("- The form " + formStatus.getFormName() + " is encrypted. Please, configure a PEM file.");
+
+      if (needsPemFile && conf.isPemFilePresent())
+        ExportConfiguration
+            .readPemFile(conf.getPemFile())
+            .ifError(error -> errors.add("- Can't read the PEM file for form " + formStatus.getFormName() + ": " + error + ". Please, review configurations."));
+    }
+    return errors;
   }
 
   private void updateCustomConfPreferences() {
@@ -136,13 +142,6 @@ public class ExportPanel {
     forms.getCustomConfigurations().forEach((formId, configuration) ->
         preferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
     );
-  }
-
-  private void updateExportButton() {
-    if (forms.someSelected() && forms.allSelectedFormsHaveConfiguration())
-      form.enableExport();
-    else
-      form.disableExport();
   }
 
   private void updateSelectButtons() {

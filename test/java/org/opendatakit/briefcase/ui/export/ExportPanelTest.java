@@ -16,7 +16,6 @@
 package org.opendatakit.briefcase.ui.export;
 
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.enabled;
 
@@ -33,8 +32,8 @@ public class ExportPanelTest extends AssertJSwingJUnitTestCase {
   }
 
   @Test
-  public void export_button_should_be_disabled_by_default() {
-    assertThat(page.exportButton(), is(not(enabled())));
+  public void export_button_should_be_enabled_by_default() {
+    assertThat(page.exportButton(), is(enabled()));
   }
 
 }

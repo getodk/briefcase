@@ -19,21 +19,19 @@ package org.opendatakit.briefcase.export;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.delete;
 
 import java.nio.file.Path;
-import java.security.PrivateKey;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 public class ExportToCsvEncryptedMediaTest {
   private ExportToCsvScenario scenario;
-  private PrivateKey privateKey;
   private Path pemFile;
 
   @Before
   public void setUp() {
     scenario = ExportToCsvScenario.setUp("encrypted-form-media");
     pemFile = ExportToCsvScenario.getPath("encrypted-form-media-key.pem");
-    privateKey = ExportConfiguration.readPemFile(pemFile).get();
   }
 
   @After

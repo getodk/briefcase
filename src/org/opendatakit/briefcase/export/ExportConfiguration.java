@@ -15,6 +15,11 @@
  */
 package org.opendatakit.briefcase.export;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.exists;
+import static java.nio.file.Files.isDirectory;
+import static java.nio.file.Files.newInputStream;
+
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_DIRECTORY;
@@ -25,8 +30,8 @@ import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
@@ -42,12 +47,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
 import org.bouncycastle.openssl.PEMReader;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OverridableBoolean;
 import org.opendatakit.briefcase.reused.TriStateBoolean;
-import org.opendatakit.briefcase.util.ErrorsOr;
+import org.opendatakit.briefcase.util.ErrorOr;
 
 public class ExportConfiguration {
   private static final String EXPORT_DIR = "exportDir";
@@ -160,8 +166,8 @@ public class ExportConfiguration {
     );
   }
 
-  public Optional<Path> getExportDir() {
-    return exportDir;
+  public Path getExportDir() {
+    return exportDir.orElseThrow(BriefcaseException::new);
   }
 
   public ExportConfiguration setExportDir(Path path) {
@@ -169,8 +175,8 @@ public class ExportConfiguration {
     return this;
   }
 
-  public Optional<Path> getPemFile() {
-    return pemFile;
+  public Path getPemFile() {
+    return pemFile.orElseThrow(BriefcaseException::new);
   }
 
   public ExportConfiguration setPemFile(Path path) {
@@ -182,17 +188,9 @@ public class ExportConfiguration {
     return pemFile.isPresent();
   }
 
-  public Optional<LocalDate> getStartDate() {
-    return startDate;
-  }
-
   public ExportConfiguration setStartDate(LocalDate date) {
     this.startDate = Optional.ofNullable(date);
     return this;
-  }
-
-  public Optional<LocalDate> getEndDate() {
-    return endDate;
   }
 
   public ExportConfiguration setEndDate(LocalDate date) {
@@ -284,10 +282,10 @@ public class ExportConfiguration {
     if (!exportDir.isPresent())
       errors.add("Export directory was not specified.");
 
-    if (!exportDir.filter(path -> Files.exists(path)).isPresent())
+    if (!exportDir.filter(path -> exists(path)).isPresent())
       errors.add(DIR_NOT_EXIST);
 
-    if (!exportDir.filter(path -> Files.isDirectory(path)).isPresent())
+    if (!exportDir.filter(path -> isDirectory(path)).isPresent())
       errors.add(DIR_NOT_DIRECTORY);
 
     if (!exportDir.filter(path -> !isUnderODKFolder(path.toFile())).isPresent())
@@ -308,10 +306,10 @@ public class ExportConfiguration {
   private List<String> getCustomConfErrors() {
     List<String> errors = new ArrayList<>();
 
-    if (exportDir.isPresent() && !exportDir.filter(path -> Files.exists(path)).isPresent())
+    if (exportDir.isPresent() && !exportDir.filter(path -> exists(path)).isPresent())
       errors.add(DIR_NOT_EXIST);
 
-    if (exportDir.isPresent() && !exportDir.filter(path -> Files.isDirectory(path)).isPresent())
+    if (exportDir.isPresent() && !exportDir.filter(path -> isDirectory(path)).isPresent())
       errors.add(DIR_NOT_DIRECTORY);
 
     if (exportDir.isPresent() && !exportDir.filter(path -> !isUnderODKFolder(path.toFile())).isPresent())
@@ -414,30 +412,30 @@ public class ExportConfiguration {
     return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, overwriteFiles, exportMedia, explodeChoiceLists);
   }
 
-  public static ErrorsOr<PrivateKey> readPemFile(Path pemFile) {
-    try (PEMReader rdr = new PEMReader(new BufferedReader(new InputStreamReader(Files.newInputStream(pemFile), "UTF-8")))) {
-      Optional<Object> o = Optional.ofNullable(rdr.readObject());
-      if (!o.isPresent())
-        return ErrorsOr.errors("The supplied file is not in PEM format.");
-      Optional<PrivateKey> pk = extractPrivateKey(o.get());
-      if (!pk.isPresent())
-        return ErrorsOr.errors("The supplied file does not contain a private key.");
-      return ErrorsOr.some(pk.get());
+  public static ErrorOr<PrivateKey> readPemFile(Path pemFile) {
+    try (InputStream is = newInputStream(pemFile);
+         InputStreamReader isr = new InputStreamReader(is, UTF_8);
+         BufferedReader br = new BufferedReader(isr);
+         PEMReader pr = new PEMReader(br)
+    ) {
+      Object o = pr.readObject();
+      if (o == null)
+        return ErrorOr.error("The supplied file is not in PEM format");
+
+      if (o instanceof KeyPair)
+        return ErrorOr.some(((KeyPair) o).getPrivate());
+
+      if (o instanceof PrivateKey)
+        return ErrorOr.some(((PrivateKey) o));
+
+      return ErrorOr.error("The supplied file does not contain a private key");
     } catch (IOException e) {
-      return ErrorsOr.errors("Briefcase can't read the provided file: " + e.getMessage());
+      return ErrorOr.error("Briefcase can't read the provided file: " + e.getMessage());
     }
   }
 
-  private static Optional<PrivateKey> extractPrivateKey(Object o) {
-    if (o instanceof KeyPair)
-      return Optional.of(((KeyPair) o).getPrivate());
-    if (o instanceof PrivateKey)
-      return Optional.of((PrivateKey) o);
-    return Optional.empty();
-  }
-
   public Optional<PrivateKey> getPrivateKey() {
-    return pemFile.map(ExportConfiguration::readPemFile).flatMap(ErrorsOr::asOptional);
+    return pemFile.map(ExportConfiguration::readPemFile).flatMap(ErrorOr::asOptional);
   }
 
   public DateRange getDateRange() {

@@ -39,7 +39,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +78,7 @@ public class ExportToCsv {
     List<Path> submissionFiles = getListOfSubmissionFiles(formDef, configuration.getDateRange());
     exportTracker.trackTotal(submissionFiles.size());
 
-    createDirectories(configuration.getExportDir().orElseThrow(BriefcaseException::new));
+    createDirectories(configuration.getExportDir());
 
     // Prepare the list of csv files we will export:
     //  - one for the main instance

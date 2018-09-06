@@ -15,9 +15,9 @@
  */
 package org.opendatakit.briefcase.ui.export.components;
 
-import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.matchers.GenericUIMatchers.containsText;
@@ -29,6 +29,7 @@ import static org.opendatakit.briefcase.reused.TriStateBoolean.TRUE;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
@@ -110,10 +111,10 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     expectedConfiguration.pullBefore.set(true);
     component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), expectedConfiguration, true, true);
     component.show();
-    assertThat(component.exportDirField(), containsText(expectedConfiguration.getExportDir().get().toString()));
-    assertThat(component.pemFileField(), containsText(expectedConfiguration.getPemFile().get().toString()));
-    assertThat(component.startDateField().getDate(), is(expectedConfiguration.getStartDate().get()));
-    assertThat(component.endDateField().getDate(), is(expectedConfiguration.getEndDate().get()));
+    assertThat(component.exportDirField(), containsText(expectedConfiguration.getExportDir().toString()));
+    assertThat(component.pemFileField(), containsText(expectedConfiguration.getPemFile().toString()));
+    assertThat(component.startDateField().getDate(), notNullValue());
+    assertThat(component.endDateField().getDate(), notNullValue());
     assertThat(component.pullBeforeField(), is(selected()));
   }
 
@@ -153,10 +154,10 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     component.setSomeEndDate();
     component.setPullBefore(true);
     ExportConfiguration conf = component.getConfiguration();
-    assertThat(conf.getExportDir(), isPresent());
-    assertThat(conf.getPemFile(), isPresent());
-    assertThat(conf.getStartDate(), isPresent());
-    assertThat(conf.getEndDate(), isPresent());
+    assertThat(conf.getExportDir(), notNullValue());
+    assertThat(conf.getPemFile(), notNullValue());
+    assertThat(conf.mapStartDate(__ -> true).orElse(false), is(true)); // Kind of indirect check, but this field is not accessible
+    assertThat(conf.mapEndDate(__ -> true).orElse(false), is(true)); // Kind of indirect check, but this field is not accessible
     assertThat(conf.pullBefore.isEmpty(), is(false));
   }
 
@@ -186,10 +187,10 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     expectedConfiguration.pullBefore.overrideWith(TRUE);
     component = ConfigurationPanelPageObject.setUpOverridePanel(robot(), expectedConfiguration, true, true);
     component.show();
-    assertThat(component.exportDirField(), containsText(expectedConfiguration.getExportDir().get().toString()));
-    assertThat(component.pemFileField(), containsText(expectedConfiguration.getPemFile().get().toString()));
-    assertThat(component.startDateField().getDate(), is(expectedConfiguration.getStartDate().get()));
-    assertThat(component.endDateField().getDate(), is(expectedConfiguration.getEndDate().get()));
+    assertThat(component.exportDirField(), containsText(expectedConfiguration.getExportDir().toString()));
+    assertThat(component.pemFileField(), containsText(expectedConfiguration.getPemFile().toString()));
+    assertThat(component.startDateField().getDate(), notNullValue());
+    assertThat(component.endDateField().getDate(), notNullValue());
     assertThat(component.pullBeforeOverrideField().get(), is(TRUE));
   }
 
@@ -233,10 +234,10 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     component.setSomeEndDate();
     component.setPullBeforeOverride(TRUE);
     ExportConfiguration conf = component.getConfiguration();
-    assertThat(conf.getExportDir(), isPresent());
-    assertThat(conf.getPemFile(), isPresent());
-    assertThat(conf.getStartDate(), isPresent());
-    assertThat(conf.getEndDate(), isPresent());
+    assertThat(conf.getExportDir(), notNullValue());
+    assertThat(conf.getPemFile(), notNullValue());
+    assertThat(conf.mapStartDate(__ -> true).orElse(false), is(true)); // Kind of indirect check, but this field is not accessible
+    assertThat(conf.mapEndDate(__ -> true).orElse(false), is(true)); // Kind of indirect check, but this field is not accessible
     assertThat(conf.pullBefore.isEmpty(), is(false));
   }
 
