@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.ui.export;
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
 import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
+
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.export.ExportConfiguration;
@@ -198,7 +200,7 @@ public class ExportPanel {
                   false
               ));
             BriefcaseFormDefinition formDefinition = (BriefcaseFormDefinition) form.getFormDefinition();
-            ExportToCsv.export(FormDefinition.from(formDefinition), configuration);
+            ExportToCsv.export(FormDefinition.from(formDefinition), configuration, analytics);
           });
     } catch (Throwable t) {
       log.error("Error while exporting forms", t);

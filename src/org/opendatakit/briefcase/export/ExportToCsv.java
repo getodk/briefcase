@@ -19,6 +19,7 @@ package org.opendatakit.briefcase.export;
 import static java.util.stream.Collectors.groupingByConcurrent;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
+
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_EXPORTED;
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
@@ -35,15 +36,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
+
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ExportToCsv {
   private static final Logger log = LoggerFactory.getLogger(ExportToCsv.class);
+
+  /**
+   * @see #export(FormDefinition, ExportConfiguration, Optional)
+   */
+  public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration) {
+    return export(formDef, configuration, Optional.empty());
+  }
+
+  /**
+   * @see #export(FormDefinition, ExportConfiguration, Optional)
+   */
+  public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration, Analytics analytics) {
+    return export(formDef, configuration, Optional.of(analytics));
+  }
 
   /**
    * Export a form's submissions into some CSV files.
@@ -55,7 +71,7 @@ public class ExportToCsv {
    * @return an {@link ExportOutcome} with the export operation's outcome
    * @see ExportConfiguration
    */
-  public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration) {
+  private static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration, Optional<Analytics> analytics) {
     // Create an export tracker object with the total number of submissions we have to export
     ExportProcessTracker exportTracker = new ExportProcessTracker(formDef);
     exportTracker.start();
@@ -70,13 +86,13 @@ public class ExportToCsv {
     //  - one for each repeat group
     List<Csv> csvs = new ArrayList<>();
     csvs.add(Csv.main(formDef, configuration));
-    csvs.addAll(formDef.getModel().getRepeatableFields().stream()
+    csvs.addAll(formDef.getRepeatableFields().stream()
         .map(groupModel -> Csv.repeat(formDef, groupModel, configuration))
         .collect(toList()));
 
     csvs.forEach(Csv::prepareOutputFiles);
 
-    Consumer<Path> onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
+    SubmissionExportErrorCallback onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
 
     // Generate csv lines grouped by the fqdn of the model they belong to
     Map<String, CsvLines> csvLinesPerModel = submissionFiles.parallelStream()
@@ -84,6 +100,16 @@ public class ExportToCsv {
         .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey(), onParsingError))
         .filter(Optional::isPresent)
         .map(Optional::get)
+        .filter(submission -> {
+          boolean valid = submission.isValid(formDef.hasRepeatableFields());
+          if (!valid) {
+            onParsingError.accept(submission.getPath(), "invalid submission");
+            // Not doing the analytics event through the onParsingError callback
+            // because we only want to track invalid submission
+            analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null));
+          }
+          return valid;
+        })
         // Track the submission
         .peek(s -> exportTracker.incAndReport())
         // Use the mapper of each Csv instance to map the submission into their respective outputs
@@ -118,16 +144,16 @@ public class ExportToCsv {
     return exportOutcome;
   }
 
-  private static Consumer<Path> buildParsingErrorCallback(Path errorsDir) {
+  private static SubmissionExportErrorCallback buildParsingErrorCallback(Path errorsDir) {
     AtomicInteger errorSeq = new AtomicInteger(1);
     // Remove errors from a previous export attempt
     if (exists(errorsDir))
       deleteRecursive(errorsDir);
-    return path -> {
+    return (path, message) -> {
       if (!exists(errorsDir))
         createDirectories(errorsDir);
       copy(path, errorsDir.resolve("failed_submission_" + errorSeq.getAndIncrement() + ".xml"));
-      log.info("Failed submission XML file moved to the output errors directory at " + errorsDir);
+      log.warn("A submission has been excluded from the export output due to some problem ({}). If you didn't expect this, please ask for support at https://forum.opendatakit.org/c/support", message);
     };
   }
 

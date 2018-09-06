@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -118,11 +117,11 @@ class SubmissionParser {
    *                    {@link Optional#empty()} otherwise
    * @return the {@link Submission} wrapped inside an {@link Optional} when it meets all the
    *     criteria, or {@link Optional#empty()} otherwise
-   * @see #decrypt(Submission, Consumer)
+   * @see #decrypt(Submission, SubmissionExportErrorCallback)
    */
-  static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, Consumer<Path> onParsingError) {
+  static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, SubmissionExportErrorCallback onError) {
     Path workingDir = isEncrypted ? createTempDirectory("briefcase") : path.getParent();
-    return parse(path, onParsingError).flatMap(document -> {
+    return parse(path, onError).flatMap(document -> {
       XmlElement root = XmlElement.of(document);
       SubmissionMetaData metaData = new SubmissionMetaData(root);
 
@@ -142,7 +141,7 @@ class SubmissionParser {
       Submission submission = Submission.notValidated(path, workingDir, root, metaData, cipherFactory, signature);
       return isEncrypted
           // If it's encrypted, validate the parsed contents with the attached signature
-          ? decrypt(submission, onParsingError).map(s -> s.copy(ValidationStatus.of(isValid(submission, s))))
+          ? decrypt(submission, onError).map(s -> s.copy(ValidationStatus.of(isValid(submission, s))))
           // Return the original submission otherwise
           : Optional.of(submission);
     });
@@ -183,7 +182,7 @@ class SubmissionParser {
   }
 
 
-  private static Optional<Submission> decrypt(Submission submission, Consumer<Path> onParsingError) {
+  private static Optional<Submission> decrypt(Submission submission, SubmissionExportErrorCallback onError) {
     List<Path> mediaPaths = submission.getMediaPaths();
 
     if (mediaPaths.size() != submission.countMedia())
@@ -197,7 +196,7 @@ class SubmissionParser {
     Path decryptedSubmission = decryptFile(submission.getEncryptedFilePath(), submission.getWorkingDir(), submission.getNextCipher());
 
     // Parse the document and, if everything goes well, return a decripted copy of the submission
-    return parse(decryptedSubmission, onParsingError).map(document -> submission.copy(decryptedSubmission, document));
+    return parse(decryptedSubmission, onError).map(document -> submission.copy(decryptedSubmission, document));
   }
 
   private static Path decryptFile(Path encFile, Path workingDir, Cipher cipher) {
@@ -219,7 +218,7 @@ class SubmissionParser {
     }
   }
 
-  private static Optional<Document> parse(Path submission, Consumer<Path> onParsingError) {
+  private static Optional<Document> parse(Path submission, SubmissionExportErrorCallback onError) {
     try (InputStream is = Files.newInputStream(submission);
          InputStreamReader isr = new InputStreamReader(is, "UTF-8")) {
       Document tempDoc = new Document();
@@ -230,7 +229,7 @@ class SubmissionParser {
       return Optional.of(tempDoc);
     } catch (IOException | XmlPullParserException e) {
       log.error("Can't parse submission", e);
-      onParsingError.accept(submission);
+      onError.accept(submission, "parsing error");
       return Optional.empty();
     }
   }
