@@ -132,6 +132,7 @@ public class FileSystemUtils {
     return new File(briefcaseFolder, FORMS_DIR);
   }
 
+  // TODO Ensure this is OK, as opposed to using stripIllegalChars()
   public static String asFilesystemSafeName(String formName) {
     return formName.replaceAll("[/\\\\:]", "").trim();
   }

@@ -27,6 +27,7 @@ import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_EXIST;
 import static org.opendatakit.briefcase.ui.MessageStrings.INVALID_DATE_RANGE_MESSAGE;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
+import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -452,6 +453,6 @@ public class ExportConfiguration {
   }
 
   public Path getErrorsDir(String formName) {
-    return exportDir.map(dir -> dir.resolve(formName + " - errors")).orElseThrow(BriefcaseException::new);
+    return exportDir.map(dir -> dir.resolve(stripIllegalChars(formName) + " - errors")).orElseThrow(BriefcaseException::new);
   }
 }
