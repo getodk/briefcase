@@ -46,7 +46,7 @@ public class PullFormFromAggregate {
   public static final Param<Void> DEPRECATED_PULL_AGGREGATE = Param.flag("pa", "Pull form from an Aggregate instance");
   private static final Param<Void> PULL_AGGREGATE = Param.flag("plla", "pull_aggregate", "Pull form from an Aggregate instance");
   private static final Param<Void> PULL_IN_PARALLEL = Param.flag("pp", "parallel_pull", "Pull submissions in parallel");
-  //private static final Param<Void> INCLUDE_INCOMPLETE = Param.flag("ii", "include_incomplete", "Include incomplete submissions");
+  private static final Param<Void> INCLUDE_INCOMPLETE = Param.flag("ii", "include_incomplete", "Include incomplete submissions");
 
   public static Operation PULL_FORM_FROM_AGGREGATE = Operation.of(
       PULL_AGGREGATE,
@@ -57,10 +57,10 @@ public class PullFormFromAggregate {
           args.get(ODK_PASSWORD),
           args.get(AGGREGATE_SERVER),
           args.has(PULL_IN_PARALLEL),
-          false
+          args.has(INCLUDE_INCOMPLETE)
       ),
       Arrays.asList(STORAGE_DIR, FORM_ID, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER),
-      Arrays.asList(PULL_IN_PARALLEL)
+      Arrays.asList(PULL_IN_PARALLEL, INCLUDE_INCOMPLETE)
   );
 
   public static void pullFormFromAggregate(String storageDir, String formid, String username, String password, String server, boolean pullInParallel, boolean includeIncomplete) {
