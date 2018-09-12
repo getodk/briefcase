@@ -17,7 +17,6 @@
 package org.opendatakit.briefcase.reused;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.javarosa.xform.parse.XFormParser.getXMLText;
 import static org.kxml2.kdom.Node.ELEMENT;
@@ -48,6 +47,7 @@ import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.reused.http.Request;
 import org.opendatakit.briefcase.reused.http.Response;
 import org.xmlpull.v1.XmlPullParser;
@@ -145,7 +145,7 @@ public class RemoteServer {
   }
 
   public List<RemoteFormDefinition> getFormsList(Http http) {
-    return http.execute(Request.get(baseUrl, credentials)
+    Response<List<RemoteFormDefinition>> response = http.execute(Request.get(baseUrl, credentials)
         .resolve("/formList")
         .withMapper(body -> {
           Document parse = parse(body);
@@ -155,8 +155,8 @@ public class RemoteServer {
               .map(RemoteServer::toMap)
               .map(RemoteServer::toRemoteFormDefinition)
               .collect(toList());
-        }))
-        .orElse(emptyList());
+        }));
+    return response.orElseThrow(() -> new HttpException(response));
   }
 
   private static RemoteFormDefinition toRemoteFormDefinition(Map<String, String> keyValues) {

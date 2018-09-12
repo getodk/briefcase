@@ -17,13 +17,16 @@
 package org.opendatakit.briefcase.ui.pull;
 
 import static java.util.stream.Collectors.toList;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0_URL;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
 
 import java.util.Optional;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingWorker;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -75,17 +78,28 @@ public class PullPanel {
         updateActionButtons();
       } catch (HttpException e) {
         log.warn("Unable to get form list from {}: {}", source.getDescription(), e.toString());
+        new SwingWorker() {
+          @Override
+          protected Object doInBackground() {
+            JOptionPane.showMessageDialog(view.container, "We haven't been able to preload forms using the saved source. Try reloading it or reset it, please.", "Error preloading forms", ERROR_MESSAGE);
+            return null;
+          }
+        }.execute();
       }
     });
 
     // Register callbacks to view events
     view.onSource(source -> {
-      this.source = Optional.of(source);
-      Source.clearAllPreferences(tabPreferences);
-      source.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
-      forms.load(source.getFormList());
-      view.refresh();
-      updateActionButtons();
+      try {
+        this.source = Optional.of(source);
+        Source.clearAllPreferences(tabPreferences);
+        source.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
+        forms.load(source.getFormList());
+        view.refresh();
+        updateActionButtons();
+      } catch (HttpException e) {
+        JOptionPane.showMessageDialog(view.container, "We haven't been able to reload forms using the saved source. Try again or reset it, please.", "Error reloading forms", ERROR_MESSAGE);
+      }
     });
 
     view.onReset(() -> {
