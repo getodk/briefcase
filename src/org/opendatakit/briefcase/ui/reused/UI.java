@@ -68,33 +68,47 @@ public class UI {
     return button;
   }
 
+  /**
+   * Pops up an informative dialog
+   * <ul>
+   * <li>uses {@link org.opendatakit.briefcase.ui.MainBriefcaseWindow#APP_NAME} as the title</li>
+   * </ul>
+   */
   public static void infoMessage(String message) {
-    infoMessage(APP_NAME, message, false);
+    infoMessage(APP_NAME, message);
   }
 
-  public static void infoMessage(String title, String message, boolean nonBlocking) {
-    if (nonBlocking) {
-      new SwingWorker() {
-        @Override
-        protected Object doInBackground() {
-          JOptionPane.showMessageDialog(buildDialogParent(), message, title, PLAIN_MESSAGE);
-          return null;
-        }
-      }.execute();
-    } else {
-      JOptionPane.showMessageDialog(buildDialogParent(), message, title, PLAIN_MESSAGE);
-    }
-
+  /**
+   * Pops up an informative dialog
+   */
+  public static void infoMessage(String title, String message) {
+    Runnable dialog = () -> JOptionPane.showMessageDialog(buildDialogParent(), message, title, PLAIN_MESSAGE);
+    if (SwingUtilities.isEventDispatchThread())
+      dialog.run();
+    else
+      SwingUtilities.invokeLater(dialog);
   }
 
+  /**
+   * Pops up a confirmation (YES/NO) dialog
+   * <ul>
+   * <li>uses {@link org.opendatakit.briefcase.ui.MainBriefcaseWindow#APP_NAME} as the title</li>
+   * </ul>
+   */
   public static boolean confirm(String message) {
     return confirm(APP_NAME, message);
   }
 
+  /**
+   * Pops up a confirmation (YES/NO) dialog
+   */
   public static boolean confirm(String title, String message) {
     return JOptionPane.showConfirmDialog(buildDialogParent(), message, title, YES_NO_OPTION, PLAIN_MESSAGE) == YES_OPTION;
   }
 
+  /**
+   * Pops up an error dialog
+   */
   public static void errorMessage(String title, String message) {
     Runnable dialog = () -> JOptionPane.showMessageDialog(buildDialogParent(), buildScrollPane(message), title, ERROR_MESSAGE);
     if (SwingUtilities.isEventDispatchThread())
