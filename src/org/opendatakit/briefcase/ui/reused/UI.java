@@ -76,14 +76,16 @@ public class UI {
    * </ul>
    */
   public static void infoMessage(String message) {
-    infoMessage(APP_NAME, message, false);
+    infoMessage(APP_NAME, message, true);
   }
 
   /**
    * Pops an informative dialog up
    */
-  public static void infoMessage(String title, String message, boolean nonBlocking) {
-    if (nonBlocking) {
+  public static void infoMessage(String title, String message, boolean blockUI) {
+    if (blockUI) {
+      JOptionPane.showMessageDialog(buildDialogParent(), message, title, PLAIN_MESSAGE);
+    } else {
       new SwingWorker() {
         @Override
         protected Object doInBackground() {
@@ -91,8 +93,6 @@ public class UI {
           return null;
         }
       }.execute();
-    } else {
-      JOptionPane.showMessageDialog(buildDialogParent(), message, title, PLAIN_MESSAGE);
     }
   }
 
@@ -124,14 +124,16 @@ public class UI {
    * </ul>
    */
   public static void errorMessage(String title, String message) {
-    errorMessage(title, message, false);
+    errorMessage(title, message, true);
   }
 
   /**
    * Pops an error dialog up.
    */
-  public static void errorMessage(String title, String message, boolean nonBlocking) {
-    if (nonBlocking) {
+  public static void errorMessage(String title, String message, boolean blockUI) {
+    if (blockUI) {
+      JOptionPane.showMessageDialog(buildDialogParent(), buildScrollPane(message), title, ERROR_MESSAGE);
+    } else {
       new SwingWorker() {
         @Override
         protected Object doInBackground() {
@@ -139,8 +141,6 @@ public class UI {
           return null;
         }
       }.execute();
-    } else {
-      JOptionPane.showMessageDialog(buildDialogParent(), buildScrollPane(message), title, ERROR_MESSAGE);
     }
   }
 

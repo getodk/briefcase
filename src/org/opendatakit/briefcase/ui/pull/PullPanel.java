@@ -75,7 +75,7 @@ public class PullPanel {
         updateActionButtons();
       } catch (HttpException e) {
         log.warn("Unable to get form list from {}: {}", source.getDescription(), e.toString());
-        errorMessage("Error preloading forms", "We haven't been able to preload forms using the saved source. Try reloading it or reset it, please.", true);
+        errorMessage("Error preloading forms", "We haven't been able to preload forms using the saved source. Try reloading it or reset it, please.", false);
       }
     });
 
