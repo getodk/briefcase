@@ -79,7 +79,7 @@ public class SourcePanel {
   }
 
   private void reload() {
-    triggerOnSource(selectView.getSelectedSource().get());
+    triggerOnSource(selectView.getSelectedSource().orElseThrow(BriefcaseException::new));
   }
 
   private void addSource(Source source) {
