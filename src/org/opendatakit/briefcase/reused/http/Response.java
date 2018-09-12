@@ -42,6 +42,8 @@ public interface Response<T> {
 
   T get();
 
+  int getStatusCode();
+
   <V> Response<V> map(Function<T, V> outputMapper);
 
   T orElse(T defaultValue);
@@ -70,6 +72,11 @@ public interface Response<T> {
     @Override
     public T get() {
       return output;
+    }
+
+    @Override
+    public int getStatusCode() {
+      return statusCode;
     }
 
     @Override
@@ -128,6 +135,11 @@ public interface Response<T> {
     }
 
     @Override
+    public int getStatusCode() {
+      return statusCode;
+    }
+
+    @Override
     public <U> Response<U> map(Function<T, U> outputMapper) {
       return new Redirection<>(statusCode, name);
     }
@@ -183,6 +195,11 @@ public interface Response<T> {
     }
 
     @Override
+    public int getStatusCode() {
+      return statusCode;
+    }
+
+    @Override
     public <U> Response<U> map(Function<T, U> outputMapper) {
       return new ClientError<>(statusCode, name);
     }
@@ -235,6 +252,11 @@ public interface Response<T> {
     @Override
     public T get() {
       throw new HttpException("No output to get");
+    }
+
+    @Override
+    public int getStatusCode() {
+      return statusCode;
     }
 
     @Override
