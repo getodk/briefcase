@@ -39,7 +39,6 @@ import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.ui.ODKOptionPane;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.source.Source;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
@@ -151,7 +150,7 @@ public class PullPanel {
 
   @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
   public void onRetrieveAvailableFormsFailedEvent(RetrieveAvailableFormsFailedEvent event) {
-    ODKOptionPane.showErrorDialog(view.container, "Accessing the server failed with error: " + event.getReason(), "Accessing Server Failed");
+    errorMessage("Accessing Server Failed", "Accessing the server failed with error: " + event.getReason());
   }
 
   @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
