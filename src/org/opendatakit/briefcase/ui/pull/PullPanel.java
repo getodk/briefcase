@@ -17,15 +17,13 @@
 package org.opendatakit.briefcase.ui.pull;
 
 import static java.util.stream.Collectors.toList;
-import static javax.swing.JOptionPane.ERROR_MESSAGE;
-import static javax.swing.SwingUtilities.invokeLater;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0_URL;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
+import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.util.Optional;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
@@ -78,7 +76,7 @@ public class PullPanel {
         updateActionButtons();
       } catch (HttpException e) {
         log.warn("Unable to get form list from {}: {}", source.getDescription(), e.toString());
-        invokeLater(() -> JOptionPane.showMessageDialog(view.container, "We haven't been able to preload forms using the saved source. Try reloading it or reset it, please.", "Error preloading forms", ERROR_MESSAGE));
+        errorMessage("Error preloading forms", "We haven't been able to preload forms using the saved source. Try reloading it or reset it, please.");
       }
     });
 
@@ -92,7 +90,7 @@ public class PullPanel {
         view.refresh();
         updateActionButtons();
       } catch (HttpException e) {
-        JOptionPane.showMessageDialog(view.container, "We haven't been able to reload forms using the saved source. Try again or reset it, please.", "Error reloading forms", ERROR_MESSAGE);
+        errorMessage("Error reloading forms", "We haven't been able to reload forms using the saved source. Try again or reset it, please.");
       }
     });
 
