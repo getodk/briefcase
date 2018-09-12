@@ -68,10 +68,20 @@ public class UI {
     return button;
   }
 
+  /**
+   * Pops an informative dialog up with some sensible defaults:
+   * <ul>
+   * <li>uses {@link org.opendatakit.briefcase.ui.MainBriefcaseWindow#APP_NAME} as the title</li>
+   * <li>blocks the UI</li>
+   * </ul>
+   */
   public static void infoMessage(String message) {
     infoMessage(APP_NAME, message, false);
   }
 
+  /**
+   * Pops an informative dialog up
+   */
   public static void infoMessage(String title, String message, boolean nonBlocking) {
     if (nonBlocking) {
       new SwingWorker() {
@@ -84,21 +94,42 @@ public class UI {
     } else {
       JOptionPane.showMessageDialog(buildDialogParent(), message, title, PLAIN_MESSAGE);
     }
-
   }
 
+  /**
+   * Pops a confirmation (YES/NO) dialog up with some sensible defaults:
+   * <ul>
+   * <li>uses {@link org.opendatakit.briefcase.ui.MainBriefcaseWindow#APP_NAME} as the title</li>
+   * </ul>
+   * <p>
+   * Confirmation dialogs always block the UI.
+   */
   public static boolean confirm(String message) {
     return confirm(APP_NAME, message);
   }
 
+  /**
+   * Pops a confirmation (YES/NO) dialog up.
+   * <p>
+   * Confirmation dialogs always block the UI.
+   */
   public static boolean confirm(String title, String message) {
     return JOptionPane.showConfirmDialog(buildDialogParent(), message, title, YES_NO_OPTION, PLAIN_MESSAGE) == YES_OPTION;
   }
 
+  /**
+   * Pops an error dialog up with some sensible defaults:
+   * <ul>
+   * <li>blocks the UI</li>
+   * </ul>
+   */
   public static void errorMessage(String title, String message) {
     errorMessage(title, message, false);
   }
 
+  /**
+   * Pops an error dialog up.
+   */
   public static void errorMessage(String title, String message, boolean nonBlocking) {
     if (nonBlocking) {
       new SwingWorker() {
