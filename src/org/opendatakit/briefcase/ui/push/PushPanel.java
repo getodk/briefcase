@@ -21,6 +21,7 @@ import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
+import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +40,6 @@ import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.ui.ODKOptionPane;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.source.Source;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
@@ -152,7 +152,7 @@ public class PushPanel {
 
   @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
   public void onRetrieveAvailableFormsFailedEvent(RetrieveAvailableFormsFailedEvent event) {
-    ODKOptionPane.showErrorDialog(view.container, "Accessing the server failed with error: " + event.getReason(), "Accessing Server Failed");
+    errorMessage("Accessing Server Failed", "Accessing the server failed with error: " + event.getReason(), false);
   }
 
   @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
