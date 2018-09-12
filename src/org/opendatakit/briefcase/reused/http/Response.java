@@ -59,11 +59,11 @@ public interface Response<T> {
   boolean isRedirection();
 
   class Success<T> implements Response<T> {
-    private final int httpCode;
+    private final int statusCode;
     private final T output;
 
-    Success(int httpCode, T output) {
-      this.httpCode = httpCode;
+    Success(int statusCode, T output) {
+      this.statusCode = statusCode;
       this.output = output;
     }
 
@@ -74,7 +74,7 @@ public interface Response<T> {
 
     @Override
     public <U> Response<U> map(Function<T, U> outputMapper) {
-      return new Success<>(httpCode, outputMapper.apply(output));
+      return new Success<>(statusCode, outputMapper.apply(output));
     }
 
     @Override
@@ -114,11 +114,11 @@ public interface Response<T> {
   }
 
   class Redirection<T> implements Response<T> {
-    private final int httpCode;
+    private final int statusCode;
     private final String name;
 
-    Redirection(int httpCode, String name) {
-      this.httpCode = httpCode;
+    Redirection(int statusCode, String name) {
+      this.statusCode = statusCode;
       this.name = name;
     }
 
@@ -129,7 +129,7 @@ public interface Response<T> {
 
     @Override
     public <U> Response<U> map(Function<T, U> outputMapper) {
-      return new Redirection<>(httpCode, name);
+      return new Redirection<>(statusCode, name);
     }
 
     @Override
@@ -169,11 +169,11 @@ public interface Response<T> {
   }
 
   class ClientError<T> implements Response<T> {
-    private final int httpCode;
+    private final int statusCode;
     private final String name;
 
-    ClientError(int httpCode, String name) {
-      this.httpCode = httpCode;
+    ClientError(int statusCode, String name) {
+      this.statusCode = statusCode;
       this.name = name;
     }
 
@@ -184,7 +184,7 @@ public interface Response<T> {
 
     @Override
     public <U> Response<U> map(Function<T, U> outputMapper) {
-      return new ClientError<>(httpCode, name);
+      return new ClientError<>(statusCode, name);
     }
 
     @Override
@@ -209,12 +209,12 @@ public interface Response<T> {
 
     @Override
     public boolean isUnauthorized() {
-      return httpCode == 401;
+      return statusCode == 401;
     }
 
     @Override
     public boolean isNotFound() {
-      return httpCode == 404;
+      return statusCode == 404;
     }
 
     @Override
@@ -224,11 +224,11 @@ public interface Response<T> {
   }
 
   class ServerError<T> implements Response<T> {
-    private final int httpCode;
+    private final int statusCode;
     private final String name;
 
-    ServerError(int httpCode, String name) {
-      this.httpCode = httpCode;
+    ServerError(int statusCode, String name) {
+      this.statusCode = statusCode;
       this.name = name;
     }
 
@@ -239,7 +239,7 @@ public interface Response<T> {
 
     @Override
     public <U> Response<U> map(Function<T, U> outputMapper) {
-      return new ServerError<>(httpCode, name);
+      return new ServerError<>(statusCode, name);
     }
 
     @Override
