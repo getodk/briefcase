@@ -17,7 +17,6 @@
 package org.opendatakit.briefcase.reused.http;
 
 import static java.util.Collections.emptyList;
-
 import static org.opendatakit.briefcase.reused.http.Request.Method.GET;
 import static org.opendatakit.briefcase.reused.http.Request.Method.HEAD;
 
@@ -30,7 +29,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Pair;
 
@@ -117,7 +115,7 @@ public class Request<T> {
     try {
       return url.toURI();
     } catch (URISyntaxException e) {
-      throw new HttpException(e);
+      throw new BriefcaseException(e);
     }
   }
 
