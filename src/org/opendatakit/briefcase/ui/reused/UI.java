@@ -19,7 +19,11 @@ package org.opendatakit.briefcase.ui.reused;
 import static java.awt.Color.GRAY;
 import static java.awt.Color.LIGHT_GRAY;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.PLAIN_MESSAGE;
+import static javax.swing.JOptionPane.YES_NO_OPTION;
+import static javax.swing.JOptionPane.YES_OPTION;
 import static javax.swing.JOptionPane.getFrameForComponent;
+import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.APP_NAME;
 import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
 
 import java.awt.Dimension;
@@ -62,6 +66,33 @@ public class UI {
     button.setOpaque(true);
     button.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
     return button;
+  }
+
+  public static void infoMessage(String message) {
+    infoMessage(APP_NAME, message, false);
+  }
+
+  public static void infoMessage(String title, String message, boolean nonBlocking) {
+    if (nonBlocking) {
+      new SwingWorker() {
+        @Override
+        protected Object doInBackground() {
+          JOptionPane.showMessageDialog(buildDialogParent(), message, title, PLAIN_MESSAGE);
+          return null;
+        }
+      }.execute();
+    } else {
+      JOptionPane.showMessageDialog(buildDialogParent(), message, title, PLAIN_MESSAGE);
+    }
+
+  }
+
+  public static boolean confirm(String message) {
+    return confirm(APP_NAME, message);
+  }
+
+  public static boolean confirm(String title, String message) {
+    return JOptionPane.showConfirmDialog(buildDialogParent(), message, title, YES_NO_OPTION, PLAIN_MESSAGE) == YES_OPTION;
   }
 
   public static void errorMessage(String title, String message) {
