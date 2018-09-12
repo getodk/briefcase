@@ -17,13 +17,17 @@
 package org.opendatakit.briefcase.ui.reused;
 
 import static java.awt.Color.LIGHT_GRAY;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.getFrameForComponent;
 import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
 
 import java.awt.Font;
 import java.awt.Insets;
 import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
+import javax.swing.SwingWorker;
 import org.opendatakit.briefcase.model.FormStatus;
 
 public class UI {
@@ -50,5 +54,25 @@ public class UI {
     button.setOpaque(true);
     button.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
     return button;
+  }
+
+  public static void errorMessage(String title, String message) {
+    errorMessage(title, message, false);
+  }
+
+  public static void errorMessage(String title, String message, boolean nonBlocking) {
+    JDialog dialog = new JDialog();
+    dialog.setAlwaysOnTop(true);
+    if (nonBlocking) {
+      new SwingWorker() {
+        @Override
+        protected Object doInBackground() {
+          JOptionPane.showMessageDialog(dialog, message, title, ERROR_MESSAGE);
+          return null;
+        }
+      }.execute();
+    } else {
+      JOptionPane.showMessageDialog(dialog, message, title, ERROR_MESSAGE);
+    }
   }
 }
