@@ -98,7 +98,7 @@ class Scenario {
     elements.add(rootTreeElement);
 
     int maxIndex = elements.size() - 1;
-    for (int i = 0; i < maxIndex - 1; i++)
+    for (int i = 0; i < maxIndex; i++)
       elements.get(i).setParent(elements.get(i + 1));
     for (int i = maxIndex; i > 0; i--)
       elements.get(i).addChild(elements.get(i - 1));

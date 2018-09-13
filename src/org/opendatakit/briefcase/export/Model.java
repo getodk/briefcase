@@ -244,7 +244,7 @@ class Model {
     return model.getNumChildren();
   }
 
-  private List<Model> children() {
+  List<Model> children() {
     Set<String> fqns = new HashSet<>();
     List<Model> children = new ArrayList<>(model.getNumChildren());
     for (int i = 0, max = model.getNumChildren(); i < max; i++) {
@@ -271,6 +271,10 @@ class Model {
 
   public boolean isMetaAudit() {
     return model.getName().equals("audit") && model.getParent() != null && model.getParent().getName().equals("meta");
+  }
+
+  public boolean hasChildren() {
+    return model.hasChildren();
   }
 
   // TODO This should be defined in JavaRosa, like the DataType enum

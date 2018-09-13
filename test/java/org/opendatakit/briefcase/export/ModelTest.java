@@ -21,6 +21,9 @@ import static org.hamcrest.Matchers.is;
 import static org.javarosa.core.model.instance.TreeReference.DEFAULT_MULTIPLICITY;
 import static org.junit.Assert.assertThat;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.javarosa.core.model.instance.TreeElement;
 import org.junit.Test;
 
@@ -28,22 +31,33 @@ public class ModelTest {
 
   @Test
   public void knows_if_it_is_the_meta_audit_field() {
-    assertThat(buildModel("some-field").isMetaAudit(), is(false));
-    assertThat(buildModel("audit").isMetaAudit(), is(false));
-    assertThat(buildModel("some-parent", "audit").isMetaAudit(), is(false));
-    assertThat(buildModel("meta", "audit").isMetaAudit(), is(true));
+    assertThat(lastDescendatOf(buildModel("data", "some-field")).isMetaAudit(), is(false));
+    assertThat(lastDescendatOf(buildModel("data", "audit")).isMetaAudit(), is(false));
+    assertThat(lastDescendatOf(buildModel("data", "some-parent", "audit")).isMetaAudit(), is(false));
+    assertThat(lastDescendatOf(buildModel("data", "meta", "audit")).isMetaAudit(), is(true));
   }
 
-  private Model buildModel(String name) {
-    return buildModel(null, name);
+  private static Model buildModel(String... names) {
+    List<TreeElement> elements = Stream.of(names)
+        .map(name -> new TreeElement(name, DEFAULT_MULTIPLICITY))
+        .collect(Collectors.toList());
+
+    int maxIndex = elements.size() - 1;
+    for (int i = 0; i < maxIndex; i++)
+      elements.get(i).addChild(elements.get(i + 1));
+    for (int i = maxIndex; i > 0; i--)
+      elements.get(i).setParent(elements.get(i - 1));
+
+    return new Model(elements.get(0), emptyMap());
   }
 
-  private Model buildModel(String parentName, String name) {
-    TreeElement element = new TreeElement(name, DEFAULT_MULTIPLICITY);
-    if (parentName != null) {
-      TreeElement parent = new TreeElement(parentName, DEFAULT_MULTIPLICITY);
-      element.setParent(parent);
-    }
-    return new Model(element, emptyMap());
+  private static Model lastDescendatOf(Model model) {
+    if (!model.hasChildren())
+      return model;
+    Model child = model.children().get(0);
+    while (child.hasChildren())
+      child = child.children().get(0);
+    return child;
   }
+
 }
