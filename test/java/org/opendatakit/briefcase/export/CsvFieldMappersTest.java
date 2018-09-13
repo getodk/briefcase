@@ -259,6 +259,18 @@ public class CsvFieldMappersTest {
   }
 
   @Test
+  public void audit_field() {
+    scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
+    UncheckedFiles.write(scenario.getWorkDir().resolve("audit.csv"), "line 1");
+
+    String formName = scenario.getFormName();
+
+    List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
+    assertThat(output.get(0).getRight(), is(formName + " - audit.csv"));
+//    assertThat(scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv"), exists());
+  }
+
+  @Test
   public void repeat_group_value() {
     scenario = repeatGroup("instance_1", DataType.TEXT, 1);
 
