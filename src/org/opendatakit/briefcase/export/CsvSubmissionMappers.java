@@ -55,6 +55,7 @@ final class CsvSubmissionMappers {
       List<String> cols = new ArrayList<>();
       cols.add(encode(submission.getSubmissionDate().map(CsvSubmissionMappers::format).orElse(null), false));
       cols.addAll(formDefinition.getModel().flatMap(field -> getMapper(field, configuration.resolveSplitSelectMultiples()).apply(
+          formDefinition.getFormName(),
           submission.getInstanceId(formDefinition.hasRepeatableFields()),
           submission.getWorkingDir(),
           field,
@@ -76,13 +77,14 @@ final class CsvSubmissionMappers {
    * Factory that will produce {@link CsvLines} corresponding to any repeat output file
    * of a form.
    */
-  static CsvSubmissionMapper repeat(Model groupModel, ExportConfiguration configuration) {
+  static CsvSubmissionMapper repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration) {
     return submission -> CsvLines.of(
         groupModel.fqn(),
         submission.getSubmissionDate().orElse(MIN_SUBMISSION_DATE),
         submission.getElements(groupModel.fqn()).stream().map(element -> {
           List<String> cols = new ArrayList<>();
           cols.addAll(groupModel.flatMap(field -> getMapper(field, configuration.resolveSplitSelectMultiples()).apply(
+              formDefinition.getFormName(),
               element.getCurrentLocalId(field, submission.getInstanceId(true)),
               submission.getWorkingDir(),
               field,

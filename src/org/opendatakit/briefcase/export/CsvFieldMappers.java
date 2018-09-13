@@ -67,13 +67,13 @@ final class CsvFieldMappers {
     mappers.put(GEOPOINT, simpleMapper(CsvFieldMappers::geopoint, 4));
 
     // Binary fields require knowledge of the export configuration and working dir
-    mappers.put(BINARY, (__, workingDir, field, element, configuration) -> element
+    mappers.put(BINARY, (__, ___, workingDir, field, element, configuration) -> element
         .map(e -> binary(e, workingDir, configuration))
         .orElse(empty(field.fqn())));
 
     // Null fields encode groups (repeating and non-repeating), therefore,
     // they require the full context
-    mappers.put(NULL, (localId, workingDir, model, element, configuration) -> {
+    mappers.put(NULL, (formName, localId, workingDir, model, element, configuration) -> {
       if (model.isRepeatable())
         return element.map(e -> repeatableGroup(localId, model, e))
             .orElse(empty("SET-OF-" + model.getParent().fqn(), 1));
@@ -81,7 +81,7 @@ final class CsvFieldMappers {
       if (model.isEmpty() && !model.isRoot())
         return element.map(CsvFieldMappers::text).orElse(empty(model.fqn()));
 
-      return nonRepeatableGroup(localId, workingDir, model, element, configuration);
+      return nonRepeatableGroup(formName, localId, workingDir, model, element, configuration);
     });
   }
 
@@ -123,7 +123,7 @@ final class CsvFieldMappers {
   }
 
   private static CsvFieldMapper simpleMapper(Function<XmlElement, Stream<Pair<String, String>>> mapper, int outputSize) {
-    return (localId, workingDir, model, element, configuration) -> element
+    return (formName, localId, workingDir, model, element, configuration) -> element
         .map(mapper)
         .orElse(empty(model.fqn(), outputSize));
   }
@@ -222,8 +222,9 @@ final class CsvFieldMappers {
         : Stream.of(Pair.of(current.fqn(), localId + "/" + current.fqn(shift)));
   }
 
-  private static Stream<Pair<String, String>> nonRepeatableGroup(String localId, Path workingDir, Model current, Optional<XmlElement> maybeElement, ExportConfiguration configuration) {
+  private static Stream<Pair<String, String>> nonRepeatableGroup(String formName, String localId, Path workingDir, Model current, Optional<XmlElement> maybeElement, ExportConfiguration configuration) {
     return current.flatMap(field -> getMapper(field, configuration.resolveSplitSelectMultiples()).apply(
+        formName,
         localId,
         workingDir,
         field,
