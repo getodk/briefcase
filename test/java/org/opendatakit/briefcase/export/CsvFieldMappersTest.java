@@ -20,6 +20,7 @@ import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.export.Scenario.nonGroup;
@@ -310,6 +311,14 @@ public class CsvFieldMappersTest {
 
     assertThat(outputAudit, exists());
     assertThat(outputAudit, fileContains("instance ID,event, node, start, end\n" + firstInstanceID + ",form start,,1536663986578,\n" + secondInstanceID + ",form start,,1536664003229,\n"));
+  }
+
+  @Test
+  public void when_the_audit_source_file_is_missing_we_leave_the_column_empty() {
+    scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
+
+    List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
+    assertThat(output.get(0).getRight(), isEmptyString());
   }
 
   @Test

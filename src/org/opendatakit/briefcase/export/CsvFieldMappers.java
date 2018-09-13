@@ -72,11 +72,9 @@ final class CsvFieldMappers {
 
         Path sourceFile = workingDir.resolve(sourceFilename);
 
-        /* We'll deal with this later
-        // When the source file doesn't exist, we return the input value
+        // When the source file doesn't exist, we return an empty string
         if (!exists(sourceFile))
-          return Stream.of(Pair.of(e.fqn(), Paths.get("media").resolve(sourceFilename).toString()));
-        */
+          return Stream.of(Pair.of(e.fqn(), ""));
 
         // When the destination file doesn't exist, we copy the source file
         // there and return its path relative to the instance folder
