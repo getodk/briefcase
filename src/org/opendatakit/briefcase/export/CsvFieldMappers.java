@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.export;
 
+import static java.nio.file.StandardOpenOption.APPEND;
 import static java.text.DateFormat.getDateInstance;
 import static java.text.DateFormat.getDateTimeInstance;
 import static java.text.DateFormat.getTimeInstance;
@@ -81,12 +82,18 @@ final class CsvFieldMappers {
         // there and return its path relative to the instance folder
         Path destinationFile = configuration.getExportDir().resolve(formName + " - audit.csv");
         List<String> sourceLines = lines(sourceFile).collect(toList());
-        List<String> transformedSourceLines = new ArrayList<>();
-        transformedSourceLines.add("instance ID," + sourceLines.get(0)); // Header with the new instance ID column
-        transformedSourceLines.addAll(sourceLines.subList(1, sourceLines.size()).stream()
+        String header = "instance ID," + sourceLines.get(0);
+        List<String> bodyLines = sourceLines.subList(1, sourceLines.size()).stream()
             .map(line -> localId + "," + line)
-            .collect(toList())); // Rest of lines with the submission's instance ID value
-        write(destinationFile, transformedSourceLines);
+            .collect(toList());
+
+        if (!Files.exists(destinationFile)) {
+          List<String> lines = new ArrayList<>();
+          lines.add(header); // Header with the new instance ID column
+          lines.addAll(bodyLines); // Rest of lines with the submission's instance ID value
+          write(destinationFile, lines);
+        } else
+          write(destinationFile, bodyLines, APPEND);
         return Stream.of(Pair.of(e.fqn(), destinationFile.getFileName().toString()));
       })
       .orElse(empty(model.fqn()));
