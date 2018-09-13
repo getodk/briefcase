@@ -16,6 +16,9 @@
 
 package org.opendatakit.briefcase.export;
 
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
 import static java.util.stream.Collectors.groupingByConcurrent;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
@@ -26,9 +29,9 @@ import static org.opendatakit.briefcase.export.SubmissionParser.getListOfSubmiss
 import static org.opendatakit.briefcase.export.SubmissionParser.parseSubmission;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.delete;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -91,10 +94,11 @@ public class ExportToCsv {
 
     csvs.forEach(Csv::prepareOutputFiles);
 
-    // Remove the audit output file if it exists
-    Path audit = configuration.getAuditPath(formDef.getFormName());
-    if (configuration.resolveOverwriteExistingFiles() && exists(audit))
-      delete(audit);
+    if (formDef.getModel().hasAuditField()) {
+      Path audit = configuration.getAuditPath(formDef.getFormName());
+      if (!exists(audit) || configuration.resolveOverwriteExistingFiles())
+        write(audit, "instance ID, event, node, start, end\n", CREATE, WRITE, TRUNCATE_EXISTING);
+    }
 
     // Generate csv lines grouped by the fqdn of the model they belong to
     Map<String, CsvLines> csvLinesPerModel = submissionFiles.parallelStream()
