@@ -454,4 +454,8 @@ public class ExportConfiguration {
   public Path getErrorsDir(String formName) {
     return exportDir.map(dir -> dir.resolve(stripIllegalChars(formName) + " - errors")).orElseThrow(BriefcaseException::new);
   }
+
+  public Path getAuditPath(String formName) {
+    return exportDir.orElseThrow(BriefcaseException::new).resolve(formName + " - audit.csv");
+  }
 }

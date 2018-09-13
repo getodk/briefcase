@@ -91,8 +91,8 @@ public class ExportToCsv {
 
     csvs.forEach(Csv::prepareOutputFiles);
 
-    // Remove the audit output file if it exists and user wants to overwrite files
-    Path audit = configuration.getExportDir().resolve(formDef.getFormName() + " - audit.csv");
+    // Remove the audit output file if it exists
+    Path audit = configuration.getAuditPath(formDef.getFormName());
     if (configuration.resolveOverwriteExistingFiles() && exists(audit))
       delete(audit);
 

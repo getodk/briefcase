@@ -243,7 +243,7 @@ final class CsvFieldMappers {
         .map(line -> localId + "," + line)
         .collect(toList());
 
-    Path destinationFile = configuration.getExportDir().resolve(formName + " - audit.csv");
+    Path destinationFile = configuration.getAuditPath(formName);
     // We could improve this block by first writing the header (if the destination
     // file doesn't exist) and then *always* appending body lines, but this would
     if (!Files.exists(destinationFile)) {
