@@ -28,7 +28,7 @@ import static org.opendatakit.briefcase.operations.PullFormFromAggregate.PULL_FO
 import static org.opendatakit.briefcase.operations.PushFormToAggregate.PUSH_FORM_TO_AGGREGATE;
 import static org.opendatakit.briefcase.ui.BriefcaseCLI.runLegacyCli;
 import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.launchGUI;
-import static org.opendatakit.briefcase.util.FindDirectoryStructure.getOsName;
+import static org.opendatakit.briefcase.util.Host.getOsName;
 
 import io.sentry.Sentry;
 import io.sentry.SentryClient;

@@ -21,7 +21,6 @@ import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
-import static org.opendatakit.briefcase.model.FormStatus.TransferType.UPLOAD;
 
 import java.util.List;
 import java.util.Optional;
@@ -57,7 +56,7 @@ public class PushPanel {
   private TerminationFuture terminationFuture;
   private Optional<Source<?>> source;
 
-  public PushPanel(TransferPanelForm view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
+  private PushPanel(TransferPanelForm view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
@@ -112,7 +111,7 @@ public class PushPanel {
 
   private static List<FormStatus> toFormStatuses(List<BriefcaseFormDefinition> formDefs) {
     return formDefs.stream()
-        .map(formDefinition -> new FormStatus(UPLOAD, formDefinition))
+        .map(FormStatus::new)
         .collect(toList());
   }
 
@@ -135,7 +134,7 @@ public class PushPanel {
       view.showSelectAll();
   }
 
-  public void updateForms() {
+  private void updateForms() {
     forms.merge(toFormStatuses(formCache.getForms()));
     view.refresh();
   }

@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.util;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.http.client.config.CookieSpecs.STANDARD;
 
 import java.io.UnsupportedEncodingException;
@@ -39,7 +40,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.SocketConfig;
@@ -59,14 +59,14 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
  *
  * @author mitchellsundt@gmail.com
  */
-public final class WebUtils {
+final class WebUtils {
 
   private static final int SERVER_CONNECTION_TIMEOUT = 60000;
 
   private static final ThreadLocal<HttpClientContext> threadSafeContext = new ThreadLocal<>();
 
-  public static final String OPEN_ROSA_VERSION_HEADER = "X-OpenRosa-Version";
-  public static final String OPEN_ROSA_VERSION = "1.0";
+  static final String OPEN_ROSA_VERSION_HEADER = "X-OpenRosa-Version";
+  static final String OPEN_ROSA_VERSION = "1.0";
   private static final String DATE_HEADER = "Date";
 
   static final int MAX_CONNECTIONS_PER_ROUTE = Runtime.getRuntime().availableProcessors() * 3;
@@ -82,7 +82,7 @@ public final class WebUtils {
    *
    * @return http context bound to the current thread, or if none exists, a newly created one.
    */
-  public static HttpClientContext getHttpContext() {
+  static HttpClientContext getHttpContext() {
     HttpClientContext httpContext = threadSafeContext.get();
     if (httpContext == null) {
       httpContext = createHttpContext();
@@ -95,7 +95,7 @@ public final class WebUtils {
    * Resets the context clearing cookies and aith parameters and residual information
    * from previous requests
    */
-  public static void resetHttpContext() {
+  static void resetHttpContext() {
     getHttpContext().getCookieStore().clear();
     getHttpContext().getTargetAuthState().reset();
     Optional.ofNullable(getHttpContext().getAuthCache()).ifPresent(AuthCache::clear);
@@ -105,7 +105,7 @@ public final class WebUtils {
   /**
    * Convenience method for {@link #setCredentials(HttpClientContext, ServerConnectionInfo, URI, boolean)}.
    */
-  public static void setCredentials(HttpClientContext httpContext, ServerConnectionInfo info, URI uri) {
+  static void setCredentials(HttpClientContext httpContext, ServerConnectionInfo info, URI uri) {
     setCredentials(httpContext, info, uri, false);
   }
 
@@ -117,10 +117,10 @@ public final class WebUtils {
    * @param uri         the uri to supply credentials for (uses hostname)
    * @param alwaysReset replace context's creds every time when 'true', otherwise only if not already present
    */
-  public static void setCredentials(HttpClientContext httpContext, ServerConnectionInfo info, URI uri, boolean alwaysReset) {
+  static void setCredentials(HttpClientContext httpContext, ServerConnectionInfo info, URI uri, boolean alwaysReset) {
     String hostname = uri.getHost();
     if (info.hasCredentials()) {
-      if (alwaysReset || !hasCredentials(httpContext, info.getUsername(), hostname)) {
+      if (alwaysReset || !hasCredentials(httpContext, hostname)) {
         clearAllCredentials(httpContext);
         addCredentials(httpContext, info.getUsername(), info.getPassword(), hostname);
       }
@@ -129,7 +129,7 @@ public final class WebUtils {
     }
   }
 
-  public static final List<AuthScope> buildAuthScopes(String host) {
+  private static List<AuthScope> buildAuthScopes(String host) {
     List<AuthScope> asList = new ArrayList<>();
 
     AuthScope a;
@@ -145,15 +145,14 @@ public final class WebUtils {
     return asList;
   }
 
-  public static final void clearAllCredentials(HttpClientContext localContext) {
+  private static void clearAllCredentials(HttpClientContext localContext) {
     CredentialsProvider credsProvider = localContext.getCredentialsProvider();
     if (credsProvider != null) {
       credsProvider.clear();
     }
   }
 
-  public static final boolean hasCredentials(HttpClientContext localContext,
-                                             String userEmail, String host) {
+  private static boolean hasCredentials(HttpClientContext localContext, String host) {
     CredentialsProvider credsProvider = localContext.getCredentialsProvider();
 
     List<AuthScope> asList = buildAuthScopes(host);
@@ -168,14 +167,12 @@ public final class WebUtils {
     return hasCreds;
   }
 
-  public static final void addCredentials(HttpClientContext localContext,
-                                          String userEmail, char[] password, String host) {
+  private static void addCredentials(HttpClientContext localContext, String userEmail, char[] password, String host) {
     Credentials c = new UsernamePasswordCredentials(userEmail, new String(password));
     addCredentials(localContext, c, host);
   }
 
-  private static final void addCredentials(HttpClientContext localContext,
-                                           Credentials c, String host) {
+  private static void addCredentials(HttpClientContext localContext, Credentials c, String host) {
     CredentialsProvider credsProvider = localContext.getCredentialsProvider();
 
     List<AuthScope> asList = buildAuthScopes(host);
@@ -184,32 +181,26 @@ public final class WebUtils {
     }
   }
 
-  private static final void setOpenRosaHeaders(HttpRequest req) {
+  private static void setOpenRosaHeaders(HttpRequest req) {
     req.setHeader(OPEN_ROSA_VERSION_HEADER, OPEN_ROSA_VERSION);
     req.setHeader(DATE_HEADER,
         org.apache.http.client.utils.DateUtils.formatDate(new Date(), org.apache.http.client.utils.DateUtils.PATTERN_RFC1036));
   }
 
-  public static final HttpHead createOpenRosaHttpHead(URI uri) {
-    HttpHead req = new HttpHead(uri);
-    setOpenRosaHeaders(req);
-    return req;
-  }
-
-  public static final HttpGet createOpenRosaHttpGet(URI uri) {
+  static HttpGet createOpenRosaHttpGet(URI uri) {
     HttpGet req = new HttpGet();
     setOpenRosaHeaders(req);
     req.setURI(uri);
     return req;
   }
 
-  public static final HttpPost createOpenRosaHttpPost(URI uri) {
+  static HttpPost createOpenRosaHttpPost(URI uri) {
     HttpPost req = new HttpPost(uri);
     setOpenRosaHeaders(req);
     return req;
   }
 
-  public static final HttpClient createHttpClient() {
+  static HttpClient createHttpClient() {
     // configure connection
     SocketConfig socketConfig = SocketConfig.copy(SocketConfig.DEFAULT).setSoTimeout(SERVER_CONNECTION_TIMEOUT).build();
 
@@ -244,7 +235,7 @@ public final class WebUtils {
     return clientBuilder.build();
   }
 
-  public static HttpClientContext createHttpContext() {
+  private static HttpClientContext createHttpContext() {
     // set up one context for all HTTP requests so that authentication
     // and cookies can be retained.
     HttpClientContext localContext = HttpClientContext.create();
@@ -260,8 +251,8 @@ public final class WebUtils {
     return localContext;
   }
 
-  public static final String createLinkWithProperties(String url,
-                                                      Map<String, String> properties) {
+  static String createLinkWithProperties(String url,
+                                         Map<String, String> properties) {
     StringBuilder urlBuilder = new StringBuilder();
     urlBuilder.append(url);
     if (properties != null) {
@@ -283,12 +274,12 @@ public final class WebUtils {
 
           String valueEncoded;
           try {
-            valueEncoded = URLEncoder.encode(value, "UTF-8");
+            valueEncoded = URLEncoder.encode(value, UTF_8.name());
           } catch (UnsupportedEncodingException e) {
             throw new IllegalStateException(
                 "unrecognized UTF-8 encoding");
           }
-          urlBuilder.append(property.getKey() + "=" + valueEncoded);
+          urlBuilder.append(property.getKey()).append("=").append(valueEncoded);
         }
       }
     }

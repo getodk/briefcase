@@ -47,9 +47,13 @@ public interface Response<T> {
   T orElse(T defaultValue);
 
   T orElseThrow(Supplier<? extends RuntimeException> supplier);
+
   boolean isSuccess();
+
   boolean isFailure();
+
   boolean isUnauthorized();
+
   boolean isNotFound();
 
   boolean isRedirection();
@@ -113,7 +117,7 @@ public interface Response<T> {
     private final int httpCode;
     private final String name;
 
-    public Redirection(int httpCode, String name) {
+    Redirection(int httpCode, String name) {
       this.httpCode = httpCode;
       this.name = name;
     }
@@ -125,7 +129,7 @@ public interface Response<T> {
 
     @Override
     public <U> Response<U> map(Function<T, U> outputMapper) {
-      return new ClientError<>(httpCode, name);
+      return new Redirection<>(httpCode, name);
     }
 
     @Override
@@ -168,7 +172,7 @@ public interface Response<T> {
     private final int httpCode;
     private final String name;
 
-    public ClientError(int httpCode, String name) {
+    ClientError(int httpCode, String name) {
       this.httpCode = httpCode;
       this.name = name;
     }
@@ -223,7 +227,7 @@ public interface Response<T> {
     private final int httpCode;
     private final String name;
 
-    public ServerError(int httpCode, String name) {
+    ServerError(int httpCode, String name) {
       this.httpCode = httpCode;
       this.name = name;
     }
@@ -235,7 +239,7 @@ public interface Response<T> {
 
     @Override
     public <U> Response<U> map(Function<T, U> outputMapper) {
-      return new ClientError<>(httpCode, name);
+      return new ServerError<>(httpCode, name);
     }
 
     @Override

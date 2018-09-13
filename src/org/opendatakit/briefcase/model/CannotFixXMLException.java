@@ -19,28 +19,13 @@ package org.opendatakit.briefcase.model;
 /**
  * CTOSurvey contribution to address issues with Android 4.3 systems not
  * properly flushing OpenSSL CipherStreams.
- * <p>
- * Created by IntelliJ IDEA.
- * User: Administrator
- * Date: 28/9/2013
- * Time: 10:00 μμ
  */
 public class CannotFixXMLException extends Exception {
-
-  /**
-   *
-   */
-  private static final long serialVersionUID = 4472810265526213636L;
-
   public CannotFixXMLException(String message) {
     super(message);
   }
 
   public CannotFixXMLException(String message, Throwable cause) {
     super(message, cause);
-  }
-
-  public CannotFixXMLException(Throwable cause) {
-    super(cause);
   }
 }

@@ -28,7 +28,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.IFormDefinition;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 
 public class ExportForms {
@@ -222,10 +221,6 @@ public class ExportForms {
 
   public void onSuccessfulExport(BiConsumer<String, LocalDateTime> callback) {
     onSuccessfulExportCallbacks.add(callback);
-  }
-
-  private FormStatus getForm(IFormDefinition formDefinition) {
-    return getForm(formDefinition.getFormId());
   }
 
   private FormStatus getForm(String formId) {

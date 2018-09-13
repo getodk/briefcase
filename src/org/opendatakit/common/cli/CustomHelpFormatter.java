@@ -58,7 +58,7 @@ class CustomHelpFormatter {
       if (operation.hasOptionalParams())
         printOptionalParams(helpLinesPerShortcode, operation);
       if (operation.hasAnyParam())
-        System.out.println("");
+        System.out.println();
     });
   }
 
@@ -74,7 +74,7 @@ class CustomHelpFormatter {
         .flatMap(operation -> operation.requiredParams.stream())
         .sorted(Comparator.comparing(param -> param.shortCode))
         .forEach(param -> System.out.println(helpLinesPerShortcode.get(param.shortCode)));
-    System.out.println("");
+    System.out.println();
   }
 
   private static void printOptionalParams(Map<String, String> helpLinesPerShortcode, Operation operation) {
@@ -90,14 +90,14 @@ class CustomHelpFormatter {
         .filter(o -> !o.isDeprecated())
         .sorted(Comparator.comparing(operation -> operation.param.shortCode))
         .forEach(operation -> System.out.println("  " + helpLinesPerShortcode.get(operation.param.shortCode)));
-    System.out.println("");
+    System.out.println();
   }
 
   private static void printUsage() {
-    System.out.println("");
+    System.out.println();
     System.out.println("Launch the GUI with: java -jar " + jarFile);
     System.out.println("Launch a CLI operation with: java -jar " + jarFile + " <operation> <params>");
-    System.out.println("");
+    System.out.println();
   }
 
   private static Map<String, String> getParamHelpLines(Set<Operation> requiredOperations, Set<Operation> operations) {

@@ -18,7 +18,7 @@ public class Operation {
   final Consumer<Args> argsConsumer;
   final Set<Param> requiredParams;
   final Set<Param> optionalParams;
-  final boolean deprecated;
+  private final boolean deprecated;
 
   private Operation(Param param, Consumer<Args> argsConsumer, Set<Param> requiredParams, Set<Param> optionalParams, boolean deprecated) {
     this.param = param;
@@ -71,7 +71,7 @@ public class Operation {
    * @param argsConsumer {@link Consumer}&lt;{@link Args}&gt; with the logic of this {@link Operation}
    * @return a new {@link Operation} instance
    */
-  public static Operation deprecated(Param param, Consumer<Args> argsConsumer) {
+  static Operation deprecated(Param param, Consumer<Args> argsConsumer) {
     return new Operation(param, argsConsumer, emptySet(), emptySet(), true);
   }
 
@@ -94,6 +94,10 @@ public class Operation {
 
   boolean hasRequiredParams() {
     return !requiredParams.isEmpty();
+  }
+
+  boolean isDeprecated() {
+    return deprecated;
   }
 
   @Override
@@ -120,9 +124,5 @@ public class Operation {
         ", requiredParams=" + requiredParams +
         ", optionalParams=" + optionalParams +
         '}';
-  }
-
-  public boolean isDeprecated() {
-    return deprecated;
   }
 }

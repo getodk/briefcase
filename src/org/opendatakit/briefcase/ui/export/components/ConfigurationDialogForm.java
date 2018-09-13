@@ -28,7 +28,6 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
-
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 
 @SuppressWarnings("checkstyle:MethodName")
@@ -71,27 +70,27 @@ public class ConfigurationDialogForm extends JDialog {
     setVisible(true);
   }
 
-  public void onRemove(Runnable callback) {
+  void onRemove(Runnable callback) {
     clearAllButton.addActionListener(__ -> callback.run());
   }
 
-  public void onOK(Runnable callback) {
+  void onOK(Runnable callback) {
     okButton.addActionListener(__ -> callback.run());
   }
 
-  public void enableOK() {
+  void enableOK() {
     okButton.setEnabled(true);
   }
 
-  public void disableOK() {
+  void disableOK() {
     okButton.setEnabled(false);
   }
 
-  public void enableClearAll() {
+  void enableClearAll() {
     clearAllButton.setEnabled(true);
   }
 
-  public void disableClearAll() {
+  void disableClearAll() {
     clearAllButton.setEnabled(false);
   }
 

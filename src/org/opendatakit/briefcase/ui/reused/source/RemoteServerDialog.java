@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import javax.swing.SwingWorker;
-
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Response;
 
@@ -90,7 +89,7 @@ public class RemoteServerDialog {
     onConnectCallbacks.forEach(callback -> callback.accept(conf));
   }
 
-  public void onConnect(Consumer<RemoteServer> consumer) {
+  void onConnect(Consumer<RemoteServer> consumer) {
     onConnectCallbacks.add(consumer);
   }
 

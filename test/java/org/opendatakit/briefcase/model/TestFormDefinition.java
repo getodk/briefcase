@@ -46,11 +46,6 @@ public class TestFormDefinition extends BriefcaseFormDefinition {
   }
 
   @Override
-  public LocationType getFormLocation() {
-    return LocationType.LOCAL;
-  }
-
-  @Override
   public String getFormName() {
     return "Form #" + id;
   }

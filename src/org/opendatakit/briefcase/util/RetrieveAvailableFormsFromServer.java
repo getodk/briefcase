@@ -17,7 +17,6 @@
 package org.opendatakit.briefcase.util;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.IFormDefinition;
@@ -29,26 +28,22 @@ import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 import org.opendatakit.briefcase.operations.RetrieveAvailableFormsException;
 
 public class RetrieveAvailableFormsFromServer {
-  final ServerConnectionInfo originServerInfo;
-  final TerminationFuture terminationFuture;
-  List<FormStatus> formStatuses = new ArrayList<>();
+  private final ServerConnectionInfo originServerInfo;
+  private final TerminationFuture terminationFuture;
+  private List<FormStatus> formStatuses = new ArrayList<>();
 
-  public RetrieveAvailableFormsFromServer(ServerConnectionInfo originServerInfo,
-                                          TerminationFuture terminationFuture) {
+  private RetrieveAvailableFormsFromServer(ServerConnectionInfo originServerInfo,
+                                           TerminationFuture terminationFuture) {
     this.originServerInfo = originServerInfo;
     this.terminationFuture = terminationFuture;
   }
 
   public void doAction() throws XmlDocumentFetchException, ParsingException {
-    List<RemoteFormDefinition> formDefs = Collections.emptyList();
+    List<RemoteFormDefinition> formDefs;
     formDefs = ServerFetcher.retrieveAvailableFormsFromServer(originServerInfo, terminationFuture);
     for (IFormDefinition fd : formDefs) {
-      formStatuses.add(new FormStatus(FormStatus.TransferType.GATHER, fd));
+      formStatuses.add(new FormStatus(fd));
     }
-  }
-
-  public List<FormStatus> getAvailableForms() {
-    return formStatuses;
   }
 
   public static List<FormStatus> get(ServerConnectionInfo transferSettings) {

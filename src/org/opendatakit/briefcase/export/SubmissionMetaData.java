@@ -34,6 +34,7 @@ class SubmissionMetaData {
   private final XmlElement root;
   // All these members are not final because they're lazily evaluated
   private String formId;
+  // TODO Make explicit that these members are lazily initialized
   private Optional<String> instanceId;
   private Optional<String> version;
   private Optional<OffsetDateTime> submissionDate;

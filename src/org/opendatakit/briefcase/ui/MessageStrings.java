@@ -38,5 +38,4 @@ public class MessageStrings {
       "to the core developers to help prioritize features and fixes.\n\n" +
       "If you do not want to contribute your usage data or crash logs, please uncheck\n" +
       "that setting in the Settings tab.\n";
-  static final String PROXY_SET_ADVICE = "If you are behind a proxy, try setting up your proxy details through 'Settings' tab.";
 }

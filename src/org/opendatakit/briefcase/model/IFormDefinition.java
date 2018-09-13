@@ -18,16 +18,10 @@ package org.opendatakit.briefcase.model;
 
 public interface IFormDefinition {
 
-  enum LocationType {
-    LOCAL, REMOTE
-  };
+  String getFormName();
 
-  public abstract LocationType getFormLocation();
+  String getFormId();
 
-  public abstract String getFormName();
-
-  public abstract String getFormId();
-
-  public abstract String getVersionString();
+  String getVersionString();
 
 }

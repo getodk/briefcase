@@ -261,19 +261,6 @@ public class XmlElement {
     throw new BriefcaseException("Element not found");
   }
 
-  private boolean isTag(String tag, String rootNamespace) {
-    // In the original code we checked namespaces too, but this seems unnecessary.
-    // I'm keeping this method just in case
-    boolean sameTag = element.getName().equals(tag);
-    boolean validNamespace = element.getNamespace() == null
-        || element.getNamespace().isEmpty()
-        || element.getNamespace().equals(rootNamespace)
-        || element.getNamespace().equalsIgnoreCase("http://openrosa.org/xforms")
-        || element.getNamespace().equalsIgnoreCase("http://openrosa.org/xforms/")
-        || element.getNamespace().equalsIgnoreCase("http://openrosa.org/xforms/metadata");
-    return sameTag && validNamespace;
-  }
-
   private boolean isFirstLevelNode() {
     return element.getParent() instanceof Document;
   }

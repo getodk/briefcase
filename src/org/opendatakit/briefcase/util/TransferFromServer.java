@@ -28,9 +28,9 @@ import org.opendatakit.briefcase.pull.PullEvent;
 
 public class TransferFromServer implements ITransferFromSourceAction {
 
-  final ServerConnectionInfo originServerInfo;
-  final TerminationFuture terminationFuture;
-  final List<FormStatus> formsToTransfer;
+  private final ServerConnectionInfo originServerInfo;
+  private final TerminationFuture terminationFuture;
+  private final List<FormStatus> formsToTransfer;
   private final Boolean pullInParallel;
   private final Boolean includeIncomplete;
   private Path briefcaseDir;
@@ -50,11 +50,6 @@ public class TransferFromServer implements ITransferFromSourceAction {
     ServerFetcher fetcher = new ServerFetcher(originServerInfo, terminationFuture, briefcaseDir, pullInParallel, includeIncomplete);
 
     return fetcher.downloadFormAndSubmissionFiles(formsToTransfer);
-  }
-
-  @Override
-  public boolean isSourceDeletable() {
-    return false;
   }
 
   public static void pull(ServerConnectionInfo transferSettings, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, FormStatus... forms) {

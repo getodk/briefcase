@@ -267,8 +267,7 @@ public class BriefcasePreferences {
   public static HttpHost getBriefCaseProxyConnection() {
     String host = Preference.APPLICATION_SCOPED.get(BRIEFCASE_PROXY_HOST_PROPERTY, null);
     if (host != null) {
-      Integer port = Integer.parseInt(Preference.APPLICATION_SCOPED.get(
-          BRIEFCASE_PROXY_PORT_PROPERTY, "0"));
+      int port = Integer.parseInt(Preference.APPLICATION_SCOPED.get(BRIEFCASE_PROXY_PORT_PROPERTY, "0"));
       return new HttpHost(host, port);
     }
     return null;

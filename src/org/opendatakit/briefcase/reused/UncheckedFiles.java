@@ -22,10 +22,8 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -272,30 +270,6 @@ public class UncheckedFiles {
     }
   }
 
-  public static InputStream newInputStream(Path path, OpenOption... options) {
-    try {
-      return Files.newInputStream(path, options);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  public static OutputStreamWriter newOutputStreamWriter(Path path, OpenOption... options) {
-    try {
-      return new OutputStreamWriter(Files.newOutputStream(path, options));
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  public static InputStreamReader newInputStreamReader(InputStream in, String charsetName) {
-    try {
-      return new InputStreamReader(in, charsetName);
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   public static void append(String content, OutputStreamWriter outputStreamWriter) {
     try {
       outputStreamWriter.append(content);
@@ -327,11 +301,4 @@ public class UncheckedFiles {
     write(briefcaseDir.resolve("readme.txt"), README_CONTENTS);
   }
 
-  public static Path move(Path source, Path target, CopyOption... options) {
-    try {
-      return Files.move(source, target, options);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
 }
