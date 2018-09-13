@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.export;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -27,10 +28,16 @@ import static org.opendatakit.briefcase.export.Scenario.repeatGroup;
 import static org.opendatakit.briefcase.matchers.PathMatchers.exists;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.UUID;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
 import org.javarosa.core.model.DataType;
 import org.junit.After;
 import org.junit.Before;
@@ -267,7 +274,37 @@ public class CsvFieldMappersTest {
 
     List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
     assertThat(output.get(0).getRight(), is(formName + " - audit.csv"));
-//    assertThat(scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv"), exists());
+
+    Path outputAudit = scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv");
+
+    assertThat(outputAudit, exists());
+    assertThat(outputAudit, fileContains("line 1"));
+  }
+
+  private Matcher<Path> fileContains(String content) {
+    return new TypeSafeMatcher<Path>() {
+      private String actualContents;
+
+      @Override
+      protected boolean matchesSafely(Path item) {
+        try {
+          actualContents = new String(Files.readAllBytes(item), UTF_8);
+          return actualContents.contains(content);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("a file containing ").appendValue(content);
+      }
+
+      @Override
+      protected void describeMismatchSafely(Path item, Description mismatchDescription) {
+        mismatchDescription.appendText("was a file containing ").appendValue(actualContents);
+      }
+    };
   }
 
   @Test

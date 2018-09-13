@@ -40,7 +40,8 @@ import org.opendatakit.briefcase.reused.UncheckedFiles;
 class Scenario {
   private static int instanceIdSeq = 1;
   private final Path workDir = createTempDirectory("briefcase_test_workdir");
-  private final Path outputMediaDir = UncheckedFiles.createDirectories(createTempDirectory("briefcase_test_media").resolve("media"));
+  private final Path outputDir = createTempDirectory("export_output");
+  private final Path outputMediaDir = UncheckedFiles.createDirectories(outputDir.resolve("media"));
   private final String formName;
   private final String instanceId;
   private final String instanceName;
@@ -238,5 +239,9 @@ class Scenario {
 
   public List<Path> getPaths() {
     return Arrays.asList(workDir, outputMediaDir);
+  }
+
+  public Path getOutputDir() {
+    return outputDir;
   }
 }
