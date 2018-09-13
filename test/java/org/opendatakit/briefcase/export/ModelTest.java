@@ -30,15 +30,15 @@ public class ModelTest {
   public void knows_if_it_is_the_meta_audit_field() {
     assertThat(buildModel("some-field").isMetaAudit(), is(false));
     assertThat(buildModel("audit").isMetaAudit(), is(false));
-    assertThat(buildModel("audit", "some-parent").isMetaAudit(), is(false));
-    assertThat(buildModel("audit", "meta").isMetaAudit(), is(true));
+    assertThat(buildModel("some-parent", "audit").isMetaAudit(), is(false));
+    assertThat(buildModel("meta", "audit").isMetaAudit(), is(true));
   }
 
   private Model buildModel(String name) {
-    return buildModel(name, null);
+    return buildModel(null, name);
   }
 
-  private Model buildModel(String name, String parentName) {
+  private Model buildModel(String parentName, String name) {
     TreeElement element = new TreeElement(name, DEFAULT_MULTIPLICITY);
     if (parentName != null) {
       TreeElement parent = new TreeElement(parentName, DEFAULT_MULTIPLICITY);
