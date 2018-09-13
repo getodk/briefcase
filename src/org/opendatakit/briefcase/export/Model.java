@@ -269,6 +269,10 @@ class Model {
     return Optional.ofNullable(controls.get(fqn()).getChoices()).orElse(emptyList());
   }
 
+  public boolean isMetaAudit() {
+    return model.getName().equals("audit") && model.getParent() != null && model.getParent().getName().equals("meta");
+  }
+
   // TODO This should be defined in JavaRosa, like the DataType enum
   enum ControlType {
     UNTYPED(-1),
