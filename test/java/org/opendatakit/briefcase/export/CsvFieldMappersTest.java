@@ -29,6 +29,7 @@ import static org.opendatakit.briefcase.matchers.PathMatchers.exists;
 import static org.opendatakit.briefcase.matchers.PathMatchers.fileContains;
 import static org.opendatakit.briefcase.matchers.PathMatchers.fileExactlyContains;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -155,7 +156,7 @@ public class CsvFieldMappersTest {
   @Test
   public void binary_value_given_user_does_not_want_to_export_media_files() {
     scenario = nonGroup(DataType.BINARY);
-    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
 
     List<Pair<String, String>> outputWithoutMedia = scenario.mapSimpleValue("some_file.bin", false);
 
@@ -167,7 +168,7 @@ public class CsvFieldMappersTest {
   @Test
   public void binary_value_given_user_wants_to_export_media_files() {
     scenario = nonGroup(DataType.BINARY);
-    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
 
     List<Pair<String, String>> outputWithMedia = scenario.mapSimpleValue("some_file.bin", true);
 
@@ -192,7 +193,7 @@ public class CsvFieldMappersTest {
   @Test
   public void binary_value_given_output_file_does_not_exist() {
     scenario = nonGroup(DataType.BINARY);
-    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
 
     List<Pair<String, String>> outputWithMedia = scenario.mapSimpleValue("some_file.bin", true);
 
@@ -211,8 +212,8 @@ public class CsvFieldMappersTest {
   public void binary_value_given_exact_same_output_file_exist() {
     scenario = nonGroup(DataType.BINARY);
     String fileContents = UUID.randomUUID().toString();
-    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), fileContents);
-    UncheckedFiles.write(scenario.getOutputMediaDir().resolve("some_file.bin"), fileContents);
+    write(scenario.getWorkDir().resolve("some_file.bin"), fileContents);
+    write(scenario.getOutputMediaDir().resolve("some_file.bin"), fileContents);
 
     List<Pair<String, String>> outputWithMedia = scenario.mapSimpleValue("some_file.bin", true);
 
@@ -230,8 +231,8 @@ public class CsvFieldMappersTest {
   @Test
   public void binary_value_given_different_output_file_exist() {
     scenario = nonGroup(DataType.BINARY);
-    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
-    UncheckedFiles.write(scenario.getOutputMediaDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    write(scenario.getOutputMediaDir().resolve("some_file.bin"), UUID.randomUUID().toString());
 
     List<Pair<String, String>> outputWithMedia = scenario.mapSimpleValue("some_file.bin", true);
 
@@ -248,9 +249,9 @@ public class CsvFieldMappersTest {
   @Test
   public void binary_value_given_different_output_files_exist() {
     scenario = nonGroup(DataType.BINARY);
-    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
-    UncheckedFiles.write(scenario.getOutputMediaDir().resolve("some_file.bin"), UUID.randomUUID().toString());
-    UncheckedFiles.write(scenario.getOutputMediaDir().resolve("some_file-2.bin"), UUID.randomUUID().toString());
+    write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    write(scenario.getOutputMediaDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    write(scenario.getOutputMediaDir().resolve("some_file-2.bin"), UUID.randomUUID().toString());
 
     List<Pair<String, String>> outputWithMedia = scenario.mapSimpleValue("some_file.bin", true);
 
@@ -265,7 +266,7 @@ public class CsvFieldMappersTest {
   @Test
   public void audit_fields_write_the_first_submissions_content_to_the_output_audit_file() {
     scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
-    UncheckedFiles.write(scenario.getWorkDir().resolve("audit.csv"), "line 1");
+    write(scenario.getWorkDir().resolve("audit.csv"), "line 1");
 
     List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
     assertThat(output.get(0).getRight(), is(scenario.getFormName() + " - audit.csv"));
@@ -279,7 +280,7 @@ public class CsvFieldMappersTest {
   @Test
   public void audit_data_gets_a_new_column_with_the_instance_ID() {
     scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
-    UncheckedFiles.write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536663986578,\n");
+    write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536663986578,\n");
 
     List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
     assertThat(output.get(0).getRight(), is(scenario.getFormName() + " - audit.csv"));
@@ -294,14 +295,14 @@ public class CsvFieldMappersTest {
   public void further_audit_fields_append_their_contents_stripping_the_header() {
     scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
 
-    UncheckedFiles.write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536663986578,\n");
+    write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536663986578,\n");
     scenario.mapSimpleValue("audit.csv", true);
     String firstInstanceID = scenario.getInstanceId();
 
     // Jump to a new submission
     scenario.nextSubmission();
 
-    UncheckedFiles.write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536664003229,\n", TRUNCATE_EXISTING);
+    write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536664003229,\n", TRUNCATE_EXISTING);
     scenario.mapSimpleValue("audit.csv", true);
     String secondInstanceID = scenario.getInstanceId();
 
