@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.util;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.File;
 import java.io.IOException;
 import org.apache.commons.io.FileUtils;
@@ -30,29 +32,21 @@ import org.slf4j.LoggerFactory;
 /**
  * CTOSurvey contribution to address issues with Android 4.3 systems not
  * properly flushing OpenSSL CipherStreams.
- * <p>
- * SCTO-789
- * <p>
- * Created by IntelliJ IDEA.
- * User: Administrator
- * Date: 28/9/2013
- * Time: 9:57 μμ
  */
-public final class BadXMLFixer {
+final class BadXMLFixer {
 
   private static final Logger log = LoggerFactory.getLogger(BadXMLFixer.class);
 
   private static final String XML_HEADER = "<?xml version='1.0' ?>";
-  private static final String ENCODING = "UTF-8";
 
-  public static Document fixBadXML(File xmlFile) throws CannotFixXMLException {
+  static Document fixBadXML(File xmlFile) throws CannotFixXMLException {
     log.info("Trying to fix the submission {} ", xmlFile.getAbsolutePath());
 
     try {
-      String originalXML = FileUtils.readFileToString(xmlFile, ENCODING);
+      String originalXML = FileUtils.readFileToString(xmlFile, UTF_8);
       String fixedXML = fixXML(originalXML);
       File tempFile = File.createTempFile(xmlFile.getName(), ".fixed.xml");
-      FileUtils.writeStringToFile(tempFile, fixedXML, ENCODING);
+      FileUtils.writeStringToFile(tempFile, fixedXML, UTF_8);
       return XmlManipulationUtils.parseXml(tempFile);
     } catch (IOException | ParsingException | FileSystemException e) {
       log.error("Cannot fix xml", e);
@@ -60,7 +54,7 @@ public final class BadXMLFixer {
     }
   }
 
-  protected static String fixXML(String originalXML) throws CannotFixXMLException {
+  private static String fixXML(String originalXML) throws CannotFixXMLException {
     // try to find the name of the root element, that is the formId
     int startIndex = XML_HEADER.length() + 1;
     int endIndex = originalXML.indexOf(" ", startIndex);

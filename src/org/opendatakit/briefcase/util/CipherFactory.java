@@ -16,7 +16,8 @@
 
 package org.opendatakit.briefcase.util;
 
-import java.io.UnsupportedEncodingException;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -35,7 +36,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author mitchellsundt@gmail.com
  */
-public final class CipherFactory {
+final class CipherFactory {
 
   private static final Logger log = LoggerFactory.getLogger(CipherFactory.class);
   private static final String SYMMETRIC_ALGORITHM = "AES/CFB/PKCS5Padding";
@@ -46,7 +47,7 @@ public final class CipherFactory {
   private final byte[] ivSeedArray;
   private int ivCounter = 0;
 
-  public CipherFactory(String instanceId, byte[] symmetricKeyBytes) throws CryptoException {
+  CipherFactory(String instanceId, byte[] symmetricKeyBytes) throws CryptoException {
 
     this.instanceId = instanceId;
     symmetricKey = new SecretKeySpec(symmetricKeyBytes, SYMMETRIC_ALGORITHM);
@@ -54,22 +55,21 @@ public final class CipherFactory {
     // this is the md5 hash of the instanceID and the symmetric key
     try {
       MessageDigest md = MessageDigest.getInstance("MD5");
-      md.update(instanceId.getBytes("UTF-8"));
+      md.update(instanceId.getBytes(UTF_8));
       md.update(symmetricKeyBytes);
       byte[] messageDigest = md.digest();
       ivSeedArray = new byte[IV_BYTE_LENGTH];
       for (int i = 0; i < IV_BYTE_LENGTH; ++i) {
         ivSeedArray[i] = messageDigest[(i % messageDigest.length)];
       }
-    } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+    } catch (NoSuchAlgorithmException e) {
       String msg = "Error constructing ivSeedArray";
       log.error(msg, e);
       throw new CryptoException(msg + " Cause: " + e);
     }
   }
 
-  public Cipher getCipher(String context) throws InvalidKeyException,
-      InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
+  Cipher getCipher() throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
     ++ivSeedArray[ivCounter % ivSeedArray.length];
     ++ivCounter;
     IvParameterSpec baseIv = new IvParameterSpec(ivSeedArray);
@@ -79,13 +79,11 @@ public final class CipherFactory {
     return c;
   }
 
-  public Cipher getCipher(String context, String fieldName) throws InvalidKeyException,
-      InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException,
-      UnsupportedEncodingException {
+  Cipher getCipher(String fieldName) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
     MessageDigest md = MessageDigest.getInstance("MD5");
-    md.update(instanceId.getBytes("UTF-8"));
+    md.update(instanceId.getBytes(UTF_8));
     md.update(symmetricKey.getEncoded());
-    md.update(fieldName.getBytes("UTF-8"));
+    md.update(fieldName.getBytes(UTF_8));
     byte[] messageDigest = md.digest();
     for (int i = 0; i < IV_BYTE_LENGTH; ++i) {
       ivSeedArray[i] = messageDigest[(i % messageDigest.length)];

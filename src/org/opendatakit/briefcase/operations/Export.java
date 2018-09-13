@@ -104,7 +104,7 @@ public class Export {
 
     if (configuration.resolvePullBefore()) {
       BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
-      FormStatus formStatus = new FormStatus(FormStatus.TransferType.EXPORT, formDefinition);
+      FormStatus formStatus = new FormStatus(formDefinition);
 
       String urlKey = String.format("%s_pull_settings_url", formid);
       String usernameKey = String.format("%s_pull_settings_username", formid);

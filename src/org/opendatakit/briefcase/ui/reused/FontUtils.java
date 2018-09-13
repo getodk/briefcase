@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 public class FontUtils {
 
@@ -29,11 +30,11 @@ public class FontUtils {
 
     // if we are in a jar, then use the classloader, if not, load from filesystem
     File file = getResourceAsFile(name);
-    if (!file.exists()) {
+    if (!Objects.requireNonNull(file).exists()) {
       file = new File("res" + File.separator + name);
     }
 
-    Font customFont = null;
+    Font customFont;
     try {
       customFont = Font.createFont(Font.TRUETYPE_FONT, file).deriveFont(size);
       GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();

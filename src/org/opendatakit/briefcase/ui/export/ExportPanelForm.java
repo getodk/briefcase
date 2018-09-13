@@ -99,7 +99,7 @@ public class ExportPanelForm {
     return container;
   }
 
-  public ExportFormsTable getFormsTable() {
+  ExportFormsTable getFormsTable() {
     return formsTable;
   }
 
@@ -139,15 +139,15 @@ public class ExportPanelForm {
     setDefaultConfButton.setEnabled(true);
   }
 
-  public void refresh() {
+  void refresh() {
     formsTable.refresh();
   }
 
-  public void onDefaultConfSet(Consumer<ExportConfiguration> callback) {
+  void onDefaultConfSet(Consumer<ExportConfiguration> callback) {
     onDefaultConfSetCallbacks.add(callback);
   }
 
-  public void onDefaultConfReset(Runnable callback) {
+  void onDefaultConfReset(Runnable callback) {
     onDefaultConfResetCallbacks.add(callback);
   }
 

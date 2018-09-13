@@ -27,16 +27,16 @@ public class SourcePanelForm extends JComponent {
   public JPanel container;
   private Map<Object, JPanel> forms = new HashMap<>();
 
-  public SourcePanelForm() {
+  SourcePanelForm() {
     $$$setupUI$$$();
   }
 
-  public void addForm(Object key, JPanel form) {
+  void addForm(Object key, JPanel form) {
     forms.put(key, form);
     container.add(form);
   }
 
-  public void navigateTo(Object key) {
+  void navigateTo(Object key) {
     if (!forms.containsKey(key))
       throw new IllegalArgumentException("Navigation error : key " + key + " not found");
 

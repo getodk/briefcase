@@ -29,8 +29,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Pair;
 
@@ -48,7 +46,7 @@ public class Request<T> {
   private final Function<String, T> bodyMapper;
   final List<Pair<String, String>> headers;
 
-  public Request(Method method, URL url, Optional<Credentials> credentials, Function<String, T> bodyMapper, List<Pair<String, String>> headers) {
+  private Request(Method method, URL url, Optional<Credentials> credentials, Function<String, T> bodyMapper, List<Pair<String, String>> headers) {
     this.method = method;
     this.url = url;
     this.credentials = credentials;
@@ -64,6 +62,10 @@ public class Request<T> {
     return new Request<>(GET, url, credentials, Function.identity(), emptyList());
   }
 
+  public static Request<String> get(URL url, Credentials credentials) {
+    return new Request<>(GET, url, Optional.of(credentials), Function.identity(), emptyList());
+  }
+
   public static Request<String> head(URL url) {
     return new Request<>(HEAD, url, Optional.empty(), Function.identity(), emptyList());
   }
@@ -73,7 +75,12 @@ public class Request<T> {
   }
 
   public Request<T> resolve(String path) {
-    return new Request<>(method, url(url.toString() + path), credentials, bodyMapper, headers);
+    // Normalize slashes to ensure that the resulting url
+    // has exactly one slash before the input path
+    String newUrl = url.toString()
+        + (!url.toString().endsWith("/") ? "/" : "")
+        + (path.startsWith("/") ? path.substring(1) : path);
+    return new Request<>(method, url(newUrl), credentials, bodyMapper, headers);
   }
 
   private static URL url(String baseUrl) {
@@ -92,15 +99,7 @@ public class Request<T> {
     return new Request<>(method, url, credentials, bodyMapper.andThen(newBodyMapper), headers);
   }
 
-  public Request<T> withHeader(String name, String value) {
-    List<Pair<String, String>> newHeaders = Stream.concat(
-        headers.stream(),
-        Stream.of(Pair.of(name, value))
-    ).collect(Collectors.toList());
-    return new Request<>(method, url, credentials, bodyMapper, newHeaders);
-  }
-
-  public void ifCredentials(BiConsumer<URL, Credentials> consumer) {
+  void ifCredentials(BiConsumer<URL, Credentials> consumer) {
     credentials.ifPresent(c -> consumer.accept(url, c));
   }
 
@@ -110,6 +109,18 @@ public class Request<T> {
 
   public Method getMethod() {
     return method;
+  }
+
+  URI asUri() {
+    try {
+      return url.toURI();
+    } catch (URISyntaxException e) {
+      throw new BriefcaseException(e);
+    }
+  }
+
+  enum Method {
+    GET, HEAD
   }
 
   @Override
@@ -131,15 +142,4 @@ public class Request<T> {
     return method + " " + url + " " + credentials.map(Credentials::toString).orElse("(no credentials)");
   }
 
-  public URI asUri() {
-    try {
-      return url.toURI();
-    } catch (URISyntaxException e) {
-      throw new HttpException(e);
-    }
-  }
-
-  enum Method {
-    GET, HEAD
-  }
 }

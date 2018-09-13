@@ -17,16 +17,13 @@ package org.opendatakit.briefcase.ui.export;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static java.util.stream.Collectors.toList;
-
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
-import static org.opendatakit.briefcase.model.FormStatus.TransferType.EXPORT;
-import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
+import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.export.ExportConfiguration;
@@ -96,12 +93,11 @@ public class ExportPanel {
         form.setExporting();
         new Thread(this::export).start();
       } else
-        showErrorDialog(
-            form.getContainer(),
+        errorMessage(
+            "You can't export yet",
             "" +
                 "You can't start an export process until you solve these issues:\n" +
-                String.join("\n", errors),
-            "You can't export yet"
+                String.join("\n", errors)
         );
     });
 
@@ -166,14 +162,14 @@ public class ExportPanel {
     );
   }
 
-  public void updateForms() {
+  void updateForms() {
     forms.merge(toFormStatuses(formCache.getForms()));
     form.refresh();
   }
 
   private static List<FormStatus> toFormStatuses(List<BriefcaseFormDefinition> formDefs) {
     return formDefs.stream()
-        .map(formDefinition -> new FormStatus(EXPORT, formDefinition))
+        .map(FormStatus::new)
         .collect(toList());
   }
 
@@ -203,7 +199,7 @@ public class ExportPanel {
           });
     } catch (Throwable t) {
       log.error("Error while exporting forms", t);
-      showErrorDialog(getForm().getContainer(), "Unexpected error. See logs", "Export errors");
+      errorMessage("Export errors", "Unexpected error. See logs");
     } finally {
       form.unsetExporting();
     }

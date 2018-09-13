@@ -56,7 +56,7 @@ public class ImportFromODK {
     formCache.update();
 
     List<FormStatus> forms = FileSystemUtils.getODKFormList(odkDir.toFile()).stream()
-        .map(form -> new FormStatus(FormStatus.TransferType.GATHER, form))
+        .map(FormStatus::new)
         .filter(form -> formId.map(id -> form.getFormDefinition().getFormId().equals(id)).orElse(true))
         .collect(toList());
 

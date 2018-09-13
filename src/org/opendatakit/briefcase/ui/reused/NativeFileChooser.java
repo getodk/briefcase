@@ -16,6 +16,7 @@
 package org.opendatakit.briefcase.ui.reused;
 
 import static javax.swing.JFileChooser.FILES_ONLY;
+import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.awt.Container;
 import java.awt.FileDialog;
@@ -26,7 +27,6 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.function.Predicate;
 import javax.swing.JFileChooser;
-import org.opendatakit.briefcase.ui.ODKOptionPane;
 
 class NativeFileChooser implements FileChooser {
   private Container parent;
@@ -55,12 +55,12 @@ class NativeFileChooser implements FileChooser {
 
     Path path = Paths.get(fileDialog.getDirectory()).resolve(fileDialog.getFile());
     if (!Files.exists(path)) {
-      ODKOptionPane.showErrorDialog(parent, "Selected location doesn't exist", "Export configuration error");
+      errorMessage("Export configuration error", "Selected location doesn't exist");
       return Optional.empty();
     }
 
     if (!filter.test(path.toFile())) {
-      ODKOptionPane.showErrorDialog(parent, "Selected location doesn't comply with filter: " + filterDescription, "Export configuration error");
+      errorMessage("Export configuration error", "Selected location doesn't comply with filter: " + filterDescription);
       return Optional.empty();
     }
 

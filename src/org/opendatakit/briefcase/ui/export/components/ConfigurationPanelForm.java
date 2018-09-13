@@ -15,16 +15,13 @@
  */
 package org.opendatakit.briefcase.ui.export.components;
 
-import static javax.swing.JOptionPane.PLAIN_MESSAGE;
-import static javax.swing.JOptionPane.YES_NO_OPTION;
-import static javax.swing.JOptionPane.YES_OPTION;
-import static javax.swing.JOptionPane.showConfirmDialog;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.directory;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.file;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
+import static org.opendatakit.briefcase.ui.reused.UI.confirm;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
-import static org.opendatakit.briefcase.util.FindDirectoryStructure.isMac;
-import static org.opendatakit.briefcase.util.FindDirectoryStructure.isWindows;
+import static org.opendatakit.briefcase.util.Host.isMac;
+import static org.opendatakit.briefcase.util.Host.isWindows;
 
 import com.github.lgooddatepicker.components.DatePicker;
 import java.awt.Color;
@@ -43,7 +40,6 @@ import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -93,7 +89,7 @@ public class ConfigurationPanelForm extends JComponent {
   private final ConfigurationPanelMode mode;
   private boolean uiLocked = false;
 
-  protected ConfigurationPanelForm(ConfigurationPanelMode mode) {
+  private ConfigurationPanelForm(ConfigurationPanelMode mode) {
     this.mode = mode;
     startDatePicker = createDatePicker();
     endDatePicker = createDatePicker();
@@ -340,9 +336,7 @@ public class ConfigurationPanelForm extends JComponent {
   }
 
   private boolean confirmOverwriteFiles() {
-    JDialog dialog = new JDialog();
-    dialog.setAlwaysOnTop(true);
-    if (showConfirmDialog(dialog, "The default behavior is to append to existing files. Are you sure you want to overwrite existing files?", "", YES_NO_OPTION, PLAIN_MESSAGE) == YES_OPTION)
+    if (confirm("The default behavior is to append to existing files. Are you sure you want to overwrite existing files?"))
       return true;
     overwriteFilesField.setSelected(false);
     return false;

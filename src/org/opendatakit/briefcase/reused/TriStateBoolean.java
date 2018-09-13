@@ -3,7 +3,6 @@ package org.opendatakit.briefcase.reused;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 public enum TriStateBoolean {
   UNDETERMINED(null), TRUE(true), FALSE(false);
@@ -20,10 +19,6 @@ public enum TriStateBoolean {
 
   public static TriStateBoolean of(boolean value) {
     return value ? TRUE : FALSE;
-  }
-
-  public Optional<Boolean> maybeGetBooleanValue() {
-    return Optional.ofNullable(booleanValue);
   }
 
   public boolean getBooleanValue() {

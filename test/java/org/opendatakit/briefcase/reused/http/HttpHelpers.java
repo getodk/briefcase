@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 University of Washington.
+ * Copyright (C) 2018 Nafundi
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,18 +14,17 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.model;
+package org.opendatakit.briefcase.reused.http;
 
-public enum ExportType {
-  CSV(".csv and media files"); // CSV output type
+import java.net.MalformedURLException;
+import java.net.URL;
 
-  private String displayString;
-
-  ExportType(String displayString) {
-    this.displayString = displayString;
-  }
-
-  public String toString() {
-    return displayString;
+public class HttpHelpers {
+  public static URL getUrl(String url) {
+    try {
+      return new URL(url);
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

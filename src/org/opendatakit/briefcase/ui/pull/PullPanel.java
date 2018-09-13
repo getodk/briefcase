@@ -21,6 +21,7 @@ import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
+import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.util.Optional;
 import javax.swing.JPanel;
@@ -38,7 +39,6 @@ import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.ui.ODKOptionPane;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.source.Source;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
@@ -74,18 +74,23 @@ public class PullPanel {
         view.refresh();
         updateActionButtons();
       } catch (HttpException e) {
-        log.warn("Unable to get form list from {}: {}", source.getDescription(), e.toString());
+        log.warn("Unable to get form list from {}", source.getDescription(), e);
+        errorMessage("Error preloading forms", "We haven't been able to preload forms using the saved source. Try reloading it or reset it, please.", false);
       }
     });
 
     // Register callbacks to view events
     view.onSource(source -> {
-      this.source = Optional.of(source);
-      Source.clearAllPreferences(tabPreferences);
-      source.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
-      forms.load(source.getFormList());
-      view.refresh();
-      updateActionButtons();
+      try {
+        this.source = Optional.of(source);
+        Source.clearAllPreferences(tabPreferences);
+        source.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
+        forms.load(source.getFormList());
+        view.refresh();
+        updateActionButtons();
+      } catch (HttpException e) {
+        errorMessage("Error reloading forms", "We haven't been able to reload forms using the saved source. Try again or reset it, please.");
+      }
     });
 
     view.onReset(() -> {
@@ -145,7 +150,7 @@ public class PullPanel {
 
   @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
   public void onRetrieveAvailableFormsFailedEvent(RetrieveAvailableFormsFailedEvent event) {
-    ODKOptionPane.showErrorDialog(view.container, "Accessing the server failed with error: " + event.getReason(), "Accessing Server Failed");
+    errorMessage("Accessing Server Failed", "Accessing the server failed with error: " + event.getReason(), false);
   }
 
   @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)

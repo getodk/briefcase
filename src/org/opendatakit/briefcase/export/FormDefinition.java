@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.export;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
@@ -78,7 +79,7 @@ public class FormDefinition {
     Path revised = formFile.getParent().resolve(formFile.getFileName() + ".revised");
 
     try (InputStream in = Files.newInputStream(Files.exists(revised) ? revised : formFile);
-         InputStreamReader isr = new InputStreamReader(in, "UTF-8");
+         InputStreamReader isr = new InputStreamReader(in, UTF_8);
          BufferedReader br = new BufferedReader(isr)) {
       FormDef formDef = new XFormParser(XFormParser.getXMLDocument(br)).parse();
       boolean isEncrypted = Optional.ofNullable(formDef.getSubmissionProfile())

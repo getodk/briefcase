@@ -16,14 +16,13 @@
 
 package org.opendatakit.briefcase.ui.reused.source;
 
-import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
+import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import javax.swing.SwingWorker;
-
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Response;
 
@@ -38,18 +37,20 @@ public class RemoteServerDialog {
       form.setTestingConnection();
 
       new SwingWorker<Response<Boolean>, Void>() {
-        @Override protected Response<Boolean> doInBackground() {
+        @Override
+        protected Response<Boolean> doInBackground() {
           return serverTester.test(server);
         }
 
-        @Override protected void done() {
+        @Override
+        protected void done() {
           try {
             Response<Boolean> response = get();
             if (response.isSuccess()) {
               triggerConnect(server);
               form.hideDialog();
             } else
-              showError(
+              showErrorMessage(
                   response.isRedirection() ? "Redirection detected" : response.isUnauthorized() ? "Wrong credentials" : response.isNotFound() ? "Aggregate not found" : "",
                   response.isRedirection() ? "Unexpected error" : "Configuration error"
               );
@@ -57,7 +58,7 @@ public class RemoteServerDialog {
             // Ignore
           } catch (ExecutionException e) {
             if (e.getCause() != null) {
-              showError(e.getCause().getMessage(), "Unexpected error");
+              showErrorMessage(e.getCause().getMessage(), "Unexpected error");
             }
           }
           form.unsetTestingConnection();
@@ -66,17 +67,13 @@ public class RemoteServerDialog {
     });
   }
 
-  private void showError(String error, String title) {
+  private void showErrorMessage(String error, String title) {
     String maybeSeparator = error.isEmpty() ? "" : ".\n\n";
-    showErrorDialog(
-        form,
-        String.format(
-            "%s%sPlease review the connection parameters and try again.",
-            error,
-            maybeSeparator
-        ),
-        title
-    );
+    errorMessage(title, String.format(
+        "%s%sPlease review the connection parameters and try again.",
+        error,
+        maybeSeparator
+    ));
   }
 
   static RemoteServerDialog empty(RemoteServer.Test serverTester, String requiredPermission) {
@@ -90,7 +87,7 @@ public class RemoteServerDialog {
     onConnectCallbacks.forEach(callback -> callback.accept(conf));
   }
 
-  public void onConnect(Consumer<RemoteServer> consumer) {
+  void onConnect(Consumer<RemoteServer> consumer) {
     onConnectCallbacks.add(consumer);
   }
 

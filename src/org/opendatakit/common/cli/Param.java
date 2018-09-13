@@ -101,21 +101,6 @@ public class Param<T> {
     );
   }
 
-  /**
-   * Creates a new {@link Param}&lt;{@link Void}&gt; instance for a command-line flag
-   *
-   * @param shortCode   the shortcode (usually one or two chars)
-   * @param description the description
-   * @return a new {@link Param}&lt;{@link Void}&gt; instance
-   */
-  public static Param<Void> flag(String shortCode, String description) {
-    return new Param<>(
-        shortCode,
-        new Option(shortCode, false, description),
-        Optional.empty()
-    );
-  }
-
   boolean isArg() {
     return this.option.hasArg();
   }

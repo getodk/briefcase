@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.model;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,7 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
-import java.security.PrivateKey;
+import java.util.Objects;
 import org.apache.commons.io.FileUtils;
 import org.bushe.swing.event.EventBus;
 import org.javarosa.core.model.instance.TreeElement;
@@ -39,17 +41,15 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
 
   private static final Logger log = LoggerFactory.getLogger(BriefcaseFormDefinition.class);
   private final File formFolder;
-  public final File revisedFormFile;
-  private boolean needsMediaUpdate = false;
+  private final File revisedFormFile;
+  private boolean needsMediaUpdate;
   public JavaRosaParserWrapper formDefn;
-  private PrivateKey privateKey = null;
 
-  private static final String readFile(File formDefinitionFile) throws BadFormDefinition {
+  private static String readFile(File formDefinitionFile) throws BadFormDefinition {
     StringBuilder xmlBuilder = new StringBuilder();
     BufferedReader rdr = null;
     try {
-      rdr = new BufferedReader(new InputStreamReader(new FileInputStream(formDefinitionFile),
-          "UTF-8"));
+      rdr = new BufferedReader(new InputStreamReader(new FileInputStream(formDefinitionFile), UTF_8));
       String line = rdr.readLine();
       while (line != null) {
         xmlBuilder.append(line);
@@ -68,8 +68,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
         }
       }
     }
-    String inputXml = xmlBuilder.toString();
-    return inputXml;
+    return xmlBuilder.toString();
   }
 
   public boolean needsMediaUpdate() {
@@ -80,13 +79,11 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
     needsMediaUpdate = false;
   }
 
-  public static final BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile, File briefcaseFolder)
-      throws BadFormDefinition {
+  public static BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile, File briefcaseFolder) throws BadFormDefinition {
     return resolveAgainstBriefcaseDefn(tmpFormFile, false, briefcaseFolder);
   }
 
-  public static final BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile,
-                                                                          boolean copyFile, File briefcaseFolder) throws BadFormDefinition {
+  public static BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile, boolean copyFile, File briefcaseFolder) throws BadFormDefinition {
 
     if (!tmpFormFile.exists()) {
       throw new BadFormDefinition("Form directory does not contain form");
@@ -172,8 +169,12 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
 
         if (result == DifferenceResult.XFORMS_DIFFERENT) {
           if (revised.exists()) {
-            result = JavaRosaParserWrapper.compareXml(newDefn, revisedXml,
-                revisedDefn.getFormName(), true);
+            result = JavaRosaParserWrapper.compareXml(
+                newDefn,
+                revisedXml,
+                Objects.requireNonNull(revisedDefn).getFormName(),
+                true
+            );
             if (result == DifferenceResult.XFORMS_DIFFERENT) {
               throw new BadFormDefinition("Form definitions are incompatible.");
             } else if (result != DifferenceResult.XFORMS_EARLIER_VERSION
@@ -239,7 +240,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
         }
       }
     } catch (ODKIncompleteSubmissionData e) {
-      throw new BadFormDefinition(e, e.getReason());
+      throw new BadFormDefinition(e);
     }
 
     BriefcaseFormDefinition defn;
@@ -257,7 +258,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
     return defn;
   }
 
-  public static void renameOrCopyAndMarkForDeletion(File source, File target) throws BadFormDefinition {
+  private static void renameOrCopyAndMarkForDeletion(File source, File target) throws BadFormDefinition {
     if (!source.renameTo(target)) {
       // if cannot rename, try to copy instead (and mark for deletion)
       try {
@@ -271,16 +272,14 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
     }
   }
 
-  private BriefcaseFormDefinition(File briefcaseFormDirectory, JavaRosaParserWrapper formDefn,
-                                  File revisedFormFile, boolean needsMediaUpdate) {
+  private BriefcaseFormDefinition(File briefcaseFormDirectory, JavaRosaParserWrapper formDefn, File revisedFormFile, boolean needsMediaUpdate) {
     this.needsMediaUpdate = needsMediaUpdate;
     this.formDefn = formDefn;
     this.revisedFormFile = revisedFormFile;
     this.formFolder = briefcaseFormDirectory;
   }
 
-  public BriefcaseFormDefinition(File briefcaseFormDirectory, File formFile)
-      throws BadFormDefinition {
+  public BriefcaseFormDefinition(File briefcaseFormDirectory, File formFile) throws BadFormDefinition {
     formFolder = briefcaseFormDirectory;
     needsMediaUpdate = false;
     if (!formFile.exists()) {
@@ -296,7 +295,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
         formDefn = new JavaRosaParserWrapper(formFile, readFile(formFile));
       }
     } catch (ODKIncompleteSubmissionData e) {
-      throw new BadFormDefinition(e, e.getReason());
+      throw new BadFormDefinition(e);
     }
   }
 
@@ -309,31 +308,16 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
     return formFolder;
   }
 
-  /*
-   * (non-Javadoc)
-   *
-   * @see org.opendatakit.briefcase.model.IFormDefinition#getFormName()
-   */
   @Override
   public String getFormName() {
     return formDefn.getFormName();
   }
 
-  /*
-   * (non-Javadoc)
-   *
-   * @see org.opendatakit.briefcase.model.IFormDefinition#getFormId()
-   */
   @Override
   public String getFormId() {
     return formDefn.getSubmissionElementDefn().formId;
   }
 
-  /*
-   * (non-Javadoc)
-   *
-   * @see org.opendatakit.briefcase.model.IFormDefinition#getVersionString()
-   */
   @Override
   public String getVersionString() {
     return formDefn.getSubmissionElementDefn().modelVersion;
@@ -345,10 +329,6 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
     } else {
       return formDefn.getFormDefinitionFile();
     }
-  }
-
-  public boolean isInvalidFormXmlns() {
-    return formDefn.isInvalidFormXmlns();
   }
 
   public String getSubmissionKey(String uri) {
@@ -376,22 +356,9 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
     return formDefn.getSubmissionElement();
   }
 
-  public void setPrivateKey(PrivateKey privateKey) {
-    this.privateKey = privateKey;
-  }
-
-  public PrivateKey getPrivateKey() {
-    return privateKey;
-  }
-
-  @Override
-  public LocationType getFormLocation() {
-    return LocationType.LOCAL;
-  }
-
   @Override
   public boolean equals(Object obj) {
-    if (obj != null && obj instanceof BriefcaseFormDefinition) {
+    if (obj instanceof BriefcaseFormDefinition) {
       BriefcaseFormDefinition lf = (BriefcaseFormDefinition) obj;
 
       String id = getFormId();

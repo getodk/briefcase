@@ -87,7 +87,7 @@ public class PushFormToAggregate {
     else {
       Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
           .filter(form -> form.getFormId().equals(formid))
-          .map(formDef -> new FormStatus(FormStatus.TransferType.UPLOAD, formDef))
+          .map(FormStatus::new)
           .findFirst();
 
       FormStatus form = maybeFormStatus.orElseThrow(() -> new FormNotFoundException(formid));

@@ -16,10 +16,9 @@
 
 package org.opendatakit.briefcase.ui.settings;
 
-import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.APP_NAME;
+import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
 import java.nio.file.Path;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
@@ -32,7 +31,7 @@ public class SettingsPanel {
   private final SettingsPanelForm form;
 
   @SuppressWarnings("checkstyle:Indentation")
-  public SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
+  private SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
     this.form = form;
 
     appPreferences.getBriefcaseDir().ifPresent(path -> form.setStorageLocation(path.getParent()));
@@ -65,7 +64,8 @@ public class SettingsPanel {
     form.onHttpProxy(appPreferences::setHttpProxy, appPreferences::unsetHttpProxy);
     form.onReloadCache(() -> {
       formCache.update();
-      JOptionPane.showMessageDialog(getContainer(), "Forms successfully reloaded from storage location.", APP_NAME, JOptionPane.PLAIN_MESSAGE);
+      infoMessage("Forms successfully reloaded from storage location.");
+      infoMessage("Forms successfully reloaded from storage location.");
     });
   }
 

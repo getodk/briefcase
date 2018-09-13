@@ -19,26 +19,16 @@ package org.opendatakit.briefcase.model;
 
 public class FormStatus {
 
-  public static final int STATUS_HISTORY_MAX_BYTES = 1024 * 1024;
+  private static final int STATUS_HISTORY_MAX_BYTES = 1024 * 1024;
 
-  public enum TransferType {
-    GATHER, UPLOAD, EXPORT
-  }
-
-  private final TransferType transferType;
   private boolean isSelected = false;
   private IFormDefinition form;
   private String statusString = "";
   private final StringBuilder statusHistory = new StringBuilder();
   private boolean isSuccessful = true;
 
-  public FormStatus(TransferType transferType, IFormDefinition form) {
-    this.transferType = transferType;
+  public FormStatus(IFormDefinition form) {
     this.form = form;
-  }
-
-  public synchronized TransferType getTransferType() {
-    return transferType;
   }
 
   public synchronized boolean isSelected() {
