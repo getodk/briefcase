@@ -25,6 +25,7 @@ import static org.opendatakit.briefcase.export.Scenario.nonGroup;
 import static org.opendatakit.briefcase.export.Scenario.nonRepeatGroup;
 import static org.opendatakit.briefcase.export.Scenario.repeatGroup;
 import static org.opendatakit.briefcase.matchers.PathMatchers.exists;
+import static org.opendatakit.briefcase.matchers.PathMatchers.fileContains;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
 
 import java.nio.file.Path;
@@ -36,7 +37,6 @@ import org.javarosa.core.model.DataType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.opendatakit.briefcase.matchers.PathMatchers;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 
@@ -261,19 +261,17 @@ public class CsvFieldMappersTest {
   }
 
   @Test
-  public void audit_field() {
+  public void audit_fields_write_the_first_submissions_content_to_the_output_audit_file() {
     scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
     UncheckedFiles.write(scenario.getWorkDir().resolve("audit.csv"), "line 1");
 
-    String formName = scenario.getFormName();
-
     List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
-    assertThat(output.get(0).getRight(), is(formName + " - audit.csv"));
+    assertThat(output.get(0).getRight(), is(scenario.getFormName() + " - audit.csv"));
 
     Path outputAudit = scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv");
 
     assertThat(outputAudit, exists());
-    assertThat(outputAudit, PathMatchers.fileContains("line 1"));
+    assertThat(outputAudit, fileContains("line 1"));
   }
 
   @Test
