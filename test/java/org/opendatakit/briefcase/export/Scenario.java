@@ -43,7 +43,7 @@ class Scenario {
   private final Path outputDir = createTempDirectory("export_output");
   private final Path outputMediaDir = UncheckedFiles.createDirectories(outputDir.resolve("media"));
   private final String formName;
-  private final String instanceId;
+  private String instanceId;
   private final String instanceName;
   private final String fieldName;
   private final Model fieldModel;
@@ -247,5 +247,9 @@ class Scenario {
 
   public String getInstanceId() {
     return instanceId;
+  }
+
+  public void nextSubmission() {
+    instanceId = "instance_" + instanceIdSeq++;
   }
 }

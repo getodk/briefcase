@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.export;
 
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -287,6 +288,27 @@ public class CsvFieldMappersTest {
 
     assertThat(outputAudit, exists());
     assertThat(outputAudit, fileExactlyContains("instance ID,event, node, start, end\n" + scenario.getInstanceId() + ",form start,,1536663986578,\n"));
+  }
+
+  @Test
+  public void further_audit_fields_append_their_contents_stripping_the_header() {
+    scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
+
+    UncheckedFiles.write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536663986578,\n");
+    scenario.mapSimpleValue("audit.csv", true);
+    String firstInstanceID = scenario.getInstanceId();
+
+    // Jump to a new submission
+    scenario.nextSubmission();
+
+    UncheckedFiles.write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536664003229,\n", TRUNCATE_EXISTING);
+    scenario.mapSimpleValue("audit.csv", true);
+    String secondInstanceID = scenario.getInstanceId();
+
+    Path outputAudit = scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv");
+
+    assertThat(outputAudit, exists());
+    assertThat(outputAudit, fileContains("instance ID,event, node, start, end\n" + firstInstanceID + ",form start,,1536663986578,\n" + secondInstanceID + ",form start,,1536664003229,\n"));
   }
 
   @Test
