@@ -87,7 +87,10 @@ final class CsvFieldMappers {
 
   static CsvFieldMapper getMapper(Model field, boolean splitSelectMultiples) {
     // If no mapper is available for this field, default to a simple text mapper
-    CsvFieldMapper mapper = Optional.ofNullable(mappers.get(field.getDataType())).orElse(simpleMapper(CsvFieldMappers::text));
+    CsvFieldMapper mapper = field.isMetaAudit()
+        ? mappers.get(DataType.BINARY)
+        : Optional.ofNullable(mappers.get(field.getDataType()))
+        .orElse(simpleMapper(CsvFieldMappers::text));
     return splitSelectMultiples ? SplitSelectMultiples.decorate(mapper) : mapper;
   }
 
