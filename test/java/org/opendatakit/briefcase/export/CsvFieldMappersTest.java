@@ -20,35 +20,21 @@ import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.javarosa.core.model.instance.TreeReference.DEFAULT_MULTIPLICITY;
 import static org.junit.Assert.assertThat;
-import static org.kxml2.kdom.Node.ELEMENT;
-import static org.kxml2.kdom.Node.TEXT;
-import static org.opendatakit.briefcase.export.CsvFieldMappersTest.Scenario.nonGroup;
-import static org.opendatakit.briefcase.export.CsvFieldMappersTest.Scenario.nonRepeatGroup;
-import static org.opendatakit.briefcase.export.CsvFieldMappersTest.Scenario.repeatGroup;
+import static org.opendatakit.briefcase.export.Scenario.nonGroup;
+import static org.opendatakit.briefcase.export.Scenario.nonRepeatGroup;
+import static org.opendatakit.briefcase.export.Scenario.repeatGroup;
 import static org.opendatakit.briefcase.matchers.PathMatchers.exists;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.createTempDirectory;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
 
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.TimeZone;
 import java.util.UUID;
-import java.util.stream.IntStream;
 import org.javarosa.core.model.DataType;
-import org.javarosa.core.model.instance.TreeElement;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.kxml2.kdom.Document;
-import org.kxml2.kdom.Element;
-import org.opendatakit.briefcase.reused.OverridableBoolean;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 
@@ -295,196 +281,4 @@ public class CsvFieldMappersTest {
   }
 
 
-  static class Scenario {
-    private static int instanceIdSeq = 1;
-    private final Path workDir = createTempDirectory("briefcase_test_workdir");
-    private final Path outputMediaDir = UncheckedFiles.createDirectories(createTempDirectory("briefcase_test_media").resolve("media"));
-    private final String instanceId;
-    private final String instanceName;
-    private final String fieldName;
-    private final Model fieldModel;
-
-    Scenario(String instanceId, String instanceName, String fieldName, Model fieldModel) {
-      this.instanceId = instanceId;
-      this.instanceName = instanceName;
-      this.fieldName = fieldName;
-      this.fieldModel = fieldModel;
-    }
-
-    static Scenario nonGroup(DataType dataType) {
-      return nonGroup(dataType, "field");
-    }
-
-    static Scenario nonGroup(DataType dataType, String fieldName) {
-      Model fieldModel = createField(dataType, fieldName, null);
-      return new Scenario("instance_" + instanceIdSeq++, "data", fieldName, fieldModel);
-    }
-
-    static Model createField(DataType dataType) {
-      return createField(dataType, "field", null);
-    }
-
-    static Model createField(DataType dataType, String fieldName) {
-      return createField(dataType, fieldName, null);
-    }
-
-    static Model createField(DataType dataType, String fieldName, String parentName) {
-      List<TreeElement> elements = new LinkedList<>();
-      TreeElement fieldTreeElement = new TreeElement(fieldName, DEFAULT_MULTIPLICITY);
-      fieldTreeElement.setDataType(dataType.value);
-      elements.add(fieldTreeElement);
-
-      if (parentName != null) {
-        TreeElement parentTreeElement = new TreeElement(parentName, DEFAULT_MULTIPLICITY);
-        parentTreeElement.setDataType(DataType.NULL.value);
-        elements.add(fieldTreeElement);
-      }
-
-      TreeElement instanceTreeElement = new TreeElement("data", DEFAULT_MULTIPLICITY);
-      instanceTreeElement.setDataType(DataType.NULL.value);
-      elements.add(instanceTreeElement);
-
-      TreeElement rootTreeElement = new TreeElement("/", DEFAULT_MULTIPLICITY);
-      rootTreeElement.setDataType(DataType.NULL.value);
-      elements.add(rootTreeElement);
-
-      for (int i = 0; i < elements.size() - 1; i++)
-        elements.get(0).addChild(elements.get(i + 1));
-
-      for (int i = elements.size() - 1; i > 0; i--)
-        elements.get(i).setParent(elements.get(i - 1));
-
-      return new Model(fieldTreeElement, Collections.emptyMap());
-    }
-
-    private static Scenario group(String instanceId, DataType dataType, int fieldCount, boolean repeatable) {
-      List<TreeElement> groupFieldTreeElements = IntStream.range(0, fieldCount).boxed().map(i -> {
-        TreeElement field = new TreeElement("field_" + (i + 1), DEFAULT_MULTIPLICITY);
-        field.setDataType(dataType.value);
-        return field;
-      }).collect(toList());
-
-      TreeElement groupTreeElement = new TreeElement("group", DEFAULT_MULTIPLICITY);
-      groupTreeElement.setDataType(DataType.NULL.value);
-      groupTreeElement.setRepeatable(repeatable);
-
-      TreeElement instanceTreeElement = new TreeElement("data", DEFAULT_MULTIPLICITY);
-      instanceTreeElement.setDataType(DataType.NULL.value);
-
-      TreeElement rootTreeElement = new TreeElement("/", DEFAULT_MULTIPLICITY);
-      rootTreeElement.setDataType(DataType.NULL.value);
-
-      rootTreeElement.addChild(instanceTreeElement);
-      instanceTreeElement.addChild(groupTreeElement);
-      groupFieldTreeElements.forEach(groupTreeElement::addChild);
-
-      groupFieldTreeElements.forEach(field -> field.setParent(groupTreeElement));
-      groupTreeElement.setParent(instanceTreeElement);
-      instanceTreeElement.setParent(rootTreeElement);
-
-      return new Scenario(instanceId, "data", "group", new Model(groupTreeElement, Collections.emptyMap()));
-    }
-
-    static Scenario repeatGroup(String instanceId, DataType dataType, int fieldCount) {
-      return group(instanceId, dataType, fieldCount, true);
-    }
-
-    static Scenario nonRepeatGroup(DataType dataType, int fieldCount) {
-      return group("instance_" + instanceIdSeq++, dataType, fieldCount, false);
-    }
-
-    private XmlElement buildSimpleValueSubmission(String value) {
-      Document xmlDoc = new Document();
-
-      Element xmlRoot = new Element();
-
-      Element xmlInstance = new Element();
-      xmlInstance.setName(instanceName);
-
-      Element xmlField = new Element();
-      xmlField.setName(fieldName);
-
-      xmlDoc.addChild(ELEMENT, xmlRoot);
-      xmlRoot.addChild(ELEMENT, xmlInstance);
-      xmlInstance.addChild(ELEMENT, xmlField);
-      xmlField.addChild(TEXT, value);
-
-      return new XmlElement(xmlField);
-    }
-
-    private XmlElement buildGroupValueSubmission(String... values) {
-      Document xmlDoc = new Document();
-
-      Element xmlRoot = new Element();
-
-      Element xmlInstance = new Element();
-      xmlInstance.setName("data");
-
-      Element xmlGroup = new Element();
-      xmlGroup.setName("group");
-
-      List<Element> xmlFields = IntStream.range(0, values.length).boxed().map(i -> {
-        Element xmlField = new Element();
-        xmlField.setName("field_" + (i + 1));
-        xmlField.addChild(TEXT, values[i]);
-        return xmlField;
-      }).collect(toList());
-
-
-      xmlDoc.addChild(ELEMENT, xmlRoot);
-      xmlRoot.addChild(ELEMENT, xmlInstance);
-      xmlInstance.addChild(ELEMENT, xmlGroup);
-      xmlFields.forEach(field -> xmlGroup.addChild(ELEMENT, field));
-
-      return new XmlElement(xmlGroup);
-    }
-
-    Path getWorkDir() {
-      return workDir;
-    }
-
-    Path getOutputMediaDir() {
-      return outputMediaDir;
-    }
-
-    List<Pair<String, String>> mapSimpleValue(String value) {
-      return mapValue(buildSimpleValueSubmission(value), true);
-    }
-
-    List<Pair<String, String>> mapSimpleValue(String value, boolean exportMedia) {
-      return mapValue(buildSimpleValueSubmission(value), exportMedia);
-    }
-
-    List<Pair<String, String>> mapGroupValue(String... values) {
-      return mapValue(buildGroupValueSubmission(values), true);
-    }
-
-    private List<Pair<String, String>> mapValue(XmlElement value, boolean exportMedia) {
-      ExportConfiguration configuration = new ExportConfiguration(
-          Optional.of("test_output.csv"),
-          Optional.of(getOutputMediaDir().getParent()),
-          Optional.empty(),
-          Optional.empty(),
-          Optional.empty(),
-          OverridableBoolean.FALSE,
-          OverridableBoolean.TRUE,
-          OverridableBoolean.of(exportMedia),
-          OverridableBoolean.FALSE
-      );
-      return CsvFieldMappers
-          .getMapper(fieldModel, false)
-          .apply(
-              instanceId,
-              getWorkDir(),
-              fieldModel,
-              Optional.of(value),
-              configuration
-          )
-          .collect(toList());
-    }
-
-    public List<Path> getPaths() {
-      return Arrays.asList(workDir, outputMediaDir);
-    }
-  }
 }
