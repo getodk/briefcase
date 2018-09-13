@@ -16,6 +16,9 @@
 
 package org.opendatakit.briefcase.matchers;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.hamcrest.Description;
@@ -42,6 +45,32 @@ public class PathMatchers {
       @Override
       protected void describeMismatchSafely(Path item, Description mismatchDescription) {
         mismatchDescription.appendText("doesn't exist");
+      }
+    };
+  }
+
+  public static Matcher<Path> fileContains(String content) {
+    return new TypeSafeMatcher<Path>() {
+      private String actualContents;
+
+      @Override
+      protected boolean matchesSafely(Path item) {
+        try {
+          actualContents = new String(Files.readAllBytes(item), UTF_8);
+          return actualContents.contains(content);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("a file containing ").appendValue(content);
+      }
+
+      @Override
+      protected void describeMismatchSafely(Path item, Description mismatchDescription) {
+        mismatchDescription.appendText("was a file containing ").appendValue(actualContents);
       }
     };
   }
