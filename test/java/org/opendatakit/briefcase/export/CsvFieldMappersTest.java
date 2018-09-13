@@ -26,6 +26,7 @@ import static org.opendatakit.briefcase.export.Scenario.nonRepeatGroup;
 import static org.opendatakit.briefcase.export.Scenario.repeatGroup;
 import static org.opendatakit.briefcase.matchers.PathMatchers.exists;
 import static org.opendatakit.briefcase.matchers.PathMatchers.fileContains;
+import static org.opendatakit.briefcase.matchers.PathMatchers.fileExactlyContains;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
 
 import java.nio.file.Path;
@@ -272,6 +273,20 @@ public class CsvFieldMappersTest {
 
     assertThat(outputAudit, exists());
     assertThat(outputAudit, fileContains("line 1"));
+  }
+
+  @Test
+  public void audit_data_gets_a_new_column_with_the_instance_ID() {
+    scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
+    UncheckedFiles.write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536663986578,\n");
+
+    List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
+    assertThat(output.get(0).getRight(), is(scenario.getFormName() + " - audit.csv"));
+
+    Path outputAudit = scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv");
+
+    assertThat(outputAudit, exists());
+    assertThat(outputAudit, fileExactlyContains("instance ID,event, node, start, end\n" + scenario.getInstanceId() + ",form start,,1536663986578,\n"));
   }
 
   @Test

@@ -74,4 +74,30 @@ public class PathMatchers {
       }
     };
   }
+
+  public static Matcher<Path> fileExactlyContains(String content) {
+    return new TypeSafeMatcher<Path>() {
+      private String actualContents;
+
+      @Override
+      protected boolean matchesSafely(Path item) {
+        try {
+          actualContents = new String(Files.readAllBytes(item), UTF_8);
+          return actualContents.equals(content);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("a file containing ").appendValue(content);
+      }
+
+      @Override
+      protected void describeMismatchSafely(Path item, Description mismatchDescription) {
+        mismatchDescription.appendText("was a file containing ").appendValue(actualContents);
+      }
+    };
+  }
 }

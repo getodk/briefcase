@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.export;
 import static java.text.DateFormat.getDateInstance;
 import static java.text.DateFormat.getDateTimeInstance;
 import static java.text.DateFormat.getTimeInstance;
+import static java.util.stream.Collectors.toList;
 import static org.javarosa.core.model.DataType.BINARY;
 import static org.javarosa.core.model.DataType.DATE;
 import static org.javarosa.core.model.DataType.DATE_TIME;
@@ -29,13 +30,16 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.getFileExtension;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.getMd5Hash;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.lines;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.stripFileExtension;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 import static org.opendatakit.common.utils.WebUtils.parseDate;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +80,13 @@ final class CsvFieldMappers {
         // When the destination file doesn't exist, we copy the source file
         // there and return its path relative to the instance folder
         Path destinationFile = configuration.getExportDir().resolve(formName + " - audit.csv");
-        copy(sourceFile, destinationFile);
+        List<String> sourceLines = lines(sourceFile).collect(toList());
+        List<String> transformedSourceLines = new ArrayList<>();
+        transformedSourceLines.add("instance ID," + sourceLines.get(0)); // Header with the new instance ID column
+        transformedSourceLines.addAll(sourceLines.subList(1, sourceLines.size()).stream()
+            .map(line -> localId + "," + line)
+            .collect(toList())); // Rest of lines with the submission's instance ID value
+        write(destinationFile, transformedSourceLines);
         return Stream.of(Pair.of(e.fqn(), destinationFile.getFileName().toString()));
       })
       .orElse(empty(model.fqn()));

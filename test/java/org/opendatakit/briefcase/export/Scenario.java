@@ -244,4 +244,8 @@ class Scenario {
   public Path getOutputDir() {
     return outputDir;
   }
+
+  public String getInstanceId() {
+    return instanceId;
+  }
 }
