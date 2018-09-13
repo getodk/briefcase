@@ -63,32 +63,32 @@ final class CsvFieldMappers {
 
   private static CsvFieldMapper AUDIT_MAPPER = (formName, localId, workingDir, model, maybeElement, configuration) -> maybeElement
       .map(e -> {
-        // TODO We should separate the side effect of writing files to disk from the csv output generation
-
         if (!e.hasValue())
           return empty(e.fqn());
 
-        String sourceFilename = e.getValue();
-
-        Path sourceFile = workingDir.resolve(sourceFilename);
+        Path sourceFile = workingDir.resolve(e.getValue());
 
         // When the source file doesn't exist, we return an empty string
         if (!exists(sourceFile))
           return Stream.of(Pair.of(e.fqn(), ""));
 
-        // When the destination file doesn't exist, we copy the source file
-        // there and return its path relative to the instance folder
-        Path destinationFile = configuration.getExportDir().resolve(formName + " - audit.csv");
+        // Process the audit file contents and append the instance ID column to all lines
         List<String> sourceLines = lines(sourceFile).collect(toList());
+        // We prepend a new column header for the instance ID
         String header = "instance ID," + sourceLines.get(0);
+        // We prepend the submission's instance ID to all body lines
         List<String> bodyLines = sourceLines.subList(1, sourceLines.size()).stream()
             .map(line -> localId + "," + line)
             .collect(toList());
 
+        Path destinationFile = configuration.getExportDir().resolve(formName + " - audit.csv");
+        // We could improve this block by first writing the header (if the destination
+        // file doesn't exist) and then *always* appending body lines, but this would
+        // have an impact on performance since this is happening in a per-submission basis
         if (!Files.exists(destinationFile)) {
           List<String> lines = new ArrayList<>();
-          lines.add(header); // Header with the new instance ID column
-          lines.addAll(bodyLines); // Rest of lines with the submission's instance ID value
+          lines.add(header);
+          lines.addAll(bodyLines);
           write(destinationFile, lines);
         } else
           write(destinationFile, bodyLines, APPEND);
