@@ -26,6 +26,7 @@ import static org.opendatakit.briefcase.export.SubmissionParser.getListOfSubmiss
 import static org.opendatakit.briefcase.export.SubmissionParser.parseSubmission;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.delete;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 
@@ -89,6 +90,11 @@ public class ExportToCsv {
         .collect(toList()));
 
     csvs.forEach(Csv::prepareOutputFiles);
+
+    // Remove the audit output file if it exists and user wants to overwrite files
+    Path audit = configuration.getExportDir().resolve(formDef.getFormName() + " - audit.csv");
+    if (configuration.resolveOverwriteExistingFiles() && exists(audit))
+      delete(audit);
 
     // Generate csv lines grouped by the fqdn of the model they belong to
     Map<String, CsvLines> csvLinesPerModel = submissionFiles.parallelStream()
