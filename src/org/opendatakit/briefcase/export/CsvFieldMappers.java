@@ -56,6 +56,10 @@ import org.opendatakit.briefcase.reused.Pair;
 final class CsvFieldMappers {
   private static final Map<DataType, CsvFieldMapper> mappers = new HashMap<>();
 
+  private static CsvFieldMapper AUDIT_MAPPER = (formName, localId, workingDir, model, maybeElement, configuration) -> maybeElement
+      .map(e -> binary(e, workingDir, configuration))
+      .orElse(empty(model.fqn()));
+
   // Register all non-text supported mappers
   static {
     // All these are simple, 1 column fields
@@ -88,7 +92,7 @@ final class CsvFieldMappers {
   static CsvFieldMapper getMapper(Model field, boolean splitSelectMultiples) {
     // If no mapper is available for this field, default to a simple text mapper
     CsvFieldMapper mapper = field.isMetaAudit()
-        ? mappers.get(DataType.BINARY)
+        ? AUDIT_MAPPER
         : Optional.ofNullable(mappers.get(field.getDataType()))
         .orElse(simpleMapper(CsvFieldMappers::text));
     return splitSelectMultiples ? SplitSelectMultiples.decorate(mapper) : mapper;
