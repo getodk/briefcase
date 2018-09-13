@@ -1,10 +1,4 @@
 <configuration>
-  <appender name="SENTRY" class="io.sentry.logback.SentryAppender">
-    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-      <level>WARN</level>
-    </filter>
-  </appender>
-
   <appender name="ROLLINGFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>briefcase.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -18,7 +12,6 @@
   </appender>
 
   <root level="info">
-    <appender-ref ref="SENTRY" />
     <appender-ref ref="ROLLINGFILE" />
   </root>
 </configuration>
