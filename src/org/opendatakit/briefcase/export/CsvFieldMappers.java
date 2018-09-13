@@ -65,49 +65,19 @@ final class CsvFieldMappers {
 
         String sourceFilename = e.getValue();
 
-        if (!configuration.resolveExportMedia())
-          return Stream.of(Pair.of(e.fqn(), sourceFilename));
-
-        if (!Files.exists(configuration.getExportMediaPath()))
-          createDirectories(configuration.getExportMediaPath());
-
         Path sourceFile = workingDir.resolve(sourceFilename);
 
+        /* We'll deal with this later
         // When the source file doesn't exist, we return the input value
         if (!exists(sourceFile))
           return Stream.of(Pair.of(e.fqn(), Paths.get("media").resolve(sourceFilename).toString()));
+        */
 
         // When the destination file doesn't exist, we copy the source file
         // there and return its path relative to the instance folder
-        Path destinationFile = configuration.getExportMediaPath().resolve(sourceFilename);
-        if (!exists(destinationFile)) {
-          copy(sourceFile, destinationFile);
-          return Stream.of(Pair.of(e.fqn(), Paths.get("media").resolve(destinationFile.getFileName()).toString()));
-        }
-
-        // When the destination file has the same hash as the source file,
-        // we don't do any side-effect and return its path relative to the
-        // instance folder
-        Boolean sameHash = OptionalProduct.all(getMd5Hash(sourceFile), getMd5Hash(destinationFile)).map(Objects::equals).orElse(false);
-        if (sameHash)
-          return Stream.of(Pair.of(e.fqn(), Paths.get("media").resolve(destinationFile.getFileName()).toString()));
-
-        // When the hashes are different, we compute the next sequential suffix for
-        // the a new destination file to avoid overwriting the one we found already
-        // there. We try every number in the sequence until we find one that won't
-        // produce a destination file that exists in the output directory.
-        String namePart = stripFileExtension(sourceFilename);
-        String extPart = getFileExtension(sourceFilename).map(extension -> "." + extension).orElse("");
-        int sequenceSuffix = 2;
-        Path sequentialDestinationFile;
-        do {
-          sequentialDestinationFile = configuration.getExportMediaPath().resolve(String.format("%s-%d%s", namePart, sequenceSuffix++, extPart));
-        } while (exists(sequentialDestinationFile));
-
-        // Now that we have a valid destination file, we copy the source file
-        // there and return its path relative to the instance folder
-        copy(sourceFile, sequentialDestinationFile);
-        return Stream.of(Pair.of(e.fqn(), Paths.get("media").resolve(sequentialDestinationFile.getFileName()).toString()));
+        Path destinationFile = configuration.getExportDir().resolve(formName + " - audit.csv");
+        copy(sourceFile, destinationFile);
+        return Stream.of(Pair.of(e.fqn(), destinationFile.getFileName().toString()));
       })
       .orElse(empty(model.fqn()));
 
