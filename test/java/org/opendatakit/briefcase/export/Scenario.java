@@ -16,11 +16,13 @@
 
 package org.opendatakit.briefcase.export;
 
+import static java.nio.file.StandardOpenOption.CREATE;
 import static java.util.stream.Collectors.toList;
 import static org.javarosa.core.model.instance.TreeReference.DEFAULT_MULTIPLICITY;
 import static org.kxml2.kdom.Node.ELEMENT;
 import static org.kxml2.kdom.Node.TEXT;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createTempDirectory;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -54,6 +56,11 @@ class Scenario {
     this.instanceName = instanceName;
     this.fieldName = fieldName;
     this.fieldModel = fieldModel;
+
+    // Side effects:
+    // - ExportToCSV ensures that there is an audit output
+    //   CSV file with at least the headers on it.
+    write(outputDir.resolve(formName + " - audit.csv"), "instance ID, event, node, start, end\n", CREATE);
   }
 
   static Scenario nonGroup(DataType dataType) {

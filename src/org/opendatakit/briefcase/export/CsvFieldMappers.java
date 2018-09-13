@@ -40,7 +40,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -236,23 +235,13 @@ final class CsvFieldMappers {
 
     // Process the audit file contents and append the instance ID column to all lines
     List<String> sourceLines = lines(sourceFile).collect(toList());
-    // We prepend a new column header for the instance ID
-    String header = "instance ID," + sourceLines.get(0);
     // We prepend the submission's instance ID to all body lines
     List<String> bodyLines = sourceLines.subList(1, sourceLines.size()).stream()
         .map(line -> localId + "," + line)
         .collect(toList());
 
     Path destinationFile = configuration.getAuditPath(formName);
-    // We could improve this block by first writing the header (if the destination
-    // file doesn't exist) and then *always* appending body lines, but this would
-    if (!Files.exists(destinationFile)) {
-      List<String> lines = new ArrayList<>();
-      lines.add(header);
-      lines.addAll(bodyLines);
-      write(destinationFile, lines);
-    } else
-      write(destinationFile, bodyLines, APPEND);
+    write(destinationFile, bodyLines, APPEND);
     return Stream.of(Pair.of(e.fqn(), destinationFile.getFileName().toString()));
   }
 

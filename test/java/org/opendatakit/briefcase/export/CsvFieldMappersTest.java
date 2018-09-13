@@ -265,9 +265,9 @@ public class CsvFieldMappersTest {
   }
 
   @Test
-  public void audit_fields_write_the_first_submissions_content_to_the_output_audit_file() {
+  public void audit_fields_append_the_submissions_content_to_the_output_audit_file() {
     scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
-    write(scenario.getWorkDir().resolve("audit.csv"), "line 1");
+    write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536663986578,\n");
 
     List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
     assertThat(output.get(0).getRight(), is(scenario.getFormName() + " - audit.csv"));
@@ -275,7 +275,7 @@ public class CsvFieldMappersTest {
     Path outputAudit = scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv");
 
     assertThat(outputAudit, exists());
-    assertThat(outputAudit, fileContains("line 1"));
+    assertThat(outputAudit, fileContains("form start,,1536663986578,"));
   }
 
   @Test
@@ -289,7 +289,7 @@ public class CsvFieldMappersTest {
     Path outputAudit = scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv");
 
     assertThat(outputAudit, exists());
-    assertThat(outputAudit, fileExactlyContains("instance ID,event, node, start, end\n" + scenario.getInstanceId() + ",form start,,1536663986578,\n"));
+    assertThat(outputAudit, fileExactlyContains("instance ID, event, node, start, end\n" + scenario.getInstanceId() + ",form start,,1536663986578,\n"));
   }
 
   @Test
@@ -310,7 +310,7 @@ public class CsvFieldMappersTest {
     Path outputAudit = scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv");
 
     assertThat(outputAudit, exists());
-    assertThat(outputAudit, fileContains("instance ID,event, node, start, end\n" + firstInstanceID + ",form start,,1536663986578,\n" + secondInstanceID + ",form start,,1536664003229,\n"));
+    assertThat(outputAudit, fileContains("instance ID, event, node, start, end\n" + firstInstanceID + ",form start,,1536663986578,\n" + secondInstanceID + ",form start,,1536664003229,\n"));
   }
 
   @Test
