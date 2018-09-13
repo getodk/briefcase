@@ -62,38 +62,7 @@ final class CsvFieldMappers {
   private static final Map<DataType, CsvFieldMapper> mappers = new HashMap<>();
 
   private static CsvFieldMapper AUDIT_MAPPER = (formName, localId, workingDir, model, maybeElement, configuration) -> maybeElement
-      .map(e -> {
-        if (!e.hasValue())
-          return empty(e.fqn());
-
-        Path sourceFile = workingDir.resolve(e.getValue());
-
-        // When the source file doesn't exist, we return an empty string
-        if (!exists(sourceFile))
-          return Stream.of(Pair.of(e.fqn(), ""));
-
-        // Process the audit file contents and append the instance ID column to all lines
-        List<String> sourceLines = lines(sourceFile).collect(toList());
-        // We prepend a new column header for the instance ID
-        String header = "instance ID," + sourceLines.get(0);
-        // We prepend the submission's instance ID to all body lines
-        List<String> bodyLines = sourceLines.subList(1, sourceLines.size()).stream()
-            .map(line -> localId + "," + line)
-            .collect(toList());
-
-        Path destinationFile = configuration.getExportDir().resolve(formName + " - audit.csv");
-        // We could improve this block by first writing the header (if the destination
-        // file doesn't exist) and then *always* appending body lines, but this would
-        // have an impact on performance since this is happening in a per-submission basis
-        if (!Files.exists(destinationFile)) {
-          List<String> lines = new ArrayList<>();
-          lines.add(header);
-          lines.addAll(bodyLines);
-          write(destinationFile, lines);
-        } else
-          write(destinationFile, bodyLines, APPEND);
-        return Stream.of(Pair.of(e.fqn(), destinationFile.getFileName().toString()));
-      })
+      .map(e -> audit(formName, localId, workingDir, configuration, e))
       .orElse(empty(model.fqn()));
 
   // Register all non-text supported mappers
@@ -253,6 +222,38 @@ final class CsvFieldMappers {
     // there and return its path relative to the instance folder
     copy(sourceFile, sequentialDestinationFile);
     return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(sequentialDestinationFile.getFileName()).toString()));
+  }
+
+  private static Stream<Pair<String, String>> audit(String formName, String localId, Path workingDir, ExportConfiguration configuration, XmlElement e) {
+    if (!e.hasValue())
+      return empty(e.fqn());
+
+    Path sourceFile = workingDir.resolve(e.getValue());
+
+    // When the source file doesn't exist, we return an empty string
+    if (!exists(sourceFile))
+      return Stream.of(Pair.of(e.fqn(), ""));
+
+    // Process the audit file contents and append the instance ID column to all lines
+    List<String> sourceLines = lines(sourceFile).collect(toList());
+    // We prepend a new column header for the instance ID
+    String header = "instance ID," + sourceLines.get(0);
+    // We prepend the submission's instance ID to all body lines
+    List<String> bodyLines = sourceLines.subList(1, sourceLines.size()).stream()
+        .map(line -> localId + "," + line)
+        .collect(toList());
+
+    Path destinationFile = configuration.getExportDir().resolve(formName + " - audit.csv");
+    // We could improve this block by first writing the header (if the destination
+    // file doesn't exist) and then *always* appending body lines, but this would
+    if (!Files.exists(destinationFile)) {
+      List<String> lines = new ArrayList<>();
+      lines.add(header);
+      lines.addAll(bodyLines);
+      write(destinationFile, lines);
+    } else
+      write(destinationFile, bodyLines, APPEND);
+    return Stream.of(Pair.of(e.fqn(), destinationFile.getFileName().toString()));
   }
 
   private static Stream<Pair<String, String>> repeatableGroup(String localId, Model current, XmlElement element) {
