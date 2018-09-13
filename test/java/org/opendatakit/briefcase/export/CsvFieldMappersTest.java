@@ -34,6 +34,7 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -311,25 +312,47 @@ public class CsvFieldMappersTest {
     }
 
     static Scenario nonGroup(DataType dataType) {
-      Model fieldModel = createField(dataType);
-      return new Scenario("instance_" + instanceIdSeq++, "data", "field", fieldModel);
+      return nonGroup(dataType, "field");
+    }
+
+    static Scenario nonGroup(DataType dataType, String fieldName) {
+      Model fieldModel = createField(dataType, fieldName, null);
+      return new Scenario("instance_" + instanceIdSeq++, "data", fieldName, fieldModel);
     }
 
     static Model createField(DataType dataType) {
-      TreeElement fieldTreeElement = new TreeElement("field", DEFAULT_MULTIPLICITY);
+      return createField(dataType, "field", null);
+    }
+
+    static Model createField(DataType dataType, String fieldName) {
+      return createField(dataType, fieldName, null);
+    }
+
+    static Model createField(DataType dataType, String fieldName, String parentName) {
+      List<TreeElement> elements = new LinkedList<>();
+      TreeElement fieldTreeElement = new TreeElement(fieldName, DEFAULT_MULTIPLICITY);
       fieldTreeElement.setDataType(dataType.value);
+      elements.add(fieldTreeElement);
+
+      if (parentName != null) {
+        TreeElement parentTreeElement = new TreeElement(parentName, DEFAULT_MULTIPLICITY);
+        parentTreeElement.setDataType(DataType.NULL.value);
+        elements.add(fieldTreeElement);
+      }
 
       TreeElement instanceTreeElement = new TreeElement("data", DEFAULT_MULTIPLICITY);
       instanceTreeElement.setDataType(DataType.NULL.value);
+      elements.add(instanceTreeElement);
 
       TreeElement rootTreeElement = new TreeElement("/", DEFAULT_MULTIPLICITY);
       rootTreeElement.setDataType(DataType.NULL.value);
+      elements.add(rootTreeElement);
 
-      rootTreeElement.addChild(instanceTreeElement);
-      instanceTreeElement.addChild(fieldTreeElement);
+      for (int i = 0; i < elements.size() - 1; i++)
+        elements.get(0).addChild(elements.get(i + 1));
 
-      instanceTreeElement.setParent(rootTreeElement);
-      fieldTreeElement.setParent(instanceTreeElement);
+      for (int i = elements.size() - 1; i > 0; i--)
+        elements.get(i).setParent(elements.get(i - 1));
 
       return new Model(fieldTreeElement, Collections.emptyMap());
     }
