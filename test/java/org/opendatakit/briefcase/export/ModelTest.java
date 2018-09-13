@@ -37,6 +37,15 @@ public class ModelTest {
     assertThat(lastDescendatOf(buildModel("data", "meta", "audit")).isMetaAudit(), is(true));
   }
 
+  @Test
+  public void knows_if_it_contains_a_meta_audit_field() {
+    assertThat(buildModel("data", "meta", "audit").hasAuditField(), is(true));
+    assertThat(buildModel("data", "meta", "instanceID").hasAuditField(), is(false));
+    assertThat(buildModel("data", "meta").hasAuditField(), is(false));
+    assertThat(buildModel("data", "some-field").hasAuditField(), is(false));
+    assertThat(buildModel("data", "some-field", "audit").hasAuditField(), is(false));
+  }
+
   private static Model buildModel(String... names) {
     List<TreeElement> elements = Stream.of(names)
         .map(name -> new TreeElement(name, DEFAULT_MULTIPLICITY))
