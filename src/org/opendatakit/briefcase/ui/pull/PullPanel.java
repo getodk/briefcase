@@ -67,30 +67,14 @@ public class PullPanel {
 
     // Read prefs and load saved remote server if available
     source = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadSource);
-    source.ifPresent(source -> {
-      source.getFormList().thenAccept(formList -> {
-        forms.load(formList);
-        view.refresh();
-        updateActionButtons();
-      }).onError(cause -> {
-        log.warn("Unable to load form list from {}", source.getDescription(), cause);
-        errorMessage("Error Loading Forms", "We haven't been able to load forms using the saved source. Try reloading it or reset it, please.");
-      });
-    });
+    source.ifPresent(source -> onSource(view, forms, source));
 
     // Register callbacks to view events
     view.onSource(source -> {
       this.source = Optional.of(source);
       Source.clearAllPreferences(tabPreferences);
       source.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
-      source.getFormList().thenAccept(formList -> {
-        forms.load(formList);
-        view.refresh();
-        updateActionButtons();
-      }).onError(cause -> {
-        log.warn("Unable to load form list from {}", source.getDescription(), cause);
-        errorMessage("Error Loading Forms", "We haven't been able to load forms using the saved source. Try reloading it or reset it, please.");
-      });
+      onSource(view, forms, source);
     });
 
     view.onReset(() -> {
@@ -126,6 +110,17 @@ public class PullPanel {
 
   public JPanel getContainer() {
     return view.container;
+  }
+
+  private void onSource(TransferPanelForm view, TransferForms forms, Source<?> source) {
+    source.getFormList().thenAccept(formList -> {
+      forms.load(formList);
+      view.refresh();
+      updateActionButtons();
+    }).onError(cause -> {
+      log.warn("Unable to load form list from {}", source.getDescription(), cause);
+      errorMessage("Error Loading Forms", "We haven't been able to load forms using the saved source. Try reloading it or reset it, please.");
+    });
   }
 
   private void updateActionButtons() {
