@@ -37,7 +37,6 @@ import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
-import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.source.Source;
@@ -69,14 +68,14 @@ public class PullPanel {
     // Read prefs and load saved remote server if available
     source = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadSource);
     source.ifPresent(source -> {
-      try {
-        forms.load(source.getFormList());
+      source.getFormList().thenAccept(formList -> {
+        forms.load(formList);
         view.refresh();
         updateActionButtons();
-      } catch (HttpException e) {
+      }).onError(e -> {
         log.warn("Unable to get form list from {}", source.getDescription(), e);
         errorMessage("Error Preloading Forms", "We haven't been able to preload forms using the saved source. Try reloading it or reset it, please.");
-      }
+      });
     });
 
     // Register callbacks to view events
@@ -84,13 +83,13 @@ public class PullPanel {
       this.source = Optional.of(source);
       Source.clearAllPreferences(tabPreferences);
       source.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
-      try {
-        forms.load(source.getFormList());
+      source.getFormList().thenAccept(formList -> {
+        forms.load(formList);
         view.refresh();
         updateActionButtons();
-      } catch (HttpException e) {
+      }).onError(cause -> {
         errorMessage("Error Reloading Forms", "We haven't been able to reload forms using the saved source. Try again or reset it, please.");
-      }
+      });
     });
 
     view.onReset(() -> {
