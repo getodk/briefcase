@@ -72,9 +72,9 @@ public class PullPanel {
         forms.load(formList);
         view.refresh();
         updateActionButtons();
-      }).onError(e -> {
-        log.warn("Unable to get form list from {}", source.getDescription(), e);
-        errorMessage("Error Preloading Forms", "We haven't been able to preload forms using the saved source. Try reloading it or reset it, please.");
+      }).onError(cause -> {
+        log.warn("Unable to load form list from {}", source.getDescription(), cause);
+        errorMessage("Error Loading Forms", "We haven't been able to load forms using the saved source. Try reloading it or reset it, please.");
       });
     });
 
@@ -88,7 +88,8 @@ public class PullPanel {
         view.refresh();
         updateActionButtons();
       }).onError(cause -> {
-        errorMessage("Error Reloading Forms", "We haven't been able to reload forms using the saved source. Try again or reset it, please.");
+        log.warn("Unable to load form list from {}", source.getDescription(), cause);
+        errorMessage("Error Loading Forms", "We haven't been able to load forms using the saved source. Try reloading it or reset it, please.");
       });
     });
 
