@@ -20,6 +20,8 @@ import java.awt.CardLayout;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -54,6 +56,7 @@ public class TransferPanelForm {
   private JPanel rightActions;
   private JProgressBar progressBar;
   private boolean working = false;
+  private boolean alreadyShownOnce = false;
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
   private TransferPanelForm(SourcePanel sourcePanel, TransferFormsTable formsTable, String actionName) {
@@ -161,6 +164,18 @@ public class TransferPanelForm {
 
   public Optional<Source<?>> preloadSource(RemoteServer server) {
     return sourcePanel.preload(server);
+  }
+
+  public void onReady(Runnable callback) {
+    this.container.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentShown(ComponentEvent e) {
+        if (!alreadyShownOnce) {
+          callback.run();
+          alreadyShownOnce = true;
+        }
+      }
+    });
   }
 
   private void createUIComponents() {

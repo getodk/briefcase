@@ -67,7 +67,7 @@ public class PullPanel {
 
     // Read prefs and load saved remote server if available
     source = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadSource);
-    source.ifPresent(source -> onSource(view, forms, source));
+    view.onReady(() -> source.ifPresent(source -> onSource(view, forms, source)));
 
     // Register callbacks to view events
     view.onSource(source -> {
