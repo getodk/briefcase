@@ -119,7 +119,7 @@ public class PullPanel {
       updateActionButtons();
     }).onError(cause -> {
       log.warn("Unable to load form list from {}", source.getDescription(), cause);
-      errorMessage("Error Loading Forms", "We haven't been able to load forms using the saved source. Try reloading it or reset it, please.");
+      errorMessage("Error Loading Forms", "Briefcase wasn't able to load forms using the configured source. Try Reload or Reset.");
     });
   }
 
