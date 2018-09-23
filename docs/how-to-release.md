@@ -100,8 +100,6 @@ We use [semantic versioning](https://semver.org/): vx.y.z
   
 8. Go back to the release at GitHub and edit it. Open a file browser and drag your JAR file into the box. Click on `Update release`.
 
-    GitHub will replace the whitespace characters on your JAR's filename with dots. Change them with dashes on the text field that appears when the upload finishes. E.g. `ODK Briefcase v1.12.0.jar` becomes `ODK.Briefcase.v1.12.0.jar` and you edit it into `ODK-Briefcase-v1.12.0.jar`.
-
 ### Releasing a beta of a minor version
 
 - The process is basically the same as with a minor version with some small differences:

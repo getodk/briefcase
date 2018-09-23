@@ -137,7 +137,7 @@ mainClassName = 'org.opendatakit.briefcase.Launcher'
 jar {
     baseName = buildConfig.appName
     version = buildConfig.version
-    archiveName = baseName + ' ' + version + '.jar'
+    archiveName = 'ODK-Briefcase-' + version + '.jar'
     from configurations.runtime.collect { it }
 
     // A single-click Java app requires a flat jar or class loader.
