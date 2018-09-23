@@ -1,29 +1,24 @@
-# How to release a new Briefcase version
+# How to release a Briefcase version
 
-**Table of Contents**
-
-   * [How to release a new Briefcase version](#how-to-release-a-new-briefcase-version)
-      * [About semantic versioning](#about-semantic-versioning)
-      * [Releasing a minor version](#releasing-a-minor-version)
-         * [Releasing a beta of a minor version](#releasing-a-beta-of-a-minor-version)
-      * [Releasing a hot fix (patch version)](#releasing-a-hot-fix-patch-version)
-      * [Post-release considerations](#post-release-considerations)
+* [About semantic versioning](#about-semantic-versioning)
+* [Releasing a minor version](#releasing-a-minor-version)
+   * [Releasing a beta of a minor version](#releasing-a-beta-of-a-minor-version)
+* [Releasing a hot fix (patch version)](#releasing-a-hot-fix-patch-version)
+* [Post-release considerations](#post-release-considerations)
 
 
-## About semantic versioning
-
-- Briefcase uses semantic versioning: vx.y.z
-  - x represents the *mayor* version number. Different mayor versions can be incompatible between them
-  - y represents the *minor* version number. Different minor versions of the same mayor versions are compatible between them and bring new features
+We use [semantic versioning](https://semver.org/): vx.y.z
+  - x represents the *major* version number. Different major versions can be incompatible between them
+  - y represents the *minor* version number. Different minor versions of the same major versions are compatible between them and bring new features
   - z represents the *patch* version number. Patch versions are use to release bug fixes only.
 
 ## Releasing a minor version
 
 0. It's highly recommended to clone the git repo in a separate directory to keep the development workspace apart from the release workspace.
 
-1. Go to the [GitHub repo releases page](https://github.com/opendatakit/briefcase/releases)  and draft a new release
+1. Go to the [GitHub repo releases page](https://github.com/opendatakit/briefcase/releases) and draft a new release
 
-2. Enter the new release version e.g. `v1.12.0`
+2. Enter the new release version (e.g. `v1.12.0`)
 
     - Ensure that the selected `Target` branch is `master`
     - Choose a title following the template `ODK Briefcase vx.y.z`
@@ -39,26 +34,24 @@
       - Some important notice about breaking changes
       
       **Added**
-      - #123 Title of issue 123
-        - Author of the solution of #123
+      - #123 Title of issue
+        - Full name @username
+        - Full name @username (Organization)
       
       **Removed**
-      - #123 Title of issue 123
-        - Author of the solution of #123
+      - #123 Title of issue
+        - Full name @username
       
       **Fixed**
-      - #123 Title of issue 123
-        - Author of the solution of #123
+      - #123 Title of issue
+        - @username
       ```
       
       Notes:
       - Replace the versions of the `All changes` link with the previous and current tags e.g. `v1.11.3...v.1.12.0`
       - In the `Added`, `Removed`, and `Fixed` sections, always link in this order: Issue > PR > Commit
-      - The `Added` list would compile every new added feature
-      - The `Removed` list would compile every removed feature
-      - The `Fixed` list would compile bug fixes
-      - An easy way to get a comprehensive list of items for these lists consists on searching on the `All changes` diff the terms `Merged` and ` and `. The second term will reveal merges by more than one author which indicate a "squash merge".
-      - The list of items should be sorted in the same order as they've been closed
+      - An easy way to get a comprehensive list of these changes is by searching on the `All changes` diff for the terms `Merged` and ` and `. The second term will reveal merges by more than one author which indicate a "squash merge".
+      - To make it easy for another person to review the changes, the list of items should be sorted in the same order as they've been closed
     
 3. Once the release information has been completed, click on the `Publish release` button.
 
@@ -69,10 +62,13 @@
     You should see a message telling you about the new tag GitHub has created for your release
 
 5. Check out the tag with `git checkout vx.y.z`. (replace x.y.z with the actual numbers you've used in step 2)
+5. Check out the tag with `git checkout vx.y.z`. (replace x.y.z with the actual numbers you've used in step 2)
 
     Git should announce that you're on a `detached HEAD`. That's OK.
     
 6. Verify that logging, error monitoring, and user tracking have production configurations
+
+   You typically have to do this once if you keep a separate release workspace.
 
    **Logging configuration**
    
@@ -96,7 +92,7 @@
    Tracking IDs follow the pattern `UA-12345678-1`
      
   
-7. Build the release JAR file with `./gradlew clean build -xtest`
+7. Build the release JAR file with `./gradlew clean build`
 
     The JAR file will be located at `build/libs` and the filename should be like: `ODK Briefcase vx.y.z.jar`. (replace x.y.z with the actual numbers you've used in step 2)
   
