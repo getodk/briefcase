@@ -60,7 +60,7 @@ class Csv {
         .orElse(stripIllegalChars(formDefinition.getFormName()));
     String suffix = groupModel.getName();
     Model current = groupModel;
-    while (current.hasParent() && current.getParent().hasParent() && current.getParent().getParent().getName() != null) {
+    while (grandParentIsRoot(current)) {
       current = current.getParent();
       suffix = current.getName() + "-" + suffix;
     }
@@ -75,6 +75,29 @@ class Csv {
         configuration.resolveOverwriteExistingFiles(),
         CsvSubmissionMappers.repeat(groupModel, configuration)
     );
+  }
+
+  /**
+   * Returns true if the grandparent node of the given Model is the model's root
+   * <p>
+   * Example 1:
+   * <p>
+   * <code><pre>
+   * &lt;data&gt;
+   * &nbsp;&nbsp;&lt;/some_field&gt;
+   * &lt;/data&gt;
+   * </pre></code>
+   * <p>
+   * In this example:
+   * <ul>
+   * <li>&lt;data&gt; has a parent with <code>null</code> name</li>
+   * <li>Returns true on &lt;some_field&gt;</li>
+   * </ul>
+   */
+  private static boolean grandParentIsRoot(Model current) {
+    return current.hasParent()
+        && current.getParent().hasParent() // Check if current has a grandparent
+        && current.getParent().getParent().getName() != null; // The root node has a null name
   }
 
   /**
