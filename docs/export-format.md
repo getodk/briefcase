@@ -48,6 +48,8 @@ The file names of repeat groups depend on their position inside the model tree o
 | Top group        | `{INSTANCE ID}` | `uuid:00000000-0000-0000-0000-000000000000`           |
 | Descendant group | `{PARENT KEY}`  | `uuid:00000000-0000-0000-0000-000000000000/group1[1]` |
 
+_Note: non-repeat groups in the chain of ancestors are always ignored_
+
 ### `KEY`
 
 |                  | Pattern                                  | Example                                                         |
@@ -56,6 +58,7 @@ The file names of repeat groups depend on their position inside the model tree o
 | Descendant group | `{PARENT KEY}/{GROUP NAME}[{ORDERING}]`  | `uuid:00000000-0000-0000-0000-000000000000/group1[1]/group2[1]` |
 
 _Note: the `[{ORDERING}]` part is 1-indexed_
+_Note: non-repeat groups in the chain of ancestors are always ignored_
 
 ### `SET-OF-{GROUP NAME}`
 
@@ -63,6 +66,8 @@ _Note: the `[{ORDERING}]` part is 1-indexed_
 | ---------------- | ---------------------------- | ------------------------------------------------------------ |
 | Top group        | `{INSTANCE ID}/{GROUP NAME}` | `uuid:00000000-0000-0000-0000-000000000000/group1`           |
 | Descendant group | `{PARENT KEY}/{GROUP NAME}`  | `uuid:00000000-0000-0000-0000-000000000000/group1[1]/group2` |
+
+_Note: non-repeat groups in the chain of ancestors are always ignored_
 
 The SET-OF columns may be named differently in the two output files. For example, if form X contains a non-repeat group Y, which contains a repeat group Z, then:
 
