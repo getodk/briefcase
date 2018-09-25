@@ -80,6 +80,9 @@ public class ConfigurationPanelForm extends JComponent {
   JLabel overwriteFilesOverrideLabel;
   CustomConfBooleanForm overwriteFilesOverrideField;
   CustomConfBooleanForm exportMediaOverrideField;
+  JCheckBox splitChoiceListsField;
+  JLabel splitChoiceListsOverrideLabel;
+  CustomConfBooleanForm splitChoiceListsOverrideField;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
@@ -100,6 +103,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeOverrideField = new CustomConfBooleanForm(Optional.empty());
     exportMediaOverrideField = new CustomConfBooleanForm(Optional.empty());
     overwriteFilesOverrideField = new CustomConfBooleanForm(Optional.empty());
+    splitChoiceListsOverrideField = new CustomConfBooleanForm(Optional.empty());
 
     $$$setupUI$$$();
     startDatePicker.getSettings().setGapBeforeButtonPixels(0);
@@ -449,7 +453,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeField.setText("Pull before export");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 7;
+    gbc.gridy = 8;
     gbc.gridwidth = 2;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(pullBeforeField, gbc);
@@ -462,7 +466,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeHintPanel.setText("Some hint will be shown here");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 11;
+    gbc.gridy = 13;
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(pullBeforeHintPanel, gbc);
@@ -477,7 +481,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeOverrideLabel.setText("Pull before export");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 10;
+    gbc.gridy = 12;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(pullBeforeOverrideLabel, gbc);
     exportDirButtons = new JPanel();
@@ -513,7 +517,7 @@ public class ConfigurationPanelForm extends JComponent {
     final JPanel spacer6 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 12;
+    gbc.gridy = 14;
     gbc.gridwidth = 3;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer6, gbc);
@@ -528,7 +532,7 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaOverrideLabel.setText("Export media files");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 8;
+    gbc.gridy = 9;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(exportMediaOverrideLabel, gbc);
     overwriteFilesField = new JCheckBox();
@@ -542,27 +546,47 @@ public class ConfigurationPanelForm extends JComponent {
     overwriteFilesOverrideLabel.setText("Overwrite existing files");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 9;
+    gbc.gridy = 10;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(overwriteFilesOverrideLabel, gbc);
-    gbc = new GridBagConstraints();
-    gbc.gridx = 2;
-    gbc.gridy = 9;
-    gbc.gridwidth = 2;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(overwriteFilesOverrideField.$$$getRootComponent$$$(), gbc);
-    gbc = new GridBagConstraints();
-    gbc.gridx = 2;
-    gbc.gridy = 8;
-    gbc.gridwidth = 2;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(exportMediaOverrideField.$$$getRootComponent$$$(), gbc);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 10;
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(overwriteFilesOverrideField.$$$getRootComponent$$$(), gbc);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 9;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(exportMediaOverrideField.$$$getRootComponent$$$(), gbc);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 12;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(pullBeforeOverrideField.$$$getRootComponent$$$(), gbc);
+    splitChoiceListsOverrideLabel = new JLabel();
+    splitChoiceListsOverrideLabel.setText("Split multiple selects");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 11;
+    gbc.anchor = GridBagConstraints.EAST;
+    container.add(splitChoiceListsOverrideLabel, gbc);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 11;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(splitChoiceListsOverrideField.$$$getRootComponent$$$(), gbc);
+    splitChoiceListsField = new JCheckBox();
+    splitChoiceListsField.setText("Split multiple selects");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 7;
+    gbc.anchor = GridBagConstraints.WEST;
+    container.add(splitChoiceListsField, gbc);
   }
 
   /**
