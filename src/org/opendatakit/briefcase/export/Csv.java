@@ -3,7 +3,6 @@ package org.opendatakit.briefcase.export;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-
 import static org.opendatakit.briefcase.export.CsvSubmissionMappers.getMainHeader;
 import static org.opendatakit.briefcase.export.CsvSubmissionMappers.getRepeatHeader;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
@@ -12,7 +11,6 @@ import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
-
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 /**
@@ -60,8 +58,16 @@ class Csv {
     String repeatFileNameBase = configuration.getExportFileName()
         .map(UncheckedFiles::stripFileExtension)
         .orElse(stripIllegalChars(formDefinition.getFormName()));
+    String suffix = groupModel.getName();
+    Model current = groupModel;
+    while (current.hasParent()) {
+      current = current.getParent();
+      suffix = current.getName() != null
+          ? current.getName() + "-" + suffix
+          : suffix;
+    }
     Path output = configuration.getExportDir().resolve(
-        repeatFileNameBase + "-" + groupModel.getName() + ".csv"
+        repeatFileNameBase + "-" + suffix + ".csv"
     );
     return new Csv(
         groupModel.fqn(),

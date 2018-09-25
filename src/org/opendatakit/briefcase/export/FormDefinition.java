@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
-
 import org.javarosa.core.model.FormDef;
 import org.javarosa.core.model.IDataReference;
 import org.javarosa.core.model.IFormElement;
@@ -56,7 +55,7 @@ public class FormDefinition {
   private final Model model;
   private final List<Model> repeatFields;
 
-  private FormDefinition(String id, Path formFile, String name, boolean isEncrypted, Model model) {
+  FormDefinition(String id, Path formFile, String name, boolean isEncrypted, Model model) {
     this.id = id;
     this.name = name;
     this.formFile = formFile;

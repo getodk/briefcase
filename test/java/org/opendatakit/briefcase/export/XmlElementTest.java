@@ -72,7 +72,7 @@ public class XmlElementTest {
     return tempDoc;
   }
 
-  class ModelBuilder {
+  static class ModelBuilder {
     private TreeElement current = new TreeElement(null, DEFAULT_MULTIPLICITY);
 
     ModelBuilder addGroup(String name) {
