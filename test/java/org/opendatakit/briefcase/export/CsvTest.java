@@ -30,6 +30,7 @@ public class CsvTest {
   @Test
   public void includes_non_repeat_groups_in_repeat_filenames() throws IOException {
     Model group = new XmlElementTest.ModelBuilder()
+        .addGroup("data")
         .addGroup("g1")
         .addGroup("g2")
         .addGroup("g3")

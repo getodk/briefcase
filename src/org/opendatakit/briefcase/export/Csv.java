@@ -60,11 +60,9 @@ class Csv {
         .orElse(stripIllegalChars(formDefinition.getFormName()));
     String suffix = groupModel.getName();
     Model current = groupModel;
-    while (current.hasParent()) {
+    while (current.hasParent() && current.getParent().hasParent() && current.getParent().getParent().getName() != null) {
       current = current.getParent();
-      suffix = current.getName() != null
-          ? current.getName() + "-" + suffix
-          : suffix;
+      suffix = current.getName() + "-" + suffix;
     }
     Path output = configuration.getExportDir().resolve(
         repeatFileNameBase + "-" + suffix + ".csv"
