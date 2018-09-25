@@ -99,7 +99,7 @@ public class Export {
         OverridableBoolean.of(pullBefore),
         OverridableBoolean.of(overwriteFiles),
         OverridableBoolean.of(exportMedia),
-        Optional.of(explodeChoiceLists)
+        OverridableBoolean.of(explodeChoiceLists)
     );
 
     if (configuration.resolvePullBefore()) {

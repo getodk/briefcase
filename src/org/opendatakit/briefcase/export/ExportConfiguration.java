@@ -66,6 +66,7 @@ public class ExportConfiguration {
   private static final String EXPORT_MEDIA = "exportMedia";
   private static final String EXPORT_MEDIA_OVERRIDE = "exportMediaOverride";
   private static final String EXPLODE_CHOICE_LISTS = "explodeChoiceLists";
+  private static final String EXPLODE_CHOICE_LISTS_OVERRIDE = "explodeChoiceListsOverride";
   private Optional<String> exportFileName;
   private Optional<Path> exportDir;
   private Optional<Path> pemFile;
@@ -74,9 +75,9 @@ public class ExportConfiguration {
   public OverridableBoolean pullBefore;
   public OverridableBoolean overwriteFiles;
   public OverridableBoolean exportMedia;
-  private Optional<Boolean> explodeChoiceLists;
+  public OverridableBoolean explodeChoiceLists;
 
-  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, Optional<Boolean> explodeChoiceLists) {
+  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, OverridableBoolean explodeChoiceLists) {
     this.exportFileName = exportFileName;
     this.exportDir = exportDir;
     this.pemFile = pemFile;
@@ -89,7 +90,7 @@ public class ExportConfiguration {
   }
 
   public static ExportConfiguration empty() {
-    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), OverridableBoolean.empty(), OverridableBoolean.empty(), OverridableBoolean.empty(), Optional.empty());
+    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), OverridableBoolean.empty(), OverridableBoolean.empty(), OverridableBoolean.empty(), OverridableBoolean.empty());
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
@@ -106,7 +107,7 @@ public class ExportConfiguration {
         readOverridableBoolean(prefs, keyPrefix + PULL_BEFORE, keyPrefix + PULL_BEFORE_OVERRIDE),
         readOverridableBoolean(prefs, keyPrefix + OVERWRITE_FILES, keyPrefix + OVERWRITE_FILES_OVERRIDE),
         readOverridableBoolean(prefs, keyPrefix + EXPORT_MEDIA, keyPrefix + EXPORT_MEDIA_OVERRIDE),
-        prefs.nullSafeGet(keyPrefix + EXPLODE_CHOICE_LISTS).map(Boolean::valueOf)
+        readOverridableBoolean(prefs, keyPrefix + EXPLODE_CHOICE_LISTS, keyPrefix + EXPLODE_CHOICE_LISTS_OVERRIDE)
     );
   }
 
@@ -148,7 +149,7 @@ public class ExportConfiguration {
     map.put(keyPrefix + PULL_BEFORE, pullBefore.serialize());
     map.put(keyPrefix + OVERWRITE_FILES, overwriteFiles.serialize());
     map.put(keyPrefix + EXPORT_MEDIA, exportMedia.serialize());
-    explodeChoiceLists.ifPresent(value -> map.put(keyPrefix + EXPLODE_CHOICE_LISTS, value.toString()));
+    map.put(keyPrefix + EXPLODE_CHOICE_LISTS, explodeChoiceLists.serialize());
     return map;
   }
 
@@ -198,7 +199,7 @@ public class ExportConfiguration {
   }
 
   boolean resolveExplodeChoiceLists() {
-    return explodeChoiceLists.orElse(false);
+    return explodeChoiceLists.resolve(false);
   }
 
   /**
@@ -335,7 +336,7 @@ public class ExportConfiguration {
         && pullBefore.isEmpty()
         && overwriteFiles.isEmpty()
         && exportMedia.isEmpty()
-        && !explodeChoiceLists.isPresent();
+        && explodeChoiceLists.isEmpty();
   }
 
   public boolean isValid() {
@@ -371,7 +372,7 @@ public class ExportConfiguration {
         pullBefore.fallingBackTo(defaultConfiguration.pullBefore),
         overwriteFiles.fallingBackTo(defaultConfiguration.overwriteFiles),
         exportMedia.fallingBackTo(defaultConfiguration.exportMedia),
-        explodeChoiceLists.isPresent() ? explodeChoiceLists : defaultConfiguration.explodeChoiceLists
+        explodeChoiceLists.fallingBackTo(defaultConfiguration.explodeChoiceLists)
     );
   }
 

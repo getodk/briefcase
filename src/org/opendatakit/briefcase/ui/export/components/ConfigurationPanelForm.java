@@ -93,6 +93,8 @@ public class ConfigurationPanelForm extends JComponent {
   private final List<Consumer<TriStateBoolean>> onChangeOverwriteFilesOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeExportMediaCallbacks = new ArrayList<>();
   private final List<Consumer<TriStateBoolean>> onChangeExportMediaOverrideCallbacks = new ArrayList<>();
+  private final List<Consumer<Boolean>> onChangeSplitChoiceListsCallbacks = new ArrayList<>();
+  private final List<Consumer<TriStateBoolean>> onChangeSplitChoiceListsOverrideCallbacks = new ArrayList<>();
   private final ConfigurationPanelMode mode;
   private boolean uiLocked = false;
 
@@ -146,6 +148,9 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaField.addActionListener(__ -> triggerChangeExportMedia());
     exportMediaOverrideField.onChange(__ -> triggerChangeExportMediaOverride());
     overwriteFilesOverrideField.onChange(__ -> triggerOverwriteFilesOverride());
+
+    splitChoiceListsField.addActionListener(__ -> triggerChangeSplitChoiceLists());
+    splitChoiceListsOverrideField.onChange(__ -> triggerChangeSplitChoiceListsOverride());
   }
 
   public static ConfigurationPanelForm from(ConfigurationPanelMode mode) {
@@ -234,6 +239,11 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaOverrideField.set(value.getOverride());
   }
 
+  void setSplitChoiceLists(OverridableBoolean value) {
+    splitChoiceListsField.setSelected(value.get(false));
+    splitChoiceListsOverrideField.set(value.getOverride());
+  }
+
   void onSelectExportDir(Consumer<Path> callback) {
     onSelectExportDirCallbacks.add(callback);
   }
@@ -272,6 +282,14 @@ public class ConfigurationPanelForm extends JComponent {
 
   void onChangeExportMediaOverride(Consumer<TriStateBoolean> callback) {
     onChangeExportMediaOverrideCallbacks.add(callback);
+  }
+
+  void onChangeSplitChoiceLists(Consumer<Boolean> callback) {
+    onChangeSplitChoiceListsCallbacks.add(callback);
+  }
+
+  void onChangeSplitChoiceListsOverride(Consumer<TriStateBoolean> callback) {
+    onChangeSplitChoiceListsOverrideCallbacks.add(callback);
   }
 
   void changeMode(boolean savePasswordsConsent) {
@@ -341,6 +359,14 @@ public class ConfigurationPanelForm extends JComponent {
 
   private void triggerChangeExportMediaOverride() {
     onChangeExportMediaOverrideCallbacks.forEach(callback -> callback.accept(exportMediaOverrideField.get()));
+  }
+
+  private void triggerChangeSplitChoiceLists() {
+    onChangeSplitChoiceListsCallbacks.forEach(callback -> callback.accept(splitChoiceListsField.isSelected()));
+  }
+
+  private void triggerChangeSplitChoiceListsOverride() {
+    onChangeSplitChoiceListsOverrideCallbacks.forEach(callback -> callback.accept(splitChoiceListsOverrideField.get()));
   }
 
   private boolean confirmOverwriteFiles() {

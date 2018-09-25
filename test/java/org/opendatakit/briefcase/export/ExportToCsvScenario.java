@@ -142,10 +142,10 @@ class ExportToCsvScenario {
         Optional.ofNullable(pemFile),
         Optional.ofNullable(startDate),
         Optional.ofNullable(endDate),
-        OverridableBoolean.of(false),
+        OverridableBoolean.FALSE,
         OverridableBoolean.of(overwrite),
         OverridableBoolean.of(exportMedia),
-        Optional.of(explodeChoiceLists)
+        OverridableBoolean.of(explodeChoiceLists)
     );
     ExportToCsv.export(formDef, configuration);
   }
