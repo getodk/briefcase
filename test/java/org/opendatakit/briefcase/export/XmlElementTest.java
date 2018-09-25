@@ -19,7 +19,6 @@ package org.opendatakit.briefcase.export;
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.is;
 import static org.javarosa.core.model.instance.TreeReference.DEFAULT_MULTIPLICITY;
-import static org.javarosa.core.model.instance.TreeReference.INDEX_TEMPLATE;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
@@ -43,7 +42,25 @@ public class XmlElementTest {
         .build();
     XmlElement xmlElement = buildXmlElementFrom(field);
 
+    assertThat(xmlElement.getCurrentLocalId(field, "uuid:SOMELONGUUID"), is("uuid:SOMELONGUUID/r[1]"));
     assertThat(xmlElement.getParentLocalId(field, "uuid:SOMELONGUUID"), is("uuid:SOMELONGUUID"));
+    assertThat(xmlElement.getGroupLocalId(field, "uuid:SOMELONGUUID"), is("uuid:SOMELONGUUID/r"));
+  }
+
+  @Test
+  public void knows_how_to_generate_keys_of_nested_repeats() throws IOException, XmlPullParserException {
+    Model field = new ModelBuilder()
+        .addGroup("g1")
+        .addGroup("g2")
+        .addGroup("g3")
+        .addRepeatGroup("r1")
+        .addRepeatGroup("r2")
+        .build();
+    XmlElement xmlElement = buildXmlElementFrom(field);
+
+    assertThat(xmlElement.getCurrentLocalId(field, "uuid:SOMELONGUUID"), is("uuid:SOMELONGUUID/r1[1]/r2[1]"));
+    assertThat(xmlElement.getParentLocalId(field, "uuid:SOMELONGUUID"), is("uuid:SOMELONGUUID/r1[1]"));
+    assertThat(xmlElement.getGroupLocalId(field, "uuid:SOMELONGUUID"), is("uuid:SOMELONGUUID/r1[1]/r2"));
   }
 
   private static Document parse(String xml) throws XmlPullParserException, IOException {
@@ -61,6 +78,7 @@ public class XmlElementTest {
     ModelBuilder addGroup(String name) {
       TreeElement child = new TreeElement(name, DEFAULT_MULTIPLICITY);
       child.setDataType(DataType.NULL.value);
+      child.setRepeatable(false);
       child.setParent(current);
       current.addChild(child);
       current = child;
@@ -68,8 +86,9 @@ public class XmlElementTest {
     }
 
     ModelBuilder addRepeatGroup(String name) {
-      TreeElement child = new TreeElement(name, INDEX_TEMPLATE);
+      TreeElement child = new TreeElement(name, DEFAULT_MULTIPLICITY);
       child.setDataType(DataType.NULL.value);
+      child.setRepeatable(true);
       child.setParent(current);
       current.addChild(child);
       current = child;

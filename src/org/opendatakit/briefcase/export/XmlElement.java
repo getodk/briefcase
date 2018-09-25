@@ -60,7 +60,7 @@ public class XmlElement {
    * This ID is used to cross-reference values in different exported files.
    */
   String getParentLocalId(Model field, String instanceId) {
-    return isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(field, instanceId);
+    return isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(field.getParent(), instanceId);
   }
 
   /**
@@ -68,8 +68,10 @@ public class XmlElement {
    * This ID is used to cross-reference values in different exported files.
    */
   String getCurrentLocalId(Model field, String instanceId) {
-    String prefix = isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(field, instanceId);
-    return prefix + "/" + getName() + "[" + getPlaceAmongSameTagSiblings() + "]";
+    String prefix = isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(field.getParent(), instanceId);
+    return field.isRepeatable()
+        ? prefix + "/" + getName() + "[" + getPlaceAmongSameTagSiblings() + "]"
+        : prefix;
   }
 
   /**
@@ -77,7 +79,7 @@ public class XmlElement {
    * This ID is used to cross-reference values in different exported files.
    */
   String getGroupLocalId(Model field, String instanceId) {
-    String prefix = isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(field, instanceId);
+    String prefix = isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(field.getParent(), instanceId);
     return prefix + "/" + getName();
   }
 
