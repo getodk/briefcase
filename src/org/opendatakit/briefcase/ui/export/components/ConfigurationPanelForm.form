@@ -252,28 +252,28 @@
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
       </nested-form>
-      <component id="8729d" class="javax.swing.JLabel" binding="splitChoiceListsOverrideLabel">
+      <component id="8729d" class="javax.swing.JLabel" binding="splitSelectMultiplesOverrideLabel">
         <constraints>
           <grid row="11" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
         <properties>
-          <text value="Split multiple selects"/>
+          <text value="Split select multiples"/>
         </properties>
       </component>
-      <nested-form id="fa36a" form-file="org/opendatakit/briefcase/ui/export/components/CustomConfBooleanForm.form" binding="splitChoiceListsOverrideField" custom-create="true">
+      <nested-form id="fa36a" form-file="org/opendatakit/briefcase/ui/export/components/CustomConfBooleanForm.form" binding="splitSelectMultiplesOverrideField" custom-create="true">
         <constraints>
           <grid row="11" column="2" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
       </nested-form>
-      <component id="c8428" class="javax.swing.JCheckBox" binding="splitChoiceListsField">
+      <component id="c8428" class="javax.swing.JCheckBox" binding="splitSelectMultiplesField">
         <constraints>
           <grid row="7" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
         <properties>
-          <text value="Split multiple selects"/>
+          <text value="Split select multiples"/>
         </properties>
       </component>
     </children>

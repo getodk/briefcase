@@ -80,9 +80,9 @@ public class ConfigurationPanelForm extends JComponent {
   JLabel overwriteFilesOverrideLabel;
   CustomConfBooleanForm overwriteFilesOverrideField;
   CustomConfBooleanForm exportMediaOverrideField;
-  JCheckBox splitChoiceListsField;
-  JLabel splitChoiceListsOverrideLabel;
-  CustomConfBooleanForm splitChoiceListsOverrideField;
+  JCheckBox splitSelectMultiplesField;
+  JLabel splitSelectMultiplesOverrideLabel;
+  CustomConfBooleanForm splitSelectMultiplesOverrideField;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
@@ -93,8 +93,8 @@ public class ConfigurationPanelForm extends JComponent {
   private final List<Consumer<TriStateBoolean>> onChangeOverwriteFilesOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeExportMediaCallbacks = new ArrayList<>();
   private final List<Consumer<TriStateBoolean>> onChangeExportMediaOverrideCallbacks = new ArrayList<>();
-  private final List<Consumer<Boolean>> onChangeSplitChoiceListsCallbacks = new ArrayList<>();
-  private final List<Consumer<TriStateBoolean>> onChangeSplitChoiceListsOverrideCallbacks = new ArrayList<>();
+  private final List<Consumer<Boolean>> onChangeSplitSelectMultiplesCallbacks = new ArrayList<>();
+  private final List<Consumer<TriStateBoolean>> onChangeSplitSelectMultiplesOverrideCallbacks = new ArrayList<>();
   private final ConfigurationPanelMode mode;
   private boolean uiLocked = false;
 
@@ -105,7 +105,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeOverrideField = new CustomConfBooleanForm(Optional.empty());
     exportMediaOverrideField = new CustomConfBooleanForm(Optional.empty());
     overwriteFilesOverrideField = new CustomConfBooleanForm(Optional.empty());
-    splitChoiceListsOverrideField = new CustomConfBooleanForm(Optional.empty());
+    splitSelectMultiplesOverrideField = new CustomConfBooleanForm(Optional.empty());
 
     $$$setupUI$$$();
     startDatePicker.getSettings().setGapBeforeButtonPixels(0);
@@ -149,8 +149,8 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaOverrideField.onChange(__ -> triggerChangeExportMediaOverride());
     overwriteFilesOverrideField.onChange(__ -> triggerOverwriteFilesOverride());
 
-    splitChoiceListsField.addActionListener(__ -> triggerChangeSplitChoiceLists());
-    splitChoiceListsOverrideField.onChange(__ -> triggerChangeSplitChoiceListsOverride());
+    splitSelectMultiplesField.addActionListener(__ -> triggerChangeSplitSelectMultiples());
+    splitSelectMultiplesOverrideField.onChange(__ -> triggerChangeSplitSelectMultiplesOverride());
   }
 
   public static ConfigurationPanelForm from(ConfigurationPanelMode mode) {
@@ -239,9 +239,9 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaOverrideField.set(value.getOverride());
   }
 
-  void setSplitChoiceLists(OverridableBoolean value) {
-    splitChoiceListsField.setSelected(value.get(false));
-    splitChoiceListsOverrideField.set(value.getOverride());
+  void setSplitSelectMultiples(OverridableBoolean value) {
+    splitSelectMultiplesField.setSelected(value.get(false));
+    splitSelectMultiplesOverrideField.set(value.getOverride());
   }
 
   void onSelectExportDir(Consumer<Path> callback) {
@@ -284,12 +284,12 @@ public class ConfigurationPanelForm extends JComponent {
     onChangeExportMediaOverrideCallbacks.add(callback);
   }
 
-  void onChangeSplitChoiceLists(Consumer<Boolean> callback) {
-    onChangeSplitChoiceListsCallbacks.add(callback);
+  void onChangeSplitSelectMultiples(Consumer<Boolean> callback) {
+    onChangeSplitSelectMultiplesCallbacks.add(callback);
   }
 
-  void onChangeSplitChoiceListsOverride(Consumer<TriStateBoolean> callback) {
-    onChangeSplitChoiceListsOverrideCallbacks.add(callback);
+  void onChangeSplitSelectMultiplesOverride(Consumer<TriStateBoolean> callback) {
+    onChangeSplitSelectMultiplesOverrideCallbacks.add(callback);
   }
 
   void changeMode(boolean savePasswordsConsent) {
@@ -361,12 +361,12 @@ public class ConfigurationPanelForm extends JComponent {
     onChangeExportMediaOverrideCallbacks.forEach(callback -> callback.accept(exportMediaOverrideField.get()));
   }
 
-  private void triggerChangeSplitChoiceLists() {
-    onChangeSplitChoiceListsCallbacks.forEach(callback -> callback.accept(splitChoiceListsField.isSelected()));
+  private void triggerChangeSplitSelectMultiples() {
+    onChangeSplitSelectMultiplesCallbacks.forEach(callback -> callback.accept(splitSelectMultiplesField.isSelected()));
   }
 
-  private void triggerChangeSplitChoiceListsOverride() {
-    onChangeSplitChoiceListsOverrideCallbacks.forEach(callback -> callback.accept(splitChoiceListsOverrideField.get()));
+  private void triggerChangeSplitSelectMultiplesOverride() {
+    onChangeSplitSelectMultiplesOverrideCallbacks.forEach(callback -> callback.accept(splitSelectMultiplesOverrideField.get()));
   }
 
   private boolean confirmOverwriteFiles() {
@@ -593,26 +593,26 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(pullBeforeOverrideField.$$$getRootComponent$$$(), gbc);
-    splitChoiceListsOverrideLabel = new JLabel();
-    splitChoiceListsOverrideLabel.setText("Split multiple selects");
+    splitSelectMultiplesOverrideLabel = new JLabel();
+    splitSelectMultiplesOverrideLabel.setText("Split select multiples");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 11;
     gbc.anchor = GridBagConstraints.EAST;
-    container.add(splitChoiceListsOverrideLabel, gbc);
+    container.add(splitSelectMultiplesOverrideLabel, gbc);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 11;
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(splitChoiceListsOverrideField.$$$getRootComponent$$$(), gbc);
-    splitChoiceListsField = new JCheckBox();
-    splitChoiceListsField.setText("Split multiple selects");
+    container.add(splitSelectMultiplesOverrideField.$$$getRootComponent$$$(), gbc);
+    splitSelectMultiplesField = new JCheckBox();
+    splitSelectMultiplesField.setText("Split select multiples");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 7;
     gbc.anchor = GridBagConstraints.WEST;
-    container.add(splitChoiceListsField, gbc);
+    container.add(splitSelectMultiplesField, gbc);
   }
 
   /**

@@ -234,7 +234,7 @@ public class ExportConfigurationTest {
         OverridableBoolean.empty(),
         OverridableBoolean.empty(),
         OverridableBoolean.empty(),
-        Optional.of(false)
+        OverridableBoolean.FALSE
     );
   }
 

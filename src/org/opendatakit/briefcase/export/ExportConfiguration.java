@@ -65,8 +65,8 @@ public class ExportConfiguration {
   private static final String OVERWRITE_FILES_OVERRIDE = "overwriteFilesOverride";
   private static final String EXPORT_MEDIA = "exportMedia";
   private static final String EXPORT_MEDIA_OVERRIDE = "exportMediaOverride";
-  private static final String EXPLODE_CHOICE_LISTS = "explodeChoiceLists";
-  private static final String EXPLODE_CHOICE_LISTS_OVERRIDE = "explodeChoiceListsOverride";
+  private static final String SPLIT_SELECT_MULTIPLES = "splitSelectMultiples";
+  private static final String SPLIT_SELECT_MULTIPLES_OVERRIDE = "splitSelectMultiplesOverride";
   private Optional<String> exportFileName;
   private Optional<Path> exportDir;
   private Optional<Path> pemFile;
@@ -75,9 +75,9 @@ public class ExportConfiguration {
   public OverridableBoolean pullBefore;
   public OverridableBoolean overwriteFiles;
   public OverridableBoolean exportMedia;
-  public OverridableBoolean explodeChoiceLists;
+  public OverridableBoolean splitSelectMultiples;
 
-  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, OverridableBoolean explodeChoiceLists) {
+  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, OverridableBoolean splitSelectMultiples) {
     this.exportFileName = exportFileName;
     this.exportDir = exportDir;
     this.pemFile = pemFile;
@@ -86,7 +86,7 @@ public class ExportConfiguration {
     this.pullBefore = pullBefore;
     this.overwriteFiles = overwriteFiles;
     this.exportMedia = exportMedia;
-    this.explodeChoiceLists = explodeChoiceLists;
+    this.splitSelectMultiples = splitSelectMultiples;
   }
 
   public static ExportConfiguration empty() {
@@ -107,7 +107,7 @@ public class ExportConfiguration {
         readOverridableBoolean(prefs, keyPrefix + PULL_BEFORE, keyPrefix + PULL_BEFORE_OVERRIDE),
         readOverridableBoolean(prefs, keyPrefix + OVERWRITE_FILES, keyPrefix + OVERWRITE_FILES_OVERRIDE),
         readOverridableBoolean(prefs, keyPrefix + EXPORT_MEDIA, keyPrefix + EXPORT_MEDIA_OVERRIDE),
-        readOverridableBoolean(prefs, keyPrefix + EXPLODE_CHOICE_LISTS, keyPrefix + EXPLODE_CHOICE_LISTS_OVERRIDE)
+        readOverridableBoolean(prefs, keyPrefix + SPLIT_SELECT_MULTIPLES, keyPrefix + SPLIT_SELECT_MULTIPLES_OVERRIDE)
     );
   }
 
@@ -130,7 +130,7 @@ public class ExportConfiguration {
         keyPrefix + PULL_BEFORE,
         keyPrefix + OVERWRITE_FILES,
         keyPrefix + EXPORT_MEDIA,
-        keyPrefix + EXPLODE_CHOICE_LISTS
+        keyPrefix + SPLIT_SELECT_MULTIPLES
     );
   }
 
@@ -149,7 +149,7 @@ public class ExportConfiguration {
     map.put(keyPrefix + PULL_BEFORE, pullBefore.serialize());
     map.put(keyPrefix + OVERWRITE_FILES, overwriteFiles.serialize());
     map.put(keyPrefix + EXPORT_MEDIA, exportMedia.serialize());
-    map.put(keyPrefix + EXPLODE_CHOICE_LISTS, explodeChoiceLists.serialize());
+    map.put(keyPrefix + SPLIT_SELECT_MULTIPLES, splitSelectMultiples.serialize());
     return map;
   }
 
@@ -162,7 +162,7 @@ public class ExportConfiguration {
         pullBefore,
         overwriteFiles,
         exportMedia,
-        explodeChoiceLists
+        splitSelectMultiples
     );
   }
 
@@ -198,8 +198,8 @@ public class ExportConfiguration {
     return this;
   }
 
-  boolean resolveExplodeChoiceLists() {
-    return explodeChoiceLists.resolve(false);
+  boolean resolveSplitSelectMultiples() {
+    return splitSelectMultiples.resolve(false);
   }
 
   /**
@@ -336,7 +336,7 @@ public class ExportConfiguration {
         && pullBefore.isEmpty()
         && overwriteFiles.isEmpty()
         && exportMedia.isEmpty()
-        && explodeChoiceLists.isEmpty();
+        && splitSelectMultiples.isEmpty();
   }
 
   public boolean isValid() {
@@ -372,7 +372,7 @@ public class ExportConfiguration {
         pullBefore.fallingBackTo(defaultConfiguration.pullBefore),
         overwriteFiles.fallingBackTo(defaultConfiguration.overwriteFiles),
         exportMedia.fallingBackTo(defaultConfiguration.exportMedia),
-        explodeChoiceLists.fallingBackTo(defaultConfiguration.explodeChoiceLists)
+        splitSelectMultiples.fallingBackTo(defaultConfiguration.splitSelectMultiples)
     );
   }
 
@@ -386,7 +386,7 @@ public class ExportConfiguration {
         ", pullBefore=" + pullBefore +
         ", overwriteFiles=" + overwriteFiles +
         ", exportMedia=" + exportMedia +
-        ", explodeChoiceLists=" + explodeChoiceLists +
+        ", splitSelectMultiples=" + splitSelectMultiples +
         '}';
   }
 
@@ -404,12 +404,12 @@ public class ExportConfiguration {
         Objects.equals(pullBefore, that.pullBefore) &&
         Objects.equals(overwriteFiles, that.overwriteFiles) &&
         Objects.equals(exportMedia, that.exportMedia) &&
-        Objects.equals(explodeChoiceLists, that.explodeChoiceLists);
+        Objects.equals(splitSelectMultiples, that.splitSelectMultiples);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, overwriteFiles, exportMedia, explodeChoiceLists);
+    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, overwriteFiles, exportMedia, splitSelectMultiples);
   }
 
   public static ErrorOr<PrivateKey> readPemFile(Path pemFile) {

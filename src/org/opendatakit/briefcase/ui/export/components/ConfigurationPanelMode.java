@@ -58,9 +58,9 @@ class ConfigurationPanelMode {
     form.overwriteFilesOverrideLabel.setVisible(isOverridePanel);
     form.overwriteFilesOverrideField.setVisible(isOverridePanel);
 
-    form.splitChoiceListsField.setVisible(!isOverridePanel);
-    form.splitChoiceListsOverrideLabel.setVisible(isOverridePanel);
-    form.splitChoiceListsOverrideField.setVisible(isOverridePanel);
+    form.splitSelectMultiplesField.setVisible(!isOverridePanel);
+    form.splitSelectMultiplesOverrideLabel.setVisible(isOverridePanel);
+    form.splitSelectMultiplesOverrideField.setVisible(isOverridePanel);
   }
 
   boolean isOverridePanel() {

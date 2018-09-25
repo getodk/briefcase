@@ -54,7 +54,7 @@ final class CsvSubmissionMappers {
     return submission -> {
       List<String> cols = new ArrayList<>();
       cols.add(encode(submission.getSubmissionDate().map(CsvSubmissionMappers::format).orElse(null), false));
-      cols.addAll(formDefinition.getModel().flatMap(field -> getMapper(field, configuration.resolveExplodeChoiceLists()).apply(
+      cols.addAll(formDefinition.getModel().flatMap(field -> getMapper(field, configuration.resolveSplitSelectMultiples()).apply(
           submission.getInstanceId(formDefinition.hasRepeatableFields()),
           submission.getWorkingDir(),
           field,
@@ -82,7 +82,7 @@ final class CsvSubmissionMappers {
         submission.getSubmissionDate().orElse(MIN_SUBMISSION_DATE),
         submission.getElements(groupModel.fqn()).stream().map(element -> {
           List<String> cols = new ArrayList<>();
-          cols.addAll(groupModel.flatMap(field -> getMapper(field, configuration.resolveExplodeChoiceLists()).apply(
+          cols.addAll(groupModel.flatMap(field -> getMapper(field, configuration.resolveSplitSelectMultiples()).apply(
               element.getCurrentLocalId(field, submission.getInstanceId(true)),
               submission.getWorkingDir(),
               field,
@@ -104,13 +104,13 @@ final class CsvSubmissionMappers {
    * @param isEncrypted {@link Boolean} indicating if the form is encrypted
    * @return a {@link String} with the main form's header column names
    */
-  static String getMainHeader(Model model, boolean isEncrypted, boolean explodeChoiceLists) {
+  static String getMainHeader(Model model, boolean isEncrypted, boolean splitSelectMultiples) {
     StringBuilder sb = new StringBuilder();
     sb.append("SubmissionDate");
     model.forEach(field -> {
       List<String> names = new ArrayList<>();
       names.addAll(field.getNames());
-      if (field.isChoiceList() && explodeChoiceLists) {
+      if (field.isChoiceList() && splitSelectMultiples) {
         List<SelectChoice> choices = field.getChoices();
         names.addAll(choices.stream().map(choice -> field.getName() + "/" + choice.getValue()).collect(toList()));
       }
@@ -128,12 +128,12 @@ final class CsvSubmissionMappers {
    * @param groupModel {@link Model} of the group
    * @return a {@link String} with a repeat group's header column names
    */
-  static String getRepeatHeader(Model groupModel, boolean explodeChoiceLists) {
+  static String getRepeatHeader(Model groupModel, boolean splitSelectMultiples) {
     int shift = groupModel.countAncestors();
     StringBuilder sb = new StringBuilder();
     groupModel.forEach(field -> {
       List<String> names = field.getNames(shift);
-      if (field.isChoiceList() && explodeChoiceLists)
+      if (field.isChoiceList() && splitSelectMultiples)
         names.addAll(field.getChoices().stream().map(choice -> field.getName() + "/" + choice.getValue()).collect(toList()));
       names.forEach(name -> sb.append(",").append(name));
     });
