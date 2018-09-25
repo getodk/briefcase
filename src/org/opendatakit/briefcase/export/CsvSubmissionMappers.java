@@ -20,7 +20,6 @@ import static java.text.DateFormat.getDateTimeInstance;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-
 import static org.javarosa.core.model.DataType.DATE;
 import static org.javarosa.core.model.DataType.DATE_TIME;
 import static org.javarosa.core.model.DataType.GEOPOINT;
@@ -34,7 +33,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.javarosa.core.model.DataType;
 import org.javarosa.core.model.SelectChoice;
 import org.opendatakit.briefcase.reused.Pair;
@@ -85,15 +83,15 @@ final class CsvSubmissionMappers {
         submission.getElements(groupModel.fqn()).stream().map(element -> {
           List<String> cols = new ArrayList<>();
           cols.addAll(groupModel.flatMap(field -> getMapper(field, configuration.resolveExplodeChoiceLists()).apply(
-              element.getCurrentLocalId(submission.getInstanceId(true)),
+              element.getCurrentLocalId(field, submission.getInstanceId(true)),
               submission.getWorkingDir(),
               field,
               element.findElement(field.getName()),
               configuration
           ).map(CsvSubmissionMappers::encodeRepeatValue)).collect(toList()));
-          cols.add(encode(element.getParentLocalId(submission.getInstanceId(true)), false));
-          cols.add(encode(element.getCurrentLocalId(submission.getInstanceId(true)), false));
-          cols.add(encode(element.getGroupLocalId(submission.getInstanceId(true)), false));
+          cols.add(encode(element.getParentLocalId(groupModel, submission.getInstanceId(true)), false));
+          cols.add(encode(element.getCurrentLocalId(groupModel, submission.getInstanceId(true)), false));
+          cols.add(encode(element.getGroupLocalId(groupModel, submission.getInstanceId(true)), false));
           return cols.stream().collect(joining(","));
         }).collect(toList())
     );

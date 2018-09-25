@@ -58,35 +58,26 @@ public class XmlElement {
   /**
    * Builds and returns this {@link XmlElement} instance's parent's local ID.
    * This ID is used to cross-reference values in different exported files.
-   *
-   * @param instanceId the Form submission's instance ID
-   * @return a {@link String} with this {@link XmlElement} instance's parent's local ID.
    */
-  String getParentLocalId(String instanceId) {
-    return isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(instanceId);
+  String getParentLocalId(Model field, String instanceId) {
+    return isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(field, instanceId);
   }
 
   /**
    * Builds and returns this {@link XmlElement} instance's current local ID.
    * This ID is used to cross-reference values in different exported files.
-   *
-   * @param instanceId the Form submission's instance ID
-   * @return a {@link String} with this {@link XmlElement} instance's current local ID.
    */
-  String getCurrentLocalId(String instanceId) {
-    String prefix = isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(instanceId);
+  String getCurrentLocalId(Model field, String instanceId) {
+    String prefix = isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(field, instanceId);
     return prefix + "/" + getName() + "[" + getPlaceAmongSameTagSiblings() + "]";
   }
 
   /**
    * Builds and returns this {@link XmlElement} instance's group local ID.
    * This ID is used to cross-reference values in different exported files.
-   *
-   * @param instanceId the Form submission's instance ID
-   * @return a {@link String} with this {@link XmlElement} instance's group local ID.
    */
-  String getGroupLocalId(String instanceId) {
-    String prefix = isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(instanceId);
+  String getGroupLocalId(Model field, String instanceId) {
+    String prefix = isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(field, instanceId);
     return prefix + "/" + getName();
   }
 

@@ -43,7 +43,7 @@ public class XmlElementTest {
         .build();
     XmlElement xmlElement = buildXmlElementFrom(field);
 
-    assertThat(xmlElement.getParentLocalId("uuid:SOMELONGUUID"), is("uuid:SOMELONGUUID"));
+    assertThat(xmlElement.getParentLocalId(field, "uuid:SOMELONGUUID"), is("uuid:SOMELONGUUID"));
   }
 
   private static Document parse(String xml) throws XmlPullParserException, IOException {
