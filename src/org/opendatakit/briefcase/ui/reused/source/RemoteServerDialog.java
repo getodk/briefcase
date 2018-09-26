@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.ui.reused.source;
 
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 
+import java.awt.Cursor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -48,6 +49,7 @@ public class RemoteServerDialog {
               triggerConnect(server);
               form.hideDialog();
             } else
+              form.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
               showError(
                   response.isRedirection() ? "Redirection detected" : response.isUnauthorized() ? "Wrong credentials" : response.isNotFound() ? "Aggregate not found" : "",
                   response.isRedirection() ? "Unexpected error" : "Configuration error"

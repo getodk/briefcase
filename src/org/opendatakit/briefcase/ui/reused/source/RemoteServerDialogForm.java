@@ -99,8 +99,10 @@ public class RemoteServerDialogForm extends JDialog {
 
       onConnectCallbacks.forEach(callback -> callback.accept(server));
     } catch (BriefcaseException e) {
+      setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
       showErrorDialog(this, "Please, check data and try again.\n\nError: " + e.getCause().getMessage(), "Invalid Aggregate configuration");
     } catch (MalformedURLException e) {
+      setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
       showErrorDialog(this, "Malformed URL. Please, review data and try again.\n\nError: " + e.getMessage(), "Invalid Aggregate configuration");
     }
   }
