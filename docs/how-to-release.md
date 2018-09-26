@@ -68,7 +68,7 @@ We use [semantic versioning](https://semver.org/): vx.y.z
     
 6. Verify that logging, error monitoring, and user tracking have production configurations
 
-   You typically have to do this once if you keep a separate release workspace.
+   You only have to do this once if you keep a separate release workspace.
 
    **Logging configuration**
    
@@ -94,9 +94,9 @@ We use [semantic versioning](https://semver.org/): vx.y.z
   
 7. Build the release JAR file with `./gradlew clean build`
 
-    The JAR file will be located at `build/libs` and the filename should be like: `ODK Briefcase vx.y.z.jar`. (replace x.y.z with the actual numbers you've used in step 2)
+    The JAR file will be located at `build/libs` and the filename should be like: `ODK-Briefcase-vx.y.z.jar`. (replace x.y.z with the actual numbers you've used in step 2)
   
-    If you JAR's filename has `-dirty` or any other deviation from the previous template, you've made some mistake while sync'ing your repo after publishing the release on GitHub.
+    If your JAR's filename has `-dirty` or any other deviation from the previous template, you've made some mistake while syncing your repo after publishing the release on GitHub.
   
 8. Go back to the release at GitHub and edit it. Open a file browser and drag your JAR file into the box. Click on `Update release`.
 
@@ -110,7 +110,7 @@ We use [semantic versioning](https://semver.org/): vx.y.z
 
 - The new release should be linked in Sentry by sending the git refs involved (usually, the last from previous release and the last from the new release).
 
-  The following curl carl with take care of this:
+  The following curl command with take care of this:
   
   ```shell
   curl https://sentry.io/api/0/organizations/opendatakit/releases/ \
