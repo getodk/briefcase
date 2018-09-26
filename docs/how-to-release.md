@@ -1,18 +1,15 @@
 # How to release a Briefcase version
 
-* [About semantic versioning](#about-semantic-versioning)
-* [Releasing a minor version](#releasing-a-minor-version)
-   * [Releasing a beta of a minor version](#releasing-a-beta-of-a-minor-version)
-* [Releasing a hot fix (patch version)](#releasing-a-hot-fix-patch-version)
+* [Releasing a version](#releasing-a-version)
+   * [Releasing a beta version](#releasing-a-beta-version)
 * [Post-release considerations](#post-release-considerations)
-
 
 We use [semantic versioning](https://semver.org/): vx.y.z
   - x represents the *major* version number. Different major versions can be incompatible between them
   - y represents the *minor* version number. Different minor versions of the same major versions are compatible between them and bring new features
   - z represents the *patch* version number. Patch versions are use to release bug fixes only.
 
-## Releasing a minor version
+## Releasing a version
 
 0. It's highly recommended to clone the git repo in a separate directory to keep the development workspace apart from the release workspace.
 
@@ -100,9 +97,9 @@ We use [semantic versioning](https://semver.org/): vx.y.z
   
 8. Go back to the release at GitHub and edit it. Open a file browser and drag your JAR file into the box. Click on `Update release`.
 
-### Releasing a beta of a minor version
+### Releasing a beta version
 
-- The process is basically the same as with a minor version with some small differences:
+- The process is basically the same as with normal version with some small differences:
   - We suffix the version number with `-beta.N`, replacing `N` with the number of the beta, starting with `0`
   - We check the `This is a pre-release` checkbox to avoid going to it with the link https://github.com/opendatakit/briefcase/releases/latest
   
@@ -138,7 +135,7 @@ We use [semantic versioning](https://semver.org/): vx.y.z
 
 - There should be a forum post announcing the new release. This post should be on the `Releases` category, or in the `Pre-releases` category if it's a beta pre-release.
 
-  This is an example of a forum post announcing a minor release:
+  This is an example of a forum post announcing a release:
   
   ```markdown
   **Release highlights**
