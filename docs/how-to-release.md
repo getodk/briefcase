@@ -5,13 +5,13 @@
 * [Post-release considerations](#post-release-considerations)
 
 We use [semantic versioning](https://semver.org/): vx.y.z
-  - x represents the *major* version number. Different major versions can be incompatible between them
-  - y represents the *minor* version number. Different minor versions of the same major versions are compatible between them and bring new features
-  - z represents the *patch* version number. Patch versions are use to release bug fixes only.
+  - x represents the *major* version number. Major versions are typically incompatible.
+  - y represents the *minor* version number. Minor versions are compatible and have new features.
+  - z represents the *patch* version number. Patch versions are only used for bug fixes.
 
 ## Releasing a version
 
-0. It's highly recommended to clone the git repo in a separate directory to keep the development workspace apart from the release workspace.
+0. It's highly recommended you clone the git repo in a different directory to keep the development workspace separate from the release workspace.
 
 1. Go to the [GitHub repo releases page](https://github.com/opendatakit/briefcase/releases) and draft a new release
 
@@ -27,7 +27,7 @@ We use [semantic versioning](https://semver.org/): vx.y.z
       **Highlights**
       - Some highlighted feature
       - Some highlighted technical improvement
-      - Some highlighted bugfix
+      - Some highlighted bug fix
       - Some important notice about breaking changes
       
       **Added**
@@ -48,18 +48,17 @@ We use [semantic versioning](https://semver.org/): vx.y.z
       - Replace the versions of the `All changes` link with the previous and current tags e.g. `v1.11.3...v.1.12.0`
       - In the `Added`, `Removed`, and `Fixed` sections, always link in this order: Issue > PR > Commit
       - An easy way to get a comprehensive list of these changes is by searching on the `All changes` diff for the terms `Merged` and ` and `. The second term will reveal merges by more than one author which indicate a "squash merge".
-      - To make it easy for another person to review the changes, the list of items should be sorted in the same order as they've been closed
+      - To make it easy for another person to review the changes, the list of items should be sorted in the same order as they've been closed or merged
     
 3. Once the release information has been completed, click on the `Publish release` button.
 
     GitHub will create a tag from the selected branch
   
-4. Go to your releases workspace and sync your local repo with `git pull`
+4. Go to your release workspace and sync your local repo with `git pull`
 
     You should see a message telling you about the new tag GitHub has created for your release
 
-5. Check out the tag with `git checkout vx.y.z`. (replace x.y.z with the actual numbers you've used in step 2)
-5. Check out the tag with `git checkout vx.y.z`. (replace x.y.z with the actual numbers you've used in step 2)
+5. Check out the tag with `git checkout vx.y.z`. (replace x.y.z with the actual numbers you used in step 2)
 
     Git should announce that you're on a `detached HEAD`. That's OK.
     
@@ -91,7 +90,7 @@ We use [semantic versioning](https://semver.org/): vx.y.z
   
 7. Build the release JAR file with `./gradlew clean build`
 
-    The JAR file will be located at `build/libs` and the filename should be like: `ODK-Briefcase-vx.y.z.jar`. (replace x.y.z with the actual numbers you've used in step 2)
+    The JAR file will be located at `build/libs` and the filename should be like: `ODK-Briefcase-vx.y.z.jar`. (replace x.y.z with the actual numbers you used in step 2)
   
     If your JAR's filename has `-dirty` or any other deviation from the previous template, you've made some mistake while syncing your repo after publishing the release on GitHub.
   
@@ -100,8 +99,8 @@ We use [semantic versioning](https://semver.org/): vx.y.z
 ### Releasing a beta version
 
 - The process is basically the same as with normal version with some small differences:
-  - We suffix the version number with `-beta.N`, replacing `N` with the number of the beta, starting with `0`
-  - We check the `This is a pre-release` checkbox to avoid going to it with the link https://github.com/opendatakit/briefcase/releases/latest
+  - We append the version number with `-beta.N`, replacing `N` with the number of the beta, starting with `0`
+  - We check the `This is a pre-release` checkbox to avoid it being linked from https://github.com/opendatakit/briefcase/releases/latest
   
 ## Post-release considerations
 
