@@ -49,7 +49,6 @@ public class RemoteServerDialog {
               triggerConnect(server);
               form.hideDialog();
             } else
-              form.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
               showError(
                   response.isRedirection() ? "Redirection detected" : response.isUnauthorized() ? "Wrong credentials" : response.isNotFound() ? "Aggregate not found" : "",
                   response.isRedirection() ? "Unexpected error" : "Configuration error"
@@ -62,6 +61,7 @@ public class RemoteServerDialog {
             }
           }
           form.unsetTestingConnection();
+          form.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
       }.execute();
     });
