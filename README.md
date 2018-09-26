@@ -81,6 +81,13 @@ For testing and development purposes, customization of logback conf files is enc
 
 More information on Logback configuration is available [here](https://logback.qos.ch/manual/configuration.html).
 
+## Extended topics
+
+There is a [`/docs`](./docs) directory in the repo with more documentation files that expand on certain topics:
+
+- [Briefcase export CSV format](./docs/export-format.md)
+- [How to release a Briefcase version](./docs/how-to-release.md)
+
 ## Contributing code
 Any and all contributions to the project are welcome. ODK Briefcase is used across the world primarily by organizations with a social purpose so you can have real impact!
 
