@@ -18,7 +18,6 @@ package org.opendatakit.briefcase.ui.reused.source;
 
 import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
 
-import java.awt.Cursor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -38,11 +37,13 @@ public class RemoteServerDialog {
       form.setTestingConnection();
 
       new SwingWorker<Response<Boolean>, Void>() {
-        @Override protected Response<Boolean> doInBackground() {
+        @Override
+        protected Response<Boolean> doInBackground() {
           return serverTester.test(server);
         }
 
-        @Override protected void done() {
+        @Override
+        protected void done() {
           try {
             Response<Boolean> response = get();
             if (response.isSuccess()) {
@@ -61,7 +62,6 @@ public class RemoteServerDialog {
             }
           }
           form.unsetTestingConnection();
-          form.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
       }.execute();
     });

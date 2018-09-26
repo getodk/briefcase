@@ -126,6 +126,7 @@ public class RemoteServerDialogForm extends JDialog {
     passwordField.setEditable(false);
     connectButton.setEnabled(false);
     progressBar.setVisible(true);
+    setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
   }
 
   void unsetTestingConnection() {
@@ -135,6 +136,7 @@ public class RemoteServerDialogForm extends JDialog {
     passwordField.setEditable(true);
     connectButton.setEnabled(true);
     progressBar.setVisible(false);
+    setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
   }
 
   /**
