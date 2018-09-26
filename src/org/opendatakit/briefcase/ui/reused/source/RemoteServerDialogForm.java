@@ -75,16 +75,14 @@ public class RemoteServerDialogForm extends JDialog {
 
     cancelButton.addActionListener(e -> dispose());
 
-    connectButton.addActionListener(__ -> {
-      setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-      triggerConnect();
-    });
+    connectButton.addActionListener(__ -> triggerConnect());
 
     getRootPane().setDefaultButton(connectButton);
 
   }
 
   private void triggerConnect() {
+    setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     try {
       Optional<Credentials> credentials = OptionalProduct.all(
           Optional.ofNullable(usernameField.getText()).map(String::trim).filter(s -> !s.isEmpty()),
