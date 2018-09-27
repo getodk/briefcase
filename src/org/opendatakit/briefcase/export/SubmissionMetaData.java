@@ -65,7 +65,9 @@ class SubmissionMetaData {
     return submissionDate;
   }
 
-  /** Fixes ISO8601-ish strings not in this form: 2018-05-13T17:32:57±00:00 */
+  /**
+   * Fixes ISO8601-ish strings not in this form: 2018-05-13T17:32:57±00:00
+   */
   static String regularizeDateTime(String iso8601DateTime) {
     // 2018-04-26T08:58:20.525Z
     if (iso8601DateTime.endsWith("Z")) // Replace the Z with a zero offset
@@ -129,7 +131,8 @@ class SubmissionMetaData {
    */
   List<String> getMediaNames() {
     if (mediaNames == null)
-      mediaNames = root.findElements("media", "file").stream()
+      mediaNames = root.findElements("media").stream()
+          .flatMap(e -> e.findElements("file").stream())
           .map(XmlElement::maybeValue)
           .filter(Optional::isPresent)
           .map(Optional::get)

@@ -167,8 +167,8 @@ class ExportToCsvScenario {
   void assertSameMedia(String suffix) {
     Path oldMediaPath = getPath(formDef.getFormId() + "-media" + (suffix.isEmpty() ? "" : "-" + suffix));
     Path newMediaPath = outputDir.resolve("new").resolve("media");
-    List<Path> oldMedia = walk(oldMediaPath).filter(p -> !p.getFileName().toString().startsWith(".git")).collect(Collectors.toList());
-    List<Path> newMedia = walk(newMediaPath).filter(p -> !p.getFileName().toString().startsWith(".git")).collect(Collectors.toList());
+    List<Path> oldMedia = walk(oldMediaPath).filter(p -> !p.getFileName().toString().startsWith(".git")).filter(p -> Files.isRegularFile(p)).collect(Collectors.toList());
+    List<Path> newMedia = walk(newMediaPath).filter(p -> !p.getFileName().toString().startsWith(".git")).filter(p -> Files.isRegularFile(p)).collect(Collectors.toList());
     assertThat(newMedia, hasSize(oldMedia.size()));
     oldMedia.stream().filter(Files::isRegularFile).forEach(path ->
         assertThat(readAllBytes(newMediaPath.resolve(oldMediaPath.relativize(path))), equalTo(readAllBytes(path)))
