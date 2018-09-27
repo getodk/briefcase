@@ -176,9 +176,11 @@ class ExportToCsvScenario {
   }
 
   void assertSameContentRepeats(String suffix, String... groupNames) {
+    final StringBuilder groupPrefix = new StringBuilder();
     Arrays.asList(groupNames).forEach(groupName -> {
-      String oldOutput = new String(readAllBytes(getPath(formDef.getFormId() + "-" + groupName + (suffix.isEmpty() ? "" : "-" + suffix) + ".csv.expected")));
-      String newOutput = new String(readAllBytes(outputDir.resolve("new").resolve(stripIllegalChars(formDef.getFormName()) + "-" + groupName + ".csv")));
+      String oldOutput = new String(readAllBytes(getPath(formDef.getFormId() + "-" + groupPrefix.toString() + groupName + (suffix.isEmpty() ? "" : "-" + suffix) + ".csv.expected")));
+      String newOutput = new String(readAllBytes(outputDir.resolve("new").resolve(stripIllegalChars(formDef.getFormName()) + "-" + groupPrefix.toString() + groupName + ".csv")));
+      groupPrefix.append(groupName).append("-");
       assertThat(newOutput, is(oldOutput));
     });
   }

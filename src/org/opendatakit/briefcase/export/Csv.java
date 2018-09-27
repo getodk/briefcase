@@ -3,7 +3,6 @@ package org.opendatakit.briefcase.export;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-
 import static org.opendatakit.briefcase.export.CsvSubmissionMappers.getMainHeader;
 import static org.opendatakit.briefcase.export.CsvSubmissionMappers.getRepeatHeader;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
@@ -12,7 +11,6 @@ import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
-
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 /**
@@ -60,8 +58,14 @@ class Csv {
     String repeatFileNameBase = configuration.getExportFileName()
         .map(UncheckedFiles::stripFileExtension)
         .orElse(stripIllegalChars(formDefinition.getFormName()));
+    String suffix = groupModel.getName();
+    Model current = groupModel;
+    while (grandParentIsRoot(current)) {
+      current = current.getParent();
+      suffix = current.getName() + "-" + suffix;
+    }
     Path output = configuration.getExportDir().resolve(
-        repeatFileNameBase + "-" + groupModel.getName() + ".csv"
+        repeatFileNameBase + "-" + suffix + ".csv"
     );
     return new Csv(
         groupModel.fqn(),
@@ -71,6 +75,29 @@ class Csv {
         configuration.resolveOverwriteExistingFiles(),
         CsvSubmissionMappers.repeat(groupModel, configuration)
     );
+  }
+
+  /**
+   * Returns true if the grandparent node of the given Model is the model's root
+   * <p>
+   * Example 1:
+   * <p>
+   * <code><pre>
+   * &lt;data&gt;
+   * &nbsp;&nbsp;&lt;/some_field&gt;
+   * &lt;/data&gt;
+   * </pre></code>
+   * <p>
+   * In this example:
+   * <ul>
+   * <li>&lt;data&gt; has a parent with <code>null</code> name</li>
+   * <li>Returns true on &lt;some_field&gt;</li>
+   * </ul>
+   */
+  private static boolean grandParentIsRoot(Model current) {
+    return current.hasParent()
+        && current.getParent().hasParent() // Check if current has a grandparent
+        && current.getParent().getParent().getName() != null; // The root node has a null name
   }
 
   /**

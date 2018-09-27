@@ -231,7 +231,7 @@ class Model {
     return countAncestors() == 0;
   }
 
-  private boolean hasParent() {
+  boolean hasParent() {
     return model.getParent() != null;
   }
 
