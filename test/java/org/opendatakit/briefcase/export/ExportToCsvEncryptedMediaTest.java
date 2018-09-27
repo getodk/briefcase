@@ -19,7 +19,6 @@ package org.opendatakit.briefcase.export;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.delete;
 
 import java.nio.file.Path;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,7 +47,7 @@ public class ExportToCsvEncryptedMediaTest {
 
   @Test
   public void skips_submissions_that_are_missing_their_media_files() {
-    delete(scenario.getSubmissionDir().resolve("1526413928119.jpg.enc"));
+    delete(scenario.getSubmissionDir().resolve("1538040007350.jpg.enc"));
     scenario.runExport(pemFile);
     scenario.assertSameContent("skip");
     scenario.assertNoOutputMediaDir();
