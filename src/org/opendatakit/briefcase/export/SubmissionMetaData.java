@@ -129,7 +129,8 @@ class SubmissionMetaData {
    */
   List<String> getMediaNames() {
     if (mediaNames == null)
-      mediaNames = root.findElements("media", "file").stream()
+      mediaNames = root.findElements("media").stream()
+          .flatMap(e -> e.findElements("file").stream())
           .map(XmlElement::maybeValue)
           .filter(Optional::isPresent)
           .map(Optional::get)
