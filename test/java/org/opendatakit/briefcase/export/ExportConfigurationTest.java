@@ -40,11 +40,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
+import org.opendatakit.briefcase.reused.OverridableBoolean;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportConfigurationTest {
@@ -212,5 +214,21 @@ public class ExportConfigurationTest {
     assertThat(validConfig.hashCode(), is(notNullValue()));
     assertThat(validConfig.equals(null), is(false));
     assertThat(validConfig, is(validConfig));
+  }
+
+  @Test
+  public void ensures_the_export_filename_has_csv_extension() {
+    ExportConfiguration conf = new ExportConfiguration(
+        Optional.of("some_filename"),
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty(),
+        OverridableBoolean.empty(),
+        OverridableBoolean.empty(),
+        OverridableBoolean.empty(),
+        Optional.of(false)
+    );
+    assertThat(conf.getExportFileName(), OptionalMatchers.isPresentAnd(is("some_filename.csv")));
   }
 }
