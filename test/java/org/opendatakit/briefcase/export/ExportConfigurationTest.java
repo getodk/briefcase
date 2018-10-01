@@ -218,8 +218,15 @@ public class ExportConfigurationTest {
 
   @Test
   public void ensures_the_export_filename_has_csv_extension() {
-    ExportConfiguration conf = new ExportConfiguration(
-        Optional.of("some_filename"),
+    assertThat(buildConf("some_filename").getExportFileName(), OptionalMatchers.isPresentAnd(is("some_filename.csv")));
+    assertThat(buildConf("some_filename.csv").getExportFileName(), OptionalMatchers.isPresentAnd(is("some_filename.csv")));
+    assertThat(buildConf("some_filename.CSV").getExportFileName(), OptionalMatchers.isPresentAnd(is("some_filename.CSV")));
+    assertThat(buildConf("some_filename.cSv").getExportFileName(), OptionalMatchers.isPresentAnd(is("some_filename.cSv")));
+  }
+
+  public ExportConfiguration buildConf(String exportFileName) {
+    return new ExportConfiguration(
+        Optional.of(exportFileName),
         Optional.empty(),
         Optional.empty(),
         Optional.empty(),
@@ -229,6 +236,7 @@ public class ExportConfigurationTest {
         OverridableBoolean.empty(),
         Optional.of(false)
     );
-    assertThat(conf.getExportFileName(), OptionalMatchers.isPresentAnd(is("some_filename.csv")));
   }
+
+
 }

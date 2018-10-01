@@ -447,7 +447,7 @@ public class ExportConfiguration {
   }
 
   public Optional<String> getExportFileName() {
-    return exportFileName.map(filename -> filename.endsWith(".csv") ? filename : filename + ".csv");
+    return exportFileName.map(filename -> filename.toLowerCase().endsWith(".csv") ? filename : filename + ".csv");
   }
 
   public Path getErrorsDir(String formName) {
