@@ -60,7 +60,7 @@ class Csv {
         .orElse(stripIllegalChars(formDefinition.getFormName()));
     String suffix = groupModel.getName();
     Model current = groupModel;
-    while (grandParentIsRoot(current)) {
+    while (!grandParentIsRoot(current)) {
       current = current.getParent();
       suffix = current.getName() + "-" + suffix;
     }
@@ -97,7 +97,7 @@ class Csv {
   private static boolean grandParentIsRoot(Model current) {
     return current.hasParent()
         && current.getParent().hasParent() // Check if current has a grandparent
-        && current.getParent().getParent().getName() != null; // The root node has a null name
+        && current.getParent().getParent().getName() == null; // The root node has a null name
   }
 
   /**
