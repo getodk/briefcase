@@ -26,14 +26,17 @@ public class PathMatchers {
 
   public static Matcher<Path> exists() {
     return new TypeSafeMatcher<Path>() {
+      private Path item;
+
       @Override
       protected boolean matchesSafely(Path item) {
+        this.item = item;
         return Files.exists(item);
       }
 
       @Override
       public void describeTo(Description description) {
-        description.appendText("exists");
+        description.appendValue(item).appendText(" exists");
       }
 
       @Override
