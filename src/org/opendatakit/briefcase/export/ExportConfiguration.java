@@ -19,7 +19,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.exists;
 import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.newInputStream;
-
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_BRIEFCASE_STORAGE;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_INSIDE_ODK_DEVICE_DIRECTORY;
 import static org.opendatakit.briefcase.ui.MessageStrings.DIR_NOT_DIRECTORY;
@@ -48,7 +47,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
 import org.bouncycastle.openssl.PEMReader;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -449,7 +447,7 @@ public class ExportConfiguration {
   }
 
   public Optional<String> getExportFileName() {
-    return exportFileName;
+    return exportFileName.map(filename -> filename.toLowerCase().endsWith(".csv") ? filename : filename + ".csv");
   }
 
   public Path getErrorsDir(String formName) {

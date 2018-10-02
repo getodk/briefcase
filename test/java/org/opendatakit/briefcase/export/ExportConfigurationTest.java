@@ -40,11 +40,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
+import org.opendatakit.briefcase.reused.OverridableBoolean;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportConfigurationTest {
@@ -213,4 +215,28 @@ public class ExportConfigurationTest {
     assertThat(validConfig.equals(null), is(false));
     assertThat(validConfig, is(validConfig));
   }
+
+  @Test
+  public void ensures_the_export_filename_has_csv_extension() {
+    assertThat(buildConf("some_filename").getExportFileName(), OptionalMatchers.isPresentAnd(is("some_filename.csv")));
+    assertThat(buildConf("some_filename.csv").getExportFileName(), OptionalMatchers.isPresentAnd(is("some_filename.csv")));
+    assertThat(buildConf("some_filename.CSV").getExportFileName(), OptionalMatchers.isPresentAnd(is("some_filename.CSV")));
+    assertThat(buildConf("some_filename.cSv").getExportFileName(), OptionalMatchers.isPresentAnd(is("some_filename.cSv")));
+  }
+
+  public ExportConfiguration buildConf(String exportFileName) {
+    return new ExportConfiguration(
+        Optional.of(exportFileName),
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty(),
+        OverridableBoolean.empty(),
+        OverridableBoolean.empty(),
+        OverridableBoolean.empty(),
+        Optional.of(false)
+    );
+  }
+
+
 }
