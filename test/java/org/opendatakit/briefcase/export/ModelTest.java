@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.export;
 
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.javarosa.core.model.instance.TreeReference.DEFAULT_MULTIPLICITY;
 import static org.junit.Assert.assertThat;
@@ -48,6 +49,21 @@ public class ModelTest {
         .build();
 
     assertThat(model.getChoices(), contains(choice1, choice2));
+  }
+
+  @Test
+  public void gets_choices_of_a_related_select_control_with_search_appearance() {
+    QuestionDef control = new QuestionDef();
+    control.setControlType(Model.ControlType.SELECT_MULTI.value);
+    // This is the choice we will usually find in a select that uses appearance="search(...)"
+    control.addSelectChoice(new SelectChoice("name", "name_key", false));
+    control.setAppearanceAttr("search('some_external_instance')");
+
+    Model model = new ModelBuilder()
+        .addField("select", DataType.TEXT, control)
+        .build();
+
+    assertThat(model.getChoices(), empty());
   }
 
   static class ModelBuilder {
