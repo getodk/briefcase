@@ -17,18 +17,36 @@
 package org.opendatakit.briefcase.export;
 
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.matchers.PathMatchers.exists;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-import org.opendatakit.briefcase.matchers.PathMatchers;
 import org.opendatakit.briefcase.reused.OverridableBoolean;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 public class CsvTest {
+  private Path exportDir;
+  private ExportConfiguration conf;
+
+  @Before
+  public void setup() throws IOException {
+    exportDir = Files.createTempDirectory("briefcase_export_dir");
+    conf = buildConf(exportDir);
+  }
+
+  @After
+  public void tearDown() {
+    UncheckedFiles.deleteRecursive(exportDir);
+  }
+
   @Test
-  public void includes_non_repeat_groups_in_repeat_filenames() throws IOException {
+  public void includes_non_repeat_groups_in_repeat_filenames() {
     Model group = new XmlElementTest.ModelBuilder()
         .addGroup("data")
         .addGroup("g1")
@@ -37,17 +55,37 @@ public class CsvTest {
         .addRepeatGroup("r")
         .build();
 
-    FormDefinition formDef = new FormDefinition(
-        "some_form",
-        Files.createTempFile("briefcase_some_form", ".xml"),
-        "some_form",
-        false,
-        group.getParent().getParent().getParent()
-    );
+    FormDefinition formDef = buildFormDef(group, 4);
 
-    Path exportDir = Files.createTempDirectory("briefcase_export_dir");
+    Csv.repeat(formDef, group, conf).prepareOutputFiles();
 
-    ExportConfiguration conf = new ExportConfiguration(
+    assertThat(exportDir.resolve("some_form-g1-g2-g3-r.csv"), exists());
+  }
+
+  @Test
+  public void includes_non_repeat_groups_in_repeat_filenames2() {
+    Model group = new XmlElementTest.ModelBuilder()
+        .addGroup("data")
+        .addGroup("g1")
+        .addRepeatGroup("r1")
+        .addGroup("g2")
+        .addRepeatGroup("r2")
+        .addRepeatGroup("r3")
+        .build();
+
+    FormDefinition formDef = buildFormDef(group, 5);
+
+    Csv.repeat(formDef, group, conf).prepareOutputFiles();
+    Csv.repeat(formDef, group.getParent(), conf).prepareOutputFiles();
+    Csv.repeat(formDef, group.getParent().getParent().getParent(), conf).prepareOutputFiles();
+
+    assertThat(exportDir.resolve("some_form-g1-r1.csv"), exists());
+    assertThat(exportDir.resolve("some_form-g2-r2.csv"), exists());
+    assertThat(exportDir.resolve("some_form-r3.csv"), exists());
+  }
+
+  public ExportConfiguration buildConf(Path exportDir) {
+    return new ExportConfiguration(
         Optional.of("some_form.csv"),
         Optional.of(exportDir),
         Optional.empty(),
@@ -58,10 +96,18 @@ public class CsvTest {
         OverridableBoolean.TRUE,
         Optional.of(false)
     );
+  }
 
-    Csv repeat = Csv.repeat(formDef, group, conf);
-    repeat.prepareOutputFiles();
-
-    assertThat(exportDir.resolve("some_form-g1-g2-g3-r.csv"), PathMatchers.exists());
+  private static FormDefinition buildFormDef(Model group, int ancestors) {
+    Model root = group;
+    for (int i = 0; i < ancestors; i++)
+      root = root.getParent();
+    return new FormDefinition(
+        "some_form",
+        Paths.get("/some/random/path/doesnt/matter/"),
+        "some_form",
+        false,
+        root
+    );
   }
 }
