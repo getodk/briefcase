@@ -17,17 +17,82 @@
 package org.opendatakit.briefcase.export;
 
 import static java.util.Collections.emptyMap;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.javarosa.core.model.instance.TreeReference.DEFAULT_MULTIPLICITY;
 import static org.junit.Assert.assertThat;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.javarosa.core.model.DataType;
+import org.javarosa.core.model.QuestionDef;
+import org.javarosa.core.model.SelectChoice;
 import org.javarosa.core.model.instance.TreeElement;
 import org.junit.Test;
 
 public class ModelTest {
+  @Test
+  public void gets_choices_of_a_related_select_control() {
+    SelectChoice choice1 = new SelectChoice("some label 1", "some value 1", false);
+    SelectChoice choice2 = new SelectChoice("some label 2", "some value 2", false);
+    QuestionDef control = new QuestionDef();
+    control.setControlType(Model.ControlType.SELECT_MULTI.value);
+    control.addSelectChoice(choice1);
+    control.addSelectChoice(choice2);
+
+    Model model = new ModelBuilder()
+        .addField("select", DataType.TEXT, control)
+        .build();
+
+    assertThat(model.getChoices(), contains(choice1, choice2));
+  }
+
+  static class ModelBuilder {
+    private TreeElement current = new TreeElement(null, DEFAULT_MULTIPLICITY);
+    private Map<String, QuestionDef> controls = new HashMap<>();
+
+    ModelBuilder addGroup(String name) {
+      TreeElement child = new TreeElement(name, DEFAULT_MULTIPLICITY);
+      child.setDataType(DataType.NULL.value);
+      child.setRepeatable(false);
+      child.setParent(current);
+      current.addChild(child);
+      current = child;
+      return this;
+    }
+
+    ModelBuilder addRepeatGroup(String name) {
+      TreeElement child = new TreeElement(name, DEFAULT_MULTIPLICITY);
+      child.setDataType(DataType.NULL.value);
+      child.setRepeatable(true);
+      child.setParent(current);
+      current.addChild(child);
+      current = child;
+      return this;
+    }
+
+    ModelBuilder addField(String name, DataType dataType) {
+      return addField(name, dataType, null);
+    }
+
+    ModelBuilder addField(String name, DataType dataType, QuestionDef control) {
+      TreeElement child = new TreeElement(name, DEFAULT_MULTIPLICITY);
+      child.setDataType(dataType.value);
+      child.setParent(current);
+      current.addChild(child);
+      current = child;
+      if (control != null)
+        controls.put(Model.fqn(current, 0), control);
+      return this;
+    }
+
+    Model build() {
+      return new Model(current, controls);
+    }
+  }
 
   @Test
   public void knows_if_it_is_the_meta_audit_field() {
@@ -68,5 +133,4 @@ public class ModelTest {
       child = child.children().get(0);
     return child;
   }
-
 }
