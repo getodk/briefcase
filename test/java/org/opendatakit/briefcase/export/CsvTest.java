@@ -47,7 +47,7 @@ public class CsvTest {
 
   @Test
   public void includes_non_repeat_groups_in_repeat_filenames() {
-    Model group = new XmlElementTest.ModelBuilder()
+    Model group = new ModelBuilder()
         .addGroup("data")
         .addGroup("g1")
         .addGroup("g2")
@@ -64,7 +64,7 @@ public class CsvTest {
 
   @Test
   public void includes_non_repeat_groups_in_repeat_filenames2() {
-    Model group = new XmlElementTest.ModelBuilder()
+    Model group = new ModelBuilder()
         .addGroup("data")
         .addGroup("g1")
         .addRepeatGroup("r1")
