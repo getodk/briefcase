@@ -80,6 +80,9 @@ public class ConfigurationPanelForm extends JComponent {
   JLabel overwriteFilesOverrideLabel;
   CustomConfBooleanForm overwriteFilesOverrideField;
   CustomConfBooleanForm exportMediaOverrideField;
+  JCheckBox splitSelectMultiplesField;
+  JLabel splitSelectMultiplesOverrideLabel;
+  CustomConfBooleanForm splitSelectMultiplesOverrideField;
   private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
   private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
   private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
@@ -90,6 +93,8 @@ public class ConfigurationPanelForm extends JComponent {
   private final List<Consumer<TriStateBoolean>> onChangeOverwriteFilesOverrideCallbacks = new ArrayList<>();
   private final List<Consumer<Boolean>> onChangeExportMediaCallbacks = new ArrayList<>();
   private final List<Consumer<TriStateBoolean>> onChangeExportMediaOverrideCallbacks = new ArrayList<>();
+  private final List<Consumer<Boolean>> onChangeSplitSelectMultiplesCallbacks = new ArrayList<>();
+  private final List<Consumer<TriStateBoolean>> onChangeSplitSelectMultiplesOverrideCallbacks = new ArrayList<>();
   private final ConfigurationPanelMode mode;
   private boolean uiLocked = false;
 
@@ -100,6 +105,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeOverrideField = new CustomConfBooleanForm(Optional.empty());
     exportMediaOverrideField = new CustomConfBooleanForm(Optional.empty());
     overwriteFilesOverrideField = new CustomConfBooleanForm(Optional.empty());
+    splitSelectMultiplesOverrideField = new CustomConfBooleanForm(Optional.empty());
 
     $$$setupUI$$$();
     startDatePicker.getSettings().setGapBeforeButtonPixels(0);
@@ -142,6 +148,9 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaField.addActionListener(__ -> triggerChangeExportMedia());
     exportMediaOverrideField.onChange(__ -> triggerChangeExportMediaOverride());
     overwriteFilesOverrideField.onChange(__ -> triggerOverwriteFilesOverride());
+
+    splitSelectMultiplesField.addActionListener(__ -> triggerChangeSplitSelectMultiples());
+    splitSelectMultiplesOverrideField.onChange(__ -> triggerChangeSplitSelectMultiplesOverride());
   }
 
   public static ConfigurationPanelForm from(ConfigurationPanelMode mode) {
@@ -230,6 +239,11 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaOverrideField.set(value.getOverride());
   }
 
+  void setSplitSelectMultiples(OverridableBoolean value) {
+    splitSelectMultiplesField.setSelected(value.get(false));
+    splitSelectMultiplesOverrideField.set(value.getOverride());
+  }
+
   void onSelectExportDir(Consumer<Path> callback) {
     onSelectExportDirCallbacks.add(callback);
   }
@@ -268,6 +282,14 @@ public class ConfigurationPanelForm extends JComponent {
 
   void onChangeExportMediaOverride(Consumer<TriStateBoolean> callback) {
     onChangeExportMediaOverrideCallbacks.add(callback);
+  }
+
+  void onChangeSplitSelectMultiples(Consumer<Boolean> callback) {
+    onChangeSplitSelectMultiplesCallbacks.add(callback);
+  }
+
+  void onChangeSplitSelectMultiplesOverride(Consumer<TriStateBoolean> callback) {
+    onChangeSplitSelectMultiplesOverrideCallbacks.add(callback);
   }
 
   void changeMode(boolean savePasswordsConsent) {
@@ -337,6 +359,14 @@ public class ConfigurationPanelForm extends JComponent {
 
   private void triggerChangeExportMediaOverride() {
     onChangeExportMediaOverrideCallbacks.forEach(callback -> callback.accept(exportMediaOverrideField.get()));
+  }
+
+  private void triggerChangeSplitSelectMultiples() {
+    onChangeSplitSelectMultiplesCallbacks.forEach(callback -> callback.accept(splitSelectMultiplesField.isSelected()));
+  }
+
+  private void triggerChangeSplitSelectMultiplesOverride() {
+    onChangeSplitSelectMultiplesOverrideCallbacks.forEach(callback -> callback.accept(splitSelectMultiplesOverrideField.get()));
   }
 
   private boolean confirmOverwriteFiles() {
@@ -449,7 +479,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeField.setText("Pull before export");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 7;
+    gbc.gridy = 8;
     gbc.gridwidth = 2;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(pullBeforeField, gbc);
@@ -462,7 +492,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeHintPanel.setText("Some hint will be shown here");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 11;
+    gbc.gridy = 13;
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(pullBeforeHintPanel, gbc);
@@ -477,7 +507,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeOverrideLabel.setText("Pull before export");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 10;
+    gbc.gridy = 12;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(pullBeforeOverrideLabel, gbc);
     exportDirButtons = new JPanel();
@@ -513,7 +543,7 @@ public class ConfigurationPanelForm extends JComponent {
     final JPanel spacer6 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 12;
+    gbc.gridy = 14;
     gbc.gridwidth = 3;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer6, gbc);
@@ -528,7 +558,7 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaOverrideLabel.setText("Export media files");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 8;
+    gbc.gridy = 9;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(exportMediaOverrideLabel, gbc);
     overwriteFilesField = new JCheckBox();
@@ -542,27 +572,47 @@ public class ConfigurationPanelForm extends JComponent {
     overwriteFilesOverrideLabel.setText("Overwrite existing files");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 9;
+    gbc.gridy = 10;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(overwriteFilesOverrideLabel, gbc);
-    gbc = new GridBagConstraints();
-    gbc.gridx = 2;
-    gbc.gridy = 9;
-    gbc.gridwidth = 2;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(overwriteFilesOverrideField.$$$getRootComponent$$$(), gbc);
-    gbc = new GridBagConstraints();
-    gbc.gridx = 2;
-    gbc.gridy = 8;
-    gbc.gridwidth = 2;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(exportMediaOverrideField.$$$getRootComponent$$$(), gbc);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 10;
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(overwriteFilesOverrideField.$$$getRootComponent$$$(), gbc);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 9;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(exportMediaOverrideField.$$$getRootComponent$$$(), gbc);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 12;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(pullBeforeOverrideField.$$$getRootComponent$$$(), gbc);
+    splitSelectMultiplesOverrideLabel = new JLabel();
+    splitSelectMultiplesOverrideLabel.setText("Split select multiples");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 11;
+    gbc.anchor = GridBagConstraints.EAST;
+    container.add(splitSelectMultiplesOverrideLabel, gbc);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 11;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(splitSelectMultiplesOverrideField.$$$getRootComponent$$$(), gbc);
+    splitSelectMultiplesField = new JCheckBox();
+    splitSelectMultiplesField.setText("Split select multiples");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 7;
+    gbc.anchor = GridBagConstraints.WEST;
+    container.add(splitSelectMultiplesField, gbc);
   }
 
   /**

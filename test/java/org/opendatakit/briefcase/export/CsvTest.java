@@ -94,7 +94,7 @@ public class CsvTest {
         OverridableBoolean.FALSE,
         OverridableBoolean.TRUE,
         OverridableBoolean.TRUE,
-        Optional.of(false)
+        OverridableBoolean.FALSE
     );
   }
 

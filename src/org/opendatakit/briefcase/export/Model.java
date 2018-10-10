@@ -266,9 +266,7 @@ class Model {
 
 
   public List<SelectChoice> getChoices() {
-    QuestionDef control = controls.get(fqn());
-    List<SelectChoice> staticChoices = Optional.ofNullable(control.getChoices()).orElse(emptyList());
-    return !staticChoices.isEmpty() ? staticChoices : control.getDynamicChoices().getChoices();
+    return Optional.ofNullable(controls.get(fqn()).getChoices()).orElse(emptyList());
   }
 
   // TODO This should be defined in JavaRosa, like the DataType enum

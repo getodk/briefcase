@@ -135,17 +135,17 @@ class ExportToCsvScenario {
     runExport(true, true, startDate, endDate, null, false);
   }
 
-  void runExport(boolean overwrite, boolean exportMedia, LocalDate startDate, LocalDate endDate, Path pemFile, boolean explodeChoiceLists) {
+  void runExport(boolean overwrite, boolean exportMedia, LocalDate startDate, LocalDate endDate, Path pemFile, boolean splitSelectMultiples) {
     ExportConfiguration configuration = new ExportConfiguration(
         Optional.empty(),
         Optional.of(outputDir.resolve("new")),
         Optional.ofNullable(pemFile),
         Optional.ofNullable(startDate),
         Optional.ofNullable(endDate),
-        OverridableBoolean.of(false),
+        OverridableBoolean.FALSE,
         OverridableBoolean.of(overwrite),
         OverridableBoolean.of(exportMedia),
-        Optional.of(explodeChoiceLists)
+        OverridableBoolean.of(splitSelectMultiples)
     );
     ExportToCsv.export(formDef, configuration);
   }

@@ -43,7 +43,7 @@ class Csv {
     );
     return new Csv(
         formDefinition.getModel().fqn(),
-        getMainHeader(formDefinition.getModel(), formDefinition.isFileEncryptedForm(), configuration.resolveExplodeChoiceLists()),
+        getMainHeader(formDefinition.getModel(), formDefinition.isFileEncryptedForm(), configuration.resolveSplitSelectMultiples()),
         output,
         true,
         configuration.resolveOverwriteExistingFiles(),
@@ -69,7 +69,7 @@ class Csv {
     );
     return new Csv(
         groupModel.fqn(),
-        getRepeatHeader(groupModel, configuration.resolveExplodeChoiceLists()),
+        getRepeatHeader(groupModel, configuration.resolveSplitSelectMultiples()),
         output,
         false,
         configuration.resolveOverwriteExistingFiles(),

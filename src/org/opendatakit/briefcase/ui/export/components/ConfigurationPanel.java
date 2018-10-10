@@ -37,6 +37,7 @@ public class ConfigurationPanel {
     form.setPullBefore(configuration.pullBefore);
     form.setOverwriteFiles(configuration.overwriteFiles);
     form.setExportMedia(configuration.exportMedia);
+    form.setSplitSelectMultiples(configuration.splitSelectMultiples);
 
     form.onSelectExportDir(path -> {
       configuration.setExportDir(path);
@@ -76,6 +77,14 @@ public class ConfigurationPanel {
     });
     form.onChangeExportMediaOverride(value -> {
       configuration.exportMedia.overrideWith(value);
+      triggerOnChange();
+    });
+    form.onChangeSplitSelectMultiples(value -> {
+      configuration.splitSelectMultiples.set(value);
+      triggerOnChange();
+    });
+    form.onChangeSplitSelectMultiplesOverride(value -> {
+      configuration.splitSelectMultiples.overrideWith(value);
       triggerOnChange();
     });
   }

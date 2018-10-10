@@ -85,11 +85,11 @@ final class CsvFieldMappers {
     });
   }
 
-  static CsvFieldMapper getMapper(Model field, boolean explodeChoiceLists) {
+  static CsvFieldMapper getMapper(Model field, boolean splitSelectMultiples) {
     CsvFieldMapper mapper = Optional.ofNullable(mappers.get(field.getDataType()))
         // If no mapper has been defined, we'll just output the text
         .orElse(simpleMapper(CsvFieldMappers::text));
-    return explodeChoiceLists ? ExplodeChoiceLists.decorate(mapper) : mapper;
+    return splitSelectMultiples ? SplitSelectMultiples.decorate(mapper) : mapper;
   }
 
   /**
@@ -221,7 +221,7 @@ final class CsvFieldMappers {
   }
 
   private static Stream<Pair<String, String>> nonRepeatableGroup(String localId, Path workingDir, Model current, Optional<XmlElement> maybeElement, ExportConfiguration configuration) {
-    return current.flatMap(field -> getMapper(field, configuration.resolveExplodeChoiceLists()).apply(
+    return current.flatMap(field -> getMapper(field, configuration.resolveSplitSelectMultiples()).apply(
         localId,
         workingDir,
         field,

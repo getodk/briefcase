@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.opendatakit.briefcase.reused.Pair;
 
-class ExplodeChoiceLists {
+class SplitSelectMultiples {
   static CsvFieldMapper decorate(CsvFieldMapper mapper) {
     return (localId, workingDir, model, element, configuration) -> {
       List<Pair<String, String>> output = new ArrayList<>();

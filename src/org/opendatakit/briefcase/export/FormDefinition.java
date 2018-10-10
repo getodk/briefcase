@@ -36,7 +36,6 @@ import org.javarosa.core.model.FormDef;
 import org.javarosa.core.model.IDataReference;
 import org.javarosa.core.model.IFormElement;
 import org.javarosa.core.model.QuestionDef;
-import org.javarosa.core.model.instance.InstanceInitializationFactory;
 import org.javarosa.core.model.instance.TreeElement;
 import org.javarosa.core.model.instance.TreeReference;
 import org.javarosa.xform.parse.XFormParser;
@@ -117,14 +116,7 @@ public class FormDefinition {
         .stream()
         .flatMap(FormDefinition::flatten)
         .filter(e -> e instanceof QuestionDef)
-        .map(e -> {
-          QuestionDef control = (QuestionDef) e;
-          if (control.getDynamicChoices() != null) {
-            formDef.initialize(false, new InstanceInitializationFactory());
-            formDef.populateDynamicChoices(control.getDynamicChoices(), (TreeReference) control.getBind().getReference());
-          }
-          return control;
-        })
+        .map(e -> (QuestionDef) e)
         .collect(toMap(FormDefinition::controlFqn, e -> e));
   }
 
