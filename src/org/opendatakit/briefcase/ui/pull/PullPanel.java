@@ -21,6 +21,7 @@ import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
+import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.util.Optional;
 import javax.swing.JPanel;
@@ -36,9 +37,7 @@ import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
-import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.ui.ODKOptionPane;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.source.Source;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
@@ -68,24 +67,14 @@ public class PullPanel {
 
     // Read prefs and load saved remote server if available
     source = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadSource);
-    source.ifPresent(source -> {
-      try {
-        forms.load(source.getFormList());
-        view.refresh();
-        updateActionButtons();
-      } catch (HttpException e) {
-        log.warn("Unable to get form list from {}: {}", source.getDescription(), e.toString());
-      }
-    });
+    view.onReady(() -> source.ifPresent(source -> onSource(view, forms, source)));
 
     // Register callbacks to view events
     view.onSource(source -> {
       this.source = Optional.of(source);
       Source.clearAllPreferences(tabPreferences);
       source.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
-      forms.load(source.getFormList());
-      view.refresh();
-      updateActionButtons();
+      onSource(view, forms, source);
     });
 
     view.onReset(() -> {
@@ -123,6 +112,17 @@ public class PullPanel {
     return view.container;
   }
 
+  private void onSource(TransferPanelForm view, TransferForms forms, Source<?> source) {
+    source.getFormList().thenAccept(formList -> {
+      forms.load(formList);
+      view.refresh();
+      updateActionButtons();
+    }).onError(cause -> {
+      log.warn("Unable to load form list from {}", source.getDescription(), cause);
+      errorMessage("Error Loading Forms", "Briefcase wasn't able to load forms using the configured source. Try Reload or Reset.");
+    });
+  }
+
   private void updateActionButtons() {
     if (source.isPresent() && forms.someSelected())
       view.enableAction();
@@ -145,7 +145,7 @@ public class PullPanel {
 
   @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
   public void onRetrieveAvailableFormsFailedEvent(RetrieveAvailableFormsFailedEvent event) {
-    ODKOptionPane.showErrorDialog(view.container, "Accessing the server failed with error: " + event.getReason(), "Accessing Server Failed");
+    errorMessage("Accessing Server Failed", "Accessing the server failed with error: " + event.getReason());
   }
 
   @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)

@@ -16,14 +16,30 @@
 
 package org.opendatakit.briefcase.ui.reused;
 
+import static java.awt.Color.GRAY;
 import static java.awt.Color.LIGHT_GRAY;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.PLAIN_MESSAGE;
+import static javax.swing.JOptionPane.YES_NO_OPTION;
+import static javax.swing.JOptionPane.YES_OPTION;
 import static javax.swing.JOptionPane.getFrameForComponent;
+import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.APP_NAME;
 import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
 
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import org.opendatakit.briefcase.model.FormStatus;
 
 public class UI {
@@ -50,5 +66,103 @@ public class UI {
     button.setOpaque(true);
     button.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
     return button;
+  }
+
+  /**
+   * Pops up an informative dialog
+   * <ul>
+   * <li>uses {@link org.opendatakit.briefcase.ui.MainBriefcaseWindow#APP_NAME} as the title</li>
+   * </ul>
+   */
+  public static void infoMessage(String message) {
+    infoMessage(APP_NAME, message);
+  }
+
+  /**
+   * Pops up an informative dialog
+   */
+  public static void infoMessage(String title, String message) {
+    Runnable dialog = () -> JOptionPane.showMessageDialog(buildDialogParent(), message, title, PLAIN_MESSAGE);
+    if (SwingUtilities.isEventDispatchThread())
+      dialog.run();
+    else
+      SwingUtilities.invokeLater(dialog);
+  }
+
+  /**
+   * Pops up a confirmation (YES/NO) dialog
+   * <ul>
+   * <li>uses {@link org.opendatakit.briefcase.ui.MainBriefcaseWindow#APP_NAME} as the title</li>
+   * </ul>
+   */
+  public static boolean confirm(String message) {
+    return confirm(APP_NAME, message);
+  }
+
+  /**
+   * Pops up a confirmation (YES/NO) dialog
+   */
+  public static boolean confirm(String title, String message) {
+    return JOptionPane.showConfirmDialog(buildDialogParent(), message, title, YES_NO_OPTION, PLAIN_MESSAGE) == YES_OPTION;
+  }
+
+  /**
+   * Pops up an error dialog
+   */
+  public static void errorMessage(String title, String message) {
+    Runnable dialog = () -> JOptionPane.showMessageDialog(buildDialogParent(), buildScrollPane(message), title, ERROR_MESSAGE);
+    if (SwingUtilities.isEventDispatchThread())
+      dialog.run();
+    else
+      SwingUtilities.invokeLater(dialog);
+  }
+
+  private static JDialog buildDialogParent() {
+    JDialog dialog = new JDialog();
+    // We want all dialogs show on top
+    dialog.setAlwaysOnTop(true);
+    return dialog;
+  }
+
+  private static JScrollPane buildScrollPane(String message) {
+    // create a n-character wide label for aiding layout calculations...
+    // the dialog box will display this width of text.
+    JLabel probe = new JLabel("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
+
+    JTextArea textArea = new JTextArea(message);
+    textArea.setEditable(false);
+    textArea.setLineWrap(true);
+    textArea.setWrapStyleWord(true);
+    // Take font and colors from the probe
+    textArea.setFont(probe.getFont());
+    textArea.setBackground(probe.getBackground());
+    textArea.setForeground(probe.getForeground());
+
+    JScrollPane scrollPane = new JScrollPane(textArea);
+
+    // don't show the gray border of the scroll pane
+    // unless we are showing the scroll bar, in which case we do show it.
+    scrollPane.setBorder(BorderFactory.createEmptyBorder());
+    scrollPane.getVerticalScrollBar().addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentHidden(ComponentEvent component) {
+        if (component.getComponent().equals(scrollPane.getVerticalScrollBar())) {
+          scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        }
+      }
+
+      @Override
+      public void componentShown(ComponentEvent component) {
+        if (component.getComponent().equals(scrollPane.getVerticalScrollBar())) {
+          scrollPane.setBorder(BorderFactory.createLineBorder(GRAY));
+        }
+      }
+    });
+
+    Dimension dimension = probe.getPreferredSize();
+    dimension.setSize(dimension.getWidth(), 5.3 * dimension.getHeight());
+    scrollPane.setMinimumSize(dimension);
+    scrollPane.setPreferredSize(dimension);
+    return scrollPane;
   }
 }

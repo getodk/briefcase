@@ -16,11 +16,10 @@
 
 package org.opendatakit.briefcase.ui;
 
-import static javax.swing.JOptionPane.PLAIN_MESSAGE;
-import static javax.swing.JOptionPane.showMessageDialog;
 import static org.opendatakit.briefcase.ui.BriefcaseCLI.launchLegacyCLI;
 import static org.opendatakit.briefcase.ui.MessageStrings.BRIEFCASE_WELCOME;
 import static org.opendatakit.briefcase.ui.MessageStrings.TRACKING_WARNING;
+import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
 import java.awt.Component;
 import java.awt.Toolkit;
@@ -161,11 +160,11 @@ public class MainBriefcaseWindow extends WindowAdapter {
   }
 
   private void showTrackingWarning() {
-    showMessageDialog(frame, TRACKING_WARNING, APP_NAME, PLAIN_MESSAGE);
+    infoMessage(TRACKING_WARNING);
   }
 
   private void showWelcomeMessage() {
-    showMessageDialog(frame, BRIEFCASE_WELCOME, APP_NAME, PLAIN_MESSAGE);
+    infoMessage(BRIEFCASE_WELCOME);
   }
 
   private boolean isFirstLaunchAfterTrackingUpgrade(BriefcasePreferences appPreferences) {

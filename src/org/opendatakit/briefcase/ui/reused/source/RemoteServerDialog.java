@@ -16,7 +16,7 @@
 
 package org.opendatakit.briefcase.ui.reused.source;
 
-import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
+import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +50,7 @@ public class RemoteServerDialog {
               triggerConnect(server);
               form.hideDialog();
             } else
-              showError(
+              showErrorMessage(
                   response.isRedirection() ? "Redirection detected" : response.isUnauthorized() ? "Wrong credentials" : response.isNotFound() ? "Aggregate not found" : "",
                   response.isRedirection() ? "Unexpected error" : "Configuration error"
               );
@@ -58,7 +58,7 @@ public class RemoteServerDialog {
             // Ignore
           } catch (ExecutionException e) {
             if (e.getCause() != null) {
-              showError(e.getCause().getMessage(), "Unexpected error");
+              showErrorMessage(e.getCause().getMessage(), "Unexpected error");
             }
           }
           form.unsetTestingConnection();
@@ -67,17 +67,13 @@ public class RemoteServerDialog {
     });
   }
 
-  private void showError(String error, String title) {
+  private void showErrorMessage(String error, String title) {
     String maybeSeparator = error.isEmpty() ? "" : ".\n\n";
-    showErrorDialog(
-        form,
-        String.format(
-            "%s%sPlease review the connection parameters and try again.",
-            error,
-            maybeSeparator
-        ),
-        title
-    );
+    errorMessage(title, String.format(
+        "%s%sPlease review the connection parameters and try again.",
+        error,
+        maybeSeparator
+    ));
   }
 
   static RemoteServerDialog empty(RemoteServer.Test serverTester, String requiredPermission) {

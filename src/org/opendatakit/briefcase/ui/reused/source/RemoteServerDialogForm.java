@@ -19,7 +19,7 @@ package org.opendatakit.briefcase.ui.reused.source;
 import static java.awt.event.KeyEvent.VK_ESCAPE;
 import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 import static javax.swing.KeyStroke.getKeyStroke;
-import static org.opendatakit.briefcase.ui.ODKOptionPane.showErrorDialog;
+import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -98,10 +98,10 @@ public class RemoteServerDialogForm extends JDialog {
       onConnectCallbacks.forEach(callback -> callback.accept(server));
     } catch (BriefcaseException e) {
       setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-      showErrorDialog(this, "Please, check data and try again.\n\nError: " + e.getCause().getMessage(), "Invalid Aggregate configuration");
+      errorMessage("Invalid Aggregate configuration", "Please, check data and try again.\n\nError: " + e.getCause().getMessage());
     } catch (MalformedURLException e) {
       setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-      showErrorDialog(this, "Malformed URL. Please, review data and try again.\n\nError: " + e.getMessage(), "Invalid Aggregate configuration");
+      errorMessage("Invalid Aggregate configuration", "Malformed URL. Please, review data and try again.\n\nError: " + e.getMessage());
     }
   }
 

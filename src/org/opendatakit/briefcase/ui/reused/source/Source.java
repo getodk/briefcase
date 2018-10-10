@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.ui.reused.source;
 
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
+import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.awt.Container;
 import java.io.File;
@@ -34,9 +35,9 @@ import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.FormInstaller;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.DeferredValue;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
-import org.opendatakit.briefcase.ui.ODKOptionPane;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.BadFormDefinition;
 import org.opendatakit.briefcase.util.FileSystemUtils;
@@ -158,7 +159,7 @@ public interface Source<T> {
   /**
    * Returns the list of forms that this configured {@link Source} has access to.
    */
-  List<FormStatus> getFormList();
+  DeferredValue<List<FormStatus>> getFormList();
 
   /**
    * Stores the value of this {@link Source} in the given {@link BriefcasePreferences}.
@@ -231,10 +232,10 @@ public interface Source<T> {
     }
 
     @Override
-    public List<FormStatus> getFormList() {
-      return server.getFormsList(http).stream()
+    public DeferredValue<List<FormStatus>> getFormList() {
+      return DeferredValue.of(() -> server.getFormsList(http).stream()
           .map(FormStatus::new)
-          .collect(Collectors.toList());
+          .collect(Collectors.toList()));
     }
 
     @Override
@@ -294,10 +295,9 @@ public interface Source<T> {
             if (isValidCustomDir(file.toPath()))
               set(file.toPath());
             else {
-              ODKOptionPane.showErrorDialog(
-                  container,
-                  "The selected directory doesn't look like an ODK Collect storage directory. Please select another directory.",
-                  "Wrong directory"
+              errorMessage(
+                  "Wrong directory",
+                  "The selected directory doesn't look like an ODK Collect storage directory. Please select another directory."
               );
             }
           });
@@ -315,10 +315,10 @@ public interface Source<T> {
     }
 
     @Override
-    public List<FormStatus> getFormList() {
-      return FileSystemUtils.getODKFormList(path.toFile()).stream()
+    public DeferredValue<List<FormStatus>> getFormList() {
+      return DeferredValue.of(() -> FileSystemUtils.getODKFormList(path.toFile()).stream()
           .map(FormStatus::new)
-          .collect(Collectors.toList());
+          .collect(Collectors.toList()));
     }
 
     @Override
@@ -382,7 +382,7 @@ public interface Source<T> {
         path = selectedFile.get();
         set(new FormStatus(new OdkCollectFormDefinition(path.toFile())));
       } catch (BadFormDefinition e) {
-        ODKOptionPane.showErrorDialog(container, "Bad form definition file. Please select another file.", "Wrong file");
+        errorMessage("Wrong file", "Bad form definition file. Please select another file.");
       }
     }
 
@@ -398,8 +398,8 @@ public interface Source<T> {
     }
 
     @Override
-    public List<FormStatus> getFormList() {
-      return Collections.singletonList(form);
+    public DeferredValue<List<FormStatus>> getFormList() {
+      return DeferredValue.of(() -> Collections.singletonList(form));
     }
 
     @Override
