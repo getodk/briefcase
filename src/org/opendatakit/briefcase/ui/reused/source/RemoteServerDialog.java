@@ -37,11 +37,13 @@ public class RemoteServerDialog {
       form.setTestingConnection();
 
       new SwingWorker<Response<Boolean>, Void>() {
-        @Override protected Response<Boolean> doInBackground() {
+        @Override
+        protected Response<Boolean> doInBackground() {
           return serverTester.test(server);
         }
 
-        @Override protected void done() {
+        @Override
+        protected void done() {
           try {
             Response<Boolean> response = get();
             if (response.isSuccess()) {

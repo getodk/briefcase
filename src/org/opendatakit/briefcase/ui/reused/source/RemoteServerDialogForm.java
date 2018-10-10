@@ -75,16 +75,14 @@ public class RemoteServerDialogForm extends JDialog {
 
     cancelButton.addActionListener(e -> dispose());
 
-    connectButton.addActionListener(__ -> {
-      setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-      triggerConnect();
-    });
+    connectButton.addActionListener(__ -> triggerConnect());
 
     getRootPane().setDefaultButton(connectButton);
 
   }
 
   private void triggerConnect() {
+    setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     try {
       Optional<Credentials> credentials = OptionalProduct.all(
           Optional.ofNullable(usernameField.getText()).map(String::trim).filter(s -> !s.isEmpty()),
@@ -99,8 +97,10 @@ public class RemoteServerDialogForm extends JDialog {
 
       onConnectCallbacks.forEach(callback -> callback.accept(server));
     } catch (BriefcaseException e) {
+      setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
       showErrorDialog(this, "Please, check data and try again.\n\nError: " + e.getCause().getMessage(), "Invalid Aggregate configuration");
     } catch (MalformedURLException e) {
+      setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
       showErrorDialog(this, "Malformed URL. Please, review data and try again.\n\nError: " + e.getMessage(), "Invalid Aggregate configuration");
     }
   }
@@ -124,6 +124,7 @@ public class RemoteServerDialogForm extends JDialog {
     passwordField.setEditable(false);
     connectButton.setEnabled(false);
     progressBar.setVisible(true);
+    setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
   }
 
   void unsetTestingConnection() {
@@ -133,6 +134,7 @@ public class RemoteServerDialogForm extends JDialog {
     passwordField.setEditable(true);
     connectButton.setEnabled(true);
     progressBar.setVisible(false);
+    setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
   }
 
   /**
