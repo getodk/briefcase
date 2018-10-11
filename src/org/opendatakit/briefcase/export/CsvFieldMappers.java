@@ -226,13 +226,13 @@ final class CsvFieldMappers {
 
   private static Stream<Pair<String, String>> audit(String formName, String localId, Path workingDir, ExportConfiguration configuration, XmlElement e) {
     if (!e.hasValue())
-      return empty(e.fqn());
+      return empty(e.fqn() + "-aggregated");
 
     Path sourceFile = workingDir.resolve(e.getValue());
 
     // When the source file doesn't exist, we return an empty string
     if (!exists(sourceFile))
-      return Stream.of(Pair.of(e.fqn(), ""));
+      return Stream.of(Pair.of(e.fqn() + "-aggregated", ""));
 
     // Process the audit file contents and append the instance ID column to all lines
     List<String> sourceLines = lines(sourceFile).collect(toList());
@@ -243,7 +243,7 @@ final class CsvFieldMappers {
 
     Path destinationFile = configuration.getAuditPath(formName);
     write(destinationFile, bodyLines, APPEND);
-    return Stream.of(Pair.of(e.fqn(), destinationFile.getFileName().toString()));
+    return Stream.of(Pair.of(e.fqn() + "-aggregated", destinationFile.getFileName().toString()));
   }
 
   private static Stream<Pair<String, String>> repeatableGroup(String localId, Model current, XmlElement element) {

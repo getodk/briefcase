@@ -18,9 +18,9 @@ package org.opendatakit.briefcase.export;
 
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.util.stream.Collectors.toList;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.export.Scenario.nonGroup;
@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.UUID;
+import org.hamcrest.Matchers;
 import org.javarosa.core.model.DataType;
 import org.junit.After;
 import org.junit.Before;
@@ -44,6 +45,7 @@ import org.junit.Test;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 
+@SuppressWarnings("unchecked")
 public class CsvFieldMappersTest {
   private TimeZone backupTimeZone;
   private Locale backupLocale;
@@ -270,7 +272,10 @@ public class CsvFieldMappersTest {
     write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536663986578,\n");
 
     List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
-    assertThat(output.get(0).getRight(), is(scenario.getFormName() + " - audit.csv"));
+    assertThat(output, contains(
+        Pair.of("data-audit", "media/audit.csv"),
+        Pair.of("data-audit-aggregated", "some-form - audit.csv")
+    ));
 
     Path outputAudit = scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv");
 
@@ -284,7 +289,10 @@ public class CsvFieldMappersTest {
     write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536663986578,\n");
 
     List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
-    assertThat(output.get(0).getRight(), is(scenario.getFormName() + " - audit.csv"));
+    assertThat(output, contains(
+        Pair.of("data-audit", "media/audit.csv"),
+        Pair.of("data-audit-aggregated", "some-form - audit.csv")
+    ));
 
     Path outputAudit = scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv");
 
@@ -318,7 +326,10 @@ public class CsvFieldMappersTest {
     scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
 
     List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
-    assertThat(output.get(0).getRight(), isEmptyString());
+    assertThat(output, Matchers.containsInAnyOrder(
+        Pair.of("data-audit", "media/audit.csv"),
+        Pair.of("data-audit-aggregated", "")
+    ));
   }
 
   @Test
