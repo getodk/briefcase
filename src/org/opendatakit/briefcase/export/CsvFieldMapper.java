@@ -36,4 +36,24 @@ interface CsvFieldMapper {
   // TODO Normalize the weird empty/null value encoding scheme and simplify this method to return a Stream<String> of just csv column values
   // TODO Simplify args by passing the ExportConfiguration object
   Stream<Pair<String, String>> apply(String formName, String localId, Path workingDir, Model model, Optional<XmlElement> maybeElement, ExportConfiguration configuration);
+
+  /**
+   * Returns a new mapper, result of composing this mapper with the given mapper
+   *
+   * @see #compose(CsvFieldMapper, CsvFieldMapper)
+   */
+  default CsvFieldMapper andThen(CsvFieldMapper other) {
+    return compose(this, other);
+  }
+
+  /**
+   * Composes two mappers into one that will execute them in order and
+   * return their combined output
+   */
+  static CsvFieldMapper compose(CsvFieldMapper a, CsvFieldMapper b) {
+    return (formName, localId, workingDir, model, maybeElement, configuration) -> Stream.concat(
+        a.apply(formName, localId, workingDir, model, maybeElement, configuration),
+        b.apply(formName, localId, workingDir, model, maybeElement, configuration)
+    );
+  }
 }
