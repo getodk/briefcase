@@ -64,6 +64,10 @@ final class CsvFieldMappers {
       .map(e -> audit(formName, localId, workingDir, configuration, e))
       .orElse(empty(model.fqn()));
 
+  private static final CsvFieldMapper BINARY_MAPPER = (__, ___, workingDir, field, element, configuration) -> element
+      .map(e -> binary(e, workingDir, configuration))
+      .orElse(empty(field.fqn()));
+
   // Register all non-text supported mappers
   static {
     // All these are simple, 1 column fields
@@ -75,9 +79,7 @@ final class CsvFieldMappers {
     mappers.put(GEOPOINT, simpleMapper(CsvFieldMappers::geopoint, 4));
 
     // Binary fields require knowledge of the export configuration and working dir
-    mappers.put(BINARY, (__, ___, workingDir, field, element, configuration) -> element
-        .map(e -> binary(e, workingDir, configuration))
-        .orElse(empty(field.fqn())));
+    mappers.put(BINARY, BINARY_MAPPER);
 
     // Null fields encode groups (repeating and non-repeating), therefore,
     // they require the full context
