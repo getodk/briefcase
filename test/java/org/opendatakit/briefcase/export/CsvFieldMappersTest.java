@@ -273,8 +273,7 @@ public class CsvFieldMappersTest {
 
     List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
     assertThat(output, contains(
-        Pair.of("data-audit", "media/audit.csv"),
-        Pair.of("data-audit-aggregated", "some-form - audit.csv")
+        Pair.of("data-audit", "media/audit.csv")
     ));
 
     Path outputAudit = scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv");
@@ -290,8 +289,7 @@ public class CsvFieldMappersTest {
 
     List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
     assertThat(output, contains(
-        Pair.of("data-audit", "media/audit.csv"),
-        Pair.of("data-audit-aggregated", "some-form - audit.csv")
+        Pair.of("data-audit", "media/audit.csv")
     ));
 
     Path outputAudit = scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv");
@@ -326,9 +324,8 @@ public class CsvFieldMappersTest {
     scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
 
     List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
-    assertThat(output, Matchers.containsInAnyOrder(
-        Pair.of("data-audit", "media/audit.csv"),
-        Pair.of("data-audit-aggregated", "")
+    assertThat(output, Matchers.contains(
+        Pair.of("data-audit", "media/audit.csv")
     ));
   }
 

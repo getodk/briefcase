@@ -64,9 +64,11 @@ final class CsvFieldMappers {
       .map(e -> binary(e, workingDir, configuration))
       .orElse(empty(field.fqn()));
 
-  private static CsvFieldMapper AUDIT_MAPPER = BINARY_MAPPER.andThen((formName, localId, workingDir, model, maybeElement, configuration) -> maybeElement
-      .map(e -> audit(formName, localId, workingDir, configuration, e))
-      .orElse(empty(model.fqn())));
+  private static CsvFieldMapper AUDIT_MAPPER = BINARY_MAPPER
+      .andThen((formName, localId, workingDir, model, maybeElement, configuration) -> maybeElement
+          .map(e -> audit(formName, localId, workingDir, configuration, e))
+          .orElse(empty(model.fqn())))
+      .map(output -> output.filter(pair -> !pair.getLeft().contains("-aggregated")));
 
 
   // Register all non-text supported mappers
