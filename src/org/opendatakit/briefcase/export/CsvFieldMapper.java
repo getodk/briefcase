@@ -17,6 +17,7 @@ package org.opendatakit.briefcase.export;
 
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import org.opendatakit.briefcase.reused.Pair;
 
@@ -47,13 +48,31 @@ interface CsvFieldMapper {
   }
 
   /**
-   * Composes two mappers into one that will execute them in order and
-   * return their combined output
+   * Returns a new mapper, result of decorating the given mapper's output
+   *
+   * @see #decorateOutput(CsvFieldMapper, Function)
+   */
+  default CsvFieldMapper map(Function<Stream<Pair<String, String>>, Stream<Pair<String, String>>> mapper) {
+    return decorateOutput(this, mapper);
+  }
+
+  /**
+   * Returns a new mapper that will run the given mappers in order and will produce
+   * a result by concatenating their outputs
    */
   static CsvFieldMapper compose(CsvFieldMapper a, CsvFieldMapper b) {
     return (formName, localId, workingDir, model, maybeElement, configuration) -> Stream.concat(
         a.apply(formName, localId, workingDir, model, maybeElement, configuration),
         b.apply(formName, localId, workingDir, model, maybeElement, configuration)
     );
+  }
+
+  /**
+   * Returns a new mapper that will run the given mapper and will produce a result
+   * by transforming its output with the given function
+   */
+  static CsvFieldMapper decorateOutput(CsvFieldMapper mapper, Function<Stream<Pair<String, String>>, Stream<Pair<String, String>>> decorator) {
+    return (formName, localId, workingDir, model, maybeElement, configuration) ->
+        decorator.apply(mapper.apply(formName, localId, workingDir, model, maybeElement, configuration));
   }
 }
