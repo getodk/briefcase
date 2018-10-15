@@ -17,8 +17,8 @@
 package org.opendatakit.briefcase.export;
 
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.export.CsvFieldMappersTest.Scenario.createField;
 import static org.opendatakit.briefcase.export.CsvSubmissionMappers.encodeMainValue;
+import static org.opendatakit.briefcase.export.Scenario.createField;
 
 import java.util.Arrays;
 import java.util.Collection;

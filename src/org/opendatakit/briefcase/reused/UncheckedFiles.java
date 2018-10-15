@@ -38,6 +38,7 @@ import java.nio.file.attribute.FileAttribute;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
@@ -63,6 +64,10 @@ public class UncheckedFiles {
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+  }
+
+  public static Path write(Path path, List<String> lines, OpenOption... options) {
+    return write(path, lines.stream(), options);
   }
 
   public static Path write(Path path, Stream<String> lines, OpenOption... options) {
@@ -301,4 +306,11 @@ public class UncheckedFiles {
     write(briefcaseDir.resolve("readme.txt"), README_CONTENTS);
   }
 
+  public static Stream<String> lines(Path path) {
+    try {
+      return Files.lines(path, UTF_8);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
 }

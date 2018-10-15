@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.javarosa.core.model.DataType;
 import org.javarosa.core.model.QuestionDef;
@@ -244,7 +245,7 @@ class Model {
     return model.getNumChildren();
   }
 
-  private List<Model> children() {
+  List<Model> children() {
     Set<String> fqns = new HashSet<>();
     List<Model> children = new ArrayList<>(model.getNumChildren());
     for (int i = 0, max = model.getNumChildren(); i < max; i++) {
@@ -267,6 +268,30 @@ class Model {
 
   public List<SelectChoice> getChoices() {
     return Optional.ofNullable(controls.get(fqn()).getChoices()).orElse(emptyList());
+  }
+
+  public boolean isMetaAudit() {
+    return model.getName().equals("audit") && model.getParent() != null && model.getParent().getName().equals("meta");
+  }
+
+  public boolean hasChildren() {
+    return model.hasChildren();
+  }
+
+  public boolean hasAuditField() {
+    return children().stream()
+        .filter(modelWithName("meta"))
+        .findFirst()
+        .map(meta -> meta.hasChild("audit"))
+        .orElse(false);
+  }
+
+  public boolean hasChild(String name) {
+    return children().stream().anyMatch(modelWithName(name));
+  }
+
+  private static Predicate<Model> modelWithName(String name) {
+    return child -> child.getName().equals(name);
   }
 
   // TODO This should be defined in JavaRosa, like the DataType enum

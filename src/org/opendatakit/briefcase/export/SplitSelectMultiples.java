@@ -25,9 +25,9 @@ import org.opendatakit.briefcase.reused.Pair;
 
 class SplitSelectMultiples {
   static CsvFieldMapper decorate(CsvFieldMapper mapper) {
-    return (localId, workingDir, model, element, configuration) -> {
+    return (formName, localId, workingDir, model, element, configuration) -> {
       List<Pair<String, String>> output = new ArrayList<>();
-      output.addAll(mapper.apply(localId, workingDir, model, element, configuration).collect(toList()));
+      output.addAll(mapper.apply(formName, localId, workingDir, model, element, configuration).collect(toList()));
       if (model.isChoiceList()) {
         List<String> values = Arrays.stream(element
             .flatMap(XmlElement::maybeValue)

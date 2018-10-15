@@ -73,7 +73,7 @@ class Csv {
         output,
         false,
         configuration.resolveOverwriteExistingFiles(),
-        CsvSubmissionMappers.repeat(groupModel, configuration)
+        CsvSubmissionMappers.repeat(formDefinition, groupModel, configuration)
     );
   }
 

@@ -16,41 +16,36 @@
 
 package org.opendatakit.briefcase.export;
 
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.util.stream.Collectors.toList;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.javarosa.core.model.instance.TreeReference.DEFAULT_MULTIPLICITY;
 import static org.junit.Assert.assertThat;
-import static org.kxml2.kdom.Node.ELEMENT;
-import static org.kxml2.kdom.Node.TEXT;
-import static org.opendatakit.briefcase.export.CsvFieldMappersTest.Scenario.nonGroup;
-import static org.opendatakit.briefcase.export.CsvFieldMappersTest.Scenario.nonRepeatGroup;
-import static org.opendatakit.briefcase.export.CsvFieldMappersTest.Scenario.repeatGroup;
+import static org.opendatakit.briefcase.export.Scenario.nonGroup;
+import static org.opendatakit.briefcase.export.Scenario.nonRepeatGroup;
+import static org.opendatakit.briefcase.export.Scenario.repeatGroup;
 import static org.opendatakit.briefcase.matchers.PathMatchers.exists;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.createTempDirectory;
+import static org.opendatakit.briefcase.matchers.PathMatchers.fileContains;
+import static org.opendatakit.briefcase.matchers.PathMatchers.fileExactlyContains;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.TimeZone;
 import java.util.UUID;
-import java.util.stream.IntStream;
+import org.hamcrest.Matchers;
 import org.javarosa.core.model.DataType;
-import org.javarosa.core.model.instance.TreeElement;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.kxml2.kdom.Document;
-import org.kxml2.kdom.Element;
-import org.opendatakit.briefcase.reused.OverridableBoolean;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 
+@SuppressWarnings("unchecked")
 public class CsvFieldMappersTest {
   private TimeZone backupTimeZone;
   private Locale backupLocale;
@@ -164,7 +159,7 @@ public class CsvFieldMappersTest {
   @Test
   public void binary_value_given_user_does_not_want_to_export_media_files() {
     scenario = nonGroup(DataType.BINARY);
-    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
 
     List<Pair<String, String>> outputWithoutMedia = scenario.mapSimpleValue("some_file.bin", false);
 
@@ -176,7 +171,7 @@ public class CsvFieldMappersTest {
   @Test
   public void binary_value_given_user_wants_to_export_media_files() {
     scenario = nonGroup(DataType.BINARY);
-    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
 
     List<Pair<String, String>> outputWithMedia = scenario.mapSimpleValue("some_file.bin", true);
 
@@ -201,7 +196,7 @@ public class CsvFieldMappersTest {
   @Test
   public void binary_value_given_output_file_does_not_exist() {
     scenario = nonGroup(DataType.BINARY);
-    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
 
     List<Pair<String, String>> outputWithMedia = scenario.mapSimpleValue("some_file.bin", true);
 
@@ -220,8 +215,8 @@ public class CsvFieldMappersTest {
   public void binary_value_given_exact_same_output_file_exist() {
     scenario = nonGroup(DataType.BINARY);
     String fileContents = UUID.randomUUID().toString();
-    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), fileContents);
-    UncheckedFiles.write(scenario.getOutputMediaDir().resolve("some_file.bin"), fileContents);
+    write(scenario.getWorkDir().resolve("some_file.bin"), fileContents);
+    write(scenario.getOutputMediaDir().resolve("some_file.bin"), fileContents);
 
     List<Pair<String, String>> outputWithMedia = scenario.mapSimpleValue("some_file.bin", true);
 
@@ -239,8 +234,8 @@ public class CsvFieldMappersTest {
   @Test
   public void binary_value_given_different_output_file_exist() {
     scenario = nonGroup(DataType.BINARY);
-    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
-    UncheckedFiles.write(scenario.getOutputMediaDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    write(scenario.getOutputMediaDir().resolve("some_file.bin"), UUID.randomUUID().toString());
 
     List<Pair<String, String>> outputWithMedia = scenario.mapSimpleValue("some_file.bin", true);
 
@@ -257,9 +252,9 @@ public class CsvFieldMappersTest {
   @Test
   public void binary_value_given_different_output_files_exist() {
     scenario = nonGroup(DataType.BINARY);
-    UncheckedFiles.write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
-    UncheckedFiles.write(scenario.getOutputMediaDir().resolve("some_file.bin"), UUID.randomUUID().toString());
-    UncheckedFiles.write(scenario.getOutputMediaDir().resolve("some_file-2.bin"), UUID.randomUUID().toString());
+    write(scenario.getWorkDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    write(scenario.getOutputMediaDir().resolve("some_file.bin"), UUID.randomUUID().toString());
+    write(scenario.getOutputMediaDir().resolve("some_file-2.bin"), UUID.randomUUID().toString());
 
     List<Pair<String, String>> outputWithMedia = scenario.mapSimpleValue("some_file.bin", true);
 
@@ -269,6 +264,69 @@ public class CsvFieldMappersTest {
     assertThat(scenario.getOutputMediaDir().resolve("some_file-2.bin"), exists());
     assertThat(scenario.getOutputMediaDir().resolve("some_file-3.bin"), exists());
     assertThat(list(scenario.getOutputMediaDir()).collect(toList()), hasSize(3));
+  }
+
+  @Test
+  public void audit_fields_append_the_submissions_content_to_the_output_audit_file() {
+    scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
+    write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536663986578,\n");
+
+    List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
+    assertThat(output, contains(
+        Pair.of("data-audit", "media/audit.csv")
+    ));
+
+    Path outputAudit = scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv");
+
+    assertThat(outputAudit, exists());
+    assertThat(outputAudit, fileContains("form start,,1536663986578,"));
+  }
+
+  @Test
+  public void audit_data_gets_a_new_column_with_the_instance_ID() {
+    scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
+    write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536663986578,\n");
+
+    List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
+    assertThat(output, contains(
+        Pair.of("data-audit", "media/audit.csv")
+    ));
+
+    Path outputAudit = scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv");
+
+    assertThat(outputAudit, exists());
+    assertThat(outputAudit, fileExactlyContains("instance ID, event, node, start, end\n" + scenario.getInstanceId() + ",form start,,1536663986578,\n"));
+  }
+
+  @Test
+  public void further_audit_fields_append_their_contents_stripping_the_header() {
+    scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
+
+    write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536663986578,\n");
+    scenario.mapSimpleValue("audit.csv", true);
+    String firstInstanceID = scenario.getInstanceId();
+
+    // Jump to a new submission
+    scenario.nextSubmission();
+
+    write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536664003229,\n", TRUNCATE_EXISTING);
+    scenario.mapSimpleValue("audit.csv", true);
+    String secondInstanceID = scenario.getInstanceId();
+
+    Path outputAudit = scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv");
+
+    assertThat(outputAudit, exists());
+    assertThat(outputAudit, fileContains("instance ID, event, node, start, end\n" + firstInstanceID + ",form start,,1536663986578,\n" + secondInstanceID + ",form start,,1536664003229,\n"));
+  }
+
+  @Test
+  public void when_the_audit_source_file_is_missing_we_leave_the_column_empty() {
+    scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
+
+    List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
+    assertThat(output, Matchers.contains(
+        Pair.of("data-audit", "media/audit.csv")
+    ));
   }
 
   @Test
@@ -294,174 +352,4 @@ public class CsvFieldMappersTest {
   }
 
 
-  static class Scenario {
-    private static int instanceIdSeq = 1;
-    private final Path workDir = createTempDirectory("briefcase_test_workdir");
-    private final Path outputMediaDir = UncheckedFiles.createDirectories(createTempDirectory("briefcase_test_media").resolve("media"));
-    private final String instanceId;
-    private final String instanceName;
-    private final String fieldName;
-    private final Model fieldModel;
-
-    Scenario(String instanceId, String instanceName, String fieldName, Model fieldModel) {
-      this.instanceId = instanceId;
-      this.instanceName = instanceName;
-      this.fieldName = fieldName;
-      this.fieldModel = fieldModel;
-    }
-
-    static Scenario nonGroup(DataType dataType) {
-      Model fieldModel = createField(dataType);
-      return new Scenario("instance_" + instanceIdSeq++, "data", "field", fieldModel);
-    }
-
-    static Model createField(DataType dataType) {
-      TreeElement fieldTreeElement = new TreeElement("field", DEFAULT_MULTIPLICITY);
-      fieldTreeElement.setDataType(dataType.value);
-
-      TreeElement instanceTreeElement = new TreeElement("data", DEFAULT_MULTIPLICITY);
-      instanceTreeElement.setDataType(DataType.NULL.value);
-
-      TreeElement rootTreeElement = new TreeElement("/", DEFAULT_MULTIPLICITY);
-      rootTreeElement.setDataType(DataType.NULL.value);
-
-      rootTreeElement.addChild(instanceTreeElement);
-      instanceTreeElement.addChild(fieldTreeElement);
-
-      instanceTreeElement.setParent(rootTreeElement);
-      fieldTreeElement.setParent(instanceTreeElement);
-
-      return new Model(fieldTreeElement, Collections.emptyMap());
-    }
-
-    private static Scenario group(String instanceId, DataType dataType, int fieldCount, boolean repeatable) {
-      List<TreeElement> groupFieldTreeElements = IntStream.range(0, fieldCount).boxed().map(i -> {
-        TreeElement field = new TreeElement("field_" + (i + 1), DEFAULT_MULTIPLICITY);
-        field.setDataType(dataType.value);
-        return field;
-      }).collect(toList());
-
-      TreeElement groupTreeElement = new TreeElement("group", DEFAULT_MULTIPLICITY);
-      groupTreeElement.setDataType(DataType.NULL.value);
-      groupTreeElement.setRepeatable(repeatable);
-
-      TreeElement instanceTreeElement = new TreeElement("data", DEFAULT_MULTIPLICITY);
-      instanceTreeElement.setDataType(DataType.NULL.value);
-
-      TreeElement rootTreeElement = new TreeElement("/", DEFAULT_MULTIPLICITY);
-      rootTreeElement.setDataType(DataType.NULL.value);
-
-      rootTreeElement.addChild(instanceTreeElement);
-      instanceTreeElement.addChild(groupTreeElement);
-      groupFieldTreeElements.forEach(groupTreeElement::addChild);
-
-      groupFieldTreeElements.forEach(field -> field.setParent(groupTreeElement));
-      groupTreeElement.setParent(instanceTreeElement);
-      instanceTreeElement.setParent(rootTreeElement);
-
-      return new Scenario(instanceId, "data", "group", new Model(groupTreeElement, Collections.emptyMap()));
-    }
-
-    static Scenario repeatGroup(String instanceId, DataType dataType, int fieldCount) {
-      return group(instanceId, dataType, fieldCount, true);
-    }
-
-    static Scenario nonRepeatGroup(DataType dataType, int fieldCount) {
-      return group("instance_" + instanceIdSeq++, dataType, fieldCount, false);
-    }
-
-    private XmlElement buildSimpleValueSubmission(String value) {
-      Document xmlDoc = new Document();
-
-      Element xmlRoot = new Element();
-
-      Element xmlInstance = new Element();
-      xmlInstance.setName(instanceName);
-
-      Element xmlField = new Element();
-      xmlField.setName(fieldName);
-
-      xmlDoc.addChild(ELEMENT, xmlRoot);
-      xmlRoot.addChild(ELEMENT, xmlInstance);
-      xmlInstance.addChild(ELEMENT, xmlField);
-      xmlField.addChild(TEXT, value);
-
-      return new XmlElement(xmlField);
-    }
-
-    private XmlElement buildGroupValueSubmission(String... values) {
-      Document xmlDoc = new Document();
-
-      Element xmlRoot = new Element();
-
-      Element xmlInstance = new Element();
-      xmlInstance.setName("data");
-
-      Element xmlGroup = new Element();
-      xmlGroup.setName("group");
-
-      List<Element> xmlFields = IntStream.range(0, values.length).boxed().map(i -> {
-        Element xmlField = new Element();
-        xmlField.setName("field_" + (i + 1));
-        xmlField.addChild(TEXT, values[i]);
-        return xmlField;
-      }).collect(toList());
-
-
-      xmlDoc.addChild(ELEMENT, xmlRoot);
-      xmlRoot.addChild(ELEMENT, xmlInstance);
-      xmlInstance.addChild(ELEMENT, xmlGroup);
-      xmlFields.forEach(field -> xmlGroup.addChild(ELEMENT, field));
-
-      return new XmlElement(xmlGroup);
-    }
-
-    Path getWorkDir() {
-      return workDir;
-    }
-
-    Path getOutputMediaDir() {
-      return outputMediaDir;
-    }
-
-    List<Pair<String, String>> mapSimpleValue(String value) {
-      return mapValue(buildSimpleValueSubmission(value), true);
-    }
-
-    List<Pair<String, String>> mapSimpleValue(String value, boolean exportMedia) {
-      return mapValue(buildSimpleValueSubmission(value), exportMedia);
-    }
-
-    List<Pair<String, String>> mapGroupValue(String... values) {
-      return mapValue(buildGroupValueSubmission(values), true);
-    }
-
-    private List<Pair<String, String>> mapValue(XmlElement value, boolean exportMedia) {
-      ExportConfiguration configuration = new ExportConfiguration(
-          Optional.of("test_output.csv"),
-          Optional.of(getOutputMediaDir().getParent()),
-          Optional.empty(),
-          Optional.empty(),
-          Optional.empty(),
-          OverridableBoolean.FALSE,
-          OverridableBoolean.TRUE,
-          OverridableBoolean.of(exportMedia),
-          OverridableBoolean.FALSE
-      );
-      return CsvFieldMappers
-          .getMapper(fieldModel, false)
-          .apply(
-              instanceId,
-              getWorkDir(),
-              fieldModel,
-              Optional.of(value),
-              configuration
-          )
-          .collect(toList());
-    }
-
-    public List<Path> getPaths() {
-      return Arrays.asList(workDir, outputMediaDir);
-    }
-  }
 }

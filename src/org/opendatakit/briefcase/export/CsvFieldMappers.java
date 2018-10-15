@@ -15,9 +15,11 @@
  */
 package org.opendatakit.briefcase.export;
 
+import static java.nio.file.StandardOpenOption.APPEND;
 import static java.text.DateFormat.getDateInstance;
 import static java.text.DateFormat.getDateTimeInstance;
 import static java.text.DateFormat.getTimeInstance;
+import static java.util.stream.Collectors.toList;
 import static org.javarosa.core.model.DataType.BINARY;
 import static org.javarosa.core.model.DataType.DATE;
 import static org.javarosa.core.model.DataType.DATE_TIME;
@@ -29,7 +31,9 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.getFileExtension;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.getMd5Hash;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.lines;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.stripFileExtension;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 import static org.opendatakit.common.utils.WebUtils.parseDate;
 
 import java.nio.file.Files;
@@ -56,6 +60,17 @@ import org.opendatakit.briefcase.reused.Pair;
 final class CsvFieldMappers {
   private static final Map<DataType, CsvFieldMapper> mappers = new HashMap<>();
 
+  private static final CsvFieldMapper BINARY_MAPPER = (__, ___, workingDir, field, element, configuration) -> element
+      .map(e -> binary(e, workingDir, configuration))
+      .orElse(empty(field.fqn()));
+
+  private static CsvFieldMapper AUDIT_MAPPER = BINARY_MAPPER
+      .andThen((formName, localId, workingDir, model, maybeElement, configuration) -> maybeElement
+          .map(e -> audit(formName, localId, workingDir, configuration, e))
+          .orElse(empty(model.fqn())))
+      .map(output -> output.filter(pair -> !pair.getLeft().contains("-aggregated")));
+
+
   // Register all non-text supported mappers
   static {
     // All these are simple, 1 column fields
@@ -67,13 +82,11 @@ final class CsvFieldMappers {
     mappers.put(GEOPOINT, simpleMapper(CsvFieldMappers::geopoint, 4));
 
     // Binary fields require knowledge of the export configuration and working dir
-    mappers.put(BINARY, (__, workingDir, field, element, configuration) -> element
-        .map(e -> binary(e, workingDir, configuration))
-        .orElse(empty(field.fqn())));
+    mappers.put(BINARY, BINARY_MAPPER);
 
     // Null fields encode groups (repeating and non-repeating), therefore,
     // they require the full context
-    mappers.put(NULL, (localId, workingDir, model, element, configuration) -> {
+    mappers.put(NULL, (formName, localId, workingDir, model, element, configuration) -> {
       if (model.isRepeatable())
         return element.map(e -> repeatableGroup(localId, model, e))
             .orElse(empty("SET-OF-" + model.getParent().fqn(), 1));
@@ -81,14 +94,15 @@ final class CsvFieldMappers {
       if (model.isEmpty() && !model.isRoot())
         return element.map(CsvFieldMappers::text).orElse(empty(model.fqn()));
 
-      return nonRepeatableGroup(localId, workingDir, model, element, configuration);
+      return nonRepeatableGroup(formName, localId, workingDir, model, element, configuration);
     });
   }
 
   static CsvFieldMapper getMapper(Model field, boolean splitSelectMultiples) {
-    CsvFieldMapper mapper = Optional.ofNullable(mappers.get(field.getDataType()))
-        // If no mapper has been defined, we'll just output the text
-        .orElse(simpleMapper(CsvFieldMappers::text));
+    // If no mapper is available for this field, default to a simple text mapper
+    CsvFieldMapper mapper = field.isMetaAudit()
+        ? AUDIT_MAPPER
+        : Optional.ofNullable(mappers.get(field.getDataType())).orElse(simpleMapper(CsvFieldMappers::text));
     return splitSelectMultiples ? SplitSelectMultiples.decorate(mapper) : mapper;
   }
 
@@ -121,7 +135,7 @@ final class CsvFieldMappers {
   }
 
   private static CsvFieldMapper simpleMapper(Function<XmlElement, Stream<Pair<String, String>>> mapper, int outputSize) {
-    return (localId, workingDir, model, element, configuration) -> element
+    return (formName, localId, workingDir, model, element, configuration) -> element
         .map(mapper)
         .orElse(empty(model.fqn(), outputSize));
   }
@@ -213,6 +227,28 @@ final class CsvFieldMappers {
     return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(sequentialDestinationFile.getFileName()).toString()));
   }
 
+  private static Stream<Pair<String, String>> audit(String formName, String localId, Path workingDir, ExportConfiguration configuration, XmlElement e) {
+    if (!e.hasValue())
+      return empty(e.fqn() + "-aggregated");
+
+    Path sourceFile = workingDir.resolve(e.getValue());
+
+    // When the source file doesn't exist, we return an empty string
+    if (!exists(sourceFile))
+      return Stream.of(Pair.of(e.fqn() + "-aggregated", ""));
+
+    // Process the audit file contents and append the instance ID column to all lines
+    List<String> sourceLines = lines(sourceFile).collect(toList());
+    // We prepend the submission's instance ID to all body lines
+    List<String> bodyLines = sourceLines.subList(1, sourceLines.size()).stream()
+        .map(line -> localId + "," + line)
+        .collect(toList());
+
+    Path destinationFile = configuration.getAuditPath(formName);
+    write(destinationFile, bodyLines, APPEND);
+    return Stream.of(Pair.of(e.fqn() + "-aggregated", destinationFile.getFileName().toString()));
+  }
+
   private static Stream<Pair<String, String>> repeatableGroup(String localId, Model current, XmlElement element) {
     int shift = current.countAncestors() - 1;
     return element == null
@@ -220,8 +256,9 @@ final class CsvFieldMappers {
         : Stream.of(Pair.of(current.fqn(), localId + "/" + current.fqn(shift)));
   }
 
-  private static Stream<Pair<String, String>> nonRepeatableGroup(String localId, Path workingDir, Model current, Optional<XmlElement> maybeElement, ExportConfiguration configuration) {
+  private static Stream<Pair<String, String>> nonRepeatableGroup(String formName, String localId, Path workingDir, Model current, Optional<XmlElement> maybeElement, ExportConfiguration configuration) {
     return current.flatMap(field -> getMapper(field, configuration.resolveSplitSelectMultiples()).apply(
+        formName,
         localId,
         workingDir,
         field,

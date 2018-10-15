@@ -46,6 +46,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OverridableBoolean;
 
 @SuppressWarnings("checkstyle:MethodName")
@@ -217,6 +218,17 @@ public class ExportConfigurationTest {
   }
 
   @Test
+  public void knows_the_path_to_the_output_audit_file() {
+    assertThat(validConfig.getAuditPath("some-form").getFileName().toString(), is("some-form - audit.csv"));
+    assertThat(validConfig.getAuditPath("some-form").getFileName().toString(), is("some-form - audit.csv"));
+  }
+
+  @Test(expected = BriefcaseException.class)
+  public void an_empty_conf_will_throw_when_asked_for_the_output_audit_file() {
+    empty().getAuditPath("some-form");
+  }
+
+  @Test
   public void ensures_the_export_filename_has_csv_extension() {
     assertThat(buildConf("some_filename").getExportFileName(), OptionalMatchers.isPresentAnd(is("some_filename.csv")));
     assertThat(buildConf("some_filename.csv").getExportFileName(), OptionalMatchers.isPresentAnd(is("some_filename.csv")));
@@ -237,6 +249,4 @@ public class ExportConfigurationTest {
         OverridableBoolean.FALSE
     );
   }
-
-
 }
