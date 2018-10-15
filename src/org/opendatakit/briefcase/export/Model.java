@@ -101,7 +101,7 @@ class Model {
 
   /**
    * Returns the Fully Qualified Name of this {@link Model} instance, having
-   * shifted a given amount of names.
+   * shifted a given number of names.
    */
   String fqn(int shift) {
     return fqn(model, shift);
@@ -109,7 +109,7 @@ class Model {
 
   /**
    * Returns the Fully Qualified Name of a given {@link TreeElement} model, having
-   * shifted a given amount of names.
+   * shifted a given number of names.
    */
   public static String fqn(TreeElement model, int shift) {
     List<String> names = new ArrayList<>();
@@ -147,9 +147,9 @@ class Model {
 
   /**
    * Returns the {@link List} of {@link String} names that this {@link Model} instance can be
-   * associated with, shifted a given amount of names.
+   * associated with, shifted a given number of names.
    *
-   * @param shift an int with the amount of names to shift from the FQN
+   * @param shift an int with the number of names to shift from the FQN
    * @return a {@link List} of shifted {@link String} names of this {@link Model} instance
    * @see Model#getNames()
    */
