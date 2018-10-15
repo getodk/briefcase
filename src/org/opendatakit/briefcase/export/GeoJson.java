@@ -40,9 +40,6 @@ import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 class GeoJson {
 
-  private GeoJson() {
-  }
-
   static Stream<Feature> toFeatures(Model model, Submission submission) {
     String instanceId = submission.getInstanceId(false);
     return model.getSpatialFields().stream().map(field -> {
@@ -77,7 +74,7 @@ class GeoJson {
     return optionalStream.collect(toList());
   }
 
-  public static Optional<GeoJsonObject> toGeoJsonObject(Model field, List<LngLatAlt> lngLatAlts) {
+  static Optional<GeoJsonObject> toGeoJsonObject(Model field, List<LngLatAlt> lngLatAlts) {
     if (lngLatAlts.isEmpty())
       return Optional.empty();
 
@@ -90,7 +87,7 @@ class GeoJson {
     return Optional.of(new Polygon(lngLatAlts.toArray(new LngLatAlt[0])));
   }
 
-  public static void write(Stream<Feature> features) {
+  static void write(Stream<Feature> features) {
     FeatureCollection fc = new FeatureCollection();
     features.forEach(fc::add);
     try {
