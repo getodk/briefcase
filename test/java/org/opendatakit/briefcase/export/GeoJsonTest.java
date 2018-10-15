@@ -58,23 +58,19 @@ public class GeoJsonTest {
   @Test
   public void knows_how_to_transform_serialized_spatial_data_to_lists_of_LngLatAlt() {
     assertThat(
-        GeoJson.toLngLatAlts(Optional.empty()),
+        GeoJson.toLngLatAlts(""),
         Matchers.empty()
     );
     assertThat(
-        GeoJson.toLngLatAlts(Optional.of("")),
-        Matchers.empty()
-    );
-    assertThat(
-        GeoJson.toLngLatAlts(Optional.of("1 2")),
+        GeoJson.toLngLatAlts("1 2"),
         Matchers.contains(new LngLatAlt(2, 1))
     );
     assertThat(
-        GeoJson.toLngLatAlts(Optional.of("1 2;")),
+        GeoJson.toLngLatAlts("1 2;"),
         Matchers.contains(new LngLatAlt(2, 1))
     );
     assertThat(
-        GeoJson.toLngLatAlts(Optional.of("1 2;3 4")),
+        GeoJson.toLngLatAlts("1 2;3 4"),
         Matchers.contains(new LngLatAlt(2, 1), new LngLatAlt(4, 3))
     );
   }
@@ -102,7 +98,7 @@ public class GeoJsonTest {
   private static Optional<GeoJsonObject> transform(DataType type, String value) {
     return GeoJson.toGeoJsonObject(
         field("field", type).build(),
-        GeoJson.toLngLatAlts(Optional.of(value))
+        GeoJson.toLngLatAlts(value)
     );
   }
 

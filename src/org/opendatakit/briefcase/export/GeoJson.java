@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.export;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.empty;
 
@@ -45,7 +46,7 @@ class GeoJson {
   public static Stream<Feature> toFeatures(Model model, Submission submission) {
     return model.getSpatialFields().stream().map(field -> {
       Optional<String> maybeValue = submission.findElement(field.getName()).flatMap(XmlElement::maybeValue);
-      List<LngLatAlt> lngLatAlts = toLngLatAlts(maybeValue);
+      List<LngLatAlt> lngLatAlts = maybeValue.map(GeoJson::toLngLatAlts).orElse(emptyList());
       Optional<GeoJsonObject> geoJsonObject = toGeoJsonObject(field, lngLatAlts);
       return toFeature(field, submission, geoJsonObject);
     });
@@ -60,8 +61,8 @@ class GeoJson {
     return feature;
   }
 
-  public static List<LngLatAlt> toLngLatAlts(Optional<String> maybeValue) {
-    Stream<String> split = Stream.of(maybeValue.orElse("").split(";"));
+  public static List<LngLatAlt> toLngLatAlts(String value) {
+    Stream<String> split = Stream.of(value.split(";"));
     Stream<LngLatAlt> optionalStream = split.flatMap(s -> GeoJson.getLngLatAlt(s).map(Stream::of).orElse(empty()));
     return optionalStream.collect(toList());
   }
