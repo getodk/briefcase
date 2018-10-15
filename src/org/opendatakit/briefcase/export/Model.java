@@ -36,7 +36,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.javarosa.core.model.DataType;
 import org.javarosa.core.model.QuestionDef;
@@ -284,14 +283,10 @@ class Model {
 
   boolean hasAuditField() {
     return flatten()
-        .filter(modelWithName("audit"))
+        .filter(child -> child.getName().equals("audit"))
         .findFirst()
         .map(audit -> audit.hasParent() && audit.getParent().getName().equals("meta"))
         .orElse(false);
-  }
-
-  private static Predicate<Model> modelWithName(String name) {
-    return child -> child.getName().equals(name);
   }
 
   Model getChildByName(String name) {
@@ -305,7 +300,7 @@ class Model {
     return Arrays.asList(GEOPOINT, GEOTRACE, GEOSHAPE).contains(getDataType());
   }
 
-  public List<Model> getSpatialFields() {
+  List<Model> getSpatialFields() {
     return flatten().filter(Model::isSpatial).collect(toList());
   }
 
