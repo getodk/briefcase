@@ -72,6 +72,8 @@ dependencies {
         exclude group: 'org.slf4j'
         exclude group: 'ch.qos.logback'
     }
+
+    compile 'de.grundid.opendatalab:geojson-jackson:1.8'
 }
 
 jacocoTestReport {
