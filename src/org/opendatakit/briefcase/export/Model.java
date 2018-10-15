@@ -285,10 +285,10 @@ class Model {
   }
 
   public boolean hasAuditField() {
-    return children().stream()
-        .filter(modelWithName("meta"))
+    return flatten()
+        .filter(modelWithName("audit"))
         .findFirst()
-        .map(meta -> meta.hasChild("audit"))
+        .map(audit -> audit.hasParent() && audit.getParent().getName().equals("meta"))
         .orElse(false);
   }
 

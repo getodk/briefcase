@@ -66,10 +66,10 @@ public class ModelTest {
 
   @Test
   public void knows_if_it_is_the_meta_audit_field() {
-    assertThat(lastDescendatOf(buildModel("data", "some-field")).isMetaAudit(), is(false));
-    assertThat(lastDescendatOf(buildModel("data", "audit")).isMetaAudit(), is(false));
-    assertThat(lastDescendatOf(buildModel("data", "some-parent", "audit")).isMetaAudit(), is(false));
-    assertThat(lastDescendatOf(buildModel("data", "meta", "audit")).isMetaAudit(), is(true));
+    assertThat(buildModel("data", "some-field").getChildByName("some-field").isMetaAudit(), is(false));
+    assertThat(buildModel("data", "audit").getChildByName("audit").isMetaAudit(), is(false));
+    assertThat(buildModel("data", "some-parent", "audit").getChildByName("audit").isMetaAudit(), is(false));
+    assertThat(buildModel("data", "meta", "audit").getChildByName("audit").isMetaAudit(), is(true));
   }
 
   @Test
@@ -93,15 +93,6 @@ public class ModelTest {
       elements.get(i).setParent(elements.get(i - 1));
 
     return new Model(elements.get(0), emptyMap());
-  }
-
-  private static Model lastDescendatOf(Model model) {
-    if (!model.hasChildren())
-      return model;
-    Model child = model.children().get(0);
-    while (child.hasChildren())
-      child = child.children().get(0);
-    return child;
   }
 
 }
