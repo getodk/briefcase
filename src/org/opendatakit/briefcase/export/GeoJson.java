@@ -43,21 +43,31 @@ class GeoJson {
   private GeoJson() {
   }
 
-  public static Stream<Feature> toFeatures(Model model, Submission submission) {
+  static Stream<Feature> toFeatures(Model model, Submission submission) {
+    String instanceId = submission.getInstanceId(false);
     return model.getSpatialFields().stream().map(field -> {
       Optional<String> maybeValue = submission.findElement(field.getName()).flatMap(XmlElement::maybeValue);
       List<LngLatAlt> lngLatAlts = maybeValue.map(GeoJson::toLngLatAlts).orElse(emptyList());
-      Optional<GeoJsonObject> geoJsonObject = toGeoJsonObject(field, lngLatAlts);
-      return toFeature(field, submission, geoJsonObject);
+      return toGeoJsonObject(field, lngLatAlts)
+          .map(geoJsonObject -> toFeature(field, instanceId, geoJsonObject))
+          .orElse(emptyFeature(field, instanceId));
     });
   }
 
-  public static Feature toFeature(Model field, Submission submission, Optional<GeoJsonObject> maybeGeoJsonObject) {
+  static Feature toFeature(Model field, String instanceId, GeoJsonObject geoJsonObject) {
+    return toFeature(field, instanceId, Optional.of(geoJsonObject));
+  }
+
+  static Feature emptyFeature(Model field, String instanceId) {
+    return toFeature(field, instanceId, Optional.empty());
+  }
+
+  private static Feature toFeature(Model field, String instanceId, Optional<GeoJsonObject> geoJsonObject) {
     Feature feature = new Feature();
-    feature.setGeometry(maybeGeoJsonObject.orElse(null));
-    feature.setProperty("key", submission.getInstanceId(false));
+    feature.setGeometry(geoJsonObject.orElse(null));
+    feature.setProperty("key", instanceId);
     feature.setProperty("field", field.getName());
-    feature.setProperty("empty", maybeGeoJsonObject.map(__ -> "no").orElse("yes"));
+    feature.setProperty("empty", geoJsonObject.map(__ -> "no").orElse("yes"));
     return feature;
   }
 

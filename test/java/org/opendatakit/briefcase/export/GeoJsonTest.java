@@ -103,22 +103,10 @@ public class GeoJsonTest {
   }
 
   @Test
-  public void transforms_a_GeoJsonObject_to_a_Feature_with_submission_and_field_metadata() throws IOException, XmlPullParserException {
+  public void transforms_a_GeoJsonObject_to_a_Feature_with_submission_and_field_metadata() {
     Point point = new Point(2, 1);
     Model field = geopoint("some-field").build();
-    XmlElement root = parseXmlElement("" +
-        "<data instanceID=\"uuid:39f3dd36-161e-45cb-a1a4-395831d253a7\">" +
-        " <some-field>1 2</some-field>" +
-        "</data>");
-    Submission submission = Submission.notValidated(
-        Paths.get("/some/path"),
-        Paths.get("/some/path"),
-        root,
-        fakeSubmissionMetadata("123"),
-        Optional.empty(),
-        Optional.empty()
-    );
-    Feature feature = GeoJson.toFeature(field, submission, Optional.of(point));
+    Feature feature = GeoJson.toFeature(field, "123", point);
     assertThat(feature.getGeometry(), is(point));
     assertThat(feature.getProperty("key"), is("123"));
     assertThat(feature.getProperty("field"), is("some-field"));
@@ -136,7 +124,7 @@ public class GeoJsonTest {
         Paths.get("/some/path"),
         Paths.get("/some/path"),
         root,
-        fakeSubmissionMetadata("123"),
+        new SubmissionMetaData(root),
         Optional.empty(),
         Optional.empty()
     );
@@ -144,27 +132,8 @@ public class GeoJsonTest {
     assertThat(features, hasSize(1));
     Feature feature = features.get(0);
     assertThat(feature.getGeometry(), is(new Point(2, 1, 3)));
-    assertThat(feature.getProperty("key"), is("123"));
+    assertThat(feature.getProperty("key"), is("uuid:39f3dd36-161e-45cb-a1a4-395831d253a7"));
     assertThat(feature.getProperty("field"), is("some-field"));
     assertThat(feature.getProperty("empty"), is("no"));
-  }
-
-  private SubmissionMetaData fakeSubmissionMetadata(String instanceId) {
-    return new FakeSubmissionMetaData(instanceId);
-  }
-
-  class FakeSubmissionMetaData extends SubmissionMetaData {
-
-    private final String instanceId;
-
-    FakeSubmissionMetaData(String instanceId) {
-      super(null);
-      this.instanceId = instanceId;
-    }
-
-    @Override
-    Optional<String> getInstanceId() {
-      return Optional.of(instanceId);
-    }
   }
 }
