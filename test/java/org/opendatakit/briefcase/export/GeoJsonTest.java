@@ -16,37 +16,32 @@
 
 package org.opendatakit.briefcase.export;
 
-import static com.github.npathai.hamcrestopt.OptionalMatchers.isEmpty;
-import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAndIs;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.javarosa.core.model.DataType.GEOPOINT;
 import static org.javarosa.core.model.DataType.GEOSHAPE;
 import static org.javarosa.core.model.DataType.GEOTRACE;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.export.GeoJson.getLngLatAlt;
-import static org.opendatakit.briefcase.export.ModelBuilder.field;
-import static org.opendatakit.briefcase.export.ModelBuilder.geopoint;
-import static org.opendatakit.briefcase.export.ModelBuilder.instance;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.geojson.Feature;
-import org.geojson.GeoJsonObject;
 import org.geojson.LineString;
 import org.geojson.LngLatAlt;
 import org.geojson.Point;
 import org.geojson.Polygon;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.javarosa.core.model.DataType;
 import org.junit.Test;
@@ -56,78 +51,21 @@ import org.xmlpull.v1.XmlPullParserException;
 public class GeoJsonTest {
 
   @Test
-  public void knows_how_to_transform_serialized_spatial_data_to_maybe_LngLatAlt() {
-    assertThat(getLngLatAlt("1 2"), isPresentAndIs(new LngLatAlt(2, 1)));
-    assertThat(getLngLatAlt("1 2 3"), isPresentAndIs(new LngLatAlt(2, 1, 3)));
-    assertThat(getLngLatAlt("1 2 3 4"), isPresentAndIs(new LngLatAlt(2, 1, 3)));
-  }
-
-  @Test
-  public void knows_how_to_transform_serialized_spatial_data_to_lists_of_LngLatAlt() {
-    assertThat(
-        GeoJson.toLngLatAlts(""),
-        Matchers.empty()
-    );
-    assertThat(
-        GeoJson.toLngLatAlts("1 2"),
-        Matchers.contains(new LngLatAlt(2, 1))
-    );
-    assertThat(
-        GeoJson.toLngLatAlts("1 2;"),
-        Matchers.contains(new LngLatAlt(2, 1))
-    );
-    assertThat(
-        GeoJson.toLngLatAlts("1 2;3 4"),
-        Matchers.contains(new LngLatAlt(2, 1), new LngLatAlt(4, 3))
-    );
-  }
-
-  @Test
-  public void transforms_a_list_of_LngLatAlt_to_the_corresponding_GeoJsonObject_subtype() {
-    assertThat(
-        transform(GEOPOINT, ""),
-        isEmpty()
-    );
-    assertThat(
-        transform(GEOPOINT, "1 2"),
-        isPresentAndIs(new Point(2, 1))
-    );
-    assertThat(
-        transform(GEOTRACE, "1 2;3 4"),
-        isPresentAndIs(new LineString(new LngLatAlt(2, 1), new LngLatAlt(4, 3)))
-    );
-    assertThat(
-        transform(GEOSHAPE, "1 2;3 4;5 6;1 2"),
-        isPresentAndIs(new Polygon(new LngLatAlt(2, 1), new LngLatAlt(4, 3), new LngLatAlt(6, 5), new LngLatAlt(2, 1)))
-    );
-  }
-
-  private static Optional<GeoJsonObject> transform(DataType type, String value) {
-    return GeoJson.toGeoJsonObject(
-        instance(field("field", type)).build().getChildByName("field"),
-        GeoJson.toLngLatAlts(value)
-    );
-  }
-
-  @Test
-  public void transforms_a_GeoJsonObject_to_a_Feature_with_submission_and_field_metadata() {
-    Point point = new Point(2, 1);
-    Model field = instance(geopoint("some-field")).build().getChildByName("some-field");
-    Feature feature = GeoJson.validFeature(field, "123", point);
-    assertThat(feature.getGeometry(), is(point));
-    assertThat(feature.getProperty("key"), is("123"));
-    assertThat(feature.getProperty("field"), is("some-field"));
-    assertThat(feature.getProperty("empty"), is("no"));
-  }
-
-  @Test
   public void transforms_a_submission_to_a_feature_list() throws IOException, XmlPullParserException {
-    List<Feature> features = getFeatures(GEOPOINT, "1 2 3 4");
-    assertThat(features, hasSize(1));
-    assertThat(features.get(0).getGeometry(), is(new Point(2, 1, 3)));
-    assertThat(features.get(0).getProperty("key"), is("uuid:39f3dd36-161e-45cb-a1a4-395831d253a7"));
-    assertThat(features.get(0).getProperty("field"), is("some-field-1"));
-    assertThat(features.get(0).getProperty("empty"), is("no"));
+    Map<String, Feature> features = getFeatures(
+        Pair.of(GEOPOINT, "1 2 3"),
+        Pair.of(GEOTRACE, "1 2;3 4"),
+        Pair.of(GEOSHAPE, "1 2;3 4;5 6;1 2")
+    ).stream().collect(toMap(
+        f -> f.getProperty("field"),
+        f -> f
+    ));
+    assertThat(features.values(), hasSize(3));
+    assertThat(features.values(), allMatch(feature -> feature.getProperty("key").equals("uuid:39f3dd36-161e-45cb-a1a4-395831d253a7")));
+    assertThat(features.values(), allMatch(feature -> feature.getProperty("empty").equals("no")));
+    assertThat(features.get("some-field-1").getGeometry(), is(new Point(2, 1, 3)));
+    assertThat(features.get("some-field-2").getGeometry(), is(new LineString(new LngLatAlt(2, 1), new LngLatAlt(4, 3))));
+    assertThat(features.get("some-field-3").getGeometry(), is(new Polygon(new LngLatAlt(2, 1), new LngLatAlt(4, 3), new LngLatAlt(6, 5), new LngLatAlt(2, 1))));
   }
 
   @Test
@@ -185,10 +123,10 @@ public class GeoJsonTest {
     assertThat(features, allMatch(feature -> feature.getProperty("valid") == "no"));
   }
 
-  private static <T> Matcher<List<T>> allMatch(Predicate<T> predicate) {
-    return new TypeSafeMatcher<List<T>>() {
+  private static <T> Matcher<Collection<T>> allMatch(Predicate<T> predicate) {
+    return new TypeSafeMatcher<Collection<T>>() {
       @Override
-      protected boolean matchesSafely(List<T> item) {
+      protected boolean matchesSafely(Collection<T> item) {
         return item.stream().allMatch(predicate);
       }
 
@@ -197,10 +135,6 @@ public class GeoJsonTest {
         description.appendText("all elements match given predicate");
       }
     };
-  }
-
-  private static List<Feature> getFeatures(DataType type, String value) throws XmlPullParserException, IOException {
-    return getFeatures(Pair.of(type, value));
   }
 
   @SafeVarargs

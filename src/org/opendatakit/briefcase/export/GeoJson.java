@@ -53,15 +53,26 @@ class GeoJson {
     });
   }
 
-  static Feature validFeature(Model field, String instanceId, GeoJsonObject geoJsonObject) {
+  static void write(Stream<Feature> features) {
+    FeatureCollection fc = new FeatureCollection();
+    features.forEach(fc::add);
+    try {
+      String contents = new ObjectMapper().writeValueAsString(fc);
+      UncheckedFiles.write(Paths.get("/tmp/demo.geojson"), contents, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static Feature validFeature(Model field, String instanceId, GeoJsonObject geoJsonObject) {
     return toFeature(field, instanceId, Optional.of(geoJsonObject), false, true);
   }
 
-  static Feature emptyFeature(Model field, String instanceId) {
+  private static Feature emptyFeature(Model field, String instanceId) {
     return toFeature(field, instanceId, Optional.empty(), true, true);
   }
 
-  static Feature invalidFeature(Model field, String instanceId) {
+  private static Feature invalidFeature(Model field, String instanceId) {
     return toFeature(field, instanceId, Optional.empty(), false, false);
   }
 
@@ -75,13 +86,13 @@ class GeoJson {
     return feature;
   }
 
-  public static List<LngLatAlt> toLngLatAlts(String value) {
+  static List<LngLatAlt> toLngLatAlts(String value) {
     Stream<String> split = Stream.of(value.split(";"));
     Stream<LngLatAlt> optionalStream = split.flatMap(s -> GeoJson.getLngLatAlt(s).map(Stream::of).orElse(empty()));
     return optionalStream.collect(toList());
   }
 
-  static Optional<GeoJsonObject> toGeoJsonObject(Model field, List<LngLatAlt> lngLatAlts) {
+  private static Optional<GeoJsonObject> toGeoJsonObject(Model field, List<LngLatAlt> lngLatAlts) {
     if (field.getDataType() == DataType.GEOPOINT && lngLatAlts.size() == 1)
       return Optional.of(new Point(lngLatAlts.get(0)));
 
@@ -94,33 +105,31 @@ class GeoJson {
     return Optional.empty();
   }
 
-  static void write(Stream<Feature> features) {
-    FeatureCollection fc = new FeatureCollection();
-    features.forEach(fc::add);
-    try {
-      String contents = new ObjectMapper().writeValueAsString(fc);
-      UncheckedFiles.write(Paths.get("/tmp/demo.geojson"), contents, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  static Optional<LngLatAlt> getLngLatAlt(String geoPoint) {
+  private static Optional<LngLatAlt> getLngLatAlt(String geoPoint) {
     String[] fields = geoPoint.split(" ");
     if (fields.length < 2 || fields.length > 4)
       return Optional.empty();
-    Double altitude = fields.length > 2
-        ? Optional.ofNullable(fields[2]).map(Double::parseDouble).orElse(null)
-        : null;
-    return OptionalProduct
-        .all(
-            Optional.ofNullable(fields[1]).filter(s -> !s.isEmpty()).map(Double::parseDouble).filter(lng -> lng >= -180 && lng <= 180),
-            Optional.ofNullable(fields[0]).filter(s -> !s.isEmpty()).map(Double::parseDouble).filter(lat -> lat >= -90 && lat <= 90)
-        )
-        .map((lon, lat) -> altitude != null
-            ? new LngLatAlt(lon, lat, altitude)
-            : new LngLatAlt(lon, lat));
+    Optional<Double> altitude = readAltitude(fields);
+    return OptionalProduct.all(
+        readLongitude(fields[1]),
+        readLatitude(fields[0])
+    ).map((lon, lat) -> altitude
+        .map(alt -> new LngLatAlt(lon, lat, alt))
+        .orElse(new LngLatAlt(lon, lat)));
   }
 
+  private static Optional<Double> readLatitude(String field) {
+    return Optional.ofNullable(field).filter(s -> !s.isEmpty()).map(Double::parseDouble).filter(lat -> lat >= -90 && lat <= 90);
+  }
+
+  private static Optional<Double> readLongitude(String field) {
+    return Optional.ofNullable(field).filter(s -> !s.isEmpty()).map(Double::parseDouble).filter(lng -> lng >= -180 && lng <= 180);
+  }
+
+  private static Optional<Double> readAltitude(String[] fields) {
+    return fields.length > 2
+        ? Optional.ofNullable(fields[2]).map(Double::parseDouble)
+        : Optional.empty();
+  }
 
 }
