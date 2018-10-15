@@ -44,27 +44,34 @@ class GeoJson {
     String instanceId = submission.getInstanceId(false);
     return model.getSpatialFields().stream().map(field -> {
       Optional<String> maybeValue = submission.findElement(field.getName()).flatMap(XmlElement::maybeValue);
-      List<LngLatAlt> lngLatAlts = maybeValue.map(GeoJson::toLngLatAlts).orElse(emptyList());
-      return toGeoJsonObject(field, lngLatAlts)
-          .map(geoJsonObject -> toFeature(field, instanceId, geoJsonObject))
-          .orElse(emptyFeature(field, instanceId));
+      return maybeValue.map(value -> {
+        List<LngLatAlt> lngLatAlts = maybeValue.map(GeoJson::toLngLatAlts).orElse(emptyList());
+        return toGeoJsonObject(field, lngLatAlts)
+            .map(geoJsonObject -> validFeature(field, instanceId, geoJsonObject))
+            .orElse(invalidFeature(field, instanceId));
+      }).orElse(emptyFeature(field, instanceId));
     });
   }
 
-  static Feature toFeature(Model field, String instanceId, GeoJsonObject geoJsonObject) {
-    return toFeature(field, instanceId, Optional.of(geoJsonObject));
+  static Feature validFeature(Model field, String instanceId, GeoJsonObject geoJsonObject) {
+    return toFeature(field, instanceId, Optional.of(geoJsonObject), false, true);
   }
 
   static Feature emptyFeature(Model field, String instanceId) {
-    return toFeature(field, instanceId, Optional.empty());
+    return toFeature(field, instanceId, Optional.empty(), true, true);
   }
 
-  private static Feature toFeature(Model field, String instanceId, Optional<GeoJsonObject> geoJsonObject) {
+  static Feature invalidFeature(Model field, String instanceId) {
+    return toFeature(field, instanceId, Optional.empty(), false, false);
+  }
+
+  private static Feature toFeature(Model field, String instanceId, Optional<GeoJsonObject> geoJsonObject, boolean empty, boolean valid) {
     Feature feature = new Feature();
     feature.setGeometry(geoJsonObject.orElse(null));
     feature.setProperty("key", instanceId);
     feature.setProperty("field", field.getName());
-    feature.setProperty("empty", geoJsonObject.map(__ -> "no").orElse("yes"));
+    feature.setProperty("empty", empty ? "yes" : "no");
+    feature.setProperty("valid", valid ? "yes" : "no");
     return feature;
   }
 
@@ -75,16 +82,16 @@ class GeoJson {
   }
 
   static Optional<GeoJsonObject> toGeoJsonObject(Model field, List<LngLatAlt> lngLatAlts) {
-    if (lngLatAlts.isEmpty())
-      return Optional.empty();
-
-    if (lngLatAlts.size() == 1)
+    if (field.getDataType() == DataType.GEOPOINT && lngLatAlts.size() == 1)
       return Optional.of(new Point(lngLatAlts.get(0)));
 
-    if (lngLatAlts.size() == 2 || field.getDataType() == DataType.GEOTRACE || !lngLatAlts.get(0).equals(lngLatAlts.get(lngLatAlts.size() - 1)))
+    if (field.getDataType() == DataType.GEOTRACE && lngLatAlts.size() >= 2)
       return Optional.of(new LineString(lngLatAlts.toArray(new LngLatAlt[0])));
 
-    return Optional.of(new Polygon(lngLatAlts.toArray(new LngLatAlt[0])));
+    if (field.getDataType() == DataType.GEOSHAPE && lngLatAlts.size() >= 4 && lngLatAlts.get(0).equals(lngLatAlts.get(lngLatAlts.size() - 1)))
+      return Optional.of(new Polygon(lngLatAlts.toArray(new LngLatAlt[0])));
+
+    return Optional.empty();
   }
 
   static void write(Stream<Feature> features) {
@@ -99,20 +106,20 @@ class GeoJson {
   }
 
   static Optional<LngLatAlt> getLngLatAlt(String geoPoint) {
-    String[] fields = geoPoint.split(" ", 4);
+    String[] fields = geoPoint.split(" ");
+    if (fields.length < 2 || fields.length > 4)
+      return Optional.empty();
     Double altitude = fields.length > 2
         ? Optional.ofNullable(fields[2]).map(Double::parseDouble).orElse(null)
         : null;
-    return fields.length > 1
-        ? OptionalProduct
+    return OptionalProduct
         .all(
-            Optional.ofNullable(fields[1]).filter(s -> !s.isEmpty()).map(Double::parseDouble),
-            Optional.ofNullable(fields[0]).filter(s -> !s.isEmpty()).map(Double::parseDouble)
+            Optional.ofNullable(fields[1]).filter(s -> !s.isEmpty()).map(Double::parseDouble).filter(lng -> lng >= -180 && lng <= 180),
+            Optional.ofNullable(fields[0]).filter(s -> !s.isEmpty()).map(Double::parseDouble).filter(lat -> lat >= -90 && lat <= 90)
         )
         .map((lon, lat) -> altitude != null
             ? new LngLatAlt(lon, lat, altitude)
-            : new LngLatAlt(lon, lat))
-        : Optional.empty();
+            : new LngLatAlt(lon, lat));
   }
 
 
