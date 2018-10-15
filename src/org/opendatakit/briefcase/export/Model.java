@@ -112,7 +112,7 @@ class Model {
    * Returns the Fully Qualified Name of a given {@link TreeElement} model, having
    * shifted a given number of names.
    */
-  public static String fqn(TreeElement model, int shift) {
+  static String fqn(TreeElement model, int shift) {
     List<String> names = new ArrayList<>();
     TreeElement current = model;
     while (current.getParent() != null && current.getParent().getName() != null) {
@@ -246,7 +246,7 @@ class Model {
     return model.getNumChildren();
   }
 
-  List<Model> children() {
+  private List<Model> children() {
     Set<String> fqns = new HashSet<>();
     List<Model> children = new ArrayList<>(model.getNumChildren());
     for (int i = 0, max = model.getNumChildren(); i < max; i++) {
@@ -260,14 +260,14 @@ class Model {
     return children;
   }
 
-  public boolean isChoiceList() {
+  boolean isChoiceList() {
     return Optional.ofNullable(controls.get(fqn()))
         .map(control -> getDataType() == MULTIPLE_ITEMS || ControlType.from(control.getControlType()) == SELECT_MULTI)
         .orElse(false);
   }
 
 
-  public List<SelectChoice> getChoices() {
+  List<SelectChoice> getChoices() {
     Optional<QuestionDef> control = Optional.ofNullable(controls.get(fqn()));
     if (!control.isPresent())
       return emptyList();
@@ -276,24 +276,16 @@ class Model {
     return control.get().getChoices();
   }
 
-  public boolean isMetaAudit() {
+  boolean isMetaAudit() {
     return model.getName().equals("audit") && model.getParent() != null && model.getParent().getName().equals("meta");
   }
 
-  public boolean hasChildren() {
-    return model.hasChildren();
-  }
-
-  public boolean hasAuditField() {
+  boolean hasAuditField() {
     return flatten()
         .filter(modelWithName("audit"))
         .findFirst()
         .map(audit -> audit.hasParent() && audit.getParent().getName().equals("meta"))
         .orElse(false);
-  }
-
-  public boolean hasChild(String name) {
-    return children().stream().anyMatch(modelWithName(name));
   }
 
   private static Predicate<Model> modelWithName(String name) {
