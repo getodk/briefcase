@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.export;
 
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.javarosa.core.model.DataType.BARCODE;
@@ -40,8 +41,13 @@ import static org.javarosa.core.model.DataType.UNSUPPORTED;
 import static org.javarosa.core.model.instance.TreeReference.DEFAULT_MULTIPLICITY;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.export.ModelBuilder.field;
+import static org.opendatakit.briefcase.export.ModelBuilder.geopoint;
+import static org.opendatakit.briefcase.export.ModelBuilder.geoshape;
+import static org.opendatakit.briefcase.export.ModelBuilder.geotrace;
+import static org.opendatakit.briefcase.export.ModelBuilder.group;
 import static org.opendatakit.briefcase.export.ModelBuilder.instance;
 import static org.opendatakit.briefcase.export.ModelBuilder.selectMultiple;
+import static org.opendatakit.briefcase.export.ModelBuilder.text;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -117,6 +123,22 @@ public class ModelTest {
     assertThat(buildField(LONG).isSpatial(), is(false));
     assertThat(buildField(GEOSHAPE).isSpatial(), is(true));
     assertThat(buildField(GEOTRACE).isSpatial(), is(true));
+  }
+
+  @Test
+  public void knows_how_to_get_the_list_of_all_descendant_spatial_fields() {
+    Model model = instance(
+        text("text"),
+        geopoint("point"),
+        group("group",
+            geotrace("trace"),
+            geoshape("shape")
+        )
+    ).build();
+
+    List<Model> spatialFields = model.getSpatialFields();
+    List<String> spatialFieldNames = spatialFields.stream().map(Model::getName).collect(Collectors.toList());
+    assertThat(spatialFieldNames, containsInAnyOrder("point", "trace", "shape"));
   }
 
   private static Model buildField(DataType type) {

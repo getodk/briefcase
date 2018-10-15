@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -303,6 +304,10 @@ class Model {
 
   public boolean isSpatial() {
     return Arrays.asList(GEOPOINT, GEOTRACE, GEOSHAPE).contains(getDataType());
+  }
+
+  public List<Model> getSpatialFields() {
+    return flatten().filter(Model::isSpatial).collect(toList());
   }
 
   // TODO This should be defined in JavaRosa, like the DataType enum
