@@ -77,6 +77,10 @@ public class ExportToGeoJson {
     exportTracker.start();
 
     SubmissionExportErrorCallback onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
+    SubmissionExportErrorCallback onInvalidSubmission = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()))
+        .andThen((path, message) ->
+            analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null))
+        );
 
     List<Path> submissionFiles = getListOfSubmissionFiles(formDef, configuration.getDateRange(), onParsingError);
     exportTracker.trackTotal(submissionFiles.size());
@@ -101,7 +105,7 @@ public class ExportToGeoJson {
     }
 
     // Generate csv lines grouped by the fqdn of the model they belong to
-    Stream<Submission> validSubmissions = ExportTools.getValidSubmissions(formDef, configuration, analytics, onParsingError, submissionFiles);
+    Stream<Submission> validSubmissions = ExportTools.getValidSubmissions(formDef, configuration, submissionFiles, onParsingError, onInvalidSubmission);
 
     Map<String, CsvLines> csvLinesPerModel = validSubmissions
         // Track the submission

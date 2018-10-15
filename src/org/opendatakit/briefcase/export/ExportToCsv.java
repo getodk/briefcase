@@ -74,6 +74,10 @@ public class ExportToCsv {
     exportTracker.start();
 
     SubmissionExportErrorCallback onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
+    SubmissionExportErrorCallback onInvalidSubmission = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()))
+        .andThen((path, message) ->
+            analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null))
+        );
 
     List<Path> submissionFiles = getListOfSubmissionFiles(formDef, configuration.getDateRange(), onParsingError);
     exportTracker.trackTotal(submissionFiles.size());
@@ -91,7 +95,7 @@ public class ExportToCsv {
     }
 
     // Generate csv lines grouped by the fqdn of the model they belong to
-    Map<String, CsvLines> csvLinesPerModel = ExportTools.getValidSubmissions(formDef, configuration, analytics, onParsingError, submissionFiles)
+    Map<String, CsvLines> csvLinesPerModel = ExportTools.getValidSubmissions(formDef, configuration, submissionFiles, onParsingError, onInvalidSubmission)
         // Track the submission
         .peek(s -> exportTracker.incAndReport())
         // Use the mapper of each Csv instance to map the submission into their respective outputs

@@ -21,4 +21,23 @@ import java.nio.file.Path;
 @FunctionalInterface
 public interface SubmissionExportErrorCallback {
   void accept(Path path, String message);
+
+  /**
+   * Returns a new callback, result of composing this callback with the given callback
+   *
+   * @see #compose(SubmissionExportErrorCallback, SubmissionExportErrorCallback)
+   */
+  default SubmissionExportErrorCallback andThen(SubmissionExportErrorCallback other) {
+    return compose(this, other);
+  }
+
+  /**
+   * Returns a new callback that will run the given callbacks in order
+   */
+  static SubmissionExportErrorCallback compose(SubmissionExportErrorCallback a, SubmissionExportErrorCallback b) {
+    return (path, message) -> {
+      a.accept(path, message);
+      b.accept(path, message);
+    };
+  }
 }

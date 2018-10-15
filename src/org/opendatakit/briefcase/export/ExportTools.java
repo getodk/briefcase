@@ -22,10 +22,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
-import org.opendatakit.briefcase.ui.reused.Analytics;
 
 class ExportTools {
-  static Stream<Submission> getValidSubmissions(FormDefinition formDef, ExportConfiguration configuration, Optional<Analytics> analytics, SubmissionExportErrorCallback onParsingError, List<Path> submissionFiles) {
+  static Stream<Submission> getValidSubmissions(FormDefinition formDef, ExportConfiguration configuration, List<Path> submissionFiles, SubmissionExportErrorCallback onParsingError, SubmissionExportErrorCallback onInvalidSubmission) {
     return submissionFiles.parallelStream()
         // Parse the submission and leave only those OK to be exported
         .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey(), onParsingError))
@@ -33,12 +32,8 @@ class ExportTools {
         .map(Optional::get)
         .filter(submission -> {
           boolean valid = submission.isValid(formDef.hasRepeatableFields());
-          if (!valid) {
-            onParsingError.accept(submission.getPath(), "invalid submission");
-            // Not doing the analytics event through the onParsingError callback
-            // because we only want to track invalid submission
-            analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null));
-          }
+          if (!valid)
+            onInvalidSubmission.accept(submission.getPath(), "invalid submission");
           return valid;
         });
   }
