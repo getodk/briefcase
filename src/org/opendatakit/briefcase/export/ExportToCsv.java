@@ -25,7 +25,6 @@ import static org.opendatakit.briefcase.export.ExportOutcome.ALL_EXPORTED;
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
 import static org.opendatakit.briefcase.export.SubmissionParser.getListOfSubmissionFiles;
-import static org.opendatakit.briefcase.export.SubmissionParser.parseSubmission;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
@@ -92,21 +91,7 @@ public class ExportToCsv {
     }
 
     // Generate csv lines grouped by the fqdn of the model they belong to
-    Map<String, CsvLines> csvLinesPerModel = submissionFiles.parallelStream()
-        // Parse the submission and leave only those OK to be exported
-        .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey(), onParsingError))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .filter(submission -> {
-          boolean valid = submission.isValid(formDef.hasRepeatableFields());
-          if (!valid) {
-            onParsingError.accept(submission.getPath(), "invalid submission");
-            // Not doing the analytics event through the onParsingError callback
-            // because we only want to track invalid submission
-            analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null));
-          }
-          return valid;
-        })
+    Map<String, CsvLines> csvLinesPerModel = ExportTools.getValidSubmissions(formDef, configuration, analytics, onParsingError, submissionFiles)
         // Track the submission
         .peek(s -> exportTracker.incAndReport())
         // Use the mapper of each Csv instance to map the submission into their respective outputs
