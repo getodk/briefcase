@@ -42,7 +42,7 @@ class GeoJson {
   private GeoJson() {
   }
 
-  public static Stream<Feature> asFeatureList(Model model, Submission submission) {
+  public static Stream<Feature> toFeatures(Model model, Submission submission) {
     return model.getSpatialFields().stream().map(field -> {
       Optional<String> maybeValue = submission.findElement(field.getName()).flatMap(XmlElement::maybeValue);
       List<LngLatAlt> lngLatAlts = toLngLatAlts(maybeValue);

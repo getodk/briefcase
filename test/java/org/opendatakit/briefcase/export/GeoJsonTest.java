@@ -144,7 +144,7 @@ public class GeoJsonTest {
         Optional.empty(),
         Optional.empty()
     );
-    List<Feature> features = GeoJson.asFeatureList(field.getParent().getParent(), submission).collect(Collectors.toList());
+    List<Feature> features = GeoJson.toFeatures(field.getParent().getParent(), submission).collect(Collectors.toList());
     assertThat(features, hasSize(1));
     Feature feature = features.get(0);
     assertThat(feature.getGeometry(), is(new Point(2, 1, 3)));

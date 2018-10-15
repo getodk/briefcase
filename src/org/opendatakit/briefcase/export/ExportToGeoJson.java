@@ -81,7 +81,7 @@ public class ExportToGeoJson {
     Stream<Submission> validSubmissions = ExportTools.getValidSubmissions(formDef, configuration, submissionFiles, onParsingError, onInvalidSubmission);
 
     Stream<Feature> features = validSubmissions.peek(s -> exportTracker.incAndReport())
-        .flatMap(submission -> GeoJson.asFeatureList(formDef.getModel(), submission));
+        .flatMap(submission -> GeoJson.toFeatures(formDef.getModel(), submission));
 
     GeoJson.write(features);
 
