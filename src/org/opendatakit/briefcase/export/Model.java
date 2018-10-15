@@ -20,6 +20,8 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.javarosa.core.model.Constants.DATATYPE_NULL;
 import static org.javarosa.core.model.DataType.GEOPOINT;
+import static org.javarosa.core.model.DataType.GEOSHAPE;
+import static org.javarosa.core.model.DataType.GEOTRACE;
 import static org.javarosa.core.model.DataType.MULTIPLE_ITEMS;
 import static org.javarosa.core.model.DataType.NULL;
 import static org.opendatakit.briefcase.export.Model.ControlType.SELECT_MULTI;
@@ -297,6 +299,10 @@ class Model {
         .filter(child -> child.getName().equals(name))
         .findFirst()
         .orElseThrow(BriefcaseException::new);
+  }
+
+  public boolean isSpatial() {
+    return Arrays.asList(GEOPOINT, GEOTRACE, GEOSHAPE).contains(getDataType());
   }
 
   // TODO This should be defined in JavaRosa, like the DataType enum
