@@ -267,7 +267,12 @@ class Model {
 
 
   public List<SelectChoice> getChoices() {
-    return Optional.ofNullable(controls.get(fqn()).getChoices()).orElse(emptyList());
+    Optional<QuestionDef> control = Optional.ofNullable(controls.get(fqn()));
+    if (!control.isPresent())
+      return emptyList();
+    if (control.map(QuestionDef::getAppearanceAttr).map(a -> a.contains("search(")).orElse(false))
+      return emptyList();
+    return control.get().getChoices();
   }
 
   public boolean isMetaAudit() {
