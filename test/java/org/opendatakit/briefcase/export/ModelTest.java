@@ -17,6 +17,8 @@
 package org.opendatakit.briefcase.export;
 
 import static java.util.Collections.emptyMap;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.javarosa.core.model.instance.TreeReference.DEFAULT_MULTIPLICITY;
 import static org.junit.Assert.assertThat;
@@ -24,10 +26,43 @@ import static org.junit.Assert.assertThat;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.javarosa.core.model.DataType;
+import org.javarosa.core.model.QuestionDef;
+import org.javarosa.core.model.SelectChoice;
 import org.javarosa.core.model.instance.TreeElement;
 import org.junit.Test;
 
 public class ModelTest {
+  @Test
+  public void gets_choices_of_a_related_select_control() {
+    SelectChoice choice1 = new SelectChoice("some label 1", "some value 1", false);
+    SelectChoice choice2 = new SelectChoice("some label 2", "some value 2", false);
+    QuestionDef control = new QuestionDef();
+    control.setControlType(Model.ControlType.SELECT_MULTI.value);
+    control.addSelectChoice(choice1);
+    control.addSelectChoice(choice2);
+
+    Model model = new ModelBuilder()
+        .addField("select", DataType.TEXT, control)
+        .build();
+
+    assertThat(model.getChoices(), contains(choice1, choice2));
+  }
+
+  @Test
+  public void gets_choices_of_a_related_select_control_with_search_appearance() {
+    QuestionDef control = new QuestionDef();
+    control.setControlType(Model.ControlType.SELECT_MULTI.value);
+    // This is the choice we will usually find in a select that uses appearance="search(...)"
+    control.addSelectChoice(new SelectChoice("name", "name_key", false));
+    control.setAppearanceAttr("search('some_external_instance')");
+
+    Model model = new ModelBuilder()
+        .addField("select", DataType.TEXT, control)
+        .build();
+
+    assertThat(model.getChoices(), empty());
+  }
 
   @Test
   public void knows_if_it_is_the_meta_audit_field() {

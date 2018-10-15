@@ -17,7 +17,6 @@ package org.opendatakit.briefcase.export;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.javarosa.core.model.Constants.DATATYPE_NULL;
 import static org.javarosa.core.model.DataType.GEOPOINT;
@@ -102,13 +101,17 @@ class Model {
 
   /**
    * Returns the Fully Qualified Name of this {@link Model} instance, having
-   * shifted a given amount of names.
-   *
-   * @param shift an int with the amount of names to shift from the FQN
-   * @return a {@link String} with the shifted FQN of this {@link Model}
-   * @see Model#fqn()
+   * shifted a given number of names.
    */
   String fqn(int shift) {
+    return fqn(model, shift);
+  }
+
+  /**
+   * Returns the Fully Qualified Name of a given {@link TreeElement} model, having
+   * shifted a given number of names.
+   */
+  public static String fqn(TreeElement model, int shift) {
     List<String> names = new ArrayList<>();
     TreeElement current = model;
     while (current.getParent() != null && current.getParent().getName() != null) {
@@ -116,10 +119,7 @@ class Model {
       current = (TreeElement) current.getParent();
     }
     Collections.reverse(names);
-    return names
-        .subList(shift, names.size())
-        .stream()
-        .collect(joining("-"));
+    return String.join("-", names.subList(shift, names.size()));
   }
 
   /**
@@ -147,9 +147,9 @@ class Model {
 
   /**
    * Returns the {@link List} of {@link String} names that this {@link Model} instance can be
-   * associated with, shifted a given amount of names.
+   * associated with, shifted a given number of names.
    *
-   * @param shift an int with the amount of names to shift from the FQN
+   * @param shift an int with the number of names to shift from the FQN
    * @return a {@link List} of shifted {@link String} names of this {@link Model} instance
    * @see Model#getNames()
    */
@@ -267,7 +267,12 @@ class Model {
 
 
   public List<SelectChoice> getChoices() {
-    return Optional.ofNullable(controls.get(fqn()).getChoices()).orElse(emptyList());
+    Optional<QuestionDef> control = Optional.ofNullable(controls.get(fqn()));
+    if (!control.isPresent())
+      return emptyList();
+    if (control.map(QuestionDef::getAppearanceAttr).map(a -> a.contains("search(")).orElse(false))
+      return emptyList();
+    return control.get().getChoices();
   }
 
   public boolean isMetaAudit() {
@@ -313,7 +318,7 @@ class Model {
     OSM_CAPTURE(14),
     FILE_CAPTURE(15);
 
-    private int value;
+    int value;
 
     ControlType(int value) {
       this.value = value;

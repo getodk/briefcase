@@ -16,15 +16,11 @@
 
 package org.opendatakit.briefcase.export;
 
-import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.is;
-import static org.javarosa.core.model.instance.TreeReference.DEFAULT_MULTIPLICITY;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.io.StringReader;
-import org.javarosa.core.model.DataType;
-import org.javarosa.core.model.instance.TreeElement;
 import org.junit.Test;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
@@ -70,43 +66,6 @@ public class XmlElementTest {
     parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
     tempDoc.parse(parser);
     return tempDoc;
-  }
-
-  static class ModelBuilder {
-    private TreeElement current = new TreeElement(null, DEFAULT_MULTIPLICITY);
-
-    ModelBuilder addGroup(String name) {
-      TreeElement child = new TreeElement(name, DEFAULT_MULTIPLICITY);
-      child.setDataType(DataType.NULL.value);
-      child.setRepeatable(false);
-      child.setParent(current);
-      current.addChild(child);
-      current = child;
-      return this;
-    }
-
-    ModelBuilder addRepeatGroup(String name) {
-      TreeElement child = new TreeElement(name, DEFAULT_MULTIPLICITY);
-      child.setDataType(DataType.NULL.value);
-      child.setRepeatable(true);
-      child.setParent(current);
-      current.addChild(child);
-      current = child;
-      return this;
-    }
-
-    ModelBuilder addField(String name, DataType dataType) {
-      TreeElement child = new TreeElement(name, DEFAULT_MULTIPLICITY);
-      child.setDataType(dataType.value);
-      child.setParent(current);
-      current.addChild(child);
-      current = child;
-      return this;
-    }
-
-    Model build() {
-      return new Model(current, emptyMap());
-    }
   }
 
   private static XmlElement buildXmlElementFrom(Model field) throws IOException, XmlPullParserException {
