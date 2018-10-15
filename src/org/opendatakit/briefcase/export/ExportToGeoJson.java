@@ -31,6 +31,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import org.bushe.swing.event.EventBus;
+import org.geojson.Feature;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +80,10 @@ public class ExportToGeoJson {
     // Generate csv lines grouped by the fqdn of the model they belong to
     Stream<Submission> validSubmissions = ExportTools.getValidSubmissions(formDef, configuration, submissionFiles, onParsingError, onInvalidSubmission);
 
-    validSubmissions.peek(s -> exportTracker.incAndReport());
+    Stream<Feature> features = validSubmissions.peek(s -> exportTracker.incAndReport())
+        .flatMap(submission -> GeoJson.asFeatureList(formDef.getModel(), submission));
+
+    GeoJson.write(features);
 
     exportTracker.end();
 
