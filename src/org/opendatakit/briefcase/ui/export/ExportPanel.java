@@ -119,11 +119,6 @@ public class ExportPanel {
 
       if (needsPemFile && !conf.isPemFilePresent())
         errors.add("- The form " + formStatus.getFormName() + " is encrypted. Please, configure a PEM file.");
-
-      if (needsPemFile && conf.isPemFilePresent())
-        ExportConfiguration
-            .readPemFile(conf.getPemFile())
-            .ifError(error -> errors.add("- Can't read the PEM file for form " + formStatus.getFormName() + ": " + error + ". Please, review configurations."));
     }
     return errors;
   }

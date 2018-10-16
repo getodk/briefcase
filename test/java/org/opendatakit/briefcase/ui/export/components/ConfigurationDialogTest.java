@@ -28,14 +28,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportConfigurationBuilder;
 
 public class ConfigurationDialogTest extends AssertJSwingJUnitTestCase {
   private static ExportConfiguration CONFIGURATION;
 
   static {
     try {
-      CONFIGURATION = ExportConfiguration.empty();
-      CONFIGURATION.setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()));
+      CONFIGURATION = ExportConfigurationBuilder.empty().setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri())).build();
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -76,7 +76,7 @@ public class ConfigurationDialogTest extends AssertJSwingJUnitTestCase {
   }
 
   @Test
-  public void clear_all_button_is_enabled_when_the_configuration_is_not_empty() {
+  public void clear_all_button_is_enabled_when_the_configuration_is_not_empty() throws InterruptedException {
     page = ConfigurationDialogPageObject.setUp(robot(), ExportConfiguration.empty());
     page.show();
     page.setSomeExportDir();

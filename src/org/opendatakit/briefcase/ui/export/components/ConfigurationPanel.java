@@ -15,85 +15,25 @@
  */
 package org.opendatakit.briefcase.ui.export.components;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Consumer;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 
 public class ConfigurationPanel {
-  private final ExportConfiguration configuration;
-  final ConfigurationPanelForm form;
+  private final ConfigurationPanelForm form;
   private final ConfigurationPanelMode mode;
-  private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
   private ConfigurationPanel(ExportConfiguration initialConfiguration, ConfigurationPanelForm form, ConfigurationPanelMode mode) {
-    this.configuration = initialConfiguration.copy();
     this.form = form;
     this.mode = mode;
 
-    configuration.ifExportDirPresent(form::setExportDir);
-    configuration.ifPemFilePresent(form::setPemFile);
-    configuration.ifStartDatePresent(form::setStartDate);
-    configuration.ifEndDatePresent(form::setEndDate);
-    form.setPullBefore(configuration.pullBefore);
-    form.setOverwriteFiles(configuration.overwriteFiles);
-    form.setExportMedia(configuration.exportMedia);
-    form.setSplitSelectMultiples(configuration.splitSelectMultiples);
-
-    form.onSelectExportDir(path -> {
-      configuration.setExportDir(path);
-      triggerOnChange();
-    });
-    form.onSelectPemFile(path -> {
-      configuration.setPemFile(path);
-      triggerOnChange();
-    });
-    form.onSelectDateRangeStart(date -> {
-      configuration.setStartDate(date);
-      triggerOnChange();
-    });
-    form.onSelectDateRangeEnd(date -> {
-      configuration.setEndDate(date);
-      triggerOnChange();
-    });
-    form.onChangePullBefore(value -> {
-      configuration.pullBefore.set(value);
-      triggerOnChange();
-    });
-    form.onChangePullBeforeOverride(value -> {
-      configuration.pullBefore.overrideWith(value);
-      triggerOnChange();
-    });
-    form.onChangeOverwriteExistingFiles(value -> {
-      configuration.overwriteFiles.set(value);
-      triggerOnChange();
-    });
-    form.onChangeOverwriteFilesOverride(value -> {
-      configuration.overwriteFiles.overrideWith(value);
-      triggerOnChange();
-    });
-    form.onChangeExportMedia(value -> {
-      configuration.exportMedia.set(value);
-      triggerOnChange();
-    });
-    form.onChangeExportMediaOverride(value -> {
-      configuration.exportMedia.overrideWith(value);
-      triggerOnChange();
-    });
-    form.onChangeSplitSelectMultiples(value -> {
-      configuration.splitSelectMultiples.set(value);
-      triggerOnChange();
-    });
-    form.onChangeSplitSelectMultiplesOverride(value -> {
-      configuration.splitSelectMultiples.overrideWith(value);
-      triggerOnChange();
-    });
+    form.initialize(initialConfiguration);
   }
 
   static ConfigurationPanel overridePanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent, boolean hasTransferSettings) {
     ConfigurationPanelMode mode = ConfigurationPanelMode.overridePanel(savePasswordsConsent, hasTransferSettings);
     return new ConfigurationPanel(
         initialConfiguration,
-        ConfigurationPanelForm.from(mode),
+        new ConfigurationPanelForm(mode),
         mode
     );
   }
@@ -102,7 +42,7 @@ public class ConfigurationPanel {
     ConfigurationPanelMode mode = ConfigurationPanelMode.defaultPanel(savePasswordsConsent);
     return new ConfigurationPanel(
         initialConfiguration,
-        ConfigurationPanelForm.from(mode),
+        new ConfigurationPanelForm(mode),
         mode
     );
   }
@@ -111,16 +51,8 @@ public class ConfigurationPanel {
     return form;
   }
 
-  public ExportConfiguration getConfiguration() {
-    return configuration;
-  }
-
-  public void onChange(Runnable callback) {
-    onChangeCallbacks.add(callback);
-  }
-
-  private void triggerOnChange() {
-    onChangeCallbacks.forEach(Runnable::run);
+  public void onChange(Consumer<ExportConfiguration> callback) {
+    form.onChange(callback);
   }
 
   public void setEnabled(boolean enabled, boolean savePasswordsConsent) {
@@ -128,14 +60,12 @@ public class ConfigurationPanel {
     form.changeMode(savePasswordsConsent);
   }
 
-  boolean isValid() {
-    return mode.isOverridePanel()
-        ? configuration.isValidAsCustomConf()
-        : configuration.isValid();
+  public boolean isEmpty() {
+    return form.getConfiguration().isEmpty();
   }
 
-  public boolean isEmpty() {
-    return configuration.isEmpty();
+  boolean isOverridePanel() {
+    return mode.isOverridePanel();
   }
 
 }

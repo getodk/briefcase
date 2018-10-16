@@ -26,15 +26,14 @@ import static org.opendatakit.briefcase.matchers.SwingMatchers.selected;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.visible;
 import static org.opendatakit.briefcase.reused.TriStateBoolean.TRUE;
 
-import java.nio.file.Paths;
+import java.security.Security;
 import java.time.LocalDate;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
-import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportConfigurationBuilder;
 import org.opendatakit.briefcase.matchers.GenericUIMatchers;
 import org.opendatakit.briefcase.matchers.SwingMatchers;
 
@@ -44,6 +43,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   @Override
   protected void onSetUp() {
     // component creation is made on each test to allow different scenarios
+    Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
   }
 
   @Test
@@ -103,12 +103,13 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void default_panel_loads_values_from_the_initial_configuration() {
-    ExportConfiguration expectedConfiguration = ExportConfiguration.empty();
-    expectedConfiguration.setExportDir(Paths.get("/some/path"));
-    expectedConfiguration.setPemFile(Paths.get("/some/file.pem"));
-    expectedConfiguration.setStartDate(LocalDate.of(2018, 1, 1));
-    expectedConfiguration.setEndDate(LocalDate.of(2019, 1, 1));
-    expectedConfiguration.pullBefore.set(true);
+    ExportConfiguration expectedConfiguration = ExportConfigurationBuilder.empty()
+        .setExportDir(ConfigurationPanelPageObject.TEST_FOLDER)
+        .setPemFile(ConfigurationPanelPageObject.VALID_PEM_FILE)
+        .setStartDate(LocalDate.of(2018, 1, 1))
+        .setEndDate(LocalDate.of(2019, 1, 1))
+        .setPullBefore(true)
+        .build();
     component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), expectedConfiguration, true, true);
     component.show();
     assertThat(component.exportDirField(), containsText(expectedConfiguration.getExportDir().toString()));
@@ -144,29 +145,11 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   }
 
   @Test
-  public void default_panel_wires_UI_fields_to_the_model() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
-    component.show();
-
-    component.setSomePemFile();
-    component.setSomeExportDir();
-    component.setSomeStartDate();
-    component.setSomeEndDate();
-    component.setPullBefore(true);
-    ExportConfiguration conf = component.getConfiguration();
-    assertThat(conf.getExportDir(), notNullValue());
-    assertThat(conf.getPemFile(), notNullValue());
-    assertThat(conf.mapStartDate(__ -> true).orElse(false), is(true)); // Kind of indirect check, but this field is not accessible
-    assertThat(conf.mapEndDate(__ -> true).orElse(false), is(true)); // Kind of indirect check, but this field is not accessible
-    assertThat(conf.pullBefore.isEmpty(), is(false));
-  }
-
-  @Test
   public void default_panel_broadcasts_changes() {
     final AtomicInteger counter = new AtomicInteger(0);
     component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
     component.show();
-    component.onChange(counter::incrementAndGet);
+    component.onChange(__ -> counter.incrementAndGet());
 
     component.setSomePemFile();
     component.setSomeExportDir();
@@ -174,17 +157,18 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     component.setSomeEndDate();
     component.setPullBefore(true);
 
-    assertThat(counter.get(), CoreMatchers.is(5));
+    assertThat(counter.get(), is(5));
   }
 
   @Test
   public void override_panel_loads_values_from_the_initial_configuration() {
-    ExportConfiguration expectedConfiguration = ExportConfiguration.empty();
-    expectedConfiguration.setExportDir(Paths.get("/some/path"));
-    expectedConfiguration.setPemFile(Paths.get("/some/file.pem"));
-    expectedConfiguration.setStartDate(LocalDate.of(2018, 1, 1));
-    expectedConfiguration.setEndDate(LocalDate.of(2019, 1, 1));
-    expectedConfiguration.pullBefore.overrideWith(TRUE);
+    ExportConfiguration expectedConfiguration = ExportConfigurationBuilder.empty()
+        .setExportDir(ConfigurationPanelPageObject.TEST_FOLDER)
+        .setPemFile(ConfigurationPanelPageObject.VALID_PEM_FILE)
+        .setStartDate(LocalDate.of(2018, 1, 1))
+        .setEndDate(LocalDate.of(2019, 1, 1))
+        .overridePullBefore(TRUE)
+        .build();
     component = ConfigurationPanelPageObject.setUpOverridePanel(robot(), expectedConfiguration, true, true);
     component.show();
     assertThat(component.exportDirField(), containsText(expectedConfiguration.getExportDir().toString()));
@@ -224,29 +208,11 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   }
 
   @Test
-  public void override_panel_wires_UI_fields_to_the_model() {
-    component = ConfigurationPanelPageObject.setUpOverridePanel(robot(), ExportConfiguration.empty(), true, true);
-    component.show();
-
-    component.setSomePemFile();
-    component.setSomeExportDir();
-    component.setSomeStartDate();
-    component.setSomeEndDate();
-    component.setPullBeforeOverride(TRUE);
-    ExportConfiguration conf = component.getConfiguration();
-    assertThat(conf.getExportDir(), notNullValue());
-    assertThat(conf.getPemFile(), notNullValue());
-    assertThat(conf.mapStartDate(__ -> true).orElse(false), is(true)); // Kind of indirect check, but this field is not accessible
-    assertThat(conf.mapEndDate(__ -> true).orElse(false), is(true)); // Kind of indirect check, but this field is not accessible
-    assertThat(conf.pullBefore.isEmpty(), is(false));
-  }
-
-  @Test
   public void override_panel_broadcasts_changes() {
     final AtomicInteger counter = new AtomicInteger(0);
     component = ConfigurationPanelPageObject.setUpOverridePanel(robot(), ExportConfiguration.empty(), true, true);
     component.show();
-    component.onChange(counter::incrementAndGet);
+    component.onChange(__ -> counter.incrementAndGet());
 
     component.setSomePemFile();
     component.setSomeExportDir();

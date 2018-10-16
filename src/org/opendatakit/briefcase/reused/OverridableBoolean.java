@@ -11,8 +11,8 @@ import java.util.Optional;
 public class OverridableBoolean {
   public static final OverridableBoolean TRUE = new OverridableBoolean(Optional.of(true), UNDETERMINED);
   public static final OverridableBoolean FALSE = new OverridableBoolean(Optional.of(false), UNDETERMINED);
-  private Optional<Boolean> value;
-  private TriStateBoolean overrideValue;
+  private final Optional<Boolean> value;
+  private final TriStateBoolean overrideValue;
 
   private OverridableBoolean(Optional<Boolean> value, TriStateBoolean overrideValue) {
     this.value = value;
@@ -32,13 +32,11 @@ public class OverridableBoolean {
   }
 
   public OverridableBoolean set(Boolean value) {
-    this.value = Optional.of(value);
-    return this;
+    return new OverridableBoolean(Optional.of(value), overrideValue);
   }
 
-  public OverridableBoolean overrideWith(TriStateBoolean value) {
-    overrideValue = value;
-    return this;
+  public OverridableBoolean overrideWith(TriStateBoolean overrideValue) {
+    return new OverridableBoolean(this.value, overrideValue);
   }
 
   public TriStateBoolean getOverride() {

@@ -28,9 +28,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportConfigurationBuilder;
 import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.export.FormDefinition;
@@ -48,9 +48,9 @@ public class ExportPanelUnitTest {
 
   @Test
   public void saves_to_user_preferences_changes_on_the_default_configuration() throws IOException {
+    initialDefaultConf = ExportConfiguration.empty();
     BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
-    initialDefaultConf = ExportConfiguration.empty();
     ExportForms forms = load(initialDefaultConf, new ArrayList<>(), exportPreferences, appPreferences);
     ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, appPreferences, initialDefaultConf);
     new ExportPanel(
@@ -62,7 +62,7 @@ public class ExportPanelUnitTest {
         FormCache.empty()
     );
 
-    exportPanelForm.setDefaultConf(initialDefaultConf.setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri())));
+    exportPanelForm.setDefaultConf(ExportConfigurationBuilder.empty().setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri())).build());
 
     assertThat(ExportConfiguration.load(exportPreferences).getExportDir(), notNullValue());
   }
@@ -87,8 +87,9 @@ public class ExportPanelUnitTest {
     FormStatus form = formsList.get(0);
     String formId = form.getFormDefinition().getFormId();
 
-    ExportConfiguration conf = ExportConfiguration.empty();
-    conf.setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()));
+    ExportConfiguration conf = ExportConfigurationBuilder.empty()
+        .setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()))
+        .build();
 
     forms.putConfiguration(form, conf);
     exportPanelForm.getFormsTable().getViewModel().triggerChange();

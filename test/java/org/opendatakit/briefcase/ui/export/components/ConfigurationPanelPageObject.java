@@ -18,21 +18,25 @@ package org.opendatakit.briefcase.ui.export.components;
 import static javax.swing.SwingUtilities.invokeLater;
 import static org.assertj.swing.edt.GuiActionRunner.execute;
 import static org.assertj.swing.timing.Timeout.timeout;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
 
 import com.github.lgooddatepicker.components.DatePicker;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextPane;
-import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 import org.assertj.swing.core.Robot;
 import org.assertj.swing.edt.GuiActionRunner;
@@ -40,24 +44,36 @@ import org.assertj.swing.exception.WaitTimedOutError;
 import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.fixture.JFileChooserFixture;
 import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.export.ExportConfigurationTest;
 import org.opendatakit.briefcase.reused.TriStateBoolean;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 class ConfigurationPanelPageObject {
-  private static Path TEST_FOLDER;
+  static final Path TEST_FOLDER;
+  static final Path VALID_PEM_FILE;
   private final ConfigurationPanel component;
   private final FrameFixture fixture;
 
   static {
     try {
       TEST_FOLDER = Files.createTempDirectory("briefcase_test");
-    } catch (IOException e) {
+      VALID_PEM_FILE = TEST_FOLDER.resolve("pkey.pem");
+      URI sourcePemFileUri = ExportConfigurationTest.class.getClassLoader()
+          .getResource("org/opendatakit/briefcase/export/encrypted-form-key.pem")
+          .toURI();
+      copy(Paths.get(sourcePemFileUri), VALID_PEM_FILE);
+    } catch (IOException | URISyntaxException e) {
       throw new RuntimeException(e);
     }
   }
 
+  private ExportConfiguration currentConf;
+
   private ConfigurationPanelPageObject(ConfigurationPanel component, FrameFixture fixture) {
     this.component = component;
     this.fixture = fixture;
+
+    component.onChange(conf -> currentConf = conf);
   }
 
   static ConfigurationPanelPageObject setUp(Robot robot, ExportConfiguration initialConfiguration, boolean isOverridePanel, boolean hasTransferSettings, boolean savePasswordsConsent) {
@@ -71,7 +87,7 @@ class ConfigurationPanelPageObject {
     return execute(() -> {
       ConfigurationPanel configurationPanel = ConfigurationPanel.defaultPanel(initialConfiguration, savePasswordsConsent);
       JFrame testFrame = new JFrame();
-      testFrame.add(configurationPanel.getForm().container);
+      testFrame.add(configurationPanel.getForm().$$$getRootComponent$$$());
       FrameFixture window = new FrameFixture(robot, testFrame);
       return new ConfigurationPanelPageObject(configurationPanel, window);
     });
@@ -81,7 +97,7 @@ class ConfigurationPanelPageObject {
     return execute(() -> {
       ConfigurationPanel configurationPanel = ConfigurationPanel.overridePanel(initialConfiguration, savePasswordsConsent, hasTransferSettings);
       JFrame testFrame = new JFrame();
-      testFrame.add(configurationPanel.getForm().container);
+      testFrame.add(configurationPanel.getForm().$$$getRootComponent$$$());
       FrameFixture window = new FrameFixture(robot, testFrame);
       return new ConfigurationPanelPageObject(configurationPanel, window);
     });
@@ -100,101 +116,81 @@ class ConfigurationPanelPageObject {
   }
 
   public JButton choosePemFileButton() {
-    return component.form.pemFileChooseButton;
+    return component.getForm().pemFileChooseButton;
   }
 
   public JButton chooseExportDirButton() {
-    return component.form.exportDirChooseButton;
+    return component.getForm().exportDirChooseButton;
   }
 
   public JButton clearPemFileButton() {
-    return component.form.pemFileClearButton;
+    return component.getForm().pemFileClearButton;
   }
 
   public JTextComponent exportDirField() {
-    return component.form.exportDirField;
+    return component.getForm().exportDirField;
   }
 
   public JTextComponent pemFileField() {
-    return component.form.pemFileField;
+    return component.getForm().pemFileField;
   }
 
   public DatePicker startDateField() {
-    return component.form.startDatePicker;
+    return component.getForm().startDatePicker;
   }
 
   public DatePicker endDateField() {
-    return component.form.endDatePicker;
+    return component.getForm().endDatePicker;
   }
 
   public JCheckBox pullBeforeField() {
-    return component.form.pullBeforeField;
+    return component.getForm().pullBeforeField;
   }
 
   public JLabel pullBeforeOverrideLabel() {
-    return component.form.pullBeforeOverrideLabel;
+    return component.getForm().pullBeforeOverrideLabel;
   }
 
   public CustomConfBooleanForm pullBeforeOverrideField() {
-    return component.form.pullBeforeOverrideField;
+    return component.getForm().pullBeforeOverrideField;
   }
 
   public JTextPane pullBeforeHintPanel() {
-    return component.form.pullBeforeHintPanel;
+    return component.getForm().pullBeforeHintPanel;
   }
 
   public void setSomePemFile() {
-    Path pemFile = TEST_FOLDER.resolve("some_file.pem");
-    execute(() -> component.form.setPemFile(pemFile));
+    execute(() -> component.getForm().setPemFile(VALID_PEM_FILE));
   }
 
   public void setSomeExportDir() {
     Path exportDir = TEST_FOLDER.resolve("some_dir");
-    execute(() -> component.form.setExportDir(exportDir));
+    UncheckedFiles.createDirectories(exportDir);
+    execute(() -> component.getForm().setExportDir(exportDir));
   }
 
   public void setStartDate(LocalDate someDate) {
-    // GUI actions launched with GuiActionRunner.execute(...) will block the thread
-    // until their completion. This is problematic when the action launches a modal
-    // dialog, which blocks the EDT, preventing us to make any assertion on the GUI
-    // status. Using SwingUtilities.invokeLater(...) solves this issue but forces
-    // us to manage some wait times between actions involving appearing/disappearing
-    // dialogs.
-    invokeLater(() -> component.form.setStartDate(someDate));
-    uncheckedSleep(50);
+    execute(() -> component.getForm().setStartDate(someDate));
   }
 
   public void setSomeStartDate() {
-    execute(() -> component.form.setStartDate(LocalDate.of(2018, 2, 1)));
+    execute(() -> component.getForm().setStartDate(LocalDate.of(2018, 2, 1)));
   }
 
   public void setEndDate(LocalDate someDate) {
-    // GUI actions launched with GuiActionRunner.execute(...) will block the thread
-    // until their completion. This is problematic when the action launches a modal
-    // dialog, which blocks the EDT, preventing us to make any assertion on the GUI
-    // status. Using SwingUtilities.invokeLater(...) solves this issue but forces
-    // us to manage some wait times between actions involving appearing/disappearing
-    // dialogs.
-    invokeLater(() -> component.form.setEndDate(someDate));
-    uncheckedSleep(50);
+    execute(() -> component.getForm().setEndDate(someDate));
   }
 
   public void setSomeEndDate() {
-    execute(() -> component.form.setEndDate(LocalDate.of(2018, 3, 1)));
+    execute(() -> component.getForm().setEndDate(LocalDate.of(2018, 3, 1)));
   }
 
   public void setPullBefore(boolean value) {
-    invokeLater(() -> {
-      JCheckBox field = component.form.pullBeforeField;
-      field.setSelected(value);
-      Arrays.asList(field.getActionListeners()).forEach(al -> al.actionPerformed(new ActionEvent(field, 1, "")));
-    });
-    uncheckedSleep(50);
+    execute(() -> component.getForm().setPullBefore(value));
   }
 
   public void setPullBeforeOverride(TriStateBoolean option) {
-    invokeLater(() -> component.form.pullBeforeOverrideField.set(option));
-    uncheckedSleep(50);
+    execute(() -> component.getForm().setPullBefore(option));
   }
 
   private JFileChooserFixture fileDialog() {
@@ -242,29 +238,29 @@ class ConfigurationPanelPageObject {
   }
 
   public void clickChooseExportDirButton() {
-    click(component.form.exportDirChooseButton);
+    click(component.getForm().exportDirChooseButton);
     uncheckedSleep(50);
   }
 
   public void clickChoosePemFileButton() {
-    click(component.form.pemFileChooseButton);
+    click(component.getForm().pemFileChooseButton);
     uncheckedSleep(50);
   }
 
   public void clickClearPemFileButton() {
-    click(component.form.pemFileClearButton);
+    click(component.getForm().pemFileClearButton);
     uncheckedSleep(50);
   }
 
   public ExportConfiguration getConfiguration() {
-    return component.getConfiguration();
+    return currentConf;
   }
 
-  public void onChange(Runnable callback) {
+  public void onChange(Consumer<ExportConfiguration> callback) {
     component.onChange(callback);
   }
 
   private void click(JButton button) {
-    SwingUtilities.invokeLater(() -> Arrays.asList(button.getActionListeners()).forEach(al -> al.actionPerformed(new ActionEvent(button, 1, ""))));
+    invokeLater(() -> Arrays.asList(button.getActionListeners()).forEach(al -> al.actionPerformed(new ActionEvent(button, 1, ""))));
   }
 }

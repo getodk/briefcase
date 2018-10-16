@@ -79,7 +79,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
     button.addActionListener(__ -> {
       if (enabled) {
         ConfigurationDialog dialog = ConfigurationDialog.overridePanel(
-            forms.getCustomConfiguration(form),
+            forms.getCustomConfiguration(form).orElse(ExportConfiguration.empty()),
             form.getFormName(),
             forms.hasTransferSettings(form),
             BriefcasePreferences.getStorePasswordsConsentProperty()

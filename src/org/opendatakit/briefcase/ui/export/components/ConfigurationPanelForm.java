@@ -44,6 +44,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import org.opendatakit.briefcase.export.DateRange;
+import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.reused.OverridableBoolean;
 import org.opendatakit.briefcase.reused.TriStateBoolean;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
@@ -51,51 +53,56 @@ import org.opendatakit.briefcase.util.StringUtils;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ConfigurationPanelForm extends JComponent {
-  public JPanel container;
-  protected final DatePicker startDatePicker;
-  protected final DatePicker endDatePicker;
-  protected JTextField exportDirField;
-  protected JTextField pemFileField;
-  protected JButton exportDirChooseButton;
+  private JPanel container;
+
+  // UI components
+  final DatePicker startDatePicker;
+  final DatePicker endDatePicker;
+  JTextField exportDirField;
+  JTextField pemFileField;
+  JButton exportDirChooseButton;
   private JLabel exportDirLabel;
   private JLabel pemFileLabel;
   private JLabel startDateLabel;
   private JLabel endDateLabel;
   private JPanel pemFileButtons;
-  protected JButton pemFileChooseButton;
-  protected JButton pemFileClearButton;
+  JButton pemFileChooseButton;
+  JButton pemFileClearButton;
   private JPanel exportDirButtons;
   private JButton exportDirCleanButton;
   JCheckBox pullBeforeField;
-  CustomConfBooleanForm pullBeforeOverrideField;
-  JTextPane pullBeforeHintPanel;
   JLabel pullBeforeOverrideLabel;
+  JTextPane pullBeforeHintPanel;
+  final CustomConfBooleanForm pullBeforeOverrideField;
   JCheckBox overwriteFilesField;
+  JLabel overwriteFilesOverrideLabel;
+  final CustomConfBooleanForm overwriteFilesOverrideField;
   JCheckBox exportMediaField;
   JLabel exportMediaOverrideLabel;
-  JLabel overwriteFilesOverrideLabel;
-  CustomConfBooleanForm overwriteFilesOverrideField;
-  CustomConfBooleanForm exportMediaOverrideField;
+  final CustomConfBooleanForm exportMediaOverrideField;
   JCheckBox splitSelectMultiplesField;
   JLabel splitSelectMultiplesOverrideLabel;
-  CustomConfBooleanForm splitSelectMultiplesOverrideField;
-  private final List<Consumer<Path>> onSelectExportDirCallbacks = new ArrayList<>();
-  private final List<Consumer<Path>> onSelectPemFileCallbacks = new ArrayList<>();
-  private final List<Consumer<LocalDate>> onSelectStartDateCallbacks = new ArrayList<>();
-  private final List<Consumer<LocalDate>> onSelectEndDateCallbacks = new ArrayList<>();
-  private final List<Consumer<Boolean>> onChangePullBeforeCallbacks = new ArrayList<>();
-  private final List<Consumer<TriStateBoolean>> onChangePullBeforeOverrideCallbacks = new ArrayList<>();
-  private final List<Consumer<Boolean>> onChangeOverwriteExistingFilesCallbacks = new ArrayList<>();
-  private final List<Consumer<TriStateBoolean>> onChangeOverwriteFilesOverrideCallbacks = new ArrayList<>();
-  private final List<Consumer<Boolean>> onChangeExportMediaCallbacks = new ArrayList<>();
-  private final List<Consumer<TriStateBoolean>> onChangeExportMediaOverrideCallbacks = new ArrayList<>();
-  private final List<Consumer<Boolean>> onChangeSplitSelectMultiplesCallbacks = new ArrayList<>();
-  private final List<Consumer<TriStateBoolean>> onChangeSplitSelectMultiplesOverrideCallbacks = new ArrayList<>();
+  final CustomConfBooleanForm splitSelectMultiplesOverrideField;
+
+
+  // UI status and callbacks
   private final ConfigurationPanelMode mode;
   private boolean uiLocked = false;
+  private final List<Consumer<ExportConfiguration>> onChangeCallbacks = new ArrayList<>();
 
-  private ConfigurationPanelForm(ConfigurationPanelMode mode) {
+  // UI state
+  private Optional<Path> exportDir = Optional.empty();
+  private Optional<Path> pemFile = Optional.empty();
+  private DateRange dateRange = DateRange.empty();
+  private OverridableBoolean pullBefore = OverridableBoolean.FALSE;
+  private OverridableBoolean overwriteFiles = OverridableBoolean.FALSE;
+  private OverridableBoolean exportMedia = OverridableBoolean.TRUE;
+  private OverridableBoolean splitSelectMultiples = OverridableBoolean.FALSE;
+
+  ConfigurationPanelForm(ConfigurationPanelMode mode) {
     this.mode = mode;
+
+    // Set the UI up
     startDatePicker = createDatePicker();
     endDatePicker = createDatePicker();
     pullBeforeOverrideField = new CustomConfBooleanForm(Optional.empty());
@@ -104,53 +111,55 @@ public class ConfigurationPanelForm extends JComponent {
     splitSelectMultiplesOverrideField = new CustomConfBooleanForm(Optional.empty());
 
     $$$setupUI$$$();
+
     startDatePicker.getSettings().setGapBeforeButtonPixels(0);
     startDatePicker.getComponentDateTextField().setPreferredSize(exportDirField.getPreferredSize());
     startDatePicker.getComponentToggleCalendarButton().setPreferredSize(exportDirChooseButton.getPreferredSize());
+
     endDatePicker.getSettings().setGapBeforeButtonPixels(0);
     endDatePicker.getComponentDateTextField().setPreferredSize(exportDirField.getPreferredSize());
     endDatePicker.getComponentToggleCalendarButton().setPreferredSize(exportDirChooseButton.getPreferredSize());
+
     pullBeforeHintPanel.setBackground(new Color(255, 255, 255, 0));
-    mode.decorate(this, uiLocked);
+
+    // Deal with platform quirks
     GridBagLayout layout = (GridBagLayout) container.getLayout();
     GridBagConstraints constraints = layout.getConstraints(pullBeforeHintPanel);
     constraints.insets = new Insets(0, isMac() ? 6 : isWindows() ? 2 : 0, 0, 0);
     layout.setConstraints(pullBeforeHintPanel, constraints);
 
-    exportDirChooseButton.addActionListener(__ ->
-        buildExportDirDialog().choose().ifPresent(file -> setExportDir(Paths.get(file.toURI())))
-    );
-    exportDirCleanButton.addActionListener(__ -> clearExportDir());
-    pemFileChooseButton.addActionListener(__ ->
-        buildPemFileDialog().choose().ifPresent(file -> setPemFile(Paths.get(file.toURI())))
-    );
-    pemFileClearButton.addActionListener(__ -> clearPemFile());
-
-    startDatePicker.addDateChangeListener(event -> {
-      endDatePicker.getSettings().setDateRangeLimits(event.getNewDate(), null);
-      onSelectStartDateCallbacks.forEach(consumer -> consumer.accept(event.getNewDate()));
-    });
-
-    endDatePicker.addDateChangeListener(event -> {
-      startDatePicker.getSettings().setDateRangeLimits(null, event.getNewDate());
-      onSelectEndDateCallbacks.forEach(consumer -> consumer.accept(event.getNewDate()));
-    });
-    pullBeforeField.addActionListener(__ -> triggerChangePullBefore());
-    pullBeforeOverrideField.onChange(__ -> triggerChangePullBeforeOverride());
-    overwriteFilesField.addActionListener(__ -> {
-      if (!overwriteFilesField.isSelected() || confirmOverwriteFiles())
-        triggerOverwriteExistingFiles();
-    });
-    exportMediaField.addActionListener(__ -> triggerChangeExportMedia());
-    exportMediaOverrideField.onChange(__ -> triggerChangeExportMediaOverride());
-    overwriteFilesOverrideField.onChange(__ -> triggerOverwriteFilesOverride());
-
-    splitSelectMultiplesField.addActionListener(__ -> triggerChangeSplitSelectMultiples());
-    splitSelectMultiplesOverrideField.onChange(__ -> triggerChangeSplitSelectMultiplesOverride());
+    // Unlock the UI
+    mode.decorate(this, false);
+    attachUI();
   }
 
-  public static ConfigurationPanelForm from(ConfigurationPanelMode mode) {
-    return new ConfigurationPanelForm(mode);
+  private void attachUI() {
+    // Attach UI component listeners
+    exportDirChooseButton.addActionListener(__ -> buildExportDirDialog().choose().ifPresent(file -> setExportDir(Paths.get(file.toURI()))));
+    exportDirCleanButton.addActionListener(__ -> clearExportDir());
+    pemFileChooseButton.addActionListener(__ -> buildPemFileDialog().choose().ifPresent(file -> setPemFile(Paths.get(file.toURI()))));
+    pemFileClearButton.addActionListener(__ -> clearPemFile());
+    startDatePicker.addDateChangeListener(event -> setStartDate(event.getNewDate()));
+    endDatePicker.addDateChangeListener(event -> setEndDate(event.getNewDate()));
+    pullBeforeField.addActionListener(__ -> setPullBefore(pullBeforeField.isSelected()));
+    pullBeforeOverrideField.onChange(this::setPullBefore);
+    overwriteFilesField.addActionListener(__ -> setOverwriteFiles(overwriteFilesField.isSelected()));
+    overwriteFilesOverrideField.onChange(this::setOverwriteFiles);
+    exportMediaField.addActionListener(__ -> setExportMedia(exportMediaField.isSelected()));
+    exportMediaOverrideField.onChange(this::setExportMedia);
+    splitSelectMultiplesField.addActionListener(__ -> setSplitSelectMultiples(splitSelectMultiplesField.isSelected()));
+    splitSelectMultiplesOverrideField.onChange(this::setSplitSelectMultiples);
+  }
+
+
+  void initialize(ExportConfiguration configuration) {
+    configuration.ifExportDirPresent(this::setExportDir);
+    configuration.ifPemFilePresent(this::setPemFile);
+    setDateRange(configuration.getDateRange());
+    setPullBefore(configuration.getPullBefore());
+    setOverwriteFiles(configuration.getOverwriteFiles());
+    setExportMedia(configuration.getExportMedia());
+    setSplitSelectMultiples(configuration.getSplitSelectMultiples());
   }
 
   @Override
@@ -178,114 +187,160 @@ public class ConfigurationPanelForm extends JComponent {
     overwriteFilesField.setEnabled(enabled);
   }
 
-  public void setExportDir(Path path) {
+  void setExportDir(Path path) {
+    exportDir = Optional.of(path);
     exportDirField.setText(path.toString());
-    onSelectExportDirCallbacks.forEach(consumer -> consumer.accept(path));
     if (mode.isExportDirCleanable()) {
       exportDirChooseButton.setVisible(false);
       exportDirCleanButton.setVisible(true);
     }
+    triggerOnChange();
   }
 
   void clearExportDir() {
+    exportDir = Optional.empty();
     exportDirField.setText(null);
-    onSelectExportDirCallbacks.forEach(consumer -> consumer.accept(null));
     if (mode.isExportDirCleanable()) {
       exportDirChooseButton.setVisible(true);
       exportDirCleanButton.setVisible(false);
     }
+    triggerOnChange();
   }
 
   void setPemFile(Path path) {
+    pemFile = Optional.of(path);
     pemFileField.setText(path.toString());
-    onSelectPemFileCallbacks.forEach(consumer -> consumer.accept(path));
     pemFileChooseButton.setVisible(false);
     pemFileClearButton.setVisible(true);
+    triggerOnChange();
   }
 
   private void clearPemFile() {
+    pemFile = Optional.empty();
     pemFileField.setText(null);
-    onSelectPemFileCallbacks.forEach(consumer -> consumer.accept(null));
     pemFileChooseButton.setVisible(true);
     pemFileClearButton.setVisible(false);
+    triggerOnChange();
+  }
+
+  private void setDateRange(DateRange range) {
+    dateRange = range;
+    dateRange.ifStartPresent(date -> {
+      startDatePicker.setDate(date);
+      endDatePicker.getSettings().setDateRangeLimits(date, null);
+      triggerOnChange();
+    });
+    dateRange.ifEndPresent(date -> {
+      endDatePicker.setDate(date);
+      startDatePicker.getSettings().setDateRangeLimits(null, date);
+      triggerOnChange();
+    });
   }
 
   void setStartDate(LocalDate date) {
-    // Route the change through the date picker's date to avoid repeated set calls
-    startDatePicker.setDate(LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
+    // Prevent dupe calls to this method from the picker's listener
+    if (date == null || !dateRange.isStartPresent() || !dateRange.getStart().equals(date)) {
+      dateRange = dateRange.setStart(date);
+      startDatePicker.setDate(date);
+      endDatePicker.getSettings().setDateRangeLimits(date, null);
+      triggerOnChange();
+    }
   }
 
   void setEndDate(LocalDate date) {
-    // Route the change through the date picker's date to avoid repeated set calls
-    endDatePicker.setDate(LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
+    // Prevent dupe calls to this method from the picker's listener
+    if (date == null || !dateRange.isEndPresent() || !dateRange.getEnd().equals(date)) {
+      dateRange = dateRange.setEnd(date);
+      endDatePicker.setDate(date);
+      startDatePicker.getSettings().setDateRangeLimits(null, date);
+      triggerOnChange();
+    }
   }
 
-  void setPullBefore(OverridableBoolean value) {
+  void setPullBefore(boolean enabled) {
+    pullBefore = pullBefore.set(enabled);
+    triggerOnChange();
+  }
+
+  void setPullBefore(TriStateBoolean overrideValue) {
+    pullBefore = pullBefore.overrideWith(overrideValue);
+    triggerOnChange();
+  }
+
+  private void setPullBefore(OverridableBoolean value) {
+    pullBefore = value;
     pullBeforeField.setSelected(value.get(false));
     pullBeforeOverrideField.set(value.getOverride());
   }
 
-  void setOverwriteFiles(OverridableBoolean value) {
+  private void setOverwriteFiles(boolean enabled) {
+    overwriteFiles = overwriteFiles.set(enabled);
+    triggerOnChange();
+  }
+
+  private void setOverwriteFiles(TriStateBoolean overrideValue) {
+    overwriteFiles = overwriteFiles.overrideWith(overrideValue);
+    triggerOnChange();
+  }
+
+  private void setOverwriteFiles(OverridableBoolean value) {
+    overwriteFiles = value;
     overwriteFilesField.setSelected(value.get(false));
     overwriteFilesOverrideField.set(value.getOverride());
   }
 
-  void setExportMedia(OverridableBoolean value) {
+  private void setExportMedia(boolean enabled) {
+    exportMedia = exportMedia.set(enabled);
+    triggerOnChange();
+  }
+
+  private void setExportMedia(TriStateBoolean overrideValue) {
+    exportMedia = exportMedia.overrideWith(overrideValue);
+    triggerOnChange();
+  }
+
+  private void setExportMedia(OverridableBoolean value) {
+    exportMedia = value;
     exportMediaField.setSelected(value.get(true));
     exportMediaOverrideField.set(value.getOverride());
   }
 
-  void setSplitSelectMultiples(OverridableBoolean value) {
+  private void setSplitSelectMultiples(boolean enabled) {
+    splitSelectMultiples = splitSelectMultiples.set(enabled);
+    triggerOnChange();
+  }
+
+  private void setSplitSelectMultiples(TriStateBoolean overrideValue) {
+    splitSelectMultiples = splitSelectMultiples.overrideWith(overrideValue);
+    triggerOnChange();
+  }
+
+  private void setSplitSelectMultiples(OverridableBoolean value) {
+    splitSelectMultiples = value;
     splitSelectMultiplesField.setSelected(value.get(false));
     splitSelectMultiplesOverrideField.set(value.getOverride());
   }
 
-  void onSelectExportDir(Consumer<Path> callback) {
-    onSelectExportDirCallbacks.add(callback);
+  void onChange(Consumer<ExportConfiguration> callback) {
+    onChangeCallbacks.add(callback);
   }
 
-  void onSelectPemFile(Consumer<Path> callback) {
-    onSelectPemFileCallbacks.add(callback);
+  private void triggerOnChange() {
+    ExportConfiguration conf = new ExportConfiguration(
+        Optional.empty(),
+        exportDir,
+        pemFile,
+        dateRange,
+        pullBefore,
+        overwriteFiles,
+        exportMedia,
+        splitSelectMultiples
+    );
+    onChangeCallbacks.forEach(callback -> callback.accept(conf));
   }
 
-  void onSelectDateRangeStart(Consumer<LocalDate> callback) {
-    onSelectStartDateCallbacks.add(callback);
-  }
-
-  void onSelectDateRangeEnd(Consumer<LocalDate> callback) {
-    onSelectEndDateCallbacks.add(callback);
-  }
-
-  void onChangePullBefore(Consumer<Boolean> callback) {
-    onChangePullBeforeCallbacks.add(callback);
-  }
-
-  void onChangePullBeforeOverride(Consumer<TriStateBoolean> callback) {
-    onChangePullBeforeOverrideCallbacks.add(callback);
-  }
-
-  void onChangeOverwriteExistingFiles(Consumer<Boolean> callback) {
-    onChangeOverwriteExistingFilesCallbacks.add(callback);
-  }
-
-  void onChangeOverwriteFilesOverride(Consumer<TriStateBoolean> callback) {
-    onChangeOverwriteFilesOverrideCallbacks.add(callback);
-  }
-
-  void onChangeExportMedia(Consumer<Boolean> callback) {
-    onChangeExportMediaCallbacks.add(callback);
-  }
-
-  void onChangeExportMediaOverride(Consumer<TriStateBoolean> callback) {
-    onChangeExportMediaOverrideCallbacks.add(callback);
-  }
-
-  void onChangeSplitSelectMultiples(Consumer<Boolean> callback) {
-    onChangeSplitSelectMultiplesCallbacks.add(callback);
-  }
-
-  void onChangeSplitSelectMultiplesOverride(Consumer<TriStateBoolean> callback) {
-    onChangeSplitSelectMultiplesOverrideCallbacks.add(callback);
+  public ExportConfiguration getConfiguration() {
+    return null;
   }
 
   void changeMode(boolean savePasswordsConsent) {
@@ -333,44 +388,13 @@ public class ConfigurationPanelForm extends JComponent {
         .map(path -> Paths.get(path).toFile());
   }
 
-  private void triggerChangePullBefore() {
-    onChangePullBeforeCallbacks.forEach(callback -> callback.accept(pullBeforeField.isSelected()));
-  }
-
-  private void triggerChangePullBeforeOverride() {
-    onChangePullBeforeOverrideCallbacks.forEach(callback -> callback.accept(pullBeforeOverrideField.get()));
-  }
-
-  private void triggerOverwriteExistingFiles() {
-    onChangeOverwriteExistingFilesCallbacks.forEach(callback -> callback.accept(overwriteFilesField.isSelected()));
-  }
-
-  private void triggerOverwriteFilesOverride() {
-    onChangeOverwriteFilesOverrideCallbacks.forEach(callback -> callback.accept(overwriteFilesOverrideField.get()));
-  }
-
-  private void triggerChangeExportMedia() {
-    onChangeExportMediaCallbacks.forEach(callback -> callback.accept(exportMediaField.isSelected()));
-  }
-
-  private void triggerChangeExportMediaOverride() {
-    onChangeExportMediaOverrideCallbacks.forEach(callback -> callback.accept(exportMediaOverrideField.get()));
-  }
-
-  private void triggerChangeSplitSelectMultiples() {
-    onChangeSplitSelectMultiplesCallbacks.forEach(callback -> callback.accept(splitSelectMultiplesField.isSelected()));
-  }
-
-  private void triggerChangeSplitSelectMultiplesOverride() {
-    onChangeSplitSelectMultiplesOverrideCallbacks.forEach(callback -> callback.accept(splitSelectMultiplesOverrideField.get()));
-  }
-
   private boolean confirmOverwriteFiles() {
     if (confirm("The default behavior is to append to existing files. Are you sure you want to overwrite existing files?"))
       return true;
     overwriteFilesField.setSelected(false);
     return false;
   }
+
 
   /**
    * Method generated by IntelliJ IDEA GUI Designer

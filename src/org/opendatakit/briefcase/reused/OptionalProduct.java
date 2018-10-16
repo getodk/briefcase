@@ -16,6 +16,7 @@
 package org.opendatakit.briefcase.reused;
 
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 /**
@@ -59,6 +60,10 @@ public interface OptionalProduct {
 
     <V> Optional<V> flatMap(Function2<T, U, Optional<V>> mapper);
 
+    void ifPresent(BiConsumer<T, U> consumer);
+
+    boolean isPresent();
+
     class Some<T, U> implements OptionalProduct2<T, U> {
       private final T t;
       private final U u;
@@ -77,6 +82,16 @@ public interface OptionalProduct {
       public <V> Optional<V> flatMap(Function2<T, U, Optional<V>> mapper) {
         return mapper.apply(t, u);
       }
+
+      @Override
+      public void ifPresent(BiConsumer<T, U> consumer) {
+        consumer.accept(t, u);
+      }
+
+      @Override
+      public boolean isPresent() {
+        return true;
+      }
     }
 
     class None<T, U> implements OptionalProduct2<T, U> {
@@ -89,6 +104,16 @@ public interface OptionalProduct {
       @Override
       public <V> Optional<V> flatMap(Function2<T, U, Optional<V>> mapper) {
         return Optional.empty();
+      }
+
+      @Override
+      public void ifPresent(BiConsumer<T, U> consumer) {
+        // Do nothing
+      }
+
+      @Override
+      public boolean isPresent() {
+        return false;
       }
     }
   }

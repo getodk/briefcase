@@ -27,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
+import org.opendatakit.briefcase.export.DateRange;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportToCsv;
 import org.opendatakit.briefcase.export.FormDefinition;
@@ -88,12 +89,12 @@ public class Export {
     BriefcaseFormDefinition formDefinition = maybeFormDefinition.orElseThrow(() -> new FormNotFoundException(formid));
 
     System.out.println("Exporting form " + formDefinition.getFormName() + " (" + formDefinition.getFormId() + ") to: " + exportDir);
+    DateRange dateRange = new DateRange(startDate, endDate);
     ExportConfiguration configuration = new ExportConfiguration(
         Optional.of(baseFilename),
         Optional.of(exportDir),
         maybePemFile,
-        startDate,
-        endDate,
+        dateRange,
         OverridableBoolean.of(pullBefore),
         OverridableBoolean.of(overwriteFiles),
         OverridableBoolean.of(exportMedia),
