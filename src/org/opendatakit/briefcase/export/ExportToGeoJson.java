@@ -83,7 +83,9 @@ public class ExportToGeoJson {
     Stream<Feature> features = validSubmissions.peek(s -> exportTracker.incAndReport())
         .flatMap(submission -> GeoJson.toFeatures(formDef.getModel(), submission));
 
-    GeoJson.write(features);
+    Path output = configuration.getExportDir()
+        .resolve(configuration.getFilenameBase(formDef.getFormName()) + ".geojson");
+    GeoJson.write(output, features);
 
     exportTracker.end();
 

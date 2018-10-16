@@ -17,14 +17,15 @@
 package org.opendatakit.briefcase.export;
 
 import static java.lang.Math.abs;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.empty;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -70,12 +71,12 @@ class GeoJson {
     });
   }
 
-  static void write(Stream<Feature> features) {
+  static void write(Path output, Stream<Feature> features) {
     FeatureCollection fc = new FeatureCollection();
     features.forEach(fc::add);
     try {
       String contents = new ObjectMapper().writeValueAsString(fc);
-      UncheckedFiles.write(Paths.get("/tmp/demo.geojson"), contents, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+      UncheckedFiles.write(output, contents, CREATE, TRUNCATE_EXISTING);
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }

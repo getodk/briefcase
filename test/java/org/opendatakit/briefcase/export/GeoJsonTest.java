@@ -123,7 +123,7 @@ public class GeoJsonTest {
     assertThat(features, allMatch(feature -> feature.getProperty("valid") == "no"));
   }
 
-  private static <T> Matcher<Collection<T>> allMatch(Predicate<T> predicate) {
+  static <T> Matcher<Collection<T>> allMatch(Predicate<T> predicate) {
     return new TypeSafeMatcher<Collection<T>>() {
       @Override
       protected boolean matchesSafely(Collection<T> item) {
