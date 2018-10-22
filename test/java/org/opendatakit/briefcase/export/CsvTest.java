@@ -101,6 +101,26 @@ public class CsvTest {
     assertThat(exportDir.resolve("some__form-re peat.csv"), exists());
   }
 
+  @Test
+  public void dupe_repeat_group_names_get_a_sequence_number_suffix() {
+    Model group = new ModelBuilder()
+        .addGroup("data")
+        .addRepeatGroup("outer-repeat")
+        .addGroup("outer-group")
+        .addRepeatGroup("dupe-repeat")
+        .addGroup("inner-group")
+        .addRepeatGroup("dupe-repeat")
+        .build();
+
+    FormDefinition formDef = buildFormDef("some-form", group, 5);
+
+    Csv.getCsvs(formDef, conf).forEach(Csv::prepareOutputFiles);
+
+    assertThat(exportDir.resolve("some_form-outer_repeat.csv"), exists());
+    assertThat(exportDir.resolve("some_form-dupe_repeat~1.csv"), exists());
+    assertThat(exportDir.resolve("some_form-dupe_repeat~2.csv"), exists());
+  }
+
   private ExportConfiguration buildConf(Path exportDir) {
     return new ExportConfiguration(
         Optional.empty(),

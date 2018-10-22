@@ -3,6 +3,7 @@ package org.opendatakit.briefcase.export;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.CsvSubmissionMappers.getMainHeader;
 import static org.opendatakit.briefcase.export.CsvSubmissionMappers.getRepeatHeader;
@@ -13,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 
@@ -76,6 +78,26 @@ class Csv {
     );
   }
 
+  static Csv repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration, int sequenceNumber) {
+    String repeatFileNameBase = configuration.getExportFileName()
+        .map(UncheckedFiles::stripFileExtension)
+        .orElse(stripIllegalChars(formDefinition.getFormName()));
+    Path output = configuration.getExportDir().resolve(String.format(
+        "%s-%s~%d.csv",
+        repeatFileNameBase,
+        stripIllegalChars(groupModel.getName()),
+        sequenceNumber
+    ));
+    return new Csv(
+        groupModel.fqn(),
+        getRepeatHeader(groupModel, configuration.resolveSplitSelectMultiples()),
+        output,
+        false,
+        configuration.resolveOverwriteExistingFiles(),
+        CsvSubmissionMappers.repeat(formDefinition, groupModel, configuration)
+    );
+  }
+
   /**
    * Returns true if the grandparent node of the given Model is the model's root
    * <p>
@@ -110,9 +132,19 @@ class Csv {
     //  - one for each repeat group
     List<Csv> csvs = new ArrayList<>();
     csvs.add(main(formDef, configuration));
-    csvs.addAll(formDef.getRepeatableFields().stream()
-        .map(groupModel -> repeat(formDef, groupModel, configuration))
-        .collect(toList()));
+    List<Csv> repeatCsvs = formDef.getRepeatableFields().stream()
+        .collect(groupingBy(Model::getName))
+        .values().stream()
+        .flatMap(models -> {
+          if (models.size() == 1)
+            return models.stream().map(group -> repeat(formDef, group, configuration));
+          else {
+            AtomicInteger sequence = new AtomicInteger(1);
+            return models.stream().map(group -> repeat(formDef, group, configuration, sequence.getAndIncrement()));
+          }
+        })
+        .collect(toList());
+    csvs.addAll(repeatCsvs);
     return csvs;
   }
 
