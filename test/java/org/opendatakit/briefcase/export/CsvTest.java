@@ -55,7 +55,7 @@ public class CsvTest {
         .addRepeatGroup("r")
         .build();
 
-    FormDefinition formDef = buildFormDef(group, 4);
+    FormDefinition formDef = buildFormDef("some_form", group, 4);
 
     Csv.repeat(formDef, group, conf).prepareOutputFiles();
 
@@ -73,7 +73,7 @@ public class CsvTest {
         .addRepeatGroup("r3")
         .build();
 
-    FormDefinition formDef = buildFormDef(group, 5);
+    FormDefinition formDef = buildFormDef("some_form", group, 5);
 
     Csv.repeat(formDef, group, conf).prepareOutputFiles();
     Csv.repeat(formDef, group.getParent(), conf).prepareOutputFiles();
@@ -84,9 +84,26 @@ public class CsvTest {
     assertThat(exportDir.resolve("some_form-r3.csv"), exists());
   }
 
+  @Test
+  public void sanitizes_filenames() {
+    Model group = new ModelBuilder()
+        .addGroup("data")
+        .addGroup("some-group")
+        .addRepeatGroup("re\tpeat")
+        .build();
+
+    FormDefinition formDef = buildFormDef("some.,form", group, 2);
+
+    Csv.main(formDef, conf).prepareOutputFiles();
+    Csv.repeat(formDef, group, conf).prepareOutputFiles();
+
+    assertThat(exportDir.resolve("some__form.csv"), exists());
+    assertThat(exportDir.resolve("some__form-re peat.csv"), exists());
+  }
+
   private ExportConfiguration buildConf(Path exportDir) {
     return new ExportConfiguration(
-        Optional.of("some_form.csv"),
+        Optional.empty(),
         Optional.of(exportDir),
         Optional.empty(),
         Optional.empty(),
@@ -98,14 +115,14 @@ public class CsvTest {
     );
   }
 
-  private static FormDefinition buildFormDef(Model group, int ancestors) {
+  private static FormDefinition buildFormDef(String formName, Model group, int ancestors) {
     Model root = group;
     for (int i = 0; i < ancestors; i++)
       root = root.getParent();
     return new FormDefinition(
         "some_form",
         Paths.get("/some/random/path/doesnt/matter/"),
-        "some_form",
+        formName,
         false,
         root
     );
