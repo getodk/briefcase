@@ -66,7 +66,7 @@ final class CsvFieldMappers {
 
   private static CsvFieldMapper AUDIT_MAPPER = BINARY_MAPPER
       .andThen((formName, localId, workingDir, model, maybeElement, configuration) -> maybeElement
-          .map(e -> audit(formName, localId, workingDir, configuration, e))
+          .map(e -> aggregatedAuditFile(formName, localId, workingDir, configuration, e))
           .orElse(empty(model.fqn())))
       .map(output -> output.filter(pair -> !pair.getLeft().contains("-aggregated")));
 
@@ -227,7 +227,7 @@ final class CsvFieldMappers {
     return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(sequentialDestinationFile.getFileName()).toString()));
   }
 
-  private static Stream<Pair<String, String>> audit(String formName, String localId, Path workingDir, ExportConfiguration configuration, XmlElement e) {
+  private static Stream<Pair<String, String>> aggregatedAuditFile(String formName, String localId, Path workingDir, ExportConfiguration configuration, XmlElement e) {
     if (!e.hasValue())
       return empty(e.fqn() + "-aggregated");
 
