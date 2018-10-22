@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.export;
 
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.matchers.PathMatchers.exists;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,7 +29,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.OverridableBoolean;
-import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 public class CsvTest {
   private Path exportDir;
@@ -42,7 +42,7 @@ public class CsvTest {
 
   @After
   public void tearDown() {
-    UncheckedFiles.deleteRecursive(exportDir);
+    deleteRecursive(exportDir);
   }
 
   @Test
@@ -57,7 +57,7 @@ public class CsvTest {
 
     FormDefinition formDef = buildFormDef("some_form", group, 4);
 
-    Csv.repeat(formDef, group, conf).prepareOutputFiles();
+    Csv.getCsvs(formDef, conf).forEach(Csv::prepareOutputFiles);
 
     assertThat(exportDir.resolve("some_form-r.csv"), exists());
   }
@@ -75,9 +75,7 @@ public class CsvTest {
 
     FormDefinition formDef = buildFormDef("some_form", group, 5);
 
-    Csv.repeat(formDef, group, conf).prepareOutputFiles();
-    Csv.repeat(formDef, group.getParent(), conf).prepareOutputFiles();
-    Csv.repeat(formDef, group.getParent().getParent().getParent(), conf).prepareOutputFiles();
+    Csv.getCsvs(formDef, conf).forEach(Csv::prepareOutputFiles);
 
     assertThat(exportDir.resolve("some_form-r1.csv"), exists());
     assertThat(exportDir.resolve("some_form-r2.csv"), exists());
@@ -94,8 +92,7 @@ public class CsvTest {
 
     FormDefinition formDef = buildFormDef("some.,form", group, 2);
 
-    Csv.main(formDef, conf).prepareOutputFiles();
-    Csv.repeat(formDef, group, conf).prepareOutputFiles();
+    Csv.getCsvs(formDef, conf).forEach(Csv::prepareOutputFiles);
 
     assertThat(exportDir.resolve("some__form.csv"), exists());
     assertThat(exportDir.resolve("some__form-re peat.csv"), exists());
