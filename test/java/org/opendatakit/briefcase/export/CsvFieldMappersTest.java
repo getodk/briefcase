@@ -267,6 +267,20 @@ public class CsvFieldMappersTest {
   }
 
   @Test
+  public void individual_audit_filenames_include_the_instance_id() {
+    scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
+    write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536663986578,\n");
+
+    List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
+    assertThat(output, contains(Pair.of("data-audit", "media/audit-" + scenario.getInstanceId() + ".csv")));
+
+    Path outputAudit = scenario.getOutputMediaDir().resolve("audit-" + scenario.getInstanceId() + ".csv");
+
+    assertThat(outputAudit, exists());
+    assertThat(outputAudit, fileContains("event, node, start, end\nform start,,1536663986578,\n"));
+  }
+
+  @Test
   public void audit_fields_append_the_submissions_content_to_the_output_audit_file() {
     scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
     write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536663986578,\n");
