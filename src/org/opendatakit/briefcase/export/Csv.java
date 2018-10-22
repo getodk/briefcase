@@ -58,7 +58,11 @@ class Csv {
     String repeatFileNameBase = configuration.getExportFileName()
         .map(UncheckedFiles::stripFileExtension)
         .orElse(stripIllegalChars(formDefinition.getFormName()));
-    Path output = configuration.getExportDir().resolve(repeatFileNameBase + "-" + stripIllegalChars(groupModel.getName()) + ".csv");
+    Path output = configuration.getExportDir().resolve(String.format(
+        "%s-%s.csv",
+        repeatFileNameBase,
+        stripIllegalChars(groupModel.getName())
+    ));
     return new Csv(
         groupModel.fqn(),
         getRepeatHeader(groupModel, configuration.resolveSplitSelectMultiples()),
