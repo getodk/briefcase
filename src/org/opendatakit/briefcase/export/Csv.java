@@ -42,7 +42,7 @@ class Csv {
   /**
    * Factory for the main CSV export file of a form.
    */
-  static Csv main(FormDefinition formDefinition, ExportConfiguration configuration) {
+  private static Csv main(FormDefinition formDefinition, ExportConfiguration configuration) {
     Path output = configuration.getExportDir().resolve(
         configuration.getExportFileName().orElse(stripIllegalChars(formDefinition.getFormName()) + ".csv")
     );
@@ -59,7 +59,7 @@ class Csv {
   /**
    * Factory of any repeat CSV export file.
    */
-  static Csv repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration) {
+  private static Csv repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration) {
     String repeatFileNameBase = configuration.getExportFileName()
         .map(UncheckedFiles::stripFileExtension)
         .orElse(stripIllegalChars(formDefinition.getFormName()));
@@ -78,7 +78,7 @@ class Csv {
     );
   }
 
-  static Csv repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration, int sequenceNumber) {
+  private static Csv repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration, int sequenceNumber) {
     String repeatFileNameBase = configuration.getExportFileName()
         .map(UncheckedFiles::stripFileExtension)
         .orElse(stripIllegalChars(formDefinition.getFormName()));
@@ -96,34 +96,6 @@ class Csv {
         configuration.resolveOverwriteExistingFiles(),
         CsvSubmissionMappers.repeat(formDefinition, groupModel, configuration)
     );
-  }
-
-  /**
-   * Returns true if the grandparent node of the given Model is the model's root
-   * <p>
-   * Example 1:
-   * <p>
-   * <code><pre>
-   * &lt;data&gt;
-   * &nbsp;&nbsp;&lt;/some_field&gt;
-   * &lt;/data&gt;
-   * </pre></code>
-   * <p>
-   * In this example:
-   * <ul>
-   * <li>&lt;data&gt; has a parent with <code>null</code> name</li>
-   * <li>Returns true on &lt;some_field&gt;</li>
-   * </ul>
-   */
-  private static boolean grandParentIsRoot(Model current) {
-    return current.hasParent()
-        && current.getParent().hasParent() // Check if current has a grandparent
-        && current.getParent().getParent().getName() == null; // The root node has a null name
-  }
-
-  private static boolean parentIsRepeatGroup(Model current) {
-    return current.hasParent()
-        && current.getParent().isRepeatable();
   }
 
   static List<Csv> getCsvs(FormDefinition formDef, ExportConfiguration configuration) {
