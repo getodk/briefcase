@@ -60,14 +60,16 @@ import org.opendatakit.briefcase.reused.Pair;
 final class CsvFieldMappers {
   private static final Map<DataType, CsvFieldMapper> mappers = new HashMap<>();
 
-  private static final CsvFieldMapper BINARY_MAPPER = (__, ___, workingDir, field, element, configuration) -> element
-      .map(e -> binary(e, workingDir, configuration))
+  private static CsvFieldMapper INDIVIDUAL_FILE_AUDIT_MAPPER = (__, ___, workingDir, field, element, configuration) -> element
+      .map(e -> individualAuditFile(e, workingDir, configuration))
       .orElse(empty(field.fqn()));
 
-  private static CsvFieldMapper AUDIT_MAPPER = BINARY_MAPPER
-      .andThen((formName, localId, workingDir, model, maybeElement, configuration) -> maybeElement
-          .map(e -> aggregatedAuditFile(formName, localId, workingDir, configuration, e))
-          .orElse(empty(model.fqn())))
+  private static CsvFieldMapper AGGREGATED_FILE_AUDIT_MAPPER = (formName, localId, workingDir, model, maybeElement, configuration) -> maybeElement
+      .map(e -> aggregatedAuditFile(formName, localId, workingDir, configuration, e))
+      .orElse(empty(model.fqn()));
+
+  private static CsvFieldMapper AUDIT_MAPPER = INDIVIDUAL_FILE_AUDIT_MAPPER
+      .andThen(AGGREGATED_FILE_AUDIT_MAPPER)
       .map(output -> output.filter(pair -> !pair.getLeft().contains("-aggregated")));
 
 
@@ -82,7 +84,9 @@ final class CsvFieldMappers {
     mappers.put(GEOPOINT, simpleMapper(CsvFieldMappers::geopoint, 4));
 
     // Binary fields require knowledge of the export configuration and working dir
-    mappers.put(BINARY, BINARY_MAPPER);
+    mappers.put(BINARY, (__, ___, workingDir, field, maybeElement, configuration) -> maybeElement
+        .map(element -> binary(element, workingDir, configuration))
+        .orElse(empty(field.fqn())));
 
     // Null fields encode groups (repeating and non-repeating), therefore,
     // they require the full context
@@ -175,6 +179,59 @@ final class CsvFieldMappers {
   }
 
   private static Stream<Pair<String, String>> binary(XmlElement element, Path workingDir, ExportConfiguration configuration) {
+    // TODO We should separate the side effect of writing files to disk from the csv output generation
+
+    if (!element.hasValue())
+      return empty(element.fqn());
+
+    String sourceFilename = element.getValue();
+
+    if (!configuration.resolveExportMedia())
+      return Stream.of(Pair.of(element.fqn(), sourceFilename));
+
+    if (!Files.exists(configuration.getExportMediaPath()))
+      createDirectories(configuration.getExportMediaPath());
+
+    Path sourceFile = workingDir.resolve(sourceFilename);
+
+    // When the source file doesn't exist, we return the input value
+    if (!exists(sourceFile))
+      return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(sourceFilename).toString()));
+
+    // When the destination file doesn't exist, we copy the source file
+    // there and return its path relative to the instance folder
+    Path destinationFile = configuration.getExportMediaPath().resolve(sourceFilename);
+    if (!exists(destinationFile)) {
+      copy(sourceFile, destinationFile);
+      return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(destinationFile.getFileName()).toString()));
+    }
+
+    // When the destination file has the same hash as the source file,
+    // we don't do any side-effect and return its path relative to the
+    // instance folder
+    Boolean sameHash = OptionalProduct.all(getMd5Hash(sourceFile), getMd5Hash(destinationFile)).map(Objects::equals).orElse(false);
+    if (sameHash)
+      return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(destinationFile.getFileName()).toString()));
+
+    // When the hashes are different, we compute the next sequential suffix for
+    // the a new destination file to avoid overwriting the one we found already
+    // there. We try every number in the sequence until we find one that won't
+    // produce a destination file that exists in the output directory.
+    String namePart = stripFileExtension(sourceFilename);
+    String extPart = getFileExtension(sourceFilename).map(extension -> "." + extension).orElse("");
+    int sequenceSuffix = 2;
+    Path sequentialDestinationFile;
+    do {
+      sequentialDestinationFile = configuration.getExportMediaPath().resolve(String.format("%s-%d%s", namePart, sequenceSuffix++, extPart));
+    } while (exists(sequentialDestinationFile));
+
+    // Now that we have a valid destination file, we copy the source file
+    // there and return its path relative to the instance folder
+    copy(sourceFile, sequentialDestinationFile);
+    return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(sequentialDestinationFile.getFileName()).toString()));
+  }
+
+  private static Stream<Pair<String, String>> individualAuditFile(XmlElement element, Path workingDir, ExportConfiguration configuration) {
     // TODO We should separate the side effect of writing files to disk from the csv output generation
 
     if (!element.hasValue())
