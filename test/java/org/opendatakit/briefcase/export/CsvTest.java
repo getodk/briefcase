@@ -59,7 +59,7 @@ public class CsvTest {
 
     Csv.repeat(formDef, group, conf).prepareOutputFiles();
 
-    assertThat(exportDir.resolve("some_form-g1-g2-g3-r.csv"), exists());
+    assertThat(exportDir.resolve("some_form-r.csv"), exists());
   }
 
   @Test
@@ -79,12 +79,12 @@ public class CsvTest {
     Csv.repeat(formDef, group.getParent(), conf).prepareOutputFiles();
     Csv.repeat(formDef, group.getParent().getParent().getParent(), conf).prepareOutputFiles();
 
-    assertThat(exportDir.resolve("some_form-g1-r1.csv"), exists());
-    assertThat(exportDir.resolve("some_form-g2-r2.csv"), exists());
+    assertThat(exportDir.resolve("some_form-r1.csv"), exists());
+    assertThat(exportDir.resolve("some_form-r2.csv"), exists());
     assertThat(exportDir.resolve("some_form-r3.csv"), exists());
   }
 
-  public ExportConfiguration buildConf(Path exportDir) {
+  private ExportConfiguration buildConf(Path exportDir) {
     return new ExportConfiguration(
         Optional.of("some_form.csv"),
         Optional.of(exportDir),

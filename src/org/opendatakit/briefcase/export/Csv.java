@@ -58,15 +58,7 @@ class Csv {
     String repeatFileNameBase = configuration.getExportFileName()
         .map(UncheckedFiles::stripFileExtension)
         .orElse(stripIllegalChars(formDefinition.getFormName()));
-    String suffix = groupModel.getName();
-    Model current = groupModel;
-    while (!grandParentIsRoot(current) && !parentIsRepeatGroup(current)) {
-      current = current.getParent();
-      suffix = current.getName() + "-" + suffix;
-    }
-    Path output = configuration.getExportDir().resolve(
-        repeatFileNameBase + "-" + suffix + ".csv"
-    );
+    Path output = configuration.getExportDir().resolve(repeatFileNameBase + "-" + stripIllegalChars(groupModel.getName()) + ".csv");
     return new Csv(
         groupModel.fqn(),
         getRepeatHeader(groupModel, configuration.resolveSplitSelectMultiples()),
