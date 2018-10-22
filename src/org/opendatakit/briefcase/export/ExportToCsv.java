@@ -21,7 +21,6 @@ import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
 import static java.util.stream.Collectors.groupingByConcurrent;
 import static java.util.stream.Collectors.reducing;
-import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_EXPORTED;
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
@@ -34,7 +33,6 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -83,14 +81,7 @@ public class ExportToCsv {
 
     createDirectories(configuration.getExportDir());
 
-    // Prepare the list of csv files we will export:
-    //  - one for the main instance
-    //  - one for each repeat group
-    List<Csv> csvs = new ArrayList<>();
-    csvs.add(Csv.main(formDef, configuration));
-    csvs.addAll(formDef.getRepeatableFields().stream()
-        .map(groupModel -> Csv.repeat(formDef, groupModel, configuration))
-        .collect(toList()));
+    List<Csv> csvs = Csv.getCsvs(formDef, configuration);
 
     csvs.forEach(Csv::prepareOutputFiles);
 

@@ -3,6 +3,7 @@ package org.opendatakit.briefcase.export;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.CsvSubmissionMappers.getMainHeader;
 import static org.opendatakit.briefcase.export.CsvSubmissionMappers.getRepeatHeader;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
@@ -10,6 +11,8 @@ import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 
@@ -99,6 +102,18 @@ class Csv {
   private static boolean parentIsRepeatGroup(Model current) {
     return current.hasParent()
         && current.getParent().isRepeatable();
+  }
+
+  static List<Csv> getCsvs(FormDefinition formDef, ExportConfiguration configuration) {
+    // Prepare the list of csv files we will export:
+    //  - one for the main instance
+    //  - one for each repeat group
+    List<Csv> csvs = new ArrayList<>();
+    csvs.add(main(formDef, configuration));
+    csvs.addAll(formDef.getRepeatableFields().stream()
+        .map(groupModel -> repeat(formDef, groupModel, configuration))
+        .collect(toList()));
+    return csvs;
   }
 
   /**
