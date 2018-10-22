@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.export;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.text.DateFormat.getDateInstance;
 import static java.text.DateFormat.getDateTimeInstance;
@@ -34,6 +35,7 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.getMd5Hash;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.lines;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.stripFileExtension;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
+import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 import static org.opendatakit.common.utils.WebUtils.parseDate;
 
 import java.nio.file.Files;
@@ -60,8 +62,8 @@ import org.opendatakit.briefcase.reused.Pair;
 final class CsvFieldMappers {
   private static final Map<DataType, CsvFieldMapper> mappers = new HashMap<>();
 
-  private static CsvFieldMapper INDIVIDUAL_FILE_AUDIT_MAPPER = (__, ___, workingDir, field, element, configuration) -> element
-      .map(e -> individualAuditFile(e, workingDir, configuration))
+  private static CsvFieldMapper INDIVIDUAL_FILE_AUDIT_MAPPER = (__, instanceId, workingDir, field, maybeElement, configuration) -> maybeElement
+      .map(element -> individualAuditFile(instanceId, workingDir, configuration, element))
       .orElse(empty(field.fqn()));
 
   private static CsvFieldMapper AGGREGATED_FILE_AUDIT_MAPPER = (formName, localId, workingDir, model, maybeElement, configuration) -> maybeElement
@@ -231,7 +233,7 @@ final class CsvFieldMappers {
     return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(sequentialDestinationFile.getFileName()).toString()));
   }
 
-  private static Stream<Pair<String, String>> individualAuditFile(XmlElement element, Path workingDir, ExportConfiguration configuration) {
+  private static Stream<Pair<String, String>> individualAuditFile(String instanceId, Path workingDir, ExportConfiguration configuration, XmlElement element) {
     // TODO We should separate the side effect of writing files to disk from the csv output generation
 
     if (!element.hasValue())
@@ -247,41 +249,12 @@ final class CsvFieldMappers {
 
     Path sourceFile = workingDir.resolve(sourceFilename);
 
-    // When the source file doesn't exist, we return the input value
     if (!exists(sourceFile))
       return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(sourceFilename).toString()));
 
-    // When the destination file doesn't exist, we copy the source file
-    // there and return its path relative to the instance folder
-    Path destinationFile = configuration.getExportMediaPath().resolve(sourceFilename);
-    if (!exists(destinationFile)) {
-      copy(sourceFile, destinationFile);
-      return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(destinationFile.getFileName()).toString()));
-    }
-
-    // When the destination file has the same hash as the source file,
-    // we don't do any side-effect and return its path relative to the
-    // instance folder
-    Boolean sameHash = OptionalProduct.all(getMd5Hash(sourceFile), getMd5Hash(destinationFile)).map(Objects::equals).orElse(false);
-    if (sameHash)
-      return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(destinationFile.getFileName()).toString()));
-
-    // When the hashes are different, we compute the next sequential suffix for
-    // the a new destination file to avoid overwriting the one we found already
-    // there. We try every number in the sequence until we find one that won't
-    // produce a destination file that exists in the output directory.
-    String namePart = stripFileExtension(sourceFilename);
-    String extPart = getFileExtension(sourceFilename).map(extension -> "." + extension).orElse("");
-    int sequenceSuffix = 2;
-    Path sequentialDestinationFile;
-    do {
-      sequentialDestinationFile = configuration.getExportMediaPath().resolve(String.format("%s-%d%s", namePart, sequenceSuffix++, extPart));
-    } while (exists(sequentialDestinationFile));
-
-    // Now that we have a valid destination file, we copy the source file
-    // there and return its path relative to the instance folder
-    copy(sourceFile, sequentialDestinationFile);
-    return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(sequentialDestinationFile.getFileName()).toString()));
+    Path destinationFile = configuration.getExportMediaPath().resolve("audit-" + stripIllegalChars(instanceId) + ".csv");
+    copy(sourceFile, destinationFile, REPLACE_EXISTING);
+    return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(destinationFile.getFileName()).toString()));
   }
 
   private static Stream<Pair<String, String>> aggregatedAuditFile(String formName, String localId, Path workingDir, ExportConfiguration configuration, XmlElement e) {

@@ -285,10 +285,7 @@ public class CsvFieldMappersTest {
     scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
     write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536663986578,\n");
 
-    List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
-    assertThat(output, contains(
-        Pair.of("data-audit", "media/audit.csv")
-    ));
+    scenario.mapSimpleValue("audit.csv", true);
 
     Path outputAudit = scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv");
 
@@ -301,10 +298,7 @@ public class CsvFieldMappersTest {
     scenario = Scenario.nonGroup("some-form", DataType.BINARY, "audit", "meta");
     write(scenario.getWorkDir().resolve("audit.csv"), "event, node, start, end\nform start,,1536663986578,\n");
 
-    List<Pair<String, String>> output = scenario.mapSimpleValue("audit.csv", true);
-    assertThat(output, contains(
-        Pair.of("data-audit", "media/audit.csv")
-    ));
+    scenario.mapSimpleValue("audit.csv", true);
 
     Path outputAudit = scenario.getOutputDir().resolve(scenario.getFormName() + " - audit.csv");
 
