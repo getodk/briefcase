@@ -30,4 +30,17 @@ public class StringUtils {
   public static String stripIllegalChars(String text) {
     return text == null ? null : text.replaceAll("\\p{Punct}", "_").replaceAll("\\p{Space}", " ");
   }
+
+  public static String stripIllegalChars2(String text) {
+    if (text == null)
+      return null;
+    return text
+        .replaceAll("^[./]+$", "")
+        .replaceAll("[. ]+$", "")
+        // Apparently, the library Central's using doesn't trim heading spaces
+        // .replaceAll("^[. ]+", "")
+        .replaceAll("^(con|prn|aux|nul|com[0-9]|lpt[0-9]|CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9])(\\..*)?", "")
+        .replaceAll("[\\x00-\\x1f\\x80-\\x9f]", "")
+        .replaceAll("[/?<>\\\\*|\":]", "");
+  }
 }
