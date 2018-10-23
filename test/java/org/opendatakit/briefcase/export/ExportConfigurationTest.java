@@ -17,11 +17,9 @@ package org.opendatakit.briefcase.export;
 
 import static java.nio.file.Files.createTempDirectory;
 import static java.nio.file.Files.write;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -34,7 +32,6 @@ import static org.opendatakit.briefcase.reused.TriStateBoolean.TRUE;
 import static org.opendatakit.briefcase.reused.TriStateBoolean.UNDETERMINED;
 
 import com.github.npathai.hamcrestopt.OptionalMatchers;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -207,17 +204,6 @@ public class ExportConfigurationTest {
   }
 
   @Test
-  public void toString_hashCode_and_equals_for_coverage() {
-    assertThat(validConfig.toString(), containsString("some" + File.separator + "dir"));
-    assertThat(validConfig.toString(), containsString("some_key.pem"));
-    assertThat(validConfig.toString(), containsString("2018"));
-    assertThat(validConfig.toString(), containsString("2020"));
-    assertThat(validConfig.hashCode(), is(notNullValue()));
-    assertThat(validConfig.equals(null), is(false));
-    assertThat(validConfig, is(validConfig));
-  }
-
-  @Test
   public void knows_the_path_to_the_output_audit_file() {
     assertThat(validConfig.getAuditPath("some-form").getFileName().toString(), is("some-form - audit.csv"));
     assertThat(validConfig.getAuditPath("some-form").getFileName().toString(), is("some-form - audit.csv"));
@@ -229,16 +215,16 @@ public class ExportConfigurationTest {
   }
 
   @Test
-  public void ensures_the_export_filename_has_csv_extension() {
-    assertThat(buildConf("some_filename").getExportFileName(), OptionalMatchers.isPresentAnd(is("some_filename.csv")));
-    assertThat(buildConf("some_filename.csv").getExportFileName(), OptionalMatchers.isPresentAnd(is("some_filename.csv")));
-    assertThat(buildConf("some_filename.CSV").getExportFileName(), OptionalMatchers.isPresentAnd(is("some_filename.CSV")));
-    assertThat(buildConf("some_filename.cSv").getExportFileName(), OptionalMatchers.isPresentAnd(is("some_filename.cSv")));
+  public void builds_the_sanitized_export_filename_base_with_the_form_name_and_an_optional_filename_param() {
+    assertThat(buildConf("some_filename.csv").getFilenameBase("Some Form"), is("some_filename"));
+    assertThat(buildConf(null).getFilenameBase("Some Form"), is("Some Form"));
+    assertThat(buildConf("some,.-filename.csv").getFilenameBase("Some Form"), is("some___filename"));
+    assertThat(buildConf(null).getFilenameBase("Some ,.- Form"), is("Some ___ Form"));
   }
 
-  public ExportConfiguration buildConf(String exportFileName) {
+  public ExportConfiguration buildConf(String filename) {
     return new ExportConfiguration(
-        Optional.of(exportFileName),
+        Optional.ofNullable(filename),
         Optional.empty(),
         Optional.empty(),
         Optional.empty(),

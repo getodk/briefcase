@@ -52,7 +52,9 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OverridableBoolean;
 import org.opendatakit.briefcase.reused.TriStateBoolean;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.util.ErrorOr;
+import org.opendatakit.briefcase.util.StringUtils;
 
 public class ExportConfiguration {
   private static final String EXPORT_DIR = "exportDir";
@@ -67,7 +69,7 @@ public class ExportConfiguration {
   private static final String EXPORT_MEDIA_OVERRIDE = "exportMediaOverride";
   private static final String SPLIT_SELECT_MULTIPLES = "splitSelectMultiples";
   private static final String SPLIT_SELECT_MULTIPLES_OVERRIDE = "splitSelectMultiplesOverride";
-  private Optional<String> exportFileName;
+  private Optional<String> filename;
   private Optional<Path> exportDir;
   private Optional<Path> pemFile;
   private Optional<LocalDate> startDate;
@@ -77,8 +79,8 @@ public class ExportConfiguration {
   public OverridableBoolean exportMedia;
   public OverridableBoolean splitSelectMultiples;
 
-  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, OverridableBoolean splitSelectMultiples) {
-    this.exportFileName = exportFileName;
+  public ExportConfiguration(Optional<String> filename, Optional<Path> exportDir, Optional<Path> pemFile, Optional<LocalDate> startDate, Optional<LocalDate> endDate, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, OverridableBoolean splitSelectMultiples) {
+    this.filename = filename;
     this.exportDir = exportDir;
     this.pemFile = pemFile;
     this.startDate = startDate;
@@ -155,7 +157,8 @@ public class ExportConfiguration {
 
   public ExportConfiguration copy() {
     return new ExportConfiguration(
-        exportFileName, exportDir,
+        filename,
+        exportDir,
         pemFile,
         startDate,
         endDate,
@@ -365,7 +368,8 @@ public class ExportConfiguration {
 
   public ExportConfiguration fallingBackTo(ExportConfiguration defaultConfiguration) {
     return new ExportConfiguration(
-        exportFileName, exportDir.isPresent() ? exportDir : defaultConfiguration.exportDir,
+        filename.isPresent() ? filename : defaultConfiguration.filename,
+        exportDir.isPresent() ? exportDir : defaultConfiguration.exportDir,
         pemFile.isPresent() ? pemFile : defaultConfiguration.pemFile,
         startDate.isPresent() ? startDate : defaultConfiguration.startDate,
         endDate.isPresent() ? endDate : defaultConfiguration.endDate,
@@ -379,7 +383,8 @@ public class ExportConfiguration {
   @Override
   public String toString() {
     return "ExportConfiguration{" +
-        "exportDir=" + exportDir +
+        "filename=" + filename +
+        ", exportDir=" + exportDir +
         ", pemFile=" + pemFile +
         ", startDate=" + startDate +
         ", endDate=" + endDate +
@@ -397,7 +402,8 @@ public class ExportConfiguration {
     if (o == null || getClass() != o.getClass())
       return false;
     ExportConfiguration that = (ExportConfiguration) o;
-    return Objects.equals(exportDir, that.exportDir) &&
+    return Objects.equals(filename, that.filename) &&
+        Objects.equals(exportDir, that.exportDir) &&
         Objects.equals(pemFile, that.pemFile) &&
         Objects.equals(startDate, that.startDate) &&
         Objects.equals(endDate, that.endDate) &&
@@ -409,7 +415,7 @@ public class ExportConfiguration {
 
   @Override
   public int hashCode() {
-    return Objects.hash(exportDir, pemFile, startDate, endDate, pullBefore, overwriteFiles, exportMedia, splitSelectMultiples);
+    return Objects.hash(filename, exportDir, pemFile, startDate, endDate, pullBefore, overwriteFiles, exportMedia, splitSelectMultiples);
   }
 
   public static ErrorOr<PrivateKey> readPemFile(Path pemFile) {
@@ -447,8 +453,11 @@ public class ExportConfiguration {
         .orElseThrow(() -> new BriefcaseException("No export dir configured"));
   }
 
-  public Optional<String> getExportFileName() {
-    return exportFileName.map(filename -> filename.toLowerCase().endsWith(".csv") ? filename : filename + ".csv");
+  public String getFilenameBase(String formName) {
+    return filename
+        .map(UncheckedFiles::stripFileExtension)
+        .map(StringUtils::stripIllegalChars)
+        .orElse(stripIllegalChars(formName));
   }
 
   public Path getErrorsDir(String formName) {

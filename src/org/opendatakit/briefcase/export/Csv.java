@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 /**
  * This class represents a CSV export output file. It knows how to write
@@ -58,7 +57,7 @@ class Csv {
     return new Csv(
         formDefinition.getModel().fqn(),
         getMainHeader(formDefinition.getModel(), formDefinition.isFileEncryptedForm(), configuration.resolveSplitSelectMultiples()),
-        configuration.getExportDir().resolve(configuration.getExportFileName().orElse(stripIllegalChars(formDefinition.getFormName()) + ".csv")),
+        buildMainOutputPath(formDefinition, configuration),
         true,
         configuration.resolveOverwriteExistingFiles(),
         CsvSubmissionMappers.main(formDefinition, configuration)
@@ -76,10 +75,17 @@ class Csv {
     );
   }
 
+  private static Path buildMainOutputPath(FormDefinition formDefinition, ExportConfiguration configuration) {
+    return configuration.getExportDir().resolve(String.format(
+        "%s.csv",
+        configuration.getFilenameBase(formDefinition.getFormName())
+    ));
+  }
+
   private static Path buildRepeatOutputPath(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration) {
     return configuration.getExportDir().resolve(String.format(
         "%s-%s.csv",
-        configuration.getExportFileName().map(UncheckedFiles::stripFileExtension).orElse(stripIllegalChars(formDefinition.getFormName())),
+        configuration.getFilenameBase(formDefinition.getFormName()),
         stripIllegalChars(groupModel.getName())
     ));
   }
@@ -87,7 +93,7 @@ class Csv {
   private static Path buildRepeatOutputPath(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration, int sequenceNumber) {
     return configuration.getExportDir().resolve(String.format(
         "%s-%s~%d.csv",
-        configuration.getExportFileName().map(UncheckedFiles::stripFileExtension).orElse(stripIllegalChars(formDefinition.getFormName())),
+        configuration.getFilenameBase(formDefinition.getFormName()),
         stripIllegalChars(groupModel.getName()),
         sequenceNumber
     ));
