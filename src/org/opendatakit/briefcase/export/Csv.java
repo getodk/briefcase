@@ -39,65 +39,6 @@ class Csv {
     this.mapper = mapper;
   }
 
-  /**
-   * Factory for the main CSV export file of a form.
-   */
-  private static Csv main(FormDefinition formDefinition, ExportConfiguration configuration) {
-    Path output = configuration.getExportDir().resolve(
-        configuration.getExportFileName().orElse(stripIllegalChars(formDefinition.getFormName()) + ".csv")
-    );
-    return new Csv(
-        formDefinition.getModel().fqn(),
-        getMainHeader(formDefinition.getModel(), formDefinition.isFileEncryptedForm(), configuration.resolveSplitSelectMultiples()),
-        output,
-        true,
-        configuration.resolveOverwriteExistingFiles(),
-        CsvSubmissionMappers.main(formDefinition, configuration)
-    );
-  }
-
-  /**
-   * Factory of any repeat CSV export file.
-   */
-  private static Csv repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration) {
-    String repeatFileNameBase = configuration.getExportFileName()
-        .map(UncheckedFiles::stripFileExtension)
-        .orElse(stripIllegalChars(formDefinition.getFormName()));
-    Path output = configuration.getExportDir().resolve(String.format(
-        "%s-%s.csv",
-        repeatFileNameBase,
-        stripIllegalChars(groupModel.getName())
-    ));
-    return new Csv(
-        groupModel.fqn(),
-        getRepeatHeader(groupModel, configuration.resolveSplitSelectMultiples()),
-        output,
-        false,
-        configuration.resolveOverwriteExistingFiles(),
-        CsvSubmissionMappers.repeat(formDefinition, groupModel, configuration)
-    );
-  }
-
-  private static Csv repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration, int sequenceNumber) {
-    String repeatFileNameBase = configuration.getExportFileName()
-        .map(UncheckedFiles::stripFileExtension)
-        .orElse(stripIllegalChars(formDefinition.getFormName()));
-    Path output = configuration.getExportDir().resolve(String.format(
-        "%s-%s~%d.csv",
-        repeatFileNameBase,
-        stripIllegalChars(groupModel.getName()),
-        sequenceNumber
-    ));
-    return new Csv(
-        groupModel.fqn(),
-        getRepeatHeader(groupModel, configuration.resolveSplitSelectMultiples()),
-        output,
-        false,
-        configuration.resolveOverwriteExistingFiles(),
-        CsvSubmissionMappers.repeat(formDefinition, groupModel, configuration)
-    );
-  }
-
   static List<Csv> getCsvs(FormDefinition formDef, ExportConfiguration configuration) {
     // Prepare the list of csv files we will export:
     //  - one for the main instance
@@ -107,17 +48,56 @@ class Csv {
     List<Csv> repeatCsvs = formDef.getRepeatableFields().stream()
         .collect(groupingBy(Model::getName))
         .values().stream()
-        .flatMap(models -> {
-          if (models.size() == 1)
-            return models.stream().map(group -> repeat(formDef, group, configuration));
-          else {
-            AtomicInteger sequence = new AtomicInteger(1);
-            return models.stream().map(group -> repeat(formDef, group, configuration, sequence.getAndIncrement()));
-          }
-        })
+        .flatMap(models -> mapToRepeatCsv(formDef, configuration, models))
         .collect(toList());
     csvs.addAll(repeatCsvs);
     return csvs;
+  }
+
+  private static Csv main(FormDefinition formDefinition, ExportConfiguration configuration) {
+    return new Csv(
+        formDefinition.getModel().fqn(),
+        getMainHeader(formDefinition.getModel(), formDefinition.isFileEncryptedForm(), configuration.resolveSplitSelectMultiples()),
+        configuration.getExportDir().resolve(configuration.getExportFileName().orElse(stripIllegalChars(formDefinition.getFormName()) + ".csv")),
+        true,
+        configuration.resolveOverwriteExistingFiles(),
+        CsvSubmissionMappers.main(formDefinition, configuration)
+    );
+  }
+
+  private static Csv repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration, Path output) {
+    return new Csv(
+        groupModel.fqn(),
+        getRepeatHeader(groupModel, configuration.resolveSplitSelectMultiples()),
+        output,
+        false,
+        configuration.resolveOverwriteExistingFiles(),
+        CsvSubmissionMappers.repeat(formDefinition, groupModel, configuration)
+    );
+  }
+
+  private static Path buildRepeatOutputPath(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration) {
+    return configuration.getExportDir().resolve(String.format(
+        "%s-%s.csv",
+        configuration.getExportFileName().map(UncheckedFiles::stripFileExtension).orElse(stripIllegalChars(formDefinition.getFormName())),
+        stripIllegalChars(groupModel.getName())
+    ));
+  }
+
+  private static Path buildRepeatOutputPath(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration, int sequenceNumber) {
+    return configuration.getExportDir().resolve(String.format(
+        "%s-%s~%d.csv",
+        configuration.getExportFileName().map(UncheckedFiles::stripFileExtension).orElse(stripIllegalChars(formDefinition.getFormName())),
+        stripIllegalChars(groupModel.getName()),
+        sequenceNumber
+    ));
+  }
+
+  private static Stream<Csv> mapToRepeatCsv(FormDefinition formDef, ExportConfiguration configuration, List<Model> models) {
+    if (models.size() == 1)
+      return models.stream().map(group -> repeat(formDef, group, configuration, buildRepeatOutputPath(formDef, group, configuration)));
+    AtomicInteger sequence = new AtomicInteger(1);
+    return models.stream().map(group -> repeat(formDef, group, configuration, buildRepeatOutputPath(formDef, group, configuration, sequence.getAndIncrement())));
   }
 
   /**
