@@ -48,7 +48,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
  * It can hold the root level model or any of its fields.
  */
 class Model {
-  private final TreeElement model;
+  final TreeElement model;
   private Map<String, QuestionDef> controls;
 
   /**
@@ -143,8 +143,8 @@ class Model {
    *
    * @return a {@link List} of {@link String} names of this {@link Model} instance
    */
-  List<String> getNames() {
-    return getNames(0);
+  List<String> getNames(boolean removeGroupNames) {
+    return getNames(0, removeGroupNames);
   }
 
   /**
@@ -153,9 +153,9 @@ class Model {
    *
    * @param shift an int with the number of names to shift from the FQN
    * @return a {@link List} of shifted {@link String} names of this {@link Model} instance
-   * @see Model#getNames()
+   * @see Model#getNames(boolean)
    */
-  List<String> getNames(int shift) {
+  List<String> getNames(int shift, boolean removeGroupNames) {
     if (getDataType() == GEOPOINT)
       return Arrays.asList(
           fqn(shift) + "-Latitude",
@@ -166,8 +166,8 @@ class Model {
     if (getDataType() == NULL && model.isRepeatable())
       return singletonList("SET-OF-" + fqn(shift));
     if (getDataType() == NULL && !model.isRepeatable() && size() > 0)
-      return children().stream().flatMap(e -> e.getNames(shift).stream()).collect(toList());
-    return singletonList(fqn(shift));
+      return children().stream().flatMap(e -> e.getNames(shift, removeGroupNames).stream()).collect(toList());
+    return singletonList(removeGroupNames ? getName() : fqn(shift));
   }
 
   /**
@@ -247,7 +247,7 @@ class Model {
     return model.getNumChildren();
   }
 
-  private List<Model> children() {
+  List<Model> children() {
     Set<String> fqns = new HashSet<>();
     List<Model> children = new ArrayList<>(model.getNumChildren());
     for (int i = 0, max = model.getNumChildren(); i < max; i++) {

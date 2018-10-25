@@ -20,6 +20,8 @@ import static java.text.DateFormat.getDateTimeInstance;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Stream.concat;
+import static java.util.stream.Stream.of;
 import static org.javarosa.core.model.DataType.DATE;
 import static org.javarosa.core.model.DataType.DATE_TIME;
 import static org.javarosa.core.model.DataType.GEOPOINT;
@@ -28,17 +30,16 @@ import static org.opendatakit.briefcase.export.CsvFieldMappers.getMapper;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.javarosa.core.model.DataType;
-import org.javarosa.core.model.SelectChoice;
 import org.opendatakit.briefcase.reused.Pair;
 
 final class CsvSubmissionMappers {
-  private static final Set<DataType> EMPTY_COL_WHEN_NULL_DATATYPES = Stream.of(GEOPOINT, DATE, TIME, DATE_TIME).collect(toSet());
+  private static final Set<DataType> EMPTY_COL_WHEN_NULL_DATATYPES = of(GEOPOINT, DATE, TIME, DATE_TIME).collect(toSet());
 
   /**
    * This value will be used for {@link Submission} instances without submission date.
@@ -101,50 +102,43 @@ final class CsvSubmissionMappers {
 
   /**
    * Produce a CSV line with the main form's header column names.
-   *
-   * @param model            {@link Model} of the form
-   * @param isEncrypted      {@link Boolean} indicating if the form is encrypted
-   * @param removeGroupNames
-   * @return a {@link String} with the main form's header column names
    */
   static String getMainHeader(Model model, boolean isEncrypted, boolean splitSelectMultiples, boolean removeGroupNames) {
-    StringBuilder sb = new StringBuilder();
-    sb.append("SubmissionDate");
-    model.forEach(field -> {
-      List<String> names = new ArrayList<>();
-      names.addAll(field.getNames());
-      if (field.isChoiceList() && splitSelectMultiples) {
-        List<SelectChoice> choices = field.getChoices();
-        names.addAll(choices.stream().map(choice -> field.getName() + "/" + choice.getValue()).collect(toList()));
-      }
-      names.forEach(name -> sb.append(",").append(name));
-    });
-    sb.append(",").append("KEY");
+    List<String> headers = new ArrayList<>();
+    headers.add("SubmissionDate");
+    headers.addAll(getModelNames(0, model, splitSelectMultiples, removeGroupNames));
+    headers.add("KEY");
     if (isEncrypted)
-      sb.append(",").append("isValidated");
-    return sb.toString();
+      headers.add("isValidated");
+    return String.join(",", headers);
   }
 
   /**
    * Produce a CSV line with a repeat group's header column names.
-   *
-   * @param groupModel       {@link Model} of the group
-   * @param removeGroupNames
-   * @return a {@link String} with a repeat group's header column names
    */
   static String getRepeatHeader(Model groupModel, boolean splitSelectMultiples, boolean removeGroupNames) {
     int shift = groupModel.countAncestors();
-    StringBuilder sb = new StringBuilder();
-    groupModel.forEach(field -> {
-      List<String> names = field.getNames(shift);
-      if (field.isChoiceList() && splitSelectMultiples)
-        names.addAll(field.getChoices().stream().map(choice -> field.getName() + "/" + choice.getValue()).collect(toList()));
-      names.forEach(name -> sb.append(",").append(name));
-    });
-    sb.append(",").append("PARENT_KEY");
-    sb.append(",").append("KEY");
-    sb.append(",").append("SET-OF-").append(groupModel.getName());
-    return sb.toString().substring(1);
+    List<String> headers = new ArrayList<>();
+    headers.addAll(getModelNames(shift, groupModel, splitSelectMultiples, removeGroupNames));
+    headers.add("PARENT_KEY");
+    headers.add("KEY");
+    headers.add("SET-OF-" + groupModel.getName());
+    return String.join(",", headers);
+  }
+
+  private static List<String> getModelNames(int shift, Model groupModel, boolean splitSelectMultiples, boolean removeGroupNames) {
+    return groupModel.children().stream().flatMap(field -> concat(
+        field.getNames(shift, removeGroupNames).stream(),
+        getSplitSelectMultipleNames(field, splitSelectMultiples).stream()
+    )).collect(toList());
+  }
+
+  private static List<String> getSplitSelectMultipleNames(Model field, boolean splitSelectMultiples) {
+    if (!field.isChoiceList() || !splitSelectMultiples)
+      return Collections.emptyList();
+    return field.getChoices().stream()
+        .map(choice -> field.getName() + "/" + choice.getValue())
+        .collect(toList());
   }
 
   static String encode(String string, boolean allowNulls) {

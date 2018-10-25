@@ -44,4 +44,16 @@ public class CsvSubmissionMappersHeadersTest {
     assertThat(getRepeatHeader(repeat, false, false), is("group-field,PARENT_KEY,KEY,SET-OF-repeat"));
     assertThat(getRepeatHeader(repeat, false, true), is("field,PARENT_KEY,KEY,SET-OF-repeat"));
   }
+
+  @Test
+  public void supports_dupe_field_names() {
+    Model model = instance(
+        group("group-1", text("field")),
+        group("group-2", text("field"))
+    ).build();
+    assertThat(getMainHeader(model, false, false, false), is("SubmissionDate,group-1-field,group-2-field,KEY"));
+    assertThat(getMainHeader(model, true, false, false), is("SubmissionDate,group-1-field,group-2-field,KEY,isValidated"));
+    assertThat(getMainHeader(model, false, false, true), is("SubmissionDate,field,field,KEY"));
+    assertThat(getMainHeader(model, true, false, true), is("SubmissionDate,field,field,KEY,isValidated"));
+  }
 }
