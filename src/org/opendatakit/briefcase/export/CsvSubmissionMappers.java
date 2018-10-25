@@ -102,11 +102,12 @@ final class CsvSubmissionMappers {
   /**
    * Produce a CSV line with the main form's header column names.
    *
-   * @param model       {@link Model} of the form
-   * @param isEncrypted {@link Boolean} indicating if the form is encrypted
+   * @param model            {@link Model} of the form
+   * @param isEncrypted      {@link Boolean} indicating if the form is encrypted
+   * @param removeGroupNames
    * @return a {@link String} with the main form's header column names
    */
-  static String getMainHeader(Model model, boolean isEncrypted, boolean splitSelectMultiples) {
+  static String getMainHeader(Model model, boolean isEncrypted, boolean splitSelectMultiples, boolean removeGroupNames) {
     StringBuilder sb = new StringBuilder();
     sb.append("SubmissionDate");
     model.forEach(field -> {
@@ -127,10 +128,11 @@ final class CsvSubmissionMappers {
   /**
    * Produce a CSV line with a repeat group's header column names.
    *
-   * @param groupModel {@link Model} of the group
+   * @param groupModel       {@link Model} of the group
+   * @param removeGroupNames
    * @return a {@link String} with a repeat group's header column names
    */
-  static String getRepeatHeader(Model groupModel, boolean splitSelectMultiples) {
+  static String getRepeatHeader(Model groupModel, boolean splitSelectMultiples, boolean removeGroupNames) {
     int shift = groupModel.countAncestors();
     StringBuilder sb = new StringBuilder();
     groupModel.forEach(field -> {
