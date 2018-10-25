@@ -34,11 +34,14 @@ public class CsvSubmissionMappersHeadersTest {
     Model model = instance(group("group", text("field"))).build();
     assertThat(getMainHeader(model, false, false, false), is("SubmissionDate,group-field,KEY"));
     assertThat(getMainHeader(model, true, false, false), is("SubmissionDate,group-field,KEY,isValidated"));
+    assertThat(getMainHeader(model, false, false, true), is("SubmissionDate,field,KEY"));
+    assertThat(getMainHeader(model, true, false, true), is("SubmissionDate,field,KEY,isValidated"));
   }
 
   @Test
   public void produces_a_header_for_a_repeat_file() {
     Model repeat = instance(repeat("repeat", group("group", text("field")))).build().getChildByName("repeat");
     assertThat(getRepeatHeader(repeat, false, false), is("group-field,PARENT_KEY,KEY,SET-OF-repeat"));
+    assertThat(getRepeatHeader(repeat, false, true), is("field,PARENT_KEY,KEY,SET-OF-repeat"));
   }
 }
