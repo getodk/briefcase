@@ -56,7 +56,7 @@ class Csv {
   private static Csv main(FormDefinition formDefinition, ExportConfiguration configuration) {
     return new Csv(
         formDefinition.getModel().fqn(),
-        getMainHeader(formDefinition.getModel(), formDefinition.isFileEncryptedForm(), configuration.resolveSplitSelectMultiples(), false),
+        getMainHeader(formDefinition.getModel(), formDefinition.isFileEncryptedForm(), configuration.resolveSplitSelectMultiples(), configuration.resolveRemoveGroupNames()),
         buildMainOutputPath(formDefinition, configuration),
         true,
         configuration.resolveOverwriteExistingFiles(),
@@ -67,7 +67,7 @@ class Csv {
   private static Csv repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration, Path output) {
     return new Csv(
         groupModel.fqn(),
-        getRepeatHeader(groupModel, configuration.resolveSplitSelectMultiples(), false),
+        getRepeatHeader(groupModel, configuration.resolveSplitSelectMultiples(), configuration.resolveRemoveGroupNames()),
         output,
         false,
         configuration.resolveOverwriteExistingFiles(),
