@@ -16,13 +16,14 @@
 package org.opendatakit.briefcase.reused;
 
 /**
- * This is the version of {@link java.util.function.Function} for an arity of 2
+ * This is the version of {@link java.util.function.Function} for an arity of 3
  *
  * @param <I1> first arg's type
  * @param <I2> second arg's type
+ * @param <I3> third arg's type
  * @param <O>  output type
  */
 @FunctionalInterface
-public interface Function2<I1, I2, O> {
-  O apply(I1 i1, I2 i2);
+public interface TriFunction<I1, I2, I3, O> {
+  O apply(I1 i1, I2 i2, I3 i3);
 }

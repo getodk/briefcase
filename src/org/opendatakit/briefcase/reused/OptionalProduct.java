@@ -17,6 +17,7 @@ package org.opendatakit.briefcase.reused;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 /**
@@ -56,9 +57,9 @@ public interface OptionalProduct {
   }
 
   interface OptionalProduct2<T, U> {
-    <V> Optional<V> map(Function2<T, U, V> mapper);
+    <V> Optional<V> map(BiFunction<T, U, V> mapper);
 
-    <V> Optional<V> flatMap(Function2<T, U, Optional<V>> mapper);
+    <V> Optional<V> flatMap(BiFunction<T, U, Optional<V>> mapper);
 
     void ifPresent(BiConsumer<T, U> consumer);
 
@@ -74,12 +75,12 @@ public interface OptionalProduct {
       }
 
       @Override
-      public <V> Optional<V> map(Function2<T, U, V> mapper) {
+      public <V> Optional<V> map(BiFunction<T, U, V> mapper) {
         return Optional.of(mapper.apply(t, u));
       }
 
       @Override
-      public <V> Optional<V> flatMap(Function2<T, U, Optional<V>> mapper) {
+      public <V> Optional<V> flatMap(BiFunction<T, U, Optional<V>> mapper) {
         return mapper.apply(t, u);
       }
 
@@ -97,12 +98,12 @@ public interface OptionalProduct {
     class None<T, U> implements OptionalProduct2<T, U> {
 
       @Override
-      public <V> Optional<V> map(Function2<T, U, V> mapper) {
+      public <V> Optional<V> map(BiFunction<T, U, V> mapper) {
         return Optional.empty();
       }
 
       @Override
-      public <V> Optional<V> flatMap(Function2<T, U, Optional<V>> mapper) {
+      public <V> Optional<V> flatMap(BiFunction<T, U, Optional<V>> mapper) {
         return Optional.empty();
       }
 
@@ -119,9 +120,9 @@ public interface OptionalProduct {
   }
 
   interface OptionalProduct3<T, U, V> {
-    <W> Optional<W> map(Function3<T, U, V, W> mapper);
+    <W> Optional<W> map(TriFunction<T, U, V, W> mapper);
 
-    <W> Optional<W> flatMap(Function3<T, U, V, Optional<W>> mapper);
+    <W> Optional<W> flatMap(TriFunction<T, U, V, Optional<W>> mapper);
 
     class Some<T, U, V> implements OptionalProduct3<T, U, V> {
       private final T t;
@@ -135,12 +136,12 @@ public interface OptionalProduct {
       }
 
       @Override
-      public <W> Optional<W> map(Function3<T, U, V, W> mapper) {
+      public <W> Optional<W> map(TriFunction<T, U, V, W> mapper) {
         return Optional.of(mapper.apply(t, u, v));
       }
 
       @Override
-      public <W> Optional<W> flatMap(Function3<T, U, V, Optional<W>> mapper) {
+      public <W> Optional<W> flatMap(TriFunction<T, U, V, Optional<W>> mapper) {
         return mapper.apply(t, u, v);
       }
     }
@@ -148,12 +149,12 @@ public interface OptionalProduct {
     class None<T, U, V> implements OptionalProduct3<T, U, V> {
 
       @Override
-      public <W> Optional<W> map(Function3<T, U, V, W> mapper) {
+      public <W> Optional<W> map(TriFunction<T, U, V, W> mapper) {
         return Optional.empty();
       }
 
       @Override
-      public <W> Optional<W> flatMap(Function3<T, U, V, Optional<W>> mapper) {
+      public <W> Optional<W> flatMap(TriFunction<T, U, V, Optional<W>> mapper) {
         return Optional.empty();
       }
     }
