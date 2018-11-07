@@ -114,7 +114,7 @@ public class CsvTest {
   }
 
   @Test
-  public void dupe_repeat_group_names_get_a_sequence_number_suffix() {
+  public void dupe_nested_repeat_group_names_get_a_sequence_number_suffix() {
     Model model = instance(
         repeat("outer-repeat",
             group("outer-group",
@@ -134,6 +134,22 @@ public class CsvTest {
     Csv.getCsvs(formDef, conf).forEach(Csv::prepareOutputFiles);
 
     assertThat(exportDir.resolve("some_form-outer_repeat.csv"), exists());
+    assertThat(exportDir.resolve("some_form-dupe_repeat~1.csv"), exists());
+    assertThat(exportDir.resolve("some_form-dupe_repeat~2.csv"), exists());
+  }
+
+  @Test
+  public void dupe_sibling_repeat_group_names_get_a_sequence_number_suffix() {
+    Model model = instance(
+        group("group1", repeat("dupe-repeat", text("some-field"))),
+        group("group2", repeat("dupe-repeat", text("some-field")))
+    ).build();
+
+    FormDefinition formDef = buildFormDef("some-form", model);
+
+    Csv.getCsvs(formDef, conf).forEach(Csv::prepareOutputFiles);
+
+    assertThat(exportDir.resolve("some_form.csv"), exists());
     assertThat(exportDir.resolve("some_form-dupe_repeat~1.csv"), exists());
     assertThat(exportDir.resolve("some_form-dupe_repeat~2.csv"), exists());
   }
