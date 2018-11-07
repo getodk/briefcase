@@ -18,8 +18,8 @@ package org.opendatakit.briefcase.export;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.export.ExportConfiguration.load;
-import static org.opendatakit.briefcase.export.ExportConfigurationBuilder.empty;
 import static org.opendatakit.briefcase.matchers.ExportConfigurationMatchers.isEmpty;
 import static org.opendatakit.briefcase.matchers.ExportConfigurationMatchers.isValid;
 import static org.opendatakit.briefcase.reused.TriStateBoolean.FALSE;
@@ -62,7 +62,7 @@ public class ExportConfigurationTest {
         .getResource("org/opendatakit/briefcase/export/encrypted-form-key.pem")
         .toURI();
     copy(Paths.get(sourcePemFileUri), VALID_PEM_FILE);
-    VALID_CONFIG = ExportConfigurationBuilder.empty()
+    VALID_CONFIG = ExportConfiguration.Builder.empty()
         .setExportDir(VALID_EXPORT_DIR)
         .setPemFile(VALID_PEM_FILE)
         .setStartDate(START_DATE)
@@ -78,14 +78,14 @@ public class ExportConfigurationTest {
   @Test(expected = IllegalArgumentException.class)
   public void cannot_create_a_conf_with_a_non_existant_export_dir() {
     Path wrongPath = Paths.get("some/path");
-    ExportConfigurationBuilder.empty().setExportDir(wrongPath).build();
+    ExportConfiguration.Builder.empty().setExportDir(wrongPath).build();
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void cannot_create_a_conf_with_an_export_dir_path_to_a_non_directory() {
     Path wrongPath = BASE_TEMP_DIR.resolve("some_file.txt");
     write(wrongPath, "some content");
-    ExportConfigurationBuilder.empty().setExportDir(wrongPath).build();
+    ExportConfiguration.Builder.empty().setExportDir(wrongPath).build();
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -94,7 +94,7 @@ public class ExportConfigurationTest {
     createDirectories(wrongPath);
     createDirectories(wrongPath.resolve("instances"));
     createDirectories(wrongPath.resolve("forms"));
-    ExportConfigurationBuilder.empty().setExportDir(wrongPath).build();
+    ExportConfiguration.Builder.empty().setExportDir(wrongPath).build();
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -102,31 +102,31 @@ public class ExportConfigurationTest {
     Path wrongPath = BASE_TEMP_DIR.resolve(BriefcasePreferences.BRIEFCASE_DIR);
     createDirectories(wrongPath);
     createDirectories(wrongPath.resolve("forms"));
-    ExportConfigurationBuilder.empty().setExportDir(wrongPath).build();
+    ExportConfiguration.Builder.empty().setExportDir(wrongPath).build();
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void cannot_create_a_conf_with_a_non_existent_pem_file() {
     Path wrongPath = Paths.get("some/path");
-    ExportConfigurationBuilder.empty().setPemFile(wrongPath).build();
+    ExportConfiguration.Builder.empty().setPemFile(wrongPath).build();
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void cannot_create_a_conf_with_a_pem_file_path_to_a_non_file() {
     Path wrongPath = BASE_TEMP_DIR;
-    ExportConfigurationBuilder.empty().setPemFile(wrongPath).build();
+    ExportConfiguration.Builder.empty().setPemFile(wrongPath).build();
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void cannot_create_a_conf_with_a_pem_file_that_cannot_be_parsed() {
     Path wrongPath = BASE_TEMP_DIR.resolve("some_file.txt");
     write(wrongPath, "some content");
-    ExportConfigurationBuilder.empty().setPemFile(wrongPath).build();
+    ExportConfiguration.Builder.empty().setPemFile(wrongPath).build();
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void cannot_create_a_conf_with_an_invalid_date_range() {
-    ExportConfigurationBuilder.empty()
+    ExportConfiguration.Builder.empty()
         .setStartDate(LocalDate.of(2018, 1, 1))
         .setEndDate(LocalDate.of(2017, 1, 1)).build();
   }
@@ -225,6 +225,6 @@ public class ExportConfigurationTest {
   }
 
   private ExportConfiguration buildConf(String exportFileName) {
-    return ExportConfigurationBuilder.empty().setExportFilename(exportFileName).build();
+    return ExportConfiguration.Builder.empty().setExportFilename(exportFileName).build();
   }
 }

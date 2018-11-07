@@ -326,16 +326,15 @@ public class ConfigurationPanelForm extends JComponent {
   }
 
   private void triggerOnChange() {
-    ExportConfiguration conf = new ExportConfiguration(
-        Optional.empty(),
-        exportDir,
-        pemFile,
-        dateRange,
-        pullBefore,
-        overwriteFiles,
-        exportMedia,
-        splitSelectMultiples
-    );
+    ExportConfiguration conf = ExportConfiguration.Builder.empty()
+        .setExportDir(exportDir)
+        .setPemFile(pemFile)
+        .setDateRange(dateRange)
+        .setPullBefore(pullBefore)
+        .setOverwriteFiles(overwriteFiles)
+        .setExportMedia(exportMedia)
+        .setSplitSelectMultiples(splitSelectMultiples)
+        .build();
     onChangeCallbacks.forEach(callback -> callback.accept(conf));
   }
 

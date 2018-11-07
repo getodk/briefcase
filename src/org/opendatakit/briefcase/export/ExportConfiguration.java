@@ -74,7 +74,7 @@ public class ExportConfiguration {
   private final OverridableBoolean exportMedia;
   private final OverridableBoolean splitSelectMultiples;
 
-  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, DateRange dateRange, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, OverridableBoolean splitSelectMultiples) {
+  private ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, DateRange dateRange, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, OverridableBoolean splitSelectMultiples) {
     checkInvariants(exportDir, pemFile);
     this.exportFileName = exportFileName;
     this.exportDir = exportDir;
@@ -118,16 +118,15 @@ public class ExportConfiguration {
   public static ExportConfiguration load(BriefcasePreferences prefs, String keyPrefix) {
     Optional<LocalDate> startDate = prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse);
     Optional<LocalDate> endDate = prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse);
-    return new ExportConfiguration(
-        Optional.empty(),
-        prefs.nullSafeGet(keyPrefix + EXPORT_DIR).map(Paths::get),
-        prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get),
-        new DateRange(startDate, endDate),
-        readOverridableBoolean(prefs, keyPrefix + PULL_BEFORE, keyPrefix + PULL_BEFORE_OVERRIDE),
-        readOverridableBoolean(prefs, keyPrefix + OVERWRITE_FILES, keyPrefix + OVERWRITE_FILES_OVERRIDE),
-        readOverridableBoolean(prefs, keyPrefix + EXPORT_MEDIA, keyPrefix + EXPORT_MEDIA_OVERRIDE),
-        readOverridableBoolean(prefs, keyPrefix + SPLIT_SELECT_MULTIPLES, keyPrefix + SPLIT_SELECT_MULTIPLES_OVERRIDE)
-    );
+    return Builder.empty()
+        .setExportDir(prefs.nullSafeGet(keyPrefix + EXPORT_DIR).map(Paths::get))
+        .setPemFile(prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get))
+        .setDateRange(startDate, endDate)
+        .setPullBefore(readOverridableBoolean(prefs, keyPrefix + PULL_BEFORE, keyPrefix + PULL_BEFORE_OVERRIDE))
+        .setOverwriteFiles(readOverridableBoolean(prefs, keyPrefix + OVERWRITE_FILES, keyPrefix + OVERWRITE_FILES_OVERRIDE))
+        .setExportMedia(readOverridableBoolean(prefs, keyPrefix + EXPORT_MEDIA, keyPrefix + EXPORT_MEDIA_OVERRIDE))
+        .setSplitSelectMultiples(readOverridableBoolean(prefs, keyPrefix + SPLIT_SELECT_MULTIPLES, keyPrefix + SPLIT_SELECT_MULTIPLES_OVERRIDE))
+        .orEmpty();
   }
 
   private static OverridableBoolean readOverridableBoolean(BriefcasePreferences prefs, String mainKey, String overrideKey) {
@@ -336,4 +335,145 @@ public class ExportConfiguration {
     return Objects.hash(exportDir, pemFile, dateRange, pullBefore, overwriteFiles, exportMedia, splitSelectMultiples);
   }
 
+  public static class Builder {
+    private String exportFilename;
+    private Path exportDir;
+    private Path pemFile;
+    private DateRange dateRange = DateRange.empty();
+    private OverridableBoolean pullBefore = OverridableBoolean.empty();
+    private OverridableBoolean overwriteFiles = OverridableBoolean.empty();
+    private OverridableBoolean exportMedia = OverridableBoolean.empty();
+    private OverridableBoolean splitSelectMultiples = OverridableBoolean.empty();
+
+    public static Builder empty() {
+      return new Builder();
+    }
+
+    public ExportConfiguration build() {
+      return new ExportConfiguration(
+          Optional.ofNullable(exportFilename),
+          Optional.ofNullable(exportDir),
+          Optional.ofNullable(pemFile),
+          dateRange,
+          pullBefore,
+          overwriteFiles,
+          exportMedia,
+          splitSelectMultiples
+      );
+    }
+
+    public ExportConfiguration orEmpty() {
+      try {
+        return build();
+      } catch (IllegalArgumentException e) {
+        log.error("Can't create an export configuration object", e);
+        return ExportConfiguration.empty();
+      }
+    }
+
+    public Builder setExportFilename(String fileName) {
+      exportFilename = fileName;
+      return this;
+    }
+
+    public Builder setExportDir(Optional<Path> path) {
+      exportDir = path.orElse(null);
+      return this;
+    }
+
+    public Builder setExportDir(Path path) {
+      exportDir = path;
+      return this;
+    }
+
+    public Builder setPemFile(Path path) {
+      pemFile = path;
+      return this;
+    }
+
+    public Builder setPemFile(Optional<Path> path) {
+      pemFile = path.orElse(null);
+      return this;
+    }
+
+    public Builder setDateRange(DateRange dateRange) {
+      this.dateRange = dateRange;
+      return this;
+    }
+
+    public Builder setDateRange(Optional<LocalDate> start, Optional<LocalDate> end) {
+      this.dateRange = new DateRange(start, end);
+      return this;
+    }
+
+    public Builder setStartDate(LocalDate date) {
+      dateRange = dateRange.setStart(date);
+      return this;
+    }
+
+    public Builder setEndDate(LocalDate date) {
+      dateRange = dateRange.setEnd(date);
+      return this;
+    }
+
+    public Builder setPullBefore(OverridableBoolean pullBefore) {
+      this.pullBefore = pullBefore;
+      return this;
+    }
+
+    public Builder setPullBefore(boolean value) {
+      pullBefore = pullBefore.set(value);
+      return this;
+    }
+
+    public Builder setOverwriteFiles(OverridableBoolean overwriteFiles) {
+      this.overwriteFiles = overwriteFiles;
+      return this;
+    }
+
+    public Builder setOverwriteFiles(boolean value) {
+      overwriteFiles = overwriteFiles.set(value);
+      return this;
+    }
+
+    public Builder setExportMedia(OverridableBoolean exportMedia) {
+      this.exportMedia = exportMedia;
+      return this;
+    }
+
+    public Builder setExportMedia(boolean value) {
+      exportMedia = exportMedia.set(value);
+      return this;
+    }
+
+    public Builder setSplitSelectMultiples(OverridableBoolean splitSelectMultiples) {
+      this.splitSelectMultiples = splitSelectMultiples;
+      return this;
+    }
+
+    public Builder setSplitSelectMultiples(boolean value) {
+      splitSelectMultiples = splitSelectMultiples.set(value);
+      return this;
+    }
+
+    public Builder overridePullBefore(TriStateBoolean overrideValue) {
+      pullBefore = pullBefore.overrideWith(overrideValue);
+      return this;
+    }
+
+    public Builder overrideOverwriteFiles(TriStateBoolean overrideValue) {
+      overwriteFiles = overwriteFiles.overrideWith(overrideValue);
+      return this;
+    }
+
+    public Builder overrideExportMedia(TriStateBoolean overrideValue) {
+      exportMedia = exportMedia.overrideWith(overrideValue);
+      return this;
+    }
+
+    public Builder overrideSplitSelectMultiples(TriStateBoolean overrideValue) {
+      splitSelectMultiples = splitSelectMultiples.overrideWith(overrideValue);
+      return this;
+    }
+  }
 }

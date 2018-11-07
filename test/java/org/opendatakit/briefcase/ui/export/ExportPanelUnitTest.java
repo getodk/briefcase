@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
-import org.opendatakit.briefcase.export.ExportConfigurationBuilder;
 import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.export.FormDefinition;
@@ -62,7 +61,7 @@ public class ExportPanelUnitTest {
         FormCache.empty()
     );
 
-    exportPanelForm.setDefaultConf(ExportConfigurationBuilder.empty().setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri())).build());
+    exportPanelForm.setDefaultConf(ExportConfiguration.Builder.empty().setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri())).build());
 
     assertThat(ExportConfiguration.load(exportPreferences).getExportDir(), notNullValue());
   }
@@ -87,7 +86,7 @@ public class ExportPanelUnitTest {
     FormStatus form = formsList.get(0);
     String formId = form.getFormDefinition().getFormId();
 
-    ExportConfiguration conf = ExportConfigurationBuilder.empty()
+    ExportConfiguration conf = ExportConfiguration.Builder.empty()
         .setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()))
         .build();
 

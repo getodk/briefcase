@@ -36,7 +36,6 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.reused.OverridableBoolean;
 import org.opendatakit.briefcase.transfer.NewTransferAction;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.FormCache;
@@ -90,16 +89,16 @@ public class Export {
 
     System.out.println("Exporting form " + formDefinition.getFormName() + " (" + formDefinition.getFormId() + ") to: " + exportDir);
     DateRange dateRange = new DateRange(startDate, endDate);
-    ExportConfiguration configuration = new ExportConfiguration(
-        Optional.of(baseFilename),
-        Optional.of(exportDir),
-        maybePemFile,
-        dateRange,
-        OverridableBoolean.of(pullBefore),
-        OverridableBoolean.of(overwriteFiles),
-        OverridableBoolean.of(exportMedia),
-        OverridableBoolean.of(splitSelectMultiples)
-    );
+    ExportConfiguration configuration = ExportConfiguration.Builder.empty()
+        .setExportFilename(baseFilename)
+        .setExportDir(exportDir)
+        .setPemFile(maybePemFile)
+        .setDateRange(dateRange)
+        .setPullBefore(pullBefore)
+        .setOverwriteFiles(overwriteFiles)
+        .setExportMedia(exportMedia)
+        .setSplitSelectMultiples(splitSelectMultiples)
+        .build();
 
     if (configuration.resolvePullBefore()) {
       BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();

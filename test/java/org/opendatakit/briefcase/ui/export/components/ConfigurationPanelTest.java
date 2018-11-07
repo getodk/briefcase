@@ -33,7 +33,6 @@ import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
-import org.opendatakit.briefcase.export.ExportConfigurationBuilder;
 import org.opendatakit.briefcase.matchers.GenericUIMatchers;
 import org.opendatakit.briefcase.matchers.SwingMatchers;
 
@@ -103,7 +102,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void default_panel_loads_values_from_the_initial_configuration() {
-    ExportConfiguration expectedConfiguration = ExportConfigurationBuilder.empty()
+    ExportConfiguration expectedConfiguration = ExportConfiguration.Builder.empty()
         .setExportDir(ConfigurationPanelPageObject.TEST_FOLDER)
         .setPemFile(ConfigurationPanelPageObject.VALID_PEM_FILE)
         .setStartDate(LocalDate.of(2018, 1, 1))
@@ -162,7 +161,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void override_panel_loads_values_from_the_initial_configuration() {
-    ExportConfiguration expectedConfiguration = ExportConfigurationBuilder.empty()
+    ExportConfiguration expectedConfiguration = ExportConfiguration.Builder.empty()
         .setExportDir(ConfigurationPanelPageObject.TEST_FOLDER)
         .setPemFile(ConfigurationPanelPageObject.VALID_PEM_FILE)
         .setStartDate(LocalDate.of(2018, 1, 1))

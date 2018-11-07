@@ -35,7 +35,6 @@ import org.javarosa.core.model.DataType;
 import org.javarosa.core.model.instance.TreeElement;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
-import org.opendatakit.briefcase.reused.OverridableBoolean;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 
@@ -220,16 +219,11 @@ class Scenario {
   }
 
   private List<Pair<String, String>> mapValue(XmlElement value, boolean exportMedia) {
-    ExportConfiguration configuration = new ExportConfiguration(
-        Optional.of("test_output.csv"),
-        Optional.of(getOutputMediaDir().getParent()),
-        Optional.empty(),
-        DateRange.empty(),
-        OverridableBoolean.FALSE,
-        OverridableBoolean.TRUE,
-        OverridableBoolean.of(exportMedia),
-        OverridableBoolean.FALSE
-    );
+    ExportConfiguration configuration = ExportConfiguration.Builder.empty()
+        .setExportFilename("test_output.csv")
+        .setExportDir(getOutputMediaDir().getParent())
+        .setExportMedia(exportMedia)
+        .build();
     return CsvFieldMappers
         .getMapper(fieldModel, false)
         .apply(

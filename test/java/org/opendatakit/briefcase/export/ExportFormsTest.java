@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -44,7 +43,6 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
-import org.opendatakit.briefcase.reused.OverridableBoolean;
 
 public class ExportFormsTest {
   private static ExportConfiguration VALID_CONFIGURATION;
@@ -52,16 +50,9 @@ public class ExportFormsTest {
 
   static {
     try {
-      VALID_CONFIGURATION = new ExportConfiguration(
-          Optional.empty(),
-          Optional.of(Paths.get(Files.createTempDirectory("briefcase_test").toUri())),
-          Optional.empty(),
-          DateRange.empty(),
-          OverridableBoolean.FALSE,
-          OverridableBoolean.FALSE,
-          OverridableBoolean.FALSE,
-          OverridableBoolean.FALSE
-      );
+      VALID_CONFIGURATION = ExportConfiguration.Builder.empty()
+          .setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()))
+          .build();
       INVALID_CONFIGURATION = ExportConfiguration.empty();
     } catch (IOException e) {
       e.printStackTrace();

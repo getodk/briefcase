@@ -46,7 +46,6 @@ import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.opendatakit.briefcase.reused.OverridableBoolean;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -136,16 +135,15 @@ class ExportToCsvScenario {
   }
 
   void runExport(boolean overwrite, boolean exportMedia, LocalDate startDate, LocalDate endDate, Path pemFile, boolean splitSelectMultiples) {
-    ExportConfiguration configuration = new ExportConfiguration(
-        Optional.empty(),
-        Optional.of(outputDir.resolve("new")),
-        Optional.ofNullable(pemFile),
-        DateRange.from(startDate, endDate),
-        OverridableBoolean.FALSE,
-        OverridableBoolean.of(overwrite),
-        OverridableBoolean.of(exportMedia),
-        OverridableBoolean.of(splitSelectMultiples)
-    );
+    ExportConfiguration configuration = ExportConfiguration.Builder.empty()
+        .setExportDir(outputDir.resolve("new"))
+        .setPemFile(pemFile)
+        .setStartDate(startDate)
+        .setEndDate(endDate)
+        .setOverwriteFiles(overwrite)
+        .setExportMedia(exportMedia)
+        .setSplitSelectMultiples(splitSelectMultiples)
+        .build();
     ExportToCsv.export(formDef, configuration);
   }
 

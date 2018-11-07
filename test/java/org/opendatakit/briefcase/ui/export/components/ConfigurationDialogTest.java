@@ -28,14 +28,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
-import org.opendatakit.briefcase.export.ExportConfigurationBuilder;
 
 public class ConfigurationDialogTest extends AssertJSwingJUnitTestCase {
   private static ExportConfiguration CONFIGURATION;
 
   static {
     try {
-      CONFIGURATION = ExportConfigurationBuilder.empty().setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri())).build();
+      CONFIGURATION = ExportConfiguration.Builder.empty().setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri())).build();
     } catch (IOException e) {
       e.printStackTrace();
     }
