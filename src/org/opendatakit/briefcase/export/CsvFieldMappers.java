@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.export;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.text.DateFormat.getDateInstance;
 import static java.text.DateFormat.getDateTimeInstance;
@@ -34,6 +35,7 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.getMd5Hash;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.lines;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.stripFileExtension;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
+import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 import static org.opendatakit.common.utils.WebUtils.parseDate;
 
 import java.nio.file.Files;
@@ -60,14 +62,16 @@ import org.opendatakit.briefcase.reused.Pair;
 final class CsvFieldMappers {
   private static final Map<DataType, CsvFieldMapper> mappers = new HashMap<>();
 
-  private static final CsvFieldMapper BINARY_MAPPER = (__, ___, workingDir, field, element, configuration) -> element
-      .map(e -> binary(e, workingDir, configuration))
+  private static CsvFieldMapper INDIVIDUAL_FILE_AUDIT_MAPPER = (__, instanceId, workingDir, field, maybeElement, configuration) -> maybeElement
+      .map(element -> individualAuditFile(instanceId, workingDir, configuration, element))
       .orElse(empty(field.fqn()));
 
-  private static CsvFieldMapper AUDIT_MAPPER = BINARY_MAPPER
-      .andThen((formName, localId, workingDir, model, maybeElement, configuration) -> maybeElement
-          .map(e -> audit(formName, localId, workingDir, configuration, e))
-          .orElse(empty(model.fqn())))
+  private static CsvFieldMapper AGGREGATED_FILE_AUDIT_MAPPER = (formName, localId, workingDir, model, maybeElement, configuration) -> maybeElement
+      .map(e -> aggregatedAuditFile(formName, localId, workingDir, configuration, e))
+      .orElse(empty(model.fqn()));
+
+  private static CsvFieldMapper AUDIT_MAPPER = INDIVIDUAL_FILE_AUDIT_MAPPER
+      .andThen(AGGREGATED_FILE_AUDIT_MAPPER)
       .map(output -> output.filter(pair -> !pair.getLeft().contains("-aggregated")));
 
 
@@ -82,7 +86,9 @@ final class CsvFieldMappers {
     mappers.put(GEOPOINT, simpleMapper(CsvFieldMappers::geopoint, 4));
 
     // Binary fields require knowledge of the export configuration and working dir
-    mappers.put(BINARY, BINARY_MAPPER);
+    mappers.put(BINARY, (__, ___, workingDir, field, maybeElement, configuration) -> maybeElement
+        .map(element -> binary(element, workingDir, configuration))
+        .orElse(empty(field.fqn())));
 
     // Null fields encode groups (repeating and non-repeating), therefore,
     // they require the full context
@@ -227,7 +233,31 @@ final class CsvFieldMappers {
     return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(sequentialDestinationFile.getFileName()).toString()));
   }
 
-  private static Stream<Pair<String, String>> audit(String formName, String localId, Path workingDir, ExportConfiguration configuration, XmlElement e) {
+  private static Stream<Pair<String, String>> individualAuditFile(String instanceId, Path workingDir, ExportConfiguration configuration, XmlElement element) {
+    // TODO We should separate the side effect of writing files to disk from the csv output generation
+
+    if (!element.hasValue())
+      return empty(element.fqn());
+
+    String sourceFilename = element.getValue();
+
+    if (!configuration.resolveExportMedia())
+      return Stream.of(Pair.of(element.fqn(), sourceFilename));
+
+    if (!Files.exists(configuration.getExportMediaPath()))
+      createDirectories(configuration.getExportMediaPath());
+
+    Path sourceFile = workingDir.resolve(sourceFilename);
+
+    if (!exists(sourceFile))
+      return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(sourceFilename).toString()));
+
+    Path destinationFile = configuration.getExportMediaPath().resolve("audit-" + stripIllegalChars(instanceId) + ".csv");
+    copy(sourceFile, destinationFile, REPLACE_EXISTING);
+    return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(destinationFile.getFileName()).toString()));
+  }
+
+  private static Stream<Pair<String, String>> aggregatedAuditFile(String formName, String localId, Path workingDir, ExportConfiguration configuration, XmlElement e) {
     if (!e.hasValue())
       return empty(e.fqn() + "-aggregated");
 
