@@ -20,13 +20,16 @@ import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
+import static org.javarosa.core.model.DataType.TEXT;
 import static org.javarosa.core.model.instance.TreeReference.DEFAULT_MULTIPLICITY;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.export.ModelBuilder.field;
+import static org.opendatakit.briefcase.export.ModelBuilder.instance;
+import static org.opendatakit.briefcase.export.ModelBuilder.selectMultiple;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.javarosa.core.model.DataType;
 import org.javarosa.core.model.QuestionDef;
 import org.javarosa.core.model.SelectChoice;
 import org.javarosa.core.model.instance.TreeElement;
@@ -37,14 +40,10 @@ public class ModelTest {
   public void gets_choices_of_a_related_select_control() {
     SelectChoice choice1 = new SelectChoice("some label 1", "some value 1", false);
     SelectChoice choice2 = new SelectChoice("some label 2", "some value 2", false);
-    QuestionDef control = new QuestionDef();
-    control.setControlType(Model.ControlType.SELECT_MULTI.value);
-    control.addSelectChoice(choice1);
-    control.addSelectChoice(choice2);
 
-    Model model = new ModelBuilder()
-        .addField("select", DataType.TEXT, control)
-        .build();
+    Model model = instance(selectMultiple("select", choice1, choice2))
+        .build()
+        .getChildByName("select");
 
     assertThat(model.getChoices(), contains(choice1, choice2));
   }
@@ -57,9 +56,10 @@ public class ModelTest {
     control.addSelectChoice(new SelectChoice("name", "name_key", false));
     control.setAppearanceAttr("search('some_external_instance')");
 
-    Model model = new ModelBuilder()
-        .addField("select", DataType.TEXT, control)
-        .build();
+    Model model = instance(field("select", TEXT, control))
+        .build()
+        .getChildByName("select");
+
 
     assertThat(model.getChoices(), empty());
   }

@@ -17,6 +17,10 @@
 package org.opendatakit.briefcase.export;
 
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.export.ModelBuilder.group;
+import static org.opendatakit.briefcase.export.ModelBuilder.instance;
+import static org.opendatakit.briefcase.export.ModelBuilder.repeat;
+import static org.opendatakit.briefcase.export.ModelBuilder.text;
 import static org.opendatakit.briefcase.matchers.PathMatchers.exists;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
 
@@ -47,15 +51,19 @@ public class CsvTest {
 
   @Test
   public void includes_non_repeat_groups_in_repeat_filenames() {
-    Model group = new ModelBuilder()
-        .addGroup("data")
-        .addGroup("g1")
-        .addGroup("g2")
-        .addGroup("g3")
-        .addRepeatGroup("r")
-        .build();
+    Model model = instance(
+        group("g1",
+            group("g2",
+                group("g3",
+                    repeat("r",
+                        text("field")
+                    )
+                )
+            )
+        )
+    ).build();
 
-    FormDefinition formDef = buildFormDef("some_form", group, 4);
+    FormDefinition formDef = buildFormDef("some_form", model);
 
     Csv.getCsvs(formDef, conf).forEach(Csv::prepareOutputFiles);
 
@@ -64,16 +72,21 @@ public class CsvTest {
 
   @Test
   public void includes_non_repeat_groups_in_repeat_filenames2() {
-    Model group = new ModelBuilder()
-        .addGroup("data")
-        .addGroup("g1")
-        .addRepeatGroup("r1")
-        .addGroup("g2")
-        .addRepeatGroup("r2")
-        .addRepeatGroup("r3")
-        .build();
+    Model model = instance(
+        group("g1",
+            repeat("r1",
+                group("g2",
+                    repeat("r2",
+                        repeat("r3",
+                            text("field")
+                        )
+                    )
+                )
+            )
+        )
+    ).build();
 
-    FormDefinition formDef = buildFormDef("some_form", group, 5);
+    FormDefinition formDef = buildFormDef("some_form", model);
 
     Csv.getCsvs(formDef, conf).forEach(Csv::prepareOutputFiles);
 
@@ -84,13 +97,15 @@ public class CsvTest {
 
   @Test
   public void sanitizes_filenames() {
-    Model group = new ModelBuilder()
-        .addGroup("data")
-        .addGroup("some-group")
-        .addRepeatGroup("re\tpeat")
-        .build();
+    Model model = instance(
+        group("some-group",
+            repeat("re\tpeat",
+                text("field")
+            )
+        )
+    ).build();
 
-    FormDefinition formDef = buildFormDef("some.,form", group, 2);
+    FormDefinition formDef = buildFormDef("some.,form", model);
 
     Csv.getCsvs(formDef, conf).forEach(Csv::prepareOutputFiles);
 
@@ -100,16 +115,21 @@ public class CsvTest {
 
   @Test
   public void dupe_repeat_group_names_get_a_sequence_number_suffix() {
-    Model group = new ModelBuilder()
-        .addGroup("data")
-        .addRepeatGroup("outer-repeat")
-        .addGroup("outer-group")
-        .addRepeatGroup("dupe-repeat")
-        .addGroup("inner-group")
-        .addRepeatGroup("dupe-repeat")
-        .build();
+    Model model = instance(
+        repeat("outer-repeat",
+            group("outer-group",
+                repeat("dupe-repeat",
+                    group("inner-group",
+                        repeat("dupe-repeat",
+                            text("field")
+                        )
+                    )
+                )
+            )
+        )
+    ).build();
 
-    FormDefinition formDef = buildFormDef("some-form", group, 5);
+    FormDefinition formDef = buildFormDef("some-form", model);
 
     Csv.getCsvs(formDef, conf).forEach(Csv::prepareOutputFiles);
 
@@ -132,16 +152,13 @@ public class CsvTest {
     );
   }
 
-  private static FormDefinition buildFormDef(String formName, Model group, int ancestors) {
-    Model root = group;
-    for (int i = 0; i < ancestors; i++)
-      root = root.getParent();
+  private static FormDefinition buildFormDef(String formName, Model group) {
     return new FormDefinition(
         "some_form",
         Paths.get("/some/random/path/doesnt/matter/"),
         formName,
         false,
-        root
+        group
     );
   }
 }
