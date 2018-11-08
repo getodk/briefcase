@@ -75,7 +75,6 @@ public class ExportConfiguration {
   private final OverridableBoolean splitSelectMultiples;
 
   private ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, DateRange dateRange, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, OverridableBoolean splitSelectMultiples) {
-    checkInvariants(exportDir, pemFile);
     this.exportFileName = exportFileName;
     this.exportDir = exportDir;
     this.pemFile = pemFile;
@@ -86,29 +85,8 @@ public class ExportConfiguration {
     this.splitSelectMultiples = splitSelectMultiples;
   }
 
-  private static void checkInvariants(Optional<Path> exportDir, Optional<Path> pemFile) {
-    exportDir.ifPresent(path -> {
-      if (!exists(path))
-        throw new IllegalArgumentException("Given export directory doesn't exist");
-      if (!isDirectory(path))
-        throw new IllegalArgumentException("Given export directory is not a directory");
-      if (isUnderODKFolder(path.toFile()))
-        throw new IllegalArgumentException("Given export directory is inside a Collect storage directory");
-      if (isUnderBriefcaseFolder(path.toFile()))
-        throw new IllegalArgumentException("Given export directory is inside a Briefcase storage directory");
-    });
-    pemFile.ifPresent(path -> {
-      if (!exists(path))
-        throw new IllegalArgumentException("Given PEM file doesn't exist");
-      if (!isRegularFile(path))
-        throw new IllegalArgumentException("Given PEM file is not a file");
-      if (!readPemFile(path).isPresent())
-        throw new IllegalArgumentException("Given PEM file can't be parsed");
-    });
-  }
-
   public static ExportConfiguration empty() {
-    return new ExportConfiguration(Optional.empty(), Optional.empty(), Optional.empty(), DateRange.empty(), OverridableBoolean.empty(), OverridableBoolean.empty(), OverridableBoolean.empty(), OverridableBoolean.empty());
+    return Builder.empty().build();
   }
 
   public static ExportConfiguration load(BriefcasePreferences prefs) {
@@ -126,7 +104,7 @@ public class ExportConfiguration {
         .setOverwriteFiles(readOverridableBoolean(prefs, keyPrefix + OVERWRITE_FILES, keyPrefix + OVERWRITE_FILES_OVERRIDE))
         .setExportMedia(readOverridableBoolean(prefs, keyPrefix + EXPORT_MEDIA, keyPrefix + EXPORT_MEDIA_OVERRIDE))
         .setSplitSelectMultiples(readOverridableBoolean(prefs, keyPrefix + SPLIT_SELECT_MULTIPLES, keyPrefix + SPLIT_SELECT_MULTIPLES_OVERRIDE))
-        .orEmpty();
+        .build();
   }
 
   private static OverridableBoolean readOverridableBoolean(BriefcasePreferences prefs, String mainKey, String overrideKey) {
@@ -263,15 +241,16 @@ public class ExportConfiguration {
   }
 
   ExportConfiguration fallingBackTo(ExportConfiguration defaultConfiguration) {
-    return new ExportConfiguration(
-        exportFileName, exportDir.isPresent() ? exportDir : defaultConfiguration.exportDir,
-        pemFile.isPresent() ? pemFile : defaultConfiguration.pemFile,
-        !dateRange.isEmpty() ? dateRange : defaultConfiguration.dateRange,
-        pullBefore.fallingBackTo(defaultConfiguration.pullBefore),
-        overwriteFiles.fallingBackTo(defaultConfiguration.overwriteFiles),
-        exportMedia.fallingBackTo(defaultConfiguration.exportMedia),
-        splitSelectMultiples.fallingBackTo(defaultConfiguration.splitSelectMultiples)
-    );
+    return Builder.empty()
+        .setExportFilename(exportFileName.isPresent() ? exportFileName : defaultConfiguration.exportFileName)
+        .setExportDir(exportDir.isPresent() ? exportDir : defaultConfiguration.exportDir)
+        .setPemFile(pemFile.isPresent() ? pemFile : defaultConfiguration.pemFile)
+        .setDateRange(!dateRange.isEmpty() ? dateRange : defaultConfiguration.dateRange)
+        .setPullBefore(pullBefore.fallingBackTo(defaultConfiguration.pullBefore))
+        .setOverwriteFiles(overwriteFiles.fallingBackTo(defaultConfiguration.overwriteFiles))
+        .setExportMedia(exportMedia.fallingBackTo(defaultConfiguration.exportMedia))
+        .setSplitSelectMultiples(splitSelectMultiples.fallingBackTo(defaultConfiguration.splitSelectMultiples))
+        .build();
   }
 
   Optional<PrivateKey> getPrivateKey() {
@@ -336,6 +315,7 @@ public class ExportConfiguration {
   }
 
   public static class Builder {
+    public static final Consumer<String> NO_OP = __ -> { };
     private String exportFilename;
     private Path exportDir;
     private Path pemFile;
@@ -362,38 +342,71 @@ public class ExportConfiguration {
       );
     }
 
-    public ExportConfiguration orEmpty() {
-      try {
-        return build();
-      } catch (IllegalArgumentException e) {
-        log.error("Can't create an export configuration object", e);
-        return ExportConfiguration.empty();
-      }
-    }
-
     public Builder setExportFilename(String fileName) {
-      exportFilename = fileName;
-      return this;
+      return setExportFilename(Optional.ofNullable(fileName));
     }
 
-    public Builder setExportDir(Optional<Path> path) {
-      exportDir = path.orElse(null);
+    public Builder setExportFilename(Optional<String> fileName) {
+      exportFilename = fileName.orElse(null);
       return this;
     }
 
     public Builder setExportDir(Path path) {
-      exportDir = path;
+      return setExportDir(Optional.ofNullable(path), NO_OP);
+    }
+
+    public Builder setExportDir(Optional<Path> path) {
+      return setExportDir(path, NO_OP);
+    }
+
+    public Builder setExportDir(Optional<Path> path, Consumer<String> onInvalid) {
+      Optional<String> error = path.flatMap(Builder::checkExportDirInvariants);
+      if (error.isPresent()) {
+        onInvalid.accept(error.get());
+        log.warn("Invalid export dir: {}", error.get());
+      } else
+        exportDir = path.orElse(null);
       return this;
+    }
+
+    private static Optional<String> checkExportDirInvariants(Path path) {
+      if (!exists(path))
+        return Optional.of("Given export directory doesn't exist");
+      if (!isDirectory(path))
+        return Optional.of("Given export directory is not a directory");
+      if (isUnderODKFolder(path.toFile()))
+        return Optional.of("Given export directory is inside a Collect storage directory");
+      if (isUnderBriefcaseFolder(path.toFile()))
+        return Optional.of("Given export directory is inside a Briefcase storage directory");
+      return Optional.empty();
     }
 
     public Builder setPemFile(Path path) {
-      pemFile = path;
-      return this;
+      return setPemFile(Optional.ofNullable(path), NO_OP);
     }
 
     public Builder setPemFile(Optional<Path> path) {
-      pemFile = path.orElse(null);
+      return setPemFile(path, NO_OP);
+    }
+
+    public Builder setPemFile(Optional<Path> path, Consumer<String> onInvalid) {
+      Optional<String> error = path.flatMap(Builder::checkPemFileInvariants);
+      if (error.isPresent()) {
+        onInvalid.accept(error.get());
+        log.warn("Invalid PEM file: {}", error.get());
+      } else
+        pemFile = path.orElse(null);
       return this;
+    }
+
+    private static Optional<String> checkPemFileInvariants(Path path) {
+      if (!exists(path))
+        return Optional.of("Given PEM file doesn't exist");
+      if (!isRegularFile(path))
+        return Optional.of("Given PEM file is not a file");
+      if (!readPemFile(path).isPresent())
+        return Optional.of("Given PEM file can't be parsed");
+      return Optional.empty();
     }
 
     public Builder setDateRange(DateRange dateRange) {

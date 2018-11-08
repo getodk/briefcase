@@ -40,6 +40,7 @@ import java.time.LocalDate;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.opendatakit.briefcase.export.ExportConfiguration.Builder;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -62,7 +63,7 @@ public class ExportConfigurationTest {
         .getResource("org/opendatakit/briefcase/export/encrypted-form-key.pem")
         .toURI();
     copy(Paths.get(sourcePemFileUri), VALID_PEM_FILE);
-    VALID_CONFIG = ExportConfiguration.Builder.empty()
+    VALID_CONFIG = Builder.empty()
         .setExportDir(VALID_EXPORT_DIR)
         .setPemFile(VALID_PEM_FILE)
         .setStartDate(START_DATE)
@@ -75,58 +76,57 @@ public class ExportConfigurationTest {
     deleteRecursive(BASE_TEMP_DIR);
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void cannot_create_a_conf_with_a_non_existant_export_dir() {
+  @Test
+  public void the_builder_rejects_non_existant_export_dirs() {
     Path wrongPath = Paths.get("some/path");
-    ExportConfiguration.Builder.empty().setExportDir(wrongPath).build();
+    assertThat(Builder.empty().setExportDir(wrongPath).build(), isEmpty());
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void cannot_create_a_conf_with_an_export_dir_path_to_a_non_directory() {
+  @Test
+  public void the_builder_rejects_export_dir_paths_to_a_non_directory() {
     Path wrongPath = BASE_TEMP_DIR.resolve("some_file.txt");
     write(wrongPath, "some content");
-    ExportConfiguration.Builder.empty().setExportDir(wrongPath).build();
+    assertThat(Builder.empty().setExportDir(wrongPath).build(), isEmpty());
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void cannot_create_a_conf_with_an_export_dir_inside_a_Collect_storage_directory() {
+  @Test
+  public void the_builder_rejects_export_dirs_inside_a_Collect_storage_directory() {
     Path wrongPath = BASE_TEMP_DIR.resolve("odk");
     createDirectories(wrongPath);
     createDirectories(wrongPath.resolve("instances"));
     createDirectories(wrongPath.resolve("forms"));
-    ExportConfiguration.Builder.empty().setExportDir(wrongPath).build();
+    assertThat(Builder.empty().setExportDir(wrongPath).build(), isEmpty());
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void cannot_create_a_conf_with_an_export_dir_inside_a_Briefcase_storage_directory() {
+  @Test
+  public void the_builder_rejects_export_dirs_inside_a_Briefcase_storage_directory() {
     Path wrongPath = BASE_TEMP_DIR.resolve(BriefcasePreferences.BRIEFCASE_DIR);
     createDirectories(wrongPath);
     createDirectories(wrongPath.resolve("forms"));
-    ExportConfiguration.Builder.empty().setExportDir(wrongPath).build();
+    assertThat(Builder.empty().setExportDir(wrongPath).build(), isEmpty());
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void cannot_create_a_conf_with_a_non_existent_pem_file() {
+  @Test
+  public void the_builder_rejects_non_existent_pem_file() {
     Path wrongPath = Paths.get("some/path");
-    ExportConfiguration.Builder.empty().setPemFile(wrongPath).build();
+    assertThat(Builder.empty().setPemFile(wrongPath).build(), isEmpty());
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void cannot_create_a_conf_with_a_pem_file_path_to_a_non_file() {
-    Path wrongPath = BASE_TEMP_DIR;
-    ExportConfiguration.Builder.empty().setPemFile(wrongPath).build();
+  @Test
+  public void the_builder_rejects_pem_file_paths_to_a_non_file() {
+    assertThat(Builder.empty().setPemFile(BASE_TEMP_DIR).build(), isEmpty());
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void cannot_create_a_conf_with_a_pem_file_that_cannot_be_parsed() {
+  @Test
+  public void the_builder_rejects_pem_files_that_cannot_be_parsed() {
     Path wrongPath = BASE_TEMP_DIR.resolve("some_file.txt");
     write(wrongPath, "some content");
-    ExportConfiguration.Builder.empty().setPemFile(wrongPath).build();
+    assertThat(Builder.empty().setPemFile(wrongPath).build(), isEmpty());
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void cannot_create_a_conf_with_an_invalid_date_range() {
-    ExportConfiguration.Builder.empty()
+    Builder.empty()
         .setStartDate(LocalDate.of(2018, 1, 1))
         .setEndDate(LocalDate.of(2017, 1, 1)).build();
   }
@@ -225,6 +225,6 @@ public class ExportConfigurationTest {
   }
 
   private ExportConfiguration buildConf(String exportFileName) {
-    return ExportConfiguration.Builder.empty().setExportFilename(exportFileName).build();
+    return Builder.empty().setExportFilename(exportFileName).build();
   }
 }

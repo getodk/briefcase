@@ -19,6 +19,7 @@ import static org.opendatakit.briefcase.ui.reused.FileChooser.directory;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.file;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.ui.reused.UI.confirm;
+import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 import static org.opendatakit.briefcase.util.Host.isMac;
 import static org.opendatakit.briefcase.util.Host.isWindows;
@@ -327,8 +328,14 @@ public class ConfigurationPanelForm extends JComponent {
 
   private void triggerOnChange() {
     ExportConfiguration conf = ExportConfiguration.Builder.empty()
-        .setExportDir(exportDir)
-        .setPemFile(pemFile)
+        .setExportDir(exportDir, error -> {
+          errorMessage("Invalid export dir", error);
+          clearExportDir();
+        })
+        .setPemFile(pemFile, error -> {
+          errorMessage("Invalid PEM file selected", error);
+          clearPemFile();
+        })
         .setDateRange(dateRange)
         .setPullBefore(pullBefore)
         .setOverwriteFiles(overwriteFiles)
