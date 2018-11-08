@@ -85,34 +85,6 @@ public class ExportConfiguration {
     this.splitSelectMultiples = splitSelectMultiples;
   }
 
-  public static ExportConfiguration empty() {
-    return Builder.empty().build();
-  }
-
-  public static ExportConfiguration load(BriefcasePreferences prefs) {
-    return load(prefs, "");
-  }
-
-  public static ExportConfiguration load(BriefcasePreferences prefs, String keyPrefix) {
-    Optional<LocalDate> startDate = prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse);
-    Optional<LocalDate> endDate = prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse);
-    return Builder.empty()
-        .setExportDir(prefs.nullSafeGet(keyPrefix + EXPORT_DIR).map(Paths::get))
-        .setPemFile(prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get))
-        .setDateRange(startDate, endDate)
-        .setPullBefore(readOverridableBoolean(prefs, keyPrefix + PULL_BEFORE, keyPrefix + PULL_BEFORE_OVERRIDE))
-        .setOverwriteFiles(readOverridableBoolean(prefs, keyPrefix + OVERWRITE_FILES, keyPrefix + OVERWRITE_FILES_OVERRIDE))
-        .setExportMedia(readOverridableBoolean(prefs, keyPrefix + EXPORT_MEDIA, keyPrefix + EXPORT_MEDIA_OVERRIDE))
-        .setSplitSelectMultiples(readOverridableBoolean(prefs, keyPrefix + SPLIT_SELECT_MULTIPLES, keyPrefix + SPLIT_SELECT_MULTIPLES_OVERRIDE))
-        .build();
-  }
-
-  private static OverridableBoolean readOverridableBoolean(BriefcasePreferences prefs, String mainKey, String overrideKey) {
-    OverridableBoolean ob = prefs.nullSafeGet(mainKey).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty);
-    prefs.nullSafeGet(overrideKey).map(TriStateBoolean::from).ifPresent(ob::overrideWith);
-    return ob;
-  }
-
   public static List<String> keys() {
     return keys("");
   }
@@ -327,6 +299,30 @@ public class ExportConfiguration {
 
     public static Builder empty() {
       return new Builder();
+    }
+
+    public static ExportConfiguration load(BriefcasePreferences prefs) {
+      return load(prefs, "");
+    }
+
+    public static ExportConfiguration load(BriefcasePreferences prefs, String keyPrefix) {
+      Optional<LocalDate> startDate = prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse);
+      Optional<LocalDate> endDate = prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse);
+      return empty()
+          .setExportDir(prefs.nullSafeGet(keyPrefix + EXPORT_DIR).map(Paths::get))
+          .setPemFile(prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get))
+          .setDateRange(startDate, endDate)
+          .setPullBefore(readOverridableBoolean(prefs, keyPrefix + PULL_BEFORE, keyPrefix + PULL_BEFORE_OVERRIDE))
+          .setOverwriteFiles(readOverridableBoolean(prefs, keyPrefix + OVERWRITE_FILES, keyPrefix + OVERWRITE_FILES_OVERRIDE))
+          .setExportMedia(readOverridableBoolean(prefs, keyPrefix + EXPORT_MEDIA, keyPrefix + EXPORT_MEDIA_OVERRIDE))
+          .setSplitSelectMultiples(readOverridableBoolean(prefs, keyPrefix + SPLIT_SELECT_MULTIPLES, keyPrefix + SPLIT_SELECT_MULTIPLES_OVERRIDE))
+          .build();
+    }
+
+    private static OverridableBoolean readOverridableBoolean(BriefcasePreferences prefs, String mainKey, String overrideKey) {
+      OverridableBoolean ob = prefs.nullSafeGet(mainKey).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty);
+      prefs.nullSafeGet(overrideKey).map(TriStateBoolean::from).ifPresent(ob::overrideWith);
+      return ob;
     }
 
     public ExportConfiguration build() {

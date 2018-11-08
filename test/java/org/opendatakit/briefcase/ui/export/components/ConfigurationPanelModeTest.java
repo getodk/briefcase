@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.ui.export.components;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.matchers.GenericUIMatchers.containsText;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.enabled;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.visible;
@@ -30,7 +31,6 @@ import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.opendatakit.briefcase.export.ExportConfiguration;
 
 @RunWith(value = Parameterized.class)
 public class ConfigurationPanelModeTest extends AssertJSwingJUnitTestCase {
@@ -61,7 +61,7 @@ public class ConfigurationPanelModeTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void decorates_fields_related_to_pulling_before_exporting() {
-    ConfigurationPanelPageObject component = ConfigurationPanelPageObject.setUp(robot(), ExportConfiguration.empty(), scenario.isOverridePanel, scenario.hasTransferSettings, scenario.savePasswords);
+    ConfigurationPanelPageObject component = ConfigurationPanelPageObject.setUp(robot(), empty().build(), scenario.isOverridePanel, scenario.hasTransferSettings, scenario.savePasswords);
     component.show();
 
     // Pull Before checkbox assertions

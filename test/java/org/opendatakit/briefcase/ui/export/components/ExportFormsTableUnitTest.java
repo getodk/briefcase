@@ -16,18 +16,18 @@
 package org.opendatakit.briefcase.ui.export.components;
 
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.model.FormStatusBuilder.buildFormStatusList;
 
 import java.util.HashMap;
 import org.hamcrest.Matchers;
 import org.junit.Test;
-import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
 
 public class ExportFormsTableUnitTest {
   @Test
   public void can_select_all_forms() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     TestExportFormsTableViewModel viewModel = new TestExportFormsTableViewModel(forms);
     ExportFormsTable formsTable = new ExportFormsTable(forms, new TestExportFormsTableView(viewModel), viewModel);
 
@@ -40,7 +40,7 @@ public class ExportFormsTableUnitTest {
 
   @Test
   public void can_clear_selection_of_forms() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     TestExportFormsTableViewModel viewModel = new TestExportFormsTableViewModel(forms);
     ExportFormsTable formsTable = new ExportFormsTable(forms, new TestExportFormsTableView(viewModel), viewModel);
     formsTable.selectAll();

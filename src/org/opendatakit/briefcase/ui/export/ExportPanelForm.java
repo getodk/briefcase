@@ -15,6 +15,8 @@
  */
 package org.opendatakit.briefcase.ui.export;
 
+import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
+
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -80,7 +82,7 @@ public class ExportPanelForm {
   }
 
   private void resetDefaultConf() {
-    defaultConf = ExportConfiguration.empty();
+    defaultConf = empty().build();
     onDefaultConfResetCallbacks.forEach(Runnable::run);
     setDefaultConfButton.setText("Set Default Configuration");
   }

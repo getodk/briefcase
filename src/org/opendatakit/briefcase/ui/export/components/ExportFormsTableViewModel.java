@@ -19,6 +19,7 @@ import static java.awt.Color.DARK_GRAY;
 import static java.awt.Color.LIGHT_GRAY;
 import static java.time.format.DateTimeFormatter.ofLocalizedDateTime;
 import static java.time.format.FormatStyle.SHORT;
+import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.ui.export.components.ExportFormsTableView.EDITABLE_COLS;
 import static org.opendatakit.briefcase.ui.export.components.ExportFormsTableView.HEADERS;
 import static org.opendatakit.briefcase.ui.export.components.ExportFormsTableView.TYPES;
@@ -79,7 +80,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
     button.addActionListener(__ -> {
       if (enabled) {
         ConfigurationDialog dialog = ConfigurationDialog.overridePanel(
-            forms.getCustomConfiguration(form).orElse(ExportConfiguration.empty()),
+            forms.getCustomConfiguration(form).orElse(empty().build()),
             form.getFormName(),
             forms.hasTransferSettings(form),
             BriefcasePreferences.getStorePasswordsConsentProperty()

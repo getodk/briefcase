@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.matchers.GenericUIMatchers.containsText;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.enabled;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.selected;
@@ -48,7 +49,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   @Test
   @Ignore
   public void export_dir_button_opens_a_file_dialog() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), empty().build(), true, true);
     component.show();
     component.clickChooseExportDirButton();
     assertThat(component.fileDialog(2000), is(GenericUIMatchers.visible()));
@@ -58,7 +59,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   @Test
   @Ignore
   public void pem_file_button_opens_a_file_dialog() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), empty().build(), true, true);
     component.show();
     component.clickChoosePemFileButton();
     assertThat(component.fileDialog(2000), is(GenericUIMatchers.visible()));
@@ -67,7 +68,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void only_the_pem_file_choose_button_is_visible_initially() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), empty().build(), true, true);
     component.show();
     assertThat(component.choosePemFileButton(), is(visible()));
     assertThat(component.clearPemFileButton(), is(not(visible())));
@@ -75,7 +76,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void choose_pem_file_button_is_swapped_for_a_clean_button_that_cleans_the_field() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), empty().build(), true, true);
     component.show();
     component.setSomePemFile();
     assertThat(component.choosePemFileButton(), is(not(visible())));
@@ -86,7 +87,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void cannot_insert_an_end_date_before_the_set_start_date() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), empty().build(), true, true);
     component.show();
     component.setStartDate(LocalDate.of(2017, 1, 30));
     assertFalse(component.endDateField().isDateAllowed(LocalDate.of(2017, 1, 28)));
@@ -94,7 +95,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void cannot_insert_a_start_date_after_the_set_end_date() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), empty().build(), true, true);
     component.show();
     component.setEndDate(LocalDate.of(2017, 1, 25));
     assertFalse(component.startDateField().isDateAllowed(LocalDate.of(2017, 1, 27)));
@@ -102,7 +103,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void default_panel_loads_values_from_the_initial_configuration() {
-    ExportConfiguration expectedConfiguration = ExportConfiguration.Builder.empty()
+    ExportConfiguration expectedConfiguration = empty()
         .setExportDir(ConfigurationPanelPageObject.TEST_FOLDER)
         .setPemFile(ConfigurationPanelPageObject.VALID_PEM_FILE)
         .setStartDate(LocalDate.of(2018, 1, 1))
@@ -120,7 +121,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void default_panel_can_be_disabled() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), empty().build(), true, true);
     component.show();
     component.disable(true);
     assertThat(component.exportDirField(), is(not(enabled())));
@@ -132,7 +133,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void default_panel_can_be_enabled() {
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), empty().build(), true, true);
     component.show();
     component.disable(true);
     component.enable(true);
@@ -146,7 +147,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   @Test
   public void default_panel_broadcasts_changes() {
     final AtomicInteger counter = new AtomicInteger(0);
-    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), ExportConfiguration.empty(), true, true);
+    component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), empty().build(), true, true);
     component.show();
     component.onChange(__ -> counter.incrementAndGet());
 
@@ -161,7 +162,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void override_panel_loads_values_from_the_initial_configuration() {
-    ExportConfiguration expectedConfiguration = ExportConfiguration.Builder.empty()
+    ExportConfiguration expectedConfiguration = empty()
         .setExportDir(ConfigurationPanelPageObject.TEST_FOLDER)
         .setPemFile(ConfigurationPanelPageObject.VALID_PEM_FILE)
         .setStartDate(LocalDate.of(2018, 1, 1))
@@ -179,7 +180,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void override_panel_can_be_disabled() {
-    component = ConfigurationPanelPageObject.setUpOverridePanel(robot(), ExportConfiguration.empty(), true, true);
+    component = ConfigurationPanelPageObject.setUpOverridePanel(robot(), empty().build(), true, true);
     component.show();
     component.disable(true);
     assertThat(component.exportDirField(), is(not(enabled())));
@@ -193,7 +194,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void override_panel__can_be_enabled() {
-    component = ConfigurationPanelPageObject.setUpOverridePanel(robot(), ExportConfiguration.empty(), true, true);
+    component = ConfigurationPanelPageObject.setUpOverridePanel(robot(), empty().build(), true, true);
     component.show();
     component.disable(true);
     component.enable(true);
@@ -209,7 +210,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
   @Test
   public void override_panel_broadcasts_changes() {
     final AtomicInteger counter = new AtomicInteger(0);
-    component = ConfigurationPanelPageObject.setUpOverridePanel(robot(), ExportConfiguration.empty(), true, true);
+    component = ConfigurationPanelPageObject.setUpOverridePanel(robot(), empty().build(), true, true);
     component.show();
     component.onChange(__ -> counter.incrementAndGet());
 

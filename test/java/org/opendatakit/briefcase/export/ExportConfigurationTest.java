@@ -19,7 +19,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
-import static org.opendatakit.briefcase.export.ExportConfiguration.load;
+import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.load;
 import static org.opendatakit.briefcase.matchers.ExportConfigurationMatchers.isEmpty;
 import static org.opendatakit.briefcase.matchers.ExportConfigurationMatchers.isValid;
 import static org.opendatakit.briefcase.reused.TriStateBoolean.FALSE;
@@ -47,7 +47,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportConfigurationTest {
-  private static final ExportConfiguration EMPTY_CONF = ExportConfiguration.empty();
+  private static final ExportConfiguration EMPTY_CONF = empty().build();
   private static final Path BASE_TEMP_DIR = createTempDirectory("briefcase_test");
   private static final Path VALID_EXPORT_DIR = BASE_TEMP_DIR.resolve("export-dir");
   private static final Path VALID_PEM_FILE = BASE_TEMP_DIR.resolve("pkey.pem");
