@@ -17,7 +17,12 @@
 package org.opendatakit.briefcase.export;
 
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.export.ModelBuilder.group;
+import static org.opendatakit.briefcase.export.ModelBuilder.instance;
+import static org.opendatakit.briefcase.export.ModelBuilder.repeat;
+import static org.opendatakit.briefcase.export.ModelBuilder.text;
 import static org.opendatakit.briefcase.matchers.PathMatchers.exists;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,7 +33,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.OverridableBoolean;
-import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 public class CsvTest {
   private Path exportDir;
@@ -42,51 +46,117 @@ public class CsvTest {
 
   @After
   public void tearDown() {
-    UncheckedFiles.deleteRecursive(exportDir);
+    deleteRecursive(exportDir);
   }
 
   @Test
   public void includes_non_repeat_groups_in_repeat_filenames() {
-    Model group = new ModelBuilder()
-        .addGroup("data")
-        .addGroup("g1")
-        .addGroup("g2")
-        .addGroup("g3")
-        .addRepeatGroup("r")
-        .build();
+    Model model = instance(
+        group("g1",
+            group("g2",
+                group("g3",
+                    repeat("r",
+                        text("field")
+                    )
+                )
+            )
+        )
+    ).build();
 
-    FormDefinition formDef = buildFormDef(group, 4);
+    FormDefinition formDef = buildFormDef("some_form", model);
 
-    Csv.repeat(formDef, group, conf).prepareOutputFiles();
+    Csv.getCsvs(formDef, conf).forEach(Csv::prepareOutputFiles);
 
-    assertThat(exportDir.resolve("some_form-g1-g2-g3-r.csv"), exists());
+    assertThat(exportDir.resolve("some_form-r.csv"), exists());
   }
 
   @Test
   public void includes_non_repeat_groups_in_repeat_filenames2() {
-    Model group = new ModelBuilder()
-        .addGroup("data")
-        .addGroup("g1")
-        .addRepeatGroup("r1")
-        .addGroup("g2")
-        .addRepeatGroup("r2")
-        .addRepeatGroup("r3")
-        .build();
+    Model model = instance(
+        group("g1",
+            repeat("r1",
+                group("g2",
+                    repeat("r2",
+                        repeat("r3",
+                            text("field")
+                        )
+                    )
+                )
+            )
+        )
+    ).build();
 
-    FormDefinition formDef = buildFormDef(group, 5);
+    FormDefinition formDef = buildFormDef("some_form", model);
 
-    Csv.repeat(formDef, group, conf).prepareOutputFiles();
-    Csv.repeat(formDef, group.getParent(), conf).prepareOutputFiles();
-    Csv.repeat(formDef, group.getParent().getParent().getParent(), conf).prepareOutputFiles();
+    Csv.getCsvs(formDef, conf).forEach(Csv::prepareOutputFiles);
 
-    assertThat(exportDir.resolve("some_form-g1-r1.csv"), exists());
-    assertThat(exportDir.resolve("some_form-g2-r2.csv"), exists());
+    assertThat(exportDir.resolve("some_form-r1.csv"), exists());
+    assertThat(exportDir.resolve("some_form-r2.csv"), exists());
     assertThat(exportDir.resolve("some_form-r3.csv"), exists());
   }
 
-  public ExportConfiguration buildConf(Path exportDir) {
+  @Test
+  public void sanitizes_filenames() {
+    Model model = instance(
+        group("some-group",
+            repeat("re\tpeat",
+                text("field")
+            )
+        )
+    ).build();
+
+    FormDefinition formDef = buildFormDef("some.,form", model);
+
+    Csv.getCsvs(formDef, conf).forEach(Csv::prepareOutputFiles);
+
+    assertThat(exportDir.resolve("some__form.csv"), exists());
+    assertThat(exportDir.resolve("some__form-re peat.csv"), exists());
+  }
+
+  @Test
+  public void dupe_nested_repeat_group_names_get_a_sequence_number_suffix() {
+    Model model = instance(
+        repeat("outer-repeat",
+            group("outer-group",
+                repeat("dupe-repeat",
+                    group("inner-group",
+                        repeat("dupe-repeat",
+                            text("field")
+                        )
+                    )
+                )
+            )
+        )
+    ).build();
+
+    FormDefinition formDef = buildFormDef("some-form", model);
+
+    Csv.getCsvs(formDef, conf).forEach(Csv::prepareOutputFiles);
+
+    assertThat(exportDir.resolve("some_form-outer_repeat.csv"), exists());
+    assertThat(exportDir.resolve("some_form-dupe_repeat~1.csv"), exists());
+    assertThat(exportDir.resolve("some_form-dupe_repeat~2.csv"), exists());
+  }
+
+  @Test
+  public void dupe_sibling_repeat_group_names_get_a_sequence_number_suffix() {
+    Model model = instance(
+        group("group1", repeat("dupe-repeat", text("some-field"))),
+        group("group2", repeat("dupe-repeat", text("some-field")))
+    ).build();
+
+    FormDefinition formDef = buildFormDef("some-form", model);
+
+    Csv.getCsvs(formDef, conf).forEach(Csv::prepareOutputFiles);
+
+    assertThat(exportDir.resolve("some_form.csv"), exists());
+    assertThat(exportDir.resolve("some_form-dupe_repeat~1.csv"), exists());
+    assertThat(exportDir.resolve("some_form-dupe_repeat~2.csv"), exists());
+  }
+
+  private ExportConfiguration buildConf(Path exportDir) {
     return new ExportConfiguration(
-        Optional.of("some_form.csv"),
+        Optional.empty(),
         Optional.of(exportDir),
         Optional.empty(),
         Optional.empty(),
@@ -98,16 +168,13 @@ public class CsvTest {
     );
   }
 
-  private static FormDefinition buildFormDef(Model group, int ancestors) {
-    Model root = group;
-    for (int i = 0; i < ancestors; i++)
-      root = root.getParent();
+  private static FormDefinition buildFormDef(String formName, Model group) {
     return new FormDefinition(
         "some_form",
         Paths.get("/some/random/path/doesnt/matter/"),
-        "some_form",
+        formName,
         false,
-        root
+        group
     );
   }
 }

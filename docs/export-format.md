@@ -25,12 +25,31 @@ The main output file has values from any non-repeating group field found at the 
 
 ## Repeat output file
 
-Each repeat group will produce an output CSV file.
+Each repeat group will produce an output CSV file, and the filename will be the composition of the main csv filename and the repeat group's name.
 
-The file names of repeat groups depend on their position inside the model tree of the form. Some examples:
+- If form X has a repeat group Y, then the output file for the repeat group will be named `X-Y.csv`
+- Middle groups (including repeats) are ignored. If form X has a non-repeat group Y, which has a repeat group Z, then the output file for the repeat group will be named `X-Z.csv`
+- If form X has two repeat groups called Y (in any group arrangement), then a sequence number suffix is added for disambiguation and you will get output files `X-Y~1.csv`, and `X.Y~2.csv`
 
-- If form X contains a repeat group Y, then the output file for the repeat group will be named X-Y.csv.
-- If form X contains a non-repeat group Y, which contains a repeat group Z, then the output file for the repeat group will be named X-Y-Z.csv.
+  The sequence follows a depth-first ordering. In other words, files will have the same order as the repeat groups are defined in the instance's model.
+  
+  Some examples:
+
+    ```
+    outer-group
+      dupe-repeat     << gets the number 1
+        inner-group
+          dupe-repeat << gets the number 2
+    ```
+  
+    ```
+    group1
+      dupe-repeat << gets the number 1
+    group2
+      dupe-repeat << gets the number 2
+    ```
+  
+   
 
 ### Structure of the file:
 

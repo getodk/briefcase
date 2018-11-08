@@ -3,6 +3,8 @@ package org.opendatakit.briefcase.export;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.CsvSubmissionMappers.getMainHeader;
 import static org.opendatakit.briefcase.export.CsvSubmissionMappers.getRepeatHeader;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
@@ -10,8 +12,10 @@ import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 /**
  * This class represents a CSV export output file. It knows how to write
@@ -34,39 +38,33 @@ class Csv {
     this.mapper = mapper;
   }
 
-  /**
-   * Factory for the main CSV export file of a form.
-   */
-  static Csv main(FormDefinition formDefinition, ExportConfiguration configuration) {
-    Path output = configuration.getExportDir().resolve(
-        configuration.getExportFileName().orElse(stripIllegalChars(formDefinition.getFormName()) + ".csv")
-    );
+  static List<Csv> getCsvs(FormDefinition formDef, ExportConfiguration configuration) {
+    // Prepare the list of csv files we will export:
+    //  - one for the main instance
+    //  - one for each repeat group
+    List<Csv> csvs = new ArrayList<>();
+    csvs.add(main(formDef, configuration));
+    List<Csv> repeatCsvs = formDef.getRepeatableFields().stream()
+        .collect(groupingBy(Model::getName))
+        .values().stream()
+        .flatMap(models -> mapToRepeatCsv(formDef, configuration, models))
+        .collect(toList());
+    csvs.addAll(repeatCsvs);
+    return csvs;
+  }
+
+  private static Csv main(FormDefinition formDefinition, ExportConfiguration configuration) {
     return new Csv(
         formDefinition.getModel().fqn(),
         getMainHeader(formDefinition.getModel(), formDefinition.isFileEncryptedForm(), configuration.resolveSplitSelectMultiples()),
-        output,
+        buildMainOutputPath(formDefinition, configuration),
         true,
         configuration.resolveOverwriteExistingFiles(),
         CsvSubmissionMappers.main(formDefinition, configuration)
     );
   }
 
-  /**
-   * Factory of any repeat CSV export file.
-   */
-  static Csv repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration) {
-    String repeatFileNameBase = configuration.getExportFileName()
-        .map(UncheckedFiles::stripFileExtension)
-        .orElse(stripIllegalChars(formDefinition.getFormName()));
-    String suffix = groupModel.getName();
-    Model current = groupModel;
-    while (!grandParentIsRoot(current) && !parentIsRepeatGroup(current)) {
-      current = current.getParent();
-      suffix = current.getName() + "-" + suffix;
-    }
-    Path output = configuration.getExportDir().resolve(
-        repeatFileNameBase + "-" + suffix + ".csv"
-    );
+  private static Csv repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration, Path output) {
     return new Csv(
         groupModel.fqn(),
         getRepeatHeader(groupModel, configuration.resolveSplitSelectMultiples()),
@@ -77,32 +75,35 @@ class Csv {
     );
   }
 
-  /**
-   * Returns true if the grandparent node of the given Model is the model's root
-   * <p>
-   * Example 1:
-   * <p>
-   * <code><pre>
-   * &lt;data&gt;
-   * &nbsp;&nbsp;&lt;/some_field&gt;
-   * &lt;/data&gt;
-   * </pre></code>
-   * <p>
-   * In this example:
-   * <ul>
-   * <li>&lt;data&gt; has a parent with <code>null</code> name</li>
-   * <li>Returns true on &lt;some_field&gt;</li>
-   * </ul>
-   */
-  private static boolean grandParentIsRoot(Model current) {
-    return current.hasParent()
-        && current.getParent().hasParent() // Check if current has a grandparent
-        && current.getParent().getParent().getName() == null; // The root node has a null name
+  private static Path buildMainOutputPath(FormDefinition formDefinition, ExportConfiguration configuration) {
+    return configuration.getExportDir().resolve(String.format(
+        "%s.csv",
+        configuration.getFilenameBase(formDefinition.getFormName())
+    ));
   }
 
-  private static boolean parentIsRepeatGroup(Model current) {
-    return current.hasParent()
-        && current.getParent().isRepeatable();
+  private static Path buildRepeatOutputPath(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration) {
+    return configuration.getExportDir().resolve(String.format(
+        "%s-%s.csv",
+        configuration.getFilenameBase(formDefinition.getFormName()),
+        stripIllegalChars(groupModel.getName())
+    ));
+  }
+
+  private static Path buildRepeatOutputPath(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration, int sequenceNumber) {
+    return configuration.getExportDir().resolve(String.format(
+        "%s-%s~%d.csv",
+        configuration.getFilenameBase(formDefinition.getFormName()),
+        stripIllegalChars(groupModel.getName()),
+        sequenceNumber
+    ));
+  }
+
+  private static Stream<Csv> mapToRepeatCsv(FormDefinition formDef, ExportConfiguration configuration, List<Model> models) {
+    if (models.size() == 1)
+      return models.stream().map(group -> repeat(formDef, group, configuration, buildRepeatOutputPath(formDef, group, configuration)));
+    AtomicInteger sequence = new AtomicInteger(1);
+    return models.stream().map(group -> repeat(formDef, group, configuration, buildRepeatOutputPath(formDef, group, configuration, sequence.getAndIncrement())));
   }
 
   /**

@@ -18,6 +18,9 @@ package org.opendatakit.briefcase.export;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.export.ModelBuilder.group;
+import static org.opendatakit.briefcase.export.ModelBuilder.repeat;
+import static org.opendatakit.briefcase.export.ModelBuilder.text;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -30,12 +33,17 @@ import org.xmlpull.v1.XmlPullParserException;
 public class XmlElementTest {
   @Test
   public void knows_how_to_generate_keys_of_a_repeat_nested_in_groups() throws IOException, XmlPullParserException {
-    Model field = new ModelBuilder()
-        .addGroup("g1")
-        .addGroup("g2")
-        .addGroup("g3")
-        .addRepeatGroup("r")
-        .build();
+    Model field = ModelBuilder.instance(
+        group("g1",
+            group("g2",
+                group("g3",
+                    repeat("r",
+                        text("field")
+                    )
+                )
+            )
+        )
+    ).build().getChildByName("r");
     XmlElement xmlElement = buildXmlElementFrom(field);
 
     assertThat(xmlElement.getCurrentLocalId(field, "uuid:SOMELONGUUID"), is("uuid:SOMELONGUUID/r[1]"));
@@ -45,13 +53,19 @@ public class XmlElementTest {
 
   @Test
   public void knows_how_to_generate_keys_of_nested_repeats() throws IOException, XmlPullParserException {
-    Model field = new ModelBuilder()
-        .addGroup("g1")
-        .addGroup("g2")
-        .addGroup("g3")
-        .addRepeatGroup("r1")
-        .addRepeatGroup("r2")
-        .build();
+    Model field = ModelBuilder.instance(
+        group("g1",
+            group("g2",
+                group("g3",
+                    repeat("r1",
+                        repeat("r2",
+                            text("field")
+                        )
+                    )
+                )
+            )
+        )
+    ).build().getChildByName("r2");
     XmlElement xmlElement = buildXmlElementFrom(field);
 
     assertThat(xmlElement.getCurrentLocalId(field, "uuid:SOMELONGUUID"), is("uuid:SOMELONGUUID/r1[1]/r2[1]"));

@@ -40,6 +40,7 @@ import org.javarosa.core.model.DataType;
 import org.javarosa.core.model.QuestionDef;
 import org.javarosa.core.model.SelectChoice;
 import org.javarosa.core.model.instance.TreeElement;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 
 /**
  * This class represents a particular level in the model of a Form.
@@ -297,6 +298,13 @@ class Model {
 
   private static Predicate<Model> modelWithName(String name) {
     return child -> child.getName().equals(name);
+  }
+
+  Model getChildByName(String name) {
+    return flatten()
+        .filter(child -> child.getName().equals(name))
+        .findFirst()
+        .orElseThrow(BriefcaseException::new);
   }
 
   // TODO This should be defined in JavaRosa, like the DataType enum
