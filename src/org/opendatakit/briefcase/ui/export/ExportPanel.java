@@ -32,6 +32,7 @@ import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.export.ExportToCsv;
+import org.opendatakit.briefcase.export.ExportToGeoJson;
 import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -191,8 +192,10 @@ public class ExportPanel {
                   appPreferences.getPullInParallel().orElse(false),
                   false
               ));
-            BriefcaseFormDefinition formDefinition = (BriefcaseFormDefinition) form.getFormDefinition();
-            ExportToCsv.export(FormDefinition.from(formDefinition), configuration, analytics);
+            FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());
+            ExportToCsv.export(formDef, configuration, analytics);
+            if (configuration.resolveIncludeGeoJsonExport())
+              ExportToGeoJson.export(formDef, configuration, analytics);
           });
     } catch (Throwable t) {
       log.error("Error while exporting forms", t);

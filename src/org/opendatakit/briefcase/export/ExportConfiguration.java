@@ -179,7 +179,7 @@ public class ExportConfiguration {
     return splitSelectMultiples.resolve(false);
   }
 
-  boolean resolveIncludeGeoJsonExport() {
+  public boolean resolveIncludeGeoJsonExport() {
     return includeGeoJsonExport.resolve(false);
   }
 
