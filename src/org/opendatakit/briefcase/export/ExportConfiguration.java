@@ -199,6 +199,10 @@ public class ExportConfiguration {
     return splitSelectMultiples;
   }
 
+  public OverridableBoolean getIncludeGeoJsonExport() {
+    return includeGeoJsonExport;
+  }
+
   public void ifExportDirPresent(Consumer<Path> consumer) {
     exportDir.ifPresent(consumer);
   }

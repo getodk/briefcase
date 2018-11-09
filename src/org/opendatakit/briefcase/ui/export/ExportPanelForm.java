@@ -51,7 +51,7 @@ public class ExportPanelForm {
   private JProgressBar exportProgressBar;
   private JPanel defaultConfPanel;
   private JButton setDefaultConfButton;
-  private ExportConfiguration defaultConf = ExportConfiguration.empty();
+  private ExportConfiguration defaultConf = empty().build();
   private List<Consumer<ExportConfiguration>> onDefaultConfSetCallbacks = new ArrayList<>();
   private List<Runnable> onDefaultConfResetCallbacks = new ArrayList<>();
 
