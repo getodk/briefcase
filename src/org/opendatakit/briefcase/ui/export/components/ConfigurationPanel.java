@@ -64,9 +64,4 @@ public class ConfigurationPanel {
     return form.getConfiguration().isEmpty();
   }
 
-  // TODO Check and remove if no one needs this
-  boolean isOverridePanel() {
-    return mode.isOverridePanel();
-  }
-
 }
