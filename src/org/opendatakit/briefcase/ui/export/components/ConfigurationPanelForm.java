@@ -173,26 +173,36 @@ public class ConfigurationPanelForm extends JComponent {
   public void setEnabled(boolean enabled) {
     uiLocked = !enabled;
     container.setEnabled(enabled);
-    startDatePicker.setEnabled(enabled);
-    endDatePicker.setEnabled(enabled);
     exportDirField.setEnabled(enabled);
-    pemFileField.setEnabled(enabled);
-    exportDirChooseButton.setEnabled(enabled);
     exportDirLabel.setEnabled(enabled);
+    exportDirButtons.setEnabled(enabled);
+    exportDirChooseButton.setEnabled(enabled);
+    exportDirCleanButton.setEnabled(enabled);
+    pemFileField.setEnabled(enabled);
     pemFileLabel.setEnabled(enabled);
-    startDateLabel.setEnabled(enabled);
-    endDateLabel.setEnabled(enabled);
     pemFileButtons.setEnabled(enabled);
     pemFileChooseButton.setEnabled(enabled);
     pemFileClearButton.setEnabled(enabled);
-    exportDirButtons.setEnabled(enabled);
-    exportDirCleanButton.setEnabled(enabled);
+    startDatePicker.setEnabled(enabled);
+    startDateLabel.setEnabled(enabled);
+    endDatePicker.setEnabled(enabled);
+    endDateLabel.setEnabled(enabled);
     pullBeforeField.setEnabled(enabled);
     pullBeforeOverrideField.setEnabled(enabled);
     pullBeforeHintPanel.setEnabled(enabled);
     pullBeforeOverrideLabel.setEnabled(enabled);
     overwriteFilesField.setEnabled(enabled);
-    // TODO fix missing stuff here
+    overwriteFilesOverrideField.setEnabled(enabled);
+    overwriteFilesOverrideLabel.setEnabled(enabled);
+    exportMediaField.setEnabled(enabled);
+    exportMediaOverrideField.setEnabled(enabled);
+    exportMediaOverrideLabel.setEnabled(enabled);
+    splitSelectMultiplesField.setEnabled(enabled);
+    splitSelectMultiplesOverrideField.setEnabled(enabled);
+    splitSelectMultiplesOverrideLabel.setEnabled(enabled);
+    includeGeoJsonExportField.setEnabled(enabled);
+    includeGeoJsonExportOverrideField.setEnabled(enabled);
+    includeGeoJsonExportOverrideLabel.setEnabled(enabled);
   }
 
   void setExportDir(Path path) {
