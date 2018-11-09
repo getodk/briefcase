@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.ui.export.components;
 
+import static org.opendatakit.briefcase.reused.TriStateBoolean.TRUE;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.directory;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.file;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
@@ -292,13 +293,20 @@ public class ConfigurationPanelForm extends JComponent {
   }
 
   private void setOverwriteFiles(boolean enabled) {
-    overwriteFiles = overwriteFiles.set(enabled);
-    triggerOnChange();
+    if (!enabled || confirmOverwriteFiles()) {
+      overwriteFiles = overwriteFiles.set(enabled);
+      triggerOnChange();
+    } else
+      overwriteFilesField.setSelected(false);
   }
 
   private void setOverwriteFiles(TriStateBoolean overrideValue) {
-    overwriteFiles = overwriteFiles.overrideWith(overrideValue);
-    triggerOnChange();
+    TriStateBoolean previousValue = overwriteFiles.getOverride();
+    if (previousValue != overrideValue && (overrideValue != TRUE || confirmOverwriteFiles())) {
+      overwriteFiles = overwriteFiles.overrideWith(overrideValue);
+      triggerOnChange();
+    } else
+      overwriteFilesOverrideField.set(previousValue);
   }
 
   private void setOverwriteFiles(OverridableBoolean value) {
@@ -428,7 +436,6 @@ public class ConfigurationPanelForm extends JComponent {
         .map(path -> Paths.get(path).toFile());
   }
 
-  // TODO Fix that no one is calling this.
   private boolean confirmOverwriteFiles() {
     if (confirm("The default behavior is to append to existing files. Are you sure you want to overwrite existing files?"))
       return true;
