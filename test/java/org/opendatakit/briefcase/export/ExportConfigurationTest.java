@@ -162,6 +162,7 @@ public class ExportConfigurationTest {
     assertThat(empty().setOverwriteFiles(true).build(), not(isEmpty()));
     assertThat(empty().setExportMedia(true).build(), not(isEmpty()));
     assertThat(empty().setSplitSelectMultiples(true).build(), not(isEmpty()));
+    assertThat(empty().setIncludeGeoJsonExport(true).build(), not(isEmpty()));
   }
 
   @Test
@@ -178,6 +179,9 @@ public class ExportConfigurationTest {
     assertThat(empty().overrideSplitSelectMultiples(UNDETERMINED).build(), isEmpty());
     assertThat(empty().overrideSplitSelectMultiples(TRUE).build(), not(isEmpty()));
     assertThat(empty().overrideSplitSelectMultiples(FALSE).build(), not(isEmpty()));
+    assertThat(empty().overrideIncludeGeoJsonExport(UNDETERMINED).build(), isEmpty());
+    assertThat(empty().overrideIncludeGeoJsonExport(TRUE).build(), not(isEmpty()));
+    assertThat(empty().overrideIncludeGeoJsonExport(FALSE).build(), not(isEmpty()));
   }
 
   @Test
@@ -203,6 +207,11 @@ public class ExportConfigurationTest {
   @Test
   public void split_select_multiples_defaults_to_false_on_empty_confs() {
     assertThat(EMPTY_CONF.resolveSplitSelectMultiples(), is(false));
+  }
+
+  @Test
+  public void include_geojson_export_defaults_to_false_on_empty_confs() {
+    assertThat(EMPTY_CONF.resolveIncludeGeoJsonExport(), is(false));
   }
 
   @Test
