@@ -30,6 +30,7 @@ import java.util.Optional;
 import org.opendatakit.briefcase.export.DateRange;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportToCsv;
+import org.opendatakit.briefcase.export.ExportToGeoJson;
 import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -57,10 +58,12 @@ public class Export {
   private static final Param<Path> PEM_FILE = Param.arg("pf", "pem_file", "PEM file for form decryption", Paths::get);
   private static final Param<Void> PULL_BEFORE = Param.flag("pb", "pull_before", "Pull before export");
   private static final Param<Void> SPLIT_SELECT_MULTIPLES = Param.flag("ssm", "split_select_multiples", "Split select multiple fields");
+  private static final Param<Void> INCLUDE_GEOJSON_EXPORT = Param.flag("ig", "include_geojson", "Include a GeoJSON companion file with spatial data");
 
   public static Operation EXPORT_FORM = Operation.of(
       EXPORT,
-      args -> export(args.get(STORAGE_DIR),
+      args -> export(
+          args.get(STORAGE_DIR),
           args.get(FORM_ID),
           args.get(EXPORT_DIR),
           args.get(FILE),
@@ -70,13 +73,14 @@ public class Export {
           args.getOptional(START),
           args.getOptional(END),
           args.getOptional(PEM_FILE),
-          args.has(SPLIT_SELECT_MULTIPLES)
+          args.has(SPLIT_SELECT_MULTIPLES),
+          args.has(INCLUDE_GEOJSON_EXPORT)
       ),
       Arrays.asList(STORAGE_DIR, FORM_ID, FILE, EXPORT_DIR),
-      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE, SPLIT_SELECT_MULTIPLES)
+      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE, SPLIT_SELECT_MULTIPLES, INCLUDE_GEOJSON_EXPORT)
   );
 
-  public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, boolean pullBefore, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile, boolean splitSelectMultiples) {
+  public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, boolean pullBefore, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile, boolean splitSelectMultiples, boolean includeGeoJsonExport) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -129,7 +133,11 @@ public class Export {
 
     }
 
-    ExportToCsv.export(FormDefinition.from(formDefinition), configuration);
+    FormDefinition formDef = FormDefinition.from(formDefinition);
+
+    ExportToCsv.export(formDef, configuration);
+    if (includeGeoJsonExport)
+      ExportToGeoJson.export(formDef, configuration);
 
     BriefcasePreferences.forClass(ExportPanel.class).put(buildExportDateTimePrefix(formDefinition.getFormId()), LocalDateTime.now().format(ISO_DATE_TIME));
   }
