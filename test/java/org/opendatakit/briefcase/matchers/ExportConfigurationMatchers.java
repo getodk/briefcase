@@ -31,6 +31,11 @@ public class ExportConfigurationMatchers {
       }
 
       @Override
+      protected void describeMismatchSafely(ExportConfiguration item, Description mismatchDescription) {
+        mismatchDescription.appendText("is not empty");
+      }
+
+      @Override
       protected boolean matchesSafely(ExportConfiguration item) {
         return item != null && item.isEmpty();
       }
@@ -43,6 +48,11 @@ public class ExportConfigurationMatchers {
       @Override
       public void describeTo(Description description) {
         description.appendText("is valid");
+      }
+
+      @Override
+      protected void describeMismatchSafely(ExportConfiguration item, Description mismatchDescription) {
+        mismatchDescription.appendText("is not valid");
       }
 
       @Override

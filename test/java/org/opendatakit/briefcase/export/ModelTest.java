@@ -18,18 +18,41 @@ package org.opendatakit.briefcase.export;
 
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
+import static org.javarosa.core.model.DataType.BARCODE;
+import static org.javarosa.core.model.DataType.BINARY;
+import static org.javarosa.core.model.DataType.BOOLEAN;
+import static org.javarosa.core.model.DataType.CHOICE;
+import static org.javarosa.core.model.DataType.DATE;
+import static org.javarosa.core.model.DataType.DATE_TIME;
+import static org.javarosa.core.model.DataType.DECIMAL;
+import static org.javarosa.core.model.DataType.GEOPOINT;
+import static org.javarosa.core.model.DataType.GEOSHAPE;
+import static org.javarosa.core.model.DataType.GEOTRACE;
+import static org.javarosa.core.model.DataType.INTEGER;
+import static org.javarosa.core.model.DataType.LONG;
+import static org.javarosa.core.model.DataType.MULTIPLE_ITEMS;
+import static org.javarosa.core.model.DataType.NULL;
 import static org.javarosa.core.model.DataType.TEXT;
+import static org.javarosa.core.model.DataType.TIME;
+import static org.javarosa.core.model.DataType.UNSUPPORTED;
 import static org.javarosa.core.model.instance.TreeReference.DEFAULT_MULTIPLICITY;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.export.ModelBuilder.field;
+import static org.opendatakit.briefcase.export.ModelBuilder.geopoint;
+import static org.opendatakit.briefcase.export.ModelBuilder.geoshape;
+import static org.opendatakit.briefcase.export.ModelBuilder.geotrace;
+import static org.opendatakit.briefcase.export.ModelBuilder.group;
 import static org.opendatakit.briefcase.export.ModelBuilder.instance;
 import static org.opendatakit.briefcase.export.ModelBuilder.selectMultiple;
+import static org.opendatakit.briefcase.export.ModelBuilder.text;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.javarosa.core.model.DataType;
 import org.javarosa.core.model.QuestionDef;
 import org.javarosa.core.model.SelectChoice;
 import org.javarosa.core.model.instance.TreeElement;
@@ -66,10 +89,10 @@ public class ModelTest {
 
   @Test
   public void knows_if_it_is_the_meta_audit_field() {
-    assertThat(lastDescendatOf(buildModel("data", "some-field")).isMetaAudit(), is(false));
-    assertThat(lastDescendatOf(buildModel("data", "audit")).isMetaAudit(), is(false));
-    assertThat(lastDescendatOf(buildModel("data", "some-parent", "audit")).isMetaAudit(), is(false));
-    assertThat(lastDescendatOf(buildModel("data", "meta", "audit")).isMetaAudit(), is(true));
+    assertThat(buildModel("data", "some-field").getChildByName("some-field").isMetaAudit(), is(false));
+    assertThat(buildModel("data", "audit").getChildByName("audit").isMetaAudit(), is(false));
+    assertThat(buildModel("data", "some-parent", "audit").getChildByName("audit").isMetaAudit(), is(false));
+    assertThat(buildModel("data", "meta", "audit").getChildByName("audit").isMetaAudit(), is(true));
   }
 
   @Test
@@ -79,6 +102,47 @@ public class ModelTest {
     assertThat(buildModel("data", "meta").hasAuditField(), is(false));
     assertThat(buildModel("data", "some-field").hasAuditField(), is(false));
     assertThat(buildModel("data", "some-field", "audit").hasAuditField(), is(false));
+  }
+
+  @Test
+  public void knows_if_it_is_a_spatial_field() {
+    assertThat(buildField(UNSUPPORTED).isSpatial(), is(false));
+    assertThat(buildField(NULL).isSpatial(), is(false));
+    assertThat(buildField(TEXT).isSpatial(), is(false));
+    assertThat(buildField(INTEGER).isSpatial(), is(false));
+    assertThat(buildField(DECIMAL).isSpatial(), is(false));
+    assertThat(buildField(DATE).isSpatial(), is(false));
+    assertThat(buildField(TIME).isSpatial(), is(false));
+    assertThat(buildField(DATE_TIME).isSpatial(), is(false));
+    assertThat(buildField(CHOICE).isSpatial(), is(false));
+    assertThat(buildField(MULTIPLE_ITEMS).isSpatial(), is(false));
+    assertThat(buildField(BOOLEAN).isSpatial(), is(false));
+    assertThat(buildField(GEOPOINT).isSpatial(), is(true));
+    assertThat(buildField(BARCODE).isSpatial(), is(false));
+    assertThat(buildField(BINARY).isSpatial(), is(false));
+    assertThat(buildField(LONG).isSpatial(), is(false));
+    assertThat(buildField(GEOSHAPE).isSpatial(), is(true));
+    assertThat(buildField(GEOTRACE).isSpatial(), is(true));
+  }
+
+  @Test
+  public void knows_how_to_get_the_list_of_all_descendant_spatial_fields() {
+    Model model = instance(
+        text("text"),
+        geopoint("point"),
+        group("group",
+            geotrace("trace"),
+            geoshape("shape")
+        )
+    ).build();
+
+    List<Model> spatialFields = model.getSpatialFields();
+    List<String> spatialFieldNames = spatialFields.stream().map(Model::getName).collect(Collectors.toList());
+    assertThat(spatialFieldNames, containsInAnyOrder("point", "trace", "shape"));
+  }
+
+  private static Model buildField(DataType type) {
+    return ModelBuilder.field("some_field", type).build();
   }
 
   private static Model buildModel(String... names) {
@@ -93,15 +157,6 @@ public class ModelTest {
       elements.get(i).setParent(elements.get(i - 1));
 
     return new Model(elements.get(0), emptyMap());
-  }
-
-  private static Model lastDescendatOf(Model model) {
-    if (!model.hasChildren())
-      return model;
-    Model child = model.children().get(0);
-    while (child.hasChildren())
-      child = child.children().get(0);
-    return child;
   }
 
 }

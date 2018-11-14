@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.reused;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 @SuppressWarnings("checkstyle:MethodTypeParameterName")
 public class Pair<T, U> {
@@ -38,6 +39,10 @@ public class Pair<T, U> {
 
   public U getRight() {
     return right;
+  }
+
+  public <TT, UU> Pair<TT, UU> map(Function<T, TT> leftMapper, Function<U, UU> rightMapper) {
+    return new Pair<>(leftMapper.apply(left), rightMapper.apply(right));
   }
 
   @Override

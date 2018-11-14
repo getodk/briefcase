@@ -15,51 +15,61 @@
  */
 package org.opendatakit.briefcase.ui.export.components;
 
-import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 
 public class ConfigurationDialog {
   final ConfigurationDialogForm form;
   private final ConfigurationPanel confPanel;
+  // Hold the configuration for the onOk callback
+  private ExportConfiguration configuration;
 
-  private ConfigurationDialog(ConfigurationDialogForm form, ConfigurationPanel confPanel) {
+  private ConfigurationDialog(ConfigurationDialogForm form, ConfigurationPanel confPanel, ExportConfiguration configuration, Function<ExportConfiguration, Boolean> confValidator) {
     this.form = form;
     this.confPanel = confPanel;
+    this.configuration = configuration;
 
-    if (!confPanel.isEmpty())
-      form.enableClearAll();
-
-    if (!confPanel.isValid())
-      form.disableOK();
-
-    confPanel.onChange(() -> {
-      if (!confPanel.getConfiguration().isEmpty())
-        form.enableClearAll();
-      else
+    confPanel.onChange(conf -> {
+      this.configuration = conf;
+      if (conf.isEmpty())
         form.disableClearAll();
+      else
+        form.enableClearAll();
 
-      if (this.confPanel.isValid())
+      if (confValidator.apply(conf))
         form.enableOK();
       else
         form.disableOK();
     });
   }
 
-  static ConfigurationDialog overridePanel(Optional<ExportConfiguration> configuration, String formName, boolean hasTransferSettings, boolean savePasswordsConsent) {
-    ConfigurationPanel confPanel = ConfigurationPanel.overridePanel(configuration.orElse(ExportConfiguration.empty()), savePasswordsConsent, hasTransferSettings);
+  static ConfigurationDialog overridePanel(ExportConfiguration initialConfiguration, String formName, boolean hasTransferSettings, boolean savePasswordsConsent) {
+    ConfigurationPanel confPanel = ConfigurationPanel.overridePanel(initialConfiguration, savePasswordsConsent, hasTransferSettings);
     ConfigurationDialogForm form = new ConfigurationDialogForm(confPanel.getForm(), "Override " + formName + " Export Configuration");
-    return new ConfigurationDialog(form, confPanel);
+    if (initialConfiguration.isEmpty())
+      form.disableClearAll();
+    else
+      form.enableClearAll();
+
+    form.enableOK();
+
+    return new ConfigurationDialog(form, confPanel, initialConfiguration, configuration1 -> true);
   }
 
-  public static ConfigurationDialog defaultPanel(Optional<ExportConfiguration> configuration, boolean savePasswordsConsent) {
-    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(configuration.orElse(ExportConfiguration.empty()), savePasswordsConsent);
+  public static ConfigurationDialog defaultPanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent) {
+    ConfigurationPanel confPanel = ConfigurationPanel.defaultPanel(initialConfiguration, savePasswordsConsent);
     ConfigurationDialogForm form = new ConfigurationDialogForm(confPanel.getForm(), "Default Export Configuration");
-    return new ConfigurationDialog(form, confPanel);
+    if (!initialConfiguration.isEmpty())
+      form.enableClearAll();
+
+    if (!initialConfiguration.isValid())
+      form.disableOK();
+    return new ConfigurationDialog(form, confPanel, initialConfiguration, ExportConfiguration::isValid);
   }
 
   public void onOK(Consumer<ExportConfiguration> callback) {
-    form.onOK(() -> callback.accept(confPanel.getConfiguration()));
+    form.onOK(() -> callback.accept(configuration));
   }
 
   public void onRemove(Runnable callback) {

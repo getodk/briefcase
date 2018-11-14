@@ -61,6 +61,10 @@ class ConfigurationPanelMode {
     form.splitSelectMultiplesField.setVisible(!isOverridePanel);
     form.splitSelectMultiplesOverrideLabel.setVisible(isOverridePanel);
     form.splitSelectMultiplesOverrideField.setVisible(isOverridePanel);
+
+    form.includeGeoJsonExportField.setVisible(!isOverridePanel);
+    form.includeGeoJsonExportOverrideLabel.setVisible(isOverridePanel);
+    form.includeGeoJsonExportOverrideField.setVisible(isOverridePanel);
   }
 
   boolean isOverridePanel() {

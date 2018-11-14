@@ -19,6 +19,8 @@ import static com.github.npathai.hamcrestopt.OptionalMatchers.isEmpty;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
+import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.load;
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
 import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePrefix;
 import static org.opendatakit.briefcase.export.ExportForms.load;
@@ -28,7 +30,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportEvent;
@@ -48,9 +49,9 @@ public class ExportPanelUnitTest {
 
   @Test
   public void saves_to_user_preferences_changes_on_the_default_configuration() throws IOException {
+    initialDefaultConf = empty().build();
     BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
-    initialDefaultConf = ExportConfiguration.empty();
     ExportForms forms = load(initialDefaultConf, new ArrayList<>(), exportPreferences, appPreferences);
     ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, appPreferences, initialDefaultConf);
     new ExportPanel(
@@ -62,9 +63,9 @@ public class ExportPanelUnitTest {
         FormCache.empty()
     );
 
-    exportPanelForm.setDefaultConf(initialDefaultConf.setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri())));
+    exportPanelForm.setDefaultConf(empty().setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri())).build());
 
-    assertThat(ExportConfiguration.load(exportPreferences).getExportDir(), notNullValue());
+    assertThat(load(exportPreferences).getExportDir(), notNullValue());
   }
 
   @Test
@@ -72,7 +73,7 @@ public class ExportPanelUnitTest {
     BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     List<FormStatus> formsList = FormStatusBuilder.buildFormStatusList(10);
-    initialDefaultConf = ExportConfiguration.empty();
+    initialDefaultConf = empty().build();
     ExportForms forms = load(initialDefaultConf, formsList, exportPreferences, appPreferences);
     ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, appPreferences, initialDefaultConf);
     new ExportPanel(
@@ -87,13 +88,14 @@ public class ExportPanelUnitTest {
     FormStatus form = formsList.get(0);
     String formId = form.getFormDefinition().getFormId();
 
-    ExportConfiguration conf = ExportConfiguration.empty();
-    conf.setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()));
+    ExportConfiguration conf = empty()
+        .setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()))
+        .build();
 
     forms.putConfiguration(form, conf);
     exportPanelForm.getFormsTable().getViewModel().triggerChange();
 
-    assertThat(ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), notNullValue());
+    assertThat(load(exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), notNullValue());
   }
 
   @Test
@@ -101,7 +103,7 @@ public class ExportPanelUnitTest {
     BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     List<FormStatus> formsList = FormStatusBuilder.buildFormStatusList(10);
-    initialDefaultConf = ExportConfiguration.empty();
+    initialDefaultConf = empty().build();
     ExportForms forms = load(initialDefaultConf, formsList, exportPreferences, appPreferences);
     new ExportPanel(
         forms,

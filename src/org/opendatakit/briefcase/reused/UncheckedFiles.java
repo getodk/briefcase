@@ -79,8 +79,12 @@ public class UncheckedFiles {
   }
 
   public static Path write(Path path, String contents, OpenOption... options) {
+    return write(path, contents.getBytes(UTF_8), options);
+  }
+
+  public static Path write(Path path, byte[] contents, OpenOption... options) {
     try {
-      return Files.write(path, contents.getBytes(UTF_8), options);
+      return Files.write(path, contents, options);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }

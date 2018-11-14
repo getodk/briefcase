@@ -15,13 +15,14 @@
  */
 package org.opendatakit.briefcase.ui.export;
 
+import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
+
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -29,7 +30,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
-
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -51,7 +51,7 @@ public class ExportPanelForm {
   private JProgressBar exportProgressBar;
   private JPanel defaultConfPanel;
   private JButton setDefaultConfButton;
-  private Optional<ExportConfiguration> defaultConf = Optional.empty();
+  private ExportConfiguration defaultConf = empty().build();
   private List<Consumer<ExportConfiguration>> onDefaultConfSetCallbacks = new ArrayList<>();
   private List<Runnable> onDefaultConfResetCallbacks = new ArrayList<>();
 
@@ -76,13 +76,13 @@ public class ExportPanelForm {
   }
 
   void setDefaultConf(ExportConfiguration conf) {
-    defaultConf = Optional.of(conf);
+    defaultConf = conf;
     onDefaultConfSetCallbacks.forEach(callback -> callback.accept(conf));
     setDefaultConfButton.setText("Edit Default Configuration");
   }
 
   private void resetDefaultConf() {
-    defaultConf = Optional.empty();
+    defaultConf = empty().build();
     onDefaultConfResetCallbacks.forEach(Runnable::run);
     setDefaultConfButton.setText("Set Default Configuration");
   }

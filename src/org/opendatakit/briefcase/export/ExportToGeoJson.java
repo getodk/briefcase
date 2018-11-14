@@ -16,11 +16,6 @@
 
 package org.opendatakit.briefcase.export;
 
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-import static java.nio.file.StandardOpenOption.WRITE;
-import static java.util.stream.Collectors.groupingByConcurrent;
-import static java.util.stream.Collectors.reducing;
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_EXPORTED;
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
@@ -29,20 +24,20 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 import org.bushe.swing.event.EventBus;
+import org.geojson.Feature;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ExportToCsv {
-  private static final Logger log = LoggerFactory.getLogger(ExportToCsv.class);
+public class ExportToGeoJson {
+  private static final Logger log = LoggerFactory.getLogger(ExportToGeoJson.class);
 
   /**
    * @see #export(FormDefinition, ExportConfiguration, Optional)
@@ -59,9 +54,7 @@ public class ExportToCsv {
   }
 
   /**
-   * Export a form's submissions into some CSV files.
-   * <p>
-   * If the form has repeat groups, each repeat group will be exported into a separate CSV file.
+   * Export a form's submissions into a GeoJSON file.
    *
    * @param formDef       the {@link FormDefinition} form definition of the form to be exported
    * @param configuration the {@link ExportConfiguration} export configuration
@@ -84,36 +77,15 @@ public class ExportToCsv {
 
     createDirectories(configuration.getExportDir());
 
-    List<Csv> csvs = Csv.getCsvs(formDef, configuration);
-
-    csvs.forEach(Csv::prepareOutputFiles);
-
-    if (formDef.getModel().hasAuditField()) {
-      Path audit = configuration.getAuditPath(formDef.getFormName());
-      if (!exists(audit) || configuration.resolveOverwriteExistingFiles())
-        write(audit, "instance ID, event, node, start, end\n", CREATE, WRITE, TRUNCATE_EXISTING);
-    }
-
     // Generate csv lines grouped by the fqdn of the model they belong to
-    Map<String, CsvLines> csvLinesPerModel = ExportTools.getValidSubmissions(formDef, configuration, submissionFiles, onParsingError, onInvalidSubmission)
-        // Track the submission
-        .peek(s -> exportTracker.incAndReport())
-        // Use the mapper of each Csv instance to map the submission into their respective outputs
-        .flatMap(submission -> csvs.stream()
-            .map(Csv::getMapper)
-            .map(mapper -> mapper.apply(submission)))
-        // Group and merge the CsvLines by the model they belong to
-        .collect(groupingByConcurrent(
-            CsvLines::getModelFqn,
-            reducing(CsvLines.empty(), CsvLines::merge)
-        ));
+    Stream<Submission> validSubmissions = ExportTools.getValidSubmissions(formDef, configuration, submissionFiles, onParsingError, onInvalidSubmission);
 
-    // TODO We should have an extra step to produce the side effect of writing media files to disk to avoid having side-effects while generating the CSV output of binary fields
+    Stream<Feature> features = validSubmissions.peek(s -> exportTracker.incAndReport())
+        .flatMap(submission -> GeoJson.toFeatures(formDef.getModel(), submission));
 
-    // Write lines to each output Csv
-    csvs.forEach(csv -> csv.appendLines(
-        Optional.ofNullable(csvLinesPerModel.get(csv.getModelFqn())).orElse(CsvLines.empty())
-    ));
+    Path output = configuration.getExportDir()
+        .resolve(configuration.getFilenameBase(formDef.getFormName()) + ".geojson");
+    GeoJson.write(output, features);
 
     exportTracker.end();
 

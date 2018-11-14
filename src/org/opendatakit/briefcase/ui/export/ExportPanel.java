@@ -17,6 +17,8 @@ package org.opendatakit.briefcase.ui.export;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
+import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.load;
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
@@ -30,6 +32,7 @@ import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.export.ExportToCsv;
+import org.opendatakit.briefcase.export.ExportToGeoJson;
 import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -74,7 +77,7 @@ public class ExportPanel {
     });
 
     form.onDefaultConfReset(() -> {
-      forms.updateDefaultConfiguration(ExportConfiguration.empty());
+      forms.updateDefaultConfiguration(empty().build());
       preferences.removeAll(ExportConfiguration.keys());
     });
 
@@ -119,11 +122,6 @@ public class ExportPanel {
 
       if (needsPemFile && !conf.isPemFilePresent())
         errors.add("- The form " + formStatus.getFormName() + " is encrypted. Please, configure a PEM file.");
-
-      if (needsPemFile && conf.isPemFilePresent())
-        ExportConfiguration
-            .readPemFile(conf.getPemFile())
-            .ifError(error -> errors.add("- Can't read the PEM file for form " + formStatus.getFormName() + ": " + error + ". Please, review configurations."));
     }
     return errors;
   }
@@ -149,7 +147,7 @@ public class ExportPanel {
   }
 
   public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
-    ExportConfiguration initialDefaultConf = ExportConfiguration.load(exportPreferences);
+    ExportConfiguration initialDefaultConf = load(exportPreferences);
     ExportForms forms = ExportForms.load(initialDefaultConf, toFormStatuses(formCache.getForms()), exportPreferences, appPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, initialDefaultConf);
     return new ExportPanel(
@@ -194,8 +192,10 @@ public class ExportPanel {
                   appPreferences.getPullInParallel().orElse(false),
                   false
               ));
-            BriefcaseFormDefinition formDefinition = (BriefcaseFormDefinition) form.getFormDefinition();
-            ExportToCsv.export(FormDefinition.from(formDefinition), configuration, analytics);
+            FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());
+            ExportToCsv.export(formDef, configuration, analytics);
+            if (configuration.resolveIncludeGeoJsonExport())
+              ExportToGeoJson.export(formDef, configuration, analytics);
           });
     } catch (Throwable t) {
       log.error("Error while exporting forms", t);

@@ -19,14 +19,13 @@ import static org.assertj.swing.edt.GuiActionRunner.execute;
 import static org.opendatakit.briefcase.ui.SwingTestRig.uncheckedSleep;
 
 import java.awt.event.ActionEvent;
-import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Optional;
 import javax.swing.JButton;
 import org.assertj.swing.core.Robot;
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.DialogFixture;
 import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 class ConfigurationDialogPageObject {
   private final ConfigurationDialog component;
@@ -37,8 +36,8 @@ class ConfigurationDialogPageObject {
     this.fixture = window;
   }
 
-  static ConfigurationDialogPageObject setUp(Robot robot, ExportConfiguration configuration) {
-    ConfigurationDialog dialog = execute(() -> ConfigurationDialog.overridePanel(Optional.ofNullable(configuration), "Test form", true, true));
+  static ConfigurationDialogPageObject setUp(Robot robot, ExportConfiguration initialConf) {
+    ConfigurationDialog dialog = execute(() -> ConfigurationDialog.overridePanel(initialConf, "Test form", true, true));
     DialogFixture fixture = new DialogFixture(robot, dialog.form);
     return new ConfigurationDialogPageObject(dialog, fixture);
   }
@@ -75,11 +74,15 @@ class ConfigurationDialogPageObject {
   }
 
   public void setSomeExportDir() {
-    GuiActionRunner.execute(() -> component.getConfPanel().form.setExportDir(Paths.get("/some/dir")));
+    GuiActionRunner.execute(() -> {
+      component.getConfPanel().getForm().setExportDir(UncheckedFiles.createTempDirectory("briefcase_test_"));
+    });
   }
 
   public void clearExportDir() {
-    GuiActionRunner.execute(() -> component.getConfPanel().form.clearExportDir());
+    GuiActionRunner.execute(() -> {
+      component.getConfPanel().getForm().clearExportDir();
+    });
   }
 
   public void onOK(Runnable callback) {

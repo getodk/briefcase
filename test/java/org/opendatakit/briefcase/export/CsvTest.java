@@ -28,11 +28,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.opendatakit.briefcase.reused.OverridableBoolean;
 
 public class CsvTest {
   private Path exportDir;
@@ -155,17 +153,7 @@ public class CsvTest {
   }
 
   private ExportConfiguration buildConf(Path exportDir) {
-    return new ExportConfiguration(
-        Optional.empty(),
-        Optional.of(exportDir),
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
-        OverridableBoolean.FALSE,
-        OverridableBoolean.TRUE,
-        OverridableBoolean.TRUE,
-        OverridableBoolean.FALSE
-    );
+    return ExportConfiguration.Builder.empty().setExportDir(exportDir).build();
   }
 
   private static FormDefinition buildFormDef(String formName, Model group) {

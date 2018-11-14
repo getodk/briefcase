@@ -24,6 +24,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
 import static org.opendatakit.briefcase.model.FormStatusBuilder.buildFormStatus;
 import static org.opendatakit.briefcase.model.FormStatusBuilder.buildFormStatusList;
@@ -50,9 +51,10 @@ public class ExportFormsTest {
 
   static {
     try {
-      VALID_CONFIGURATION = ExportConfiguration.empty();
-      VALID_CONFIGURATION.setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()));
-      INVALID_CONFIGURATION = ExportConfiguration.empty();
+      VALID_CONFIGURATION = empty()
+          .setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()))
+          .build();
+      INVALID_CONFIGURATION = empty().build();
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -60,7 +62,7 @@ public class ExportFormsTest {
 
   @Test
   public void can_merge_an_incoming_list_of_forms() {
-    ExportForms forms = new ExportForms(new ArrayList<>(), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(new ArrayList<>(), empty().build(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     assertThat(forms.size(), is(0));
     int expectedSize = 10;
 
@@ -71,7 +73,7 @@ public class ExportFormsTest {
 
   @Test
   public void manages_a_forms_configuration() {
-    ExportForms forms = new ExportForms(buildFormStatusList(2), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(2), empty().build(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     FormStatus firstForm = forms.get(0);
     FormStatus secondForm = forms.get(1);
 
@@ -94,7 +96,7 @@ public class ExportFormsTest {
 
   @Test
   public void manages_forms_selection() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     assertThat(forms.getSelectedForms(), hasSize(0));
     assertThat(forms.allSelected(), is(false));
     assertThat(forms.noneSelected(), is(true));
@@ -121,7 +123,7 @@ public class ExportFormsTest {
 
   @Test
   public void knows_if_all_selected_forms_have_a_valid_configuration() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
     form.setSelected(true);
 
@@ -134,7 +136,7 @@ public class ExportFormsTest {
 
   @Test
   public void appends_status_history_on_forms() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
     ExportEvent event = ExportEvent.progress(FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition()), 0.33D);
     forms.appendStatus(event);
@@ -144,7 +146,7 @@ public class ExportFormsTest {
 
   @Test
   public void sets_the_last_export_datetime_when_appending_the_success_of_exporting_a_form() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
 
     assertThat(forms.getLastExportDateTime(form), isEmpty());
@@ -158,7 +160,7 @@ public class ExportFormsTest {
   @Test
   public void it_lets_a_third_party_react_to_successful_exports() {
     AtomicInteger count = new AtomicInteger(0);
-    ExportForms forms = new ExportForms(buildFormStatusList(10), ExportConfiguration.empty(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
     forms.onSuccessfulExport((formId, exportDateTime) -> {
       if (formId.equals(form.getFormDefinition().getFormId()))
@@ -182,7 +184,7 @@ public class ExportFormsTest {
     exportPreferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME));
     BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
 
-    ExportForms forms = ExportForms.load(ExportConfiguration.empty(), formsList, exportPreferences, appPreferences);
+    ExportForms forms = ExportForms.load(empty().build(), formsList, exportPreferences, appPreferences);
 
     assertThat(forms.size(), is(10));
     assertThat(forms.hasConfiguration(form), is(true));
@@ -205,7 +207,7 @@ public class ExportFormsTest {
     appPreferences.put(String.format("%s_pull_settings_username", formWithTransferSettings.getFormDefinition().getFormId()), expectedTransferSettings.getUsername());
     appPreferences.put(String.format("%s_pull_settings_password", formWithTransferSettings.getFormDefinition().getFormId()), String.valueOf(expectedTransferSettings.getPassword()));
 
-    ExportForms forms = ExportForms.load(ExportConfiguration.empty(), formsList, exportPreferences, appPreferences);
+    ExportForms forms = ExportForms.load(empty().build(), formsList, exportPreferences, appPreferences);
 
     assertThat(forms.getTransferSettings(formWithoutTransferSettings.getFormDefinition().getFormId()), isEmpty());
     assertThat(forms.getTransferSettings(formWithTransferSettings.getFormDefinition().getFormId()), isPresentAndIs(expectedTransferSettings));

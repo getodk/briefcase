@@ -17,6 +17,7 @@ package org.opendatakit.briefcase.export;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import org.opendatakit.briefcase.export.ExportConfiguration.Builder;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
@@ -58,7 +60,7 @@ public class ExportForms {
     Map<String, ServerConnectionInfo> transferSettings = new HashMap<>();
     forms.forEach(form -> {
       String formId = getFormId(form);
-      ExportConfiguration load = ExportConfiguration.load(exportPreferences, buildCustomConfPrefix(formId));
+      ExportConfiguration load = Builder.load(exportPreferences, buildCustomConfPrefix(formId));
       if (!load.isEmpty())
         configurations.put(formId, load);
       exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId))
@@ -147,7 +149,7 @@ public class ExportForms {
 
   public ExportConfiguration getConfiguration(String formId) {
     return Optional.ofNullable(customConfigurations.get(formId))
-        .orElse(ExportConfiguration.empty())
+        .orElse(empty().build())
         .fallingBackTo(defaultConfiguration);
   }
 

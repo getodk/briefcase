@@ -20,6 +20,8 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.javarosa.core.model.Constants.DATATYPE_NULL;
 import static org.javarosa.core.model.DataType.GEOPOINT;
+import static org.javarosa.core.model.DataType.GEOSHAPE;
+import static org.javarosa.core.model.DataType.GEOTRACE;
 import static org.javarosa.core.model.DataType.MULTIPLE_ITEMS;
 import static org.javarosa.core.model.DataType.NULL;
 import static org.opendatakit.briefcase.export.Model.ControlType.SELECT_MULTI;
@@ -34,7 +36,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.javarosa.core.model.DataType;
 import org.javarosa.core.model.QuestionDef;
@@ -112,7 +113,7 @@ class Model {
    * Returns the Fully Qualified Name of a given {@link TreeElement} model, having
    * shifted a given number of names.
    */
-  public static String fqn(TreeElement model, int shift) {
+  static String fqn(TreeElement model, int shift) {
     List<String> names = new ArrayList<>();
     TreeElement current = model;
     while (current.getParent() != null && current.getParent().getName() != null) {
@@ -246,7 +247,7 @@ class Model {
     return model.getNumChildren();
   }
 
-  List<Model> children() {
+  private List<Model> children() {
     Set<String> fqns = new HashSet<>();
     List<Model> children = new ArrayList<>(model.getNumChildren());
     for (int i = 0, max = model.getNumChildren(); i < max; i++) {
@@ -260,14 +261,14 @@ class Model {
     return children;
   }
 
-  public boolean isChoiceList() {
+  boolean isChoiceList() {
     return Optional.ofNullable(controls.get(fqn()))
         .map(control -> getDataType() == MULTIPLE_ITEMS || ControlType.from(control.getControlType()) == SELECT_MULTI)
         .orElse(false);
   }
 
 
-  public List<SelectChoice> getChoices() {
+  List<SelectChoice> getChoices() {
     Optional<QuestionDef> control = Optional.ofNullable(controls.get(fqn()));
     if (!control.isPresent())
       return emptyList();
@@ -276,28 +277,16 @@ class Model {
     return control.get().getChoices();
   }
 
-  public boolean isMetaAudit() {
+  boolean isMetaAudit() {
     return model.getName().equals("audit") && model.getParent() != null && model.getParent().getName().equals("meta");
   }
 
-  public boolean hasChildren() {
-    return model.hasChildren();
-  }
-
-  public boolean hasAuditField() {
-    return children().stream()
-        .filter(modelWithName("meta"))
+  boolean hasAuditField() {
+    return flatten()
+        .filter(child -> child.getName().equals("audit"))
         .findFirst()
-        .map(meta -> meta.hasChild("audit"))
+        .map(audit -> audit.hasParent() && audit.getParent().getName().equals("meta"))
         .orElse(false);
-  }
-
-  public boolean hasChild(String name) {
-    return children().stream().anyMatch(modelWithName(name));
-  }
-
-  private static Predicate<Model> modelWithName(String name) {
-    return child -> child.getName().equals(name);
   }
 
   Model getChildByName(String name) {
@@ -305,6 +294,14 @@ class Model {
         .filter(child -> child.getName().equals(name))
         .findFirst()
         .orElseThrow(BriefcaseException::new);
+  }
+
+  public boolean isSpatial() {
+    return Arrays.asList(GEOPOINT, GEOTRACE, GEOSHAPE).contains(getDataType());
+  }
+
+  List<Model> getSpatialFields() {
+    return flatten().filter(Model::isSpatial).collect(toList());
   }
 
   // TODO This should be defined in JavaRosa, like the DataType enum
