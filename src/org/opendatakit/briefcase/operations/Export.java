@@ -59,6 +59,7 @@ public class Export {
   private static final Param<Void> PULL_BEFORE = Param.flag("pb", "pull_before", "Pull before export");
   private static final Param<Void> SPLIT_SELECT_MULTIPLES = Param.flag("ssm", "split_select_multiples", "Split select multiple fields");
   private static final Param<Void> INCLUDE_GEOJSON_EXPORT = Param.flag("ig", "include_geojson", "Include a GeoJSON companion file with spatial data");
+  private static final Param<Void> REMOVE_GROUP_NAMES = Param.flag("rgn", "remove_group_names", "Remove group names from column names");
 
   public static Operation EXPORT_FORM = Operation.of(
       EXPORT,
@@ -74,13 +75,14 @@ public class Export {
           args.getOptional(END),
           args.getOptional(PEM_FILE),
           args.has(SPLIT_SELECT_MULTIPLES),
-          args.has(INCLUDE_GEOJSON_EXPORT)
+          args.has(INCLUDE_GEOJSON_EXPORT),
+          args.has(REMOVE_GROUP_NAMES)
       ),
       Arrays.asList(STORAGE_DIR, FORM_ID, FILE, EXPORT_DIR),
-      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE, SPLIT_SELECT_MULTIPLES, INCLUDE_GEOJSON_EXPORT)
+      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE, SPLIT_SELECT_MULTIPLES, INCLUDE_GEOJSON_EXPORT, REMOVE_GROUP_NAMES)
   );
 
-  public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, boolean pullBefore, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile, boolean splitSelectMultiples, boolean includeGeoJsonExport) {
+  public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, boolean pullBefore, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile, boolean splitSelectMultiples, boolean includeGeoJsonExport, boolean removeGroupNames) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -102,6 +104,7 @@ public class Export {
         .setOverwriteFiles(overwriteFiles)
         .setExportMedia(exportMedia)
         .setSplitSelectMultiples(splitSelectMultiples)
+        .setRemoveGroupNames(removeGroupNames)
         .build();
 
     if (configuration.resolvePullBefore()) {

@@ -163,6 +163,7 @@ public class ExportConfigurationTest {
     assertThat(empty().setExportMedia(true).build(), not(isEmpty()));
     assertThat(empty().setSplitSelectMultiples(true).build(), not(isEmpty()));
     assertThat(empty().setIncludeGeoJsonExport(true).build(), not(isEmpty()));
+    assertThat(empty().setRemoveGroupNames(true).build(), not(isEmpty()));
   }
 
   @Test
@@ -182,6 +183,9 @@ public class ExportConfigurationTest {
     assertThat(empty().overrideIncludeGeoJsonExport(UNDETERMINED).build(), isEmpty());
     assertThat(empty().overrideIncludeGeoJsonExport(TRUE).build(), not(isEmpty()));
     assertThat(empty().overrideIncludeGeoJsonExport(FALSE).build(), not(isEmpty()));
+    assertThat(empty().overrideRemoveGroupNames(UNDETERMINED).build(), isEmpty());
+    assertThat(empty().overrideRemoveGroupNames(TRUE).build(), not(isEmpty()));
+    assertThat(empty().overrideRemoveGroupNames(FALSE).build(), not(isEmpty()));
   }
 
   @Test
@@ -212,6 +216,11 @@ public class ExportConfigurationTest {
   @Test
   public void include_geojson_export_defaults_to_false_on_empty_confs() {
     assertThat(EMPTY_CONF.resolveIncludeGeoJsonExport(), is(false));
+  }
+
+  @Test
+  public void remove_group_names_defaults_to_false_on_empty_confs() {
+    assertThat(EMPTY_CONF.resolveRemoveGroupNames(), is(false));
   }
 
   @Test
