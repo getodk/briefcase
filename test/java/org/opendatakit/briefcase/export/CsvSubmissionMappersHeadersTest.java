@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.export.CsvSubmissionMappers.getMainHeader;
 import static org.opendatakit.briefcase.export.CsvSubmissionMappers.getRepeatHeader;
+import static org.opendatakit.briefcase.export.ModelBuilder.geopoint;
 import static org.opendatakit.briefcase.export.ModelBuilder.group;
 import static org.opendatakit.briefcase.export.ModelBuilder.instance;
 import static org.opendatakit.briefcase.export.ModelBuilder.repeat;
@@ -55,5 +56,16 @@ public class CsvSubmissionMappersHeadersTest {
     assertThat(getMainHeader(model, true, false, false), is("SubmissionDate,group-1-field,group-2-field,KEY,isValidated"));
     assertThat(getMainHeader(model, false, false, true), is("SubmissionDate,field,field,KEY"));
     assertThat(getMainHeader(model, true, false, true), is("SubmissionDate,field,field,KEY,isValidated"));
+  }
+
+  @Test
+  public void supports_fields_that_generate_more_than_one_column() {
+    Model model = instance(
+        group("some-group", geopoint("some-point"))
+    ).build();
+    assertThat(getMainHeader(model, false, false, false), is("SubmissionDate,some-group-some-point-Latitude,some-group-some-point-Longitude,some-group-some-point-Altitude,some-group-some-point-Accuracy,KEY"));
+    assertThat(getMainHeader(model, true, false, false), is("SubmissionDate,some-group-some-point-Latitude,some-group-some-point-Longitude,some-group-some-point-Altitude,some-group-some-point-Accuracy,KEY,isValidated"));
+    assertThat(getMainHeader(model, false, false, true), is("SubmissionDate,some-point-Latitude,some-point-Longitude,some-point-Altitude,some-point-Accuracy,KEY"));
+    assertThat(getMainHeader(model, true, false, true), is("SubmissionDate,some-point-Latitude,some-point-Longitude,some-point-Altitude,some-point-Accuracy,KEY,isValidated"));
   }
 }

@@ -156,18 +156,19 @@ class Model {
    * @see Model#getNames(boolean)
    */
   List<String> getNames(int shift, boolean removeGroupNames) {
-    if (getDataType() == GEOPOINT)
-      return Arrays.asList(
-          fqn(shift) + "-Latitude",
-          fqn(shift) + "-Longitude",
-          fqn(shift) + "-Altitude",
-          fqn(shift) + "-Accuracy"
-      );
     if (getDataType() == NULL && model.isRepeatable())
       return singletonList("SET-OF-" + fqn(shift));
     if (getDataType() == NULL && !model.isRepeatable() && size() > 0)
       return children().stream().flatMap(e -> e.getNames(shift, removeGroupNames).stream()).collect(toList());
-    return singletonList(removeGroupNames ? getName() : fqn(shift));
+    String fieldName = removeGroupNames ? getName() : fqn(shift);
+    if (getDataType() == GEOPOINT)
+      return Arrays.asList(
+          fieldName + "-Latitude",
+          fieldName + "-Longitude",
+          fieldName + "-Altitude",
+          fieldName + "-Accuracy"
+      );
+    return singletonList(fieldName);
   }
 
   /**
