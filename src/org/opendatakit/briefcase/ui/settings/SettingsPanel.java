@@ -65,7 +65,6 @@ public class SettingsPanel {
     form.onReloadCache(() -> {
       formCache.update();
       infoMessage("Forms successfully reloaded from storage location.");
-      infoMessage("Forms successfully reloaded from storage location.");
     });
   }
 
