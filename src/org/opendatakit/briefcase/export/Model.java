@@ -138,23 +138,10 @@ class Model {
 
   /**
    * Returns the {@link List} of {@link String} names that this {@link Model} instance can be
-   * associated with.
-   * <p>
-   * For example, {@link DataType#GEOPOINT} fields have 4 associated values.
-   *
-   * @return a {@link List} of {@link String} names of this {@link Model} instance
-   */
-  List<String> getNames(boolean removeGroupNames, boolean splitSelectMultiples) {
-    return getNames(0, splitSelectMultiples, removeGroupNames);
-  }
-
-  /**
-   * Returns the {@link List} of {@link String} names that this {@link Model} instance can be
    * associated with, shifted a given number of names.
    *
    * @param shift an int with the number of names to shift from the FQN
    * @return a {@link List} of shifted {@link String} names of this {@link Model} instance
-   * @see Model#getNames(boolean, boolean)
    */
   List<String> getNames(int shift, boolean splitSelectMultiples, boolean removeGroupNames) {
     if (getDataType() == NULL && model.isRepeatable())
