@@ -1,6 +1,9 @@
 <data id="choice-lists" instanceID="uuid:39f3dd36-161e-45cb-a1a4-395831d253a7" submissionDate="2018-04-26T08:58:20.525Z" isComplete="true" markedAsCompleteDate="2018-04-26T08:58:20.525Z" xmlns="http://opendatakit.org/submissions">
   <some_string>CHOICE_1</some_string>
   <another_string>CHOICE_2</another_string>
+  <some_group>
+    <yet_another_string>CHOICE_1</yet_another_string>
+  </some_group>
   <n0:meta xmlns:n0="http://openrosa.org/xforms">
     <n0:instanceID>uuid:39f3dd36-161e-45cb-a1a4-395831d253a7</n0:instanceID>
   </n0:meta>
