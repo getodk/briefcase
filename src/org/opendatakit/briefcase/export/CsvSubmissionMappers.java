@@ -20,7 +20,6 @@ import static java.text.DateFormat.getDateTimeInstance;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static java.util.stream.Stream.concat;
 import static java.util.stream.Stream.of;
 import static org.javarosa.core.model.DataType.DATE;
 import static org.javarosa.core.model.DataType.DATE_TIME;
@@ -30,7 +29,6 @@ import static org.opendatakit.briefcase.export.CsvFieldMappers.getMapper;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -119,7 +117,9 @@ final class CsvSubmissionMappers {
   static String getRepeatHeader(Model groupModel, boolean splitSelectMultiples, boolean removeGroupNames) {
     int shift = groupModel.countAncestors();
     List<String> headers = new ArrayList<>();
-    headers.addAll(getModelNames(shift, groupModel, splitSelectMultiples, removeGroupNames));
+    headers.addAll(groupModel.children().stream()
+        .flatMap(field -> getModelNames(shift, field, splitSelectMultiples, removeGroupNames).stream())
+        .collect(toList()));
     headers.add("PARENT_KEY");
     headers.add("KEY");
     headers.add("SET-OF-" + groupModel.getName());
@@ -127,18 +127,7 @@ final class CsvSubmissionMappers {
   }
 
   private static List<String> getModelNames(int shift, Model groupModel, boolean splitSelectMultiples, boolean removeGroupNames) {
-    return groupModel.children().stream().flatMap(field -> concat(
-        field.getNames(shift, removeGroupNames).stream(),
-        getSplitSelectMultipleNames(field, splitSelectMultiples).stream()
-    )).collect(toList());
-  }
-
-  private static List<String> getSplitSelectMultipleNames(Model field, boolean splitSelectMultiples) {
-    if (!field.isChoiceList() || !splitSelectMultiples)
-      return Collections.emptyList();
-    return field.getChoices().stream()
-        .map(choice -> field.getName() + "/" + choice.getValue())
-        .collect(toList());
+    return groupModel.getNames(shift, splitSelectMultiples, removeGroupNames);
   }
 
   static String encode(String string, boolean allowNulls) {
