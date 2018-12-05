@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 University of Washington.
+ * Copyright (C) 2018 Nafundi.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,11 +17,6 @@
 
 package org.opendatakit.briefcase.util;
 
-/**
- * Common utility methods to handle extended String functionalities.
- *
- * @author rclakmal@gmail.com
- */
 public class StringUtils {
 
   public static boolean nullOrEmpty(String text) {
