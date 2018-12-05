@@ -28,10 +28,6 @@ public class StringUtils {
   }
 
   public static String stripIllegalChars(String text) {
-    return text == null ? null : text.replaceAll("\\p{Punct}", "_").replaceAll("\\p{Space}", " ");
-  }
-
-  public static String stripIllegalChars2(String text) {
     if (text == null)
       return null;
     return text
