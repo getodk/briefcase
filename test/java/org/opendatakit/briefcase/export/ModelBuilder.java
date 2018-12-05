@@ -158,7 +158,11 @@ class ModelBuilder {
       TreeElement newChild = copy(child.current);
       newCurrent.addChild(child.current);
       newChild.setParent(newCurrent);
-      child.controls.forEach(newControls::put);
+
+      child.controls.forEach((key, value) -> newControls.put(
+          getName() != null && !getName().equals("data") ? getName() + "-" + key : key,
+          value
+      ));
     }
     return new ModelBuilder(newCurrent, newControls);
   }
