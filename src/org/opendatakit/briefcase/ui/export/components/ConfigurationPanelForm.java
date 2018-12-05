@@ -106,6 +106,7 @@ public class ConfigurationPanelForm extends JComponent {
   private OverridableBoolean exportMedia = OverridableBoolean.TRUE;
   private OverridableBoolean splitSelectMultiples = OverridableBoolean.FALSE;
   private OverridableBoolean includeGeoJsonExport = OverridableBoolean.FALSE;
+  private OverridableBoolean removeGroupNames = OverridableBoolean.FALSE;
 
   ConfigurationPanelForm(ConfigurationPanelMode mode) {
     this.mode = mode;
@@ -161,6 +162,8 @@ public class ConfigurationPanelForm extends JComponent {
     splitSelectMultiplesOverrideField.onChange(this::setSplitSelectMultiples);
     includeGeoJsonExportField.addActionListener(__ -> setIncludeGeoJsonExport(includeGeoJsonExportField.isSelected()));
     includeGeoJsonExportOverrideField.onChange(this::setIncludeGeoJsonExport);
+    removeGroupNamesField.addActionListener(__ -> setRemoveGroupNames(removeGroupNamesField.isSelected()));
+    removeGroupNamesOverrideField.onChange(this::setRemoveGroupNames);
   }
 
   void initialize(ExportConfiguration configuration) {
@@ -172,6 +175,7 @@ public class ConfigurationPanelForm extends JComponent {
     setExportMedia(configuration.getExportMedia());
     setSplitSelectMultiples(configuration.getSplitSelectMultiples());
     setIncludeGeoJsonExport(configuration.getIncludeGeoJsonExport());
+    setRemoveGroupNames(configuration.getRemoveGroupNames());
   }
 
   @Override
@@ -370,6 +374,22 @@ public class ConfigurationPanelForm extends JComponent {
     includeGeoJsonExportOverrideField.set(value.getOverride());
   }
 
+  private void setRemoveGroupNames(boolean enabled) {
+    removeGroupNames = removeGroupNames.set(enabled);
+    triggerOnChange();
+  }
+
+  private void setRemoveGroupNames(TriStateBoolean overrideValue) {
+    removeGroupNames = removeGroupNames.overrideWith(overrideValue);
+    triggerOnChange();
+  }
+
+  private void setRemoveGroupNames(OverridableBoolean value) {
+    removeGroupNames = value;
+    removeGroupNamesField.setSelected(value.get(false));
+    removeGroupNamesOverrideField.set(value.getOverride());
+  }
+
   void onChange(Consumer<ExportConfiguration> callback) {
     onChangeCallbacks.add(callback);
   }
@@ -390,6 +410,7 @@ public class ConfigurationPanelForm extends JComponent {
         .setExportMedia(exportMedia)
         .setSplitSelectMultiples(splitSelectMultiples)
         .setIncludeGeoJsonExport(includeGeoJsonExport)
+        .setRemoveGroupNames(removeGroupNames)
         .build();
     onChangeCallbacks.forEach(callback -> callback.accept(conf));
   }

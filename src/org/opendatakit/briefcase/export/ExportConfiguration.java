@@ -212,6 +212,10 @@ public class ExportConfiguration {
     return includeGeoJsonExport;
   }
 
+  public OverridableBoolean getRemoveGroupNames() {
+    return removeGroupNames;
+  }
+
   public void ifExportDirPresent(Consumer<Path> consumer) {
     exportDir.ifPresent(consumer);
   }
