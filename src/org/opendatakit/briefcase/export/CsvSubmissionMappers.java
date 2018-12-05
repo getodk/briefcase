@@ -104,7 +104,7 @@ final class CsvSubmissionMappers {
   static String getMainHeader(Model model, boolean isEncrypted, boolean splitSelectMultiples, boolean removeGroupNames) {
     List<String> headers = new ArrayList<>();
     headers.add("SubmissionDate");
-    headers.addAll(getModelNames(0, model, splitSelectMultiples, removeGroupNames));
+    headers.addAll(model.getNames(0, splitSelectMultiples, removeGroupNames));
     headers.add("KEY");
     if (isEncrypted)
       headers.add("isValidated");
@@ -118,16 +118,12 @@ final class CsvSubmissionMappers {
     int shift = groupModel.countAncestors();
     List<String> headers = new ArrayList<>();
     headers.addAll(groupModel.children().stream()
-        .flatMap(field -> getModelNames(shift, field, splitSelectMultiples, removeGroupNames).stream())
+        .flatMap(field -> field.getNames(shift, splitSelectMultiples, removeGroupNames).stream())
         .collect(toList()));
     headers.add("PARENT_KEY");
     headers.add("KEY");
     headers.add("SET-OF-" + groupModel.getName());
     return String.join(",", headers);
-  }
-
-  private static List<String> getModelNames(int shift, Model groupModel, boolean splitSelectMultiples, boolean removeGroupNames) {
-    return groupModel.getNames(shift, splitSelectMultiples, removeGroupNames);
   }
 
   static String encode(String string, boolean allowNulls) {
