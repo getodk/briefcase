@@ -94,6 +94,8 @@ public class PullPanel {
     });
 
     view.onCancel(() -> terminationFuture.markAsCancelled(new PullEvent.Abort("Cancelled by the user")));
+
+    forms.onChange(() -> forms.getLastPullCursorsByFormId().forEach((key, value) -> tabPreferences.put(key + "-last-cursor", value)));
   }
 
   public static PullPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {

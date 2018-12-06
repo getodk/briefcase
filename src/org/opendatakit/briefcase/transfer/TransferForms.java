@@ -208,6 +208,11 @@ public class TransferForms implements Iterable<FormStatus> {
 
   public void setLastPullCursor(FormStatus fs, String cursor) {
     lastPullCursorsByFormId.put(fs.getFormId(), cursor);
+    triggerOnChange();
+  }
+
+  public Map<String, String> getLastPullCursorsByFormId() {
+    return lastPullCursorsByFormId;
   }
 
   @Override
