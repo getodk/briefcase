@@ -36,10 +36,12 @@ import org.opendatakit.briefcase.model.FormStatus;
 public class TransferForms implements Iterable<FormStatus> {
   private List<FormStatus> forms;
   private Map<String, FormStatus> formsIndex = new HashMap<>();
+  private final Map<String, String> lastPullCursorsByFormId;
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
-  private TransferForms(List<FormStatus> forms) {
+  private TransferForms(List<FormStatus> forms, Map<String, String> lastPullCursorsByFormId) {
     this.forms = forms;
+    this.lastPullCursorsByFormId = lastPullCursorsByFormId;
     rebuildIndex();
   }
 
@@ -47,7 +49,7 @@ public class TransferForms implements Iterable<FormStatus> {
    * Factory of empty {@link TransferForms} instances
    */
   public static TransferForms empty() {
-    return new TransferForms(Collections.emptyList());
+    return new TransferForms(Collections.emptyList(), Collections.emptyMap());
   }
 
   /**
@@ -55,7 +57,7 @@ public class TransferForms implements Iterable<FormStatus> {
    * list of {@link FormStatus} instances
    */
   public static TransferForms from(List<FormStatus> forms) {
-    return new TransferForms(forms);
+    return new TransferForms(forms, Collections.emptyMap());
   }
 
   private static String getFormId(FormStatus form) {
@@ -63,7 +65,7 @@ public class TransferForms implements Iterable<FormStatus> {
   }
 
   public static TransferForms of(FormStatus... forms) {
-    return new TransferForms(Arrays.asList(forms));
+    return new TransferForms(Arrays.asList(forms), Collections.emptyMap());
   }
 
   /**
