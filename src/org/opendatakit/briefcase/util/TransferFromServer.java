@@ -32,26 +32,20 @@ public class TransferFromServer implements ITransferFromSourceAction {
   private final Boolean pullInParallel;
   private final Boolean includeIncomplete;
   private final Path briefcaseDir;
+  private final boolean resumeLastPull;
 
-  public TransferFromServer(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture, TransferForms formsToTransfer, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete) {
+  public TransferFromServer(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture, TransferForms formsToTransfer, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull) {
     this.originServerInfo = originServerInfo;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
     this.briefcaseDir = briefcaseDir;
     this.pullInParallel = pullInParallel;
     this.includeIncomplete = includeIncomplete;
+    this.resumeLastPull = resumeLastPull;
   }
 
-  @Override
-  public boolean doAction() {
-
-    ServerFetcher fetcher = new ServerFetcher(originServerInfo, terminationFuture, briefcaseDir, pullInParallel, includeIncomplete);
-
-    return fetcher.downloadFormAndSubmissionFiles(formsToTransfer);
-  }
-
-  public static void pull(ServerConnectionInfo transferSettings, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, TransferForms forms) {
-    TransferFromServer action = new TransferFromServer(transferSettings, new TerminationFuture(), forms, briefcaseDir, pullInParallel, includeIncomplete);
+  public static void pull(ServerConnectionInfo transferSettings, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, TransferForms forms, boolean resumeLastPull) {
+    TransferFromServer action = new TransferFromServer(transferSettings, new TerminationFuture(), forms, briefcaseDir, pullInParallel, includeIncomplete, resumeLastPull);
 
     try {
       boolean allSuccessful = action.doAction();
@@ -64,6 +58,14 @@ public class TransferFromServer implements ITransferFromSourceAction {
       EventBus.publish(new PullEvent.Failure());
       throw new PullFromServerException(forms, e);
     }
+  }
+
+  @Override
+  public boolean doAction() {
+
+    ServerFetcher fetcher = new ServerFetcher(originServerInfo, terminationFuture, briefcaseDir, pullInParallel, includeIncomplete);
+
+    return fetcher.downloadFormAndSubmissionFiles(formsToTransfer, resumeLastPull);
   }
 
   @Override

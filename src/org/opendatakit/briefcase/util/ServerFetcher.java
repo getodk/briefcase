@@ -96,7 +96,7 @@ public class ServerFetcher {
     return terminationFuture.isCancelled();
   }
 
-  boolean downloadFormAndSubmissionFiles(TransferForms formsToTransfer) {
+  boolean downloadFormAndSubmissionFiles(TransferForms formsToTransfer, boolean resumeLastPull) {
     boolean allSuccessful = true;
 
     for (FormStatus fs : formsToTransfer) {
@@ -154,7 +154,7 @@ public class ServerFetcher {
           File formInstancesDir = FileSystemUtils.getFormInstancesDirectory(briefcaseLfd.getFormDirectory());
 
           // this will publish events
-          successful = downloadAllSubmissionsForForm(formInstancesDir, formDatabase, briefcaseLfd, fs);
+          successful = downloadAllSubmissionsForForm(formInstancesDir, formDatabase, briefcaseLfd, fs, resumeLastPull ? formsToTransfer.getLastCursor(fs) : "");
         } catch (SQLException | FileSystemException e) {
           allSuccessful = false;
           String msg = "unable to open form database";
@@ -262,7 +262,7 @@ public class ServerFetcher {
   }
 
   private boolean downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd,
-                                                FormStatus fs) {
+                                                FormStatus fs, String websafeCursorString) {
     int submissionCount = 1;
     int chunkCount = 1;
     boolean allSuccessful = true;
@@ -272,7 +272,6 @@ public class ServerFetcher {
     CompletionService<String> submissionCompleter = new ExecutorCompletionService<>(execSvc);
 
     String oldWebsafeCursorString;
-    String websafeCursorString = "";
 
     chunkCompleter.submit(new SubmissionChunkDownload(fs, fd.getFormId(), websafeCursorString));
 

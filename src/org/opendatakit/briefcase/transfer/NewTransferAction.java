@@ -28,14 +28,15 @@ import org.slf4j.LoggerFactory;
 public class NewTransferAction {
   private static final Logger log = LoggerFactory.getLogger(NewTransferAction.class);
 
-  public static void transferServerToBriefcase(ServerConnectionInfo transferSettings, TerminationFuture terminationFuture, TransferForms formsToTransfer, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete) {
+  public static void transferServerToBriefcase(ServerConnectionInfo transferSettings, TerminationFuture terminationFuture, TransferForms formsToTransfer, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull) {
     TransferFromServer action = new TransferFromServer(
         transferSettings,
         terminationFuture,
         formsToTransfer,
         briefcaseDir,
         pullInParallel,
-        includeIncomplete
+        includeIncomplete,
+        resumeLastPull
     );
     try {
       boolean allSuccessful = action.doAction();

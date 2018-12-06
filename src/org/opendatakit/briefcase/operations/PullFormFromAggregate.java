@@ -99,7 +99,7 @@ public class PullFormFromAggregate {
 
       FormStatus form = maybeForm.get();
       EventBus.publish(new StartPullEvent(form));
-      TransferFromServer.pull(remoteServer.asServerConnectionInfo(), briefcaseDir, pullInParallel, includeIncomplete, TransferForms.of(form));
+      TransferFromServer.pull(remoteServer.asServerConnectionInfo(), briefcaseDir, pullInParallel, includeIncomplete, TransferForms.of(form), false);
     }
   }
 

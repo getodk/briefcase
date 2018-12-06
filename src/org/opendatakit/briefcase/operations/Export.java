@@ -130,6 +130,7 @@ public class Export {
             TransferForms.of(formStatus),
             briefcaseDir,
             appPreferences.getPullInParallel().orElse(false),
+            false,
             false
         );
       }

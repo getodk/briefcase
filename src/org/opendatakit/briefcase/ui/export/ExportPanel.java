@@ -190,6 +190,7 @@ public class ExportPanel {
                   TransferForms.of(form),
                   appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
                   appPreferences.getPullInParallel().orElse(false),
+                  false,
                   false
               ));
             FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());

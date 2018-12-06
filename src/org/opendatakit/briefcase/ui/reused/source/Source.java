@@ -187,8 +187,9 @@ public interface Source<T> {
    * @param terminationFuture object that to make the operation cancellable
    * @param includeIncomplete when passed true, it enables requesting the incomplete
    *                          submissions. This needs to be supported by the selected source
+   * @param resumeLastPull
    */
-  void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete);
+  void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull);
 
   /**
    * Pushes forms to this configured {@link Source}.
@@ -261,8 +262,8 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete) {
-      TransferAction.transferServerToBriefcase(server.asServerConnectionInfo(), terminationFuture, forms, briefcaseDir, pullInParallel, includeIncomplete);
+    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull) {
+      TransferAction.transferServerToBriefcase(server.asServerConnectionInfo(), terminationFuture, forms, briefcaseDir, pullInParallel, includeIncomplete, resumeLastPull);
     }
 
     @Override
@@ -362,7 +363,7 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete) {
+    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull) {
       TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), terminationFuture, forms);
     }
 
@@ -450,7 +451,7 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete) {
+    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull) {
       invokeLater(() -> FormInstaller.install(briefcaseDir, form));
     }
 

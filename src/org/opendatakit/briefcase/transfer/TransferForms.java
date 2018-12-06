@@ -191,6 +191,10 @@ public class TransferForms implements Iterable<FormStatus> {
     return forms.stream().map(mapper);
   }
 
+  public String getLastCursor(FormStatus fs) {
+    return "";
+  }
+
   @Override
   public Iterator<FormStatus> iterator() {
     return forms.iterator();
