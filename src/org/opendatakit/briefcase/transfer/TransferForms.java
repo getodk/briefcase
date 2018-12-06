@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.transfer;
 
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -25,9 +26,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.reused.Pair;
 
 /**
  * This class represents a set of forms to be pulled/pushed. It manages the
@@ -36,7 +40,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 public class TransferForms implements Iterable<FormStatus> {
   private List<FormStatus> forms;
   private Map<String, FormStatus> formsIndex = new HashMap<>();
-  private final Map<String, String> lastPullCursorsByFormId;
+  private Map<String, String> lastPullCursorsByFormId;
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
   private TransferForms(List<FormStatus> forms, Map<String, String> lastPullCursorsByFormId) {
@@ -70,10 +74,15 @@ public class TransferForms implements Iterable<FormStatus> {
 
   /**
    * Replaces the current list of {@link FormStatus} instances with
-   * the incoming list.
+   * the incoming list, and reads any saved cursor from a previous pull
    */
-  public void load(List<FormStatus> forms) {
+  public void load(List<FormStatus> forms, BriefcasePreferences preferences) {
     this.forms = forms;
+    this.lastPullCursorsByFormId = forms.stream()
+        .map(form -> Pair.of(form.getFormId(), preferences.nullSafeGet(form.getFormId() + "-last-cursor")))
+        .filter(pair -> pair.getRight().isPresent())
+        .map(pair -> pair.map(identity(), Optional::get))
+        .collect(toMap(Pair::getLeft, Pair::getRight));
     triggerOnChange();
   }
 
@@ -133,7 +142,7 @@ public class TransferForms implements Iterable<FormStatus> {
    * Returns a list of selected {@link FormStatus} instances.
    */
   public TransferForms getSelectedForms() {
-    return new TransferForms(forms.stream().filter(FormStatus::isSelected).collect(toList()));
+    return new TransferForms(forms.stream().filter(FormStatus::isSelected).collect(toList()), lastPullCursorsByFormId);
   }
 
   /**
@@ -194,7 +203,7 @@ public class TransferForms implements Iterable<FormStatus> {
   }
 
   public String getLastCursor(FormStatus fs) {
-    return "";
+    return Optional.ofNullable(lastPullCursorsByFormId.get(fs.getFormId())).orElse("");
   }
 
   @Override

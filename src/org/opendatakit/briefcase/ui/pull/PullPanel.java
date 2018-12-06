@@ -114,7 +114,7 @@ public class PullPanel {
 
   private void onSource(TransferPanelForm view, TransferForms forms, Source<?> source) {
     source.getFormList().thenAccept(formList -> {
-      forms.load(formList);
+      forms.load(formList, tabPreferences);
       view.refresh();
       updateActionButtons();
     }).onError(cause -> {
