@@ -16,10 +16,10 @@
 
 package org.opendatakit.briefcase.pull;
 
-import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
+import org.opendatakit.briefcase.transfer.TransferForms;
 
 public class PullEvent {
 
@@ -29,15 +29,15 @@ public class PullEvent {
   }
 
   public static class Success extends PullEvent {
-    public final List<FormStatus> forms;
+    public final TransferForms forms;
     public final Optional<ServerConnectionInfo> transferSettings;
 
-    public Success(List<FormStatus> forms) {
+    public Success(TransferForms forms) {
       this.forms = forms;
       this.transferSettings = Optional.empty();
     }
 
-    public Success(List<FormStatus> forms, ServerConnectionInfo transferSettings) {
+    public Success(TransferForms forms, ServerConnectionInfo transferSettings) {
       this.forms = forms;
       this.transferSettings = Optional.ofNullable(transferSettings);
     }

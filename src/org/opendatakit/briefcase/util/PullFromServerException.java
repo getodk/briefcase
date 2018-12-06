@@ -17,20 +17,19 @@ package org.opendatakit.briefcase.util;
 
 import static java.util.stream.Collectors.joining;
 
-import java.util.List;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.transfer.TransferForms;
 
 class PullFromServerException extends BriefcaseException {
-  PullFromServerException(List<FormStatus> forms, Throwable cause) {
+  PullFromServerException(TransferForms forms, Throwable cause) {
     super(buildMessage(forms), cause);
   }
 
-  PullFromServerException(List<FormStatus> forms) {
+  PullFromServerException(TransferForms forms) {
     super(buildMessage(forms));
   }
 
-  private static String buildMessage(List<FormStatus> forms) {
-    return "Failure pulling forms from server. FormIds: " + forms.stream().map(f -> f.getFormDefinition().getFormId()).collect(joining(", "));
+  private static String buildMessage(TransferForms forms) {
+    return "Failure pulling forms from server. FormIds: " + forms.map(f -> f.getFormDefinition().getFormId()).collect(joining(", "));
   }
 }

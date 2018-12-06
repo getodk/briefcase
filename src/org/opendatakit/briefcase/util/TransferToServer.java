@@ -16,16 +16,14 @@
 
 package org.opendatakit.briefcase.util;
 
-import java.util.Arrays;
-import java.util.List;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.transfer.TransferForms;
 
 public class TransferToServer implements ITransferToDestAction {
   private final Http http;
@@ -33,9 +31,9 @@ public class TransferToServer implements ITransferToDestAction {
   private final boolean forceSendBlank;
   private ServerConnectionInfo destServerInfo;
   private TerminationFuture terminationFuture;
-  private List<FormStatus> formsToTransfer;
+  private TransferForms formsToTransfer;
 
-  TransferToServer(ServerConnectionInfo destServerInfo, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Http http, RemoteServer server, boolean forceSendBlank) {
+  TransferToServer(ServerConnectionInfo destServerInfo, TerminationFuture terminationFuture, TransferForms formsToTransfer, Http http, RemoteServer server, boolean forceSendBlank) {
     this.destServerInfo = destServerInfo;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
@@ -51,8 +49,7 @@ public class TransferToServer implements ITransferToDestAction {
     return uploader.uploadFormAndSubmissionFiles(formsToTransfer);
   }
 
-  public static void push(ServerConnectionInfo transferSettings, CommonsHttp http, RemoteServer server, boolean forceSendBlank, FormStatus... forms) {
-    List<FormStatus> formList = Arrays.asList(forms);
+  public static void push(ServerConnectionInfo transferSettings, CommonsHttp http, RemoteServer server, boolean forceSendBlank, TransferForms formList) {
     TransferToServer action = new TransferToServer(transferSettings, new TerminationFuture(), formList, http, server, forceSendBlank);
 
     try {

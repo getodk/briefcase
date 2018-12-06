@@ -24,7 +24,6 @@ import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
@@ -44,6 +43,7 @@ import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.transfer.NewTransferAction;
+import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
@@ -187,7 +187,7 @@ public class ExportPanel {
               forms.getTransferSettings(formId).ifPresent(sci -> NewTransferAction.transferServerToBriefcase(
                   sci,
                   new TerminationFuture(),
-                  Collections.singletonList(form),
+                  TransferForms.of(form),
                   appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
                   appPreferences.getPullInParallel().orElse(false),
                   false

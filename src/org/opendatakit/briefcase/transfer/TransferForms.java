@@ -19,18 +19,21 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import org.opendatakit.briefcase.model.FormStatus;
 
 /**
  * This class represents a set of forms to be pulled/pushed. It manages the
  * selection of those forms, as well as merging changes in the forms cache.
  */
-public class TransferForms {
+public class TransferForms implements Iterable<FormStatus> {
   private List<FormStatus> forms;
   private Map<String, FormStatus> formsIndex = new HashMap<>();
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
@@ -57,6 +60,10 @@ public class TransferForms {
 
   private static String getFormId(FormStatus form) {
     return form.getFormDefinition().getFormId();
+  }
+
+  public static TransferForms of(FormStatus... forms) {
+    return new TransferForms(Arrays.asList(forms));
   }
 
   /**
@@ -104,14 +111,6 @@ public class TransferForms {
   }
 
   /**
-   * Lets calling sites iterate over all {@link FormStatus} instances
-   * present.
-   */
-  public void forEach(Consumer<FormStatus> consumer) {
-    forms.forEach(consumer);
-  }
-
-  /**
    * Marks all present {@link FormStatus} instances as being selected.
    */
   // TODO extract the selection status to this class instead of mutating the FormStatus instances
@@ -131,8 +130,8 @@ public class TransferForms {
   /**
    * Returns a list of selected {@link FormStatus} instances.
    */
-  public List<FormStatus> getSelectedForms() {
-    return forms.stream().filter(FormStatus::isSelected).collect(toList());
+  public TransferForms getSelectedForms() {
+    return new TransferForms(forms.stream().filter(FormStatus::isSelected).collect(toList()));
   }
 
   /**
@@ -186,5 +185,14 @@ public class TransferForms {
    */
   public boolean isEmpty() {
     return forms.isEmpty();
+  }
+
+  public <T> Stream<T> map(Function<FormStatus, T> mapper) {
+    return forms.stream().map(mapper);
+  }
+
+  @Override
+  public Iterator<FormStatus> iterator() {
+    return forms.iterator();
   }
 }

@@ -25,7 +25,6 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Optional;
 import org.opendatakit.briefcase.export.DateRange;
 import org.opendatakit.briefcase.export.ExportConfiguration;
@@ -38,6 +37,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.transfer.NewTransferAction;
+import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.common.cli.Operation;
@@ -127,7 +127,7 @@ public class Export {
         NewTransferAction.transferServerToBriefcase(
             transferSettings,
             new TerminationFuture(),
-            Collections.singletonList(formStatus),
+            TransferForms.of(formStatus),
             briefcaseDir,
             appPreferences.getPullInParallel().orElse(false),
             false

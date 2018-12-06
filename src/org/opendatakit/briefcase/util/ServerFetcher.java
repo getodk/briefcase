@@ -55,6 +55,7 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.transfer.TransferForms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,7 +96,7 @@ public class ServerFetcher {
     return terminationFuture.isCancelled();
   }
 
-  boolean downloadFormAndSubmissionFiles(List<FormStatus> formsToTransfer) {
+  boolean downloadFormAndSubmissionFiles(TransferForms formsToTransfer) {
     boolean allSuccessful = true;
 
     for (FormStatus fs : formsToTransfer) {

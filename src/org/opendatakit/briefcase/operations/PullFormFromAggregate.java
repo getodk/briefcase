@@ -33,6 +33,7 @@ import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Response;
+import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.briefcase.util.RetrieveAvailableFormsFromServer;
 import org.opendatakit.briefcase.util.TransferFromServer;
@@ -98,7 +99,7 @@ public class PullFormFromAggregate {
 
       FormStatus form = maybeForm.get();
       EventBus.publish(new StartPullEvent(form));
-      TransferFromServer.pull(remoteServer.asServerConnectionInfo(), briefcaseDir, pullInParallel, includeIncomplete, form);
+      TransferFromServer.pull(remoteServer.asServerConnectionInfo(), briefcaseDir, pullInParallel, includeIncomplete, TransferForms.of(form));
     }
   }
 
