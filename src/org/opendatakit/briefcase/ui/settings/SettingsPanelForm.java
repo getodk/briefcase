@@ -52,6 +52,7 @@ public class SettingsPanelForm {
   private JButton storageLocationClearButton;
   private JButton storageLocationChooseButton;
   private JCheckBox pullInParallelField;
+  private JCheckBox resumeLasPullField;
   private JCheckBox rememberPasswordsField;
   private JCheckBox sendUsageDataField;
   private JCheckBox useHttpProxyField;
@@ -157,13 +158,20 @@ public class SettingsPanelForm {
     };
   }
 
-
   void onPullInParallelChange(Consumer<Boolean> callback) {
     pullInParallelField.addActionListener(__ -> callback.accept(pullInParallelField.isSelected()));
   }
 
   void setPullInParallel(Boolean enabled) {
     pullInParallelField.setSelected(enabled);
+  }
+
+  void onResumeLastPullChange(Consumer<Boolean> callback) {
+    resumeLasPullField.addActionListener(__ -> callback.accept(resumeLasPullField.isSelected()));
+  }
+
+  void setResumeLastPull(Boolean enabled) {
+    resumeLasPullField.setSelected(enabled);
   }
 
   void onRememberPasswordsChange(Consumer<Boolean> callback) {
@@ -259,7 +267,7 @@ public class SettingsPanelForm {
     rememberPasswordsField.setText("Remember passwords (unencrypted)");
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 5;
+    gbc.gridy = 7;
     gbc.gridwidth = 5;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(rememberPasswordsField, gbc);
@@ -267,7 +275,7 @@ public class SettingsPanelForm {
     sendUsageDataField.setText("Send usage data and crash logs to core developers");
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 7;
+    gbc.gridy = 9;
     gbc.gridwidth = 5;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(sendUsageDataField, gbc);
@@ -275,14 +283,14 @@ public class SettingsPanelForm {
     useHttpProxyField.setText("Use HTTP Proxy");
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 9;
+    gbc.gridy = 11;
     gbc.gridwidth = 5;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(useHttpProxyField, gbc);
     final JPanel spacer2 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 10;
+    gbc.gridy = 12;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.insets = new Insets(0, 0, 0, 20);
     container.add(spacer2, gbc);
@@ -290,7 +298,7 @@ public class SettingsPanelForm {
     httpProxyJostLabel.setText("Host");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 10;
+    gbc.gridy = 12;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(httpProxyJostLabel, gbc);
     httpProxyHostField = new JTextField();
@@ -298,41 +306,41 @@ public class SettingsPanelForm {
     httpProxyHostField.setText("127.0.0.1");
     gbc = new GridBagConstraints();
     gbc.gridx = 4;
-    gbc.gridy = 10;
+    gbc.gridy = 12;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(httpProxyHostField, gbc);
     final JPanel spacer3 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 3;
-    gbc.gridy = 10;
+    gbc.gridy = 12;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(spacer3, gbc);
     httpProxyPortLabel = new JLabel();
     httpProxyPortLabel.setText("Port");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 11;
+    gbc.gridy = 13;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(httpProxyPortLabel, gbc);
     final JPanel spacer4 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 5;
-    gbc.gridy = 10;
+    gbc.gridy = 12;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(spacer4, gbc);
     httpProxyPortField.setPreferredSize(new Dimension(150, 30));
     gbc = new GridBagConstraints();
     gbc.gridx = 4;
-    gbc.gridy = 11;
+    gbc.gridy = 13;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(httpProxyPortField, gbc);
     final JPanel spacer5 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 8;
+    gbc.gridy = 10;
     gbc.gridwidth = 5;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer5, gbc);
@@ -340,14 +348,14 @@ public class SettingsPanelForm {
     gbc = new GridBagConstraints();
     gbc.gridx = 6;
     gbc.gridy = 1;
-    gbc.gridheight = 11;
+    gbc.gridheight = 13;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(spacer6, gbc);
     final JPanel spacer7 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 1;
-    gbc.gridheight = 11;
+    gbc.gridheight = 13;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(spacer7, gbc);
     final JPanel spacer8 = new JPanel();
@@ -360,7 +368,7 @@ public class SettingsPanelForm {
     final JPanel spacer9 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 12;
+    gbc.gridy = 14;
     gbc.gridwidth = 5;
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.VERTICAL;
@@ -368,7 +376,7 @@ public class SettingsPanelForm {
     final JPanel spacer10 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 6;
+    gbc.gridy = 8;
     gbc.gridwidth = 5;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer10, gbc);
@@ -383,7 +391,7 @@ public class SettingsPanelForm {
     panel1.setLayout(new GridBagLayout());
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 13;
+    gbc.gridy = 15;
     gbc.gridwidth = 5;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(panel1, gbc);
@@ -458,10 +466,25 @@ public class SettingsPanelForm {
     final JPanel spacer19 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 14;
+    gbc.gridy = 16;
     gbc.gridwidth = 6;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer19, gbc);
+    resumeLasPullField = new JCheckBox();
+    resumeLasPullField.setText("Always try to resume last pull");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 1;
+    gbc.gridy = 5;
+    gbc.gridwidth = 5;
+    gbc.anchor = GridBagConstraints.WEST;
+    container.add(resumeLasPullField, gbc);
+    final JPanel spacer20 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 1;
+    gbc.gridy = 6;
+    gbc.gridwidth = 5;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    container.add(spacer20, gbc);
   }
 
   /**
@@ -470,4 +493,5 @@ public class SettingsPanelForm {
   public JComponent $$$getRootComponent$$$() {
     return container;
   }
+
 }

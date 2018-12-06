@@ -36,6 +36,7 @@ public class SettingsPanel {
 
     appPreferences.getBriefcaseDir().ifPresent(path -> form.setStorageLocation(path.getParent()));
     appPreferences.getPullInParallel().ifPresent(form::setPullInParallel);
+    appPreferences.getResumeLastPull().ifPresent(form::setResumeLastPull);
     appPreferences.getRememberPasswords().ifPresent(form::setRememberPasswords);
     appPreferences.getSendUsageData().ifPresent(form::setSendUsageData);
     appPreferences.getHttpProxy().ifPresent(httpProxy -> {
@@ -56,6 +57,7 @@ public class SettingsPanel {
       appPreferences.unsetStorageDir();
     });
     form.onPullInParallelChange(appPreferences::setPullInParallel);
+    form.onResumeLastPullChange(appPreferences::setResumeLastPull);
     form.onRememberPasswordsChange(appPreferences::setRememberPasswords);
     form.onSendUsageDataChange(enabled -> {
       appPreferences.setSendUsage(enabled);
