@@ -206,6 +206,10 @@ public class TransferForms implements Iterable<FormStatus> {
     return Optional.ofNullable(lastPullCursorsByFormId.get(fs.getFormId())).orElse("");
   }
 
+  public void setLastPullCursor(FormStatus fs, String cursor) {
+    lastPullCursorsByFormId.put(fs.getFormId(), cursor);
+  }
+
   @Override
   public Iterator<FormStatus> iterator() {
     return forms.iterator();

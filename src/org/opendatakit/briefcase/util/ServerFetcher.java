@@ -55,6 +55,7 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,7 +155,9 @@ public class ServerFetcher {
           File formInstancesDir = FileSystemUtils.getFormInstancesDirectory(briefcaseLfd.getFormDirectory());
 
           // this will publish events
-          successful = downloadAllSubmissionsForForm(formInstancesDir, formDatabase, briefcaseLfd, fs, resumeLastPull ? formsToTransfer.getLastCursor(fs) : "");
+          Pair<Boolean, String> downloadResult = downloadAllSubmissionsForForm(formInstancesDir, formDatabase, briefcaseLfd, fs, resumeLastPull ? formsToTransfer.getLastCursor(fs) : "");
+          successful = downloadResult.getLeft();
+          formsToTransfer.setLastPullCursor(fs, downloadResult.getRight());
         } catch (SQLException | FileSystemException e) {
           allSuccessful = false;
           String msg = "unable to open form database";
@@ -261,8 +264,8 @@ public class ServerFetcher {
     return Executors.newFixedThreadPool(downloadThreads, new DownloadThreadFactory());
   }
 
-  private boolean downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd,
-                                                FormStatus fs, String websafeCursorString) {
+  private Pair<Boolean, String> downloadAllSubmissionsForForm(File formInstancesDir, DatabaseUtils formDatabase, BriefcaseFormDefinition lfd,
+                                                              FormStatus fs, String websafeCursorString) {
     int submissionCount = 1;
     int chunkCount = 1;
     boolean allSuccessful = true;
@@ -282,7 +285,7 @@ public class ServerFetcher {
         if (isCancelled()) {
           fs.setStatusString("aborting fetching submission chunks...", true);
           EventBus.publish(new FormStatusEvent(fs));
-          return false;
+          return Pair.of(false, websafeCursorString);
         }
 
         fs.setStatusString("processing chunk " + chunkCount + "...", true);
@@ -296,7 +299,7 @@ public class ServerFetcher {
           websafeCursorString = chunk.websafeCursorString;
           cursorFinished = oldWebsafeCursorString.equals(websafeCursorString);
         } catch (InterruptedException | ExecutionException e) {
-          return false;
+          return Pair.of(false, websafeCursorString);
         }
 
         if (!cursorFinished) {
@@ -309,7 +312,7 @@ public class ServerFetcher {
           if (isCancelled()) {
             fs.setStatusString("aborting requesting submissions...", true);
             EventBus.publish(new FormStatusEvent(fs));
-            return false;
+            return Pair.of(false, websafeCursorString);
           }
           submissionCompleter.submit(new SubmissionDownload(formInstancesDir, formDatabase, lfd, fs, uri));
         }
@@ -319,7 +322,7 @@ public class ServerFetcher {
           if (isCancelled()) {
             fs.setStatusString("aborting processing submissions...", true);
             EventBus.publish(new FormStatusEvent(fs));
-            return false;
+            return Pair.of(false, websafeCursorString);
           }
           try {
             submissionCompleter.take().get();
@@ -342,7 +345,7 @@ public class ServerFetcher {
         log.warn("interrupted while waiting for pull to complete");
       }
     }
-    return allSuccessful;
+    return Pair.of(allSuccessful, websafeCursorString);
   }
 
   private class SubmissionChunkDownload implements Callable<SubmissionChunk> {
