@@ -282,7 +282,7 @@
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
         <properties>
-          <text value="Include GeoJSON export"/>
+          <text value="Include GeoJSON"/>
         </properties>
       </component>
       <nested-form id="3816a" form-file="org/opendatakit/briefcase/ui/export/components/CustomConfBooleanForm.form" binding="includeGeoJsonExportOverrideField" custom-create="true">
@@ -297,7 +297,7 @@
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
         <properties>
-          <text value="Include GeoJSON export"/>
+          <text value="Include GeoJSON"/>
         </properties>
       </component>
     </children>

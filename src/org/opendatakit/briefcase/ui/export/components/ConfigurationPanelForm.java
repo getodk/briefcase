@@ -679,7 +679,7 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.anchor = GridBagConstraints.WEST;
     container.add(splitSelectMultiplesField, gbc);
     includeGeoJsonExportField = new JCheckBox();
-    includeGeoJsonExportField.setText("Include GeoJSON export");
+    includeGeoJsonExportField.setText("Include GeoJSON");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 8;
@@ -692,7 +692,7 @@ public class ConfigurationPanelForm extends JComponent {
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(includeGeoJsonExportOverrideField.$$$getRootComponent$$$(), gbc);
     includeGeoJsonExportOverrideLabel = new JLabel();
-    includeGeoJsonExportOverrideLabel.setText("Include GeoJSON export");
+    includeGeoJsonExportOverrideLabel.setText("Include GeoJSON");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 13;
@@ -706,4 +706,5 @@ public class ConfigurationPanelForm extends JComponent {
   public JComponent $$$getRootComponent$$$() {
     return container;
   }
+
 }
