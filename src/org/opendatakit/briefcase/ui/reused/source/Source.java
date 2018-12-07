@@ -22,10 +22,10 @@ import static java.awt.Desktop.getDesktop;
 import static javax.swing.SwingUtilities.invokeLater;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
+import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
 
 import java.awt.Container;
 import java.awt.Cursor;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -291,8 +291,7 @@ public interface Source<T> {
     public void decorate(JLabel label) {
       label.setText("<html><a href=\"" + server.getBaseUrl().toString() + "\">" + getDescription() + "</a></html>");
       label.setCursor(getPredefinedCursor(HAND_CURSOR));
-      for (MouseListener ml : label.getMouseListeners())
-        label.removeMouseListener(ml);
+      removeAllMouseListeners(label);
       label.addMouseListener(new MouseAdapterBuilder()
           .onClick(__ -> invokeLater(() -> uncheckedBrowse(server.getBaseUrl())))
           .build());
@@ -385,8 +384,7 @@ public interface Source<T> {
     public void decorate(JLabel label) {
       label.setText(getDescription());
       label.setCursor(getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-      for (MouseListener listener : label.getMouseListeners())
-        label.removeMouseListener(listener);
+      removeAllMouseListeners(label);
     }
 
     @Override
@@ -474,8 +472,7 @@ public interface Source<T> {
     public void decorate(JLabel label) {
       label.setText(getDescription());
       label.setCursor(getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-      for (MouseListener listener : label.getMouseListeners())
-        label.removeMouseListener(listener);
+      removeAllMouseListeners(label);
     }
 
     @Override
