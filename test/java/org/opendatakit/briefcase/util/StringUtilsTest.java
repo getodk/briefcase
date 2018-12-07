@@ -65,28 +65,6 @@ public class StringUtilsTest {
         {"Relative path ../", "../", ""},
         {"Relative path /..", "/..", ""},
         {"Relative path /../", "/../", ""},
-        {"Reserved Windows filename CON", "CON", ""},
-        {"Reserved Windows filename PRN", "PRN", ""},
-        {"Reserved Windows filename AUX", "AUX", ""},
-        {"Reserved Windows filename NUL", "NUL", ""},
-        {"Reserved Windows filename COM1", "COM1", ""},
-        {"Reserved Windows filename COM2", "COM2", ""},
-        {"Reserved Windows filename COM3", "COM3", ""},
-        {"Reserved Windows filename COM4", "COM4", ""},
-        {"Reserved Windows filename COM5", "COM5", ""},
-        {"Reserved Windows filename COM6", "COM6", ""},
-        {"Reserved Windows filename COM7", "COM7", ""},
-        {"Reserved Windows filename COM8", "COM8", ""},
-        {"Reserved Windows filename COM9", "COM9", ""},
-        {"Reserved Windows filename LPT1", "LPT1", ""},
-        {"Reserved Windows filename LPT2", "LPT2", ""},
-        {"Reserved Windows filename LPT3", "LPT3", ""},
-        {"Reserved Windows filename LPT4", "LPT4", ""},
-        {"Reserved Windows filename LPT5", "LPT5", ""},
-        {"Reserved Windows filename LPT6", "LPT6", ""},
-        {"Reserved Windows filename LPT7", "LPT7", ""},
-        {"Reserved Windows filename LPT8", "LPT8", ""},
-        {"Reserved Windows filename LPT9", "LPT9", ""},
         {"Reserved Windows filename con", "con", ""},
         {"Reserved Windows filename prn", "prn", ""},
         {"Reserved Windows filename aux", "aux", ""},
@@ -116,5 +94,6 @@ public class StringUtilsTest {
   @Test
   public void replaces_illegal_chars() {
     assertThat(stripIllegalChars(input), is(expected));
+    assertThat(stripIllegalChars(input.toUpperCase()), is(expected.toUpperCase()));
   }
 }
