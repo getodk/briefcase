@@ -65,6 +65,10 @@ class ConfigurationPanelMode {
     form.includeGeoJsonExportField.setVisible(!isOverridePanel);
     form.includeGeoJsonExportOverrideLabel.setVisible(isOverridePanel);
     form.includeGeoJsonExportOverrideField.setVisible(isOverridePanel);
+
+    form.removeGroupNamesField.setVisible(!isOverridePanel);
+    form.removeGroupNamesOverrideLabel.setVisible(isOverridePanel);
+    form.removeGroupNamesOverrideField.setVisible(isOverridePanel);
   }
 
   boolean isOverridePanel() {

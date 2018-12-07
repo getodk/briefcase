@@ -88,6 +88,9 @@ public class ConfigurationPanelForm extends JComponent {
   JCheckBox includeGeoJsonExportField;
   JLabel includeGeoJsonExportOverrideLabel;
   final CustomConfBooleanForm includeGeoJsonExportOverrideField;
+  JCheckBox removeGroupNamesField;
+  JLabel removeGroupNamesOverrideLabel;
+  final CustomConfBooleanForm removeGroupNamesOverrideField;
 
   // UI status and callbacks
   private final ConfigurationPanelMode mode;
@@ -103,6 +106,7 @@ public class ConfigurationPanelForm extends JComponent {
   private OverridableBoolean exportMedia = OverridableBoolean.TRUE;
   private OverridableBoolean splitSelectMultiples = OverridableBoolean.FALSE;
   private OverridableBoolean includeGeoJsonExport = OverridableBoolean.FALSE;
+  private OverridableBoolean removeGroupNames = OverridableBoolean.FALSE;
 
   ConfigurationPanelForm(ConfigurationPanelMode mode) {
     this.mode = mode;
@@ -115,6 +119,7 @@ public class ConfigurationPanelForm extends JComponent {
     overwriteFilesOverrideField = new CustomConfBooleanForm(Optional.empty());
     splitSelectMultiplesOverrideField = new CustomConfBooleanForm(Optional.empty());
     includeGeoJsonExportOverrideField = new CustomConfBooleanForm(Optional.empty());
+    removeGroupNamesOverrideField = new CustomConfBooleanForm(Optional.empty());
 
     $$$setupUI$$$();
 
@@ -157,6 +162,8 @@ public class ConfigurationPanelForm extends JComponent {
     splitSelectMultiplesOverrideField.onChange(this::setSplitSelectMultiples);
     includeGeoJsonExportField.addActionListener(__ -> setIncludeGeoJsonExport(includeGeoJsonExportField.isSelected()));
     includeGeoJsonExportOverrideField.onChange(this::setIncludeGeoJsonExport);
+    removeGroupNamesField.addActionListener(__ -> setRemoveGroupNames(removeGroupNamesField.isSelected()));
+    removeGroupNamesOverrideField.onChange(this::setRemoveGroupNames);
   }
 
   void initialize(ExportConfiguration configuration) {
@@ -168,6 +175,7 @@ public class ConfigurationPanelForm extends JComponent {
     setExportMedia(configuration.getExportMedia());
     setSplitSelectMultiples(configuration.getSplitSelectMultiples());
     setIncludeGeoJsonExport(configuration.getIncludeGeoJsonExport());
+    setRemoveGroupNames(configuration.getRemoveGroupNames());
   }
 
   @Override
@@ -204,6 +212,9 @@ public class ConfigurationPanelForm extends JComponent {
     includeGeoJsonExportField.setEnabled(enabled);
     includeGeoJsonExportOverrideField.setEnabled(enabled);
     includeGeoJsonExportOverrideLabel.setEnabled(enabled);
+    removeGroupNamesField.setEnabled(enabled);
+    removeGroupNamesOverrideField.setEnabled(enabled);
+    removeGroupNamesOverrideLabel.setEnabled(enabled);
   }
 
   void setExportDir(Path path) {
@@ -363,6 +374,22 @@ public class ConfigurationPanelForm extends JComponent {
     includeGeoJsonExportOverrideField.set(value.getOverride());
   }
 
+  private void setRemoveGroupNames(boolean enabled) {
+    removeGroupNames = removeGroupNames.set(enabled);
+    triggerOnChange();
+  }
+
+  private void setRemoveGroupNames(TriStateBoolean overrideValue) {
+    removeGroupNames = removeGroupNames.overrideWith(overrideValue);
+    triggerOnChange();
+  }
+
+  private void setRemoveGroupNames(OverridableBoolean value) {
+    removeGroupNames = value;
+    removeGroupNamesField.setSelected(value.get(false));
+    removeGroupNamesOverrideField.set(value.getOverride());
+  }
+
   void onChange(Consumer<ExportConfiguration> callback) {
     onChangeCallbacks.add(callback);
   }
@@ -383,6 +410,7 @@ public class ConfigurationPanelForm extends JComponent {
         .setExportMedia(exportMedia)
         .setSplitSelectMultiples(splitSelectMultiples)
         .setIncludeGeoJsonExport(includeGeoJsonExport)
+        .setRemoveGroupNames(removeGroupNames)
         .build();
     onChangeCallbacks.forEach(callback -> callback.accept(conf));
   }
@@ -544,7 +572,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeField.setText("Pull before export");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 9;
+    gbc.gridy = 10;
     gbc.gridwidth = 2;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(pullBeforeField, gbc);
@@ -557,7 +585,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeHintPanel.setText("Some hint will be shown here");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 15;
+    gbc.gridy = 17;
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(pullBeforeHintPanel, gbc);
@@ -572,7 +600,7 @@ public class ConfigurationPanelForm extends JComponent {
     pullBeforeOverrideLabel.setText("Pull before export");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 14;
+    gbc.gridy = 16;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(pullBeforeOverrideLabel, gbc);
     exportDirButtons = new JPanel();
@@ -608,7 +636,7 @@ public class ConfigurationPanelForm extends JComponent {
     final JPanel spacer6 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 16;
+    gbc.gridy = 18;
     gbc.gridwidth = 3;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer6, gbc);
@@ -623,7 +651,7 @@ public class ConfigurationPanelForm extends JComponent {
     exportMediaOverrideLabel.setText("Export media files");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 10;
+    gbc.gridy = 11;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(exportMediaOverrideLabel, gbc);
     overwriteFilesField = new JCheckBox();
@@ -637,24 +665,24 @@ public class ConfigurationPanelForm extends JComponent {
     overwriteFilesOverrideLabel.setText("Overwrite existing files");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 11;
+    gbc.gridy = 12;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(overwriteFilesOverrideLabel, gbc);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 11;
+    gbc.gridy = 12;
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(overwriteFilesOverrideField.$$$getRootComponent$$$(), gbc);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 10;
+    gbc.gridy = 11;
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(exportMediaOverrideField.$$$getRootComponent$$$(), gbc);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 14;
+    gbc.gridy = 16;
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(pullBeforeOverrideField.$$$getRootComponent$$$(), gbc);
@@ -662,12 +690,12 @@ public class ConfigurationPanelForm extends JComponent {
     splitSelectMultiplesOverrideLabel.setText("Split select multiples");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 12;
+    gbc.gridy = 13;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(splitSelectMultiplesOverrideLabel, gbc);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 12;
+    gbc.gridy = 13;
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(splitSelectMultiplesOverrideField.$$$getRootComponent$$$(), gbc);
@@ -687,7 +715,7 @@ public class ConfigurationPanelForm extends JComponent {
     container.add(includeGeoJsonExportField, gbc);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 13;
+    gbc.gridy = 14;
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(includeGeoJsonExportOverrideField.$$$getRootComponent$$$(), gbc);
@@ -695,9 +723,29 @@ public class ConfigurationPanelForm extends JComponent {
     includeGeoJsonExportOverrideLabel.setText("Include GeoJSON");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 13;
+    gbc.gridy = 14;
     gbc.anchor = GridBagConstraints.EAST;
     container.add(includeGeoJsonExportOverrideLabel, gbc);
+    removeGroupNamesField = new JCheckBox();
+    removeGroupNamesField.setText("Remove group names");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 9;
+    gbc.anchor = GridBagConstraints.WEST;
+    container.add(removeGroupNamesField, gbc);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 15;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(removeGroupNamesOverrideField.$$$getRootComponent$$$(), gbc);
+    removeGroupNamesOverrideLabel = new JLabel();
+    removeGroupNamesOverrideLabel.setText("Remove group names");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 15;
+    gbc.anchor = GridBagConstraints.EAST;
+    container.add(removeGroupNamesOverrideLabel, gbc);
   }
 
   /**
