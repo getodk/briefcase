@@ -60,4 +60,7 @@ public class PullEvent {
       this.transferSettings = Optional.ofNullable(transferSettings);
     }
   }
+
+  public static class CleanAllResumePoints extends PullEvent {
+  }
 }

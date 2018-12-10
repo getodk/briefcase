@@ -61,6 +61,7 @@ public class SettingsPanelForm {
   private JLabel httpProxyPortLabel;
   private JLabel httpProxyJostLabel;
   private JButton reloadCacheButton;
+  private JButton cleanAllPullResumePointsButton;
   private final List<Consumer<Path>> onStorageLocationCallbacks = new ArrayList<>();
   private final List<Runnable> onClearStorageLocationCallbacks = new ArrayList<>();
   private final List<Consumer<HttpHost>> onHttpProxyCallbacks = new ArrayList<>();
@@ -192,6 +193,10 @@ public class SettingsPanelForm {
 
   void onReloadCache(Runnable callback) {
     reloadCacheButton.addActionListener(__ -> callback.run());
+  }
+
+  void onCleanAllPullResumePoints(Runnable callback) {
+    cleanAllPullResumePointsButton.addActionListener(__ -> callback.run());
   }
 
   private void createUIComponents() {
@@ -400,32 +405,32 @@ public class SettingsPanelForm {
     reloadCacheButton.setText("Reload forms from storage location");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 4;
+    gbc.gridy = 8;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel1.add(reloadCacheButton, gbc);
     final JPanel spacer12 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 3;
+    gbc.gridy = 7;
     gbc.fill = GridBagConstraints.VERTICAL;
     panel1.add(spacer12, gbc);
     final JPanel spacer13 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 5;
+    gbc.gridy = 9;
     gbc.fill = GridBagConstraints.VERTICAL;
     panel1.add(spacer13, gbc);
     final JPanel spacer14 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 3;
-    gbc.gridy = 4;
+    gbc.gridy = 8;
     gbc.weightx = 0.5;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel1.add(spacer14, gbc);
     final JPanel spacer15 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 4;
+    gbc.gridy = 8;
     gbc.weightx = 0.5;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel1.add(spacer15, gbc);
@@ -433,7 +438,7 @@ public class SettingsPanelForm {
     label1.setText("The form list in Briefcase can get out of date if files are moved manually.");
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 1;
+    gbc.gridy = 5;
     gbc.gridwidth = 3;
     gbc.anchor = GridBagConstraints.WEST;
     panel1.add(label1, gbc);
@@ -441,14 +446,14 @@ public class SettingsPanelForm {
     label2.setText("This reload is always safe.");
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 2;
+    gbc.gridy = 6;
     gbc.gridwidth = 3;
     gbc.anchor = GridBagConstraints.WEST;
     panel1.add(label2, gbc);
     final JPanel spacer16 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 1;
+    gbc.gridy = 5;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel1.add(spacer16, gbc);
     final JPanel spacer17 = new JPanel();
@@ -460,16 +465,43 @@ public class SettingsPanelForm {
     final JPanel spacer18 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 4;
-    gbc.gridy = 1;
+    gbc.gridy = 5;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel1.add(spacer18, gbc);
     final JPanel spacer19 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 4;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    panel1.add(spacer19, gbc);
+    cleanAllPullResumePointsButton = new JButton();
+    cleanAllPullResumePointsButton.setText("Clean all pull resume points");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 3;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    panel1.add(cleanAllPullResumePointsButton, gbc);
+    final JLabel label3 = new JLabel();
+    label3.setText("You can clean all resume points if you need to restart pulling your forms.");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 1;
+    gbc.gridy = 1;
+    gbc.gridwidth = 3;
+    gbc.anchor = GridBagConstraints.WEST;
+    panel1.add(label3, gbc);
+    final JPanel spacer20 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 2;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    panel1.add(spacer20, gbc);
+    final JPanel spacer21 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 16;
     gbc.gridwidth = 6;
     gbc.fill = GridBagConstraints.VERTICAL;
-    container.add(spacer19, gbc);
+    container.add(spacer21, gbc);
     resumeLasPullField = new JCheckBox();
     resumeLasPullField.setText("Always try to resume last pull");
     gbc = new GridBagConstraints();
@@ -478,13 +510,13 @@ public class SettingsPanelForm {
     gbc.gridwidth = 5;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(resumeLasPullField, gbc);
-    final JPanel spacer20 = new JPanel();
+    final JPanel spacer22 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 6;
     gbc.gridwidth = 5;
     gbc.fill = GridBagConstraints.VERTICAL;
-    container.add(spacer20, gbc);
+    container.add(spacer22, gbc);
   }
 
   /**

@@ -22,6 +22,7 @@ import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
+import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
 import java.util.Optional;
 import javax.swing.JPanel;
@@ -191,5 +192,11 @@ public class PullPanel {
       }
     }
     analytics.event("Pull", "Transfer", "Success", null);
+  }
+
+  @EventSubscriber(eventClass = PullEvent.CleanAllResumePoints.class)
+  public void onCleanAllResumePoints(PullEvent.CleanAllResumePoints e) {
+    tabPreferences.keys().stream().filter(key -> key.endsWith("-last-cursor")).forEach(tabPreferences::remove);
+    infoMessage("All pull resume points cleaned.");
   }
 }

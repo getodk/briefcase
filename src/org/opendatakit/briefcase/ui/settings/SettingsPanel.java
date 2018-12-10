@@ -20,7 +20,9 @@ import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
 import java.nio.file.Path;
 import javax.swing.JPanel;
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FormCache;
@@ -68,6 +70,7 @@ public class SettingsPanel {
       formCache.update();
       infoMessage("Forms successfully reloaded from storage location.");
     });
+    form.onCleanAllPullResumePoints(() -> EventBus.publish(new PullEvent.CleanAllResumePoints()));
   }
 
   public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
