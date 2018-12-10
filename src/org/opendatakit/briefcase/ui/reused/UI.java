@@ -31,8 +31,10 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseListener;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -164,5 +166,10 @@ public class UI {
     scrollPane.setMinimumSize(dimension);
     scrollPane.setPreferredSize(dimension);
     return scrollPane;
+  }
+
+  public static void removeAllMouseListeners(JComponent component) {
+    for (MouseListener listener : component.getMouseListeners())
+      component.removeMouseListener(listener);
   }
 }

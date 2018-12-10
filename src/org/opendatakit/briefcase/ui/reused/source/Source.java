@@ -16,11 +16,20 @@
 
 package org.opendatakit.briefcase.ui.reused.source;
 
+import static java.awt.Cursor.HAND_CURSOR;
+import static java.awt.Cursor.getPredefinedCursor;
+import static java.awt.Desktop.getDesktop;
+import static javax.swing.SwingUtilities.invokeLater;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
+import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
 
 import java.awt.Container;
+import java.awt.Cursor;
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -28,7 +37,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import javax.swing.SwingUtilities;
+import javax.swing.JLabel;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
@@ -39,6 +48,7 @@ import org.opendatakit.briefcase.reused.DeferredValue;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
+import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.util.BadFormDefinition;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferAction;
@@ -199,6 +209,8 @@ public interface Source<T> {
    */
   String getDescription();
 
+  void decorate(JLabel label);
+
   class Aggregate implements Source<RemoteServer> {
     private final Http http;
     private RemoteServer.Test serverTester;
@@ -265,6 +277,24 @@ public interface Source<T> {
     @Override
     public String getDescription() {
       return server.getBaseUrl().toString();
+    }
+
+    private static void uncheckedBrowse(URL url) {
+      try {
+        getDesktop().browse(url.toURI());
+      } catch (URISyntaxException | IOException e) {
+        throw new BriefcaseException(e);
+      }
+    }
+
+    @Override
+    public void decorate(JLabel label) {
+      label.setText("<html><a href=\"" + server.getBaseUrl().toString() + "\">" + getDescription() + "</a></html>");
+      label.setCursor(getPredefinedCursor(HAND_CURSOR));
+      removeAllMouseListeners(label);
+      label.addMouseListener(new MouseAdapterBuilder()
+          .onClick(__ -> invokeLater(() -> uncheckedBrowse(server.getBaseUrl())))
+          .build());
     }
 
     @Override
@@ -351,6 +381,13 @@ public interface Source<T> {
     }
 
     @Override
+    public void decorate(JLabel label) {
+      label.setText(getDescription());
+      label.setCursor(getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+      removeAllMouseListeners(label);
+    }
+
+    @Override
     public String toString() {
       return "Collect directory";
     }
@@ -413,7 +450,7 @@ public interface Source<T> {
 
     @Override
     public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete) {
-      SwingUtilities.invokeLater(() -> FormInstaller.install(briefcaseDir, form));
+      invokeLater(() -> FormInstaller.install(briefcaseDir, form));
     }
 
     @Override
@@ -429,6 +466,13 @@ public interface Source<T> {
     @Override
     public String getDescription() {
       return String.format("%s at %s", form.getFormName(), path.toString());
+    }
+
+    @Override
+    public void decorate(JLabel label) {
+      label.setText(getDescription());
+      label.setCursor(getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+      removeAllMouseListeners(label);
     }
 
     @Override
