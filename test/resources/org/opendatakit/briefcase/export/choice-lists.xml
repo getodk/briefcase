@@ -7,12 +7,17 @@
         <data id="choice-lists">
           <some_string/>
           <another_string/>
+          <some_group>
+            <yet_another_string/>
+          </some_group>
           <meta>
             <instanceID/>
           </meta>
         </data>
       </instance>
       <bind nodeset="/data/some_string" type="string"/>
+      <bind nodeset="/data/another_string" type="string"/>
+      <bind nodeset="/data/some_group/yet_another_string" type="string"/>
       <bind calculate="concat('uuid:', uuid())" nodeset="/data/meta/instanceID" readonly="true()" type="string"/>
     </model>
   </h:head>
@@ -37,5 +42,18 @@
         <label>CHOICE 2</label>
       </item>
     </select1>
+    <group>
+      <label>Some group</label>
+      <select ref="/data/some_group/yet_another_string">
+        <item>
+          <value>CHOICE_1</value>
+          <label>CHOICE 1</label>
+        </item>
+        <item>
+          <value>CHOICE_2</value>
+          <label>CHOICE 2</label>
+        </item>
+      </select>
+    </group>
   </h:body>
 </h:html>

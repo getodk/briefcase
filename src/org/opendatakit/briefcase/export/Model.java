@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.export;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Stream.concat;
 import static org.javarosa.core.model.Constants.DATATYPE_NULL;
 import static org.javarosa.core.model.DataType.GEOPOINT;
 import static org.javarosa.core.model.DataType.GEOSHAPE;
@@ -137,29 +138,16 @@ class Model {
 
   /**
    * Returns the {@link List} of {@link String} names that this {@link Model} instance can be
-   * associated with.
-   * <p>
-   * For example, {@link DataType#GEOPOINT} fields have 4 associated values.
-   *
-   * @return a {@link List} of {@link String} names of this {@link Model} instance
-   */
-  List<String> getNames(boolean removeGroupNames) {
-    return getNames(0, removeGroupNames);
-  }
-
-  /**
-   * Returns the {@link List} of {@link String} names that this {@link Model} instance can be
    * associated with, shifted a given number of names.
    *
    * @param shift an int with the number of names to shift from the FQN
    * @return a {@link List} of shifted {@link String} names of this {@link Model} instance
-   * @see Model#getNames(boolean)
    */
-  List<String> getNames(int shift, boolean removeGroupNames) {
+  List<String> getNames(int shift, boolean splitSelectMultiples, boolean removeGroupNames) {
     if (getDataType() == NULL && model.isRepeatable())
       return singletonList("SET-OF-" + fqn(shift));
     if (getDataType() == NULL && !model.isRepeatable() && size() > 0)
-      return children().stream().flatMap(e -> e.getNames(shift, removeGroupNames).stream()).collect(toList());
+      return children().stream().flatMap(e -> e.getNames(shift, splitSelectMultiples, removeGroupNames).stream()).collect(toList());
     String fieldName = removeGroupNames ? getName() : fqn(shift);
     if (getDataType() == GEOPOINT)
       return Arrays.asList(
@@ -168,6 +156,11 @@ class Model {
           fieldName + "-Altitude",
           fieldName + "-Accuracy"
       );
+    if (isChoiceList() && splitSelectMultiples)
+      return concat(
+          Stream.of(fieldName),
+          getChoices().stream().map(choice -> fieldName + "/" + choice.getValue())
+      ).collect(toList());
     return singletonList(fieldName);
   }
 
@@ -241,7 +234,7 @@ class Model {
 
   private Stream<Model> flatten() {
     return children().stream()
-        .flatMap(e -> e.size() == 0 ? Stream.of(e) : Stream.concat(Stream.of(e), e.flatten()));
+        .flatMap(e -> e.size() == 0 ? Stream.of(e) : concat(Stream.of(e), e.flatten()));
   }
 
   private long size() {
