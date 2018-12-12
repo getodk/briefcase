@@ -54,6 +54,10 @@ public class FormStatus {
     isSuccessful = true;
   }
 
+  public synchronized void setStatusString(String statusString) {
+    setStatusString(statusString, false);
+  }
+
   public synchronized void setStatusString(String statusString, boolean isSuccessful) {
     this.statusString = statusString;
     if (statusHistory.length() > STATUS_HISTORY_MAX_BYTES) {

@@ -37,22 +37,22 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class PullForm {
-  private static final Logger log = LoggerFactory.getLogger(PullForm.class);
-
   public static String pull(FormStatus form, boolean includeIncomplete, RemoteServer server, Path briefcaseDir, Http http) {
+    PullTracker tracker = new PullTracker(form);
+
     // Download the blank form
     String formXml = downloadForm(form, server, http);
     writeForm(form, briefcaseDir, formXml);
+    tracker.trackBlankForm();
 
     // Download attachments of the blank form
-    downloadFormAttachments(form, briefcaseDir, http);
+    downloadFormAttachments(form, briefcaseDir, http, tracker);
 
     // Get all the submission batches
     List<InstanceIdBatch> batches = getInstanceIdBatches(server, http, form.getFormId(), includeIncomplete);
+    tracker.trackBatches(batches);
 
     // For all submissions in all batches...
     SubmissionKeyGenerator subKeyGen = SubmissionKeyGenerator.from(formXml);
@@ -60,9 +60,10 @@ public class PullForm {
       // Download the submission
       DownloadedSubmission submission = downloadSubmission(form, server, briefcaseDir, http, subKeyGen, instanceId);
       writeSubmission(form, submission, briefcaseDir);
+      tracker.trackSubmission();
 
       // Download attachments of the submission
-      downloadSubmissionAttachments(form, submission, briefcaseDir, http);
+      downloadSubmissionAttachments(form, submission, briefcaseDir, http, tracker);
     });
 
     // Return the last cursor received
@@ -82,35 +83,33 @@ public class PullForm {
     if (!exists(instanceDir))
       createDirectories(instanceDir);
     String submissionKey = subKeyGen.buildKey(instanceId);
-    log.info("Got xml for instance ID {} of form {}", instanceId, form.getFormId());
     return http.execute(server.getDownloadSubmissionRequest(submissionKey)).orElseThrow(BriefcaseException::new);
   }
 
-  private static void downloadSubmissionAttachments(FormStatus form, DownloadedSubmission submission, Path briefcaseDir, Http http) {
+  private static void downloadSubmissionAttachments(FormStatus form, DownloadedSubmission submission, Path briefcaseDir, Http http, PullTracker tracker) {
     Path mediaDir = form.getSubmissionDir(briefcaseDir, submission.getInstanceId());
     if (!exists(mediaDir))
       createDirectories(mediaDir);
-    downloadMediaFiles(submission.getAttachments(), mediaDir, http);
+    downloadMediaFiles(submission.getAttachments(), mediaDir, http, tracker);
   }
 
-  private static void downloadFormAttachments(FormStatus form, Path briefcaseDir, Http http) {
+  private static void downloadFormAttachments(FormStatus form, Path briefcaseDir, Http http, PullTracker tracker) {
     form.getManifestUrl().ifPresent(manifestUrl -> {
       Path mediaDir = form.getFormMediaDir(briefcaseDir);
       if (!exists(mediaDir))
         createDirectories(mediaDir);
       List<MediaFile> mediaFiles = http.execute(get(manifestUrl).asXmlElement().withMapper(PullForm::parseMediaFiles).build()).get();
-      downloadMediaFiles(mediaFiles, mediaDir, http);
+      downloadMediaFiles(mediaFiles, mediaDir, http, tracker);
     });
   }
 
-  private static void downloadMediaFiles(List<MediaFile> mediaFiles, Path mediaDir, Http http) {
-    mediaFiles.stream()
-        .filter(mediaFile -> mediaFile.needsUpdate(mediaDir))
-        .forEach(mediaFile -> {
-          Path target = mediaFile.getTargetPath(mediaDir);
-          http.execute(get(mediaFile.getDownloadUrl()).downloadTo(target).build());
-          log.info("Downloaded mediaFile at {}", target);
-        });
+  private static void downloadMediaFiles(List<MediaFile> mediaFiles, Path mediaDir, Http http, PullTracker tracker) {
+    List<MediaFile> mediaFilesToDownload = mediaFiles.stream().filter(mediaFile -> mediaFile.needsUpdate(mediaDir)).collect(toList());
+    mediaFilesToDownload.forEach(mediaFile -> {
+      Path target = mediaFile.getTargetPath(mediaDir);
+      http.execute(get(mediaFile.getDownloadUrl()).downloadTo(target).build());
+    });
+    tracker.trackMediaFiles(mediaFiles, mediaFilesToDownload);
   }
 
   private static void writeForm(FormStatus form, Path briefcaseDir, String formXml) {
@@ -119,13 +118,11 @@ public class PullForm {
       createDirectories(formDir);
     Path formFile = formDir.resolve(stripIllegalChars(form.getFormName()) + ".xml");
     write(formFile, formXml, CREATE, TRUNCATE_EXISTING);
-    log.info("Wrote blank form at {}", formFile);
   }
 
   private static void writeSubmission(FormStatus form, DownloadedSubmission submission, Path briefcaseDir) {
     Path submissionFile = form.getSubmissionDir(briefcaseDir, submission.getInstanceId()).resolve("submission.xml");
     write(submissionFile, submission.getContent(), CREATE, TRUNCATE_EXISTING);
-    log.info("Wrote submission at {}", submissionFile);
   }
 
   private static List<MediaFile> parseMediaFiles(XmlElement root) {
