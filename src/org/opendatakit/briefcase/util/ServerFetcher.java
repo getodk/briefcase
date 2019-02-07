@@ -23,8 +23,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -503,9 +505,18 @@ public class ServerFetcher {
     }
   }
 
+  static boolean isUrl(String url) {
+    try {
+      new URL(url).toURI();
+      return true;
+    } catch (MalformedURLException | URISyntaxException e) {
+      return false;
+    }
+  }
+
   private String downloadManifestAndMediaFiles(File mediaDir, FormStatus fs) {
     RemoteFormDefinition fd = getRemoteFormDefinition(fs);
-    if (fd.getManifestUrl() == null)
+    if (fd.getManifestUrl() == null || isUrl(fd.getManifestUrl()))
       return null;
     fs.setStatusString("Fetching form manifest", true);
     EventBus.publish(new FormStatusEvent(fs));
@@ -513,10 +524,8 @@ public class ServerFetcher {
     List<MediaFile> files;
     AggregateUtils.DocumentFetchResult result;
     try {
-      DocumentDescription formManifestDescription = new DocumentDescription("Fetch of manifest failed. Detailed reason: ",
-          "form manifest", terminationFuture);
-      result = AggregateUtils.getXmlDocument(fd.getManifestUrl(), serverInfo, false,
-          formManifestDescription);
+      DocumentDescription formManifestDescription = new DocumentDescription("Fetch of manifest failed. Detailed reason: ", "form manifest", terminationFuture);
+      result = AggregateUtils.getXmlDocument(fd.getManifestUrl(), serverInfo, false, formManifestDescription);
     } catch (XmlDocumentFetchException e) {
       return e.getMessage();
     }
