@@ -305,30 +305,32 @@ class AggregateUtils {
         }
       }
 
-      // what about location?
-      Header[] locations = response.getHeaders("Location");
-      if (locations != null && locations.length == 1) {
-        try {
-          URL url = new URL(locations[0].getValue());
-          URI uNew = url.toURI();
-          log.info("Redirection to URI {}", uNew);
-          if (uri.getHost().equalsIgnoreCase(uNew.getHost())) {
-            // trust the server to tell us a new location
-            // ... and possibly to use https instead.
-            String fullUrl = url.toExternalForm();
-            int idx = fullUrl.lastIndexOf("/");
-            serverInfo.setUrl(fullUrl.substring(0, idx));
-          } else {
-            // Don't follow a redirection attempt to a different host.
-            // We can't tell if this is a spoof or not.
-            String msg = description.getFetchDocFailed() + "Unexpected redirection attempt";
-            log.warn(msg);
+      if (statusCode >= 300 && statusCode <= 400) {
+        // what about location?
+        Header[] locations = response.getHeaders("Location");
+        if (locations != null && locations.length == 1) {
+          try {
+            URL url = new URL(locations[0].getValue());
+            URI uNew = url.toURI();
+            log.info("Redirection to URI {}", uNew);
+            if (uri.getHost().equalsIgnoreCase(uNew.getHost())) {
+              // trust the server to tell us a new location
+              // ... and possibly to use https instead.
+              String fullUrl = url.toExternalForm();
+              int idx = fullUrl.lastIndexOf("/");
+              serverInfo.setUrl(fullUrl.substring(0, idx));
+            } else {
+              // Don't follow a redirection attempt to a different host.
+              // We can't tell if this is a spoof or not.
+              String msg = description.getFetchDocFailed() + "Unexpected redirection attempt";
+              log.warn(msg);
+              throw new XmlDocumentFetchException(msg);
+            }
+          } catch (MalformedURLException | URISyntaxException e) {
+            String msg = description.getFetchDocFailed() + "Unexpected exception: " + e.getMessage();
+            log.warn(msg, e);
             throw new XmlDocumentFetchException(msg);
           }
-        } catch (MalformedURLException | URISyntaxException e) {
-          String msg = description.getFetchDocFailed() + "Unexpected exception: " + e.getMessage();
-          log.warn(msg, e);
-          throw new XmlDocumentFetchException(msg);
         }
       }
       DocumentFetchResult result = new DocumentFetchResult(doc, isOR);
