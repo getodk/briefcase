@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Nafundi
+ * Copyright (C) 2018 Nafundi
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,108 +21,57 @@ import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.util.Collections.emptyList;
 import static java.util.function.BinaryOperator.maxBy;
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.pull.InstanceIdBatchGetter.getInstanceIdBatches;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.get;
-import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
+import static org.opendatakit.briefcase.reused.job.Job.allOf;
+import static org.opendatakit.briefcase.reused.job.Job.run;
+import static org.opendatakit.briefcase.reused.job.Job.supply;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.http.RequestBuilder;
+import org.opendatakit.briefcase.reused.job.Job;
+import org.opendatakit.briefcase.reused.job.RunnerStatus;
+import org.opendatakit.briefcase.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PullForm {
-  public static String pull(FormStatus form, boolean includeIncomplete, RemoteServer server, Path briefcaseDir, Http http) {
-    PullTracker tracker = new PullTracker(form);
+  public static final Logger log = LoggerFactory.getLogger(PullForm.class);
+  private final Http http;
+  private final RemoteServer server;
+  private final Path briefcaseDir;
+  private final boolean includeIncomplete;
 
-    // Download the blank form
-    String formXml = downloadForm(form, server, http);
-    writeForm(form, briefcaseDir, formXml);
-    tracker.trackBlankForm();
+  private PullForm(Http http, RemoteServer server, Path briefcaseDir, boolean includeIncomplete) {
+    this.http = http;
+    this.server = server;
+    this.briefcaseDir = briefcaseDir;
+    this.includeIncomplete = includeIncomplete;
+  }
 
-    // Download attachments of the blank form
-    downloadFormAttachments(form, briefcaseDir, http, tracker);
+  public static Job<PullResult> pull(Http http, RemoteServer server, Path briefcaseDir, boolean includeIncomplete, FormStatus form) {
+    return new PullForm(http, server, briefcaseDir, includeIncomplete).pull(form);
+  }
 
-    // Get all the submission batches
-    List<InstanceIdBatch> batches = getInstanceIdBatches(server, http, form.getFormId(), includeIncomplete);
-    tracker.trackBatches(batches);
-
-    // For all submissions in all batches...
-    SubmissionKeyGenerator subKeyGen = SubmissionKeyGenerator.from(formXml);
-    batches.stream().flatMap(batch -> batch.getInstanceIds().stream()).forEach(instanceId -> {
-      // Download the submission
-      DownloadedSubmission submission = downloadSubmission(form, server, briefcaseDir, http, subKeyGen, instanceId);
-      writeSubmission(form, submission, briefcaseDir);
-      tracker.trackSubmission();
-
-      // Download attachments of the submission
-      downloadSubmissionAttachments(form, submission, briefcaseDir, http, tracker);
-    });
-
-    // Return the last cursor received
+  private static String getLastCursor(List<InstanceIdBatch> batches) {
     return batches.stream()
         .map(InstanceIdBatch::getCursor)
         .reduce(maxBy(Cursor::compareTo))
         .orElseThrow(BriefcaseException::new)
         .get();
-  }
-
-  private static String downloadForm(FormStatus form, RemoteServer server, Http http) {
-    return http.execute(server.getDownloadFormRequest(form.getFormId())).get();
-  }
-
-  private static DownloadedSubmission downloadSubmission(FormStatus form, RemoteServer server, Path briefcaseDir, Http http, SubmissionKeyGenerator subKeyGen, String instanceId) {
-    Path instanceDir = form.getSubmissionDir(briefcaseDir, instanceId);
-    if (!exists(instanceDir))
-      createDirectories(instanceDir);
-    String submissionKey = subKeyGen.buildKey(instanceId);
-    return http.execute(server.getDownloadSubmissionRequest(submissionKey)).orElseThrow(BriefcaseException::new);
-  }
-
-  private static void downloadSubmissionAttachments(FormStatus form, DownloadedSubmission submission, Path briefcaseDir, Http http, PullTracker tracker) {
-    Path mediaDir = form.getSubmissionDir(briefcaseDir, submission.getInstanceId());
-    if (!exists(mediaDir))
-      createDirectories(mediaDir);
-    downloadMediaFiles(submission.getAttachments(), mediaDir, http, tracker);
-  }
-
-  private static void downloadFormAttachments(FormStatus form, Path briefcaseDir, Http http, PullTracker tracker) {
-    form.getManifestUrl().ifPresent(manifestUrl -> {
-      Path mediaDir = form.getFormMediaDir(briefcaseDir);
-      if (!exists(mediaDir))
-        createDirectories(mediaDir);
-      List<MediaFile> mediaFiles = http.execute(get(manifestUrl).asXmlElement().withMapper(PullForm::parseMediaFiles).build()).get();
-      downloadMediaFiles(mediaFiles, mediaDir, http, tracker);
-    });
-  }
-
-  private static void downloadMediaFiles(List<MediaFile> mediaFiles, Path mediaDir, Http http, PullTracker tracker) {
-    List<MediaFile> mediaFilesToDownload = mediaFiles.stream().filter(mediaFile -> mediaFile.needsUpdate(mediaDir)).collect(toList());
-    mediaFilesToDownload.forEach(mediaFile -> {
-      Path target = mediaFile.getTargetPath(mediaDir);
-      http.execute(get(mediaFile.getDownloadUrl()).downloadTo(target).build());
-    });
-    tracker.trackMediaFiles(mediaFiles, mediaFilesToDownload);
-  }
-
-  private static void writeForm(FormStatus form, Path briefcaseDir, String formXml) {
-    Path formDir = form.getFormDir(briefcaseDir);
-    if (!exists(formDir))
-      createDirectories(formDir);
-    Path formFile = formDir.resolve(stripIllegalChars(form.getFormName()) + ".xml");
-    write(formFile, formXml, CREATE, TRUNCATE_EXISTING);
-  }
-
-  private static void writeSubmission(FormStatus form, DownloadedSubmission submission, Path briefcaseDir) {
-    Path submissionFile = form.getSubmissionDir(briefcaseDir, submission.getInstanceId()).resolve("submission.xml");
-    write(submissionFile, submission.getXml(), CREATE, TRUNCATE_EXISTING);
   }
 
   private static List<MediaFile> parseMediaFiles(XmlElement root) {
@@ -141,5 +90,108 @@ public class PullForm {
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(toList());
+  }
+
+  private Job<PullResult> pull(FormStatus form) {
+    PullTracker tracker = new PullTracker(form);
+    return allOf(
+        supply(runnerStatus -> downloadForm(form, tracker)),
+        supply(runnerStatus -> getInstanceIdBatches(form, tracker, runnerStatus)),
+        run(runnerStatus -> downloadFormAttachments(form, tracker))
+    ).thenApply((runnerStatus, t) -> {
+      // Build the submission key generator with the blank form XML
+      SubmissionKeyGenerator subKeyGen = SubmissionKeyGenerator.from(t.get1());
+
+      // Extract all the instance IDs from all the batches and download each instance
+      t.get2().stream()
+          .flatMap(batch -> batch.getInstanceIds().stream())
+          .forEach(instanceId -> {
+            if (runnerStatus.isStillRunning())
+              downloadSubmissionAndMedia(form, tracker, instanceId, subKeyGen);
+          });
+
+      // Return the pull result with the last cursor
+      return PullResult.of(form, getLastCursor(t.get2()));
+    });
+  }
+
+  private String downloadForm(FormStatus form, PullTracker tracker) {
+    String formXml = downloadForm(form);
+    writeForm(form, formXml);
+    tracker.trackFormDownloaded();
+    return formXml;
+  }
+
+  private List<InstanceIdBatch> getInstanceIdBatches(FormStatus form, PullTracker tracker, RunnerStatus runnerStatus) {
+    List<InstanceIdBatch> batches = new ArrayList<>();
+    InstanceIdBatchGetter batchPager = new InstanceIdBatchGetter(server, http, form.getFormId(), includeIncomplete);
+    while (runnerStatus.isStillRunning() && batchPager.hasNext())
+      batches.add(batchPager.next());
+    tracker.trackBatches(batches);
+    return batches;
+  }
+
+  private void downloadFormAttachments(FormStatus form, PullTracker tracker) {
+    form.getManifestUrl()
+        .filter(RequestBuilder::isUri)
+        .ifPresent(manifestUrl -> {
+          Path mediaDir = form.getFormMediaDir(briefcaseDir);
+          if (!exists(mediaDir))
+            createDirectories(mediaDir);
+          downloadMediaFiles(
+              http.execute(RequestBuilder.get(manifestUrl).asXmlElement().withMapper(PullForm::parseMediaFiles).build()).get(),
+              mediaDir,
+              tracker
+          );
+        });
+  }
+
+  private void downloadSubmissionAndMedia(FormStatus form, PullTracker tracker, String instanceId, SubmissionKeyGenerator subKeyGen) {
+    DownloadedSubmission submission = downloadSubmission(form, subKeyGen, instanceId);
+    writeSubmission(form, submission);
+    downloadSubmissionAttachments(form, submission, tracker);
+    tracker.trackSubmission();
+  }
+
+  private String downloadForm(FormStatus form) {
+    return http.execute(server.getDownloadFormRequest(form.getFormId())).get();
+  }
+
+  private DownloadedSubmission downloadSubmission(FormStatus form, SubmissionKeyGenerator subKeyGen, String instanceId) {
+    Path instanceDir = form.getSubmissionDir(briefcaseDir, instanceId);
+    if (!Files.exists(instanceDir))
+      createDirectories(instanceDir);
+    String submissionKey = subKeyGen.buildKey(instanceId);
+    return http.execute(server.getDownloadSubmissionRequest(submissionKey)).orElseThrow(BriefcaseException::new);
+  }
+
+  private void downloadSubmissionAttachments(FormStatus form, DownloadedSubmission submission, PullTracker tracker) {
+    Path mediaDir = form.getSubmissionDir(briefcaseDir, submission.getInstanceId());
+    if (!exists(mediaDir))
+      createDirectories(mediaDir);
+    List<MediaFile> mediaFiles = submission.getAttachments();
+    downloadMediaFiles(mediaFiles, mediaDir, tracker);
+  }
+
+  private void downloadMediaFiles(List<MediaFile> mediaFiles, Path mediaDir, PullTracker tracker) {
+    List<MediaFile> mediaFilesToDownload = mediaFiles.stream().filter(mediaFile -> mediaFile.needsUpdate(mediaDir)).collect(Collectors.toList());
+    mediaFilesToDownload.forEach(mediaFile -> {
+      Path target = mediaFile.getTargetPath(mediaDir);
+      http.execute(get(mediaFile.getDownloadUrl()).downloadTo(target).build());
+    });
+    tracker.trackMediaFiles(mediaFiles, mediaFilesToDownload);
+  }
+
+  private void writeForm(FormStatus form, String blankFormXml) {
+    Path formDir = form.getFormDir(briefcaseDir);
+    if (!Files.exists(formDir))
+      createDirectories(formDir);
+    Path formFile = formDir.resolve(StringUtils.stripIllegalChars(form.getFormName()) + ".xml");
+    write(formFile, blankFormXml, CREATE, TRUNCATE_EXISTING);
+  }
+
+  private void writeSubmission(FormStatus form, DownloadedSubmission submission) {
+    Path submissionFile = form.getSubmissionDir(briefcaseDir, submission.getInstanceId()).resolve("submission.xml");
+    write(submissionFile, submission.getXml(), CREATE, TRUNCATE_EXISTING);
   }
 }

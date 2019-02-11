@@ -34,14 +34,14 @@ class PullTracker {
     this.form = form;
   }
 
-  void trackBlankForm() {
-    form.setStatusString("Downloaded blank form");
-    log.info("Downloaded blank form {}", form.getFormName());
+  void trackFormDownloaded() {
+    form.setStatusString("Downloaded form");
+    log.info("Downloaded form {}", form.getFormName());
     fireUIEvent();
   }
 
   void trackBatches(List<InstanceIdBatch> batches) {
-    totalSubmissions = batches.stream().map(InstanceIdBatch::count).reduce(0, Integer::sum);
+    totalSubmissions = batches.stream().map(InstanceIdBatch::count).reduce(0, (a, b) -> a + b);
     form.setStatusString("Downloading " + totalSubmissions + " submissions");
     log.info("Downloaded {} submissions", totalSubmissions);
     fireUIEvent();

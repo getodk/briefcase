@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.StreamSupport;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Pair;
@@ -37,18 +36,12 @@ public class InstanceIdBatchGetter implements Iterator<InstanceIdBatch> {
   private Optional<String> nextCursor = Optional.empty();
   private List<String> nextUids;
 
-  private InstanceIdBatchGetter(RemoteServer server, Http http, String formId, boolean includeIncomplete) {
+  InstanceIdBatchGetter(RemoteServer server, Http http, String formId, boolean includeIncomplete) {
     this.server = server;
     this.http = http;
     this.formId = formId;
     this.includeIncomplete = includeIncomplete;
     fetchNext();
-  }
-
-  static List<InstanceIdBatch> getInstanceIdBatches(RemoteServer server, Http http, String formId, boolean includeIncomplete) {
-    InstanceIdBatchGetter batcher = new InstanceIdBatchGetter(server, http, formId, includeIncomplete);
-    Iterable<InstanceIdBatch> iterable = () -> batcher;
-    return StreamSupport.stream(iterable.spliterator(), false).collect(toList());
   }
 
   private void fetchNext() {

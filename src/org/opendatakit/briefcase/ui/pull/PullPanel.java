@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.ui.pull;
 
 import static java.util.stream.Collectors.toList;
+import static javax.swing.SwingUtilities.invokeLater;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0_URL;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
@@ -26,6 +27,7 @@ import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
 import java.util.Optional;
 import javax.swing.JPanel;
+import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -38,6 +40,7 @@ import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.source.Source;
@@ -53,6 +56,7 @@ public class PullPanel {
   private final BriefcasePreferences tabPreferences;
   private final BriefcasePreferences appPreferences;
   private final Analytics analytics;
+  private JobsRunner pullJobRunner;
   private TerminationFuture terminationFuture;
   private Optional<Source<?>> source;
 
@@ -91,10 +95,25 @@ public class PullPanel {
     view.onAction(() -> {
       view.setWorking();
       forms.forEach(FormStatus::clearStatusHistory);
-      source.ifPresent(s -> s.pull(forms.getSelectedForms(), appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), appPreferences.getPullInParallel().orElse(false), false, appPreferences.getResumeLastPull().orElse(false), Optional.empty()));
+      invokeLater(() -> source.ifPresent(s -> pullJobRunner = s.pull(
+          forms.getSelectedForms(),
+          appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
+          appPreferences.getPullInParallel().orElse(false),
+          false,
+          appPreferences.getResumeLastPull().orElse(false),
+          Optional.empty()
+      )));
     });
 
-    view.onCancel(() -> terminationFuture.markAsCancelled(new PullEvent.Cancel("Cancelled by the user")));
+    view.onCancel(() -> {
+      pullJobRunner.cancel();
+      forms.getSelectedForms().forEach(form -> {
+        form.setStatusString("Cancelled by user");
+        EventBus.publish(new FormStatusEvent(form));
+      });
+      view.unsetWorking();
+      updateActionButtons();
+    });
 
     // TODO Preserve encapsulation of the suffix constant
     forms.onChange(() -> forms.getLastPullCursorsByFormId().forEach((key, value) -> tabPreferences.put(

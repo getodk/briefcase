@@ -19,7 +19,9 @@ package org.opendatakit.briefcase.ui.reused.source;
 import static java.awt.Cursor.HAND_CURSOR;
 import static java.awt.Cursor.getPredefinedCursor;
 import static java.awt.Desktop.getDesktop;
+import static java.util.stream.Collectors.toList;
 import static javax.swing.SwingUtilities.invokeLater;
+import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
@@ -36,9 +38,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -48,16 +48,20 @@ import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.FormInstaller;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.PullForm;
+import org.opendatakit.briefcase.pull.PullResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.DeferredValue;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.util.BadFormDefinition;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferAction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This interface represents a source (for lack of a better name) for pulling
@@ -96,6 +100,8 @@ import org.opendatakit.briefcase.util.TransferAction;
  * @param <T> the value type each Source produces when configured
  */
 public interface Source<T> {
+  Logger log = LoggerFactory.getLogger(Source.class);
+
   /**
    * This method is required to let the calling site be unaware of the specific
    * subtype of {@link Source} it is dealing with.
@@ -193,7 +199,7 @@ public interface Source<T> {
    *                          submissions. This needs to be supported by the selected source
    * @param resumeLastPull
    */
-  void pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate);
+  JobsRunner pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate);
 
   /**
    * Pushes forms to this configured {@link Source}.
@@ -253,7 +259,7 @@ public interface Source<T> {
     public DeferredValue<List<FormStatus>> getFormList() {
       return DeferredValue.of(() -> server.getFormsList(http).stream()
           .map(FormStatus::new)
-          .collect(Collectors.toList()));
+          .collect(toList()));
     }
 
     @Override
@@ -266,13 +272,19 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
-      forms.getSelectedForms()
-          .map(form -> CompletableFuture.runAsync(() ->
-              PullForm.pull(form, includeIncomplete, server, briefcaseDir, http.reusingConnections())
-          ))
-          .reduce(CompletableFuture.runAsync(() -> {}), (a, b) -> CompletableFuture.allOf(a, b))
-          .thenRun(() -> EventBus.publish(new PullEvent.Success(forms, server.asServerConnectionInfo())));
+    public JobsRunner pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
+      Http reusableHttp = http.reusingConnections();
+
+      return new JobsRunner<PullResult>()
+          .onError(e -> {
+            log.error("Error pulling forms", e);
+            EventBus.publish(new PullEvent.Failure());
+          })
+          .onSuccess(results -> {
+            results.forEach(result -> forms.setLastPullCursor(result.getForm(), result.getLastCursor()));
+            EventBus.publish(new PullEvent.Success(forms, server.asServerConnectionInfo()));
+          })
+          .launch(forms.map(form -> PullForm.pull(reusableHttp, server, briefcaseDir, includeIncomplete, form)));
     }
 
     @Override
@@ -359,7 +371,7 @@ public interface Source<T> {
     public DeferredValue<List<FormStatus>> getFormList() {
       return DeferredValue.of(() -> FileSystemUtils.getODKFormList(path.toFile()).stream()
           .map(FormStatus::new)
-          .collect(Collectors.toList()));
+          .collect(toList()));
     }
 
     @Override
@@ -372,8 +384,10 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
-      TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), new TerminationFuture(), forms);
+    public JobsRunner pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
+      return JobsRunner.launch(
+          run(jobStatus -> TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), jobStatus, forms))
+      );
     }
 
     @Override
@@ -460,8 +474,10 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
-      invokeLater(() -> FormInstaller.install(briefcaseDir, form));
+    public JobsRunner pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
+      return JobsRunner.launch(
+          run(jobStatus -> FormInstaller.install(briefcaseDir, form))
+      );
     }
 
     @Override

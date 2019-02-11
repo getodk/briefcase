@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.file.Path;
@@ -129,6 +130,15 @@ public class RequestBuilder<T> {
     return url(baseUrlString.endsWith("/")
         ? baseUrlString.substring(0, baseUrlString.length() - 1)
         : baseUrlString);
+  }
+
+  public static boolean isUri(String candidate) {
+    try {
+      new URL(candidate).toURI();
+      return true;
+    } catch (URISyntaxException | MalformedURLException e) {
+      return false;
+    }
   }
 
   public Request<T> build() {
