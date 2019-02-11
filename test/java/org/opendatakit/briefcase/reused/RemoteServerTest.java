@@ -61,4 +61,16 @@ public class RemoteServerTest {
     http.stub(server.getPushFormPreflightRequest(), noContent());
     assertThat(server.testPush(http).get(), is(true));
   }
+
+  @Test
+  public void knows_how_to_build_instance_id_batch_urls() {
+    assertThat(
+        server.getInstanceIdBatchRequest("some-form", 100, "", true).getUrl().toString(),
+        is("https://some.server.com/view/submissionList?formId=some-form&cursor=&numEntries=100&includeIncomplete=true")
+    );
+    assertThat(
+        server.getInstanceIdBatchRequest("some-form", 100, "some-cursor", false).getUrl().toString(),
+        is("https://some.server.com/view/submissionList?formId=some-form&cursor=some-cursor&numEntries=100&includeIncomplete=false")
+    );
+  }
 }

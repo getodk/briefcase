@@ -16,10 +16,7 @@
 
 package org.opendatakit.briefcase.pull;
 
-import java.time.OffsetDateTime;
 import java.util.List;
-import org.opendatakit.briefcase.export.XmlElement;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class InstanceIdBatch {
   private final List<String> instanceIds;
@@ -30,21 +27,8 @@ public class InstanceIdBatch {
     this.cursor = cursor;
   }
 
-  public static InstanceIdBatch from(List<String> instanceIds, String cursor) {
-    OffsetDateTime lastUpdate = XmlElement.from(cursor)
-        .findElement("attributeValue")
-        .flatMap(XmlElement::maybeValue)
-        // Incoming values like 2018-12-10T09:36:25.474+0000 are not ISO8601 compliant
-        .map(value -> value.endsWith("Z")
-            ? value
-            : String.format("%s:%s", value.substring(0, 26), value.substring(26)))
-        .map(OffsetDateTime::parse)
-        .orElseThrow(BriefcaseException::new);
-
-    return new InstanceIdBatch(
-        instanceIds,
-        new Cursor(cursor, lastUpdate)
-    );
+  public static InstanceIdBatch from(List<String> instanceIds, String cursorXml) {
+    return new InstanceIdBatch(instanceIds, Cursor.from(cursorXml));
   }
 
   Cursor getCursor() {

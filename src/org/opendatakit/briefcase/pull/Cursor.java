@@ -17,18 +17,32 @@
 package org.opendatakit.briefcase.pull;
 
 import java.time.OffsetDateTime;
+import org.opendatakit.briefcase.export.XmlElement;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Iso8601Helpers;
 
 public class Cursor implements Comparable<Cursor> {
   private final String value;
   private final OffsetDateTime lastUpdate;
 
-  Cursor(String value, OffsetDateTime lastUpdate) {
+  private Cursor(String value, OffsetDateTime lastUpdate) {
     this.value = value;
     this.lastUpdate = lastUpdate;
   }
 
   public static Cursor empty() {
     return new Cursor("", OffsetDateTime.parse("1980-01-01T00:00:00.000Z"));
+  }
+
+  public static Cursor from(String cursorXml) {
+    OffsetDateTime lastUpdate = XmlElement.from(cursorXml)
+        .findElement("attributeValue")
+        .flatMap(XmlElement::maybeValue)
+        .map(Iso8601Helpers::normalizeDateTime)
+        .map(OffsetDateTime::parse)
+        .orElseThrow(BriefcaseException::new);
+
+    return new Cursor(cursorXml, lastUpdate);
   }
 
   public String get() {
