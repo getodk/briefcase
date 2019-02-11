@@ -42,7 +42,7 @@ dependencies {
         exclude group: 'commons-logging'
     }
     compile group: 'net.sf.kxml', name: 'kxml2', version: '2.3.0'
-    compile(group: 'org.opendatakit', name: 'opendatakit-javarosa', version: '2.11.2') {
+    compile(group: 'org.opendatakit', name: 'opendatakit-javarosa', version: '2.13.0') {
         exclude group: 'org.slf4j'
     }
     compile group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
