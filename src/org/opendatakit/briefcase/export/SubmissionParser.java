@@ -149,8 +149,7 @@ class SubmissionParser {
     try (InputStream is = Files.newInputStream(path);
          InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
       return parseAttribute(path, isr, "submissionDate", onParsingError)
-          .map(Iso8601Helpers::normalizeDateTime)
-          .map(OffsetDateTime::parse);
+          .map(Iso8601Helpers::parseDateTime);
     } catch (IOException e) {
       throw new CryptoException("Can't decrypt file", e);
     }

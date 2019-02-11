@@ -19,7 +19,7 @@ package org.opendatakit.briefcase.reused;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.reused.Iso8601Helpers.normalizeDateTime;
+import static org.opendatakit.briefcase.reused.Iso8601Helpers.parseDateTime;
 
 import java.time.OffsetDateTime;
 import java.util.Arrays;
@@ -37,25 +37,24 @@ public class Iso8601HelpersTest {
   public String input;
 
   @Parameterized.Parameter(value = 2)
-  public String expectedOutput;
+  public OffsetDateTime expectedOutput;
 
   @Parameterized.Parameters(name = "{0}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-        {"Correct format - Offset Z", "2010-01-01T00:00:00.000Z", "2010-01-01T00:00:00.000Z"},
-        {"Correct format - Offset +00:00", "2010-01-01T00:00:00.000+00:00", "2010-01-01T00:00:00.000+00:00"},
-        {"Correct format - Offset -00:00", "2010-01-01T00:00:00.000-00:00", "2010-01-01T00:00:00.000-00:00"},
-        {"Correct format - Offset +03:00", "2010-01-01T00:00:00.000+03:00", "2010-01-01T00:00:00.000+03:00"},
-        {"Correct format - Offset -03:00", "2010-01-01T00:00:00.000-03:00", "2010-01-01T00:00:00.000-03:00"},
-        {"Wrong format - Offset +0030", "2010-01-01T00:00:00.000+0030", "2010-01-01T00:00:00.000+00:30"},
-        {"Wrong format - Offset -0030", "2010-01-01T00:00:00.000-0030", "2010-01-01T00:00:00.000-00:30"},
-        {"Wrong format - Offset +01", "2010-01-01T00:00:00.000+01", "2010-01-01T00:00:00.000+01:00"},
+        {"Correct format - Offset Z", "2010-01-01T00:00:00.000Z", OffsetDateTime.parse("2010-01-01T00:00:00.000Z")},
+        {"Correct format - Offset +00:00", "2010-01-01T00:00:00.000+00:00", OffsetDateTime.parse("2010-01-01T00:00:00.000+00:00")},
+        {"Correct format - Offset -00:00", "2010-01-01T00:00:00.000-00:00", OffsetDateTime.parse("2010-01-01T00:00:00.000-00:00")},
+        {"Correct format - Offset +03:00", "2010-01-01T00:00:00.000+03:00", OffsetDateTime.parse("2010-01-01T00:00:00.000+03:00")},
+        {"Correct format - Offset -03:00", "2010-01-01T00:00:00.000-03:00", OffsetDateTime.parse("2010-01-01T00:00:00.000-03:00")},
+        {"Wrong format - Offset +0030", "2010-01-01T00:00:00.000+0030", OffsetDateTime.parse("2010-01-01T00:00:00.000+00:30")},
+        {"Wrong format - Offset -0030", "2010-01-01T00:00:00.000-0030", OffsetDateTime.parse("2010-01-01T00:00:00.000-00:30")},
+        {"Wrong format - Offset +01", "2010-01-01T00:00:00.000+01", OffsetDateTime.parse("2010-01-01T00:00:00.000+01:00")},
     });
   }
 
   @Test
-  public void normalizes_iso_8601_datetimes_and_they_can_be_parsed() {
-    assertThat(normalizeDateTime(input), is(expectedOutput));
-    assertThat(OffsetDateTime.parse(normalizeDateTime(input)), is(OffsetDateTime.parse(expectedOutput)));
+  public void normalizes_and_parses_incoming_datetimes_with_minor_defects_in_their_offsets() {
+    assertThat(parseDateTime(input), is(expectedOutput));
   }
 }

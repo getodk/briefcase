@@ -38,8 +38,7 @@ public class Cursor implements Comparable<Cursor> {
     OffsetDateTime lastUpdate = XmlElement.from(cursorXml)
         .findElement("attributeValue")
         .flatMap(XmlElement::maybeValue)
-        .map(Iso8601Helpers::normalizeDateTime)
-        .map(OffsetDateTime::parse)
+        .map(Iso8601Helpers::parseDateTime)
         .orElseThrow(BriefcaseException::new);
 
     return new Cursor(cursorXml, lastUpdate);

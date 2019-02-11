@@ -16,13 +16,19 @@
 
 package org.opendatakit.briefcase.reused;
 
+import java.time.OffsetDateTime;
+
 public class Iso8601Helpers {
-  public static String normalizeDateTime(String value) {
+  private static String normalizeDateTime(String value) {
     char charAtMinus3 = value.charAt(value.length() - 3);
     if (value.endsWith("Z") || charAtMinus3 == ':')
       return value;
     if (charAtMinus3 == '+' || charAtMinus3 == '-')
       return value + ":00";
     return String.format("%s:%s", value.substring(0, 26), value.substring(26));
+  }
+
+  public static OffsetDateTime parseDateTime(String value) {
+    return OffsetDateTime.parse(normalizeDateTime(value));
   }
 }

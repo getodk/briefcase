@@ -61,8 +61,7 @@ public class SubmissionMetaData {
   public Optional<OffsetDateTime> getSubmissionDate() {
     if (submissionDate == null)
       submissionDate = root.getAttributeValue("submissionDate")
-          .map(Iso8601Helpers::normalizeDateTime)
-          .map(OffsetDateTime::parse);
+          .map(Iso8601Helpers::parseDateTime);
     return submissionDate;
   }
 
