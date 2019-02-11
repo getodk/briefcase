@@ -21,6 +21,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.ParsingException;
+import org.opendatakit.briefcase.reused.Iso8601Helpers;
 import org.opendatakit.briefcase.reused.Optionals;
 
 /**
@@ -50,6 +51,13 @@ public class SubmissionMetaData {
    */
   public SubmissionMetaData(XmlElement root) {
     this.root = root;
+  }
+
+  /**
+   * Fixes ISO8601-ish strings not in this form: 2018-05-13T17:32:57±00:00
+   */
+  static String regularizeDateTime(String value) {
+    return Iso8601Helpers.normalizeDateTime(value);
   }
 
   /**
