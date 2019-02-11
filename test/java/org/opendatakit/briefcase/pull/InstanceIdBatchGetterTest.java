@@ -24,10 +24,10 @@ import static com.github.dreamhead.moco.Moco.method;
 import static com.github.dreamhead.moco.Moco.seq;
 import static com.github.dreamhead.moco.Runner.running;
 import static java.lang.Math.min;
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.pull.CursorTest.buildCursorXml;
-import static org.opendatakit.briefcase.pull.InstanceIdBatchGetter.getInstanceIdBatches;
 import static org.opendatakit.briefcase.reused.http.CommonsHttp.nonReusing;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
@@ -39,10 +39,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.http.Http;
 
 public class InstanceIdBatchGetterTest {
   private static final URL BASE_URL = url("http://localhost:12306");
@@ -62,6 +64,12 @@ public class InstanceIdBatchGetterTest {
     server = httpServer(12306, log());
   }
 
+  private static List<InstanceIdBatch> getAllBatches(Http http) {
+    InstanceIdBatchGetter batcher = new InstanceIdBatchGetter(InstanceIdBatchGetterTest.REMOTE_SERVER, http, "fomdId", true);
+    Iterable<InstanceIdBatch> iterable = () -> batcher;
+    return StreamSupport.stream(iterable.spliterator(), false).collect(toList());
+  }
+
   @Test
   public void retrieves_batches_until_the_last_empty_one() throws Exception {
     List<String> pages = generatePages(250, 100);
@@ -70,7 +78,7 @@ public class InstanceIdBatchGetterTest {
         );
 
     running(server, () -> {
-      List<InstanceIdBatch> idBatches = getInstanceIdBatches(REMOTE_SERVER, nonReusing(), "fomdId", true);
+      List<InstanceIdBatch> idBatches = getAllBatches(nonReusing());
       int total = idBatches.stream().map(InstanceIdBatch::count).reduce(0, Integer::sum);
       assertThat(idBatches, Matchers.hasSize(3));
       assertThat(total, is(250));
@@ -106,6 +114,4 @@ public class InstanceIdBatchGetterTest {
 
     return pages;
   }
-
-
 }
