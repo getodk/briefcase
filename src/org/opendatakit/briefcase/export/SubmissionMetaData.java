@@ -54,13 +54,6 @@ public class SubmissionMetaData {
   }
 
   /**
-   * Fixes ISO8601-ish strings not in this form: 2018-05-13T17:32:57±00:00
-   */
-  static String regularizeDateTime(String value) {
-    return Iso8601Helpers.normalizeDateTime(value);
-  }
-
-  /**
    * Returns the submission date, located at the root node's "submissionDate" attribute.
    * <p>
    * The value gets mapped to an {@link OffsetDateTime}
@@ -68,7 +61,7 @@ public class SubmissionMetaData {
   public Optional<OffsetDateTime> getSubmissionDate() {
     if (submissionDate == null)
       submissionDate = root.getAttributeValue("submissionDate")
-          .map(SubmissionMetaData::regularizeDateTime)
+          .map(Iso8601Helpers::normalizeDateTime)
           .map(OffsetDateTime::parse);
     return submissionDate;
   }
