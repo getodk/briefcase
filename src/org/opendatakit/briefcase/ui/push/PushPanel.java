@@ -93,7 +93,7 @@ public class PushPanel {
       source.ifPresent(s -> s.push(forms.getSelectedForms(), terminationFuture));
     });
 
-    view.onCancel(() -> terminationFuture.markAsCancelled(new PushEvent.Abort("Cancelled by the user")));
+    view.onCancel(() -> terminationFuture.markAsCancelled(new PushEvent.Cancel("Cancelled by the user")));
   }
 
   public static PushPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {

@@ -94,7 +94,7 @@ public class PullPanel {
       source.ifPresent(s -> s.pull(forms.getSelectedForms(), appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), appPreferences.getPullInParallel().orElse(false), false, appPreferences.getResumeLastPull().orElse(false), Optional.empty()));
     });
 
-    view.onCancel(() -> terminationFuture.markAsCancelled(new PullEvent.Abort("Cancelled by the user")));
+    view.onCancel(() -> terminationFuture.markAsCancelled(new PullEvent.Cancel("Cancelled by the user")));
 
     // TODO Preserve encapsulation of the suffix constant
     forms.onChange(() -> forms.getLastPullCursorsByFormId().forEach((key, value) -> tabPreferences.put(

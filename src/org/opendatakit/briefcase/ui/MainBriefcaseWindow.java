@@ -182,8 +182,8 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
   @Override
   public void windowClosing(WindowEvent arg0) {
-    transferTerminationFuture.markAsCancelled(new PullEvent.Abort("Main window closed"));
-    transferTerminationFuture.markAsCancelled(new PushEvent.Abort("Main window closed"));
+    transferTerminationFuture.markAsCancelled(new PullEvent.Cancel("Main window closed"));
+    transferTerminationFuture.markAsCancelled(new PushEvent.Cancel("Main window closed"));
   }
 
   @EventSubscriber(eventClass = StorageLocationEvent.LocationDefined.class)

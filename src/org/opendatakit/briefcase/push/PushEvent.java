@@ -37,10 +37,10 @@ public class PushEvent {
     }
   }
 
-  public static class Abort extends PushEvent {
+  public static class Cancel extends PushEvent {
     public final String cause;
 
-    public Abort(String cause) {
+    public Cancel(String cause) {
       this.cause = cause;
     }
   }
