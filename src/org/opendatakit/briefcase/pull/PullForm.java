@@ -122,7 +122,7 @@ public class PullForm {
 
   private static void writeSubmission(FormStatus form, DownloadedSubmission submission, Path briefcaseDir) {
     Path submissionFile = form.getSubmissionDir(briefcaseDir, submission.getInstanceId()).resolve("submission.xml");
-    write(submissionFile, submission.getContent(), CREATE, TRUNCATE_EXISTING);
+    write(submissionFile, submission.getXml(), CREATE, TRUNCATE_EXISTING);
   }
 
   private static List<MediaFile> parseMediaFiles(XmlElement root) {

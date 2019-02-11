@@ -24,12 +24,12 @@ import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class DownloadedSubmission {
-  private final String content;
+  private final String xml;
   private final String instanceId;
   private final List<MediaFile> attachments;
 
-  private DownloadedSubmission(String content, String instanceId, List<MediaFile> attachments) {
-    this.content = content;
+  private DownloadedSubmission(String xml, String instanceId, List<MediaFile> attachments) {
+    this.xml = xml;
     this.instanceId = instanceId;
     this.attachments = attachments;
   }
@@ -47,8 +47,8 @@ public class DownloadedSubmission {
     return instanceId;
   }
 
-  public String getContent() {
-    return content;
+  public String getXml() {
+    return xml;
   }
 
   List<MediaFile> getAttachments() {
