@@ -35,7 +35,9 @@ public class InstanceIdBatch {
         .findElement("attributeValue")
         .flatMap(XmlElement::maybeValue)
         // Incoming values like 2018-12-10T09:36:25.474+0000 are not ISO8601 compliant
-        .map(value -> String.format("%s:%s", value.substring(0, 26), value.substring(26)))
+        .map(value -> value.endsWith("Z")
+            ? value
+            : String.format("%s:%s", value.substring(0, 26), value.substring(26)))
         .map(OffsetDateTime::parse)
         .orElseThrow(BriefcaseException::new);
 
