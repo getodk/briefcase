@@ -52,7 +52,7 @@ public class SettingsPanelForm {
   private JButton storageLocationClearButton;
   private JButton storageLocationChooseButton;
   private JCheckBox pullInParallelField;
-  private JCheckBox resumeLasPullField;
+  private JCheckBox resumeLastPullField;
   private JCheckBox rememberPasswordsField;
   private JCheckBox sendUsageDataField;
   private JCheckBox useHttpProxyField;
@@ -168,11 +168,11 @@ public class SettingsPanelForm {
   }
 
   void onResumeLastPullChange(Consumer<Boolean> callback) {
-    resumeLasPullField.addActionListener(__ -> callback.accept(resumeLasPullField.isSelected()));
+    resumeLastPullField.addActionListener(__ -> callback.accept(resumeLastPullField.isSelected()));
   }
 
   void setResumeLastPull(Boolean enabled) {
-    resumeLasPullField.setSelected(enabled);
+    resumeLastPullField.setSelected(enabled);
   }
 
   void onRememberPasswordsChange(Consumer<Boolean> callback) {
@@ -502,14 +502,14 @@ public class SettingsPanelForm {
     gbc.gridwidth = 6;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer21, gbc);
-    resumeLasPullField = new JCheckBox();
-    resumeLasPullField.setText("Always try to resume last pull");
+    resumeLastPullField = new JCheckBox();
+    resumeLastPullField.setText("Always try to resume last pull");
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 5;
     gbc.gridwidth = 5;
     gbc.anchor = GridBagConstraints.WEST;
-    container.add(resumeLasPullField, gbc);
+    container.add(resumeLastPullField, gbc);
     final JPanel spacer22 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
