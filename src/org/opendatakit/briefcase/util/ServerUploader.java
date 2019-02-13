@@ -42,6 +42,7 @@ import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.model.XmlDocumentFetchException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.AggregateUtils.DocumentFetchResult;
 import org.opendatakit.briefcase.util.ServerFetcher.SubmissionChunk;
 import org.slf4j.Logger;
@@ -182,7 +183,7 @@ class ServerUploader {
     }
   }
 
-  boolean uploadFormAndSubmissionFiles(List<FormStatus> formsToTransfer) {
+  boolean uploadFormAndSubmissionFiles(TransferForms formsToTransfer) {
 
     boolean allSuccessful = true;
 

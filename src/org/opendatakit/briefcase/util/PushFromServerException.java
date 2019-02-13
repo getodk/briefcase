@@ -17,12 +17,11 @@ package org.opendatakit.briefcase.util;
 
 import static java.util.stream.Collectors.joining;
 
-import java.util.List;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.transfer.TransferForms;
 
 class PushFromServerException extends BriefcaseException {
-  PushFromServerException(List<FormStatus> forms) {
-    super("Failure pushing forms to server. FormIds: " + forms.stream().map(f -> f.getFormDefinition().getFormId()).collect(joining(", ")));
+  PushFromServerException(TransferForms forms) {
+    super("Failure pushing forms to server. FormIds: " + forms.map(f -> f.getFormDefinition().getFormId()).collect(joining(", ")));
   }
 }

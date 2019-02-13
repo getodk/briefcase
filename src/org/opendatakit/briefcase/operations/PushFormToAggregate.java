@@ -33,6 +33,7 @@ import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Response;
+import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.briefcase.util.TransferToServer;
 import org.opendatakit.common.cli.Operation;
@@ -92,7 +93,7 @@ public class PushFormToAggregate {
 
       FormStatus form = maybeFormStatus.orElseThrow(() -> new FormNotFoundException(formid));
 
-      TransferToServer.push(remoteServer.asServerConnectionInfo(), http, remoteServer, forceSendBlank, form);
+      TransferToServer.push(remoteServer.asServerConnectionInfo(), http, remoteServer, forceSendBlank, TransferForms.of(form));
     }
   }
 

@@ -22,6 +22,7 @@ import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
+import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
 import java.util.Optional;
 import javax.swing.JPanel;
@@ -90,10 +91,16 @@ public class PullPanel {
     view.onAction(() -> {
       view.setWorking();
       forms.forEach(FormStatus::clearStatusHistory);
-      source.ifPresent(s -> s.pull(forms.getSelectedForms(), terminationFuture, appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), appPreferences.getPullInParallel().orElse(false), false));
+      source.ifPresent(s -> s.pull(forms.getSelectedForms(), terminationFuture, appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), appPreferences.getPullInParallel().orElse(false), false, appPreferences.getResumeLastPull().orElse(false)));
     });
 
     view.onCancel(() -> terminationFuture.markAsCancelled(new PullEvent.Abort("Cancelled by the user")));
+
+    // TODO Preserve encapsulation of the suffix constant
+    forms.onChange(() -> forms.getLastPullCursorsByFormId().forEach((key, value) -> tabPreferences.put(
+        key + TransferForms.LAST_CURSOR_PREFERENCE_KEY_SUFFIX,
+        value
+    )));
   }
 
   public static PullPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
@@ -114,7 +121,7 @@ public class PullPanel {
 
   private void onSource(TransferPanelForm view, TransferForms forms, Source<?> source) {
     source.getFormList().thenAccept(formList -> {
-      forms.load(formList);
+      forms.load(formList, tabPreferences);
       view.refresh();
       updateActionButtons();
     }).onError(cause -> {
@@ -189,5 +196,13 @@ public class PullPanel {
       }
     }
     analytics.event("Pull", "Transfer", "Success", null);
+  }
+
+  @EventSubscriber(eventClass = PullEvent.CleanAllResumePoints.class)
+  public void onCleanAllResumePoints(PullEvent.CleanAllResumePoints e) {
+    // TODO Preserve encapsulation of the suffix constant
+    tabPreferences.keys().stream().filter(key -> key.endsWith(TransferForms.LAST_CURSOR_PREFERENCE_KEY_SUFFIX)).collect(toList()).forEach(tabPreferences::remove);
+    forms.cleanAllResumePoints();
+    infoMessage("All pull resume points cleaned.");
   }
 }

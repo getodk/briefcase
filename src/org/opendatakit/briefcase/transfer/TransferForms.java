@@ -15,28 +15,38 @@
  */
 package org.opendatakit.briefcase.transfer;
 
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Stream;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.reused.Pair;
 
 /**
  * This class represents a set of forms to be pulled/pushed. It manages the
  * selection of those forms, as well as merging changes in the forms cache.
  */
-public class TransferForms {
+public class TransferForms implements Iterable<FormStatus> {
+  public static final String LAST_CURSOR_PREFERENCE_KEY_SUFFIX = "-last-cursor";
   private List<FormStatus> forms;
   private Map<String, FormStatus> formsIndex = new HashMap<>();
+  private Map<String, String> lastPullCursorsByFormId;
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
-  private TransferForms(List<FormStatus> forms) {
+  private TransferForms(List<FormStatus> forms, Map<String, String> lastPullCursorsByFormId) {
     this.forms = forms;
+    this.lastPullCursorsByFormId = lastPullCursorsByFormId;
     rebuildIndex();
   }
 
@@ -44,7 +54,7 @@ public class TransferForms {
    * Factory of empty {@link TransferForms} instances
    */
   public static TransferForms empty() {
-    return new TransferForms(Collections.emptyList());
+    return new TransferForms(Collections.emptyList(), new HashMap<>());
   }
 
   /**
@@ -52,19 +62,28 @@ public class TransferForms {
    * list of {@link FormStatus} instances
    */
   public static TransferForms from(List<FormStatus> forms) {
-    return new TransferForms(forms);
+    return new TransferForms(forms, new HashMap<>());
   }
 
   private static String getFormId(FormStatus form) {
     return form.getFormDefinition().getFormId();
   }
 
+  public static TransferForms of(FormStatus... forms) {
+    return new TransferForms(Arrays.asList(forms), new HashMap<>());
+  }
+
   /**
    * Replaces the current list of {@link FormStatus} instances with
-   * the incoming list.
+   * the incoming list, and reads any saved cursor from a previous pull
    */
-  public void load(List<FormStatus> forms) {
+  public void load(List<FormStatus> forms, BriefcasePreferences preferences) {
     this.forms = forms;
+    this.lastPullCursorsByFormId = forms.stream()
+        .map(form -> Pair.of(form.getFormId(), preferences.nullSafeGet(form.getFormId() + LAST_CURSOR_PREFERENCE_KEY_SUFFIX)))
+        .filter(pair -> pair.getRight().isPresent())
+        .map(pair -> pair.map(identity(), Optional::get))
+        .collect(toMap(Pair::getLeft, Pair::getRight));
     triggerOnChange();
   }
 
@@ -104,14 +123,6 @@ public class TransferForms {
   }
 
   /**
-   * Lets calling sites iterate over all {@link FormStatus} instances
-   * present.
-   */
-  public void forEach(Consumer<FormStatus> consumer) {
-    forms.forEach(consumer);
-  }
-
-  /**
    * Marks all present {@link FormStatus} instances as being selected.
    */
   // TODO extract the selection status to this class instead of mutating the FormStatus instances
@@ -131,8 +142,8 @@ public class TransferForms {
   /**
    * Returns a list of selected {@link FormStatus} instances.
    */
-  public List<FormStatus> getSelectedForms() {
-    return forms.stream().filter(FormStatus::isSelected).collect(toList());
+  public TransferForms getSelectedForms() {
+    return new TransferForms(forms.stream().filter(FormStatus::isSelected).collect(toList()), lastPullCursorsByFormId);
   }
 
   /**
@@ -155,7 +166,7 @@ public class TransferForms {
    * Empties the {@link FormStatus} list.
    */
   public void clear() {
-    forms = Collections.emptyList();
+    forms.clear();
     triggerOnChange();
   }
 
@@ -186,5 +197,31 @@ public class TransferForms {
    */
   public boolean isEmpty() {
     return forms.isEmpty();
+  }
+
+  public <T> Stream<T> map(Function<FormStatus, T> mapper) {
+    return forms.stream().map(mapper);
+  }
+
+  public String getLastCursor(FormStatus fs) {
+    return Optional.ofNullable(lastPullCursorsByFormId.get(fs.getFormId())).orElse("");
+  }
+
+  public void setLastPullCursor(FormStatus fs, String cursor) {
+    lastPullCursorsByFormId.put(fs.getFormId(), cursor);
+    triggerOnChange();
+  }
+
+  public Map<String, String> getLastPullCursorsByFormId() {
+    return lastPullCursorsByFormId;
+  }
+
+  @Override
+  public Iterator<FormStatus> iterator() {
+    return forms.iterator();
+  }
+
+  public void cleanAllResumePoints() {
+    lastPullCursorsByFormId.clear();
   }
 }

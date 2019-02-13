@@ -21,7 +21,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Optional;
 import org.apache.commons.io.FileUtils;
 import org.bushe.swing.event.EventBus;
@@ -34,6 +33,7 @@ import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.transfer.TransferForms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,9 +47,9 @@ public class TransferFromODK implements ITransferFromSourceAction {
   private Path briefcaseDir;
   private final File odkOriginDir;
   private final TerminationFuture terminationFuture;
-  private final List<FormStatus> formsToTransfer;
+  private final TransferForms formsToTransfer;
 
-  TransferFromODK(Path briefcaseDir, File odkOriginDir, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) {
+  TransferFromODK(Path briefcaseDir, File odkOriginDir, TerminationFuture terminationFuture, TransferForms formsToTransfer) {
     this.briefcaseDir = briefcaseDir;
     this.odkOriginDir = odkOriginDir;
     this.terminationFuture = terminationFuture;
@@ -109,12 +109,25 @@ public class TransferFromODK implements ITransferFromSourceAction {
     return briefcaseLfd;
   }
 
+  public static void pull(Path briefcaseDir, Path odk, TransferForms forms) {
+    TransferFromODK action = new TransferFromODK(briefcaseDir, odk.toFile(), new TerminationFuture(), forms);
+    if (!action.doAction()) {
+      EventBus.publish(new PullEvent.Failure());
+      throw new PullFromODKException(forms);
+    }
+  }
+
+  @Override
+  public Optional<ServerConnectionInfo> getTransferSettings() {
+    return Optional.empty();
+  }
+
   @Override
   public boolean doAction() {
 
     boolean allSuccessful = true;
 
-    for (FormStatus fs : formsToTransfer) {
+    for (FormStatus fs : formsToTransfer.getSelectedForms()) {
       boolean isSuccessful = true;
       try {
         if (terminationFuture.isCancelled()) {
@@ -191,7 +204,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                 xml = fullXml; // e.g., 1.1.5, 1.1.7
               }
 
-              // this is a hack added to support easier generation of large test cases where we 
+              // this is a hack added to support easier generation of large test cases where we
               // copy a single instance directory repeatedly.  Normally the xml submission file
               // has the name of the enclosing directory, but if you copy directories, this won't
               // be the case.  In this instance, if there is one xml file in the directory,
@@ -339,18 +352,5 @@ public class TransferFromODK implements ITransferFromSourceAction {
       }
     }
     return allSuccessful;
-  }
-
-  @Override
-  public Optional<ServerConnectionInfo> getTransferSettings() {
-    return Optional.empty();
-  }
-
-  public static void pull(Path briefcaseDir, Path odk, List<FormStatus> forms) {
-    TransferFromODK action = new TransferFromODK(briefcaseDir, odk.toFile(), new TerminationFuture(), forms);
-    if (!action.doAction()) {
-      EventBus.publish(new PullEvent.Failure());
-      throw new PullFromODKException(forms);
-    }
   }
 }

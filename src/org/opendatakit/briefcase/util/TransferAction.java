@@ -18,17 +18,16 @@ package org.opendatakit.briefcase.util;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.transfer.TransferForms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,11 +37,42 @@ public class TransferAction {
 
   private static ExecutorService backgroundExecutorService = Executors.newCachedThreadPool();
 
+  private static void backgroundRun(ITransferToDestAction src, TransferForms formsToTransfer) {
+    backgroundExecutorService.execute(new UploadTransferRunnable(src, formsToTransfer));
+  }
+
+  private static void backgroundRun(ITransferFromSourceAction src, TransferForms formsToTransfer) {
+    backgroundExecutorService.execute(new GatherTransferRunnable(src, formsToTransfer));
+  }
+
+  public static void transferServerToBriefcase(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture, TransferForms formsToTransfer, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull) {
+    TransferFromServer source = new TransferFromServer(originServerInfo, terminationFuture, formsToTransfer, briefcaseDir, pullInParallel, includeIncomplete, resumeLastPull);
+    backgroundRun(source, formsToTransfer);
+  }
+
+  public static void transferODKToBriefcase(Path briefcaseDir, File odkSrcDir, TerminationFuture terminationFuture, TransferForms formsToTransfer) {
+    TransferFromODK source = new TransferFromODK(briefcaseDir, odkSrcDir, terminationFuture, formsToTransfer);
+    backgroundRun(source, formsToTransfer);
+  }
+
+  public static void transferBriefcaseToServer(ServerConnectionInfo destinationServerInfo, TerminationFuture terminationFuture, TransferForms formsToTransfer, Http http, RemoteServer server) {
+    TransferToServer dest = new TransferToServer(
+        destinationServerInfo,
+        terminationFuture,
+        formsToTransfer,
+        http,
+        server,
+        // Since this is only used by the GUI, always force sending the blank form
+        true
+    );
+    backgroundRun(dest, formsToTransfer);
+  }
+
   private static class UploadTransferRunnable implements Runnable {
     ITransferToDestAction dest;
-    private List<FormStatus> formsToTransfer;
+    private TransferForms formsToTransfer;
 
-    UploadTransferRunnable(ITransferToDestAction dest, List<FormStatus> formsToTransfer) {
+    UploadTransferRunnable(ITransferToDestAction dest, TransferForms formsToTransfer) {
       this.dest = dest;
       this.formsToTransfer = formsToTransfer;
     }
@@ -63,15 +93,11 @@ public class TransferAction {
     }
   }
 
-  private static void backgroundRun(ITransferToDestAction src, List<FormStatus> formsToTransfer) {
-    backgroundExecutorService.execute(new UploadTransferRunnable(src, formsToTransfer));
-  }
-
   private static class GatherTransferRunnable implements Runnable {
     ITransferFromSourceAction src;
-    private List<FormStatus> formsToTransfer;
+    private TransferForms formsToTransfer;
 
-    GatherTransferRunnable(ITransferFromSourceAction src, List<FormStatus> formsToTransfer) {
+    GatherTransferRunnable(ITransferFromSourceAction src, TransferForms formsToTransfer) {
       this.src = src;
       this.formsToTransfer = formsToTransfer;
     }
@@ -91,32 +117,5 @@ public class TransferAction {
       }
     }
 
-  }
-
-  private static void backgroundRun(ITransferFromSourceAction src, List<FormStatus> formsToTransfer) {
-    backgroundExecutorService.execute(new GatherTransferRunnable(src, formsToTransfer));
-  }
-
-  public static void transferServerToBriefcase(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete) {
-    TransferFromServer source = new TransferFromServer(originServerInfo, terminationFuture, formsToTransfer, briefcaseDir, pullInParallel, includeIncomplete);
-    backgroundRun(source, formsToTransfer);
-  }
-
-  public static void transferODKToBriefcase(Path briefcaseDir, File odkSrcDir, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer) {
-    TransferFromODK source = new TransferFromODK(briefcaseDir, odkSrcDir, terminationFuture, formsToTransfer);
-    backgroundRun(source, formsToTransfer);
-  }
-
-  public static void transferBriefcaseToServer(ServerConnectionInfo destinationServerInfo, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Http http, RemoteServer server) {
-    TransferToServer dest = new TransferToServer(
-        destinationServerInfo,
-        terminationFuture,
-        formsToTransfer,
-        http,
-        server,
-        // Since this is only used by the GUI, always force sending the blank form
-        true
-    );
-    backgroundRun(dest, formsToTransfer);
   }
 }

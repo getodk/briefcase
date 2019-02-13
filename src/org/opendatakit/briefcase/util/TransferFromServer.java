@@ -17,31 +17,47 @@
 package org.opendatakit.briefcase.util;
 
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.transfer.TransferForms;
 
 public class TransferFromServer implements ITransferFromSourceAction {
 
   private final ServerConnectionInfo originServerInfo;
   private final TerminationFuture terminationFuture;
-  private final List<FormStatus> formsToTransfer;
+  private final TransferForms formsToTransfer;
   private final Boolean pullInParallel;
   private final Boolean includeIncomplete;
-  private Path briefcaseDir;
+  private final Path briefcaseDir;
+  private final boolean resumeLastPull;
 
-  public TransferFromServer(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture, List<FormStatus> formsToTransfer, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete) {
+  public TransferFromServer(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture, TransferForms formsToTransfer, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull) {
     this.originServerInfo = originServerInfo;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
     this.briefcaseDir = briefcaseDir;
     this.pullInParallel = pullInParallel;
     this.includeIncomplete = includeIncomplete;
+    this.resumeLastPull = resumeLastPull;
+  }
+
+  public static void pull(ServerConnectionInfo transferSettings, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, TransferForms forms, boolean resumeLastPull) {
+    TransferFromServer action = new TransferFromServer(transferSettings, new TerminationFuture(), forms, briefcaseDir, pullInParallel, includeIncomplete, resumeLastPull);
+
+    try {
+      boolean allSuccessful = action.doAction();
+      if (allSuccessful)
+        EventBus.publish(new PullEvent.Success(forms, transferSettings));
+
+      if (!allSuccessful)
+        throw new PullFromServerException(forms);
+    } catch (Exception e) {
+      EventBus.publish(new PullEvent.Failure());
+      throw new PullFromServerException(forms, e);
+    }
   }
 
   @Override
@@ -49,24 +65,7 @@ public class TransferFromServer implements ITransferFromSourceAction {
 
     ServerFetcher fetcher = new ServerFetcher(originServerInfo, terminationFuture, briefcaseDir, pullInParallel, includeIncomplete);
 
-    return fetcher.downloadFormAndSubmissionFiles(formsToTransfer);
-  }
-
-  public static void pull(ServerConnectionInfo transferSettings, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, FormStatus... forms) {
-    List<FormStatus> formList = Arrays.asList(forms);
-    TransferFromServer action = new TransferFromServer(transferSettings, new TerminationFuture(), formList, briefcaseDir, pullInParallel, includeIncomplete);
-
-    try {
-      boolean allSuccessful = action.doAction();
-      if (allSuccessful)
-        EventBus.publish(new PullEvent.Success(formList, transferSettings));
-
-      if (!allSuccessful)
-        throw new PullFromServerException(formList);
-    } catch (Exception e) {
-      EventBus.publish(new PullEvent.Failure());
-      throw new PullFromServerException(formList, e);
-    }
+    return fetcher.downloadFormAndSubmissionFiles(formsToTransfer, resumeLastPull);
   }
 
   @Override

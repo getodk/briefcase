@@ -47,6 +47,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.DeferredValue;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.util.BadFormDefinition;
@@ -186,8 +187,9 @@ public interface Source<T> {
    * @param terminationFuture object that to make the operation cancellable
    * @param includeIncomplete when passed true, it enables requesting the incomplete
    *                          submissions. This needs to be supported by the selected source
+   * @param resumeLastPull
    */
-  void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete);
+  void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull);
 
   /**
    * Pushes forms to this configured {@link Source}.
@@ -195,7 +197,7 @@ public interface Source<T> {
    * @param forms             {@link List} of forms to be pulled
    * @param terminationFuture object that to make the operation cancellable
    */
-  void push(List<FormStatus> forms, TerminationFuture terminationFuture);
+  void push(TransferForms forms, TerminationFuture terminationFuture);
 
   /**
    * Returns whether or not this {@link Source} supports reloading.
@@ -260,12 +262,12 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete) {
-      TransferAction.transferServerToBriefcase(server.asServerConnectionInfo(), terminationFuture, forms, briefcaseDir, pullInParallel, includeIncomplete);
+    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull) {
+      TransferAction.transferServerToBriefcase(server.asServerConnectionInfo(), terminationFuture, forms, briefcaseDir, pullInParallel, includeIncomplete, resumeLastPull);
     }
 
     @Override
-    public void push(List<FormStatus> forms, TerminationFuture terminationFuture) {
+    public void push(TransferForms forms, TerminationFuture terminationFuture) {
       TransferAction.transferBriefcaseToServer(server.asServerConnectionInfo(), terminationFuture, forms, http, server);
     }
 
@@ -361,12 +363,12 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete) {
+    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull) {
       TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), terminationFuture, forms);
     }
 
     @Override
-    public void push(List<FormStatus> forms, TerminationFuture terminationFuture) {
+    public void push(TransferForms forms, TerminationFuture terminationFuture) {
       throw new BriefcaseException("Can't push to a Collect directory");
     }
 
@@ -449,12 +451,12 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(List<FormStatus> forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete) {
+    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull) {
       invokeLater(() -> FormInstaller.install(briefcaseDir, form));
     }
 
     @Override
-    public void push(List<FormStatus> forms, TerminationFuture terminationFuture) {
+    public void push(TransferForms forms, TerminationFuture terminationFuture) {
       throw new BriefcaseException("Can't push to this source");
     }
 

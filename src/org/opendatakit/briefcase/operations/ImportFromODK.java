@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.briefcase.util.TransferFromODK;
@@ -60,6 +61,6 @@ public class ImportFromODK {
         .filter(form -> formId.map(id -> form.getFormDefinition().getFormId().equals(id)).orElse(true))
         .collect(toList());
 
-    TransferFromODK.pull(briefcaseDir, odkDir, forms);
+    TransferFromODK.pull(briefcaseDir, odkDir, TransferForms.from(forms));
   }
 }
