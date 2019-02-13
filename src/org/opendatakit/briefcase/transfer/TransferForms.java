@@ -54,7 +54,7 @@ public class TransferForms implements Iterable<FormStatus> {
    * Factory of empty {@link TransferForms} instances
    */
   public static TransferForms empty() {
-    return new TransferForms(Collections.emptyList(), Collections.emptyMap());
+    return new TransferForms(Collections.emptyList(), new HashMap<>());
   }
 
   /**
@@ -62,7 +62,7 @@ public class TransferForms implements Iterable<FormStatus> {
    * list of {@link FormStatus} instances
    */
   public static TransferForms from(List<FormStatus> forms) {
-    return new TransferForms(forms, Collections.emptyMap());
+    return new TransferForms(forms, new HashMap<>());
   }
 
   private static String getFormId(FormStatus form) {
@@ -70,7 +70,7 @@ public class TransferForms implements Iterable<FormStatus> {
   }
 
   public static TransferForms of(FormStatus... forms) {
-    return new TransferForms(Arrays.asList(forms), Collections.emptyMap());
+    return new TransferForms(Arrays.asList(forms), new HashMap<>());
   }
 
   /**
