@@ -119,6 +119,7 @@ public class SettingsPanelForm {
     storageLocationClearButton.setVisible(true);
     onStorageLocationCallbacks.forEach(consumer -> consumer.accept(path));
     reloadCacheButton.setEnabled(true);
+    cleanAllPullResumePointsButton.setEnabled(true);
   }
 
   private void clearStorageLocation() {
@@ -127,6 +128,7 @@ public class SettingsPanelForm {
     storageLocationClearButton.setVisible(false);
     onClearStorageLocationCallbacks.forEach(Runnable::run);
     reloadCacheButton.setEnabled(false);
+    cleanAllPullResumePointsButton.setEnabled(false);
   }
 
   void onStorageLocation(Consumer<Path> onSet, Runnable onClear) {
