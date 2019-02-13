@@ -96,7 +96,11 @@ public class PullPanel {
 
     view.onCancel(() -> terminationFuture.markAsCancelled(new PullEvent.Abort("Cancelled by the user")));
 
-    forms.onChange(() -> forms.getLastPullCursorsByFormId().forEach((key, value) -> tabPreferences.put(key + "-last-cursor", value)));
+    // TODO Preserve encapsulation of the suffix constant
+    forms.onChange(() -> forms.getLastPullCursorsByFormId().forEach((key, value) -> tabPreferences.put(
+        key + TransferForms.LAST_CURSOR_PREFERENCE_KEY_SUFFIX,
+        value
+    )));
   }
 
   public static PullPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
@@ -196,7 +200,8 @@ public class PullPanel {
 
   @EventSubscriber(eventClass = PullEvent.CleanAllResumePoints.class)
   public void onCleanAllResumePoints(PullEvent.CleanAllResumePoints e) {
-    tabPreferences.keys().stream().filter(key -> key.endsWith("-last-cursor")).forEach(tabPreferences::remove);
+    // TODO Preserve encapsulation of the suffix constant
+    tabPreferences.keys().stream().filter(key -> key.endsWith(TransferForms.LAST_CURSOR_PREFERENCE_KEY_SUFFIX)).forEach(tabPreferences::remove);
     infoMessage("All pull resume points cleaned.");
   }
 }

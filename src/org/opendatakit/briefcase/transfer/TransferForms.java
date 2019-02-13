@@ -38,6 +38,7 @@ import org.opendatakit.briefcase.reused.Pair;
  * selection of those forms, as well as merging changes in the forms cache.
  */
 public class TransferForms implements Iterable<FormStatus> {
+  public static final String LAST_CURSOR_PREFERENCE_KEY_SUFFIX = "-last-cursor";
   private List<FormStatus> forms;
   private Map<String, FormStatus> formsIndex = new HashMap<>();
   private Map<String, String> lastPullCursorsByFormId;
@@ -79,7 +80,7 @@ public class TransferForms implements Iterable<FormStatus> {
   public void load(List<FormStatus> forms, BriefcasePreferences preferences) {
     this.forms = forms;
     this.lastPullCursorsByFormId = forms.stream()
-        .map(form -> Pair.of(form.getFormId(), preferences.nullSafeGet(form.getFormId() + "-last-cursor")))
+        .map(form -> Pair.of(form.getFormId(), preferences.nullSafeGet(form.getFormId() + LAST_CURSOR_PREFERENCE_KEY_SUFFIX)))
         .filter(pair -> pair.getRight().isPresent())
         .map(pair -> pair.map(identity(), Optional::get))
         .collect(toMap(Pair::getLeft, Pair::getRight));
