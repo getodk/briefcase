@@ -166,7 +166,7 @@ public class TransferForms implements Iterable<FormStatus> {
    * Empties the {@link FormStatus} list.
    */
   public void clear() {
-    forms = Collections.emptyList();
+    forms.clear();
     triggerOnChange();
   }
 
