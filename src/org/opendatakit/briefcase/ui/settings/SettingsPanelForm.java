@@ -83,8 +83,6 @@ public class SettingsPanelForm {
 
     httpProxyPortField.addChangeListener(__ -> processHttpProxyFields());
 
-    reloadCacheButton.setEnabled(false);
-
     updateProxyFields(useHttpProxyField.isSelected());
   }
 
@@ -404,6 +402,7 @@ public class SettingsPanelForm {
     container.add(panel1, gbc);
     panel1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Troubleshooting"));
     reloadCacheButton = new JButton();
+    reloadCacheButton.setEnabled(false);
     reloadCacheButton.setText("Reload forms from storage location");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
@@ -477,6 +476,7 @@ public class SettingsPanelForm {
     gbc.fill = GridBagConstraints.VERTICAL;
     panel1.add(spacer19, gbc);
     cleanAllPullResumePointsButton = new JButton();
+    cleanAllPullResumePointsButton.setEnabled(false);
     cleanAllPullResumePointsButton.setText("Clean all pull resume points");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;

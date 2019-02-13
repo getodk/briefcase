@@ -215,6 +215,7 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
             <properties>
+              <enabled value="false"/>
               <text value="Reload forms from storage location"/>
             </properties>
           </component>
@@ -290,6 +291,7 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
             <properties>
+              <enabled value="false"/>
               <text value="Clean all pull resume points"/>
             </properties>
           </component>
