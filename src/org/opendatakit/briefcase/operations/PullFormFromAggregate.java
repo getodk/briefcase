@@ -47,7 +47,7 @@ public class PullFormFromAggregate {
   public static final Param<Void> DEPRECATED_PULL_AGGREGATE = Param.flag("pa", "pull_aggregate", "(Deprecated)");
   private static final Param<Void> PULL_AGGREGATE = Param.flag("plla", "pull_aggregate", "Pull form from an Aggregate instance");
   private static final Param<Void> PULL_IN_PARALLEL = Param.flag("pp", "parallel_pull", "Pull submissions in parallel");
-  private static final Param<Void> RESUME_LAST_PULL = Param.flag("rlp", "resume_last_pull", "Resume last pull");
+  private static final Param<Void> RESUME_LAST_PULL = Param.flag("sfl", "start_from_last", "Start pull from last submission pulled");
   private static final Param<Void> INCLUDE_INCOMPLETE = Param.flag("ii", "include_incomplete", "Include incomplete submissions");
 
   public static Operation PULL_FORM_FROM_AGGREGATE = Operation.of(

@@ -477,14 +477,14 @@ public class SettingsPanelForm {
     panel1.add(spacer19, gbc);
     cleanAllPullResumePointsButton = new JButton();
     cleanAllPullResumePointsButton.setEnabled(false);
-    cleanAllPullResumePointsButton.setText("Clean all pull resume points");
+    cleanAllPullResumePointsButton.setText("Clear pull history");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 3;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel1.add(cleanAllPullResumePointsButton, gbc);
     final JLabel label3 = new JLabel();
-    label3.setText("You can clean all resume points if you need to restart pulling your forms.");
+    label3.setText("Use if you wish to pull every submission, regardless of last submission pulled.");
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 1;
@@ -505,7 +505,7 @@ public class SettingsPanelForm {
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer21, gbc);
     resumeLastPullField = new JCheckBox();
-    resumeLastPullField.setText("Always try to resume last pull");
+    resumeLastPullField.setText("Start pull from last submission pulled");
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 5;

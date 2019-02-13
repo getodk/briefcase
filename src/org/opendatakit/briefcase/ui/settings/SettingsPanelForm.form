@@ -292,7 +292,7 @@
             </constraints>
             <properties>
               <enabled value="false"/>
-              <text value="Clean all pull resume points"/>
+              <text value="Clear pull history"/>
             </properties>
           </component>
           <component id="d4c34" class="javax.swing.JLabel">
@@ -301,7 +301,7 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
             <properties>
-              <text value="You can clean all resume points if you need to restart pulling your forms."/>
+              <text value="Use if you need to pull every submission, regardless of last submission pulled."/>
             </properties>
           </component>
           <vspacer id="b27e7">
@@ -324,7 +324,7 @@
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
         <properties>
-          <text value="Always try to resume last pull"/>
+          <text value="Start pull from last submission pulled"/>
         </properties>
       </component>
       <vspacer id="52501">
