@@ -220,4 +220,8 @@ public class TransferForms implements Iterable<FormStatus> {
   public Iterator<FormStatus> iterator() {
     return forms.iterator();
   }
+
+  public void cleanAllResumePoints() {
+    lastPullCursorsByFormId.clear();
+  }
 }
