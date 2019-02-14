@@ -301,7 +301,7 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
             <properties>
-              <text value="Use if you need to pull every submission, regardless of last submission pulled."/>
+              <text value="Use if you wish to pull every submission, regardless of last submission pulled."/>
             </properties>
           </component>
           <vspacer id="b27e7">
