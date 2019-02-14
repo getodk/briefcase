@@ -484,7 +484,7 @@ public class SettingsPanelForm {
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel1.add(cleanAllPullResumePointsButton, gbc);
     final JLabel label3 = new JLabel();
-    label3.setText("Use if you wish to pull every submission, regardless of last submission pulled.");
+    label3.setText("Use if you need to pull every submission, regardless of last submission pulled.");
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 1;
