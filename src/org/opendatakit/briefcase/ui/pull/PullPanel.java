@@ -203,6 +203,6 @@ public class PullPanel {
     // TODO Preserve encapsulation of the suffix constant
     tabPreferences.keys().stream().filter(key -> key.endsWith(TransferForms.LAST_CURSOR_PREFERENCE_KEY_SUFFIX)).collect(toList()).forEach(tabPreferences::remove);
     forms.cleanAllResumePoints();
-    infoMessage("All pull resume points cleaned.");
+    infoMessage("Pull history cleared.");
   }
 }
