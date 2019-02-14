@@ -519,7 +519,7 @@ public class ServerFetcher {
 
   private String downloadManifestAndMediaFiles(File mediaDir, FormStatus fs) {
     RemoteFormDefinition fd = getRemoteFormDefinition(fs);
-    if (fd.getManifestUrl() == null || isUrl(fd.getManifestUrl()))
+    if (fd.getManifestUrl() == null || !isUrl(fd.getManifestUrl()))
       return null;
     fs.setStatusString("Fetching form manifest", true);
     EventBus.publish(new FormStatusEvent(fs));
