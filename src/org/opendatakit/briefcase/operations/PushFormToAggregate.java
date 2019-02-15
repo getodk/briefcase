@@ -92,8 +92,10 @@ public class PushFormToAggregate {
           .findFirst();
 
       FormStatus form = maybeFormStatus.orElseThrow(() -> new FormNotFoundException(formid));
+      TransferForms forms = TransferForms.of(form);
+      forms.selectAll();
 
-      TransferToServer.push(remoteServer.asServerConnectionInfo(), http, remoteServer, forceSendBlank, TransferForms.of(form));
+      TransferToServer.push(remoteServer.asServerConnectionInfo(), http, remoteServer, forceSendBlank, forms);
     }
   }
 

@@ -100,8 +100,11 @@ public class PullFormFromAggregate {
         throw new FormNotFoundException(formid);
 
       FormStatus form = maybeForm.get();
+      TransferForms forms = TransferForms.of(form);
+      forms.selectAll();
+
       EventBus.publish(new StartPullEvent(form));
-      TransferFromServer.pull(remoteServer.asServerConnectionInfo(), briefcaseDir, pullInParallel, includeIncomplete, TransferForms.of(form), resumeLastPull);
+      TransferFromServer.pull(remoteServer.asServerConnectionInfo(), briefcaseDir, pullInParallel, includeIncomplete, forms, resumeLastPull);
     }
   }
 

@@ -22,7 +22,6 @@ import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.transfer.TransferForms;
@@ -56,11 +55,12 @@ public class ImportFromODK {
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
 
-    List<FormStatus> forms = FileSystemUtils.getODKFormList(odkDir.toFile()).stream()
+    TransferForms from = TransferForms.from(FileSystemUtils.getODKFormList(odkDir.toFile()).stream()
         .map(FormStatus::new)
         .filter(form -> formId.map(id -> form.getFormDefinition().getFormId().equals(id)).orElse(true))
-        .collect(toList());
+        .collect(toList()));
+    from.selectAll();
 
-    TransferFromODK.pull(briefcaseDir, odkDir, TransferForms.from(forms));
+    TransferFromODK.pull(briefcaseDir, odkDir, from);
   }
 }
