@@ -19,6 +19,7 @@ import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePrefix;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -90,6 +91,8 @@ public class Export {
     Optional<BriefcaseFormDefinition> maybeFormDefinition = formCache.getForms().stream()
         .filter(form -> form.getFormId().equals(formid))
         .findFirst();
+
+    createDirectories(exportDir);
 
     BriefcaseFormDefinition formDefinition = maybeFormDefinition.orElseThrow(() -> new FormNotFoundException(formid));
 
