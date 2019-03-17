@@ -35,7 +35,11 @@ import java.util.stream.Stream;
 import org.javarosa.core.model.FormDef;
 import org.javarosa.core.model.IDataReference;
 import org.javarosa.core.model.IFormElement;
+import org.javarosa.core.model.ItemsetBinding;
 import org.javarosa.core.model.QuestionDef;
+import org.javarosa.core.model.instance.DataInstance;
+import org.javarosa.core.model.instance.ExternalDataInstance;
+import org.javarosa.core.model.instance.InstanceInitializationFactory;
 import org.javarosa.core.model.instance.TreeElement;
 import org.javarosa.core.model.instance.TreeReference;
 import org.javarosa.xform.parse.XFormParser;
@@ -112,11 +116,27 @@ public class FormDefinition {
   }
 
   private static Map<String, QuestionDef> getFormControls(FormDef formDef) {
+    formDef.initialize(false, new InstanceInitializationFactory());
     return formDef.getChildren()
         .stream()
         .flatMap(FormDefinition::flatten)
         .filter(e -> e instanceof QuestionDef)
         .map(e -> (QuestionDef) e)
+        .peek(control -> {
+          // Select controls with an itemset pointing to an internal secondary
+          // instance *and* using a predicate are effectively dynamic. When this
+          // happens, we need to populate the choices when this happens to support
+          // the split select multiples feature.
+          ItemsetBinding itemsetBinding = control.getDynamicChoices();
+          if (itemsetBinding != null) {
+            String instanceName = itemsetBinding.nodesetRef.getInstanceName();
+            DataInstance secondaryInstance = formDef.getNonMainInstance(instanceName);
+            // Populate choices of any control using a secondary
+            // instance that is not external
+            if (secondaryInstance != null && !(secondaryInstance instanceof ExternalDataInstance))
+              formDef.populateDynamicChoices(itemsetBinding, (TreeReference) control.getBind().getReference());
+          }
+        })
         .collect(toMap(FormDefinition::controlFqn, e -> e));
   }
 
