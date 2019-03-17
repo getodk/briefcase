@@ -21,7 +21,6 @@ import static java.util.stream.Collectors.toMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -54,7 +53,7 @@ public class TransferForms implements Iterable<FormStatus> {
    * Factory of empty {@link TransferForms} instances
    */
   public static TransferForms empty() {
-    return new TransferForms(Collections.emptyList(), new HashMap<>());
+    return new TransferForms(new ArrayList<>(), new HashMap<>());
   }
 
   /**
@@ -70,7 +69,7 @@ public class TransferForms implements Iterable<FormStatus> {
   }
 
   public static TransferForms of(FormStatus... forms) {
-    return new TransferForms(Arrays.asList(forms), new HashMap<>());
+    return new TransferForms(new ArrayList<>(Arrays.asList(forms)), new HashMap<>());
   }
 
   /**
