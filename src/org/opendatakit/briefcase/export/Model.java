@@ -39,6 +39,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.javarosa.core.model.DataType;
+import org.javarosa.core.model.ItemsetBinding;
 import org.javarosa.core.model.QuestionDef;
 import org.javarosa.core.model.SelectChoice;
 import org.javarosa.core.model.instance.TreeElement;
@@ -263,12 +264,21 @@ class Model {
 
 
   List<SelectChoice> getChoices() {
-    Optional<QuestionDef> control = Optional.ofNullable(controls.get(fqn()));
-    if (!control.isPresent())
+    Optional<QuestionDef> maybeControl = Optional.ofNullable(controls.get(fqn()));
+
+    if (!maybeControl.isPresent())
       return emptyList();
-    if (control.map(QuestionDef::getAppearanceAttr).map(a -> a.contains("search(")).orElse(false))
+
+    if (maybeControl.map(QuestionDef::getAppearanceAttr).map(s -> s.contains("search(")).orElse(false))
       return emptyList();
-    return control.get().getChoices();
+
+    // Try to return dynamic choices first, then static choices
+    // Dynamic choices can be present when using an internal
+    // secondary itemset with a predicate
+    return maybeControl
+        .map(QuestionDef::getDynamicChoices)
+        .map(ItemsetBinding::getChoices)
+        .orElseGet(() -> maybeControl.get().getChoices());
   }
 
   boolean isMetaAudit() {
