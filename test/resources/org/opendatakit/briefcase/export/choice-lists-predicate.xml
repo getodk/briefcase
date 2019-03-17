@@ -1,0 +1,53 @@
+<h:html xmlns:h="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/2002/xforms">
+  <h:head>
+    <h:title>Static itemset predicate</h:title>
+    <model>
+      <instance>
+        <data id="choice-lists-predicate">
+          <some-field-no-predicate/>
+          <some-field/>
+          <meta>
+            <instanceID/>
+          </meta>
+        </data>
+      </instance>
+      <instance id="choices">
+        <root>
+          <item>
+            <value>CHOICE_1</value>
+            <type>a</type>
+          </item>
+          <item>
+            <value>CHOICE_2</value>
+            <type>a</type>
+          </item>
+          <item>
+            <value>CHOICE_3</value>
+            <type>b</type>
+          </item>
+          <item>
+            <value>CHOICE_4</value>
+            <type>b</type>
+          </item>
+        </root>
+      </instance>
+      <bind nodeset="/data/some-field-no-predicate" type="string"/>
+      <bind nodeset="/data/some-field" type="string"/>
+      <bind calculate="concat('uuid:', uuid())" nodeset="/data/meta/instanceID" readonly="true()" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <select ref="/data/some-field-no-predicate">
+      <itemset nodeset="instance('choices')/root/item">
+        <value ref="value"/>
+        <label ref="value"/>
+      </itemset>
+    </select>
+    <select ref="/data/some-field">
+      <itemset nodeset="instance('choices')/root/item[type='a']">
+        <value ref="value"/>
+        <label ref="value"/>
+      </itemset>
+    </select>
+  </h:body>
+</h:html>
