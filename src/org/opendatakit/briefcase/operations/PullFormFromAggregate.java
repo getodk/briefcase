@@ -26,6 +26,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -54,7 +55,7 @@ public class PullFormFromAggregate {
       PULL_AGGREGATE,
       args -> pullFormFromAggregate(
           args.get(STORAGE_DIR),
-          args.get(FORM_ID),
+          args.getOptional(FORM_ID),
           args.get(ODK_USERNAME),
           args.get(ODK_PASSWORD),
           args.get(AGGREGATE_SERVER),
@@ -62,11 +63,11 @@ public class PullFormFromAggregate {
           args.has(RESUME_LAST_PULL),
           args.has(INCLUDE_INCOMPLETE)
       ),
-      Arrays.asList(STORAGE_DIR, FORM_ID, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER),
-      Arrays.asList(PULL_IN_PARALLEL, RESUME_LAST_PULL, INCLUDE_INCOMPLETE)
+      Arrays.asList(STORAGE_DIR, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER),
+      Arrays.asList(PULL_IN_PARALLEL, RESUME_LAST_PULL, INCLUDE_INCOMPLETE, FORM_ID)
   );
 
-  public static void pullFormFromAggregate(String storageDir, String formid, String username, String password, String server, boolean pullInParallel, boolean resumeLastPull, boolean includeIncomplete) {
+  public static void pullFormFromAggregate(String storageDir, Optional<String> formId, String username, String password, String server, boolean pullInParallel, boolean resumeLastPull, boolean includeIncomplete) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -92,18 +93,11 @@ public class PullFormFromAggregate {
           ? "Error connecting to Aggregate: Aggregate not found"
           : "Error connecting to Aggregate");
     else {
-      Optional<FormStatus> maybeForm = RetrieveAvailableFormsFromServer.get(remoteServer.asServerConnectionInfo()).stream()
-          .filter(f -> f.getFormDefinition().getFormId().equals(formid))
-          .findFirst();
-
-      if (!maybeForm.isPresent())
-        throw new FormNotFoundException(formid);
-
-      FormStatus form = maybeForm.get();
-      TransferForms forms = TransferForms.of(form);
+      TransferForms forms = TransferForms.from(RetrieveAvailableFormsFromServer.get(remoteServer.asServerConnectionInfo()).stream()
+          .filter(f -> formId.map(id -> f.getFormDefinition().getFormId().equals(id)).orElse(true))
+          .collect(Collectors.toList()));
       forms.selectAll();
 
-      EventBus.publish(new StartPullEvent(form));
       TransferFromServer.pull(remoteServer.asServerConnectionInfo(), briefcaseDir, pullInParallel, includeIncomplete, forms, resumeLastPull);
     }
   }
