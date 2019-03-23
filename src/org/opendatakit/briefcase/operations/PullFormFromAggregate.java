@@ -27,8 +27,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
@@ -97,7 +95,7 @@ public class PullFormFromAggregate {
           .filter(f -> formId.map(id -> f.getFormDefinition().getFormId().equals(id)).orElse(true))
           .collect(Collectors.toList()));
 
-      if(formId.isPresent() && forms.isEmpty())
+      if (formId.isPresent() && forms.isEmpty())
         throw new FormNotFoundException(formId.get());
 
       forms.selectAll();
