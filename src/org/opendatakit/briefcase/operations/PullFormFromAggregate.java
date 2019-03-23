@@ -96,6 +96,10 @@ public class PullFormFromAggregate {
       TransferForms forms = TransferForms.from(RetrieveAvailableFormsFromServer.get(remoteServer.asServerConnectionInfo()).stream()
           .filter(f -> formId.map(id -> f.getFormDefinition().getFormId().equals(id)).orElse(true))
           .collect(Collectors.toList()));
+
+      if(formId.isPresent() && forms.isEmpty())
+        throw new FormNotFoundException(formId.get());
+
       forms.selectAll();
 
       TransferFromServer.pull(remoteServer.asServerConnectionInfo(), briefcaseDir, pullInParallel, includeIncomplete, forms, resumeLastPull);
