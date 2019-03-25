@@ -25,6 +25,7 @@ import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.export.ExportConfiguration;
@@ -191,7 +192,8 @@ public class ExportPanel {
                   appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
                   appPreferences.getPullInParallel().orElse(false),
                   false,
-                  false
+                  false,
+                  Optional.empty()
               ));
             FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());
             ExportToCsv.export(formDef, configuration, analytics);

@@ -103,7 +103,7 @@ public class PullFormFromAggregate {
 
       forms.selectAll();
 
-      TransferFromServer.pull(remoteServer.asServerConnectionInfo(), briefcaseDir, pullInParallel, includeIncomplete, forms, resumeLastPull);
+      TransferFromServer.pull(remoteServer.asServerConnectionInfo(), briefcaseDir, pullInParallel, includeIncomplete, forms, resumeLastPull, startFromDate);
     }
   }
 

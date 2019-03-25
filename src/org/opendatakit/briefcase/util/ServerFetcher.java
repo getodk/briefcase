@@ -29,10 +29,12 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
@@ -99,7 +101,7 @@ public class ServerFetcher {
     return terminationFuture.isCancelled();
   }
 
-  boolean downloadFormAndSubmissionFiles(TransferForms formsToTransfer, boolean resumeLastPull) {
+  boolean downloadFormAndSubmissionFiles(TransferForms formsToTransfer, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
     boolean allSuccessful = true;
 
     for (FormStatus fs : formsToTransfer) {
