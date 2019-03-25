@@ -30,6 +30,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -159,7 +160,10 @@ public class ServerFetcher {
           File formInstancesDir = FileSystemUtils.getFormInstancesDirectory(briefcaseLfd.getFormDirectory());
 
           // this will publish events
-          Pair<Boolean, String> downloadResult = downloadAllSubmissionsForForm(formInstancesDir, formDatabase, briefcaseLfd, fs, resumeLastPull ? formsToTransfer.getLastCursor(fs) : "");
+          String cursor = resumeLastPull
+              ? formsToTransfer.getLastCursor(fs)
+              : startFromDate.map(this::buildCursor).orElse("");
+          Pair<Boolean, String> downloadResult = downloadAllSubmissionsForForm(formInstancesDir, formDatabase, briefcaseLfd, fs, cursor);
           successful = downloadResult.getLeft();
           formsToTransfer.setLastPullCursor(fs, downloadResult.getRight());
         } catch (SQLException | FileSystemException e) {
@@ -219,6 +223,17 @@ public class ServerFetcher {
       }
     }
     return allSuccessful;
+  }
+
+  private String buildCursor(LocalDate date) {
+    return String.format("<cursor xmlns=\"http://www.opendatakit.org/cursor\">" +
+            "<attributeName>_LAST_UPDATE_DATE</attributeName>" +
+            "<attributeValue>%sT00:00:00.000+0000</attributeValue>" +
+            "<uriLastReturnedValue/>" +
+            "<isForwardCursor>true</isForwardCursor>" +
+            "</cursor>",
+        date.format(DateTimeFormatter.ISO_DATE)
+    );
   }
 
   private RemoteFormDefinition getRemoteFormDefinition(FormStatus fs) {
