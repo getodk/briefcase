@@ -23,16 +23,11 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.util.Optional;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.impl.NoConnectionReuseStrategy;
-import org.apache.http.impl.client.AbstractResponseHandler;
-import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 
@@ -68,10 +63,10 @@ public class CommonsHttp implements Http {
         credentials.getPassword()
     ));
     // get the response body and let the Request map it
-    return uncheckedExecute(request, executor).map(request::map);
+    return uncheckedExecute(request, executor);
   }
 
-  private Response<String> uncheckedExecute(Request<?> request, Executor executor) {
+  private <T> Response<T> uncheckedExecute(Request<T> request, Executor executor) {
     org.apache.http.client.fluent.Request commonsRequest = getCommonsRequest(request);
     commonsRequest.connectTimeout(10_000);
     commonsRequest.socketTimeout(10_000);
@@ -87,7 +82,7 @@ public class CommonsHttp implements Http {
               return new Response.ClientError<>(res.getStatusLine().getStatusCode(), res.getStatusLine().getReasonPhrase());
             if (res.getStatusLine().getStatusCode() >= 300)
               return new Response.Redirection<>(res.getStatusLine().getStatusCode(), res.getStatusLine().getReasonPhrase());
-            return new Response.Success<>(res.getStatusLine().getStatusCode(), readBody(res));
+            return Response.ok(request, res);
           });
     } catch (HttpHostConnectException e) {
       throw new HttpException("Connection refused");
@@ -98,12 +93,6 @@ public class CommonsHttp implements Http {
     }
   }
 
-  private static String readBody(HttpResponse res) {
-    return Optional.ofNullable(res.getEntity())
-        .map(e -> uncheckedHandleEntity(new BasicResponseHandler(), e))
-        .orElse("");
-  }
-
   private static org.apache.http.client.fluent.Request getCommonsRequest(Request<?> request) {
     switch (request.getMethod()) {
       case GET:
@@ -112,14 +101,6 @@ public class CommonsHttp implements Http {
         return org.apache.http.client.fluent.Request.Head(request.asUri());
       default:
         throw new HttpException("Method " + request.getMethod() + " is not supported");
-    }
-  }
-
-  private static <T> T uncheckedHandleEntity(AbstractResponseHandler<T> handler, HttpEntity entity) {
-    try {
-      return handler.handleEntity(entity);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
     }
   }
 }

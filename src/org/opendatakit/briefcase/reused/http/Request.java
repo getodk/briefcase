@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.reused.http;
 
 
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -38,10 +39,10 @@ public class Request<T> {
   private final RequestMethod method;
   private final URL url;
   private final Optional<Credentials> credentials;
-  private final Function<String, T> bodyMapper;
+  private final Function<InputStream, T> bodyMapper;
   final Map<String, String> headers;
 
-  Request(RequestMethod method, URL url, Optional<Credentials> credentials, Function<String, T> bodyMapper, Map<String, String> headers) {
+  Request(RequestMethod method, URL url, Optional<Credentials> credentials, Function<InputStream, T> bodyMapper, Map<String, String> headers) {
     this.method = method;
     this.url = url;
     this.credentials = credentials;
@@ -49,7 +50,7 @@ public class Request<T> {
     this.headers = headers;
   }
 
-  public T map(String body) {
+  public T map(InputStream body) {
     return bodyMapper.apply(body);
   }
 

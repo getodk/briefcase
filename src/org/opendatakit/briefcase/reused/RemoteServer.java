@@ -24,7 +24,6 @@ import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -137,29 +136,29 @@ public class RemoteServer {
     return http.execute(RequestBuilder.head(baseUrl).resolve("/upload").withCredentials(credentials).withMapper(__ -> true).build());
   }
 
+  private static Document parse(InputStream in) {
+    try (InputStreamReader reader = new InputStreamReader(in, UTF_8)) {
+      Document doc = new Document();
+      KXmlParser parser = new KXmlParser();
+      parser.setInput(reader);
+      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      doc.parse(parser);
+      return doc;
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    } catch (XmlPullParserException e) {
+      throw new BriefcaseException(e);
+    }
+  }
+
   public boolean containsForm(Http http, String formId) {
     return http.execute(RequestBuilder.get(baseUrl)
         .resolve("/formList")
         .withCredentials(credentials)
+        .asText()
         .withMapper(body -> Stream.of(body.split("\n")).anyMatch(line -> line.contains("?formId=" + formId)))
         .build())
         .orElse(false);
-  }
-
-  public List<RemoteFormDefinition> getFormsList(Http http) {
-    Response<List<RemoteFormDefinition>> response = http.execute(RequestBuilder.get(baseUrl)
-        .resolve("/formList")
-        .withCredentials(credentials)
-        .withMapper(body -> {
-          Document parse = parse(body);
-          Element rootElement = parse.getRootElement();
-          List<Element> xform = getChildren(rootElement, "xform");
-          return xform.stream()
-              .map(RemoteServer::toMap)
-              .map(RemoteServer::toRemoteFormDefinition)
-              .collect(toList());
-        }).build());
-    return response.orElseThrow(() -> new HttpException(response));
   }
 
   private static RemoteFormDefinition toRemoteFormDefinition(Map<String, String> keyValues) {
@@ -194,20 +193,20 @@ public class RemoteServer {
         .collect(toList());
   }
 
-  private static Document parse(String content) {
-    try (InputStream is = new ByteArrayInputStream(content.getBytes(UTF_8));
-         InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
-      Document doc = new Document();
-      KXmlParser parser = new KXmlParser();
-      parser.setInput(isr);
-      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-      doc.parse(parser);
-      return doc;
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    } catch (XmlPullParserException e) {
-      throw new BriefcaseException(e);
-    }
+  public List<RemoteFormDefinition> getFormsList(Http http) {
+    Response<List<RemoteFormDefinition>> response = http.execute(RequestBuilder.get(baseUrl)
+        .resolve("/formList")
+        .withCredentials(credentials)
+        .withMapper(in -> {
+          Document parse = parse(in);
+          Element rootElement = parse.getRootElement();
+          List<Element> xform = getChildren(rootElement, "xform");
+          return xform.stream()
+              .map(RemoteServer::toMap)
+              .map(RemoteServer::toRemoteFormDefinition)
+              .collect(toList());
+        }).build());
+    return response.orElseThrow(() -> new HttpException(response));
   }
 
   public interface Test extends Function<RemoteServer, Response<Boolean>> {

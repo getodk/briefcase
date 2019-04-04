@@ -16,11 +16,13 @@
 
 package org.opendatakit.briefcase.reused.http;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.reused.http.HttpHelpers.getUrl;
 
+import java.io.ByteArrayInputStream;
 import java.net.URI;
 import org.junit.Test;
 
@@ -58,8 +60,8 @@ public class RequestTest {
   @Test
   public void can_map_a_response_body() {
     // Create a simple request that will parse any incoming string to ints
-    Request<Integer> req = RequestBuilder.get(getUrl(BASE_URL)).withMapper(Integer::parseInt).build();
-    assertThat(req.map("42"), is(42));
+    Request<Integer> req = RequestBuilder.get(getUrl(BASE_URL)).asText().withMapper(Integer::parseInt).build();
+    assertThat(req.map(new ByteArrayInputStream("42".getBytes(UTF_8))), is(42));
   }
 
   @Test

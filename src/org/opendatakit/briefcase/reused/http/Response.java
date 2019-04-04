@@ -16,12 +16,30 @@
 
 package org.opendatakit.briefcase.reused.http;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 
 public interface Response<T> {
   static Response<String> ok(String body) {
     return new Success<>(200, body);
+  }
+
+  static <U> Response<U> ok(Request<U> request, HttpResponse httpResponse) {
+    InputStream inputStream = Optional.ofNullable(httpResponse.getEntity())
+        .map(Success::uncheckedGetContent)
+        .orElse(new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8)));
+    return new Success<>(
+        httpResponse.getStatusLine().getStatusCode(),
+        request.map(inputStream)
+    );
   }
 
   static Response<String> noContent() {
@@ -67,6 +85,14 @@ public interface Response<T> {
     Success(int statusCode, T output) {
       this.statusCode = statusCode;
       this.output = output;
+    }
+
+    private static InputStream uncheckedGetContent(HttpEntity entity) {
+      try {
+        return entity.getContent();
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
     }
 
     @Override

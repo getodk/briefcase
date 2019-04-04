@@ -57,7 +57,7 @@ public class CommonsHttpTest {
   public void can_execute_a_GET_request() throws Exception {
     server.request(and(by(uri("/")), by(method(GET)))).response("foo");
     running(server, () -> assertThat(
-        http.execute(RequestBuilder.get(BASE_URL).build()).orElseThrow(BriefcaseException::new),
+        http.execute(RequestBuilder.get(BASE_URL).asText().build()).orElseThrow(BriefcaseException::new),
         containsString("foo")
     ));
   }

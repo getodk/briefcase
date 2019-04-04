@@ -16,31 +16,35 @@
 
 package org.opendatakit.briefcase.reused.http;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.GET;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.HEAD;
 
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Scanner;
 import java.util.function.Function;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class RequestBuilder<T> {
   private final RequestMethod method;
   private final URL url;
-  private final Function<String, T> bodyMapper;
+  private final Function<InputStream, T> bodyMapper;
   private Optional<Credentials> credentials = Optional.empty();
   private Map<String, String> headers = new HashMap<>();
 
-  private RequestBuilder(RequestMethod method, URL url, Function<String, T> bodyMapper) {
+  private RequestBuilder(RequestMethod method, URL url, Function<InputStream, T> bodyMapper) {
     this.method = method;
     this.url = url;
     this.bodyMapper = bodyMapper;
   }
 
-  private RequestBuilder(RequestMethod method, URL url, Optional<Credentials> credentials, Function<String, T> bodyMapper, Map<String, String> headers) {
+  private RequestBuilder(RequestMethod method, URL url, Optional<Credentials> credentials, Function<InputStream, T> bodyMapper, Map<String, String> headers) {
     this.method = method;
     this.url = url;
     this.credentials = credentials;
@@ -48,12 +52,20 @@ public class RequestBuilder<T> {
     this.headers = headers;
   }
 
-  public static RequestBuilder<String> get(URL url) {
+  public static RequestBuilder<InputStream> get(URL url) {
     return new RequestBuilder<>(GET, url, Function.identity());
   }
 
-  public static RequestBuilder<String> head(URL url) {
+  public static RequestBuilder<InputStream> head(URL url) {
     return new RequestBuilder<>(HEAD, url, Function.identity());
+  }
+
+  private static String readString(InputStream is) {
+    try (Scanner scanner = new Scanner(is, UTF_8.name())) {
+      return scanner.useDelimiter("\\A").next();
+    } catch (NoSuchElementException e) {
+      return "";
+    }
   }
 
   private static URL url(String baseUrl) {
@@ -66,6 +78,10 @@ public class RequestBuilder<T> {
 
   public Request<T> build() {
     return new Request<>(method, url, credentials, bodyMapper, headers);
+  }
+
+  public RequestBuilder<String> asText() {
+    return new RequestBuilder<>(method, url, credentials, RequestBuilder::readString, headers);
   }
 
   public RequestBuilder<T> withCredentials(Optional<Credentials> maybeCredentials) {

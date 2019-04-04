@@ -16,6 +16,9 @@
 
 package org.opendatakit.briefcase.reused.http;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.io.ByteArrayInputStream;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +33,6 @@ public class FakeHttp implements Http {
   public <T> Response<T> execute(Request<T> request) {
     return Optional.ofNullable(stubs.get(request))
         .orElseThrow(() -> new RuntimeException("No stub defined for Query " + request.toString()))
-        .map(request::map);
+        .map(body -> request.map(new ByteArrayInputStream(body.getBytes(UTF_8))));
   }
 }
