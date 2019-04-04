@@ -36,16 +36,16 @@ public class RemoteServerDialog {
     this.form.onConnect(server -> {
       form.setTestingConnection();
 
-      new SwingWorker<Response<Boolean>, Void>() {
+      new SwingWorker<Response, Void>() {
         @Override
-        protected Response<Boolean> doInBackground() {
+        protected Response doInBackground() {
           return serverTester.test(server);
         }
 
         @Override
         protected void done() {
           try {
-            Response<Boolean> response = get();
+            Response response = get();
             if (response.isSuccess()) {
               triggerConnect(server);
               form.hideDialog();

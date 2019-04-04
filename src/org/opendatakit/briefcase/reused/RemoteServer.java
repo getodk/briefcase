@@ -116,12 +116,12 @@ public class RemoteServer {
     );
   }
 
-  public Response<Boolean> testPull(Http http) {
-    return http.execute(getFormListRequest()).map(__ -> true);
+  public Response testPull(Http http) {
+    return http.execute(getFormListRequest());
   }
 
-  public Response<Boolean> testPush(Http http) {
-    return http.execute(getPushFormPreflightRequest()).map(__ -> true);
+  public Response testPush(Http http) {
+    return http.execute(getPushFormPreflightRequest());
   }
 
   public boolean containsForm(Http http, String formId) {
@@ -161,8 +161,8 @@ public class RemoteServer {
         .build();
   }
 
-  public interface Test extends Function<RemoteServer, Response<Boolean>> {
-    default Response<Boolean> test(RemoteServer server) {
+  public interface Test extends Function<RemoteServer, Response> {
+    default Response test(RemoteServer server) {
       return apply(server);
     }
   }
