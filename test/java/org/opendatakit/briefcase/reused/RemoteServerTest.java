@@ -53,13 +53,13 @@ public class RemoteServerTest {
         "<forms>\n" +
         "<form url=\"https://some.server.com/formXml?formId=some-form\">Some form</form>\n" +
         "</forms>\n"));
-    assertThat(server.testPull(http).get(), is(true));
+    assertThat(server.testPull(http).isSuccess(), is(true));
   }
 
   @Test
   public void knows_how_to_test_connection_params_for_pushing_forms() {
     http.stub(server.getPushFormPreflightRequest(), noContent());
-    assertThat(server.testPush(http).get(), is(true));
+    assertThat(server.testPush(http).isSuccess(), is(true));
   }
 
   @Test

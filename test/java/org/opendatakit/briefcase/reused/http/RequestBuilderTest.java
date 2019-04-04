@@ -27,27 +27,15 @@ import org.opendatakit.briefcase.reused.Pair;
 public class RequestBuilderTest {
 
   @Test(expected = BriefcaseException.class)
-  public void should_reject_base_URLs_containing_paths() {
-    RequestBuilder.get("http://foo.bar/baz");
+  public void should_reject_calling_withPath_if_baseUrl_already_has_a_path() {
+    RequestBuilder.get("http://foo.bar/baz")
+        .withPath("/bing");
   }
 
   @Test(expected = BriefcaseException.class)
-  public void should_reject_base_URLs_containing_query_strings() {
-    RequestBuilder.get("http://foo.bar?key=value");
-  }
-
-  @Test(expected = BriefcaseException.class)
-  public void should_reject_calling_withPath_twice() {
-    RequestBuilder.get("http://foo.bar")
-        .withPath("/foo")
-        .withPath("/bar");
-  }
-
-  @Test(expected = BriefcaseException.class)
-  public void should_reject_calling_withQuery_twice() {
-    RequestBuilder.get("http://foo.bar")
-        .withQuery(Pair.of("foo", "bar"))
-        .withQuery(Pair.of("bar", "baz"));
+  public void should_reject_calling_withQuery_if_baseUrl_already_has_a_query() {
+    RequestBuilder.get("http://foo.bar/baz?bing=bong")
+        .withQuery(Pair.of("beep", "bop"));
   }
 
   @Test
