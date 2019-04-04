@@ -25,8 +25,10 @@ import static org.xmlpull.v1.XmlPullParser.FEATURE_PROCESS_NAMESPACES;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,10 +36,13 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -95,6 +100,14 @@ public class RequestBuilder<T> {
     }
   }
 
+  private static String urlEncode(String text) {
+    try {
+      return URLEncoder.encode(text, UTF_8.name());
+    } catch (UnsupportedEncodingException e) {
+      throw new BriefcaseException(e);
+    }
+  }
+
   public static URL url(String baseUrl) {
     try {
       return new URL(baseUrl);
@@ -143,5 +156,11 @@ public class RequestBuilder<T> {
       UncheckedFiles.copy(in, target, REPLACE_EXISTING);
       return null;
     }, headers);
+  }
+
+  @SafeVarargs
+  public final RequestBuilder<T> withQueryString(Pair<String, String>... keyValues) {
+    String queryString = Stream.of(keyValues).map(p -> p.getLeft() + "=" + urlEncode(p.getRight())).collect(Collectors.joining("&"));
+    return new RequestBuilder<>(method, url(url.toString() + "?" + queryString), credentials, bodyMapper, headers);
   }
 }
