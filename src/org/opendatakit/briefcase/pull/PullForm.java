@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -55,7 +56,7 @@ public class PullForm {
   private final Path briefcaseDir;
   private final boolean includeIncomplete;
 
-  private PullForm(Http http, RemoteServer server, Path briefcaseDir, boolean includeIncomplete) {
+  PullForm(Http http, RemoteServer server, Path briefcaseDir, boolean includeIncomplete) {
     this.http = http;
     this.server = server;
     this.briefcaseDir = briefcaseDir;
@@ -93,7 +94,7 @@ public class PullForm {
   }
 
   private Job<PullResult> pull(FormStatus form) {
-    PullTracker tracker = new PullTracker(form);
+    PullTracker tracker = new PullTracker(form, EventBus::publish);
     return allOf(
         supply(runnerStatus -> downloadForm(form, tracker)),
         supply(runnerStatus -> getInstanceIdBatches(form, tracker, runnerStatus)),
@@ -115,7 +116,7 @@ public class PullForm {
     });
   }
 
-  private String downloadForm(FormStatus form, PullTracker tracker) {
+  String downloadForm(FormStatus form, PullTracker tracker) {
     String formXml = http.execute(server.getDownloadFormRequest(form.getFormId())).get();
     writeForm(form, formXml);
     tracker.trackFormDownloaded();
@@ -131,7 +132,7 @@ public class PullForm {
     return batches;
   }
 
-  private void downloadFormAttachments(FormStatus form, PullTracker tracker) {
+  void downloadFormAttachments(FormStatus form, PullTracker tracker) {
     form.getManifestUrl()
         .filter(RequestBuilder::isUri)
         .ifPresent(manifestUrl -> {
@@ -146,7 +147,7 @@ public class PullForm {
         });
   }
 
-  private void downloadSubmissionAndMedia(FormStatus form, PullTracker tracker, String instanceId, SubmissionKeyGenerator subKeyGen) {
+  void downloadSubmissionAndMedia(FormStatus form, PullTracker tracker, String instanceId, SubmissionKeyGenerator subKeyGen) {
     DownloadedSubmission submission = downloadSubmission(form, subKeyGen, instanceId);
     writeSubmission(form, submission);
     downloadSubmissionAttachments(form, submission, tracker);

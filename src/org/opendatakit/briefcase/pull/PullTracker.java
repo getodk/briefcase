@@ -18,20 +18,22 @@ package org.opendatakit.briefcase.pull;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.bushe.swing.event.EventBus;
+import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class PullTracker {
+public class PullTracker {
   private static final Logger log = LoggerFactory.getLogger(PullTracker.class);
   private final FormStatus form;
+  private final Consumer<FormStatusEvent> publisher;
   private int totalSubmissions;
   private AtomicInteger submissionCounter = new AtomicInteger(0);
 
-  PullTracker(FormStatus form) {
+  public PullTracker(FormStatus form, Consumer<FormStatusEvent> publisher) {
     this.form = form;
+    this.publisher = publisher;
   }
 
   void trackFormDownloaded() {
@@ -68,6 +70,6 @@ class PullTracker {
   }
 
   private void fireUIEvent() {
-    EventBus.publish(new FormStatusEvent(form));
+    publisher.accept(new FormStatusEvent(form));
   }
 }
