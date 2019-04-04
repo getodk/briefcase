@@ -20,7 +20,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import org.opendatakit.briefcase.reused.http.HttpException;
 
-public class ServerError<T> implements Response<T> {
+class ServerError<T> implements Response<T> {
   private final int statusCode;
   private final String statusPhrase;
 
@@ -57,11 +57,6 @@ public class ServerError<T> implements Response<T> {
   @Override
   public boolean isSuccess() {
     return false;
-  }
-
-  @Override
-  public boolean isFailure() {
-    return true;
   }
 
   @Override

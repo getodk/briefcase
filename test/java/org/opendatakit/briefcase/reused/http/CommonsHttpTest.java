@@ -32,7 +32,7 @@ import static com.github.dreamhead.moco.Moco.status;
 import static com.github.dreamhead.moco.Moco.uri;
 import static com.github.dreamhead.moco.Runner.running;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
@@ -41,10 +41,7 @@ import java.net.URL;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.http.response.ClientError;
-import org.opendatakit.briefcase.reused.http.response.Redirection;
-import org.opendatakit.briefcase.reused.http.response.ServerError;
-import org.opendatakit.briefcase.reused.http.response.Success;
+import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class CommonsHttpTest {
   private static final URL BASE_URL = url("http://localhost:12306");
@@ -69,10 +66,10 @@ public class CommonsHttpTest {
   @Test
   public void can_execute_a_HEAD_request() throws Exception {
     server.request(and(by(uri("/")), by(method(HEAD)))).response("foo");
-    running(server, () -> assertThat(
-        http.execute(RequestBuilder.head(BASE_URL).build()),
-        instanceOf(Success.class)
-    ));
+    running(server, () -> {
+      Response response = http.execute(RequestBuilder.head(BASE_URL).build());
+      assertThat(response.isSuccess(), is(true));
+    });
   }
 
   @Test
@@ -101,36 +98,39 @@ public class CommonsHttpTest {
         match(header("Authorization"), ".+response=\"[a-z0-9]+\".+")
     )).response("foo");
 
-    running(server, () -> assertThat(
-        http.execute(RequestBuilder.get(BASE_URL).withCredentials(Credentials.from("username", "password")).build()),
-        instanceOf(Success.class)
-    ));
+    running(server, () -> {
+      Response withoutCredentials = http.execute(RequestBuilder.get(BASE_URL).build());
+      assertThat(withoutCredentials.isUnauthorized(), is(true));
+
+      Response withCredentials = http.execute(RequestBuilder.get(BASE_URL).withCredentials(Credentials.from("username", "password")).build());
+      assertThat(withCredentials.isSuccess(), is(true));
+    });
   }
 
   @Test
   public void can_handle_5xx_errors() throws Exception {
     server.request(and(by(uri("/")), by(method(GET)))).response(status(500));
-    running(server, () -> assertThat(
-        http.execute(RequestBuilder.get(BASE_URL).build()),
-        instanceOf(ServerError.class)
-    ));
+    running(server, () -> {
+      Response response = http.execute(RequestBuilder.get(BASE_URL).build());
+      assertThat(response.isSuccess(), is(false));
+    });
   }
 
   @Test
   public void can_handle_4xx_errors() throws Exception {
     server.request(and(by(uri("/")), by(method(GET)))).response(status(400));
-    running(server, () -> assertThat(
-        http.execute(RequestBuilder.get(BASE_URL).build()),
-        instanceOf(ClientError.class)
-    ));
+    running(server, () -> {
+      Response response = http.execute(RequestBuilder.get(BASE_URL).build());
+      assertThat(response.isSuccess(), is(false));
+    });
   }
 
   @Test
   public void can_handle_3xx_errors() throws Exception {
     server.request(and(by(uri("/")), by(method(GET)))).response(status(302));
-    running(server, () -> assertThat(
-        http.execute(RequestBuilder.get(BASE_URL).build()),
-        instanceOf(Redirection.class)
-    ));
+    running(server, () -> {
+      Response response = http.execute(RequestBuilder.get(BASE_URL).build());
+      assertThat(response.isSuccess(), is(false));
+    });
   }
 }

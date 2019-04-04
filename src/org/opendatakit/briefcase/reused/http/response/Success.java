@@ -29,7 +29,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.opendatakit.briefcase.reused.http.Request;
 
-public class Success<T> implements Response<T> {
+class Success<T> implements Response<T> {
   private final int statusCode;
   private final String statusPhrase;
   private final T output;
@@ -86,11 +86,6 @@ public class Success<T> implements Response<T> {
   @Override
   public boolean isSuccess() {
     return true;
-  }
-
-  @Override
-  public boolean isFailure() {
-    return false;
   }
 
   @Override

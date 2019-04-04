@@ -47,8 +47,6 @@ public interface Response<T> {
 
   boolean isSuccess();
 
-  boolean isFailure();
-
   boolean isUnauthorized();
 
   boolean isNotFound();
