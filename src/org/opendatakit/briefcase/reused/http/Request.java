@@ -17,8 +17,8 @@
 package org.opendatakit.briefcase.reused.http;
 
 import static java.util.Collections.emptyList;
-import static org.opendatakit.briefcase.reused.http.Request.Method.GET;
-import static org.opendatakit.briefcase.reused.http.Request.Method.HEAD;
+import static org.opendatakit.briefcase.reused.http.RequestMethod.GET;
+import static org.opendatakit.briefcase.reused.http.RequestMethod.HEAD;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -40,13 +40,13 @@ import org.opendatakit.briefcase.reused.Pair;
  * when executed.
  */
 public class Request<T> {
-  private final Method method;
+  private final RequestMethod method;
   private final URL url;
   private final Optional<Credentials> credentials;
   private final Function<String, T> bodyMapper;
   final List<Pair<String, String>> headers;
 
-  private Request(Method method, URL url, Optional<Credentials> credentials, Function<String, T> bodyMapper, List<Pair<String, String>> headers) {
+  private Request(RequestMethod method, URL url, Optional<Credentials> credentials, Function<String, T> bodyMapper, List<Pair<String, String>> headers) {
     this.method = method;
     this.url = url;
     this.credentials = credentials;
@@ -107,7 +107,7 @@ public class Request<T> {
     return url;
   }
 
-  public Method getMethod() {
+  public RequestMethod getMethod() {
     return method;
   }
 
@@ -117,10 +117,6 @@ public class Request<T> {
     } catch (URISyntaxException e) {
       throw new BriefcaseException(e);
     }
-  }
-
-  enum Method {
-    GET, HEAD
   }
 
   @Override
