@@ -17,7 +17,6 @@
 package org.opendatakit.briefcase.reused.http;
 
 
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -48,23 +47,6 @@ public class Request<T> {
     this.credentials = credentials;
     this.bodyMapper = bodyMapper;
     this.headers = headers;
-  }
-
-  public Request<T> resolve(String path) {
-    // Normalize slashes to ensure that the resulting url
-    // has exactly one slash before the input path
-    String newUrl = url.toString()
-        + (!url.toString().endsWith("/") ? "/" : "")
-        + (path.startsWith("/") ? path.substring(1) : path);
-    return new Request<>(method, url(newUrl), credentials, bodyMapper, headers);
-  }
-
-  private static URL url(String baseUrl) {
-    try {
-      return new URL(baseUrl);
-    } catch (MalformedURLException e) {
-      throw new BriefcaseException(e);
-    }
   }
 
   public T map(String body) {

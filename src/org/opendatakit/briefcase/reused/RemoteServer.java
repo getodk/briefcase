@@ -130,23 +130,26 @@ public class RemoteServer {
   }
 
   public Response<Boolean> testPull(Http http) {
-    return http.execute(RequestBuilder.get(baseUrl).withCredentials(credentials).withMapper(__ -> true).build().resolve("/formList"));
+    return http.execute(RequestBuilder.get(baseUrl).resolve("/formList").withCredentials(credentials).withMapper(__ -> true).build());
   }
 
   public Response<Boolean> testPush(Http http) {
-    return http.execute(RequestBuilder.head(baseUrl).withCredentials(credentials).withMapper(__ -> true).build().resolve("/upload"));
+    return http.execute(RequestBuilder.head(baseUrl).resolve("/upload").withCredentials(credentials).withMapper(__ -> true).build());
   }
 
   public boolean containsForm(Http http, String formId) {
-    return http.execute(RequestBuilder.get(baseUrl).withCredentials(credentials)
+    return http.execute(RequestBuilder.get(baseUrl)
+        .resolve("/formList")
+        .withCredentials(credentials)
         .withMapper(body -> Stream.of(body.split("\n")).anyMatch(line -> line.contains("?formId=" + formId)))
-        .build()
-        .resolve("/formList"))
+        .build())
         .orElse(false);
   }
 
   public List<RemoteFormDefinition> getFormsList(Http http) {
-    Response<List<RemoteFormDefinition>> response = http.execute(RequestBuilder.get(baseUrl).withCredentials(credentials)
+    Response<List<RemoteFormDefinition>> response = http.execute(RequestBuilder.get(baseUrl)
+        .resolve("/formList")
+        .withCredentials(credentials)
         .withMapper(body -> {
           Document parse = parse(body);
           Element rootElement = parse.getRootElement();
@@ -155,8 +158,7 @@ public class RemoteServer {
               .map(RemoteServer::toMap)
               .map(RemoteServer::toRemoteFormDefinition)
               .collect(toList());
-        }).build()
-        .resolve("/formList"));
+        }).build());
     return response.orElseThrow(() -> new HttpException(response));
   }
 

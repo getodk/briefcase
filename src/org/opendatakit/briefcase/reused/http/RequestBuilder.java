@@ -19,11 +19,13 @@ package org.opendatakit.briefcase.reused.http;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.GET;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.HEAD;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class RequestBuilder<T> {
   private final RequestMethod method;
@@ -54,6 +56,14 @@ public class RequestBuilder<T> {
     return new RequestBuilder<>(HEAD, url, Function.identity());
   }
 
+  private static URL url(String baseUrl) {
+    try {
+      return new URL(baseUrl);
+    } catch (MalformedURLException e) {
+      throw new BriefcaseException(e);
+    }
+  }
+
   public Request<T> build() {
     return new Request<>(method, url, credentials, bodyMapper, headers);
   }
@@ -70,5 +80,14 @@ public class RequestBuilder<T> {
 
   public <U> RequestBuilder<U> withMapper(Function<T, U> mapper) {
     return new RequestBuilder<>(method, url, credentials, bodyMapper.andThen(mapper), headers);
+  }
+
+  public RequestBuilder<T> resolve(String path) {
+    // Normalize slashes to ensure that the resulting url
+    // has exactly one slash before the input path
+    String newUrl = url.toString()
+        + (!url.toString().endsWith("/") ? "/" : "")
+        + (path.startsWith("/") ? path.substring(1) : path);
+    return new RequestBuilder<>(method, url(newUrl), credentials, bodyMapper, headers);
   }
 }

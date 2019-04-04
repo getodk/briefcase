@@ -32,25 +32,25 @@ public class RequestTest {
   public void can_resolve_paths() {
     // No slashes on base and the path
     assertThat(
-        RequestBuilder.get(getUrl(BASE_URL)).build().resolve("baz").getUrl(),
+        RequestBuilder.get(getUrl(BASE_URL)).resolve("baz").build().getUrl(),
         is(getUrl("http://foo.com/bar/baz"))
     );
 
     // Ending slash on base only
     assertThat(
-        RequestBuilder.get(getUrl(BASE_URL + "/")).build().resolve("baz").getUrl(),
+        RequestBuilder.get(getUrl(BASE_URL + "/")).resolve("baz").build().getUrl(),
         is(getUrl("http://foo.com/bar/baz"))
     );
 
     // Ending slash on base and starting slash on path
     assertThat(
-        RequestBuilder.get(getUrl(BASE_URL + "/")).build().resolve("/baz").getUrl(),
+        RequestBuilder.get(getUrl(BASE_URL + "/")).resolve("/baz").build().getUrl(),
         is(getUrl("http://foo.com/bar/baz"))
     );
 
     // Starting slash on path only
     assertThat(
-        RequestBuilder.get(getUrl(BASE_URL)).build().resolve("/baz").getUrl(),
+        RequestBuilder.get(getUrl(BASE_URL)).resolve("/baz").build().getUrl(),
         is(getUrl("http://foo.com/bar/baz"))
     );
   }
