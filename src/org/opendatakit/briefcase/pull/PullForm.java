@@ -116,7 +116,7 @@ public class PullForm {
   }
 
   private String downloadForm(FormStatus form, PullTracker tracker) {
-    String formXml = downloadForm(form);
+    String formXml = http.execute(server.getDownloadFormRequest(form.getFormId())).get();
     writeForm(form, formXml);
     tracker.trackFormDownloaded();
     return formXml;
@@ -151,10 +151,6 @@ public class PullForm {
     writeSubmission(form, submission);
     downloadSubmissionAttachments(form, submission, tracker);
     tracker.trackSubmission();
-  }
-
-  private String downloadForm(FormStatus form) {
-    return http.execute(server.getDownloadFormRequest(form.getFormId())).get();
   }
 
   private DownloadedSubmission downloadSubmission(FormStatus form, SubmissionKeyGenerator subKeyGen, String instanceId) {
