@@ -20,7 +20,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.reused.http.HttpHelpers.getUrl;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
@@ -28,44 +27,17 @@ import org.junit.Test;
 
 public class RequestTest {
 
-  public static final String BASE_URL = "http://foo.com/bar";
-
-  @Test
-  public void can_resolve_paths() {
-    // No slashes on base and the path
-    assertThat(
-        RequestBuilder.get(getUrl(BASE_URL)).resolve("baz").build().getUrl(),
-        is(getUrl("http://foo.com/bar/baz"))
-    );
-
-    // Ending slash on base only
-    assertThat(
-        RequestBuilder.get(getUrl(BASE_URL + "/")).resolve("baz").build().getUrl(),
-        is(getUrl("http://foo.com/bar/baz"))
-    );
-
-    // Ending slash on base and starting slash on path
-    assertThat(
-        RequestBuilder.get(getUrl(BASE_URL + "/")).resolve("/baz").build().getUrl(),
-        is(getUrl("http://foo.com/bar/baz"))
-    );
-
-    // Starting slash on path only
-    assertThat(
-        RequestBuilder.get(getUrl(BASE_URL)).resolve("/baz").build().getUrl(),
-        is(getUrl("http://foo.com/bar/baz"))
-    );
-  }
+  private static final String BASE_URL = "http://foo.com";
 
   @Test
   public void can_map_a_response_body() {
     // Create a simple request that will parse any incoming string to ints
-    Request<Integer> req = RequestBuilder.get(getUrl(BASE_URL)).asText().withMapper(Integer::parseInt).build();
+    Request<Integer> req = RequestBuilder.get(BASE_URL).asText().withMapper(Integer::parseInt).build();
     assertThat(req.map(new ByteArrayInputStream("42".getBytes(UTF_8))), is(42));
   }
 
   @Test
   public void can_return_its_uri() {
-    assertThat(RequestBuilder.get(getUrl(BASE_URL)).build().asUri(), instanceOf(URI.class));
+    assertThat(RequestBuilder.get(BASE_URL).build().asUri(), instanceOf(URI.class));
   }
 }

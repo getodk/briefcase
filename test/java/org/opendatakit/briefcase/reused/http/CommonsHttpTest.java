@@ -34,7 +34,7 @@ import static com.github.dreamhead.moco.Runner.running;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.reused.http.HttpHelpers.getUrl;
+import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
 import com.github.dreamhead.moco.HttpServer;
 import java.net.URL;
@@ -43,7 +43,7 @@ import org.junit.Test;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class CommonsHttpTest {
-  private static final URL BASE_URL = getUrl("http://localhost:12306");
+  private static final URL BASE_URL = url("http://localhost:12306");
   private HttpServer server;
   private Http http;
 

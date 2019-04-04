@@ -129,11 +129,11 @@ public class RemoteServer {
   }
 
   public Response<Boolean> testPull(Http http) {
-    return http.execute(RequestBuilder.get(baseUrl).resolve("/formList").withCredentials(credentials).withMapper(__ -> true).build());
+    return http.execute(RequestBuilder.get(baseUrl).withPath("/formList").withCredentials(credentials).withMapper(__ -> true).build());
   }
 
   public Response<Boolean> testPush(Http http) {
-    return http.execute(RequestBuilder.head(baseUrl).resolve("/upload").withCredentials(credentials).withMapper(__ -> true).build());
+    return http.execute(RequestBuilder.head(baseUrl).withPath("/upload").withCredentials(credentials).withMapper(__ -> true).build());
   }
 
   private static Document parse(InputStream in) {
@@ -153,7 +153,7 @@ public class RemoteServer {
 
   public boolean containsForm(Http http, String formId) {
     return http.execute(RequestBuilder.get(baseUrl)
-        .resolve("/formList")
+        .withPath("/formList")
         .withCredentials(credentials)
         .asText()
         .withMapper(body -> Stream.of(body.split("\n")).anyMatch(line -> line.contains("?formId=" + formId)))
@@ -195,7 +195,7 @@ public class RemoteServer {
 
   public List<RemoteFormDefinition> getFormsList(Http http) {
     Response<List<RemoteFormDefinition>> response = http.execute(RequestBuilder.get(baseUrl)
-        .resolve("/formList")
+        .withPath("/formList")
         .withCredentials(credentials)
         .withMapper(in -> {
           Document parse = parse(in);

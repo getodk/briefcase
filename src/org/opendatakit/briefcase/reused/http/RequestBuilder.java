@@ -48,35 +48,43 @@ import org.xmlpull.v1.XmlPullParserException;
 
 public class RequestBuilder<T> {
   private final RequestMethod method;
-  private final URL url;
+  private final URL baseUrl;
   private final Function<InputStream, T> bodyMapper;
   private Optional<Credentials> credentials = Optional.empty();
   private Map<String, String> headers = new HashMap<>();
 
-  private RequestBuilder(RequestMethod method, URL url, Function<InputStream, T> bodyMapper) {
+  /**
+   * Internal constructor that will validate and normalize the incoming
+   * baseUrl (no path, no query, no trailing slash)
+   */
+  private RequestBuilder(RequestMethod method, URL baseUrl, Function<InputStream, T> bodyMapper) {
     this.method = method;
-    this.url = url;
+    this.baseUrl = stripTrailingSlash(baseUrl);
     this.bodyMapper = bodyMapper;
   }
 
-  private RequestBuilder(RequestMethod method, URL url, Optional<Credentials> credentials, Function<InputStream, T> bodyMapper, Map<String, String> headers) {
+  /**
+   * Internal constructor to be used on methods that change any of the final
+   * member of the builder (method, url, and bodyMapper)
+   */
+  private RequestBuilder(RequestMethod method, URL baseUrl, Optional<Credentials> credentials, Function<InputStream, T> bodyMapper, Map<String, String> headers) {
     this.method = method;
-    this.url = url;
+    this.baseUrl = baseUrl;
     this.credentials = credentials;
     this.bodyMapper = bodyMapper;
     this.headers = headers;
   }
 
-  public static RequestBuilder<InputStream> get(String url) {
-    return get(url(url));
+  public static RequestBuilder<InputStream> get(String baseUrl) {
+    return new RequestBuilder<>(GET, url(baseUrl), Function.identity());
   }
 
-  public static RequestBuilder<InputStream> get(URL url) {
-    return new RequestBuilder<>(GET, url, Function.identity());
+  public static RequestBuilder<InputStream> get(URL baseUrl) {
+    return new RequestBuilder<>(GET, baseUrl, Function.identity());
   }
 
-  public static RequestBuilder<InputStream> head(URL url) {
-    return new RequestBuilder<>(HEAD, url, Function.identity());
+  public static RequestBuilder<InputStream> head(URL baseUrl) {
+    return new RequestBuilder<>(HEAD, baseUrl, Function.identity());
   }
 
   private static String readString(InputStream is) {
@@ -116,12 +124,34 @@ public class RequestBuilder<T> {
     }
   }
 
+  private static URL stripTrailingSlash(URL baseUrl) {
+    String baseUrlString = baseUrl.toString();
+    return url(baseUrlString.endsWith("/")
+        ? baseUrlString.substring(0, baseUrlString.length() - 1)
+        : baseUrlString);
+  }
+
   public Request<T> build() {
-    return new Request<>(method, url, credentials, bodyMapper, headers);
+    return new Request<>(method, baseUrl, credentials, bodyMapper, headers);
   }
 
   public RequestBuilder<String> asText() {
-    return new RequestBuilder<>(method, url, credentials, RequestBuilder::readString, headers);
+    return new RequestBuilder<>(method, baseUrl, credentials, RequestBuilder::readString, headers);
+  }
+
+  public RequestBuilder<XmlElement> asXmlElement() {
+    return new RequestBuilder<>(method, baseUrl, credentials, RequestBuilder::readXmlElement, headers);
+  }
+
+  public RequestBuilder<Void> downloadTo(Path target) {
+    return new RequestBuilder<>(method, baseUrl, credentials, in -> {
+      UncheckedFiles.copy(in, target, REPLACE_EXISTING);
+      return null;
+    }, headers);
+  }
+
+  public <U> RequestBuilder<U> withMapper(Function<T, U> mapper) {
+    return new RequestBuilder<>(method, baseUrl, credentials, bodyMapper.andThen(mapper), headers);
   }
 
   public RequestBuilder<T> withCredentials(Optional<Credentials> maybeCredentials) {
@@ -134,33 +164,17 @@ public class RequestBuilder<T> {
     return this;
   }
 
-  public <U> RequestBuilder<U> withMapper(Function<T, U> mapper) {
-    return new RequestBuilder<>(method, url, credentials, bodyMapper.andThen(mapper), headers);
-  }
-
-  public RequestBuilder<T> resolve(String path) {
-    // Normalize slashes to ensure that the resulting url
-    // has exactly one slash before the input path
-    String newUrl = url.toString()
-        + (!url.toString().endsWith("/") ? "/" : "")
-        + (path.startsWith("/") ? path.substring(1) : path);
-    return new RequestBuilder<>(method, url(newUrl), credentials, bodyMapper, headers);
-  }
-
-  public RequestBuilder<XmlElement> asXmlElement() {
-    return new RequestBuilder<>(method, url, credentials, RequestBuilder::readXmlElement, headers);
-  }
-
-  public RequestBuilder<Void> downloadTo(Path target) {
-    return new RequestBuilder<>(method, url, credentials, in -> {
-      UncheckedFiles.copy(in, target, REPLACE_EXISTING);
-      return null;
-    }, headers);
+  public RequestBuilder<T> withPath(String path) {
+    if (!baseUrl.getPath().isEmpty())
+      throw new BriefcaseException("Can't apply withPath() twice");
+    return new RequestBuilder<>(method, url(baseUrl + (path.startsWith("/") ? path : "/" + path)), credentials, bodyMapper, headers);
   }
 
   @SafeVarargs
-  public final RequestBuilder<T> withQueryString(Pair<String, String>... keyValues) {
+  public final RequestBuilder<T> withQuery(Pair<String, String>... keyValues) {
+    if (baseUrl.getQuery() != null)
+      throw new BriefcaseException("Can't apply withQuery() twice");
     String queryString = Stream.of(keyValues).map(p -> p.getLeft() + "=" + urlEncode(p.getRight())).collect(Collectors.joining("&"));
-    return new RequestBuilder<>(method, url(url.toString() + "?" + queryString), credentials, bodyMapper, headers);
+    return new RequestBuilder<>(method, url(baseUrl.toString() + "?" + queryString), credentials, bodyMapper, headers);
   }
 }
