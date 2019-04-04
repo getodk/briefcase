@@ -41,7 +41,10 @@ import java.net.URL;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.http.response.Response;
+import org.opendatakit.briefcase.reused.http.response.ClientError;
+import org.opendatakit.briefcase.reused.http.response.Redirection;
+import org.opendatakit.briefcase.reused.http.response.ServerError;
+import org.opendatakit.briefcase.reused.http.response.Success;
 
 public class CommonsHttpTest {
   private static final URL BASE_URL = url("http://localhost:12306");
@@ -68,7 +71,7 @@ public class CommonsHttpTest {
     server.request(and(by(uri("/")), by(method(HEAD)))).response("foo");
     running(server, () -> assertThat(
         http.execute(RequestBuilder.head(BASE_URL).build()),
-        instanceOf(Response.Success.class)
+        instanceOf(Success.class)
     ));
   }
 
@@ -100,7 +103,7 @@ public class CommonsHttpTest {
 
     running(server, () -> assertThat(
         http.execute(RequestBuilder.get(BASE_URL).withCredentials(Credentials.from("username", "password")).build()),
-        instanceOf(Response.Success.class)
+        instanceOf(Success.class)
     ));
   }
 
@@ -109,7 +112,7 @@ public class CommonsHttpTest {
     server.request(and(by(uri("/")), by(method(GET)))).response(status(500));
     running(server, () -> assertThat(
         http.execute(RequestBuilder.get(BASE_URL).build()),
-        instanceOf(Response.ServerError.class)
+        instanceOf(ServerError.class)
     ));
   }
 
@@ -118,7 +121,7 @@ public class CommonsHttpTest {
     server.request(and(by(uri("/")), by(method(GET)))).response(status(400));
     running(server, () -> assertThat(
         http.execute(RequestBuilder.get(BASE_URL).build()),
-        instanceOf(Response.ClientError.class)
+        instanceOf(ClientError.class)
     ));
   }
 
@@ -127,7 +130,7 @@ public class CommonsHttpTest {
     server.request(and(by(uri("/")), by(method(GET)))).response(status(302));
     running(server, () -> assertThat(
         http.execute(RequestBuilder.get(BASE_URL).build()),
-        instanceOf(Response.Redirection.class)
+        instanceOf(Redirection.class)
     ));
   }
 }

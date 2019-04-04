@@ -18,22 +18,22 @@ package org.opendatakit.briefcase.reused.http.response;
 
 public class ResponseHelpers {
   public static Response<String> ok(String body) {
-    return new Response.Success<>(200, "OK", body);
+    return new Success<>(200, "OK", body);
   }
 
   public static Response<String> noContent() {
-    return new Response.Success<>(204, "No Content", null);
+    return new Success<>(204, "No Content", null);
   }
 
   public static Response<Boolean> found() {
-    return new Response.Redirection<>(302, "Found");
+    return new Redirection<>(302, "Found");
   }
 
   public static Response<Boolean> unauthorized() {
-    return new Response.ClientError<>(401, "Unauthorized");
+    return new ClientError<>(401, "Unauthorized");
   }
 
   public static Response<Boolean> notFound() {
-    return new Response.ClientError<>(404, "Not Found");
+    return new ClientError<>(404, "Not Found");
   }
 }
