@@ -66,7 +66,7 @@ public class CommonsHttpTest {
   public void can_execute_a_HEAD_request() throws Exception {
     server.request(and(by(uri("/")), by(method(HEAD)))).response("foo");
     running(server, () -> assertThat(
-        http.execute(Request.head(BASE_URL)),
+        http.execute(RequestBuilder.head(BASE_URL).build()),
         instanceOf(Response.Success.class)
     ));
   }

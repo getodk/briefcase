@@ -16,8 +16,6 @@
 
 package org.opendatakit.briefcase.reused.http;
 
-import static java.util.Collections.emptyMap;
-import static org.opendatakit.briefcase.reused.http.RequestMethod.HEAD;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -50,14 +48,6 @@ public class Request<T> {
     this.credentials = credentials;
     this.bodyMapper = bodyMapper;
     this.headers = headers;
-  }
-
-  public static Request<String> head(URL url) {
-    return new Request<>(HEAD, url, Optional.empty(), Function.identity(), emptyMap());
-  }
-
-  public static Request<String> head(URL url, Optional<Credentials> credentials) {
-    return new Request<>(HEAD, url, credentials, Function.identity(), emptyMap());
   }
 
   public Request<T> resolve(String path) {

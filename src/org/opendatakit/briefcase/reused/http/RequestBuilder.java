@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.reused.http;
 
 import static org.opendatakit.briefcase.reused.http.RequestMethod.GET;
+import static org.opendatakit.briefcase.reused.http.RequestMethod.HEAD;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -38,6 +39,10 @@ public class RequestBuilder<T> {
 
   public static RequestBuilder<String> get(URL url) {
     return new RequestBuilder<>(GET, url);
+  }
+
+  public static RequestBuilder<String> head(URL url) {
+    return new RequestBuilder<>(HEAD, url);
   }
 
   public Request<T> build() {

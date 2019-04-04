@@ -48,7 +48,6 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
-import org.opendatakit.briefcase.reused.http.Request;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.http.Response;
 import org.xmlpull.v1.XmlPullParser;
@@ -135,7 +134,7 @@ public class RemoteServer {
   }
 
   public Response<Boolean> testPush(Http http) {
-    return http.execute(Request.head(baseUrl, credentials).resolve("/upload").withMapper(__ -> true));
+    return http.execute(RequestBuilder.head(baseUrl).withCredentials(credentials).build().resolve("/upload").withMapper(__ -> true));
   }
 
   public boolean containsForm(Http http, String formId) {

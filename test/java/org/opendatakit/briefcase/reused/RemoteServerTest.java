@@ -18,7 +18,6 @@ package org.opendatakit.briefcase.reused;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.reused.http.Request.head;
 import static org.opendatakit.briefcase.reused.http.Response.noContent;
 import static org.opendatakit.briefcase.reused.http.Response.ok;
 
@@ -60,7 +59,7 @@ public class RemoteServerTest {
 
   @Test
   public void knows_how_to_test_connection_params_for_pushing_forms() throws MalformedURLException {
-    http.stub(head(new URL("https://some.server.com/upload")), noContent());
+    http.stub(RequestBuilder.head(new URL("https://some.server.com/upload")).build(), noContent());
     assertThat(server.testPush(http).get(), is(true));
   }
 }
