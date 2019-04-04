@@ -19,8 +19,11 @@ package org.opendatakit.briefcase.reused.http;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.GET;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.HEAD;
+import static org.xmlpull.v1.XmlPullParser.FEATURE_PROCESS_NAMESPACES;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -29,7 +32,11 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.function.Function;
+import org.kxml2.io.KXmlParser;
+import org.kxml2.kdom.Document;
+import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.xmlpull.v1.XmlPullParserException;
 
 public class RequestBuilder<T> {
   private final RequestMethod method;
@@ -52,6 +59,10 @@ public class RequestBuilder<T> {
     this.headers = headers;
   }
 
+  public static RequestBuilder<InputStream> get(String url) {
+    return get(url(url));
+  }
+
   public static RequestBuilder<InputStream> get(URL url) {
     return new RequestBuilder<>(GET, url, Function.identity());
   }
@@ -68,7 +79,20 @@ public class RequestBuilder<T> {
     }
   }
 
-  private static URL url(String baseUrl) {
+  private static XmlElement readXmlElement(InputStream is) {
+    try (InputStreamReader isr = new InputStreamReader(is)) {
+      Document doc = new Document();
+      KXmlParser parser = new KXmlParser();
+      parser.setInput(isr);
+      parser.setFeature(FEATURE_PROCESS_NAMESPACES, true);
+      doc.parse(parser);
+      return XmlElement.of(doc);
+    } catch (XmlPullParserException | IOException e) {
+      throw new BriefcaseException(e);
+    }
+  }
+
+  public static URL url(String baseUrl) {
     try {
       return new URL(baseUrl);
     } catch (MalformedURLException e) {
@@ -105,5 +129,9 @@ public class RequestBuilder<T> {
         + (!url.toString().endsWith("/") ? "/" : "")
         + (path.startsWith("/") ? path.substring(1) : path);
     return new RequestBuilder<>(method, url(newUrl), credentials, bodyMapper, headers);
+  }
+
+  public RequestBuilder<XmlElement> asXmlElement() {
+    return new RequestBuilder<>(method, url, credentials, RequestBuilder::readXmlElement, headers);
   }
 }

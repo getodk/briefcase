@@ -51,7 +51,7 @@ public class XmlElement {
    * @param document {@link Document} instance
    * @return a new {@link XmlElement} instance
    */
-  static XmlElement of(Document document) {
+  public static XmlElement of(Document document) {
     return new XmlElement(document.getRootElement());
   }
 
