@@ -22,7 +22,6 @@ import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.reused.http.HttpHelpers.getUrl;
 
 import java.net.URI;
-
 import org.junit.Test;
 
 public class RequestTest {
@@ -33,25 +32,25 @@ public class RequestTest {
   public void can_resolve_paths() {
     // No slashes on base and the path
     assertThat(
-        Request.get(getUrl(BASE_URL)).resolve("baz").getUrl(),
+        RequestBuilder.get(getUrl(BASE_URL)).build().resolve("baz").getUrl(),
         is(getUrl("http://foo.com/bar/baz"))
     );
 
     // Ending slash on base only
     assertThat(
-        Request.get(getUrl(BASE_URL + "/")).resolve("baz").getUrl(),
+        RequestBuilder.get(getUrl(BASE_URL + "/")).build().resolve("baz").getUrl(),
         is(getUrl("http://foo.com/bar/baz"))
     );
 
     // Ending slash on base and starting slash on path
     assertThat(
-        Request.get(getUrl(BASE_URL + "/")).resolve("/baz").getUrl(),
+        RequestBuilder.get(getUrl(BASE_URL + "/")).build().resolve("/baz").getUrl(),
         is(getUrl("http://foo.com/bar/baz"))
     );
 
     // Starting slash on path only
     assertThat(
-        Request.get(getUrl(BASE_URL)).resolve("/baz").getUrl(),
+        RequestBuilder.get(getUrl(BASE_URL)).build().resolve("/baz").getUrl(),
         is(getUrl("http://foo.com/bar/baz"))
     );
   }
@@ -59,12 +58,12 @@ public class RequestTest {
   @Test
   public void can_map_a_response_body() {
     // Create a simple request that will parse any incoming string to ints
-    Request<Integer> req = Request.get(getUrl(BASE_URL)).withMapper(Integer::parseInt);
+    Request<Integer> req = RequestBuilder.get(getUrl(BASE_URL)).build().withMapper(Integer::parseInt);
     assertThat(req.map("42"), is(42));
   }
 
   @Test
   public void can_return_its_uri() {
-    assertThat(Request.get(getUrl(BASE_URL)).asUri(), instanceOf(URI.class));
+    assertThat(RequestBuilder.get(getUrl(BASE_URL)).build().asUri(), instanceOf(URI.class));
   }
 }

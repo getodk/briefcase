@@ -49,6 +49,7 @@ import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.reused.http.Request;
+import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.http.Response;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -130,7 +131,7 @@ public class RemoteServer {
   }
 
   public Response<Boolean> testPull(Http http) {
-    return http.execute(Request.get(baseUrl, credentials).resolve("/formList").withMapper(__ -> true));
+    return http.execute(RequestBuilder.get(baseUrl).withCredentials(credentials).build().resolve("/formList").withMapper(__ -> true));
   }
 
   public Response<Boolean> testPush(Http http) {
@@ -138,14 +139,14 @@ public class RemoteServer {
   }
 
   public boolean containsForm(Http http, String formId) {
-    return http.execute(Request.get(baseUrl, credentials)
+    return http.execute(RequestBuilder.get(baseUrl).withCredentials(credentials).build()
         .resolve("/formList")
         .withMapper(body -> Stream.of(body.split("\n")).anyMatch(line -> line.contains("?formId=" + formId))))
         .orElse(false);
   }
 
   public List<RemoteFormDefinition> getFormsList(Http http) {
-    Response<List<RemoteFormDefinition>> response = http.execute(Request.get(baseUrl, credentials)
+    Response<List<RemoteFormDefinition>> response = http.execute(RequestBuilder.get(baseUrl).withCredentials(credentials).build()
         .resolve("/formList")
         .withMapper(body -> {
           Document parse = parse(body);

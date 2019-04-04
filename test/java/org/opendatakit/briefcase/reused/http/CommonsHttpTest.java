@@ -57,7 +57,7 @@ public class CommonsHttpTest {
   public void can_execute_a_GET_request() throws Exception {
     server.request(and(by(uri("/")), by(method(GET)))).response("foo");
     running(server, () -> assertThat(
-        http.execute(Request.get(BASE_URL)).orElseThrow(BriefcaseException::new),
+        http.execute(RequestBuilder.get(BASE_URL).build()).orElseThrow(BriefcaseException::new),
         containsString("foo")
     ));
   }
@@ -98,7 +98,7 @@ public class CommonsHttpTest {
     )).response("foo");
 
     running(server, () -> assertThat(
-        http.execute(Request.get(BASE_URL, Credentials.from("username", "password"))),
+        http.execute(RequestBuilder.get(BASE_URL).withCredentials(Credentials.from("username", "password")).build()),
         instanceOf(Response.Success.class)
     ));
   }
@@ -107,7 +107,7 @@ public class CommonsHttpTest {
   public void can_handle_5xx_errors() throws Exception {
     server.request(and(by(uri("/")), by(method(GET)))).response(status(500));
     running(server, () -> assertThat(
-        http.execute(Request.get(BASE_URL)),
+        http.execute(RequestBuilder.get(BASE_URL).build()),
         instanceOf(Response.ServerError.class)
     ));
   }
@@ -116,7 +116,7 @@ public class CommonsHttpTest {
   public void can_handle_4xx_errors() throws Exception {
     server.request(and(by(uri("/")), by(method(GET)))).response(status(400));
     running(server, () -> assertThat(
-        http.execute(Request.get(BASE_URL)),
+        http.execute(RequestBuilder.get(BASE_URL).build()),
         instanceOf(Response.ClientError.class)
     ));
   }
@@ -125,7 +125,7 @@ public class CommonsHttpTest {
   public void can_handle_3xx_errors() throws Exception {
     server.request(and(by(uri("/")), by(method(GET)))).response(status(302));
     running(server, () -> assertThat(
-        http.execute(Request.get(BASE_URL)),
+        http.execute(RequestBuilder.get(BASE_URL).build()),
         instanceOf(Response.Redirection.class)
     ));
   }

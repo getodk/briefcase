@@ -18,7 +18,6 @@ package org.opendatakit.briefcase.reused;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.reused.http.Request.get;
 import static org.opendatakit.briefcase.reused.http.Request.head;
 import static org.opendatakit.briefcase.reused.http.Response.noContent;
 import static org.opendatakit.briefcase.reused.http.Response.ok;
@@ -28,6 +27,7 @@ import java.net.URL;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
+import org.opendatakit.briefcase.reused.http.RequestBuilder;
 
 public class RemoteServerTest {
   private FakeHttp http;
@@ -41,7 +41,7 @@ public class RemoteServerTest {
 
   @Test
   public void knows_if_it_contains_a_form() throws MalformedURLException {
-    http.stub(get(new URL("https://some.server.com/formList")), ok("" +
+    http.stub(RequestBuilder.get(new URL("https://some.server.com/formList")).build(), ok("" +
         "<forms>\n" +
         "<form url=\"https://some.server.com/formXml?formId=some-form\">Some form</form>\n" +
         "</forms>\n"));
@@ -51,7 +51,7 @@ public class RemoteServerTest {
 
   @Test
   public void knows_how_to_test_connection_params_for_pulling_forms() throws MalformedURLException {
-    http.stub(get(new URL("https://some.server.com/formList")), ok("" +
+    http.stub(RequestBuilder.get(new URL("https://some.server.com/formList")).build(), ok("" +
         "<forms>\n" +
         "<form url=\"https://some.server.com/formXml?formId=some-form\">Some form</form>\n" +
         "</forms>\n"));
