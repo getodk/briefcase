@@ -17,6 +17,11 @@
 package org.opendatakit.briefcase.model;
 
 
+import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
+
+import java.nio.file.Path;
+import java.util.Optional;
+
 public class FormStatus {
 
   private static final int STATUS_HISTORY_MAX_BYTES = 1024 * 1024;
@@ -90,4 +95,23 @@ public class FormStatus {
   public String getFormId() {
     return form.getFormId();
   }
+
+  public Optional<String> getManifestUrl() {
+    if (!(form instanceof RemoteFormDefinition))
+      return Optional.empty();
+    return Optional.ofNullable(((RemoteFormDefinition) form).getManifestUrl());
+  }
+
+  public Path getFormDir(Path briefcaseDir) {
+    return briefcaseDir.resolve("forms").resolve(stripIllegalChars(form.getFormName()));
+  }
+
+  public Path getFormMediaDir(Path briefcaseDir) {
+    return getFormDir(briefcaseDir).resolve(stripIllegalChars(form.getFormName()) + "-media");
+  }
+
+  public Path getSubmissionDir(Path briefcaseDir, String instanceId) {
+    return getFormDir(briefcaseDir).resolve("instances").resolve(stripIllegalChars(instanceId));
+  }
+
 }

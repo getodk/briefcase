@@ -34,6 +34,7 @@ import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
+import org.opendatakit.briefcase.pull.DownloadedSubmission;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
@@ -139,6 +140,23 @@ public class RemoteServer {
     return response.orElseThrow(() -> new HttpException(response));
   }
 
+  public Request<String> getDownloadFormRequest(String formId) {
+    return get(baseUrl)
+        .asText()
+        .withPath("/formXml")
+        .withQuery(Pair.of("formId", formId))
+        .build();
+  }
+
+  public Request<DownloadedSubmission> getDownloadSubmissionRequest(String submissionKey) {
+    return get(baseUrl)
+        .asXmlElement()
+        .withPath("/view/downloadSubmission")
+        .withQuery(Pair.of("formId", submissionKey))
+        .withMapper(DownloadedSubmission::from)
+        .build();
+  }
+
   public Request<List<RemoteFormDefinition>> getFormListRequest() {
     return get(baseUrl)
         .asXmlElement()
@@ -158,6 +176,19 @@ public class RemoteServer {
         .asText()
         .withPath("/upload")
         .withCredentials(credentials)
+        .build();
+  }
+
+  public Request<XmlElement> getInstanceIdBatchRequest(String formId, int entriesPerBatch, String cursor, boolean includeIncomplete) {
+    return get(baseUrl)
+        .asXmlElement()
+        .withPath("/view/submissionList")
+        .withQuery(
+            Pair.of("formId", formId),
+            Pair.of("cursor", cursor),
+            Pair.of("numEntries", String.valueOf(entriesPerBatch)),
+            Pair.of("includeIncomplete", includeIncomplete ? "true" : "false")
+        )
         .build();
   }
 

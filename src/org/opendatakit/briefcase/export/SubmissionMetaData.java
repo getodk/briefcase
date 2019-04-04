@@ -30,7 +30,7 @@ import org.opendatakit.briefcase.reused.Optionals;
  * <p>
  * All its members are lazily evaluated to avoid unnecessary parsing.
  */
-class SubmissionMetaData {
+public class SubmissionMetaData {
   private final XmlElement root;
   // All these members are not final because they're lazily evaluated
   private String formId;
@@ -48,7 +48,7 @@ class SubmissionMetaData {
    * an {@link XmlElement} to act as the root element which will be
    * queries for the different values this class can offer.
    */
-  SubmissionMetaData(XmlElement root) {
+  public SubmissionMetaData(XmlElement root) {
     this.root = root;
   }
 
@@ -57,7 +57,7 @@ class SubmissionMetaData {
    * <p>
    * The value gets mapped to an {@link OffsetDateTime}
    */
-  Optional<OffsetDateTime> getSubmissionDate() {
+  public Optional<OffsetDateTime> getSubmissionDate() {
     if (submissionDate == null)
       submissionDate = root.getAttributeValue("submissionDate")
           .map(SubmissionMetaData::regularizeDateTime)
@@ -81,7 +81,7 @@ class SubmissionMetaData {
    * Returns this submission's instance ID, which is taken from the &lt;instanceID&gt;
    * element's value, or from the root node's "instanceID" attribute.
    */
-  Optional<String> getInstanceId() {
+  public Optional<String> getInstanceId() {
     if (instanceId == null)
       instanceId = Optionals.race(
           root.findElement("instanceID").flatMap(XmlElement::maybeValue),
@@ -96,7 +96,7 @@ class SubmissionMetaData {
    *
    * @throws ParsingException if neither attribute is found or they're empty
    */
-  String getFormId() {
+  public String getFormId() {
     if (formId == null)
       formId = Optionals.race(
           root.getAttributeValue("id"),
@@ -109,7 +109,7 @@ class SubmissionMetaData {
    * Return this submission's version, which is taken from the root node's
    * "version" attribute.
    */
-  Optional<String> getVersion() {
+  public Optional<String> getVersion() {
     if (version == null)
       version = root.getAttributeValue("version");
     return version;
@@ -119,7 +119,7 @@ class SubmissionMetaData {
    * Return the base64 encoded encryption key from the &lt;base64EncryptedKey&gt;
    * element's value.
    */
-  Optional<String> getBase64EncryptedKey() {
+  public Optional<String> getBase64EncryptedKey() {
     if (base64EncryptedKey == null)
       base64EncryptedKey = root.findElement("base64EncryptedKey").flatMap(XmlElement::maybeValue);
     return base64EncryptedKey;
@@ -129,7 +129,7 @@ class SubmissionMetaData {
    * Returns the list of media attachment file names, which are the values of
    * all the &lt;file&gt; children in the &lt;media&gt element
    */
-  List<String> getMediaNames() {
+  public List<String> getMediaNames() {
     if (mediaNames == null)
       mediaNames = root.findElements("media").stream()
           .flatMap(e -> e.findElements("file").stream())
@@ -144,7 +144,7 @@ class SubmissionMetaData {
    * Return the file name of the encrypted submission file, taken from the
    * &lt;encryptedXmlFile&gt; element's value.
    */
-  Optional<String> getEncryptedXmlFile() {
+  public Optional<String> getEncryptedXmlFile() {
     if (encryptedXmlFile == null)
       encryptedXmlFile = root.findElement("encryptedXmlFile").flatMap(XmlElement::maybeValue);
     return encryptedXmlFile;
@@ -154,7 +154,7 @@ class SubmissionMetaData {
    * Return the cryptographic signature of this submissions, taken from the
    * &lt;base64EncryptedElementSignature&gt; element's value.
    */
-  Optional<String> getEncryptedSignature() {
+  public Optional<String> getEncryptedSignature() {
     if (encryptedSignature == null)
       encryptedSignature = root.findElement("base64EncryptedElementSignature").flatMap(XmlElement::maybeValue);
     return encryptedSignature;

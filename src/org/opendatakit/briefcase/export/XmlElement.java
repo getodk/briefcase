@@ -19,6 +19,10 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.javarosa.xform.parse.XFormParser.getXMLText;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,10 +32,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.kxml2.io.KXmlParser;
+import org.kxml2.io.KXmlSerializer;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
 import org.kxml2.kdom.Node;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 /**
  * This class represents an Element in a Form's submission xml document.
@@ -40,7 +48,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 public class XmlElement {
   private final Element element;
 
-  XmlElement(Element element) {
+  public XmlElement(Element element) {
     this.element = element;
   }
 
@@ -53,6 +61,19 @@ public class XmlElement {
    */
   public static XmlElement of(Document document) {
     return new XmlElement(document.getRootElement());
+  }
+
+  public static XmlElement from(String xml) {
+    try {
+      Document tempDoc = new Document();
+      KXmlParser parser = new KXmlParser();
+      parser.setInput(new StringReader(xml));
+      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      tempDoc.parse(parser);
+      return XmlElement.of(tempDoc);
+    } catch (XmlPullParserException | IOException e) {
+      throw new BriefcaseException(e);
+    }
   }
 
   /**
@@ -160,7 +181,7 @@ public class XmlElement {
    * @return the {@link String} value of the given attribute wrapped inside an {@link Optional} instance,
    *     or an {@link Optional#empty()} if no value is found
    */
-  Optional<String> getAttributeValue(String attribute) {
+  public Optional<String> getAttributeValue(String attribute) {
     return Optional.ofNullable(element.getAttributeValue(null, attribute)).filter(s -> !s.isEmpty());
   }
 
@@ -276,5 +297,21 @@ public class XmlElement {
   @Override
   public int hashCode() {
     return Objects.hash(element);
+  }
+
+  public String serialize() {
+    StringWriter stringWriter = new StringWriter();
+    KXmlSerializer serializer = new KXmlSerializer();
+    element.setPrefix(null, "http://opendatakit.org/submissions");
+    try {
+      serializer.setOutput(stringWriter);
+      element.write(serializer);
+      serializer.flush();
+      serializer.endDocument();
+      stringWriter.close();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    return stringWriter.toString();
   }
 }
