@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.reused.http;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.GET;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.HEAD;
 import static org.xmlpull.v1.XmlPullParser.FEATURE_PROCESS_NAMESPACES;
@@ -26,6 +27,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -36,6 +38,7 @@ import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.xmlpull.v1.XmlPullParserException;
 
 public class RequestBuilder<T> {
@@ -133,5 +136,12 @@ public class RequestBuilder<T> {
 
   public RequestBuilder<XmlElement> asXmlElement() {
     return new RequestBuilder<>(method, url, credentials, RequestBuilder::readXmlElement, headers);
+  }
+
+  public RequestBuilder<Void> downloadTo(Path target) {
+    return new RequestBuilder<>(method, url, credentials, in -> {
+      UncheckedFiles.copy(in, target, REPLACE_EXISTING);
+      return null;
+    }, headers);
   }
 }
