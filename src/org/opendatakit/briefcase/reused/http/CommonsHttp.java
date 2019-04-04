@@ -76,7 +76,7 @@ public class CommonsHttp implements Http {
     commonsRequest.connectTimeout(10_000);
     commonsRequest.socketTimeout(10_000);
     commonsRequest.addHeader("X-OpenRosa-Version", "1.0");
-    request.headers.forEach(pair -> commonsRequest.addHeader(pair.getLeft(), pair.getRight()));
+    request.headers.forEach(commonsRequest::addHeader);
     try {
       return executor
           .execute(commonsRequest)

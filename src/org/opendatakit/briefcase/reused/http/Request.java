@@ -16,7 +16,7 @@
 
 package org.opendatakit.briefcase.reused.http;
 
-import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.GET;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.HEAD;
 
@@ -24,13 +24,12 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.Pair;
 
 /**
  * This Value Object class represents an HTTP request to some {@link URL}, maybe using
@@ -44,9 +43,9 @@ public class Request<T> {
   private final URL url;
   private final Optional<Credentials> credentials;
   private final Function<String, T> bodyMapper;
-  final List<Pair<String, String>> headers;
+  final Map<String, String> headers;
 
-  private Request(RequestMethod method, URL url, Optional<Credentials> credentials, Function<String, T> bodyMapper, List<Pair<String, String>> headers) {
+  Request(RequestMethod method, URL url, Optional<Credentials> credentials, Function<String, T> bodyMapper, Map<String, String> headers) {
     this.method = method;
     this.url = url;
     this.credentials = credentials;
@@ -55,23 +54,23 @@ public class Request<T> {
   }
 
   public static Request<String> get(URL url) {
-    return new Request<>(GET, url, Optional.empty(), Function.identity(), emptyList());
+    return new Request<>(GET, url, Optional.empty(), Function.identity(), emptyMap());
   }
 
   public static Request<String> get(URL url, Optional<Credentials> credentials) {
-    return new Request<>(GET, url, credentials, Function.identity(), emptyList());
+    return new Request<>(GET, url, credentials, Function.identity(), emptyMap());
   }
 
   public static Request<String> get(URL url, Credentials credentials) {
-    return new Request<>(GET, url, Optional.of(credentials), Function.identity(), emptyList());
+    return new Request<>(GET, url, Optional.of(credentials), Function.identity(), emptyMap());
   }
 
   public static Request<String> head(URL url) {
-    return new Request<>(HEAD, url, Optional.empty(), Function.identity(), emptyList());
+    return new Request<>(HEAD, url, Optional.empty(), Function.identity(), emptyMap());
   }
 
   public static Request<String> head(URL url, Optional<Credentials> credentials) {
-    return new Request<>(HEAD, url, credentials, Function.identity(), emptyList());
+    return new Request<>(HEAD, url, credentials, Function.identity(), emptyMap());
   }
 
   public Request<T> resolve(String path) {
