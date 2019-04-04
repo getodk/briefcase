@@ -24,25 +24,43 @@ import java.io.UncheckedIOException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Optional;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
+import org.apache.http.impl.NoConnectionReuseStrategy;
 import org.apache.http.impl.client.AbstractResponseHandler;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 
 public class CommonsHttp implements Http {
-  @Override
-  public <T> Response<T> execute(Request<T> request) {
-    // Always instantiate a new Executor to avoid side-effects between executions
-    Executor executor = Executor.newInstance(HttpClientBuilder
+  private final Executor executor;
+
+  private CommonsHttp(Executor executor) {
+    this.executor = executor;
+  }
+
+  public static Http nonReusing() {
+    return new CommonsHttp(Executor.newInstance(HttpClientBuilder
+        .create()
+        .setConnectionManager(new BasicHttpClientConnectionManager())
+        .setConnectionReuseStrategy(new NoConnectionReuseStrategy())
+        .setDefaultRequestConfig(custom().setCookieSpec(STANDARD).build())
+        .build()));
+  }
+
+  public static Http reusing() {
+    return new CommonsHttp(Executor.newInstance(HttpClientBuilder
         .create()
         .setDefaultRequestConfig(custom().setCookieSpec(STANDARD).build())
-        .build());
+        .build()));
+  }
+
+  @Override
+  public <T> Response<T> execute(Request<T> request) {
     // Apply auth settings if credentials are received
     request.ifCredentials((URL url, Credentials credentials) -> executor.auth(
         HttpHost.create(url.getHost()),
