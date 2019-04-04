@@ -67,6 +67,11 @@ public class CommonsHttp implements Http {
     return uncheckedExecute(request, executor);
   }
 
+  @Override
+  public Http reusingConnections() {
+    return CommonsHttp.reusing();
+  }
+
   private <T> Response<T> uncheckedExecute(Request<T> request, Executor executor) {
     org.apache.http.client.fluent.Request commonsRequest = getCommonsRequest(request);
     commonsRequest.connectTimeout(10_000);

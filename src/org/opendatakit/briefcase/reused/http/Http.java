@@ -30,4 +30,6 @@ public interface Http {
    * @return an output value of type T
    */
   <T> Response<T> execute(Request<T> request);
+
+  Http reusingConnections();
 }

@@ -36,14 +36,18 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.swing.JLabel;
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.FormInstaller;
+import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.pull.PullForm;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.DeferredValue;
 import org.opendatakit.briefcase.reused.RemoteServer;
@@ -185,12 +189,11 @@ public interface Source<T> {
    * Pulls forms to the Briefcase Storage Directory from this configured {@link Source}.
    *
    * @param forms             {@link List} of forms to be pulled
-   * @param terminationFuture object that to make the operation cancellable
    * @param includeIncomplete when passed true, it enables requesting the incomplete
    *                          submissions. This needs to be supported by the selected source
    * @param resumeLastPull
    */
-  void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate);
+  void pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate);
 
   /**
    * Pushes forms to this configured {@link Source}.
@@ -263,8 +266,13 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
-      TransferAction.transferServerToBriefcase(server.asServerConnectionInfo(), terminationFuture, forms, briefcaseDir, pullInParallel, includeIncomplete, resumeLastPull, startFromDate);
+    public void pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
+      forms.getSelectedForms()
+          .map(form -> CompletableFuture.runAsync(() ->
+              PullForm.pull(form, includeIncomplete, server, briefcaseDir, http.reusingConnections())
+          ))
+          .reduce(CompletableFuture.runAsync(() -> {}), (a, b) -> CompletableFuture.allOf(a, b))
+          .thenRun(() -> EventBus.publish(new PullEvent.Success(forms, server.asServerConnectionInfo())));
     }
 
     @Override
@@ -364,8 +372,8 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
-      TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), terminationFuture, forms);
+    public void pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
+      TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), new TerminationFuture(), forms);
     }
 
     @Override
@@ -452,7 +460,7 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
+    public void pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
       invokeLater(() -> FormInstaller.install(briefcaseDir, form));
     }
 

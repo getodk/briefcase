@@ -36,4 +36,9 @@ public class FakeHttp implements Http {
         .orElseThrow(() -> new RuntimeException("No stub defined for Query " + request.toString()))
         .map(body -> request.map(new ByteArrayInputStream(body.getBytes(UTF_8))));
   }
+
+  @Override
+  public Http reusingConnections() {
+    return this;
+  }
 }
