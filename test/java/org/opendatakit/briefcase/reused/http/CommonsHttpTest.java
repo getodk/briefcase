@@ -41,6 +41,7 @@ import java.net.URL;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class CommonsHttpTest {
   private static final URL BASE_URL = url("http://localhost:12306");

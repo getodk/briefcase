@@ -22,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class FakeHttp implements Http {
   private final Map<Request<?>, Response<String>> stubs = new ConcurrentHashMap<>();

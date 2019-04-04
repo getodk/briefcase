@@ -30,6 +30,7 @@ import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.impl.NoConnectionReuseStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class CommonsHttp implements Http {
   private final Executor executor;

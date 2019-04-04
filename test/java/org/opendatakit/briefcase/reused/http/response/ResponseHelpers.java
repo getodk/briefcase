@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.reused.http;
+package org.opendatakit.briefcase.reused.http.response;
 
 public class ResponseHelpers {
   public static Response<String> ok(String body) {

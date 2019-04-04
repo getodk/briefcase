@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Nafundi
+ * Copyright (C) 2019 Nafundi
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.reused.http;
+package org.opendatakit.briefcase.reused.http.response;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -27,6 +27,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.opendatakit.briefcase.reused.http.HttpException;
+import org.opendatakit.briefcase.reused.http.Request;
 
 public interface Response<T> {
 

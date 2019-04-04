@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.reused.http;
 
 import java.util.Optional;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class HttpException extends BriefcaseException {
   private final Optional<Response<?>> response;

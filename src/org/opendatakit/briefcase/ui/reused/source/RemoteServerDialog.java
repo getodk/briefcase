@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import javax.swing.SwingWorker;
 import org.opendatakit.briefcase.reused.RemoteServer;
-import org.opendatakit.briefcase.reused.http.Response;
+import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class RemoteServerDialog {
   final RemoteServerDialogForm form;

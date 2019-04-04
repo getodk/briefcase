@@ -33,7 +33,7 @@ import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
-import org.opendatakit.briefcase.reused.http.Response;
+import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.briefcase.util.TransferToServer;

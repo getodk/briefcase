@@ -18,8 +18,8 @@ package org.opendatakit.briefcase.reused;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.reused.http.ResponseHelpers.noContent;
-import static org.opendatakit.briefcase.reused.http.ResponseHelpers.ok;
+import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.noContent;
+import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.ok;
 
 import java.net.MalformedURLException;
 import java.net.URL;

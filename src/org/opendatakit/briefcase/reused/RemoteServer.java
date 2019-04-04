@@ -36,7 +36,7 @@ import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
-import org.opendatakit.briefcase.reused.http.Response;
+import org.opendatakit.briefcase.reused.http.response.Response;
 
 /**
  * This class represents a remote Aggregate server and it has some methods

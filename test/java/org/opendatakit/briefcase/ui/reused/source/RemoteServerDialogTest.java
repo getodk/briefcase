@@ -24,10 +24,10 @@ import static org.opendatakit.briefcase.matchers.SwingMatchers.disabled;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.editable;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.enabled;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.visible;
-import static org.opendatakit.briefcase.reused.http.ResponseHelpers.found;
-import static org.opendatakit.briefcase.reused.http.ResponseHelpers.notFound;
-import static org.opendatakit.briefcase.reused.http.ResponseHelpers.ok;
-import static org.opendatakit.briefcase.reused.http.ResponseHelpers.unauthorized;
+import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.found;
+import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.notFound;
+import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.ok;
+import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.unauthorized;
 import static org.opendatakit.briefcase.ui.SwingTestRig.uncheckedSleep;
 
 import java.util.concurrent.atomic.AtomicBoolean;
