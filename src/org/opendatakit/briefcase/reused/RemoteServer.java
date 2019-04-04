@@ -16,31 +16,19 @@
 
 package org.opendatakit.briefcase.reused;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
-import static org.javarosa.xform.parse.XFormParser.getXMLText;
-import static org.kxml2.kdom.Node.ELEMENT;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0_URL;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.kxml2.io.KXmlParser;
-import org.kxml2.kdom.Document;
-import org.kxml2.kdom.Element;
+import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
@@ -49,8 +37,6 @@ import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.http.Response;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
 
 /**
  * This class represents a remote Aggregate server and it has some methods
@@ -136,21 +122,6 @@ public class RemoteServer {
     return http.execute(RequestBuilder.head(baseUrl).withPath("/upload").withCredentials(credentials).withMapper(__ -> true).build());
   }
 
-  private static Document parse(InputStream in) {
-    try (InputStreamReader reader = new InputStreamReader(in, UTF_8)) {
-      Document doc = new Document();
-      KXmlParser parser = new KXmlParser();
-      parser.setInput(reader);
-      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-      doc.parse(parser);
-      return doc;
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    } catch (XmlPullParserException e) {
-      throw new BriefcaseException(e);
-    }
-  }
-
   public boolean containsForm(Http http, String formId) {
     return http.execute(RequestBuilder.get(baseUrl)
         .withPath("/formList")
@@ -161,51 +132,18 @@ public class RemoteServer {
         .orElse(false);
   }
 
-  private static RemoteFormDefinition toRemoteFormDefinition(Map<String, String> keyValues) {
-    return new RemoteFormDefinition(
-        Optional.ofNullable(keyValues.get("name")).orElseThrow(BriefcaseException::new),
-        Optional.ofNullable(keyValues.get("formID")).orElseThrow(BriefcaseException::new),
-        Optional.ofNullable(keyValues.get("version")).orElse(null),
-        Optional.ofNullable(keyValues.get("downloadUrl")).orElseThrow(BriefcaseException::new),
-        Optional.ofNullable(keyValues.get("manifestUrl")).orElse(null)
-    );
-  }
-
-  private static Map<String, String> toMap(Element e) {
-    return getChildren(e).stream().collect(Collectors.toMap(
-        Element::getName,
-        child -> getXMLText(child, true)
-    ));
-  }
-
-  private static List<Element> getChildren(Element root) {
-    List<Element> children = new ArrayList<>();
-    for (int i = 0; i < root.getChildCount(); i++)
-      if (root.getType(i) == ELEMENT)
-        children.add((Element) root.getChild(i));
-    return children;
-  }
-
-  private static List<Element> getChildren(Element root, String name) {
-    return getChildren(root)
-        .stream()
-        .filter(e -> e.getName().equals(name))
-        .collect(toList());
-  }
-
   public List<RemoteFormDefinition> getFormsList(Http http) {
     Response<List<RemoteFormDefinition>> response = http.execute(RequestBuilder.get(baseUrl)
+        .asXmlElement()
         .withPath("/formList")
         .withCredentials(credentials)
-        .withMapper(in -> {
-          Document parse = parse(in);
-          Element rootElement = parse.getRootElement();
-          List<Element> xform = getChildren(rootElement, "xform");
-          return xform.stream()
-              .map(RemoteServer::toMap)
-              .map(RemoteServer::toRemoteFormDefinition)
-              .collect(toList());
-        }).build());
+        .withMapper(root -> root.findElements("xform").stream().map(e -> new RemoteFormDefinition(
+            e.findElement("name").flatMap(XmlElement::maybeValue).orElseThrow(BriefcaseException::new),
+            e.findElement("formID").flatMap(XmlElement::maybeValue).orElseThrow(BriefcaseException::new),
+            e.findElement("version").flatMap(XmlElement::maybeValue).orElse(null),
+            e.findElement("downloadUrl").flatMap(XmlElement::maybeValue).orElseThrow(BriefcaseException::new),
+            e.findElement("manifestUrl").flatMap(XmlElement::maybeValue).orElse(null)
+        )).collect(toList())).build());
     return response.orElseThrow(() -> new HttpException(response));
   }
 

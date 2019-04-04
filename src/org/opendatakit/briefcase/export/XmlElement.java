@@ -102,7 +102,7 @@ public class XmlElement {
    * @return The corresponding {@link XmlElement}, wrapped inside an {@link Optional} instance,
    *     or {@link Optional#empty()} if no element with the given name is found.
    */
-  Optional<XmlElement> findElement(String name) {
+  public Optional<XmlElement> findElement(String name) {
     return flatten().filter(e -> e.hasName(name)).findFirst();
   }
 
@@ -120,7 +120,7 @@ public class XmlElement {
    * @return The corresponding {@link List} of children elements, or an empty list if any
    *     descendant is not found.
    */
-  List<XmlElement> findElements(String... namesArray) {
+  public List<XmlElement> findElements(String... namesArray) {
 
     if (namesArray.length == 1)
       return childrenOf().stream().filter(e -> e.getName().equalsIgnoreCase(namesArray[0])).collect(Collectors.toList());
@@ -138,7 +138,7 @@ public class XmlElement {
    *
    * @return the {@link String} value of this element
    */
-  String getValue() {
+  public String getValue() {
     return maybeValue().orElseThrow(() -> new BriefcaseException("No value present on element " + element.getName()));
   }
 
@@ -148,7 +148,7 @@ public class XmlElement {
    * @return the {@link String} value of this element wrapped inside an {@link Optional} instance,
    *     or an {@link Optional#empty()} if no value is found
    */
-  Optional<String> maybeValue() {
+  public Optional<String> maybeValue() {
     return Optional.ofNullable(getXMLText(element, true))
         .filter(s -> !s.isEmpty());
   }
@@ -196,7 +196,7 @@ public class XmlElement {
    *
    * @return the {@link String} name of this element
    */
-  String getName() {
+  public String getName() {
     return element.getName();
   }
 
@@ -220,7 +220,7 @@ public class XmlElement {
             : Stream.concat(Stream.of(e), e.flatten()));
   }
 
-  private List<XmlElement> childrenOf() {
+  public List<XmlElement> childrenOf() {
     List<XmlElement> children = new ArrayList<>();
     for (int i = 0, max = size(); i < max; i++)
       if (element.getType(i) == Node.ELEMENT)
