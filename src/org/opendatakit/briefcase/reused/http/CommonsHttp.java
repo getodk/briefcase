@@ -75,15 +75,7 @@ public class CommonsHttp implements Http {
     try {
       return executor
           .execute(commonsRequest)
-          .handleResponse(res -> {
-            if (res.getStatusLine().getStatusCode() >= 500)
-              return new Response.ServerError<>(res.getStatusLine().getStatusCode(), res.getStatusLine().getReasonPhrase());
-            if (res.getStatusLine().getStatusCode() >= 400)
-              return new Response.ClientError<>(res.getStatusLine().getStatusCode(), res.getStatusLine().getReasonPhrase());
-            if (res.getStatusLine().getStatusCode() >= 300)
-              return new Response.Redirection<>(res.getStatusLine().getStatusCode(), res.getStatusLine().getReasonPhrase());
-            return Response.ok(request, res);
-          });
+          .handleResponse(res -> Response.from(request, res));
     } catch (HttpHostConnectException e) {
       throw new HttpException("Connection refused");
     } catch (SocketTimeoutException | ConnectTimeoutException e) {

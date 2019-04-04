@@ -16,11 +16,12 @@
 
 package org.opendatakit.briefcase.reused.http;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -28,34 +29,23 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 
 public interface Response<T> {
-  static Response<String> ok(String body) {
-    return new Success<>(200, body);
-  }
 
-  static <U> Response<U> ok(Request<U> request, HttpResponse httpResponse) {
-    InputStream inputStream = Optional.ofNullable(httpResponse.getEntity())
-        .map(Success::uncheckedGetContent)
-        .orElse(new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8)));
+  static <U> Response<U> from(Request<U> request, HttpResponse response) {
+    int statusCode = response.getStatusLine().getStatusCode();
+    String statusPhrase = response.getStatusLine().getReasonPhrase();
+    if (statusCode >= 500)
+      return new ServerError<>(statusCode, statusPhrase);
+    if (statusCode >= 400)
+      return new ClientError<>(statusCode, statusPhrase);
+    if (statusCode >= 300)
+      return new Redirection<>(statusCode, statusPhrase);
     return new Success<>(
-        httpResponse.getStatusLine().getStatusCode(),
-        request.map(inputStream)
+        statusCode,
+        statusPhrase,
+        request.map(Optional.ofNullable(response.getEntity())
+            .map(Success::uncheckedGetContent)
+            .orElse(new ByteArrayInputStream("".getBytes(UTF_8))))
     );
-  }
-
-  static Response<String> noContent() {
-    return new Success<>(204, null);
-  }
-
-  static <U> Response<U> found() {
-    return new Redirection<>(302, "Found");
-  }
-
-  static <U> Response<U> unauthorized() {
-    return new ClientError<>(401, "Unauthorized");
-  }
-
-  static <U> Response<U> notFound() {
-    return new ClientError<>(404, "Not Found");
   }
 
   T get();
@@ -80,10 +70,12 @@ public interface Response<T> {
 
   class Success<T> implements Response<T> {
     private final int statusCode;
+    private final String statusPhrase;
     private final T output;
 
-    Success(int statusCode, T output) {
+    Success(int statusCode, String statusPhrase, T output) {
       this.statusCode = statusCode;
+      this.statusPhrase = statusPhrase;
       this.output = output;
     }
 
@@ -107,7 +99,7 @@ public interface Response<T> {
 
     @Override
     public <U> Response<U> map(Function<T, U> outputMapper) {
-      return new Success<>(statusCode, outputMapper.apply(output));
+      return new Success<>(statusCode, statusPhrase, outputMapper.apply(output));
     }
 
     @Override
@@ -148,11 +140,11 @@ public interface Response<T> {
 
   class Redirection<T> implements Response<T> {
     private final int statusCode;
-    private final String name;
+    private final String statusPhrase;
 
-    Redirection(int statusCode, String name) {
+    Redirection(int statusCode, String statusPhrase) {
       this.statusCode = statusCode;
-      this.name = name;
+      this.statusPhrase = statusPhrase;
     }
 
     @Override
@@ -167,7 +159,7 @@ public interface Response<T> {
 
     @Override
     public <U> Response<U> map(Function<T, U> outputMapper) {
-      return new Redirection<>(statusCode, name);
+      return new Redirection<>(statusCode, statusPhrase);
     }
 
     @Override
@@ -208,11 +200,11 @@ public interface Response<T> {
 
   class ClientError<T> implements Response<T> {
     private final int statusCode;
-    private final String name;
+    private final String statusPhrase;
 
-    ClientError(int statusCode, String name) {
+    ClientError(int statusCode, String statusPhrase) {
       this.statusCode = statusCode;
-      this.name = name;
+      this.statusPhrase = statusPhrase;
     }
 
     @Override
@@ -227,7 +219,7 @@ public interface Response<T> {
 
     @Override
     public <U> Response<U> map(Function<T, U> outputMapper) {
-      return new ClientError<>(statusCode, name);
+      return new ClientError<>(statusCode, statusPhrase);
     }
 
     @Override
@@ -268,11 +260,11 @@ public interface Response<T> {
 
   class ServerError<T> implements Response<T> {
     private final int statusCode;
-    private final String name;
+    private final String statusPhrase;
 
-    ServerError(int statusCode, String name) {
+    ServerError(int statusCode, String statusPhrase) {
       this.statusCode = statusCode;
-      this.name = name;
+      this.statusPhrase = statusPhrase;
     }
 
     @Override
@@ -287,7 +279,7 @@ public interface Response<T> {
 
     @Override
     public <U> Response<U> map(Function<T, U> outputMapper) {
-      return new ServerError<>(statusCode, name);
+      return new ServerError<>(statusCode, statusPhrase);
     }
 
     @Override

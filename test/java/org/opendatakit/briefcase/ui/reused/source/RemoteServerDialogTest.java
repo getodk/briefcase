@@ -24,6 +24,10 @@ import static org.opendatakit.briefcase.matchers.SwingMatchers.disabled;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.editable;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.enabled;
 import static org.opendatakit.briefcase.matchers.SwingMatchers.visible;
+import static org.opendatakit.briefcase.reused.http.ResponseHelpers.found;
+import static org.opendatakit.briefcase.reused.http.ResponseHelpers.notFound;
+import static org.opendatakit.briefcase.reused.http.ResponseHelpers.ok;
+import static org.opendatakit.briefcase.reused.http.ResponseHelpers.unauthorized;
 import static org.opendatakit.briefcase.ui.SwingTestRig.uncheckedSleep;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -33,7 +37,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.matchers.GenericUIMatchers;
 import org.opendatakit.briefcase.reused.http.HttpException;
-import org.opendatakit.briefcase.reused.http.Response;
 
 public class RemoteServerDialogTest extends AssertJSwingJUnitTestCase {
   @Override
@@ -51,7 +54,7 @@ public class RemoteServerDialogTest extends AssertJSwingJUnitTestCase {
   public void locks_the_UI_while_testing_the_server() {
     RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> {
       uncheckedSleep(150); // Some delay to let junit run the assertions
-      return Response.ok("").map(__ -> true);
+      return ok("").map(__ -> true);
     });
     page.show();
     page.fillForm("http://it.does.not.matter");
@@ -66,7 +69,7 @@ public class RemoteServerDialogTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void unlocks_the_UI_after_testing_the_server() {
-    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> Response.ok("").map(__ -> false));
+    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> ok("").map(__ -> false));
     page.show();
     page.fillForm("http://it.does.not.matter");
     page.clickOnConnect();
@@ -80,7 +83,7 @@ public class RemoteServerDialogTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void hides_when_the_configuration_is_ok() {
-    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> Response.ok("").map(__ -> true));
+    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> ok("").map(__ -> true));
     page.show();
     page.fillForm("http://it.does.not.matter");
     page.clickOnConnect();
@@ -90,7 +93,7 @@ public class RemoteServerDialogTest extends AssertJSwingJUnitTestCase {
   @Test
   public void launches_any_defined_callback_when_the_configuration_is_ok() {
     AtomicBoolean triggered = new AtomicBoolean(false);
-    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> Response.ok("").map(__ -> true));
+    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> ok("").map(__ -> true));
     page.component.onConnect(server -> triggered.set(true));
     page.show();
     page.fillForm("http://it.does.not.matter");
@@ -101,7 +104,7 @@ public class RemoteServerDialogTest extends AssertJSwingJUnitTestCase {
   @Test
   public void shows_error_dialog_when_the_server_responds_with_a_302() {
     // HTTP 302 Found means that the server is redirecting the request somewhere else
-    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> Response.found());
+    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> found());
     page.show();
     page.fillForm("http://it.does.not.matter");
     page.clickOnConnect();
@@ -113,7 +116,7 @@ public class RemoteServerDialogTest extends AssertJSwingJUnitTestCase {
   @Test
   public void shows_error_dialog_when_the_server_responds_with_a_401() {
     // HTTP 401 Unauthorized means that credentials are required or that the provided credentials are wrong
-    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> Response.unauthorized());
+    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> unauthorized());
     page.show();
     page.fillForm("http://it.does.not.matter");
     page.clickOnConnect();
@@ -125,7 +128,7 @@ public class RemoteServerDialogTest extends AssertJSwingJUnitTestCase {
   @Test
   public void shows_error_dialog_when_the_server_responds_with_a_404() {
     // HTTP 404 Not Found means that the user has configured the wrong URL
-    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> Response.notFound());
+    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> notFound());
     page.show();
     page.fillForm("http://it.does.not.matter");
     page.clickOnConnect();
