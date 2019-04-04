@@ -28,21 +28,30 @@ import java.util.function.Function;
 public class RequestBuilder<T> {
   private final RequestMethod method;
   private final URL url;
+  private final Function<String, T> bodyMapper;
   private Optional<Credentials> credentials = Optional.empty();
-  private Function<String, T> bodyMapper;
   private Map<String, String> headers = new HashMap<>();
 
-  private RequestBuilder(RequestMethod method, URL url) {
+  private RequestBuilder(RequestMethod method, URL url, Function<String, T> bodyMapper) {
     this.method = method;
     this.url = url;
+    this.bodyMapper = bodyMapper;
+  }
+
+  private RequestBuilder(RequestMethod method, URL url, Optional<Credentials> credentials, Function<String, T> bodyMapper, Map<String, String> headers) {
+    this.method = method;
+    this.url = url;
+    this.credentials = credentials;
+    this.bodyMapper = bodyMapper;
+    this.headers = headers;
   }
 
   public static RequestBuilder<String> get(URL url) {
-    return new RequestBuilder<>(GET, url);
+    return new RequestBuilder<>(GET, url, Function.identity());
   }
 
   public static RequestBuilder<String> head(URL url) {
-    return new RequestBuilder<>(HEAD, url);
+    return new RequestBuilder<>(HEAD, url, Function.identity());
   }
 
   public Request<T> build() {
@@ -57,5 +66,9 @@ public class RequestBuilder<T> {
   public RequestBuilder<T> withCredentials(Credentials credentials) {
     this.credentials = Optional.of(credentials);
     return this;
+  }
+
+  public <U> RequestBuilder<U> withMapper(Function<T, U> mapper) {
+    return new RequestBuilder<>(method, url, credentials, bodyMapper.andThen(mapper), headers);
   }
 }

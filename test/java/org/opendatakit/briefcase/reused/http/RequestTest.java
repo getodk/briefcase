@@ -58,7 +58,7 @@ public class RequestTest {
   @Test
   public void can_map_a_response_body() {
     // Create a simple request that will parse any incoming string to ints
-    Request<Integer> req = RequestBuilder.get(getUrl(BASE_URL)).build().withMapper(Integer::parseInt);
+    Request<Integer> req = RequestBuilder.get(getUrl(BASE_URL)).withMapper(Integer::parseInt).build();
     assertThat(req.map("42"), is(42));
   }
 

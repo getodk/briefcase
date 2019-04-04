@@ -71,10 +71,6 @@ public class Request<T> {
     return bodyMapper.apply(body);
   }
 
-  public <U> Request<U> withMapper(Function<T, U> newBodyMapper) {
-    return new Request<>(method, url, credentials, bodyMapper.andThen(newBodyMapper), headers);
-  }
-
   void ifCredentials(BiConsumer<URL, Credentials> consumer) {
     credentials.ifPresent(c -> consumer.accept(url, c));
   }

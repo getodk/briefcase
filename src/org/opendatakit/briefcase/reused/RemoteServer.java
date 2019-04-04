@@ -130,23 +130,23 @@ public class RemoteServer {
   }
 
   public Response<Boolean> testPull(Http http) {
-    return http.execute(RequestBuilder.get(baseUrl).withCredentials(credentials).build().resolve("/formList").withMapper(__ -> true));
+    return http.execute(RequestBuilder.get(baseUrl).withCredentials(credentials).withMapper(__ -> true).build().resolve("/formList"));
   }
 
   public Response<Boolean> testPush(Http http) {
-    return http.execute(RequestBuilder.head(baseUrl).withCredentials(credentials).build().resolve("/upload").withMapper(__ -> true));
+    return http.execute(RequestBuilder.head(baseUrl).withCredentials(credentials).withMapper(__ -> true).build().resolve("/upload"));
   }
 
   public boolean containsForm(Http http, String formId) {
-    return http.execute(RequestBuilder.get(baseUrl).withCredentials(credentials).build()
-        .resolve("/formList")
-        .withMapper(body -> Stream.of(body.split("\n")).anyMatch(line -> line.contains("?formId=" + formId))))
+    return http.execute(RequestBuilder.get(baseUrl).withCredentials(credentials)
+        .withMapper(body -> Stream.of(body.split("\n")).anyMatch(line -> line.contains("?formId=" + formId)))
+        .build()
+        .resolve("/formList"))
         .orElse(false);
   }
 
   public List<RemoteFormDefinition> getFormsList(Http http) {
-    Response<List<RemoteFormDefinition>> response = http.execute(RequestBuilder.get(baseUrl).withCredentials(credentials).build()
-        .resolve("/formList")
+    Response<List<RemoteFormDefinition>> response = http.execute(RequestBuilder.get(baseUrl).withCredentials(credentials)
         .withMapper(body -> {
           Document parse = parse(body);
           Element rootElement = parse.getRootElement();
@@ -155,7 +155,8 @@ public class RemoteServer {
               .map(RemoteServer::toMap)
               .map(RemoteServer::toRemoteFormDefinition)
               .collect(toList());
-        }));
+        }).build()
+        .resolve("/formList"));
     return response.orElseThrow(() -> new HttpException(response));
   }
 
