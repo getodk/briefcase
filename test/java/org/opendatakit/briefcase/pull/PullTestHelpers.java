@@ -57,6 +57,16 @@ class PullTestHelpers {
         "";
   }
 
+  static String buildMediaFileXml(String filename, String url) {
+    return "" +
+        "  <mediaFile>\n" +
+        "    <filename>" + filename + "</filename>\n" +
+        "    <hash>some-hash</hash>\n" +
+        "    <downloadUrl>" + url + "</downloadUrl>\n" +
+        "  </mediaFile>" +
+        "";
+  }
+
   static Pair<String, List<Pair<String, String>>> buildManifest(String baseUrl, int mediaFiles) {
     List<Pair<String, String>> pairs = new ArrayList<>();
 
@@ -84,16 +94,6 @@ class PullTestHelpers {
         "",
         manifestUrl
     ));
-  }
-
-  static String buildMediaFileXml(String filename, String url) {
-    return "" +
-        "  <mediaFile>\n" +
-        "    <filename>" + filename + "</filename>\n" +
-        "    <hash>some-hash</hash>\n" +
-        "    <downloadUrl>" + url + "</downloadUrl>\n" +
-        "  </mediaFile>" +
-        "";
   }
 
   static String buildBlankFormXml(String formId, String version, final String instanceName) {

@@ -53,22 +53,6 @@ public class JobsRunner<T> {
   }
 
   /**
-   * Lets calling site perform side-effects when an uncaught exception reaches the runner
-   */
-  public JobsRunner<T> onError(Consumer<Throwable> errorCallback) {
-    errorCallbacks.add(errorCallback);
-    return this;
-  }
-
-  /**
-   * Lets calling site perform side-effects after successfully completing all its jobs.
-   */
-  public JobsRunner<T> onSuccess(Consumer<List<T>> successCallback) {
-    successCallbacks.add(successCallback);
-    return this;
-  }
-
-  /**
    * Launches the jobs in background.
    */
   public JobsRunner<T> launch(Stream<Job<T>> jobs) {
@@ -81,6 +65,22 @@ public class JobsRunner<T> {
         log.info("Job cancelled", e);
       }
     }, executor);
+    return this;
+  }
+
+  /**
+   * Lets calling site perform side-effects when an uncaught exception reaches the runner
+   */
+  public JobsRunner<T> onError(Consumer<Throwable> errorCallback) {
+    errorCallbacks.add(errorCallback);
+    return this;
+  }
+
+  /**
+   * Lets calling site perform side-effects after successfully completing all its jobs.
+   */
+  public JobsRunner<T> onSuccess(Consumer<List<T>> successCallback) {
+    successCallbacks.add(successCallback);
     return this;
   }
 

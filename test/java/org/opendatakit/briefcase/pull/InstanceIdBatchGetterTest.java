@@ -59,23 +59,22 @@ public class InstanceIdBatchGetterTest {
 
   }
 
-  @Before
-  public void setUp() {
-    server = httpServer(12306, log());
-  }
-
   private static List<InstanceIdBatch> getAllBatches(Http http) {
     InstanceIdBatchGetter batcher = new InstanceIdBatchGetter(InstanceIdBatchGetterTest.REMOTE_SERVER, http, "fomdId", true);
     Iterable<InstanceIdBatch> iterable = () -> batcher;
     return StreamSupport.stream(iterable.spliterator(), false).collect(toList());
   }
 
+  @Before
+  public void setUp() {
+    server = httpServer(12306, log());
+  }
+
   @Test
   public void retrieves_batches_until_the_last_empty_one() throws Exception {
     List<String> pages = generatePages(250, 100);
     server.request(by(method(GET)))
-        .response(seq(pages.get(0), pages.get(1), pages.get(2), pages.get(3))
-        );
+        .response(seq(pages.get(0), pages.get(1), pages.get(2), pages.get(3)));
 
     running(server, () -> {
       List<InstanceIdBatch> idBatches = getAllBatches(nonReusing());

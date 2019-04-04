@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.reused.http;
 
-
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;

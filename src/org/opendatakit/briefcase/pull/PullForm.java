@@ -67,6 +67,29 @@ public class PullForm {
     return new PullForm(http, server, briefcaseDir, includeIncomplete).pull(form);
   }
 
+  private Job<PullResult> pull(FormStatus form) {
+    PullTracker tracker = new PullTracker(form, EventBus::publish);
+    return allOf(
+        supply(runnerStatus -> downloadForm(form, tracker)),
+        supply(runnerStatus -> getInstanceIdBatches(form, tracker, runnerStatus)),
+        run(runnerStatus -> downloadFormAttachments(form, tracker))
+    ).thenApply((runnerStatus, t) -> {
+      // Build the submission key generator with the blank form XML
+      SubmissionKeyGenerator subKeyGen = SubmissionKeyGenerator.from(t.get1());
+
+      // Extract all the instance IDs from all the batches and download each instance
+      t.get2().stream()
+          .flatMap(batch -> batch.getInstanceIds().stream())
+          .forEach(instanceId -> {
+            if (runnerStatus.isStillRunning())
+              downloadSubmissionAndMedia(form, tracker, instanceId, subKeyGen);
+          });
+
+      // Return the pull result with the last cursor
+      return PullResult.of(form, getLastCursor(t.get2()));
+    });
+  }
+
   private static String getLastCursor(List<InstanceIdBatch> batches) {
     return batches.stream()
         .map(InstanceIdBatch::getCursor)
@@ -91,29 +114,6 @@ public class PullForm {
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(toList());
-  }
-
-  private Job<PullResult> pull(FormStatus form) {
-    PullTracker tracker = new PullTracker(form, EventBus::publish);
-    return allOf(
-        supply(runnerStatus -> downloadForm(form, tracker)),
-        supply(runnerStatus -> getInstanceIdBatches(form, tracker, runnerStatus)),
-        run(runnerStatus -> downloadFormAttachments(form, tracker))
-    ).thenApply((runnerStatus, t) -> {
-      // Build the submission key generator with the blank form XML
-      SubmissionKeyGenerator subKeyGen = SubmissionKeyGenerator.from(t.get1());
-
-      // Extract all the instance IDs from all the batches and download each instance
-      t.get2().stream()
-          .flatMap(batch -> batch.getInstanceIds().stream())
-          .forEach(instanceId -> {
-            if (runnerStatus.isStillRunning())
-              downloadSubmissionAndMedia(form, tracker, instanceId, subKeyGen);
-          });
-
-      // Return the pull result with the last cursor
-      return PullResult.of(form, getLastCursor(t.get2()));
-    });
   }
 
   String downloadForm(FormStatus form, PullTracker tracker) {

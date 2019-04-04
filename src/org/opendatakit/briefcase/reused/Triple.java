@@ -18,7 +18,7 @@ package org.opendatakit.briefcase.reused;
 
 import java.util.Objects;
 
-@SuppressWarnings("checkstyle:MethodTypeParameterName")
+@SuppressWarnings({"checkstyle:MethodTypeParameterName", "checkstyle:ParameterName"})
 public class Triple<T, U, V> {
   private final T _1;
   private final U _2;

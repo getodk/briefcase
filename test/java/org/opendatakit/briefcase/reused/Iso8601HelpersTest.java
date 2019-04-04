@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.reused;
 
-
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.reused.Iso8601Helpers.parseDateTime;

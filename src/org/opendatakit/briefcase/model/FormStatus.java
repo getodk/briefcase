@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.model;
 
-
 import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 
 import java.nio.file.Path;
@@ -92,18 +91,18 @@ public class FormStatus {
     return form;
   }
 
+  public Optional<String> getManifestUrl() {
+    if (!(form instanceof RemoteFormDefinition))
+      return Optional.empty();
+    return Optional.ofNullable(((RemoteFormDefinition) form).getManifestUrl());
+  }
+
   public boolean isEncrypted() {
     return ((BriefcaseFormDefinition) form).isFileEncryptedForm();
   }
 
   public String getFormId() {
     return form.getFormId();
-  }
-
-  public Optional<String> getManifestUrl() {
-    if (!(form instanceof RemoteFormDefinition))
-      return Optional.empty();
-    return Optional.ofNullable(((RemoteFormDefinition) form).getManifestUrl());
   }
 
   public Path getFormDir(Path briefcaseDir) {
