@@ -32,6 +32,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
+import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.Response;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.FormCache;
@@ -66,7 +67,7 @@ public class PushFormToAggregate {
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
 
-    CommonsHttp http = new CommonsHttp();
+    Http http = new CommonsHttp();
 
     URL baseUrl;
     try {
