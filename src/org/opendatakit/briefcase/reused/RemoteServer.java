@@ -20,6 +20,8 @@ import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0_URL;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
+import static org.opendatakit.briefcase.reused.http.RequestBuilder.get;
+import static org.opendatakit.briefcase.reused.http.RequestBuilder.head;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -35,7 +37,7 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
-import org.opendatakit.briefcase.reused.http.RequestBuilder;
+import org.opendatakit.briefcase.reused.http.Request;
 import org.opendatakit.briefcase.reused.http.response.Response;
 
 /**
@@ -115,15 +117,15 @@ public class RemoteServer {
   }
 
   public Response<Boolean> testPull(Http http) {
-    return http.execute(RequestBuilder.get(baseUrl).withPath("/formList").withCredentials(credentials).withMapper(__ -> true).build());
+    return http.execute(getFormListRequest()).map(__ -> true);
   }
 
   public Response<Boolean> testPush(Http http) {
-    return http.execute(RequestBuilder.head(baseUrl).withPath("/upload").withCredentials(credentials).withMapper(__ -> true).build());
+    return http.execute(getPushFormPreflightRequest()).map(__ -> true);
   }
 
   public boolean containsForm(Http http, String formId) {
-    return http.execute(RequestBuilder.get(baseUrl)
+    return http.execute(get(baseUrl)
         .withPath("/formList")
         .withCredentials(credentials)
         .asText()
@@ -133,7 +135,12 @@ public class RemoteServer {
   }
 
   public List<RemoteFormDefinition> getFormsList(Http http) {
-    Response<List<RemoteFormDefinition>> response = http.execute(RequestBuilder.get(baseUrl)
+    Response<List<RemoteFormDefinition>> response = http.execute(getFormListRequest());
+    return response.orElseThrow(() -> new HttpException(response));
+  }
+
+  public Request<List<RemoteFormDefinition>> getFormListRequest() {
+    return get(baseUrl)
         .asXmlElement()
         .withPath("/formList")
         .withCredentials(credentials)
@@ -143,8 +150,15 @@ public class RemoteServer {
             e.findElement("version").flatMap(XmlElement::maybeValue).orElse(null),
             e.findElement("downloadUrl").flatMap(XmlElement::maybeValue).orElseThrow(BriefcaseException::new),
             e.findElement("manifestUrl").flatMap(XmlElement::maybeValue).orElse(null)
-        )).collect(toList())).build());
-    return response.orElseThrow(() -> new HttpException(response));
+        )).collect(toList())).build();
+  }
+
+  Request<String> getPushFormPreflightRequest() {
+    return head(baseUrl)
+        .asText()
+        .withPath("/upload")
+        .withCredentials(credentials)
+        .build();
   }
 
   public interface Test extends Function<RemoteServer, Response<Boolean>> {

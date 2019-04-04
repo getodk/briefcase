@@ -85,7 +85,7 @@ public class PullFormFromAggregate {
     }
     RemoteServer remoteServer = RemoteServer.authenticated(baseUrl, new Credentials(username, password));
 
-    Response<Boolean> response = remoteServer.testPull(http);
+    Response response = remoteServer.testPull(http);
     if (!response.isSuccess())
       System.err.println(response.isRedirection()
           ? "Error connecting to Aggregate: Redirection detected"

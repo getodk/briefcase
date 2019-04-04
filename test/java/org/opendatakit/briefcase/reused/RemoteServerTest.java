@@ -26,7 +26,6 @@ import java.net.URL;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
-import org.opendatakit.briefcase.reused.http.RequestBuilder;
 
 public class RemoteServerTest {
   private FakeHttp http;
@@ -39,8 +38,8 @@ public class RemoteServerTest {
   }
 
   @Test
-  public void knows_if_it_contains_a_form() throws MalformedURLException {
-    http.stub(RequestBuilder.get(new URL("https://some.server.com/formList")).build(), ok("" +
+  public void knows_if_it_contains_a_form() {
+    http.stub(server.getFormListRequest(), ok("" +
         "<forms>\n" +
         "<form url=\"https://some.server.com/formXml?formId=some-form\">Some form</form>\n" +
         "</forms>\n"));
@@ -49,8 +48,8 @@ public class RemoteServerTest {
   }
 
   @Test
-  public void knows_how_to_test_connection_params_for_pulling_forms() throws MalformedURLException {
-    http.stub(RequestBuilder.get(new URL("https://some.server.com/formList")).build(), ok("" +
+  public void knows_how_to_test_connection_params_for_pulling_forms() {
+    http.stub(server.getFormListRequest(), ok("" +
         "<forms>\n" +
         "<form url=\"https://some.server.com/formXml?formId=some-form\">Some form</form>\n" +
         "</forms>\n"));
@@ -58,8 +57,8 @@ public class RemoteServerTest {
   }
 
   @Test
-  public void knows_how_to_test_connection_params_for_pushing_forms() throws MalformedURLException {
-    http.stub(RequestBuilder.head(new URL("https://some.server.com/upload")).build(), noContent());
+  public void knows_how_to_test_connection_params_for_pushing_forms() {
+    http.stub(server.getPushFormPreflightRequest(), noContent());
     assertThat(server.testPush(http).get(), is(true));
   }
 }

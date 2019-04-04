@@ -77,7 +77,7 @@ public class PushFormToAggregate {
     }
     RemoteServer remoteServer = RemoteServer.authenticated(baseUrl, new Credentials(username, password));
 
-    Response<Boolean> response = remoteServer.testPush(http);
+    Response response = remoteServer.testPush(http);
     if (!response.isSuccess())
       System.err.println(response.isRedirection()
           ? "Error connecting to Aggregate: Redirection detected"
