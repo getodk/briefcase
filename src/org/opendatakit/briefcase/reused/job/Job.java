@@ -80,6 +80,14 @@ public class Job<T> {
     return new Job<>(runnerStatus -> runnerAwareFunction.apply(runnerStatus, runnerAwareSupplier.apply(runnerStatus)));
   }
 
+  public <U> Job<U> thenRun(Consumer<RunnerStatus> runnerAwareConsumer) {
+    return new Job<>(runnerStatus -> {
+      runnerAwareSupplier.apply(runnerStatus);
+      runnerAwareConsumer.accept(runnerStatus);
+      return null;
+    });
+  }
+
   public <U> Job<U> thenRun(Job<U> job) {
     return new Job<>(runnerStatus -> {
       runnerAwareSupplier.apply(runnerStatus);
