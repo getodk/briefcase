@@ -20,12 +20,16 @@ import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.load;
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
+import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
+import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.export.ExportConfiguration;
@@ -39,12 +43,16 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.SavePasswordsConsentGiven;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
-import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.pull.PullForm;
+import org.opendatakit.briefcase.pull.PullResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
-import org.opendatakit.briefcase.transfer.NewTransferAction;
-import org.opendatakit.briefcase.transfer.TransferForms;
+import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.http.Credentials;
+import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.job.Job;
+import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
@@ -60,14 +68,16 @@ public class ExportPanel {
   private final BriefcasePreferences preferences;
   private final Analytics analytics;
   private final FormCache formCache;
+  private final Http http;
 
-  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences preferences, Analytics analytics, FormCache formCache) {
+  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences preferences, Analytics analytics, FormCache formCache, Http http) {
     this.forms = forms;
     this.form = form;
     this.appPreferences = appPreferences;
     this.preferences = preferences;
     this.analytics = analytics;
     this.formCache = formCache;
+    this.http = http;
     AnnotationProcessor.process(this);// if not using AOP
     analytics.register(form.getContainer());
 
@@ -147,7 +157,7 @@ public class ExportPanel {
     }
   }
 
-  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
+  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http) {
     ExportConfiguration initialDefaultConf = load(exportPreferences);
     ExportForms forms = ExportForms.load(initialDefaultConf, toFormStatuses(formCache.getForms()), exportPreferences, appPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, initialDefaultConf);
@@ -157,7 +167,8 @@ public class ExportPanel {
         appPreferences,
         exportPreferences,
         analytics,
-        formCache
+        formCache,
+        http
     );
   }
 
@@ -177,35 +188,39 @@ public class ExportPanel {
   }
 
   private void export() {
-    try {
-      forms.getSelectedForms()
-          .parallelStream()
-          .peek(FormStatus::clearStatusHistory)
-          .forEach(form -> {
-            String formId = form.getFormDefinition().getFormId();
-            ExportConfiguration configuration = forms.getConfiguration(formId);
-            if (configuration.resolvePullBefore())
-              forms.getTransferSettings(formId).ifPresent(sci -> NewTransferAction.transferServerToBriefcase(
-                  sci,
-                  new TerminationFuture(),
-                  TransferForms.of(form),
-                  appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
-                  appPreferences.getPullInParallel().orElse(false),
-                  false,
-                  false,
-                  Optional.empty()
-              ));
-            FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());
-            ExportToCsv.export(formDef, configuration, analytics);
-            if (configuration.resolveIncludeGeoJsonExport())
-              ExportToGeoJson.export(formDef, configuration, analytics);
-          });
-    } catch (Throwable t) {
-      log.error("Error while exporting forms", t);
-      errorMessage("Export errors", "Unexpected error. See logs");
-    } finally {
-      form.unsetExporting();
-    }
+    Stream<Job<Void>> allJobs = forms.getSelectedForms().stream().map(form -> {
+      form.setStatusString("Starting to export form");
+      String formId = form.getFormDefinition().getFormId();
+      ExportConfiguration configuration = forms.getConfiguration(formId);
+      Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
+      FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());
+      Optional<RemoteServer> server = forms.getTransferSettings(formId).map(sci -> new RemoteServer(
+          url(sci.getUrl()),
+          sci.hasCredentials()
+              ? Optional.of(Credentials.from(sci.getUsername(), new String(sci.getPassword())))
+              : Optional.empty()
+      ));
+
+      Job<PullResult> pullJob = configuration.resolvePullBefore() && server.isPresent()
+          ? PullForm.pull(http, server.get(), briefcaseDir, false, EventBus::publish, form)
+          : Job.supply(__ -> null); // No-op
+
+      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration, analytics));
+
+      Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
+          ? Job.run(runnerStatus -> ExportToGeoJson.export(formDef, configuration, analytics))
+          : Job.run(__ -> {});
+
+      return Job
+          .run(runnerStatus -> form.clearStatusHistory())
+          .thenRun(pullJob)
+          .thenRun(exportJob)
+          .thenRun(exportGeoJsonJob);
+    });
+    new JobsRunner<Void>()
+        .onError(e -> log.error("Error exporting form", e))
+        .onSuccess(__ -> form.unsetExporting())
+        .launchAsync(allJobs);
   }
 
   @EventSubscriber(eventClass = CacheUpdateEvent.class)

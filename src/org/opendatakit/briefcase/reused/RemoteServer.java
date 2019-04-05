@@ -50,7 +50,7 @@ public class RemoteServer {
   private final URL baseUrl;
   private final Optional<Credentials> credentials;
 
-  private RemoteServer(URL baseUrl, Optional<Credentials> credentials) {
+  public RemoteServer(URL baseUrl, Optional<Credentials> credentials) {
     this.baseUrl = baseUrl;
     this.credentials = credentials;
   }
