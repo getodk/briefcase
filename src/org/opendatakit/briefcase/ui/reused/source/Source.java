@@ -63,162 +63,47 @@ import org.opendatakit.briefcase.util.TransferAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * This interface represents a source (for lack of a better name) for pulling
- * or pushing forms in the context of Briefcase's UI.
- * <p>
- * Currently, Briefcase supports:
- * <ul>
- * <li>Pulling from:<ul>
- * <li>An <b>Aggregate</b> server</li>
- * <li>A <b>Custom Directory</b> pointing to the ODK Collect storage</li>
- * </ul></li>
- * <li>Pushing to:<ul>
- * <li>An <b>Aggregate</b> server</li>
- * </ul></li>
- * </ul>
- * <p>
- * This interface follows the "sealed trait" pattern from Scala. This means:
- * <ul>
- * <li>No direct usage of subtypes of Source should be found outside this file.</li>
- * <li>Since this is Java, extracting subtypes to individual files is permitted but then,
- * the same rule should be applied to the namespace.</li>
- * <li>To obtain a new instance of Source, you need to use the static factories
- * and you can't cast the result to any subtype of Source.</li>
- * <li>No <code>instanceof</code> against any subtype is allowed.</li>
- * </ul>
- * <p>
- * Notes on the implementation:
- * <ul>
- * <li>The fact that the method {@link Source#push} is only implemented by {@link Source.Aggregate}
- * breaks Liskov's substitution principle, which hints about a flaw in the design of this
- * type hierarchy.</li>
- * <li>This interface should probably be segregated into two different PullSource and PushTarget
- * interfaces which, not only will improve naming, but also will prevent breaking Liskov.</li>
- * </ul>
- *
- * @param <T> the value type each Source produces when configured
- */
 public interface Source<T> {
   Logger log = LoggerFactory.getLogger(Source.class);
 
-  /**
-   * This method is required to let the calling site be unaware of the specific
-   * subtype of {@link Source} it is dealing with.
-   */
   static void clearAllPreferences(BriefcasePreferences prefs) {
     Aggregate.clearPreferences(prefs);
     CustomDir.clearPreferences(prefs);
     FormInComputer.clearPreferences(prefs);
   }
 
-  /**
-   * Factory of {@link Source} instances that deal with remote Aggregate servers
-   * for pulling forms.
-   *
-   * @param consumer {@link Consumer} that would be applied the {@link RemoteServer}
-   *                 instance configured by the user
-   */
   static Source<RemoteServer> aggregatePull(Http http, Consumer<Source> consumer) {
     return new Source.Aggregate(http, server -> server.testPull(http), "Data Viewer", consumer);
   }
 
-  /**
-   * Factory of {@link Source} instances that deal with remote Aggregate servers
-   * for pushing forms.
-   *
-   * @param consumer {@link Consumer} that would be applied the {@link RemoteServer}
-   *                 instance configured by the user
-   */
   static Source<RemoteServer> aggregatePush(Http http, Consumer<Source> consumer) {
     return new Source.Aggregate(http, server -> server.testPush(http), "Form Manager", consumer);
   }
 
-  /**
-   * Factory of {@link Source} instances that deal with custom filesystem directories
-   * pointing to a ODK Collect storage directory.
-   *
-   * @param consumer {@link Consumer} that would be applied the {@link Path} once
-   *                 the user selects it
-   */
   static Source<Path> customDir(Consumer<Source> consumer) {
     return new Source.CustomDir(consumer);
   }
 
-  /**
-   * Factory of {@link Source} instances that deal with an individual form in
-   * the user's computer
-   *
-   * @param consumer {@link Consumer} that would be applied the {@link FormStatus} once
-   *                 the user selects its form definition file
-   */
   static Source<FormStatus> formInComputer(Consumer<Source> consumer) {
     return new Source.FormInComputer(consumer);
   }
 
-  /**
-   * Launches whatever means this {@link Source} requires to let the user configure
-   * its value.
-   *
-   * @param container {@link Container} object that could be used to pop dialogs up
-   */
-  // TODO Better replace this with an abstraction that deals with Briefcase dialogs
   void onSelect(Container container);
 
-  /**
-   * Sets the value of this source.
-   */
   void set(T t);
 
-  /**
-   * Tests the given object <code>o</code> to check if it's compatible with the type
-   * of values this {@link Source} is capable of storing.
-   *
-   * @return true if it is compatible, false otherwise
-   */
   boolean accepts(Object o);
 
-  /**
-   * Returns the list of forms that this configured {@link Source} has access to.
-   */
   DeferredValue<List<FormStatus>> getFormList();
 
-  /**
-   * Stores the value of this {@link Source} in the given {@link BriefcasePreferences}.
-   *
-   * @param storePasswords {@link Boolean} telling this source whether to store
-   *                       passwords or not
-   */
   void storePreferences(BriefcasePreferences prefs, boolean storePasswords);
 
-  /**
-   * Pulls forms to the Briefcase Storage Directory from this configured {@link Source}.
-   *
-   * @param forms             {@link List} of forms to be pulled
-   * @param includeIncomplete when passed true, it enables requesting the incomplete
-   *                          submissions. This needs to be supported by the selected source
-   * @param resumeLastPull
-   */
   JobsRunner pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate);
 
-  /**
-   * Pushes forms to this configured {@link Source}.
-   *
-   * @param forms             {@link List} of forms to be pulled
-   * @param terminationFuture object that to make the operation cancellable
-   */
   void push(TransferForms forms, TerminationFuture terminationFuture);
 
-  /**
-   * Returns whether or not this {@link Source} supports reloading.
-   *
-   * @return true if it supports reload, false otherwise
-   */
   boolean canBeReloaded();
 
-  /**
-   * Returns a textual description of this {@link Source}.
-   */
   String getDescription();
 
   void decorate(JLabel label);
