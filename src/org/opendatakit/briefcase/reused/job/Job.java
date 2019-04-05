@@ -55,6 +55,12 @@ public class Job<T> {
     });
   }
 
+  public static final Job<Void> noOp = Job.run(__ -> {});
+
+  public static <T> Job<T> noOpSupplier() {
+    return Job.supply(__ -> null);
+  }
+
   /**
    * Composes three jobs into one that will return a {@link Triple}
    * with all their individual values once launched.

@@ -203,13 +203,13 @@ public class ExportPanel {
 
       Job<PullResult> pullJob = configuration.resolvePullBefore() && server.isPresent()
           ? PullForm.pull(http, server.get(), briefcaseDir, false, EventBus::publish, form)
-          : Job.supply(__ -> null); // No-op
+          : Job.noOpSupplier();
 
       Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration, analytics));
 
       Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
           ? Job.run(runnerStatus -> ExportToGeoJson.export(formDef, configuration, analytics))
-          : Job.run(__ -> {});
+          : Job.noOp;
 
       return Job
           .run(runnerStatus -> form.clearStatusHistory())
