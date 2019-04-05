@@ -36,7 +36,7 @@ public class InstanceIdBatchGetter implements Iterator<InstanceIdBatch> {
   private Optional<String> nextCursor = Optional.empty();
   private List<String> nextUids;
 
-  InstanceIdBatchGetter(RemoteServer server, Http http, String formId, boolean includeIncomplete) {
+  public InstanceIdBatchGetter(RemoteServer server, Http http, String formId, boolean includeIncomplete) {
     this.server = server;
     this.http = http;
     this.formId = formId;

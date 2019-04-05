@@ -18,14 +18,6 @@ public class JavaRosaParserWrapper extends BaseFormParserForJavaRosa {
     return submissionElementDefn;
   }
 
-  public String getSubmissionKey(String uri) {
-    return submissionElementDefn.formId +
-        "[@version=" + submissionElementDefn.modelVersion +
-        " and @uiVersion=null" +
-        "]/" + (isFileEncryptedForm() ? "data" : getSubmissionElement().getName()) +
-        "[@key=" + uri + "]";
-  }
-
   public TreeElement getSubmissionElement() {
     // for Briefcase, this is the original un-encrypted submission element
     return trueSubmissionElement;

@@ -35,7 +35,7 @@ public class InstanceIdBatch {
     return cursor;
   }
 
-  List<String> getInstanceIds() {
+  public List<String> getInstanceIds() {
     return instanceIds;
   }
 

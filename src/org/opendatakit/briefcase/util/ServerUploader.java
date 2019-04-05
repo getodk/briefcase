@@ -19,13 +19,13 @@ package org.opendatakit.briefcase.util;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
@@ -35,16 +35,15 @@ import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.MetadataUpdateException;
-import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
-import org.opendatakit.briefcase.model.XmlDocumentFetchException;
+import org.opendatakit.briefcase.pull.InstanceIdBatch;
+import org.opendatakit.briefcase.pull.InstanceIdBatchGetter;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.AggregateUtils.DocumentFetchResult;
-import org.opendatakit.briefcase.util.ServerFetcher.SubmissionChunk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,66 +120,19 @@ class ServerUploader {
   }
 
   // remove any instances already completed on server
-  private void subtractServerInstances(FormStatus fs, DatabaseUtils formDatabase, Set<File> instancesToUpload) {
+  private void subtractServerInstances(FormStatus fs, Set<File> instancesToUpload, Path briefcaseDir) {
+    RemoteServer server = RemoteServer.from(serverInfo);
 
-    /*
-     * The /view/submissionList interface returns the list of COMPLETED submissions
-     * on the server. Fetch this list and filter out the locally-held submissions
-     * with the same instanceIds.  We know the server is already content with what
-     * it has, so we don't need to send any of these to the server, as that POST
-     * request will be treated as a no-op.
-     */
-    String baseUrl = serverInfo.getUrl() + "/view/submissionList";
+    List<InstanceIdBatch> batches = new ArrayList<>();
+    InstanceIdBatchGetter batchPager = new InstanceIdBatchGetter(server, http, fs.getFormId(), false);
+    while (batchPager.hasNext())
+      batches.add(batchPager.next());
 
-    String oldWebsafeCursorString = "not-empty";
-    String websafeCursorString = "";
-    for (; !oldWebsafeCursorString.equals(websafeCursorString); ) {
-      if (isCancelled()) {
-        fs.setStatusString("aborting retrieval of instanceIds of submissions on server...", true);
-        EventBus.publish(new FormStatusEvent(fs));
-        return;
-      }
-
-      fs.setStatusString("retrieving next chunk of instanceIds from server...", true);
-      EventBus.publish(new FormStatusEvent(fs));
-
-      Map<String, String> params = new HashMap<>();
-      int MAX_ENTRIES = 100;
-      params.put("numEntries", Integer.toString(MAX_ENTRIES));
-      params.put("formId", fs.getFormDefinition().getFormId());
-      params.put("cursor", websafeCursorString);
-      String fullUrl = WebUtils.createLinkWithProperties(baseUrl, params);
-      oldWebsafeCursorString = websafeCursorString; // remember what we had...
-      AggregateUtils.DocumentFetchResult result;
-      try {
-        DocumentDescription submissionChunkDescription = new DocumentDescription(
-            "Fetch of instanceIds (submission download chunk) failed.  Detailed error: ",
-            "submission download chunk",
-            terminationFuture);
-        result = AggregateUtils.getXmlDocument(fullUrl, serverInfo, false, submissionChunkDescription);
-      } catch (XmlDocumentFetchException e) {
-        fs.setStatusString("Not all submissions retrieved: Error fetching list of instanceIds: " + e.getMessage(), false);
-        EventBus.publish(new FormStatusEvent(fs));
-        return;
-      }
-
-      SubmissionChunk chunk;
-      try {
-        chunk = XmlManipulationUtils.parseSubmissionDownloadListResponse(result.doc);
-      } catch (ParsingException e) {
-        fs.setStatusString("Not all instanceIds retrieved: Error parsing the submission download chunk: " + e.getMessage(), false);
-        EventBus.publish(new FormStatusEvent(fs));
-        return;
-      }
-      websafeCursorString = chunk.websafeCursorString;
-
-      for (String uri : chunk.uriList) {
-        File f = formDatabase.hasRecordedInstance(uri);
-        if (f != null) {
-          instancesToUpload.remove(f);
-        }
-      }
-    }
+    List<File> remoteSubmissions = batches.stream()
+        .flatMap(batch -> batch.getInstanceIds().stream())
+        .map(instanceId -> fs.getSubmissionDir(briefcaseDir, instanceId).toFile())
+        .collect(Collectors.toList());
+    instancesToUpload.removeAll(remoteSubmissions);
   }
 
   boolean uploadFormAndSubmissionFiles(TransferForms formsToTransfer) {
@@ -238,7 +190,7 @@ class ServerUploader {
         formDatabase.updateInstanceLists();
 
         // exclude submissions the server reported as already submitted
-        subtractServerInstances(formToTransfer, formDatabase, briefcaseInstances);
+        subtractServerInstances(formToTransfer, briefcaseInstances, briefcaseLfd.getFormDirectory().toPath().getParent().getParent());
 
         int i = 1;
         for (File briefcaseInstance : briefcaseInstances) {
@@ -290,7 +242,7 @@ class ServerUploader {
     return server.containsForm(http, form.getFormDefinition().getFormId());
   }
 
-  boolean uploadForm(FormStatus formToTransfer, File briefcaseFormDefFile, File briefcaseFormMediaDir) {
+  private boolean uploadForm(FormStatus formToTransfer, File briefcaseFormDefFile, File briefcaseFormMediaDir) {
     // very similar to upload submissions...
 
     URI u;

@@ -278,7 +278,7 @@ class Model {
     return maybeControl
         .map(QuestionDef::getDynamicChoices)
         .map(ItemsetBinding::getChoices)
-        .orElseGet(() -> maybeControl.get().getChoices());
+        .orElseGet(() -> maybeControl.map(QuestionDef::getChoices).orElse(emptyList()));
   }
 
   boolean isMetaAudit() {

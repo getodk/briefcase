@@ -28,6 +28,7 @@ import static org.opendatakit.briefcase.reused.http.RequestBuilder.get;
 import static org.opendatakit.briefcase.reused.job.Job.allOf;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.reused.job.Job.supply;
+import static org.opendatakit.briefcase.util.DatabaseUtils.withDb;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -70,7 +71,7 @@ public class PullForm {
 
   public Job<PullResult> pull(FormStatus form, Consumer<FormStatusEvent> onEventCallback) {
     PullTracker tracker = new PullTracker(form, onEventCallback);
-    return allOf(
+    return withDb(form.getFormDir(briefcaseDir), db -> allOf(
         supply(runnerStatus -> downloadForm(form, tracker)),
         supply(runnerStatus -> getInstanceIdBatches(form, tracker, runnerStatus)),
         run(runnerStatus -> downloadFormAttachments(form, tracker))
@@ -81,14 +82,17 @@ public class PullForm {
       // Extract all the instance IDs from all the batches and download each instance
       t.get2().stream()
           .flatMap(batch -> batch.getInstanceIds().stream())
+          .filter(instanceId -> db.hasRecordedInstance(instanceId) == null)
           .forEach(instanceId -> {
-            if (runnerStatus.isStillRunning())
+            if (runnerStatus.isStillRunning()) {
               downloadSubmissionAndMedia(form, tracker, instanceId, subKeyGen);
+              db.putRecordedInstanceDirectory(instanceId, form.getSubmissionDir(briefcaseDir, instanceId).toFile());
+            }
           });
 
       // Return the pull result with the last cursor
       return PullResult.of(form, getLastCursor(t.get2()));
-    });
+    }));
   }
 
   private static String getLastCursor(List<InstanceIdBatch> batches) {
