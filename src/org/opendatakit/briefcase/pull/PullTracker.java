@@ -37,7 +37,7 @@ public class PullTracker {
   }
 
   void trackFormDownloaded() {
-    form.setStatusString("Downloaded form");
+    form.setStatusString("Downloaded form " + form.getFormName());
     log.info("Downloaded form {}", form.getFormName());
     notifyTrackingEvent();
   }
