@@ -20,7 +20,6 @@ import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.load;
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
-import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.nio.file.Path;
@@ -49,7 +48,6 @@ import org.opendatakit.briefcase.pull.PullResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.reused.RemoteServer;
-import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
@@ -194,12 +192,7 @@ public class ExportPanel {
       ExportConfiguration configuration = forms.getConfiguration(formId);
       Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
       FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());
-      Optional<RemoteServer> server = forms.getTransferSettings(formId).map(sci -> new RemoteServer(
-          url(sci.getUrl()),
-          sci.hasCredentials()
-              ? Optional.of(Credentials.from(sci.getUsername(), new String(sci.getPassword())))
-              : Optional.empty()
-      ));
+      Optional<RemoteServer> server = forms.getTransferSettings(formId).map(RemoteServer::from);
 
       Job<PullResult> pullJob = configuration.resolvePullBefore() && server.isPresent()
           ? PullForm.pull(http, server.get(), briefcaseDir, false, EventBus::publish, form)

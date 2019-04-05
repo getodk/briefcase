@@ -22,6 +22,7 @@ import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.get;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.head;
+import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -61,6 +62,16 @@ public class RemoteServer {
 
   public static RemoteServer normal(URL baseUrl) {
     return new RemoteServer(baseUrl, Optional.empty());
+  }
+
+  public static RemoteServer from(ServerConnectionInfo sci) {
+    return new RemoteServer(
+        url(sci.getUrl()),
+        OptionalProduct.all(
+            Optional.ofNullable(sci.getUsername()),
+            Optional.ofNullable(sci.getPassword()).map(String::new)
+        ).map(Credentials::new)
+    );
   }
 
   public static Optional<RemoteServer> readPreferences(BriefcasePreferences prefs) {
