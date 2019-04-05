@@ -34,7 +34,7 @@ import javax.swing.JScrollPane;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.ui.reused.source.Source;
+import org.opendatakit.briefcase.ui.reused.source.PullSource;
 import org.opendatakit.briefcase.ui.reused.source.SourcePanel;
 import org.opendatakit.briefcase.ui.reused.source.SourcePanelForm;
 
@@ -85,7 +85,7 @@ public class TransferPanelForm {
     return new TransferPanelForm(SourcePanel.push(http), TransferFormsTable.from(forms, "Push"), "Push");
   }
 
-  public void onSource(Consumer<Source<?>> callback) {
+  public void onSource(Consumer<PullSource<?>> callback) {
     sourcePanel.onSource(callback);
   }
 
@@ -162,7 +162,7 @@ public class TransferPanelForm {
     actionButton.setVisible(true);
   }
 
-  public Optional<Source<?>> preloadSource(RemoteServer server) {
+  public Optional<PullSource<?>> preloadSource(RemoteServer server) {
     return sourcePanel.preload(server);
   }
 

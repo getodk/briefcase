@@ -34,8 +34,8 @@ import org.slf4j.LoggerFactory;
 public class SourcePanel {
   private static final Logger log = LoggerFactory.getLogger(SourcePanel.class);
   private final SourcePanelForm container = new SourcePanelForm();
-  private final List<Source> sources = new ArrayList<>();
-  private final List<Consumer<Source<?>>> onSourceCallbacks = new ArrayList<>();
+  private final List<PullSource> sources = new ArrayList<>();
+  private final List<Consumer<PullSource<?>>> onSourceCallbacks = new ArrayList<>();
   private final List<Runnable> onResetCallbacks = new ArrayList<>();
   private final ShowSourceForm showView;
   private final SelectSourceForm selectView;
@@ -58,9 +58,9 @@ public class SourcePanel {
         new SelectSourceForm("Pull from"),
         ShowSourceForm.pull("Pulling from")
     );
-    panel.addSource(Source.aggregatePull(http, panel::triggerOnSource));
-    panel.addSource(Source.customDir(panel::triggerOnSource));
-    panel.addSource(Source.formInComputer(panel::triggerOnSource));
+    panel.addSource(PullSource.aggregatePull(http, panel::triggerOnSource));
+    panel.addSource(PullSource.customDir(panel::triggerOnSource));
+    panel.addSource(PullSource.formInComputer(panel::triggerOnSource));
     return panel;
   }
 
@@ -69,7 +69,7 @@ public class SourcePanel {
         new SelectSourceForm("Push to"),
         ShowSourceForm.push("Pushing to")
     );
-    panel.addSource(Source.aggregatePush(http, panel::triggerOnSource));
+    panel.addSource(PullSource.aggregatePush(http, panel::triggerOnSource));
     return panel;
   }
 
@@ -82,7 +82,7 @@ public class SourcePanel {
     triggerOnSource(selectView.getSelectedSource().orElseThrow(BriefcaseException::new));
   }
 
-  private void addSource(Source source) {
+  private void addSource(PullSource source) {
     sources.add(source);
     selectView.addSource(source);
   }
@@ -91,7 +91,7 @@ public class SourcePanel {
     onResetCallbacks.add(runnable);
   }
 
-  public void onSource(Consumer<Source<?>> callback) {
+  public void onSource(Consumer<PullSource<?>> callback) {
     onSourceCallbacks.add(callback);
   }
 
@@ -103,7 +103,7 @@ public class SourcePanel {
     onResetCallbacks.forEach(Runnable::run);
   }
 
-  private void triggerOnSource(Source source) {
+  private void triggerOnSource(PullSource source) {
     onSourceCallbacks.forEach(callback -> callback.accept(source));
     showView.showSource(source);
     container.navigateTo(SHOW);
@@ -120,9 +120,9 @@ public class SourcePanel {
   }
 
   @SuppressWarnings("unchecked")
-  public Optional<Source<?>> preload(RemoteServer server) {
+  public Optional<PullSource<?>> preload(RemoteServer server) {
     try {
-      Source source = getSource(server);
+      PullSource source = getSource(server);
       source.set(server);
       triggerOnSource(source);
       return Optional.of(source);
@@ -133,7 +133,7 @@ public class SourcePanel {
     }
   }
 
-  private Source getSource(RemoteServer server) {
+  private PullSource getSource(RemoteServer server) {
     return sources.stream()
             .filter(s -> s.accepts(server))
             .findFirst()

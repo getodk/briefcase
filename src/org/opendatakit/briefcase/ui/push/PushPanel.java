@@ -41,7 +41,7 @@ import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.Analytics;
-import org.opendatakit.briefcase.ui.reused.source.Source;
+import org.opendatakit.briefcase.ui.reused.source.PullSource;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
 import org.opendatakit.briefcase.util.FormCache;
 
@@ -54,7 +54,7 @@ public class PushPanel {
   private final FormCache formCache;
   private final Analytics analytics;
   private TerminationFuture terminationFuture;
-  private Optional<Source<?>> source;
+  private Optional<PullSource<?>> source;
 
   private PushPanel(TransferPanelForm view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
     AnnotationProcessor.process(this);
@@ -74,14 +74,14 @@ public class PushPanel {
     // Register callbacks to view events
     view.onSource(source -> {
       this.source = Optional.of(source);
-      Source.clearAllPreferences(tabPreferences);
+      PullSource.clearAllPreferences(tabPreferences);
       source.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
       updateActionButtons();
     });
 
     view.onReset(() -> {
       source = Optional.empty();
-      Source.clearAllPreferences(tabPreferences);
+      PullSource.clearAllPreferences(tabPreferences);
       updateActionButtons();
     });
 

@@ -29,7 +29,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class SelectSourceForm extends JComponent {
-  private JComboBox<Source> sourceComboBox;
+  private JComboBox<PullSource> sourceComboBox;
   private JButton configureButton;
   public JPanel container;
   private JLabel actionLabel;
@@ -38,7 +38,7 @@ public class SelectSourceForm extends JComponent {
     $$$setupUI$$$();
     actionLabel.setText(action);
 
-    configureButton.addActionListener(__ -> Optional.ofNullable((Source) sourceComboBox.getSelectedItem())
+    configureButton.addActionListener(__ -> Optional.ofNullable((PullSource) sourceComboBox.getSelectedItem())
         .orElseThrow(BriefcaseException::new)
         .onSelect(container));
   }
@@ -47,12 +47,12 @@ public class SelectSourceForm extends JComponent {
     return container;
   }
 
-  void addSource(Source source) {
+  void addSource(PullSource source) {
     sourceComboBox.addItem(source);
   }
 
-  Optional<Source> getSelectedSource() {
-    return Optional.ofNullable((Source) sourceComboBox.getSelectedItem());
+  Optional<PullSource> getSelectedSource() {
+    return Optional.ofNullable((PullSource) sourceComboBox.getSelectedItem());
   }
 
   @Override

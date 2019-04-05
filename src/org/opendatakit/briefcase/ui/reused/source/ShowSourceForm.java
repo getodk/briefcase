@@ -76,7 +76,7 @@ public class ShowSourceForm extends JComponent {
     onReloadCallbacks.add(callback);
   }
 
-  void showSource(Source source) {
+  void showSource(PullSource source) {
     actionLabel.setText(action + ": " + source.toString());
     source.decorate(sourceLabel);
     reloadButton.setVisible(source.canBeReloaded() && showReloadButton);

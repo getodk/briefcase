@@ -44,7 +44,6 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
-import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.FormInstaller;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.PullForm;
@@ -63,8 +62,8 @@ import org.opendatakit.briefcase.util.TransferAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public interface Source<T> {
-  Logger log = LoggerFactory.getLogger(Source.class);
+public interface PullSource<T> {
+  Logger log = LoggerFactory.getLogger(PullSource.class);
 
   static void clearAllPreferences(BriefcasePreferences prefs) {
     Aggregate.clearPreferences(prefs);
@@ -72,20 +71,16 @@ public interface Source<T> {
     FormInComputer.clearPreferences(prefs);
   }
 
-  static Source<RemoteServer> aggregatePull(Http http, Consumer<Source> consumer) {
-    return new Source.Aggregate(http, server -> server.testPull(http), "Data Viewer", consumer);
+  static PullSource<RemoteServer> aggregatePull(Http http, Consumer<PullSource> consumer) {
+    return new PullSource.Aggregate(http, server -> server.testPull(http), "Data Viewer", consumer);
   }
 
-  static Source<RemoteServer> aggregatePush(Http http, Consumer<Source> consumer) {
-    return new Source.Aggregate(http, server -> server.testPush(http), "Form Manager", consumer);
+  static PullSource<Path> customDir(Consumer<PullSource> consumer) {
+    return new PullSource.CustomDir(consumer);
   }
 
-  static Source<Path> customDir(Consumer<Source> consumer) {
-    return new Source.CustomDir(consumer);
-  }
-
-  static Source<FormStatus> formInComputer(Consumer<Source> consumer) {
-    return new Source.FormInComputer(consumer);
+  static PullSource<FormStatus> formInComputer(Consumer<PullSource> consumer) {
+    return new PullSource.FormInComputer(consumer);
   }
 
   void onSelect(Container container);
@@ -100,22 +95,20 @@ public interface Source<T> {
 
   JobsRunner pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate);
 
-  void push(TransferForms forms, TerminationFuture terminationFuture);
-
   boolean canBeReloaded();
 
   String getDescription();
 
   void decorate(JLabel label);
 
-  class Aggregate implements Source<RemoteServer> {
+  class Aggregate implements PullSource<RemoteServer> {
     private final Http http;
     private RemoteServer.Test serverTester;
     private String requiredPermission;
-    private final Consumer<Source> consumer;
+    private final Consumer<PullSource> consumer;
     private RemoteServer server;
 
-    Aggregate(Http http, RemoteServer.Test serverTester, String requiredPermission, Consumer<Source> consumer) {
+    Aggregate(Http http, RemoteServer.Test serverTester, String requiredPermission, Consumer<PullSource> consumer) {
       this.http = http;
       this.serverTester = serverTester;
       this.requiredPermission = requiredPermission;
@@ -173,11 +166,6 @@ public interface Source<T> {
     }
 
     @Override
-    public void push(TransferForms forms, TerminationFuture terminationFuture) {
-      TransferAction.transferBriefcaseToServer(server.asServerConnectionInfo(), terminationFuture, forms, http, server);
-    }
-
-    @Override
     public boolean canBeReloaded() {
       return true;
     }
@@ -211,11 +199,11 @@ public interface Source<T> {
     }
   }
 
-  class CustomDir implements Source<Path> {
-    private final Consumer<Source> consumer;
+  class CustomDir implements PullSource<Path> {
+    private final Consumer<PullSource> consumer;
     private Path path;
 
-    CustomDir(Consumer<Source> consumer) {
+    CustomDir(Consumer<PullSource> consumer) {
       this.consumer = consumer;
     }
 
@@ -276,11 +264,6 @@ public interface Source<T> {
     }
 
     @Override
-    public void push(TransferForms forms, TerminationFuture terminationFuture) {
-      throw new BriefcaseException("Can't push to a Collect directory");
-    }
-
-    @Override
     public boolean canBeReloaded() {
       return false;
     }
@@ -303,12 +286,12 @@ public interface Source<T> {
     }
   }
 
-  class FormInComputer implements Source<FormStatus> {
-    private final Consumer<Source> consumer;
+  class FormInComputer implements PullSource<FormStatus> {
+    private final Consumer<PullSource> consumer;
     private Path path;
     private FormStatus form;
 
-    FormInComputer(Consumer<Source> consumer) {
+    FormInComputer(Consumer<PullSource> consumer) {
       this.consumer = consumer;
     }
 
@@ -363,11 +346,6 @@ public interface Source<T> {
       return JobsRunner.launchAsync(
           run(jobStatus -> FormInstaller.install(briefcaseDir, form))
       );
-    }
-
-    @Override
-    public void push(TransferForms forms, TerminationFuture terminationFuture) {
-      throw new BriefcaseException("Can't push to this source");
     }
 
     @Override

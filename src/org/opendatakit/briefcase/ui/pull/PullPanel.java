@@ -42,7 +42,7 @@ import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.Analytics;
-import org.opendatakit.briefcase.ui.reused.source.Source;
+import org.opendatakit.briefcase.ui.reused.source.PullSource;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +57,7 @@ public class PullPanel {
   private final Analytics analytics;
   private JobsRunner pullJobRunner;
   private TerminationFuture terminationFuture;
-  private Optional<Source<?>> source;
+  private Optional<PullSource<?>> source;
 
   public PullPanel(TransferPanelForm view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
     AnnotationProcessor.process(this);
@@ -76,7 +76,7 @@ public class PullPanel {
     // Register callbacks to view events
     view.onSource(source -> {
       this.source = Optional.of(source);
-      Source.clearAllPreferences(tabPreferences);
+      PullSource.clearAllPreferences(tabPreferences);
       source.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
       onSource(view, forms, source);
     });
@@ -85,7 +85,7 @@ public class PullPanel {
       forms.clear();
       view.refresh();
       source = Optional.empty();
-      Source.clearAllPreferences(tabPreferences);
+      PullSource.clearAllPreferences(tabPreferences);
       updateActionButtons();
     });
 
@@ -137,7 +137,7 @@ public class PullPanel {
     return view.container;
   }
 
-  private void onSource(TransferPanelForm view, TransferForms forms, Source<?> source) {
+  private void onSource(TransferPanelForm view, TransferForms forms, PullSource<?> source) {
     source.getFormList().thenAccept(formList -> {
       forms.load(formList, tabPreferences);
       view.refresh();
