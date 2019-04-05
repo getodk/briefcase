@@ -17,7 +17,6 @@
 package org.opendatakit.briefcase.ui.pull;
 
 import static java.util.stream.Collectors.toList;
-import static javax.swing.SwingUtilities.invokeLater;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0_URL;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
@@ -95,14 +94,14 @@ public class PullPanel {
     view.onAction(() -> {
       view.setWorking();
       forms.forEach(FormStatus::clearStatusHistory);
-      invokeLater(() -> source.ifPresent(s -> pullJobRunner = s.pull(
+      new Thread(() -> source.ifPresent(s -> pullJobRunner = s.pull(
           forms.getSelectedForms(),
           appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
           appPreferences.getPullInParallel().orElse(false),
           false,
           appPreferences.getResumeLastPull().orElse(false),
           Optional.empty()
-      )));
+      ))).start();
     });
 
     view.onCancel(() -> {

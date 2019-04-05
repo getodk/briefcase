@@ -284,7 +284,7 @@ public interface Source<T> {
             results.forEach(result -> forms.setLastPullCursor(result.getForm(), result.getLastCursor()));
             EventBus.publish(new PullEvent.Success(forms, server.asServerConnectionInfo()));
           })
-          .launch(forms.map(form -> PullForm.pull(reusableHttp, server, briefcaseDir, includeIncomplete, form)));
+          .launchAsync(forms.map(form -> PullForm.pull(reusableHttp, server, briefcaseDir, includeIncomplete, form)));
     }
 
     @Override
@@ -385,7 +385,7 @@ public interface Source<T> {
 
     @Override
     public JobsRunner pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
-      return JobsRunner.launch(
+      return JobsRunner.launchAsync(
           run(jobStatus -> TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), jobStatus, forms))
       );
     }
@@ -475,7 +475,7 @@ public interface Source<T> {
 
     @Override
     public JobsRunner pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
-      return JobsRunner.launch(
+      return JobsRunner.launchAsync(
           run(jobStatus -> FormInstaller.install(briefcaseDir, form))
       );
     }

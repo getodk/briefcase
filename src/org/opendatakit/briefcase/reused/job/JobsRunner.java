@@ -48,15 +48,33 @@ public class JobsRunner<T> {
   }
 
   @SafeVarargs
-  public static <U> JobsRunner<U> launch(Job<U>... jobs) {
-    return new JobsRunner<U>().launch(Stream.of(jobs));
+  public static <U> JobsRunner<U> launchAsync(Job<U>... jobs) {
+    return new JobsRunner<U>().launchAsync(Stream.of(jobs));
+  }
+
+  @SafeVarargs
+  public static <U> JobsRunner<U> launchSync(Job<U>... jobs) {
+    return new JobsRunner<U>().launchSync(Stream.of(jobs));
   }
 
   /**
    * Launches the jobs in background.
    */
-  public JobsRunner<T> launch(Stream<Job<T>> jobs) {
-    CompletableFuture.runAsync(() -> {
+  public JobsRunner<T> launchAsync(Stream<Job<T>> jobs) {
+    launch(jobs, false);
+    return this;
+  }
+
+  /**
+   * Launches the jobs and blocks the current thread.
+   */
+  public JobsRunner<T> launchSync(Stream<Job<T>> jobs) {
+    launch(jobs, true);
+    return this;
+  }
+
+  private void launch(Stream<Job<T>> jobs, boolean join) {
+    CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
       try {
         List<T> results = jobs.map(job -> job.launch(executor)).collect(collectResult()).get();
         successCallbacks.forEach(c -> c.accept(results));
@@ -65,7 +83,8 @@ public class JobsRunner<T> {
         log.info("Job cancelled", e);
       }
     }, executor);
-    return this;
+    if (join)
+      completableFuture.join();
   }
 
   /**
