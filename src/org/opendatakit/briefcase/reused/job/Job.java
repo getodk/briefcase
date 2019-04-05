@@ -74,6 +74,13 @@ public class Job<T> {
     return new Job<>(runnerStatus -> runnerAwareFunction.apply(runnerStatus, runnerAwareSupplier.apply(runnerStatus)));
   }
 
+  public <U> Job<U> thenRun(Job<U> job) {
+    return new Job<>(runnerStatus -> {
+      runnerAwareSupplier.apply(runnerStatus);
+      return job.runnerAwareSupplier.apply(runnerStatus);
+    });
+  }
+
   CompletableFuture<T> launch(ExecutorService executor) {
     return CompletableFuture.supplyAsync(() -> runnerAwareSupplier.apply(new RunnerStatus(executor::isShutdown)), executor);
   }
