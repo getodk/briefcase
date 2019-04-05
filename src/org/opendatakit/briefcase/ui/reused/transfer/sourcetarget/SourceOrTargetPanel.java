@@ -28,6 +28,8 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source.PullSource;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.target.PushTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

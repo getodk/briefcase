@@ -34,11 +34,11 @@ import javax.swing.JScrollPane;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.PullSource;
-import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.PushTarget;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.SourceOrTarget;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.SourceOrTargetPanel;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.SourceOrTargetPanelForm;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source.PullSource;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.target.PushTarget;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class TransferPanelForm<T extends SourceOrTarget> {

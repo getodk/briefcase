@@ -25,6 +25,8 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Timer;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source.PullSource;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.target.PushTarget;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ShowSourceOrTargetForm<T extends SourceOrTarget> extends JComponent {

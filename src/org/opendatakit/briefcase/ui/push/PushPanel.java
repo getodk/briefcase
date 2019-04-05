@@ -42,7 +42,7 @@ import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
-import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.PushTarget;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.target.PushTarget;
 import org.opendatakit.briefcase.util.FormCache;
 
 public class PushPanel {

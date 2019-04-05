@@ -76,7 +76,7 @@ public class RemoteServerDialog {
     ));
   }
 
-  static RemoteServerDialog empty(RemoteServer.Test serverTester, String requiredPermission) {
+  public static RemoteServerDialog empty(RemoteServer.Test serverTester, String requiredPermission) {
     return new RemoteServerDialog(
         new RemoteServerDialogForm(requiredPermission),
         serverTester
@@ -87,7 +87,7 @@ public class RemoteServerDialog {
     onConnectCallbacks.forEach(callback -> callback.accept(conf));
   }
 
-  void onConnect(Consumer<RemoteServer> consumer) {
+  public void onConnect(Consumer<RemoteServer> consumer) {
     onConnectCallbacks.add(consumer);
   }
 

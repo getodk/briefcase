@@ -43,7 +43,7 @@ import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
-import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.PullSource;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source.PullSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
