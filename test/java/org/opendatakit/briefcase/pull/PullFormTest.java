@@ -80,7 +80,7 @@ public class PullFormTest {
         .resolve(sanitizedFormName)
         .resolve(sanitizedFormName + ".xml")));
     assertThat(actualXml, is(expectedContent));
-    assertThat(events, contains("Downloaded form"));
+    assertThat(events, contains("Downloaded form some form"));
   }
 
   @Test
