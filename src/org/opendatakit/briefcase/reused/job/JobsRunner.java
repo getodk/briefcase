@@ -52,17 +52,17 @@ public class JobsRunner<T> {
     return new JobsRunner<U>().launchAsync(Stream.of(jobs));
   }
 
-  @SafeVarargs
-  public static <U> JobsRunner<U> launchSync(Job<U>... jobs) {
-    return new JobsRunner<U>().launchSync(Stream.of(jobs));
-  }
-
   /**
    * Launches the jobs in background.
    */
   public JobsRunner<T> launchAsync(Stream<Job<T>> jobs) {
     launch(jobs, false);
     return this;
+  }
+
+  @SafeVarargs
+  public static <U> JobsRunner<U> launchSync(Job<U>... jobs) {
+    return new JobsRunner<U>().launchSync(Stream.of(jobs));
   }
 
   /**

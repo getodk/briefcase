@@ -55,7 +55,7 @@ public class Job<T> {
     });
   }
 
-  public static final Job<Void> noOp = Job.run(__ -> {});
+  public static final Job<Void> noOp = Job.run(__ -> { });
 
   public static <T> Job<T> noOpSupplier() {
     return Job.supply(__ -> null);
