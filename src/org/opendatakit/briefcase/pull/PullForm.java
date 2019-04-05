@@ -34,10 +34,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.RemoteServer;
@@ -63,12 +64,12 @@ public class PullForm {
     this.includeIncomplete = includeIncomplete;
   }
 
-  public static Job<PullResult> pull(Http http, RemoteServer server, Path briefcaseDir, boolean includeIncomplete, FormStatus form) {
-    return new PullForm(http, server, briefcaseDir, includeIncomplete).pull(form);
+  public static Job<PullResult> pull(Http http, RemoteServer server, Path briefcaseDir, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback, FormStatus form) {
+    return new PullForm(http, server, briefcaseDir, includeIncomplete).pull(form, onEventCallback);
   }
 
-  private Job<PullResult> pull(FormStatus form) {
-    PullTracker tracker = new PullTracker(form, EventBus::publish);
+  public Job<PullResult> pull(FormStatus form, Consumer<FormStatusEvent> onEventCallback) {
+    PullTracker tracker = new PullTracker(form, onEventCallback);
     return allOf(
         supply(runnerStatus -> downloadForm(form, tracker)),
         supply(runnerStatus -> getInstanceIdBatches(form, tracker, runnerStatus)),

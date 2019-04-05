@@ -284,7 +284,7 @@ public interface Source<T> {
             results.forEach(result -> forms.setLastPullCursor(result.getForm(), result.getLastCursor()));
             EventBus.publish(new PullEvent.Success(forms, server.asServerConnectionInfo()));
           })
-          .launchAsync(forms.map(form -> PullForm.pull(reusableHttp, server, briefcaseDir, includeIncomplete, form)));
+          .launchAsync(forms.map(form -> PullForm.pull(reusableHttp, server, briefcaseDir, includeIncomplete, EventBus::publish, form)));
     }
 
     @Override

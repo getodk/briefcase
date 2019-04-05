@@ -27,49 +27,49 @@ import org.slf4j.LoggerFactory;
 public class PullTracker {
   private static final Logger log = LoggerFactory.getLogger(PullTracker.class);
   private final FormStatus form;
-  private final Consumer<FormStatusEvent> publisher;
+  private final Consumer<FormStatusEvent> onEventCallback;
   private int totalSubmissions;
   private AtomicInteger submissionCounter = new AtomicInteger(0);
 
-  public PullTracker(FormStatus form, Consumer<FormStatusEvent> publisher) {
+  public PullTracker(FormStatus form, Consumer<FormStatusEvent> onEventCallback) {
     this.form = form;
-    this.publisher = publisher;
+    this.onEventCallback = onEventCallback;
   }
 
   void trackFormDownloaded() {
     form.setStatusString("Downloaded form");
     log.info("Downloaded form {}", form.getFormName());
-    fireUIEvent();
+    notifyTrackingEvent();
   }
 
   void trackBatches(List<InstanceIdBatch> batches) {
     totalSubmissions = batches.stream().map(InstanceIdBatch::count).reduce(0, (a, b) -> a + b);
     form.setStatusString("Downloading " + totalSubmissions + " submissions");
     log.info("Downloaded {} submissions", totalSubmissions);
-    fireUIEvent();
+    notifyTrackingEvent();
   }
 
   void trackSubmission() {
     form.setStatusString("Downloaded submission " + submissionCounter.incrementAndGet() + " of " + totalSubmissions);
     log.info("Downloaded submission {} of {}", submissionCounter.get(), totalSubmissions);
-    fireUIEvent();
+    notifyTrackingEvent();
   }
 
   void trackMediaFiles(List<MediaFile> manifestMediaFiles, List<MediaFile> downloadedMediaFiles) {
     if (!downloadedMediaFiles.isEmpty()) {
       form.setStatusString("Downloaded " + downloadedMediaFiles.size() + " attachments");
       log.info("Downloaded {} attachments", downloadedMediaFiles.size());
-      fireUIEvent();
+      notifyTrackingEvent();
     }
     if (manifestMediaFiles.size() > downloadedMediaFiles.size()) {
       int number = manifestMediaFiles.size() - downloadedMediaFiles.size();
       form.setStatusString("Ignoring " + number + " attachments (already present)");
       log.info("Ignoring {} attachments (already present)", number);
-      fireUIEvent();
+      notifyTrackingEvent();
     }
   }
 
-  private void fireUIEvent() {
-    publisher.accept(new FormStatusEvent(form));
+  private void notifyTrackingEvent() {
+    onEventCallback.accept(new FormStatusEvent(form));
   }
 }
