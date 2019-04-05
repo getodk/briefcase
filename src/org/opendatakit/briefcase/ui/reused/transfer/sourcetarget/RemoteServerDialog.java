@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.ui.reused.source;
+package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget;
 
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 

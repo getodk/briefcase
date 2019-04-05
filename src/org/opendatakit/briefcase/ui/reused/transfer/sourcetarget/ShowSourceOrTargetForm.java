@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.ui.reused.source;
+package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -27,7 +27,7 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 @SuppressWarnings("checkstyle:MethodName")
-public class ShowSourceForm extends JComponent {
+public class ShowSourceOrTargetForm<T extends SourceOrTarget> extends JComponent {
   private final String action;
   public JPanel container;
   private JLabel sourceLabel;
@@ -40,7 +40,7 @@ public class ShowSourceForm extends JComponent {
   private boolean reloadTimerElapsed;
   private boolean reloadOperationCompleted;
 
-  private ShowSourceForm(String action, boolean showReloadButton) {
+  private ShowSourceOrTargetForm(String action, boolean showReloadButton) {
     $$$setupUI$$$();
     this.action = action;
     this.showReloadButton = showReloadButton;
@@ -60,12 +60,12 @@ public class ShowSourceForm extends JComponent {
       reloadButton.setVisible(false);
   }
 
-  static ShowSourceForm pull(String action) {
-    return new ShowSourceForm(action, true);
+  static ShowSourceOrTargetForm<PullSource> pull() {
+    return new ShowSourceOrTargetForm<>("Pulling from", true);
   }
 
-  static ShowSourceForm push(String action) {
-    return new ShowSourceForm(action, false);
+  static ShowSourceOrTargetForm<PushTarget> push() {
+    return new ShowSourceOrTargetForm<>("Pushing to", false);
   }
 
   void onReset(Runnable callback) {
@@ -76,10 +76,17 @@ public class ShowSourceForm extends JComponent {
     onReloadCallbacks.add(callback);
   }
 
-  void showSource(PullSource source) {
+  void showSelectedOption(T source) {
     actionLabel.setText(action + ": " + source.toString());
     source.decorate(sourceLabel);
     reloadButton.setVisible(source.canBeReloaded() && showReloadButton);
+    markReloadOperationCompleted();
+  }
+
+  void showTarget(PushTarget target) {
+    actionLabel.setText(action + ": " + target.toString());
+    target.decorate(sourceLabel);
+    reloadButton.setVisible(false);
     markReloadOperationCompleted();
   }
 

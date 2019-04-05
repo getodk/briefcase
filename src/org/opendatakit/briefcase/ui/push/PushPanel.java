@@ -41,8 +41,8 @@ import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.Analytics;
-import org.opendatakit.briefcase.ui.reused.source.PullSource;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.PushTarget;
 import org.opendatakit.briefcase.util.FormCache;
 
 public class PushPanel {
@@ -54,9 +54,9 @@ public class PushPanel {
   private final FormCache formCache;
   private final Analytics analytics;
   private TerminationFuture terminationFuture;
-  private Optional<PullSource<?>> source;
+  private Optional<PushTarget> target;
 
-  private PushPanel(TransferPanelForm view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
+  private PushPanel(TransferPanelForm<PushTarget> view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
@@ -68,20 +68,20 @@ public class PushPanel {
     getContainer().addComponentListener(analytics.buildComponentListener("Push"));
 
     // Read prefs and load saved remote server if available
-    this.source = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadSource);
-    this.source.ifPresent(source -> updateActionButtons());
+    this.target = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadOption);
+    this.target.ifPresent(source -> updateActionButtons());
 
     // Register callbacks to view events
-    view.onSource(source -> {
-      this.source = Optional.of(source);
-      PullSource.clearAllPreferences(tabPreferences);
-      source.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
+    view.onSelect(target -> {
+      this.target = Optional.of(target);
+      PushTarget.clearAllPreferences(tabPreferences);
+      target.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
       updateActionButtons();
     });
 
     view.onReset(() -> {
-      source = Optional.empty();
-      PullSource.clearAllPreferences(tabPreferences);
+      target = Optional.empty();
+      PushTarget.clearAllPreferences(tabPreferences);
       updateActionButtons();
     });
 
@@ -90,7 +90,7 @@ public class PushPanel {
     view.onAction(() -> {
       view.setWorking();
       forms.forEach(FormStatus::clearStatusHistory);
-      source.ifPresent(s -> s.push(forms.getSelectedForms(), terminationFuture));
+      target.ifPresent(s -> s.push(forms.getSelectedForms(), terminationFuture));
     });
 
     view.onCancel(() -> terminationFuture.markAsCancelled(new PushEvent.Cancel("Cancelled by the user")));
@@ -120,7 +120,7 @@ public class PushPanel {
   }
 
   private void updateActionButtons() {
-    if (source.isPresent() && forms.someSelected())
+    if (target.isPresent() && forms.someSelected())
       view.enableAction();
     else
       view.disableAction();

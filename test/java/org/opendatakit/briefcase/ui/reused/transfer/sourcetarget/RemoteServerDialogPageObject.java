@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.ui.reused.source;
+package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget;
 
 import static org.assertj.swing.edt.GuiActionRunner.execute;
 import static org.opendatakit.briefcase.ui.SwingTestRig.uncheckedSleep;

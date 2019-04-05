@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.ui.reused.source;
+package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget;
 
 import static java.awt.event.KeyEvent.VK_ESCAPE;
 import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;

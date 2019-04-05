@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.ui.reused.source;
+package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget;
 
 import static java.awt.Cursor.HAND_CURSOR;
 import static java.awt.Cursor.getPredefinedCursor;
@@ -62,7 +62,7 @@ import org.opendatakit.briefcase.util.TransferAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public interface PullSource<T> {
+public interface PullSource<T> extends SourceOrTarget<T> {
   Logger log = LoggerFactory.getLogger(PullSource.class);
 
   static void clearAllPreferences(BriefcasePreferences prefs) {
@@ -71,7 +71,7 @@ public interface PullSource<T> {
     FormInComputer.clearPreferences(prefs);
   }
 
-  static PullSource<RemoteServer> aggregatePull(Http http, Consumer<PullSource> consumer) {
+  static PullSource<RemoteServer> aggregate(Http http, Consumer<PullSource> consumer) {
     return new PullSource.Aggregate(http, server -> server.testPull(http), "Data Viewer", consumer);
   }
 
@@ -83,23 +83,13 @@ public interface PullSource<T> {
     return new PullSource.FormInComputer(consumer);
   }
 
-  void onSelect(Container container);
-
-  void set(T t);
-
-  boolean accepts(Object o);
-
   DeferredValue<List<FormStatus>> getFormList();
 
   void storePreferences(BriefcasePreferences prefs, boolean storePasswords);
 
   JobsRunner pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate);
 
-  boolean canBeReloaded();
-
   String getDescription();
-
-  void decorate(JLabel label);
 
   class Aggregate implements PullSource<RemoteServer> {
     private final Http http;

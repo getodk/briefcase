@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.ui.reused.source;
+package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget;
 
 import static java.awt.Cursor.HAND_CURSOR;
 import static java.awt.Cursor.getPredefinedCursor;
@@ -39,32 +39,22 @@ import org.opendatakit.briefcase.util.TransferAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public interface PushTarget<T> {
+public interface PushTarget<T> extends SourceOrTarget<T> {
   Logger log = LoggerFactory.getLogger(PushTarget.class);
 
   static void clearAllPreferences(BriefcasePreferences prefs) {
     Aggregate.clearPreferences(prefs);
   }
 
-  static PushTarget<RemoteServer> aggregatePush(Http http, Consumer<PushTarget> consumer) {
+  static PushTarget<RemoteServer> aggregate(Http http, Consumer<PushTarget> consumer) {
     return new PushTarget.Aggregate(http, server -> server.testPush(http), "Form Manager", consumer);
   }
-
-  void onSelect(Container container);
-
-  void set(T t);
-
-  boolean accepts(Object o);
 
   void storePreferences(BriefcasePreferences prefs, boolean storePasswords);
 
   void push(TransferForms forms, TerminationFuture terminationFuture);
 
-  boolean canBeReloaded();
-
   String getDescription();
-
-  void decorate(JLabel label);
 
   class Aggregate implements PushTarget<RemoteServer> {
     private final Http http;
@@ -121,11 +111,6 @@ public interface PushTarget<T> {
     }
 
     @Override
-    public boolean canBeReloaded() {
-      return true;
-    }
-
-    @Override
     public String getDescription() {
       return server.getBaseUrl().toString();
     }
@@ -138,6 +123,11 @@ public interface PushTarget<T> {
       label.addMouseListener(new MouseAdapterBuilder()
           .onClick(__ -> invokeLater(() -> uncheckedBrowse(server.getBaseUrl())))
           .build());
+    }
+
+    @Override
+    public boolean canBeReloaded() {
+      return false;
     }
 
     @Override

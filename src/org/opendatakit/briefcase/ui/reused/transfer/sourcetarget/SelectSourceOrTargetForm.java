@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.ui.reused.source;
+package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -28,42 +28,38 @@ import javax.swing.JPanel;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
 @SuppressWarnings("checkstyle:MethodName")
-public class SelectSourceForm extends JComponent {
-  private JComboBox<PullSource> sourceComboBox;
-  private JButton configureButton;
+public class SelectSourceOrTargetForm<T extends SourceOrTarget> extends JComponent {
   public JPanel container;
-  private JLabel actionLabel;
+  private JComboBox<T> selectField;
+  private JButton configureButton;
+  private JLabel label;
 
-  SelectSourceForm(String action) {
+  SelectSourceOrTargetForm() {
     $$$setupUI$$$();
-    actionLabel.setText(action);
 
-    configureButton.addActionListener(__ -> Optional.ofNullable((PullSource) sourceComboBox.getSelectedItem())
+    configureButton.addActionListener(__ -> getSelectedOption()
         .orElseThrow(BriefcaseException::new)
         .onSelect(container));
+  }
+
+  void addOption(T item) {
+    selectField.addItem(item);
   }
 
   public JPanel getContainer() {
     return container;
   }
 
-  void addSource(PullSource source) {
-    sourceComboBox.addItem(source);
-  }
-
-  Optional<PullSource> getSelectedSource() {
-    return Optional.ofNullable((PullSource) sourceComboBox.getSelectedItem());
+  @SuppressWarnings("unchecked")
+  Optional<T> getSelectedOption() {
+    return Optional.ofNullable((T) selectField.getSelectedItem());
   }
 
   @Override
   public void setEnabled(boolean enabled) {
     super.setEnabled(enabled);
-    sourceComboBox.setEnabled(enabled);
+    selectField.setEnabled(enabled);
     configureButton.setEnabled(enabled);
-  }
-
-  private void createUIComponents() {
-    // TODO: place custom component creation code here
   }
 
   /**
@@ -76,23 +72,35 @@ public class SelectSourceForm extends JComponent {
   private void $$$setupUI$$$() {
     container = new JPanel();
     container.setLayout(new GridBagLayout());
-    actionLabel = new JLabel();
-    actionLabel.setText("Pull from");
+    label = new JLabel();
+    label.setText("Pull from");
     GridBagConstraints gbc;
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 0;
-    container.add(actionLabel, gbc);
-    sourceComboBox = new JComboBox();
+    container.add(label, gbc);
+    final JPanel spacer1 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 1;
+    gbc.gridy = 0;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(spacer1, gbc);
+    selectField = new JComboBox();
     final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
-    sourceComboBox.setModel(defaultComboBoxModel1);
+    selectField.setModel(defaultComboBoxModel1);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 0;
     gbc.weightx = 1.0;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(sourceComboBox, gbc);
+    container.add(selectField, gbc);
+    final JPanel spacer2 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 3;
+    gbc.gridy = 0;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    container.add(spacer2, gbc);
     configureButton = new JButton();
     configureButton.setText("Configure");
     gbc = new GridBagConstraints();
@@ -100,18 +108,6 @@ public class SelectSourceForm extends JComponent {
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     container.add(configureButton, gbc);
-    final JPanel spacer1 = new JPanel();
-    gbc = new GridBagConstraints();
-    gbc.gridx = 1;
-    gbc.gridy = 0;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(spacer1, gbc);
-    final JPanel spacer2 = new JPanel();
-    gbc = new GridBagConstraints();
-    gbc.gridx = 3;
-    gbc.gridy = 0;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    container.add(spacer2, gbc);
   }
 
   /**
@@ -120,4 +116,13 @@ public class SelectSourceForm extends JComponent {
   public JComponent $$$getRootComponent$$$() {
     return container;
   }
+
+  private void createUIComponents() {
+    // TODO: place custom component creation code here
+  }
+
+  enum Mode {
+    PULL, PUSH
+  }
+
 }

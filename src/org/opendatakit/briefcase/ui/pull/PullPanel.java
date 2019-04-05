@@ -42,8 +42,8 @@ import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.Analytics;
-import org.opendatakit.briefcase.ui.reused.source.PullSource;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.PullSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,9 +57,9 @@ public class PullPanel {
   private final Analytics analytics;
   private JobsRunner pullJobRunner;
   private TerminationFuture terminationFuture;
-  private Optional<PullSource<?>> source;
+  private Optional<PullSource> source;
 
-  public PullPanel(TransferPanelForm view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
+  public PullPanel(TransferPanelForm<PullSource> view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
@@ -70,11 +70,11 @@ public class PullPanel {
     getContainer().addComponentListener(analytics.buildComponentListener("Pull"));
 
     // Read prefs and load saved remote server if available
-    source = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadSource);
+    source = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadOption);
     view.onReady(() -> source.ifPresent(source -> onSource(view, forms, source)));
 
     // Register callbacks to view events
-    view.onSource(source -> {
+    view.onSelect(source -> {
       this.source = Optional.of(source);
       PullSource.clearAllPreferences(tabPreferences);
       source.storePreferences(tabPreferences, getStorePasswordsConsentProperty());

@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.ui.reused.source;
+package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget;
 
 import java.awt.CardLayout;
 import java.util.HashMap;
@@ -23,11 +23,11 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 @SuppressWarnings("checkstyle:MethodName")
-public class SourcePanelForm extends JComponent {
+public class SourceOrTargetPanelForm extends JComponent {
   public JPanel container;
   private Map<Object, JPanel> forms = new HashMap<>();
 
-  SourcePanelForm() {
+  SourceOrTargetPanelForm() {
     $$$setupUI$$$();
   }
 
