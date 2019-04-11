@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.util;
 
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.Optional;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
@@ -33,8 +34,9 @@ public class TransferFromServer implements ITransferFromSourceAction {
   private final Boolean includeIncomplete;
   private final Path briefcaseDir;
   private final boolean resumeLastPull;
+  private Optional<LocalDate> startFromDate;
 
-  public TransferFromServer(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture, TransferForms formsToTransfer, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull) {
+  public TransferFromServer(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture, TransferForms formsToTransfer, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
     this.originServerInfo = originServerInfo;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
@@ -42,10 +44,11 @@ public class TransferFromServer implements ITransferFromSourceAction {
     this.pullInParallel = pullInParallel;
     this.includeIncomplete = includeIncomplete;
     this.resumeLastPull = resumeLastPull;
+    this.startFromDate = startFromDate;
   }
 
-  public static void pull(ServerConnectionInfo transferSettings, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, TransferForms forms, boolean resumeLastPull) {
-    TransferFromServer action = new TransferFromServer(transferSettings, new TerminationFuture(), forms, briefcaseDir, pullInParallel, includeIncomplete, resumeLastPull);
+  public static void pull(ServerConnectionInfo transferSettings, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, TransferForms forms, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
+    TransferFromServer action = new TransferFromServer(transferSettings, new TerminationFuture(), forms, briefcaseDir, pullInParallel, includeIncomplete, resumeLastPull, startFromDate);
 
     try {
       boolean allSuccessful = action.doAction();
@@ -65,7 +68,7 @@ public class TransferFromServer implements ITransferFromSourceAction {
 
     ServerFetcher fetcher = new ServerFetcher(originServerInfo, terminationFuture, briefcaseDir, pullInParallel, includeIncomplete);
 
-    return fetcher.downloadFormAndSubmissionFiles(formsToTransfer, resumeLastPull);
+    return fetcher.downloadFormAndSubmissionFiles(formsToTransfer, resumeLastPull, startFromDate);
   }
 
   @Override

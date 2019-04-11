@@ -32,6 +32,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -189,7 +190,7 @@ public interface Source<T> {
    *                          submissions. This needs to be supported by the selected source
    * @param resumeLastPull
    */
-  void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull);
+  void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate);
 
   /**
    * Pushes forms to this configured {@link Source}.
@@ -262,8 +263,8 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull) {
-      TransferAction.transferServerToBriefcase(server.asServerConnectionInfo(), terminationFuture, forms, briefcaseDir, pullInParallel, includeIncomplete, resumeLastPull);
+    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
+      TransferAction.transferServerToBriefcase(server.asServerConnectionInfo(), terminationFuture, forms, briefcaseDir, pullInParallel, includeIncomplete, resumeLastPull, startFromDate);
     }
 
     @Override
@@ -363,7 +364,7 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull) {
+    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
       TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), terminationFuture, forms);
     }
 
@@ -451,7 +452,7 @@ public interface Source<T> {
     }
 
     @Override
-    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull) {
+    public void pull(TransferForms forms, TerminationFuture terminationFuture, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
       invokeLater(() -> FormInstaller.install(briefcaseDir, form));
     }
 

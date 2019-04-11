@@ -134,7 +134,8 @@ public class Export {
             briefcaseDir,
             appPreferences.getPullInParallel().orElse(false),
             false,
-            false
+            false,
+            Optional.empty()
         );
       }
 

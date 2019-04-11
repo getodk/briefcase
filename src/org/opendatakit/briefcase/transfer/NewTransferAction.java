@@ -17,6 +17,8 @@
 package org.opendatakit.briefcase.transfer;
 
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.util.Optional;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -28,7 +30,7 @@ import org.slf4j.LoggerFactory;
 public class NewTransferAction {
   private static final Logger log = LoggerFactory.getLogger(NewTransferAction.class);
 
-  public static void transferServerToBriefcase(ServerConnectionInfo transferSettings, TerminationFuture terminationFuture, TransferForms formsToTransfer, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull) {
+  public static void transferServerToBriefcase(ServerConnectionInfo transferSettings, TerminationFuture terminationFuture, TransferForms formsToTransfer, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
     TransferFromServer action = new TransferFromServer(
         transferSettings,
         terminationFuture,
@@ -36,7 +38,8 @@ public class NewTransferAction {
         briefcaseDir,
         pullInParallel,
         includeIncomplete,
-        resumeLastPull
+        resumeLastPull,
+        startFromDate
     );
     try {
       boolean allSuccessful = action.doAction();
