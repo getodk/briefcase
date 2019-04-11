@@ -1,0 +1,7 @@
+<data id="choice-lists-predicate" instanceID="uuid:a21ca0ad-db7e-4ef5-b7ea-d73dd4a42bf0" submissionDate="2019-03-17T10:14:18.820Z" isComplete="true" markedAsCompleteDate="2019-03-17T10:14:18.820Z" xmlns="http://opendatakit.org/submissions">
+  <some-field-no-predicate>CHOICE_1 CHOICE_4</some-field-no-predicate>
+  <some-field>CHOICE_1</some-field>
+  <n0:meta xmlns:n0="http://openrosa.org/xforms">
+    <n0:instanceID>uuid:a21ca0ad-db7e-4ef5-b7ea-d73dd4a42bf0</n0:instanceID>
+  </n0:meta>
+</data>
