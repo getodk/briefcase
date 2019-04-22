@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Nafundi
+ * Copyright (C) 2019 Nafundi
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,15 +16,6 @@
 
 package org.opendatakit.briefcase.reused.http;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
-public class HttpHelpers {
-  public static URL getUrl(String url) {
-    try {
-      return new URL(url);
-    } catch (MalformedURLException e) {
-      throw new RuntimeException(e);
-    }
-  }
+enum RequestMethod {
+  GET, HEAD
 }

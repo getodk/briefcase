@@ -22,8 +22,6 @@ import java.io.Serializable;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +42,6 @@ import org.opendatakit.aggregate.exception.ODKIncompleteSubmissionData;
 import org.opendatakit.aggregate.exception.ODKIncompleteSubmissionData.Reason;
 import org.opendatakit.aggregate.form.XFormParameters;
 import org.opendatakit.briefcase.util.StringUtils;
-import org.opendatakit.common.utils.WebUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +54,6 @@ import org.slf4j.LoggerFactory;
  */
 public class BaseFormParserForJavaRosa implements Serializable {
 
-  private static final String LEADING_QUESTION_XML_PATTERN = "^[^<]*<\\s*\\?\\s*xml.*";
   private static final Logger log = LoggerFactory.getLogger(BaseFormParserForJavaRosa.class.getName());
 
   /**
@@ -188,69 +184,6 @@ public class BaseFormParserForJavaRosa implements Serializable {
       + "<input ref=\"base64EncryptedElementSignature\"><label>Encrypted Element Signature</label></input>"
       + "</h:body>" + "</h:html>";
 
-  private static final String ODK_TIMESTAMP_COMMENT = "<!-- ODK Aggregate upload time: ";
-
-  private static int xmlInsertLocation(String xml) {
-    int idx = xml.indexOf(">");
-    if (idx == -1)
-      return -1;
-    String snip = xml.substring(0, idx).toLowerCase();
-    if (snip.matches(LEADING_QUESTION_XML_PATTERN)) {
-      // the file started with a <?xml...?> tag -- get the next(<html>) tag.
-      idx = xml.indexOf(">", idx + 1); // <html
-      if (idx == -1)
-        return -1;
-    }
-    idx = xml.indexOf(">", idx + 1);
-    if (idx == -1)
-      return -1;
-    ++idx;
-    return idx;
-  }
-
-  public static String xmlWithoutTimestampComment(String xml) {
-    int idx = xmlInsertLocation(xml);
-
-    if (xml.startsWith(ODK_TIMESTAMP_COMMENT, idx)) {
-      int endIdx = xml.indexOf(">", idx);
-      if (endIdx == -1)
-        return xml;
-      ++endIdx;
-      return xml.substring(0, idx) + xml.substring(endIdx);
-    } else {
-      return xml;
-    }
-  }
-
-  public static Date xmlTimestamp(String xml) {
-    int idx = xmlInsertLocation(xml);
-
-    if (xml.startsWith(ODK_TIMESTAMP_COMMENT, idx)) {
-      // find space after the IS8601 timestamp
-      int endIdx = xml.indexOf(" ", idx + ODK_TIMESTAMP_COMMENT.length());
-      if (endIdx == -1)
-        return new Date();
-      ++endIdx;
-      String timestamp = xml.substring(idx + ODK_TIMESTAMP_COMMENT.length(), endIdx);
-      Date d = WebUtils.parseDate(timestamp);
-      if (d != null) {
-        return d;
-      } else {
-        return new Date();
-      }
-    } else {
-      return new Date();
-    }
-  }
-
-  public static String xmlWithTimestampComment(String xmlWithoutTimestampComment, String serverUrl) {
-    int idx = xmlInsertLocation(xmlWithoutTimestampComment);
-
-    return xmlWithoutTimestampComment.substring(0, idx) + ODK_TIMESTAMP_COMMENT
-        + WebUtils.iso8601Date(new Date()) + " on " + serverUrl + " -->"
-        + xmlWithoutTimestampComment.substring(idx);
-  }
-
   private static class XFormParserWithBindEnhancements extends XFormParser {
     @SuppressWarnings("unused")
     private Document xmldoc;
@@ -299,33 +232,8 @@ public class BaseFormParserForJavaRosa implements Serializable {
    */
   protected final String xml;
 
-  // extracted from XForm during parsing
-  private final Map<String, Integer> stringLengths = new HashMap<>();
   // original bindings from parse-time for later comparison
   private transient final List<Element> bindElements = new ArrayList<>();
-
-  private void setNodesetStringLength(String nodeset, Integer length) {
-    stringLengths.put(nodeset, length);
-  }
-
-  protected Integer getNodesetStringLength(AbstractTreeElement<?> e) {
-    List<String> path = new ArrayList<>();
-    while (e != null && e.getName() != null) {
-      path.add(e.getName());
-      e = e.getParent();
-    }
-    Collections.reverse(path);
-
-    StringBuilder b = new StringBuilder();
-    for (String s : path) {
-      b.append("/");
-      b.append(s);
-    }
-
-    String nodeset = b.toString();
-    Integer len = stringLengths.get(nodeset);
-    return len;
-  }
 
   /**
    * Extract the form id, version and uiVersion.
@@ -353,18 +261,6 @@ public class BaseFormParserForJavaRosa implements Serializable {
 
     return new XFormParameters((formIdValue == null) ? defaultFormIdValue : formIdValue,
         versionString);
-  }
-
-  /**
-   * Determine whether or not a field is encrypted. Field-level encryption
-   * plumbing.
-   *
-   * @param element
-   * @return
-   */
-  public final static boolean isEncryptedField(TreeElement element) {
-    String v = getBindAttribute(element, "encrypted");
-    return (v != null && ("true".equalsIgnoreCase(v) || "true()".equalsIgnoreCase(v)));
   }
 
   /**
@@ -1075,18 +971,6 @@ public class BaseFormParserForJavaRosa implements Serializable {
       if ((retval = element.getAttributeValue(attributeNamespace, attributeName)) != null) {
         return (retval);
       }
-    }
-    return (retval);
-  }
-
-  // copy binding and associated attributes to a new binding element (to help
-  // with maintaining list of original bindings)
-  private static Element copyBindingElement(Element element) {
-    Element retval = new Element();
-    retval.createElement(element.getNamespace(), element.getName());
-    for (int i = 0; i < element.getAttributeCount(); i++) {
-      retval.setAttribute(element.getAttributeNamespace(i), element.getAttributeName(i),
-          element.getAttributeValue(i));
     }
     return (retval);
   }

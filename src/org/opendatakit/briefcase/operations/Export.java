@@ -20,6 +20,7 @@ import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePr
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
+import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,6 +28,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.opendatakit.briefcase.export.DateRange;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportToCsv;
@@ -35,10 +37,16 @@ import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.ServerConnectionInfo;
-import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.transfer.NewTransferAction;
-import org.opendatakit.briefcase.transfer.TransferForms;
+import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.pull.PullForm;
+import org.opendatakit.briefcase.pull.PullResult;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.OptionalProduct;
+import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.http.CommonsHttp;
+import org.opendatakit.briefcase.reused.http.Credentials;
+import org.opendatakit.briefcase.reused.job.Job;
+import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.common.cli.Operation;
@@ -110,6 +118,7 @@ public class Export {
         .setRemoveGroupNames(removeGroupNames)
         .build();
 
+    Job<PullResult> pullJob = Job.noOpSupplier();
     if (configuration.resolvePullBefore()) {
       BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
       FormStatus formStatus = new FormStatus(formDefinition);
@@ -118,35 +127,49 @@ public class Export {
       String usernameKey = String.format("%s_pull_settings_username", formid);
       String passwordKey = String.format("%s_pull_settings_password", formid);
 
-      if (appPreferences.hasKey(urlKey) && appPreferences.hasKey(usernameKey) && appPreferences.hasKey(passwordKey)) {
-        ServerConnectionInfo transferSettings = new ServerConnectionInfo(
-            appPreferences.nullSafeGet(urlKey)
-                .orElseThrow(() -> new RuntimeException("Null value saved for " + urlKey)), appPreferences.nullSafeGet(usernameKey)
-            .orElseThrow(() -> new RuntimeException("Null value saved for " + usernameKey)),
-            appPreferences.nullSafeGet(passwordKey)
-                .orElseThrow(() -> new RuntimeException("Null value saved for " + passwordKey)).toCharArray()
+      if (appPreferences.hasKey(urlKey)) {
+        RemoteServer server = new RemoteServer(
+            url(appPreferences.nullSafeGet(urlKey).orElseThrow(BriefcaseException::new)),
+            OptionalProduct.all(
+                appPreferences.nullSafeGet(usernameKey),
+                appPreferences.nullSafeGet(passwordKey)
+            ).map(Credentials::from)
         );
 
-        NewTransferAction.transferServerToBriefcase(
-            transferSettings,
-            new TerminationFuture(),
-            TransferForms.of(formStatus),
-            briefcaseDir,
-            appPreferences.getPullInParallel().orElse(false),
-            false,
-            false,
-            Optional.empty()
-        );
+        pullJob = PullForm.pull(CommonsHttp.reusing(), server, briefcaseDir, false, Export::onEvent, formStatus);
       }
-
     }
-
     FormDefinition formDef = FormDefinition.from(formDefinition);
+    Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration));
 
-    ExportToCsv.export(formDef, configuration);
-    if (includeGeoJsonExport)
-      ExportToGeoJson.export(formDef, configuration);
+    Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
+        ? Job.run(runnerStatus -> ExportToGeoJson.export(formDef, configuration))
+        : Job.noOp;
 
-    BriefcasePreferences.forClass(ExportPanel.class).put(buildExportDateTimePrefix(formDefinition.getFormId()), LocalDateTime.now().format(ISO_DATE_TIME));
+    Job<Void> job = pullJob
+        .thenRun(exportJob)
+        .thenRun(exportGeoJsonJob)
+        .thenRun(__ -> BriefcasePreferences.forClass(ExportPanel.class).put(
+            buildExportDateTimePrefix(formDefinition.getFormId()),
+            LocalDateTime.now().format(ISO_DATE_TIME)
+        ));
+
+    new JobsRunner<Void>()
+        .onError(Export::onError)
+        .onSuccess(__ -> {
+          System.out.println();
+          System.out.println("Successfully exported all forms");
+          log.info("Successfully exported all forms");
+        })
+        .launchSync(Stream.of(job));
+  }
+
+  private static void onError(Throwable e) {
+    System.err.println("Error pulling form");
+    log.error("Error pulling form", e);
+  }
+
+  private static void onEvent(FormStatusEvent formStatusEvent) {
+    System.out.println(formStatusEvent.getStatusString());
   }
 }

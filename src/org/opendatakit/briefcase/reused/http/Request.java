@@ -16,21 +16,16 @@
 
 package org.opendatakit.briefcase.reused.http;
 
-import static java.util.Collections.emptyList;
-import static org.opendatakit.briefcase.reused.http.Request.Method.GET;
-import static org.opendatakit.briefcase.reused.http.Request.Method.HEAD;
-
-import java.net.MalformedURLException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.Pair;
 
 /**
  * This Value Object class represents an HTTP request to some {@link URL}, maybe using
@@ -40,13 +35,13 @@ import org.opendatakit.briefcase.reused.Pair;
  * when executed.
  */
 public class Request<T> {
-  private final Method method;
+  private final RequestMethod method;
   private final URL url;
   private final Optional<Credentials> credentials;
-  private final Function<String, T> bodyMapper;
-  final List<Pair<String, String>> headers;
+  private final Function<InputStream, T> bodyMapper;
+  final Map<String, String> headers;
 
-  private Request(Method method, URL url, Optional<Credentials> credentials, Function<String, T> bodyMapper, List<Pair<String, String>> headers) {
+  Request(RequestMethod method, URL url, Optional<Credentials> credentials, Function<InputStream, T> bodyMapper, Map<String, String> headers) {
     this.method = method;
     this.url = url;
     this.credentials = credentials;
@@ -54,49 +49,8 @@ public class Request<T> {
     this.headers = headers;
   }
 
-  public static Request<String> get(URL url) {
-    return new Request<>(GET, url, Optional.empty(), Function.identity(), emptyList());
-  }
-
-  public static Request<String> get(URL url, Optional<Credentials> credentials) {
-    return new Request<>(GET, url, credentials, Function.identity(), emptyList());
-  }
-
-  public static Request<String> get(URL url, Credentials credentials) {
-    return new Request<>(GET, url, Optional.of(credentials), Function.identity(), emptyList());
-  }
-
-  public static Request<String> head(URL url) {
-    return new Request<>(HEAD, url, Optional.empty(), Function.identity(), emptyList());
-  }
-
-  public static Request<String> head(URL url, Optional<Credentials> credentials) {
-    return new Request<>(HEAD, url, credentials, Function.identity(), emptyList());
-  }
-
-  public Request<T> resolve(String path) {
-    // Normalize slashes to ensure that the resulting url
-    // has exactly one slash before the input path
-    String newUrl = url.toString()
-        + (!url.toString().endsWith("/") ? "/" : "")
-        + (path.startsWith("/") ? path.substring(1) : path);
-    return new Request<>(method, url(newUrl), credentials, bodyMapper, headers);
-  }
-
-  private static URL url(String baseUrl) {
-    try {
-      return new URL(baseUrl);
-    } catch (MalformedURLException e) {
-      throw new BriefcaseException(e);
-    }
-  }
-
-  public T map(String body) {
+  public T map(InputStream body) {
     return bodyMapper.apply(body);
-  }
-
-  public <U> Request<U> withMapper(Function<T, U> newBodyMapper) {
-    return new Request<>(method, url, credentials, bodyMapper.andThen(newBodyMapper), headers);
   }
 
   void ifCredentials(BiConsumer<URL, Credentials> consumer) {
@@ -107,7 +61,7 @@ public class Request<T> {
     return url;
   }
 
-  public Method getMethod() {
+  public RequestMethod getMethod() {
     return method;
   }
 
@@ -117,10 +71,6 @@ public class Request<T> {
     } catch (URISyntaxException e) {
       throw new BriefcaseException(e);
     }
-  }
-
-  enum Method {
-    GET, HEAD
   }
 
   @Override

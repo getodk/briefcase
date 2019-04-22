@@ -19,11 +19,9 @@ package org.opendatakit.briefcase.util;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -34,7 +32,6 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -81,103 +78,6 @@ class AggregateUtils {
     }
   }
 
-  /**
-   * Common routine to download a document from the downloadUrl and save the
-   * contents in the file 'f'. Shared by media file download and form file
-   * download.
-   */
-  static void commonDownloadFile(ServerConnectionInfo serverInfo, File f, String downloadUrl) throws URISyntaxException, IOException, TransmissionException {
-
-    log.info("Downloading URL {} into {}", downloadUrl, f);
-
-    // OK. We need to download it because we either:
-    // (1) don't have it
-    // (2) don't know if it is changed because the hash is not md5
-    // (3) know it is changed
-    URI u;
-    try {
-      log.info("Parsing URL {}", downloadUrl);
-      URL uurl = new URL(downloadUrl);
-      u = uurl.toURI();
-    } catch (MalformedURLException | URISyntaxException e) {
-      log.warn("bad download url", e);
-      throw e;
-    }
-
-
-    HttpClient httpclient = WebUtils.createHttpClient();
-
-    // get shared HttpContext so that authentication and cookies are retained.
-    HttpClientContext localContext = WebUtils.getHttpContext();
-
-    // set up request...
-    HttpGet req = WebUtils.createOpenRosaHttpGet(u);
-
-    WebUtils.setCredentials(localContext, serverInfo, u);
-
-    HttpResponse response;
-    // try
-    {
-      response = httpclient.execute(req, localContext);
-      int statusCode = response.getStatusLine().getStatusCode();
-
-      if (statusCode == 401) {
-        // We reset the Http context to force next request to authenticate itself
-        WebUtils.resetHttpContext();
-        throw new TransmissionException("Authentication failure");
-      } else if (statusCode != 200) {
-        String errMsg = "Fetch failed. Detailed reason: " + response.getStatusLine().getReasonPhrase() + " (" + statusCode + ")";
-        log.error(errMsg);
-        flushEntityBytes(response.getEntity());
-        throw new TransmissionException(errMsg);
-      }
-
-      // write connection to file
-
-      try (InputStream is = response.getEntity().getContent();
-           OutputStream os = new FileOutputStream(f)) {
-        byte buf[] = new byte[1024];
-        int len;
-        while ((len = is.read(buf)) > 0) {
-          os.write(buf, 0, len);
-        }
-        os.flush();
-      }
-    }
-  }
-
-  /**
-   * Common method for returning a parsed xml document given a url and the http
-   * context and client objects involved in the web connection. The document is
-   * the body of the response entity and should be xml.
-   */
-  static DocumentFetchResult getXmlDocument(String urlString, ServerConnectionInfo serverInfo, boolean alwaysResetCredentials, DocumentDescription description) throws XmlDocumentFetchException {
-    log.info("Parsing URL {}", urlString);
-    URI u;
-    try {
-      URL url = new URL(urlString);
-      u = url.toURI();
-    } catch (MalformedURLException e) {
-      String msg = description.getFetchDocFailed() + "Invalid url. Failed with error: " + e.getMessage();
-      if (!urlString.toLowerCase().startsWith("http://") && !urlString.toLowerCase().startsWith("https://")) {
-        msg += ". Did you forget to prefix the address with 'http://' or 'https://' ?";
-      }
-      log.warn(msg, e);
-      throw new XmlDocumentFetchException(msg);
-    } catch (URISyntaxException e) {
-      String msg = description.getFetchDocFailed() + "Invalid uri. Failed with error: " + e.getMessage();
-      log.warn(msg, e);
-      throw new XmlDocumentFetchException(msg);
-    }
-
-    // set up request...
-    HttpGet req = WebUtils.createOpenRosaHttpGet(u);
-
-    int[] validStatusList = {200};
-
-    return httpRetrieveXmlDocument(req, validStatusList, serverInfo, alwaysResetCredentials, description, null);
-  }
-
   private static void flushEntityBytes(HttpEntity entity) {
     if (entity != null) {
       // something is amiss -- read and discard any response body.
@@ -200,7 +100,7 @@ class AggregateUtils {
    * context and client objects involved in the web connection. The document is
    * the body of the response entity and should be xml.
    */
-  private static DocumentFetchResult httpRetrieveXmlDocument(HttpUriRequest request, int[] validStatusList, ServerConnectionInfo serverInfo, boolean alwaysResetCredentials, DocumentDescription description, ResponseAction action) throws XmlDocumentFetchException {
+  private static void httpRetrieveXmlDocument(HttpUriRequest request, int[] validStatusList, ServerConnectionInfo serverInfo, boolean alwaysResetCredentials, DocumentDescription description, ResponseAction action) throws XmlDocumentFetchException {
 
     HttpClient httpClient = WebUtils.createHttpClient();
 
@@ -337,7 +237,6 @@ class AggregateUtils {
       if (action != null) {
         action.doAction(result);
       }
-      return result;
     } catch (UnknownHostException e) {
       String msg = description.getFetchDocFailed() + "Unknown host";
       log.warn(msg, e);

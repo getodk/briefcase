@@ -79,10 +79,6 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
     needsMediaUpdate = false;
   }
 
-  public static BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile, File briefcaseFolder) throws BadFormDefinition {
-    return resolveAgainstBriefcaseDefn(tmpFormFile, false, briefcaseFolder);
-  }
-
   public static BriefcaseFormDefinition resolveAgainstBriefcaseDefn(File tmpFormFile, boolean copyFile, File briefcaseFolder) throws BadFormDefinition {
 
     if (!tmpFormFile.exists()) {
@@ -329,10 +325,6 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
     } else {
       return formDefn.getFormDefinitionFile();
     }
-  }
-
-  public String getSubmissionKey(String uri) {
-    return formDefn.getSubmissionKey(uri);
   }
 
   public boolean isFieldEncryptedForm() {

@@ -104,7 +104,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     analytics.enter("Briefcase");
     Runtime.getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
-    Http http = new CommonsHttp();
+    Http http = CommonsHttp.nonReusing();
 
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
@@ -116,7 +116,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     PushPanel pushPanel = PushPanel.from(http, appPreferences, transferTerminationFuture, formCache, analytics);
     addPane(PushPanel.TAB_NAME, pushPanel.getContainer());
 
-    ExportPanel exportPanel = ExportPanel.from(BriefcasePreferences.forClass(ExportPanel.class), appPreferences, analytics, formCache);
+    ExportPanel exportPanel = ExportPanel.from(BriefcasePreferences.forClass(ExportPanel.class), appPreferences, analytics, formCache, http);
     addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
 
     Component settingsPanel = SettingsPanel.from(appPreferences, analytics, formCache).getContainer();
@@ -182,8 +182,8 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
   @Override
   public void windowClosing(WindowEvent arg0) {
-    transferTerminationFuture.markAsCancelled(new PullEvent.Abort("Main window closed"));
-    transferTerminationFuture.markAsCancelled(new PushEvent.Abort("Main window closed"));
+    transferTerminationFuture.markAsCancelled(new PullEvent.Cancel("Main window closed"));
+    transferTerminationFuture.markAsCancelled(new PushEvent.Cancel("Main window closed"));
   }
 
   @EventSubscriber(eventClass = StorageLocationEvent.LocationDefined.class)

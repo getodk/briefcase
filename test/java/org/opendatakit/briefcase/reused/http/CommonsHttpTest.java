@@ -32,32 +32,33 @@ import static com.github.dreamhead.moco.Moco.status;
 import static com.github.dreamhead.moco.Moco.uri;
 import static com.github.dreamhead.moco.Runner.running;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.reused.http.HttpHelpers.getUrl;
+import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
 import com.github.dreamhead.moco.HttpServer;
 import java.net.URL;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class CommonsHttpTest {
-  private static final URL BASE_URL = getUrl("http://localhost:12306");
+  private static final URL BASE_URL = url("http://localhost:12306");
   private HttpServer server;
   private Http http;
 
   @Before
   public void setUp() {
     server = httpServer(12306, log());
-    http = new CommonsHttp();
+    http = CommonsHttp.nonReusing();
   }
 
   @Test
   public void can_execute_a_GET_request() throws Exception {
     server.request(and(by(uri("/")), by(method(GET)))).response("foo");
     running(server, () -> assertThat(
-        http.execute(Request.get(BASE_URL)).orElseThrow(BriefcaseException::new),
+        http.execute(RequestBuilder.get(BASE_URL).asText().build()).orElseThrow(BriefcaseException::new),
         containsString("foo")
     ));
   }
@@ -65,10 +66,10 @@ public class CommonsHttpTest {
   @Test
   public void can_execute_a_HEAD_request() throws Exception {
     server.request(and(by(uri("/")), by(method(HEAD)))).response("foo");
-    running(server, () -> assertThat(
-        http.execute(Request.head(BASE_URL)),
-        instanceOf(Response.Success.class)
-    ));
+    running(server, () -> {
+      Response response = http.execute(RequestBuilder.head(BASE_URL).build());
+      assertThat(response.isSuccess(), is(true));
+    });
   }
 
   @Test
@@ -97,36 +98,39 @@ public class CommonsHttpTest {
         match(header("Authorization"), ".+response=\"[a-z0-9]+\".+")
     )).response("foo");
 
-    running(server, () -> assertThat(
-        http.execute(Request.get(BASE_URL, Credentials.from("username", "password"))),
-        instanceOf(Response.Success.class)
-    ));
+    running(server, () -> {
+      Response withoutCredentials = http.execute(RequestBuilder.get(BASE_URL).build());
+      assertThat(withoutCredentials.isUnauthorized(), is(true));
+
+      Response withCredentials = http.execute(RequestBuilder.get(BASE_URL).withCredentials(Credentials.from("username", "password")).build());
+      assertThat(withCredentials.isSuccess(), is(true));
+    });
   }
 
   @Test
   public void can_handle_5xx_errors() throws Exception {
     server.request(and(by(uri("/")), by(method(GET)))).response(status(500));
-    running(server, () -> assertThat(
-        http.execute(Request.get(BASE_URL)),
-        instanceOf(Response.ServerError.class)
-    ));
+    running(server, () -> {
+      Response response = http.execute(RequestBuilder.get(BASE_URL).build());
+      assertThat(response.isSuccess(), is(false));
+    });
   }
 
   @Test
   public void can_handle_4xx_errors() throws Exception {
     server.request(and(by(uri("/")), by(method(GET)))).response(status(400));
-    running(server, () -> assertThat(
-        http.execute(Request.get(BASE_URL)),
-        instanceOf(Response.ClientError.class)
-    ));
+    running(server, () -> {
+      Response response = http.execute(RequestBuilder.get(BASE_URL).build());
+      assertThat(response.isSuccess(), is(false));
+    });
   }
 
   @Test
   public void can_handle_3xx_errors() throws Exception {
     server.request(and(by(uri("/")), by(method(GET)))).response(status(302));
-    running(server, () -> assertThat(
-        http.execute(Request.get(BASE_URL)),
-        instanceOf(Response.Redirection.class)
-    ));
+    running(server, () -> {
+      Response response = http.execute(RequestBuilder.get(BASE_URL).build());
+      assertThat(response.isSuccess(), is(false));
+    });
   }
 }

@@ -32,7 +32,8 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
-import org.opendatakit.briefcase.reused.http.Response;
+import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.briefcase.util.TransferToServer;
@@ -66,7 +67,7 @@ public class PushFormToAggregate {
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
 
-    CommonsHttp http = new CommonsHttp();
+    Http http = CommonsHttp.nonReusing();
 
     URL baseUrl;
     try {
@@ -76,7 +77,7 @@ public class PushFormToAggregate {
     }
     RemoteServer remoteServer = RemoteServer.authenticated(baseUrl, new Credentials(username, password));
 
-    Response<Boolean> response = remoteServer.testPush(http);
+    Response response = remoteServer.testPush(http);
     if (!response.isSuccess())
       System.err.println(response.isRedirection()
           ? "Error connecting to Aggregate: Redirection detected"

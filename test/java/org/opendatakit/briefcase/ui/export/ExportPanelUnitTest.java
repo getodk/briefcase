@@ -40,6 +40,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusBuilder;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
+import org.opendatakit.briefcase.reused.http.FakeHttp;
 import org.opendatakit.briefcase.ui.reused.NoOpAnalytics;
 import org.opendatakit.briefcase.util.FormCache;
 
@@ -60,7 +61,8 @@ public class ExportPanelUnitTest {
         appPreferences,
         exportPreferences,
         new NoOpAnalytics(),
-        FormCache.empty()
+        FormCache.empty(),
+        new FakeHttp()
     );
 
     exportPanelForm.setDefaultConf(empty().setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri())).build());
@@ -82,7 +84,8 @@ public class ExportPanelUnitTest {
         appPreferences,
         exportPreferences,
         new NoOpAnalytics(),
-        FormCache.empty()
+        FormCache.empty(),
+        new FakeHttp()
     );
 
     FormStatus form = formsList.get(0);
@@ -111,7 +114,8 @@ public class ExportPanelUnitTest {
         appPreferences,
         exportPreferences,
         new NoOpAnalytics(),
-        FormCache.empty()
+        FormCache.empty(),
+        new FakeHttp()
     );
 
     FormStatus form = formsList.get(0);

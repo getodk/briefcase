@@ -33,13 +33,12 @@ import java.util.Set;
 import java.util.TreeSet;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
-import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FileSystemUtils {
 
-  static final Logger log = LoggerFactory.getLogger(FileSystemUtils.class);
+  private static final Logger log = LoggerFactory.getLogger(FileSystemUtils.class);
 
   public static final String FORMS_DIR = "forms";
   static final String INSTANCE_DIR = "instances";
@@ -49,9 +48,6 @@ public class FileSystemUtils {
   private static final String HSQLDB_JDBC_PREFIX = "jdbc:hsqldb:file:";
 
   static final String SMALLSQL_JDBC_PREFIX = "jdbc:smallsql:";
-
-  // encryption support....
-  static final String ASYMMETRIC_ALGORITHM = "RSA/NONE/OAEPWithSHA256AndMGF1Padding";
 
   // Predicates to determine whether the folder is an ODK Device
   // ODK folder or underneath that folder.
@@ -177,10 +173,6 @@ public class FileSystemUtils {
     return formDefnFile;
   }
 
-  static File getTempFormDefinitionFile() {
-    return UncheckedFiles.createTempFile("briefcase_", "_form.xml").toFile();
-  }
-
   public static File getFormDefinitionFile(File formDirectory) throws FileSystemException {
     return new File(formDirectory, formDirectory.getName() + ".xml");
   }
@@ -257,22 +249,6 @@ public class FileSystemUtils {
       return instanceDir;
     }
     return null;
-  }
-
-  static File assertFormSubmissionDirectory(File formInstancesDir, String instanceID)
-      throws FileSystemException {
-    // create instance directory...
-    String instanceDirName = asFilesystemSafeName(instanceID);
-    File instanceDir = new File(formInstancesDir, instanceDirName);
-    if (instanceDir.exists() && instanceDir.isDirectory()) {
-      return instanceDir;
-    }
-
-    if (!instanceDir.mkdir()) {
-      throw new FileSystemException("unable to create instance dir");
-    }
-
-    return instanceDir;
   }
 
   public static String getMd5Hash(File file) {

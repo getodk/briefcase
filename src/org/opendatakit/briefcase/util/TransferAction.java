@@ -18,8 +18,6 @@ package org.opendatakit.briefcase.util;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.time.LocalDate;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.bushe.swing.event.EventBus;
@@ -45,11 +43,6 @@ public class TransferAction {
 
   private static void backgroundRun(ITransferFromSourceAction src, TransferForms formsToTransfer) {
     backgroundExecutorService.execute(new GatherTransferRunnable(src, formsToTransfer));
-  }
-
-  public static void transferServerToBriefcase(ServerConnectionInfo originServerInfo, TerminationFuture terminationFuture, TransferForms formsToTransfer, Path briefcaseDir, Boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
-    TransferFromServer source = new TransferFromServer(originServerInfo, terminationFuture, formsToTransfer, briefcaseDir, pullInParallel, includeIncomplete, resumeLastPull, startFromDate);
-    backgroundRun(source, formsToTransfer);
   }
 
   public static void transferODKToBriefcase(Path briefcaseDir, File odkSrcDir, TerminationFuture terminationFuture, TransferForms formsToTransfer) {

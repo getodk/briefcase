@@ -154,8 +154,8 @@ public class FormCache {
     update();
   }
 
-  @EventSubscriber(eventClass = PullEvent.Abort.class)
-  public void onPullAbort(PullEvent.Abort event) {
+  @EventSubscriber(eventClass = PullEvent.Cancel.class)
+  public void onPullAbort(PullEvent.Cancel event) {
     update();
   }
 }

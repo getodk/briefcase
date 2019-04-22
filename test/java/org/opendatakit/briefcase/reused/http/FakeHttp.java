@@ -16,9 +16,13 @@
 
 package org.opendatakit.briefcase.reused.http;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.io.ByteArrayInputStream;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class FakeHttp implements Http {
   private final Map<Request<?>, Response<String>> stubs = new ConcurrentHashMap<>();
@@ -30,6 +34,11 @@ public class FakeHttp implements Http {
   public <T> Response<T> execute(Request<T> request) {
     return Optional.ofNullable(stubs.get(request))
         .orElseThrow(() -> new RuntimeException("No stub defined for Query " + request.toString()))
-        .map(request::map);
+        .map(body -> request.map(new ByteArrayInputStream(Optional.ofNullable(body).orElse("").getBytes(UTF_8))));
+  }
+
+  @Override
+  public Http reusingConnections() {
+    return this;
   }
 }

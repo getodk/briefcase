@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.operations;
 
+import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.operations.Common.AGGREGATE_SERVER;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
@@ -27,16 +28,19 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.pull.PullForm;
+import org.opendatakit.briefcase.pull.PullResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
-import org.opendatakit.briefcase.reused.http.Response;
+import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.http.response.Response;
+import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.FormCache;
-import org.opendatakit.briefcase.util.RetrieveAvailableFormsFromServer;
-import org.opendatakit.briefcase.util.TransferFromServer;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
 import org.slf4j.Logger;
@@ -74,7 +78,7 @@ public class PullFormFromAggregate {
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
 
-    CommonsHttp http = new CommonsHttp();
+    Http http = CommonsHttp.reusing();
 
     URL baseUrl;
     try {
@@ -84,7 +88,7 @@ public class PullFormFromAggregate {
     }
     RemoteServer remoteServer = RemoteServer.authenticated(baseUrl, new Credentials(username, password));
 
-    Response<Boolean> response = remoteServer.testPull(http);
+    Response response = remoteServer.testPull(http);
     if (!response.isSuccess())
       System.err.println(response.isRedirection()
           ? "Error connecting to Aggregate: Redirection detected"
@@ -94,17 +98,35 @@ public class PullFormFromAggregate {
           ? "Error connecting to Aggregate: Aggregate not found"
           : "Error connecting to Aggregate");
     else {
-      TransferForms forms = TransferForms.from(RetrieveAvailableFormsFromServer.get(remoteServer.asServerConnectionInfo()).stream()
-          .filter(f -> formId.map(id -> f.getFormDefinition().getFormId().equals(id)).orElse(true))
-          .collect(Collectors.toList()));
+      TransferForms forms = TransferForms.from(remoteServer.getFormsList(http).stream()
+          .filter(f -> formId.map(id -> f.getFormId().equals(id)).orElse(true))
+          .map(FormStatus::new)
+          .collect(toList()));
 
       if (formId.isPresent() && forms.isEmpty())
         throw new FormNotFoundException(formId.get());
 
       forms.selectAll();
 
-      TransferFromServer.pull(remoteServer.asServerConnectionInfo(), briefcaseDir, pullInParallel, includeIncomplete, forms, resumeLastPull, startFromDate);
+      new JobsRunner<PullResult>()
+          .onError(PullFormFromAggregate::onError)
+          .onSuccess(results -> {
+            results.forEach(result -> forms.setLastPullCursor(result.getForm(), result.getLastCursor()));
+            System.out.println();
+            System.out.println("All forms have been pulled");
+          })
+          .launchSync(forms.map(form -> PullForm.pull(http, remoteServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent, form)));
     }
+  }
+
+  private static void onEvent(FormStatusEvent event) {
+    System.out.println(event.getStatusString());
+    // The PullTracker already logs normal events
+  }
+
+  private static void onError(Throwable e) {
+    System.err.println("Error pulling forms");
+    log.error("Error pulling forms", e);
   }
 
 }

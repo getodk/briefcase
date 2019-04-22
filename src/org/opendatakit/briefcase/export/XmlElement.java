@@ -19,6 +19,10 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.javarosa.xform.parse.XFormParser.getXMLText;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,10 +32,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.kxml2.io.KXmlParser;
+import org.kxml2.io.KXmlSerializer;
 import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
 import org.kxml2.kdom.Node;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 /**
  * This class represents an Element in a Form's submission xml document.
@@ -40,7 +48,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 public class XmlElement {
   private final Element element;
 
-  XmlElement(Element element) {
+  public XmlElement(Element element) {
     this.element = element;
   }
 
@@ -51,8 +59,21 @@ public class XmlElement {
    * @param document {@link Document} instance
    * @return a new {@link XmlElement} instance
    */
-  static XmlElement of(Document document) {
+  public static XmlElement of(Document document) {
     return new XmlElement(document.getRootElement());
+  }
+
+  public static XmlElement from(String xml) {
+    try {
+      Document tempDoc = new Document();
+      KXmlParser parser = new KXmlParser();
+      parser.setInput(new StringReader(xml));
+      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      tempDoc.parse(parser);
+      return XmlElement.of(tempDoc);
+    } catch (XmlPullParserException | IOException e) {
+      throw new BriefcaseException(e);
+    }
   }
 
   /**
@@ -102,7 +123,7 @@ public class XmlElement {
    * @return The corresponding {@link XmlElement}, wrapped inside an {@link Optional} instance,
    *     or {@link Optional#empty()} if no element with the given name is found.
    */
-  Optional<XmlElement> findElement(String name) {
+  public Optional<XmlElement> findElement(String name) {
     return flatten().filter(e -> e.hasName(name)).findFirst();
   }
 
@@ -120,7 +141,7 @@ public class XmlElement {
    * @return The corresponding {@link List} of children elements, or an empty list if any
    *     descendant is not found.
    */
-  List<XmlElement> findElements(String... namesArray) {
+  public List<XmlElement> findElements(String... namesArray) {
 
     if (namesArray.length == 1)
       return childrenOf().stream().filter(e -> e.getName().equalsIgnoreCase(namesArray[0])).collect(Collectors.toList());
@@ -138,7 +159,7 @@ public class XmlElement {
    *
    * @return the {@link String} value of this element
    */
-  String getValue() {
+  public String getValue() {
     return maybeValue().orElseThrow(() -> new BriefcaseException("No value present on element " + element.getName()));
   }
 
@@ -148,7 +169,7 @@ public class XmlElement {
    * @return the {@link String} value of this element wrapped inside an {@link Optional} instance,
    *     or an {@link Optional#empty()} if no value is found
    */
-  Optional<String> maybeValue() {
+  public Optional<String> maybeValue() {
     return Optional.ofNullable(getXMLText(element, true))
         .filter(s -> !s.isEmpty());
   }
@@ -160,7 +181,7 @@ public class XmlElement {
    * @return the {@link String} value of the given attribute wrapped inside an {@link Optional} instance,
    *     or an {@link Optional#empty()} if no value is found
    */
-  Optional<String> getAttributeValue(String attribute) {
+  public Optional<String> getAttributeValue(String attribute) {
     return Optional.ofNullable(element.getAttributeValue(null, attribute)).filter(s -> !s.isEmpty());
   }
 
@@ -196,7 +217,7 @@ public class XmlElement {
    *
    * @return the {@link String} name of this element
    */
-  String getName() {
+  public String getName() {
     return element.getName();
   }
 
@@ -220,7 +241,7 @@ public class XmlElement {
             : Stream.concat(Stream.of(e), e.flatten()));
   }
 
-  private List<XmlElement> childrenOf() {
+  public List<XmlElement> childrenOf() {
     List<XmlElement> children = new ArrayList<>();
     for (int i = 0, max = size(); i < max; i++)
       if (element.getType(i) == Node.ELEMENT)
@@ -276,5 +297,21 @@ public class XmlElement {
   @Override
   public int hashCode() {
     return Objects.hash(element);
+  }
+
+  public String serialize() {
+    StringWriter stringWriter = new StringWriter();
+    KXmlSerializer serializer = new KXmlSerializer();
+    element.setPrefix(null, "http://opendatakit.org/submissions");
+    try {
+      serializer.setOutput(stringWriter);
+      element.write(serializer);
+      serializer.flush();
+      serializer.endDocument();
+      stringWriter.close();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    return stringWriter.toString();
   }
 }

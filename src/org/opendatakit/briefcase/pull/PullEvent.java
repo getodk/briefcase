@@ -43,10 +43,10 @@ public class PullEvent {
     }
   }
 
-  public static class Abort extends PullEvent {
+  public static class Cancel extends PullEvent {
     public final String cause;
 
-    public Abort(String cause) {
+    public Cancel(String cause) {
       this.cause = cause;
     }
   }

@@ -51,6 +51,7 @@ import org.bushe.swing.event.EventBus;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.model.CryptoException;
+import org.opendatakit.briefcase.reused.Iso8601Helpers;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
@@ -148,8 +149,7 @@ class SubmissionParser {
     try (InputStream is = Files.newInputStream(path);
          InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
       return parseAttribute(path, isr, "submissionDate", onParsingError)
-          .map(SubmissionMetaData::regularizeDateTime)
-          .map(OffsetDateTime::parse);
+          .map(Iso8601Helpers::parseDateTime);
     } catch (IOException e) {
       throw new CryptoException("Can't decrypt file", e);
     }

@@ -18,10 +18,8 @@ package org.opendatakit.briefcase.reused;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.reused.http.Request.get;
-import static org.opendatakit.briefcase.reused.http.Request.head;
-import static org.opendatakit.briefcase.reused.http.Response.noContent;
-import static org.opendatakit.briefcase.reused.http.Response.ok;
+import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.noContent;
+import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.ok;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -40,8 +38,8 @@ public class RemoteServerTest {
   }
 
   @Test
-  public void knows_if_it_contains_a_form() throws MalformedURLException {
-    http.stub(get(new URL("https://some.server.com/formList")), ok("" +
+  public void knows_if_it_contains_a_form() {
+    http.stub(server.getFormListRequest(), ok("" +
         "<forms>\n" +
         "<form url=\"https://some.server.com/formXml?formId=some-form\">Some form</form>\n" +
         "</forms>\n"));
@@ -50,17 +48,29 @@ public class RemoteServerTest {
   }
 
   @Test
-  public void knows_how_to_test_connection_params_for_pulling_forms() throws MalformedURLException {
-    http.stub(get(new URL("https://some.server.com/formList")), ok("" +
+  public void knows_how_to_test_connection_params_for_pulling_forms() {
+    http.stub(server.getFormListRequest(), ok("" +
         "<forms>\n" +
         "<form url=\"https://some.server.com/formXml?formId=some-form\">Some form</form>\n" +
         "</forms>\n"));
-    assertThat(server.testPull(http).get(), is(true));
+    assertThat(server.testPull(http).isSuccess(), is(true));
   }
 
   @Test
-  public void knows_how_to_test_connection_params_for_pushing_forms() throws MalformedURLException {
-    http.stub(head(new URL("https://some.server.com/upload")), noContent());
-    assertThat(server.testPush(http).get(), is(true));
+  public void knows_how_to_test_connection_params_for_pushing_forms() {
+    http.stub(server.getPushFormPreflightRequest(), noContent());
+    assertThat(server.testPush(http).isSuccess(), is(true));
+  }
+
+  @Test
+  public void knows_how_to_build_instance_id_batch_urls() {
+    assertThat(
+        server.getInstanceIdBatchRequest("some-form", 100, "", true).getUrl().toString(),
+        is("https://some.server.com/view/submissionList?formId=some-form&cursor=&numEntries=100&includeIncomplete=true")
+    );
+    assertThat(
+        server.getInstanceIdBatchRequest("some-form", 100, "some-cursor", false).getUrl().toString(),
+        is("https://some.server.com/view/submissionList?formId=some-form&cursor=some-cursor&numEntries=100&includeIncomplete=false")
+    );
   }
 }

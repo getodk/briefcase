@@ -17,11 +17,6 @@
 package org.opendatakit.briefcase.ui;
 
 public class MessageStrings {
-  public static final String DIR_NOT_EXIST = "Directory does not exist";
-  public static final String DIR_NOT_DIRECTORY = "You must specify a directory";
-  public static final String DIR_INSIDE_BRIEFCASE_STORAGE = "Directory appears to be nested within an enclosing ODK Briefcase Storage area";
-  public static final String DIR_INSIDE_ODK_DEVICE_DIRECTORY = "The directory you have chosen appears to be within an ODK Device directory";
-  public static final String INVALID_DATE_RANGE_MESSAGE = "Invalid date range: Start date must be before End date.";
   static final String BRIEFCASE_WELCOME = "" +
       "Welcome to ODK Briefcase! Here are three things you should know to get started.\n" +
       "\n" +
