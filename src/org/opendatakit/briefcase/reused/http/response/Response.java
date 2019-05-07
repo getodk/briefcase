@@ -16,8 +16,16 @@
 
 package org.opendatakit.briefcase.reused.http.response;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.opendatakit.briefcase.reused.http.Request;
 
@@ -27,17 +35,37 @@ public interface Response<T> {
     int statusCode = response.getStatusLine().getStatusCode();
     String statusPhrase = response.getStatusLine().getReasonPhrase();
     if (statusCode >= 500)
-      return new ServerError<>(statusCode, statusPhrase);
+      return ServerError.from(request, response);
     if (statusCode >= 400)
-      return new ClientError<>(statusCode, statusPhrase);
+      return ClientError.from(request, response);
     if (statusCode >= 300)
       return new Redirection<>(statusCode, statusPhrase);
     return Success.from(request, response);
   }
 
+  static InputStream uncheckedGetContent(HttpEntity entity) {
+    try {
+      return entity.getContent();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  static String uncheckedReadContent(InputStream in) {
+    try (Scanner scanner = new Scanner(in, UTF_8.name())) {
+      return scanner.useDelimiter("\\A").next();
+    } catch (NoSuchElementException e) {
+      return "";
+    }
+  }
+
   T get();
 
   int getStatusCode();
+
+  String getStatusPhrase();
+
+  String getServerErrorResponse();
 
   <V> Response<V> map(Function<T, V> outputMapper);
 

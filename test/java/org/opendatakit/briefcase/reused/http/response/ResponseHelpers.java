@@ -16,13 +16,18 @@
 
 package org.opendatakit.briefcase.reused.http.response;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
 public class ResponseHelpers {
-  public static Response<String> ok(String body) {
-    return new Success<>(200, "OK", body);
+  public static Response<InputStream> ok(String body) {
+    return new Success<>(200, "OK", new ByteArrayInputStream(body.getBytes(UTF_8)));
   }
 
-  public static Response<String> noContent() {
-    return new Success<>(204, "No Content", null);
+  public static Response<InputStream> noContent() {
+    return new Success<>(204, "No Content", new ByteArrayInputStream("".getBytes(UTF_8)));
   }
 
   public static Response<Boolean> found() {
@@ -30,10 +35,10 @@ public class ResponseHelpers {
   }
 
   public static Response<Boolean> unauthorized() {
-    return new ClientError<>(401, "Unauthorized");
+    return new ClientError<>(401, "Unauthorized", "");
   }
 
   public static Response<Boolean> notFound() {
-    return new ClientError<>(404, "Not Found");
+    return new ClientError<>(404, "Not Found", "");
   }
 }

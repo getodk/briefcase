@@ -40,6 +40,16 @@ class Redirection<T> implements Response<T> {
   }
 
   @Override
+  public String getStatusPhrase() {
+    return statusPhrase;
+  }
+
+  @Override
+  public String getServerErrorResponse() {
+    return "";
+  }
+
+  @Override
   public <U> Response<U> map(Function<T, U> outputMapper) {
     return new Redirection<>(statusCode, statusPhrase);
   }

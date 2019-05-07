@@ -145,7 +145,7 @@ public class PullForm {
           if (!exists(mediaDir))
             createDirectories(mediaDir);
           downloadMediaFiles(
-              http.execute(RequestBuilder.get(manifestUrl).asXmlElement().withMapper(PullForm::parseMediaFiles).build()).get(),
+              http.execute(RequestBuilder.get(manifestUrl).asXmlElement().withResponseMapper(PullForm::parseMediaFiles).build()).get(),
               mediaDir,
               tracker
           );

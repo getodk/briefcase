@@ -138,10 +138,10 @@ public class RemoteServer {
 
   public boolean containsForm(Http http, String formId) {
     return http.execute(get(baseUrl)
+        .asText()
         .withPath("/formList")
         .withCredentials(credentials)
-        .asText()
-        .withMapper(body -> Stream.of(body.split("\n")).anyMatch(line -> line.contains("?formId=" + formId)))
+        .withResponseMapper(body -> Stream.of(body.split("\n")).anyMatch(line -> line.contains("?formId=" + formId)))
         .build())
         .orElse(false);
   }
@@ -164,7 +164,7 @@ public class RemoteServer {
         .asXmlElement()
         .withPath("/view/downloadSubmission")
         .withQuery(Pair.of("formId", submissionKey))
-        .withMapper(DownloadedSubmission::from)
+        .withResponseMapper(DownloadedSubmission::from)
         .build();
   }
 
@@ -173,7 +173,7 @@ public class RemoteServer {
         .asXmlElement()
         .withPath("/formList")
         .withCredentials(credentials)
-        .withMapper(root -> root.findElements("xform").stream().map(e -> new RemoteFormDefinition(
+        .withResponseMapper(root -> root.findElements("xform").stream().map(e -> new RemoteFormDefinition(
             e.findElement("name").flatMap(XmlElement::maybeValue).orElseThrow(BriefcaseException::new),
             e.findElement("formID").flatMap(XmlElement::maybeValue).orElseThrow(BriefcaseException::new),
             e.findElement("version").flatMap(XmlElement::maybeValue).orElse(null),

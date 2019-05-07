@@ -16,25 +16,23 @@
 
 package org.opendatakit.briefcase.reused.http;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
-import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class FakeHttp implements Http {
-  private final Map<Request<?>, Response<String>> stubs = new ConcurrentHashMap<>();
+  private final Map<Request<?>, Response<InputStream>> stubs = new ConcurrentHashMap<>();
 
-  public void stub(Request<?> request, Response<String> stub) {
+  public void stub(Request<?> request, Response<InputStream> stub) {
     stubs.put(request, stub);
   }
 
   public <T> Response<T> execute(Request<T> request) {
     return Optional.ofNullable(stubs.get(request))
         .orElseThrow(() -> new RuntimeException("No stub defined for Query " + request.toString()))
-        .map(body -> request.map(new ByteArrayInputStream(Optional.ofNullable(body).orElse("").getBytes(UTF_8))));
+        .map(request::map);
   }
 
   @Override
