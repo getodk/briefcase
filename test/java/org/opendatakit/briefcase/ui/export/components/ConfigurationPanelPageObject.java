@@ -87,7 +87,7 @@ class ConfigurationPanelPageObject {
     return execute(() -> {
       ConfigurationPanel configurationPanel = ConfigurationPanel.defaultPanel(initialConfiguration, savePasswordsConsent);
       JFrame testFrame = new JFrame();
-      testFrame.add(configurationPanel.getForm().$$$getRootComponent$$$());
+      testFrame.add(configurationPanel.getForm().getContainer());
       FrameFixture window = new FrameFixture(robot, testFrame);
       return new ConfigurationPanelPageObject(configurationPanel, window);
     });
@@ -97,7 +97,7 @@ class ConfigurationPanelPageObject {
     return execute(() -> {
       ConfigurationPanel configurationPanel = ConfigurationPanel.overridePanel(initialConfiguration, savePasswordsConsent, hasTransferSettings);
       JFrame testFrame = new JFrame();
-      testFrame.add(configurationPanel.getForm().$$$getRootComponent$$$());
+      testFrame.add(configurationPanel.getForm().getContainer());
       FrameFixture window = new FrameFixture(robot, testFrame);
       return new ConfigurationPanelPageObject(configurationPanel, window);
     });
