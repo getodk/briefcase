@@ -104,7 +104,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     analytics.enter("Briefcase");
     Runtime.getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
-    Http http = CommonsHttp.nonReusing();
+    Http http = CommonsHttp.of(8);
 
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 

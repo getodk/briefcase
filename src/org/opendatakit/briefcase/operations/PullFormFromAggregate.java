@@ -78,7 +78,7 @@ public class PullFormFromAggregate {
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
 
-    Http http = CommonsHttp.reusing();
+    Http http = CommonsHttp.of(8);
 
     URL baseUrl;
     try {

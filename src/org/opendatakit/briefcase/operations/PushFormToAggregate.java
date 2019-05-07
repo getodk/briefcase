@@ -67,7 +67,7 @@ public class PushFormToAggregate {
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
 
-    Http http = CommonsHttp.nonReusing();
+    Http http = CommonsHttp.of(8);
 
     URL baseUrl;
     try {

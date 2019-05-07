@@ -106,8 +106,6 @@ public class Aggregate implements PullSource<RemoteServer> {
 
   @Override
   public JobsRunner pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
-    Http reusableHttp = http.reusingConnections();
-
     return new JobsRunner<PullResult>()
         .onError(e -> {
           log.error("Error pulling forms", e);
@@ -117,7 +115,7 @@ public class Aggregate implements PullSource<RemoteServer> {
           results.forEach(result -> forms.setLastPullCursor(result.getForm(), result.getLastCursor()));
           EventBus.publish(new PullEvent.Success(forms, server.asServerConnectionInfo()));
         })
-        .launchAsync(forms.map(form -> PullForm.pull(reusableHttp, server, briefcaseDir, includeIncomplete, EventBus::publish, form)));
+        .launchAsync(forms.map(form -> PullForm.pull(http, server, briefcaseDir, includeIncomplete, EventBus::publish, form)));
   }
 
   @Override

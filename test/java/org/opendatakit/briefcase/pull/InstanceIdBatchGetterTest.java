@@ -28,7 +28,6 @@ import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.pull.CursorTest.buildCursorXml;
-import static org.opendatakit.briefcase.reused.http.CommonsHttp.nonReusing;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
 import com.github.dreamhead.moco.HttpServer;
@@ -44,6 +43,7 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
 
 public class InstanceIdBatchGetterTest {
@@ -77,7 +77,7 @@ public class InstanceIdBatchGetterTest {
         .response(seq(pages.get(0), pages.get(1), pages.get(2), pages.get(3)));
 
     running(server, () -> {
-      List<InstanceIdBatch> idBatches = getAllBatches(nonReusing());
+      List<InstanceIdBatch> idBatches = getAllBatches(CommonsHttp.of(1));
       int total = idBatches.stream().map(InstanceIdBatch::count).reduce(0, Integer::sum);
       assertThat(idBatches, Matchers.hasSize(3));
       assertThat(total, is(250));

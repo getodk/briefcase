@@ -18,41 +18,42 @@ package org.opendatakit.briefcase.reused.http;
 
 import static org.apache.http.client.config.CookieSpecs.STANDARD;
 import static org.apache.http.client.config.RequestConfig.custom;
+import static org.opendatakit.briefcase.reused.http.RequestMethod.POST;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
-import org.apache.http.impl.NoConnectionReuseStrategy;
+import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.InputStreamBody;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class CommonsHttp implements Http {
   private final Executor executor;
+  private final CloseableHttpClient client;
 
-  private CommonsHttp(Executor executor) {
+  private CommonsHttp(Executor executor, CloseableHttpClient client) {
     this.executor = executor;
+    this.client = client;
   }
 
-  public static Http nonReusing() {
-    return new CommonsHttp(Executor.newInstance(HttpClientBuilder
+  public static Http of(int maxConnections) {
+    CloseableHttpClient client = HttpClientBuilder
         .create()
-        .setConnectionManager(new BasicHttpClientConnectionManager())
-        .setConnectionReuseStrategy(new NoConnectionReuseStrategy())
+        .setMaxConnPerRoute(maxConnections)
+        .setMaxConnTotal(maxConnections)
         .setDefaultRequestConfig(custom().setCookieSpec(STANDARD).build())
-        .build()));
-  }
-
-  public static Http reusing() {
-    return new CommonsHttp(Executor.newInstance(HttpClientBuilder
-        .create()
-        .setDefaultRequestConfig(custom().setCookieSpec(STANDARD).build())
-        .build()));
+        .build();
+    return new CommonsHttp(Executor.newInstance(client), client);
   }
 
   @Override
@@ -67,17 +68,31 @@ public class CommonsHttp implements Http {
     return uncheckedExecute(request, executor);
   }
 
-  @Override
-  public Http reusingConnections() {
-    return CommonsHttp.reusing();
-  }
-
   private <T> Response<T> uncheckedExecute(Request<T> request, Executor executor) {
     org.apache.http.client.fluent.Request commonsRequest = getCommonsRequest(request);
     commonsRequest.connectTimeout(10_000);
     commonsRequest.socketTimeout(10_000);
     commonsRequest.addHeader("X-OpenRosa-Version", "1.0");
     request.headers.forEach(commonsRequest::addHeader);
+    if (request.getMethod() == POST) {
+      HttpEntity body;
+      if (request.isMultipart()) {
+        MultipartEntityBuilder bodyBuilder = MultipartEntityBuilder.create();
+        for (MultipartMessage part : request.multipartMessages)
+          bodyBuilder = bodyBuilder.addPart(
+              part.name,
+              new InputStreamBody(
+                  part.body,
+                  ContentType.create(part.contentType),
+                  part.attachmentName
+              ));
+        body = bodyBuilder.build();
+      } else {
+        body = new BasicHttpEntity();
+        ((BasicHttpEntity) body).setContent(request.getBody());
+      }
+      commonsRequest.body(body);
+    }
     try {
       return executor
           .execute(commonsRequest)
@@ -95,6 +110,8 @@ public class CommonsHttp implements Http {
     switch (request.getMethod()) {
       case GET:
         return org.apache.http.client.fluent.Request.Get(request.asUri());
+      case POST:
+        return org.apache.http.client.fluent.Request.Post(request.asUri());
       case HEAD:
         return org.apache.http.client.fluent.Request.Head(request.asUri());
       default:

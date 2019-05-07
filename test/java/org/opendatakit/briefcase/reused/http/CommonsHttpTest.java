@@ -51,7 +51,7 @@ public class CommonsHttpTest {
   @Before
   public void setUp() {
     server = httpServer(12306, log());
-    http = CommonsHttp.nonReusing();
+    http = CommonsHttp.of(1);
   }
 
   @Test
