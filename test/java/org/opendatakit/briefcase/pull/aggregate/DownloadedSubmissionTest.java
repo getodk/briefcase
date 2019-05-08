@@ -14,12 +14,12 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.pull;
+package org.opendatakit.briefcase.pull.aggregate;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.pull.PullTestHelpers.buildSubmissionXml;
+import static org.opendatakit.briefcase.pull.aggregate.PullTestHelpers.buildSubmissionXml;
 
 import java.util.UUID;
 import org.junit.Test;

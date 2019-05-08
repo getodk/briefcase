@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.pull.aggregate.PullEvent;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;

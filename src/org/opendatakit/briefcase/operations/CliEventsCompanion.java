@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.pull.aggregate.PullEvent;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.slf4j.Logger;
 

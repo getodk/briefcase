@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.pull;
+package org.opendatakit.briefcase.pull.aggregate;
 
 import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;

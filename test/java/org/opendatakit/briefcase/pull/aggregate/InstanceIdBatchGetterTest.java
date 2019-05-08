@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.pull;
+package org.opendatakit.briefcase.pull.aggregate;
 
 import static com.github.dreamhead.moco.HttpMethod.GET;
 import static com.github.dreamhead.moco.Moco.by;
@@ -27,7 +27,7 @@ import static java.lang.Math.min;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.pull.CursorTest.buildCursorXml;
+import static org.opendatakit.briefcase.pull.aggregate.CursorTest.buildCursorXml;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
 import com.github.dreamhead.moco.HttpServer;

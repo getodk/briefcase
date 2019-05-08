@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.pull;
+package org.opendatakit.briefcase.pull.aggregate;
 
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;

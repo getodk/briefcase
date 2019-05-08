@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.pull;
+package org.opendatakit.briefcase.pull.aggregate;
 
 import static java.nio.file.Files.exists;
 import static java.nio.file.Files.readAllBytes;
@@ -22,8 +22,8 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.pull.PullTestHelpers.buildBlankFormXml;
-import static org.opendatakit.briefcase.pull.PullTestHelpers.buildSubmissionXml;
+import static org.opendatakit.briefcase.pull.aggregate.PullTestHelpers.buildBlankFormXml;
+import static org.opendatakit.briefcase.pull.aggregate.PullTestHelpers.buildSubmissionXml;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createTempDirectory;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.get;

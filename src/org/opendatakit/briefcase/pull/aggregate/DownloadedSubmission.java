@@ -14,9 +14,9 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.pull;
+package org.opendatakit.briefcase.pull.aggregate;
 
-import static org.opendatakit.briefcase.pull.PullForm.asMediaFileList;
+import static org.opendatakit.briefcase.pull.aggregate.PullForm.asMediaFileList;
 
 import java.util.List;
 import org.opendatakit.briefcase.export.SubmissionMetaData;
