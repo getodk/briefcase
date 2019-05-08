@@ -26,18 +26,21 @@ import java.awt.Container;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.push.PushEvent;
+import org.opendatakit.briefcase.push.aggregate.PushToAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer.Test;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.AggregateServerDialog;
-import org.opendatakit.briefcase.util.TransferAction;
 
 public class Aggregate implements PushTarget<AggregateServer> {
   private final Http http;
@@ -89,8 +92,14 @@ public class Aggregate implements PushTarget<AggregateServer> {
   }
 
   @Override
-  public void push(TransferForms forms, TerminationFuture terminationFuture) {
-    TransferAction.transferBriefcaseToServer(server.asServerConnectionInfo(), terminationFuture, forms, http, server);
+  public JobsRunner push(TransferForms forms, Path briefcaseDir) {
+    PushToAggregate pushOp = new PushToAggregate(http, server, briefcaseDir, false, EventBus::publish);
+
+    return JobsRunner.launchAsync(
+        forms.map(pushOp::push),
+        __ -> onPushSuccess(forms),
+        error -> {}
+    );
   }
 
   @Override
@@ -116,5 +125,10 @@ public class Aggregate implements PushTarget<AggregateServer> {
   @Override
   public String toString() {
     return "Aggregate server";
+  }
+
+
+  private static void onPushSuccess(TransferForms forms) {
+    EventBus.publish(new PushEvent.Success(forms, null));
   }
 }

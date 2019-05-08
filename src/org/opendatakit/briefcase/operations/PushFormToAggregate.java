@@ -28,15 +28,17 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.push.aggregate.PushToAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.response.Response;
+import org.opendatakit.briefcase.reused.job.JobsRunner;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.FormCache;
-import org.opendatakit.briefcase.util.TransferToServer;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
 import org.slf4j.Logger;
@@ -75,9 +77,9 @@ public class PushFormToAggregate {
     } catch (MalformedURLException e) {
       throw new BriefcaseException(e);
     }
-    AggregateServer aggregateServer = AggregateServer.authenticated(baseUrl, new Credentials(username, password));
+    AggregateServer remoteServer = AggregateServer.authenticated(baseUrl, new Credentials(username, password));
 
-    Response response = aggregateServer.testPush(http);
+    Response response = remoteServer.testPush(http);
     if (!response.isSuccess())
       System.err.println(response.isRedirection()
           ? "Error connecting to Aggregate: Redirection detected"
@@ -96,8 +98,23 @@ public class PushFormToAggregate {
       TransferForms forms = TransferForms.of(form);
       forms.selectAll();
 
-      TransferToServer.push(aggregateServer.asServerConnectionInfo(), http, aggregateServer, forceSendBlank, forms);
+      PushToAggregate pushOp = new PushToAggregate(CommonsHttp.of(8), remoteServer, briefcaseDir, forceSendBlank, PushFormToAggregate::onEvent);
+      JobsRunner.launchAsync(
+          forms.map(pushOp::push),
+          results -> System.out.println("All forms have been pushed"),
+          PushFormToAggregate::onError
+      );
     }
+  }
+
+  private static void onEvent(FormStatusEvent event) {
+    System.out.println(event.getStatusString());
+    // The PullTracker already logs normal events
+  }
+
+  private static void onError(Throwable e) {
+    System.err.println("Error pushing forms");
+    log.error("Error pushing forms", e);
   }
 
 }

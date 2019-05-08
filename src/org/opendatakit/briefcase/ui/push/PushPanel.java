@@ -26,6 +26,7 @@ import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.JPanel;
+import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -36,9 +37,10 @@ import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.push.PushEvent;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
-import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.Analytics;
@@ -54,17 +56,16 @@ public class PushPanel {
   private final BriefcasePreferences appPreferences;
   private final FormCache formCache;
   private final Analytics analytics;
-  private TerminationFuture terminationFuture;
+  private JobsRunner pushJobRunner;
   private Optional<PushTarget> target;
 
-  private PushPanel(TransferPanelForm<PushTarget> view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
+  private PushPanel(TransferPanelForm<PushTarget> view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, FormCache formCache, Analytics analytics) {
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
     this.tabPreferences = tabPreferences;
     this.appPreferences = appPreferences;
     this.formCache = formCache;
-    this.terminationFuture = terminationFuture;
     this.analytics = analytics;
     getContainer().addComponentListener(analytics.buildComponentListener("Push"));
 
@@ -92,20 +93,30 @@ public class PushPanel {
     view.onAction(() -> {
       view.setWorking();
       forms.forEach(FormStatus::clearStatusHistory);
-      target.ifPresent(s -> s.push(forms.getSelectedForms(), terminationFuture));
+      new Thread(() -> target.ifPresent(s -> pushJobRunner = s.push(
+          forms.getSelectedForms(),
+          appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new)
+      ))).start();
     });
 
-    view.onCancel(() -> terminationFuture.markAsCancelled(new PushEvent.Cancel("Cancelled by the user")));
+    view.onCancel(() -> {
+      pushJobRunner.cancel();
+      forms.getSelectedForms().forEach(form -> {
+        form.setStatusString("Cancelled by user");
+        EventBus.publish(new FormStatusEvent(form));
+      });
+      view.unsetWorking();
+      updateActionButtons();
+    });
   }
 
-  public static PushPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, FormCache formCache, Analytics analytics) {
+  public static PushPanel from(Http http, BriefcasePreferences appPreferences, FormCache formCache, Analytics analytics) {
     TransferForms forms = TransferForms.from(toFormStatuses(formCache.getForms()));
     return new PushPanel(
         TransferPanelForm.push(http, forms),
         forms,
         BriefcasePreferences.forClass(PushPanel.class),
         appPreferences,
-        terminationFuture,
         formCache,
         analytics
     );
@@ -171,7 +182,6 @@ public class PushPanel {
 
   @EventSubscriber(eventClass = PushEvent.Failure.class)
   public void onPushFailure(PushEvent.Failure event) {
-    terminationFuture.reset();
     view.unsetWorking();
     updateActionButtons();
     analytics.event("Push", "Transfer", "Failure", null);
@@ -179,7 +189,6 @@ public class PushPanel {
 
   @EventSubscriber(eventClass = PushEvent.Success.class)
   public void onPushSuccess(PushEvent.Success event) {
-    terminationFuture.reset();
     view.unsetWorking();
     updateActionButtons();
     if (getStorePasswordsConsentProperty() && event.transferSettings.isPresent()) {

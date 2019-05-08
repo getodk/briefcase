@@ -113,7 +113,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
     addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, transferTerminationFuture, analytics).getContainer());
 
-    PushPanel pushPanel = PushPanel.from(http, appPreferences, transferTerminationFuture, formCache, analytics);
+    PushPanel pushPanel = PushPanel.from(http, appPreferences, formCache, analytics);
     addPane(PushPanel.TAB_NAME, pushPanel.getContainer());
 
     ExportPanel exportPanel = ExportPanel.from(BriefcasePreferences.forClass(ExportPanel.class), appPreferences, analytics, formCache, http);

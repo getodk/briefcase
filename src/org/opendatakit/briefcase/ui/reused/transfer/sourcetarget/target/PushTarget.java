@@ -16,11 +16,12 @@
 
 package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.target;
 
+import java.nio.file.Path;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.job.JobsRunner;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.SourceOrTarget;
 import org.slf4j.Logger;
@@ -39,7 +40,7 @@ public interface PushTarget<T> extends SourceOrTarget<T> {
 
   void storePreferences(BriefcasePreferences prefs, boolean storePasswords);
 
-  void push(TransferForms forms, TerminationFuture terminationFuture);
+  JobsRunner push(TransferForms forms, Path briefcaseDir);
 
   String getDescription();
 
