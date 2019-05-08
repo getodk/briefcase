@@ -42,7 +42,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.job.Job;
@@ -54,18 +54,18 @@ import org.slf4j.LoggerFactory;
 public class PullForm {
   public static final Logger log = LoggerFactory.getLogger(PullForm.class);
   private final Http http;
-  private final RemoteServer server;
+  private final AggregateServer server;
   private final Path briefcaseDir;
   private final boolean includeIncomplete;
 
-  public PullForm(Http http, RemoteServer server, Path briefcaseDir, boolean includeIncomplete) {
+  public PullForm(Http http, AggregateServer server, Path briefcaseDir, boolean includeIncomplete) {
     this.http = http;
     this.server = server;
     this.briefcaseDir = briefcaseDir;
     this.includeIncomplete = includeIncomplete;
   }
 
-  public static Job<PullResult> pull(Http http, RemoteServer server, Path briefcaseDir, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback, FormStatus form, Optional<Cursor> lastCursor) {
+  public static Job<PullResult> pull(Http http, AggregateServer server, Path briefcaseDir, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback, FormStatus form, Optional<Cursor> lastCursor) {
     return new PullForm(http, server, briefcaseDir, includeIncomplete).pull(form, lastCursor, onEventCallback);
   }
 

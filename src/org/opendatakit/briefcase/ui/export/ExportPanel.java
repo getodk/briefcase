@@ -47,7 +47,7 @@ import org.opendatakit.briefcase.pull.aggregate.PullForm;
 import org.opendatakit.briefcase.pull.aggregate.PullResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
@@ -192,7 +192,7 @@ public class ExportPanel {
       ExportConfiguration configuration = forms.getConfiguration(formId);
       Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
       FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());
-      Optional<RemoteServer> server = forms.getTransferSettings(formId).map(RemoteServer::from);
+      Optional<AggregateServer> server = forms.getTransferSettings(formId).map(AggregateServer::from);
 
       Job<PullResult> pullJob = configuration.resolvePullBefore() && server.isPresent()
           ? PullForm.pull(http, server.get(), briefcaseDir, false, EventBus::publish, form, Optional.empty())

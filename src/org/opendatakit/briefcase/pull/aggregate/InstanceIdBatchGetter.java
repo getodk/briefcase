@@ -24,18 +24,18 @@ import java.util.List;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Pair;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.Http;
 
 public class InstanceIdBatchGetter implements Iterator<InstanceIdBatch> {
-  private final RemoteServer server;
+  private final AggregateServer server;
   private final Http http;
   private final String formId;
   private final boolean includeIncomplete;
   private Cursor nextCursor;
   private List<String> nextUids;
 
-  public InstanceIdBatchGetter(RemoteServer server, Http http, String formId, boolean includeIncomplete, Cursor nextCursor) {
+  public InstanceIdBatchGetter(AggregateServer server, Http http, String formId, boolean includeIncomplete, Cursor nextCursor) {
     this.server = server;
     this.http = http;
     this.formId = formId;

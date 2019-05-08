@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -75,9 +75,9 @@ public class PushFormToAggregate {
     } catch (MalformedURLException e) {
       throw new BriefcaseException(e);
     }
-    RemoteServer remoteServer = RemoteServer.authenticated(baseUrl, new Credentials(username, password));
+    AggregateServer aggregateServer = AggregateServer.authenticated(baseUrl, new Credentials(username, password));
 
-    Response response = remoteServer.testPush(http);
+    Response response = aggregateServer.testPush(http);
     if (!response.isSuccess())
       System.err.println(response.isRedirection()
           ? "Error connecting to Aggregate: Redirection detected"
@@ -96,7 +96,7 @@ public class PushFormToAggregate {
       TransferForms forms = TransferForms.of(form);
       forms.selectAll();
 
-      TransferToServer.push(remoteServer.asServerConnectionInfo(), http, remoteServer, forceSendBlank, forms);
+      TransferToServer.push(aggregateServer.asServerConnectionInfo(), http, aggregateServer, forceSendBlank, forms);
     }
   }
 

@@ -40,11 +40,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.Pair;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
 
 public class PullFormTest {
-  private static final RemoteServer SERVER = RemoteServer.normal(url("http://foo.bar"));
+  private static final AggregateServer SERVER = AggregateServer.normal(url("http://foo.bar"));
   private static final FormStatus FORM = PullTestHelpers.buildFormStatus(SERVER.getBaseUrl().toString());
   private final Path briefcaseDir = createTempDirectory("briefcase-test-");
   private FakeHttp http = new FakeHttp();

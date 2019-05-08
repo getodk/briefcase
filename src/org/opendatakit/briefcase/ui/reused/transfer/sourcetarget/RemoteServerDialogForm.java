@@ -42,7 +42,7 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 
@@ -57,7 +57,7 @@ public class RemoteServerDialogForm extends JDialog {
   JPasswordField passwordField;
   JProgressBar progressBar;
   private JTextPane accountTipTextPane;
-  private final List<Consumer<RemoteServer>> onConnectCallbacks = new ArrayList<>();
+  private final List<Consumer<AggregateServer>> onConnectCallbacks = new ArrayList<>();
 
   RemoteServerDialogForm(String requiredPermission) {
     $$$setupUI$$$();
@@ -91,9 +91,9 @@ public class RemoteServerDialogForm extends JDialog {
 
       URL baseUrl = new URL(urlField.getText());
 
-      RemoteServer server = credentials
-          .map(c -> RemoteServer.authenticated(baseUrl, c))
-          .orElse(RemoteServer.normal(baseUrl));
+      AggregateServer server = credentials
+          .map(c -> AggregateServer.authenticated(baseUrl, c))
+          .orElse(AggregateServer.normal(baseUrl));
 
       onConnectCallbacks.forEach(callback -> callback.accept(server));
     } catch (BriefcaseException e) {
@@ -109,7 +109,7 @@ public class RemoteServerDialogForm extends JDialog {
     // TODO: place custom component creation code here
   }
 
-  void onConnect(Consumer<RemoteServer> callback) {
+  void onConnect(Consumer<AggregateServer> callback) {
     onConnectCallbacks.add(callback);
   }
 

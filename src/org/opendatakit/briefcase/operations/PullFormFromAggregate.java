@@ -36,7 +36,7 @@ import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullForm;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Optionals;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -90,9 +90,9 @@ public class PullFormFromAggregate {
     } catch (MalformedURLException e) {
       throw new BriefcaseException(e);
     }
-    RemoteServer remoteServer = RemoteServer.authenticated(baseUrl, new Credentials(username, password));
+    AggregateServer aggregateServer = AggregateServer.authenticated(baseUrl, new Credentials(username, password));
 
-    Response response = remoteServer.testPull(http);
+    Response response = aggregateServer.testPull(http);
     if (!response.isSuccess())
       System.err.println(response.isRedirection()
           ? "Error connecting to Aggregate: Redirection detected"
@@ -102,7 +102,7 @@ public class PullFormFromAggregate {
           ? "Error connecting to Aggregate: Aggregate not found"
           : "Error connecting to Aggregate");
     else {
-      List<FormStatus> filteredForms = remoteServer.getFormsList(http).stream()
+      List<FormStatus> filteredForms = aggregateServer.getFormsList(http).stream()
           .filter(f -> formId.map(id -> f.getFormId().equals(id)).orElse(true))
           .map(FormStatus::new)
           .collect(toList());
@@ -115,7 +115,7 @@ public class PullFormFromAggregate {
       forms.selectAll();
 
       JobsRunner.launchAsync(
-          forms.map(form -> PullForm.pull(http, remoteServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent, form, Optionals.race(
+          forms.map(form -> PullForm.pull(http, aggregateServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent, form, Optionals.race(
               startFromDate.map(Cursor::of),
               forms.getLastCursor(form))
           )),

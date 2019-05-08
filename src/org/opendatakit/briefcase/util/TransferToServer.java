@@ -20,19 +20,19 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.push.PushEvent;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
 
 public class TransferToServer implements ITransferToDestAction {
   private final Http http;
-  private final RemoteServer server;
+  private final AggregateServer server;
   private final boolean forceSendBlank;
   private ServerConnectionInfo destServerInfo;
   private TerminationFuture terminationFuture;
   private TransferForms formsToTransfer;
 
-  TransferToServer(ServerConnectionInfo destServerInfo, TerminationFuture terminationFuture, TransferForms formsToTransfer, Http http, RemoteServer server, boolean forceSendBlank) {
+  TransferToServer(ServerConnectionInfo destServerInfo, TerminationFuture terminationFuture, TransferForms formsToTransfer, Http http, AggregateServer server, boolean forceSendBlank) {
     this.destServerInfo = destServerInfo;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
@@ -48,7 +48,7 @@ public class TransferToServer implements ITransferToDestAction {
     return uploader.uploadFormAndSubmissionFiles(formsToTransfer);
   }
 
-  public static void push(ServerConnectionInfo transferSettings, Http http, RemoteServer server, boolean forceSendBlank, TransferForms formList) {
+  public static void push(ServerConnectionInfo transferSettings, Http http, AggregateServer server, boolean forceSendBlank, TransferForms formList) {
     TransferToServer action = new TransferToServer(transferSettings, new TerminationFuture(), formList, http, server, forceSendBlank);
 
     try {

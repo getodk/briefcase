@@ -29,7 +29,7 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.DialogFixture;
 import org.assertj.swing.fixture.JOptionPaneFixture;
 import org.assertj.swing.timing.Timeout;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 
 class RemoteServerDialogPageObject {
   final RemoteServerDialog component;
@@ -40,7 +40,7 @@ class RemoteServerDialogPageObject {
     this.fixture = window;
   }
 
-  static RemoteServerDialogPageObject setUp(Robot robot, RemoteServer.Test serverTester) {
+  static RemoteServerDialogPageObject setUp(Robot robot, AggregateServer.Test serverTester) {
     RemoteServerDialog dialog = execute(() -> RemoteServerDialog.empty(serverTester, "Form Manager"));
     DialogFixture fixture = new DialogFixture(robot, dialog.form);
     return new RemoteServerDialogPageObject(dialog, fixture);

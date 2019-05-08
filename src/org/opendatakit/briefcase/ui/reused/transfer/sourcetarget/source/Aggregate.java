@@ -40,21 +40,22 @@ import org.opendatakit.briefcase.pull.aggregate.PullEvent;
 import org.opendatakit.briefcase.pull.aggregate.PullForm;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.DeferredValue;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
+import org.opendatakit.briefcase.reused.transfer.RemoteServer.Test;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.RemoteServerDialog;
 
-public class Aggregate implements PullSource<RemoteServer> {
+public class Aggregate implements PullSource<AggregateServer> {
   private final Http http;
   private final Consumer<PullSource> consumer;
-  private RemoteServer.Test serverTester;
+  private Test<AggregateServer> serverTester;
   private String requiredPermission;
-  private RemoteServer server;
+  private AggregateServer server;
 
-  Aggregate(Http http, RemoteServer.Test serverTester, String requiredPermission, Consumer<PullSource> consumer) {
+  Aggregate(Http http, Test<AggregateServer> serverTester, String requiredPermission, Consumer<PullSource> consumer) {
     this.http = http;
     this.serverTester = serverTester;
     this.requiredPermission = requiredPermission;
@@ -62,7 +63,7 @@ public class Aggregate implements PullSource<RemoteServer> {
   }
 
   static void clearPreferences(BriefcasePreferences prefs) {
-    prefs.removeAll(RemoteServer.PREFERENCE_KEYS);
+    prefs.removeAll(AggregateServer.PREFERENCE_KEYS);
   }
 
   private static void uncheckedBrowse(URL url) {
@@ -81,14 +82,14 @@ public class Aggregate implements PullSource<RemoteServer> {
   }
 
   @Override
-  public void set(RemoteServer server) {
+  public void set(AggregateServer server) {
     this.server = server;
     consumer.accept(this);
   }
 
   @Override
   public boolean accepts(Object o) {
-    return o instanceof RemoteServer;
+    return o instanceof AggregateServer;
   }
 
   @Override

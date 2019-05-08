@@ -37,8 +37,9 @@ import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
@@ -69,6 +70,7 @@ public class PushPanel {
 
     // Read prefs and load saved remote server if available
     this.target = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadOption);
+
     this.target.ifPresent(source -> updateActionButtons());
 
     // Register callbacks to view events

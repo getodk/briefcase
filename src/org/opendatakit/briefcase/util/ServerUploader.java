@@ -41,7 +41,7 @@ import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.InstanceIdBatch;
 import org.opendatakit.briefcase.pull.aggregate.InstanceIdBatchGetter;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.AggregateUtils.DocumentFetchResult;
@@ -55,10 +55,10 @@ class ServerUploader {
   private final ServerConnectionInfo serverInfo;
   private final TerminationFuture terminationFuture;
   private final Http http;
-  private final RemoteServer server;
+  private final AggregateServer server;
   private final boolean forceSendBlank;
 
-  ServerUploader(ServerConnectionInfo serverInfo, TerminationFuture terminationFuture, Http http, RemoteServer server, boolean forceSendBlank) {
+  ServerUploader(ServerConnectionInfo serverInfo, TerminationFuture terminationFuture, Http http, AggregateServer server, boolean forceSendBlank) {
     AnnotationProcessor.process(this);// if not using AOP
     this.serverInfo = serverInfo;
     this.terminationFuture = terminationFuture;
@@ -122,7 +122,7 @@ class ServerUploader {
 
   // remove any instances already completed on server
   private void subtractServerInstances(FormStatus fs, Set<File> instancesToUpload, Path briefcaseDir) {
-    RemoteServer server = RemoteServer.from(serverInfo);
+    AggregateServer server = AggregateServer.from(serverInfo);
 
     List<InstanceIdBatch> batches = new ArrayList<>();
     InstanceIdBatchGetter batchPager = new InstanceIdBatchGetter(server, http, fs.getFormId(), false, Cursor.empty());

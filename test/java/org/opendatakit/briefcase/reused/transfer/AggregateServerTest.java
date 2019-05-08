@@ -32,14 +32,14 @@ import org.junit.Test;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
 
-public class RemoteServerTest {
+public class AggregateServerTest {
   private FakeHttp http;
-  private RemoteServer server;
+  private AggregateServer server;
 
   @Before
   public void setUp() throws MalformedURLException {
     http = new FakeHttp();
-    server = RemoteServer.normal(new URL("https://some.server.com"));
+    server = AggregateServer.normal(new URL("https://some.server.com"));
   }
 
   @Test

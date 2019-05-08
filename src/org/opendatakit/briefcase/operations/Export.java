@@ -41,7 +41,7 @@ import org.opendatakit.briefcase.pull.aggregate.PullForm;
 import org.opendatakit.briefcase.pull.aggregate.PullResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.job.Job;
@@ -127,7 +127,7 @@ public class Export {
       String passwordKey = String.format("%s_pull_settings_password", formid);
 
       if (appPreferences.hasKey(urlKey)) {
-        RemoteServer server = new RemoteServer(
+        AggregateServer server = new AggregateServer(
             url(appPreferences.nullSafeGet(urlKey).orElseThrow(BriefcaseException::new)),
             OptionalProduct.all(
                 appPreferences.nullSafeGet(usernameKey),

@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.DeferredValue;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
@@ -41,7 +41,7 @@ public interface PullSource<T> extends SourceOrTarget<T> {
     FormInComputer.clearPreferences(prefs);
   }
 
-  static PullSource<RemoteServer> aggregate(Http http, Consumer<PullSource> consumer) {
+  static PullSource<AggregateServer> aggregate(Http http, Consumer<PullSource> consumer) {
     return new Aggregate(http, server -> server.testPull(http), "Data Viewer", consumer);
   }
 

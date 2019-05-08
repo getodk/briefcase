@@ -25,7 +25,7 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.aggregate.PullEvent;
 import org.opendatakit.briefcase.push.PushEvent;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.slf4j.Logger;
@@ -50,7 +50,7 @@ public class TransferAction {
     backgroundRun(source, formsToTransfer);
   }
 
-  public static void transferBriefcaseToServer(ServerConnectionInfo destinationServerInfo, TerminationFuture terminationFuture, TransferForms formsToTransfer, Http http, RemoteServer server) {
+  public static void transferBriefcaseToServer(ServerConnectionInfo destinationServerInfo, TerminationFuture terminationFuture, TransferForms formsToTransfer, Http http, AggregateServer server) {
     TransferToServer dest = new TransferToServer(
         destinationServerInfo,
         terminationFuture,

@@ -41,13 +41,13 @@ import java.util.stream.StreamSupport;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
 
 public class InstanceIdBatchGetterTest {
   private static final URL BASE_URL = url("http://localhost:12306");
-  private static final RemoteServer REMOTE_SERVER = RemoteServer.normal(BASE_URL);
+  private static final AggregateServer REMOTE_SERVER = AggregateServer.normal(BASE_URL);
   private HttpServer server;
 
   private static String escape(String xml) {

@@ -23,14 +23,14 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import javax.swing.SwingWorker;
-import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class RemoteServerDialog {
   final RemoteServerDialogForm form;
-  private final List<Consumer<RemoteServer>> onConnectCallbacks = new ArrayList<>();
+  private final List<Consumer<AggregateServer>> onConnectCallbacks = new ArrayList<>();
 
-  private RemoteServerDialog(RemoteServerDialogForm form, RemoteServer.Test serverTester) {
+  private RemoteServerDialog(RemoteServerDialogForm form, AggregateServer.Test serverTester) {
     this.form = form;
 
     this.form.onConnect(server -> {
@@ -76,18 +76,18 @@ public class RemoteServerDialog {
     ));
   }
 
-  public static RemoteServerDialog empty(RemoteServer.Test serverTester, String requiredPermission) {
+  public static RemoteServerDialog empty(AggregateServer.Test serverTester, String requiredPermission) {
     return new RemoteServerDialog(
         new RemoteServerDialogForm(requiredPermission),
         serverTester
     );
   }
 
-  private void triggerConnect(RemoteServer conf) {
+  private void triggerConnect(AggregateServer conf) {
     onConnectCallbacks.forEach(callback -> callback.accept(conf));
   }
 
-  public void onConnect(Consumer<RemoteServer> consumer) {
+  public void onConnect(Consumer<AggregateServer> consumer) {
     onConnectCallbacks.add(consumer);
   }
 
