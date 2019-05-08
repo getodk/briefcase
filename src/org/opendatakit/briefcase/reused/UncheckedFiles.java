@@ -120,8 +120,8 @@ public class UncheckedFiles {
   }
 
   public static Path copy(InputStream in, Path target, CopyOption... options) {
-    try {
-      Files.copy(in, target, options);
+    try (InputStream inHandle = in) {
+      Files.copy(inHandle, target, options);
       return target;
     } catch (IOException e) {
       throw new UncheckedIOException(e);
@@ -322,6 +322,14 @@ public class UncheckedFiles {
   public static Stream<String> lines(Path path) {
     try {
       return Files.lines(path, UTF_8);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  public static InputStream newInputStream(Path path, OpenOption... options) {
+    try {
+      return Files.newInputStream(path, options);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }

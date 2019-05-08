@@ -30,6 +30,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -76,6 +77,14 @@ public class DatabaseUtils implements AutoCloseable {
   public static <T> T withDb(Path formDir, Function<DatabaseUtils, T> dbUsingFunction) {
     try (DatabaseUtils db = new DatabaseUtils(formDir.toFile())) {
       return dbUsingFunction.apply(db);
+    } catch (SQLException e) {
+      throw new BriefcaseException(e);
+    }
+  }
+
+  public static void withDb(Path formDir, Consumer<DatabaseUtils> dbUsingFunction) {
+    try (DatabaseUtils db = new DatabaseUtils(formDir.toFile())) {
+      dbUsingFunction.accept(db);
     } catch (SQLException e) {
       throw new BriefcaseException(e);
     }
