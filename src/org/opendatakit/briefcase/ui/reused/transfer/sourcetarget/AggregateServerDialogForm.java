@@ -47,7 +47,7 @@ import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 
 @SuppressWarnings("checkstyle:MethodName")
-public class RemoteServerDialogForm extends JDialog {
+public class AggregateServerDialogForm extends JDialog {
   private JPanel dialog;
   private JPanel actions;
   JButton cancelButton;
@@ -59,7 +59,7 @@ public class RemoteServerDialogForm extends JDialog {
   private JTextPane accountTipTextPane;
   private final List<Consumer<AggregateServer>> onConnectCallbacks = new ArrayList<>();
 
-  RemoteServerDialogForm(String requiredPermission) {
+  AggregateServerDialogForm(String requiredPermission) {
     $$$setupUI$$$();
     accountTipTextPane.setText("Username cannot be a Google login; it must be an ODK Aggregate username with \"" + requiredPermission + "\" permissions");
     setContentPane(dialog);

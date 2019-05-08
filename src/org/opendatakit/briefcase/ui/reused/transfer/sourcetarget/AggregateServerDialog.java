@@ -26,11 +26,11 @@ import javax.swing.SwingWorker;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.response.Response;
 
-public class RemoteServerDialog {
-  final RemoteServerDialogForm form;
+public class AggregateServerDialog {
+  final AggregateServerDialogForm form;
   private final List<Consumer<AggregateServer>> onConnectCallbacks = new ArrayList<>();
 
-  private RemoteServerDialog(RemoteServerDialogForm form, AggregateServer.Test serverTester) {
+  private AggregateServerDialog(AggregateServerDialogForm form, AggregateServer.Test serverTester) {
     this.form = form;
 
     this.form.onConnect(server -> {
@@ -76,9 +76,9 @@ public class RemoteServerDialog {
     ));
   }
 
-  public static RemoteServerDialog empty(AggregateServer.Test serverTester, String requiredPermission) {
-    return new RemoteServerDialog(
-        new RemoteServerDialogForm(requiredPermission),
+  public static AggregateServerDialog empty(AggregateServer.Test serverTester, String requiredPermission) {
+    return new AggregateServerDialog(
+        new AggregateServerDialogForm(requiredPermission),
         serverTester
     );
   }
@@ -91,7 +91,7 @@ public class RemoteServerDialog {
     onConnectCallbacks.add(consumer);
   }
 
-  public RemoteServerDialogForm getForm() {
+  public AggregateServerDialogForm getForm() {
     return form;
   }
 

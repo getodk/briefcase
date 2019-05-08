@@ -32,16 +32,16 @@ import org.assertj.swing.timing.Timeout;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 
 class RemoteServerDialogPageObject {
-  final RemoteServerDialog component;
+  final AggregateServerDialog component;
   private final DialogFixture fixture;
 
-  private RemoteServerDialogPageObject(RemoteServerDialog component, DialogFixture window) {
+  private RemoteServerDialogPageObject(AggregateServerDialog component, DialogFixture window) {
     this.component = component;
     this.fixture = window;
   }
 
   static RemoteServerDialogPageObject setUp(Robot robot, AggregateServer.Test serverTester) {
-    RemoteServerDialog dialog = execute(() -> RemoteServerDialog.empty(serverTester, "Form Manager"));
+    AggregateServerDialog dialog = execute(() -> AggregateServerDialog.empty(serverTester, "Form Manager"));
     DialogFixture fixture = new DialogFixture(robot, dialog.form);
     return new RemoteServerDialogPageObject(dialog, fixture);
   }
@@ -50,7 +50,7 @@ class RemoteServerDialogPageObject {
     fixture.show();
   }
 
-  public RemoteServerDialogForm dialog() {
+  public AggregateServerDialogForm dialog() {
     return component.form;
   }
 

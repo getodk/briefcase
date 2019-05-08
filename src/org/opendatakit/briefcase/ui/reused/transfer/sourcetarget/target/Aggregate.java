@@ -36,7 +36,7 @@ import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer.Test;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
-import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.RemoteServerDialog;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.AggregateServerDialog;
 import org.opendatakit.briefcase.util.TransferAction;
 
 public class Aggregate implements PushTarget<AggregateServer> {
@@ -67,7 +67,7 @@ public class Aggregate implements PushTarget<AggregateServer> {
 
   @Override
   public void onSelect(Container ignored) {
-    RemoteServerDialog dialog = RemoteServerDialog.empty(serverTester, requiredPermission);
+    AggregateServerDialog dialog = AggregateServerDialog.empty(serverTester, requiredPermission);
     dialog.onConnect(this::set);
     dialog.getForm().setVisible(true);
   }

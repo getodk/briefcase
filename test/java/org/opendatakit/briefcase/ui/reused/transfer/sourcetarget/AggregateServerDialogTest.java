@@ -38,7 +38,7 @@ import org.junit.Test;
 import org.opendatakit.briefcase.matchers.GenericUIMatchers;
 import org.opendatakit.briefcase.reused.http.HttpException;
 
-public class RemoteServerDialogTest extends AssertJSwingJUnitTestCase {
+public class AggregateServerDialogTest extends AssertJSwingJUnitTestCase {
   @Override
   protected void onSetUp() {
   }

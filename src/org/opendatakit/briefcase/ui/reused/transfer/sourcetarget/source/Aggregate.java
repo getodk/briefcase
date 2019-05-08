@@ -46,7 +46,7 @@ import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer.Test;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
-import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.RemoteServerDialog;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.AggregateServerDialog;
 
 public class Aggregate implements PullSource<AggregateServer> {
   private final Http http;
@@ -76,7 +76,7 @@ public class Aggregate implements PullSource<AggregateServer> {
 
   @Override
   public void onSelect(Container ignored) {
-    RemoteServerDialog dialog = RemoteServerDialog.empty(serverTester, requiredPermission);
+    AggregateServerDialog dialog = AggregateServerDialog.empty(serverTester, requiredPermission);
     dialog.onConnect(this::set);
     dialog.getForm().setVisible(true);
   }
