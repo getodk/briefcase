@@ -24,7 +24,7 @@ public class FormStatusBuilder {
 
   public static FormStatus buildFormStatus(int id) {
     try {
-      return new FormStatus(new TestFormDefinition(id));
+      return new FormStatus(new TestBriefcaseFormDefinition(id));
     } catch (Throwable t) {
       throw new RuntimeException(t);
     }
