@@ -85,13 +85,6 @@ public class ShowSourceOrTargetForm<T extends SourceOrTarget> extends JComponent
     markReloadOperationCompleted();
   }
 
-  void showTarget(PushTarget target) {
-    actionLabel.setText(action + ": " + target.toString());
-    target.decorate(sourceLabel);
-    reloadButton.setVisible(false);
-    markReloadOperationCompleted();
-  }
-
   private void createUIComponents() {
     // TODO: place custom component creation code here
   }

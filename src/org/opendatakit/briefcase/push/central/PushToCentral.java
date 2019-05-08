@@ -69,9 +69,7 @@ public class PushToCentral {
         .thenAccept(((runnerStatus, formExists) -> {
           if (!formExists) {
             pushForm(formPath, runnerStatus, tracker);
-            getFormAttachments(form).forEach(attachment -> {
-              pushFormAttachment(formDef.getFormId(), attachment, runnerStatus, tracker);
-            });
+            getFormAttachments(form).forEach(attachment -> pushFormAttachment(formDef.getFormId(), attachment, runnerStatus, tracker));
           }
         }))
         .thenSupply(__ -> getSubmissions(formDef))

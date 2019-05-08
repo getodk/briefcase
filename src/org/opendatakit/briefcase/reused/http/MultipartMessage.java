@@ -25,7 +25,7 @@ public class MultipartMessage {
   final String attachmentName;
   final InputStream body;
 
-  public MultipartMessage(String name, String contentType, String attachmentName, InputStream body) {
+  MultipartMessage(String name, String contentType, String attachmentName, InputStream body) {
     this.name = name;
     this.contentType = contentType;
     this.attachmentName = attachmentName;

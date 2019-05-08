@@ -52,7 +52,6 @@ public class DatabaseUtils implements AutoCloseable {
   private static final String SELECT_ALL_SQL = "SELECT instanceId, directory FROM recorded_instance";
   private static final String SELECT_DIR_SQL = "SELECT directory FROM recorded_instance WHERE instanceId = ?";
   private static final String INSERT_DML = "INSERT INTO recorded_instance (instanceId, directory) VALUES(?,?)";
-  private static final String DELETE_DML = "DELETE FROM recorded_instance WHERE instanceId = ?";
   private static final String RELATIVE_DML = "UPDATE recorded_instance set directory = regexp_replace(directory,'.*(" + INSTANCE_DIR + ")','$1')";
 
   final private File formDir;
@@ -61,7 +60,6 @@ public class DatabaseUtils implements AutoCloseable {
   private boolean hasRecordedInstanceTable = false;
   private PreparedStatement getRecordedInstanceQuery = null;
   private PreparedStatement insertRecordedInstanceQuery = null;
-  private PreparedStatement deleteRecordedInstanceQuery = null;
 
   private DatabaseUtils(File formDir) throws FileSystemException, SQLException {
     this.formDir = formDir;
@@ -150,26 +148,6 @@ public class DatabaseUtils implements AutoCloseable {
   }
 
   // recorded instances have known instanceIds
-  private void forgetRecordedInstance(String instanceId) {
-    try {
-      assertRecordedInstanceTable();
-
-      if (deleteRecordedInstanceQuery == null) {
-        deleteRecordedInstanceQuery =
-            connection.prepareStatement(DELETE_DML);
-      }
-
-      deleteRecordedInstanceQuery.setString(1, instanceId);
-
-      if (deleteRecordedInstanceQuery.executeUpdate() > 1) {
-        throw new SQLException("Expected one row to be deleted");
-      }
-    } catch (SQLException e) {
-      log.error("failed to forget instance " + instanceId, e);
-    }
-  }
-
-  // recorded instances have known instanceIds
   public synchronized void putRecordedInstanceDirectory(String instanceId, File instanceDir) {
     try {
       assertRecordedInstanceTable();
@@ -187,24 +165,6 @@ public class DatabaseUtils implements AutoCloseable {
       }
     } catch (SQLException e) {
       log.error("failed to record instance " + instanceId, e);
-    }
-  }
-
-  synchronized void updateInstanceLists() {
-    // scan the database's reported set of directories and remove all that are not in the set
-    try (Statement stmt = connection.createStatement()) {
-      assertRecordedInstanceTable();
-      try (ResultSet values = stmt.executeQuery(SELECT_ALL_SQL)) {
-        while (values.next()) {
-          String instanceId = values.getString(1);
-          File f = new File(formDir, values.getString(2));
-          if (!f.exists() || !f.isDirectory()) {
-            forgetRecordedInstance(instanceId);
-          }
-        }
-      }
-    } catch (SQLException e) {
-      log.error("failure while pruning instance registry", e);
     }
   }
 

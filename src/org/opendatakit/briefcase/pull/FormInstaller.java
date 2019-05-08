@@ -29,7 +29,6 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
-import org.opendatakit.briefcase.pull.aggregate.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.transfer.TransferForms;
 
@@ -70,7 +69,7 @@ public class FormInstaller {
     // Install the form definition file, changing the filename on the process
     Path targetFormFile = targetFormDir.resolve(form.getFormName() + ".xml");
     copy(sourceFormFile, targetFormFile, REPLACE_EXISTING);
-    form.setStatusString("Installed form definition file", true);
+    form.setStatusString("Installed form definition file");
     EventBus.publish(new FormStatusEvent(form));
 
     // Check if there is a media directory to install as well
@@ -82,12 +81,12 @@ public class FormInstaller {
       walk(sourceMediaDir)
           .forEach(sourcePath -> {
             copy(sourcePath, targetMediaDir.resolve(sourceMediaDir.relativize(sourcePath)));
-            form.setStatusString("Installed " + sourcePath.getFileName() + " media file", true);
-            form.setStatusString("Installed " + sourcePath.getFileName() + " media file", true);
+            form.setStatusString("Installed " + sourcePath.getFileName() + " media file");
+            form.setStatusString("Installed " + sourcePath.getFileName() + " media file");
             EventBus.publish(new FormStatusEvent(form));
           });
 
-    form.setStatusString("Success", true);
+    form.setStatusString("Success");
     EventBus.publish(new FormStatusEvent(form));
   }
 

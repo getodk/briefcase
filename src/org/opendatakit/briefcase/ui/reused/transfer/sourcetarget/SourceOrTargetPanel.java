@@ -123,6 +123,7 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
     selectView.setEnabled(true);
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<T> preloadOption(RemoteServer server) {
     try {
       T option = getOption(server);

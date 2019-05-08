@@ -58,7 +58,7 @@ public class Central implements PushTarget<CentralServer> {
       server.storePreferences(prefs);
   }
 
-  public static void clearPreferences(BriefcasePreferences prefs) {
+  static void clearPreferences(BriefcasePreferences prefs) {
     CentralServer.clearPreferences(prefs);
   }
 

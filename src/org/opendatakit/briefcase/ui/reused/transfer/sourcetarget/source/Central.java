@@ -33,7 +33,7 @@ import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.pull.aggregate.PullEvent;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.central.PullFromCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.Http;

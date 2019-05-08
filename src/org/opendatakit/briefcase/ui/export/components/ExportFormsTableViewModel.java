@@ -163,7 +163,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
         triggerChange();
         break;
       case ExportFormsTableView.EXPORT_STATUS_COL:
-        form.setStatusString((String) aValue, true);
+        form.setStatusString((String) aValue);
         break;
       default:
         throw new IllegalStateException("unexpected column choice");

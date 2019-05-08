@@ -138,6 +138,6 @@ public class PushToAggregate {
     Path formMediaDir = form.getFormMediaDir(briefcaseDir);
     return Files.exists(formMediaDir)
         ? list(formMediaDir).filter(Files::isRegularFile).collect(toList())
-        : Collections.<Path>emptyList();
+        : Collections.emptyList();
   }
 }

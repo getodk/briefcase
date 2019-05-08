@@ -29,7 +29,6 @@ public class FormStatus {
   private IFormDefinition form;
   private String statusString = "";
   private final StringBuilder statusHistory = new StringBuilder();
-  private boolean isSuccessful = true;
 
   public FormStatus(IFormDefinition form) {
     this.form = form;
@@ -50,21 +49,15 @@ public class FormStatus {
   public synchronized void clearStatusHistory() {
     statusString = "";
     statusHistory.setLength(0);
-    isSuccessful = true;
   }
 
   public synchronized void setStatusString(String statusString) {
-    setStatusString(statusString, false);
-  }
-
-  public synchronized void setStatusString(String statusString, boolean isSuccessful) {
     this.statusString = statusString;
     if (statusHistory.length() > STATUS_HISTORY_MAX_BYTES) {
       trimHistory(statusString.length());
     }
     statusHistory.append("\n");
     statusHistory.append(statusString);
-    this.isSuccessful = this.isSuccessful && isSuccessful;
   }
 
   private void trimHistory(int len) {
@@ -77,10 +70,6 @@ public class FormStatus {
 
   public synchronized String getStatusHistory() {
     return statusHistory.toString();
-  }
-
-  public synchronized boolean isSuccessful() {
-    return isSuccessful;
   }
 
   public synchronized String getFormName() {

@@ -28,7 +28,7 @@ public class SubmissionKeyGenerator {
   private final String submissionElementName;
   private final boolean isEncrypted;
 
-  public SubmissionKeyGenerator(String formId, Optional<String> version, String submissionElementName, boolean isEncrypted) {
+  private SubmissionKeyGenerator(String formId, Optional<String> version, String submissionElementName, boolean isEncrypted) {
     this.formId = formId;
     this.version = version;
     this.submissionElementName = submissionElementName;

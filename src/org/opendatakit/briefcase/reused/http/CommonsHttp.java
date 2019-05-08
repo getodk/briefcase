@@ -39,11 +39,9 @@ import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class CommonsHttp implements Http {
   private final Executor executor;
-  private final CloseableHttpClient client;
 
-  private CommonsHttp(Executor executor, CloseableHttpClient client) {
+  private CommonsHttp(Executor executor) {
     this.executor = executor;
-    this.client = client;
   }
 
   public static Http of(int maxConnections) {
@@ -53,7 +51,7 @@ public class CommonsHttp implements Http {
         .setMaxConnTotal(maxConnections)
         .setDefaultRequestConfig(custom().setCookieSpec(STANDARD).build())
         .build();
-    return new CommonsHttp(Executor.newInstance(client), client);
+    return new CommonsHttp(Executor.newInstance(client));
   }
 
   @Override

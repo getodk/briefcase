@@ -179,15 +179,4 @@ public class WebUtils {
     throw new IllegalArgumentException("Unable to parse the date: " + value);
   }
 
-  /**
-   * Return the ISO8601 string representation of a date.
-   */
-  public static String iso8601Date(Date d) {
-    if (d == null)
-      return null;
-    // SDF is not thread-safe
-    SimpleDateFormat asGMTiso8601 = new SimpleDateFormat(PATTERN_ISO8601); // with time zone
-    asGMTiso8601.setTimeZone(TimeZone.getTimeZone("GMT"));
-    return asGMTiso8601.format(d);
-  }
 }

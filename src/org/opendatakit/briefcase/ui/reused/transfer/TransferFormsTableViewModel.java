@@ -99,7 +99,7 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
         triggerChange();
         break;
       case TransferFormsTableView.STATUS_COL:
-        form.setStatusString((String) aValue, true);
+        form.setStatusString((String) aValue);
         break;
       default:
         throw new IllegalStateException("unexpected column choice");

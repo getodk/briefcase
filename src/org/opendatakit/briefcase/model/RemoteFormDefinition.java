@@ -21,14 +21,12 @@ public class RemoteFormDefinition implements IFormDefinition {
   private final String formName;
   private final String formId;
   private final String versionString;
-  private final String downloadUrl;
   private final String manifestUrl;
 
-  public RemoteFormDefinition(String formName, String formId, String versionString, String downloadUrl, String manifestUrl) {
+  public RemoteFormDefinition(String formName, String formId, String versionString, String manifestUrl) {
     this.formName = formName;
     this.formId = formId;
     this.versionString = versionString;
-    this.downloadUrl = downloadUrl;
     this.manifestUrl = manifestUrl;
   }
 
@@ -42,11 +40,7 @@ public class RemoteFormDefinition implements IFormDefinition {
     return formId;
   }
 
-  public String getDownloadUrl() {
-    return downloadUrl;
-  }
-
-  public String getManifestUrl() {
+  String getManifestUrl() {
     return manifestUrl;
   }
 

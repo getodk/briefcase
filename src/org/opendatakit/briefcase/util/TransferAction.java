@@ -21,12 +21,8 @@ import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.pull.aggregate.PullEvent;
-import org.opendatakit.briefcase.push.PushEvent;
-import org.opendatakit.briefcase.reused.transfer.AggregateServer;
-import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,10 +33,6 @@ public class TransferAction {
 
   private static ExecutorService backgroundExecutorService = Executors.newCachedThreadPool();
 
-  private static void backgroundRun(ITransferToDestAction src, TransferForms formsToTransfer) {
-    backgroundExecutorService.execute(new UploadTransferRunnable(src, formsToTransfer));
-  }
-
   private static void backgroundRun(ITransferFromSourceAction src, TransferForms formsToTransfer) {
     backgroundExecutorService.execute(new GatherTransferRunnable(src, formsToTransfer));
   }
@@ -48,44 +40,6 @@ public class TransferAction {
   public static void transferODKToBriefcase(Path briefcaseDir, File odkSrcDir, TerminationFuture terminationFuture, TransferForms formsToTransfer) {
     TransferFromODK source = new TransferFromODK(briefcaseDir, odkSrcDir, terminationFuture, formsToTransfer);
     backgroundRun(source, formsToTransfer);
-  }
-
-  public static void transferBriefcaseToServer(ServerConnectionInfo destinationServerInfo, TerminationFuture terminationFuture, TransferForms formsToTransfer, Http http, AggregateServer server) {
-    TransferToServer dest = new TransferToServer(
-        destinationServerInfo,
-        terminationFuture,
-        formsToTransfer,
-        http,
-        server,
-        // Since this is only used by the GUI, always force sending the blank form
-        true
-    );
-    backgroundRun(dest, formsToTransfer);
-  }
-
-  private static class UploadTransferRunnable implements Runnable {
-    ITransferToDestAction dest;
-    private TransferForms formsToTransfer;
-
-    UploadTransferRunnable(ITransferToDestAction dest, TransferForms formsToTransfer) {
-      this.dest = dest;
-      this.formsToTransfer = formsToTransfer;
-    }
-
-    @Override
-    public void run() {
-      try {
-        boolean allSuccessful = dest.doAction();
-
-        if (allSuccessful)
-          EventBus.publish(new PushEvent.Success(formsToTransfer, dest.getTransferSettings()));
-        else
-          EventBus.publish(new PushEvent.Failure());
-      } catch (Exception e) {
-        log.error("upload transfer action failed", e);
-        EventBus.publish(new PushEvent.Failure());
-      }
-    }
   }
 
   private static class GatherTransferRunnable implements Runnable {

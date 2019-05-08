@@ -28,7 +28,6 @@ import static org.opendatakit.briefcase.reused.http.RequestBuilder.head;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
@@ -84,7 +83,7 @@ public class AggregateServer implements RemoteServer {
     );
   }
 
-  public static Optional<AggregateServer> readPreferences(BriefcasePreferences prefs) {
+  static Optional<AggregateServer> readPreferences(BriefcasePreferences prefs) {
     if (prefs.hasKey(AGGREGATE_1_0_URL)) {
       return prefs.nullSafeGet(AGGREGATE_1_0_URL)
           .map(RequestBuilder::url)
@@ -97,14 +96,6 @@ public class AggregateServer implements RemoteServer {
           ));
     }
     return Optional.empty();
-  }
-
-  private static URL parseUrl(String url) {
-    try {
-      return new URL(url);
-    } catch (MalformedURLException e) {
-      throw new BriefcaseException(e);
-    }
   }
 
   public void storePreferences(BriefcasePreferences prefs, boolean storePasswords) {
@@ -187,7 +178,6 @@ public class AggregateServer implements RemoteServer {
             e.findElement("name").flatMap(XmlElement::maybeValue).orElseThrow(BriefcaseException::new),
             e.findElement("formID").flatMap(XmlElement::maybeValue).orElseThrow(BriefcaseException::new),
             e.findElement("version").flatMap(XmlElement::maybeValue).orElse(null),
-            e.findElement("downloadUrl").flatMap(XmlElement::maybeValue).orElseThrow(BriefcaseException::new),
             e.findElement("manifestUrl").flatMap(XmlElement::maybeValue).orElse(null)
         )).collect(toList())).build();
   }
@@ -198,7 +188,7 @@ public class AggregateServer implements RemoteServer {
         .build();
   }
 
-  public Request<String> getPushFormPreflightRequest() {
+  Request<String> getPushFormPreflightRequest() {
     return head(baseUrl)
         .asText()
         .withPath("/upload")

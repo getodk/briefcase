@@ -25,6 +25,7 @@ import java.util.function.Consumer;
 import javax.swing.SwingWorker;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
+import org.opendatakit.briefcase.reused.transfer.RemoteServer.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,7 @@ public class CentralServerDialog {
   final CentralServerDialogForm form;
   private final List<Consumer<CentralServer>> onConnectCallbacks = new ArrayList<>();
 
-  private CentralServerDialog(CentralServerDialogForm form, CentralServer.Test serverTester) {
+  private CentralServerDialog(CentralServerDialogForm form, Test<CentralServer> serverTester) {
     this.form = form;
 
     this.form.onConnect(server -> {
@@ -71,7 +72,7 @@ public class CentralServerDialog {
     });
   }
 
-  public static CentralServerDialog empty(CentralServer.Test serverTester) {
+  public static CentralServerDialog empty(Test<CentralServer> serverTester) {
     return new CentralServerDialog(
         new CentralServerDialogForm(),
         serverTester

@@ -42,7 +42,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.SavePasswordsConsentGiven;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
-import org.opendatakit.briefcase.pull.aggregate.PullEvent;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregateResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;

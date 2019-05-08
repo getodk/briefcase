@@ -234,7 +234,6 @@ public class CentralServer implements RemoteServer {
                 (String) json.get("name"),
                 (String) json.get("xmlFormId"),
                 (String) json.get("version"),
-                String.format("%s/v1/projects/%d/forms/%s.xml", baseUrl.toString(), projectId, (String) json.get("xmlFormId")),
                 String.format("%s/v1/projects/%d/forms/%s/manifest", baseUrl.toString(), projectId, (String) json.get("xmlFormId"))
             ))
             .collect(toList()))

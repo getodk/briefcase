@@ -102,6 +102,7 @@ public class PullFormFromAggregate {
           ? "Error connecting to Aggregate: Aggregate not found"
           : "Error connecting to Aggregate");
     else {
+      // TODO v2.0 invert this into http.execute(server.getFormsListRequest(...)
       List<FormStatus> filteredForms = aggregateServer.getFormsList(http).stream()
           .filter(f -> formId.map(id -> f.getFormId().equals(id)).orElse(true))
           .map(FormStatus::new)

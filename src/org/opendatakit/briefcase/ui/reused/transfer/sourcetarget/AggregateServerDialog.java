@@ -23,14 +23,15 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import javax.swing.SwingWorker;
-import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.response.Response;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
+import org.opendatakit.briefcase.reused.transfer.RemoteServer.Test;
 
 public class AggregateServerDialog {
   final AggregateServerDialogForm form;
   private final List<Consumer<AggregateServer>> onConnectCallbacks = new ArrayList<>();
 
-  private AggregateServerDialog(AggregateServerDialogForm form, AggregateServer.Test serverTester) {
+  private AggregateServerDialog(AggregateServerDialogForm form, Test<AggregateServer> serverTester) {
     this.form = form;
 
     this.form.onConnect(server -> {
@@ -76,7 +77,7 @@ public class AggregateServerDialog {
     ));
   }
 
-  public static AggregateServerDialog empty(AggregateServer.Test serverTester, String requiredPermission) {
+  public static AggregateServerDialog empty(Test<AggregateServer> serverTester, String requiredPermission) {
     return new AggregateServerDialog(
         new AggregateServerDialogForm(requiredPermission),
         serverTester

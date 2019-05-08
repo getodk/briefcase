@@ -18,16 +18,12 @@ package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source;
 
 import static java.awt.Cursor.HAND_CURSOR;
 import static java.awt.Cursor.getPredefinedCursor;
-import static java.awt.Desktop.getDesktop;
 import static java.util.stream.Collectors.toList;
 import static javax.swing.SwingUtilities.invokeLater;
 import static org.opendatakit.briefcase.ui.reused.SwingUtils.uncheckedBrowse;
 import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
 
 import java.awt.Container;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
@@ -37,7 +33,7 @@ import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.pull.aggregate.PullEvent;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.Http;

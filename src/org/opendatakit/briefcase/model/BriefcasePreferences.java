@@ -273,6 +273,7 @@ public class BriefcasePreferences {
     return Preference.APPLICATION_SCOPED;
   }
 
+  // TODO v2.0 Use this with the new Http adapter
   public static HttpHost getBriefCaseProxyConnection() {
     String host = Preference.APPLICATION_SCOPED.get(BRIEFCASE_PROXY_HOST_PROPERTY, null);
     if (host != null) {

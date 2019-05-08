@@ -27,7 +27,4 @@ public class ParsingException extends BriefcaseException {
     super(message);
   }
 
-  public ParsingException(String message, Throwable cause) {
-    super(message, cause);
-  }
 }

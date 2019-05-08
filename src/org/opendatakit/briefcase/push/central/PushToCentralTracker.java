@@ -58,13 +58,7 @@ class PushToCentralTracker {
       JsonNode jsonNode = mapper.readTree(errorResponse);
       String message = jsonNode.get("message").asText();
 
-      Map<String, String> details = Optional.ofNullable(jsonNode.findValue("details"))
-          .map(node -> stream(spliteratorUnknownSize(node.fieldNames(), ORDERED), false).collect(toMap(
-              field -> field,
-              field -> node.get(field).asText()
-          )))
-          .orElse(emptyMap());
-      return new CentralErrorMessage(message, details);
+      return new CentralErrorMessage(message);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -126,13 +120,13 @@ class PushToCentralTracker {
     notifyTrackingEvent();
   }
 
-  public void trackSubmissionAlreadyExists(String instanceId) {
+  void trackSubmissionAlreadyExists(String instanceId) {
     form.setStatusString("Skipping: submission " + instanceId + " already exists in Central");
     log.info("Skipping: submission {} already exists in Central", instanceId);
     notifyTrackingEvent();
   }
 
-  public void trackSubmissionAttachmentAlreadyExists(Path attachment, String instanceId) {
+  void trackSubmissionAttachmentAlreadyExists(Path attachment, String instanceId) {
     form.setStatusString("Skipping: attachment " + attachment.getFileName() + " of submission " + instanceId + " already exists in Central");
     log.info("Skipping: attachment {} of submission {} already exists in Central", attachment.getFileName(), instanceId);
     notifyTrackingEvent();

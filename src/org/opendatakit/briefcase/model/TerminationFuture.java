@@ -18,7 +18,7 @@ package org.opendatakit.briefcase.model;
 
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
-import org.opendatakit.briefcase.pull.aggregate.PullEvent;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

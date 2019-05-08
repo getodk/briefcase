@@ -61,10 +61,6 @@ public class AggregateAttachment {
         !hash.equalsIgnoreCase("md5:" + md5(targetPath)); // The local file's hash doesn't match what we expected
   }
 
-  Path getTargetPath(Path mediaDir) {
-    return mediaDir.resolve(filename);
-  }
-
   public String getFilename() {
     return filename;
   }

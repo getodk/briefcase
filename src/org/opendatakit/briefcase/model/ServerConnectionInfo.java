@@ -47,10 +47,6 @@ public class ServerConnectionInfo {
     return password;
   }
 
-  public boolean hasCredentials() {
-    return getUsername() != null && getUsername().length() != 0;
-  }
-
   @Override
   public String toString() {
     //noinspection ReplaceAllDot

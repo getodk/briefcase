@@ -16,20 +16,14 @@
 
 package org.opendatakit.briefcase.push.central;
 
-import static java.util.Collections.emptyMap;
-
-import java.util.Map;
-
 class CentralErrorMessage {
   final String message;
-  final Map<String, String> details;
 
-  CentralErrorMessage(String message, Map<String, String> details) {
+  CentralErrorMessage(String message) {
     this.message = message;
-    this.details = details;
   }
 
   public static CentralErrorMessage empty() {
-    return new CentralErrorMessage("", emptyMap());
+    return new CentralErrorMessage("");
   }
 }
