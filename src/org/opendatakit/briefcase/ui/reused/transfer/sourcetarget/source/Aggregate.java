@@ -21,6 +21,7 @@ import static java.awt.Cursor.getPredefinedCursor;
 import static java.awt.Desktop.getDesktop;
 import static java.util.stream.Collectors.toList;
 import static javax.swing.SwingUtilities.invokeLater;
+import static org.opendatakit.briefcase.ui.reused.SwingUtils.uncheckedBrowse;
 import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
 
 import java.awt.Container;
@@ -63,14 +64,6 @@ public class Aggregate implements PullSource<AggregateServer> {
 
   static void clearPreferences(BriefcasePreferences prefs) {
     prefs.removeAll(AggregateServer.PREFERENCE_KEYS);
-  }
-
-  private static void uncheckedBrowse(URL url) {
-    try {
-      getDesktop().browse(url.toURI());
-    } catch (URISyntaxException | IOException e) {
-      throw new BriefcaseException(e);
-    }
   }
 
   @Override

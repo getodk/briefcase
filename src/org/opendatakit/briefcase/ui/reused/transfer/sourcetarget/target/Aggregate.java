@@ -18,14 +18,10 @@ package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.target;
 
 import static java.awt.Cursor.HAND_CURSOR;
 import static java.awt.Cursor.getPredefinedCursor;
-import static java.awt.Desktop.getDesktop;
 import static javax.swing.SwingUtilities.invokeLater;
 import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
 
 import java.awt.Container;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
@@ -33,13 +29,13 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.push.aggregate.PushToAggregate;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer.Test;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
+import org.opendatakit.briefcase.ui.reused.SwingUtils;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.AggregateServerDialog;
 
 public class Aggregate implements PushTarget<AggregateServer> {
@@ -58,14 +54,6 @@ public class Aggregate implements PushTarget<AggregateServer> {
 
   static void clearPreferences(BriefcasePreferences prefs) {
     prefs.removeAll(AggregateServer.PREFERENCE_KEYS);
-  }
-
-  private static void uncheckedBrowse(URL url) {
-    try {
-      getDesktop().browse(url.toURI());
-    } catch (URISyntaxException | IOException e) {
-      throw new BriefcaseException(e);
-    }
   }
 
   @Override
@@ -113,7 +101,7 @@ public class Aggregate implements PushTarget<AggregateServer> {
     label.setCursor(getPredefinedCursor(HAND_CURSOR));
     removeAllMouseListeners(label);
     label.addMouseListener(new MouseAdapterBuilder()
-        .onClick(__ -> invokeLater(() -> uncheckedBrowse(server.getBaseUrl())))
+        .onClick(__ -> invokeLater(() -> SwingUtils.uncheckedBrowse(server.getBaseUrl())))
         .build());
   }
 
