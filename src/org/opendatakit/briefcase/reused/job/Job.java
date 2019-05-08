@@ -18,9 +18,11 @@ package org.opendatakit.briefcase.reused.job;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.Triple;
 
 /**
@@ -61,6 +63,13 @@ public class Job<T> {
     return Job.supply(__ -> null);
   }
 
+  public static <T, U> Job<Pair<T, U>> allOf(Job<T> t, Job<U> u) {
+    return new Job<>(runnerStatus -> Pair.of(
+        t.runnerAwareSupplier.apply(runnerStatus),
+        u.runnerAwareSupplier.apply(runnerStatus)
+    ));
+  }
+
   /**
    * Composes three jobs into one that will return a {@link Triple}
    * with all their individual values once launched.
@@ -92,6 +101,21 @@ public class Job<T> {
     return new Job<>(runnerStatus -> {
       runnerAwareSupplier.apply(runnerStatus);
       return job.runnerAwareSupplier.apply(runnerStatus);
+    });
+  }
+
+  public Job<Void> thenAccept(BiConsumer<RunnerStatus, T> runnerAwareConsumer) {
+    return new Job<>(runnerStatus -> {
+      T t = runnerAwareSupplier.apply(runnerStatus);
+      runnerAwareConsumer.accept(runnerStatus, t);
+      return null;
+    });
+  }
+
+  public <U> Job<U> thenSupply(Function<RunnerStatus, U> runnerAwareSupplier) {
+    return new Job<>(runnerStatus -> {
+      this.runnerAwareSupplier.apply(runnerStatus);
+      return runnerAwareSupplier.apply(runnerStatus);
     });
   }
 

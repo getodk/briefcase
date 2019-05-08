@@ -31,7 +31,6 @@ import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.pull.PullForm;
-import org.opendatakit.briefcase.pull.PullResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
@@ -108,14 +107,15 @@ public class PullFormFromAggregate {
 
       forms.selectAll();
 
-      new JobsRunner<PullResult>()
-          .onError(PullFormFromAggregate::onError)
-          .onSuccess(results -> {
+      JobsRunner.launchAsync(
+          forms.map(form -> PullForm.pull(http, remoteServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent, form)),
+          results -> {
             results.forEach(result -> forms.setLastPullCursor(result.getForm(), result.getLastCursor()));
             System.out.println();
             System.out.println("All forms have been pulled");
-          })
-          .launchSync(forms.map(form -> PullForm.pull(http, remoteServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent, form)));
+          },
+          PullFormFromAggregate::onError
+      );
     }
   }
 

@@ -28,7 +28,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.stream.Stream;
 import org.opendatakit.briefcase.export.DateRange;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportToCsv;
@@ -154,14 +153,14 @@ public class Export {
             LocalDateTime.now().format(ISO_DATE_TIME)
         ));
 
-    new JobsRunner<Void>()
-        .onError(Export::onError)
-        .onSuccess(__ -> {
+    JobsRunner.launchAsync(
+        job,
+        __ -> {
           System.out.println();
           System.out.println("Successfully exported all forms");
           log.info("Successfully exported all forms");
-        })
-        .launchSync(Stream.of(job));
+        },
+        Export::onError);
   }
 
   private static void onError(Throwable e) {

@@ -210,10 +210,12 @@ public class ExportPanel {
           .thenRun(exportJob)
           .thenRun(exportGeoJsonJob);
     });
-    new JobsRunner<Void>()
-        .onError(e -> log.error("Error exporting form", e))
-        .onSuccess(__ -> form.unsetExporting())
-        .launchAsync(allJobs);
+
+    JobsRunner.launchAsync(
+        allJobs,
+        __ -> form.unsetExporting(),
+        e -> log.error("Error exporting form", e)
+    );
   }
 
   @EventSubscriber(eventClass = CacheUpdateEvent.class)

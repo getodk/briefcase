@@ -38,7 +38,6 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.PullForm;
-import org.opendatakit.briefcase.pull.PullResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.DeferredValue;
 import org.opendatakit.briefcase.reused.RemoteServer;
@@ -106,16 +105,17 @@ public class Aggregate implements PullSource<RemoteServer> {
 
   @Override
   public JobsRunner pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
-    return new JobsRunner<PullResult>()
-        .onError(e -> {
-          log.error("Error pulling forms", e);
-          EventBus.publish(new PullEvent.Failure());
-        })
-        .onSuccess(results -> {
+    return JobsRunner.launchAsync(
+        forms.map(form -> PullForm.pull(http, server, briefcaseDir, includeIncomplete, EventBus::publish, form)),
+        results -> {
           results.forEach(result -> forms.setLastPullCursor(result.getForm(), result.getLastCursor()));
           EventBus.publish(new PullEvent.Success(forms, server.asServerConnectionInfo()));
-        })
-        .launchAsync(forms.map(form -> PullForm.pull(http, server, briefcaseDir, includeIncomplete, EventBus::publish, form)));
+        },
+        e -> {
+          log.error("Error pulling forms", e);
+          EventBus.publish(new PullEvent.Failure());
+        }
+    );
   }
 
   @Override

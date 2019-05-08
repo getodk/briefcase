@@ -34,6 +34,7 @@ import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.reused.DeferredValue;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
@@ -99,9 +100,11 @@ public class CustomDir implements PullSource<Path> {
   }
 
   @Override
-  public JobsRunner<Void> pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
+  public JobsRunner pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
     return JobsRunner.launchAsync(
-        run(jobStatus -> TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), jobStatus, forms))
+        run(jobStatus -> TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), new TerminationFuture(), forms)),
+        __ -> {},
+        __ -> {}
     );
   }
 

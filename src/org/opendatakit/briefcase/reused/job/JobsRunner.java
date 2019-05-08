@@ -16,9 +16,9 @@
 
 package org.opendatakit.briefcase.reused.job;
 
+import static java.util.concurrent.ForkJoinPool.commonPool;
 import static org.opendatakit.briefcase.reused.job.CompletableFutureHelpers.collectResult;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -32,85 +32,79 @@ import org.slf4j.LoggerFactory;
 /**
  * Runs a collection of {@link Job} jobs in a ForkJoinPool
  */
-public class JobsRunner<T> {
+public class JobsRunner {
   private static final Logger log = LoggerFactory.getLogger(JobsRunner.class);
-  private final List<Consumer<List<T>>> successCallbacks = new ArrayList<>();
-  private final List<Consumer<Throwable>> errorCallbacks = new ArrayList<>();
+  private static final ForkJoinPool SYSTEM_FORK_JOIN_POOL = commonPool();
   private final ExecutorService executor;
 
-  public JobsRunner() {
-    executor = new ForkJoinPool(
-        ForkJoinPool.commonPool().getParallelism(),
-        ForkJoinPool.commonPool().getFactory(),
-        (thread, throwable) -> errorCallbacks.forEach(c -> c.accept(throwable)),
-        ForkJoinPool.commonPool().getAsyncMode()
+  private JobsRunner(ForkJoinPool executor) {
+    this.executor = executor;
+  }
+
+  public static <T> JobsRunner launchAsync(Stream<Job<T>> jobs, Consumer<List<T>> onSuccess, Consumer<Throwable> onError) {
+    // Get a clone of the ForkJoinPool that we can shutdown
+    ForkJoinPool executor = buildCancellableForkJoinPool(onError);
+    // Fork off a thread to act as the main thread of this collection of background jobs
+    CompletableFuture.runAsync(() -> {
+      try {
+        onSuccess.accept(jobs.map(job -> job.launch(executor)).collect(collectResult()).get());
+        executor.shutdown();
+      } catch (InterruptedException | ExecutionException e) {
+        log.warn("Job cancelled", e);
+        onError.accept(e);
+      }
+    }, executor);
+    // Return a JobsRunner to let the calling site cancel this background operation
+    return new JobsRunner(executor);
+  }
+
+  public static <T> JobsRunner launchAsync(Job<T> job, Consumer<T> onSuccess, Consumer<Throwable> onError) {
+    ForkJoinPool executor = commonPool();
+    // Fork off a thread to act as the main thread of this collection of background jobs
+    CompletableFuture.runAsync(() -> {
+      try {
+        onSuccess.accept(job.launch(executor).get());
+      } catch (InterruptedException | ExecutionException e) {
+        log.warn("Job cancelled", e);
+        onError.accept(e);
+      }
+    });
+    return new JobsRunner(executor);
+  }
+
+  public static <T> JobsRunner launchSync(Stream<Job<T>> jobs, Consumer<List<T>> onSuccess, Consumer<Throwable> onError) {
+    ForkJoinPool executor = commonPool();
+    // Canonical use of the ForkJoinPool and Completable futures
+    try {
+      onSuccess.accept(jobs.map(job -> job.launch(executor)).collect(collectResult()).get());
+    } catch (InterruptedException | ExecutionException e) {
+      log.error("Error launching sync jobs", e);
+      onError.accept(e);
+    }
+    return new JobsRunner(executor);
+  }
+
+  public static <T> JobsRunner launchSync(Job<T> job, Consumer<T> onSuccess, Consumer<Throwable> onError) {
+    ForkJoinPool executor = commonPool();
+    // Canonical use of the ForkJoinPool and Completable futures
+    try {
+      onSuccess.accept(job.launch(executor).get());
+    } catch (InterruptedException | ExecutionException e) {
+      log.error("Error launching sync jobs", e);
+      onError.accept(e);
+    }
+    return new JobsRunner(executor);
+  }
+
+  private static ForkJoinPool buildCancellableForkJoinPool(Consumer<Throwable> onError) {
+    return new ForkJoinPool(
+        SYSTEM_FORK_JOIN_POOL.getParallelism(),
+        SYSTEM_FORK_JOIN_POOL.getFactory(),
+        (thread, throwable) -> onError.accept(throwable),
+        SYSTEM_FORK_JOIN_POOL.getAsyncMode()
     );
   }
 
-  @SafeVarargs
-  public static <U> JobsRunner<U> launchAsync(Job<U>... jobs) {
-    return new JobsRunner<U>().launchAsync(Stream.of(jobs));
-  }
-
-  /**
-   * Launches the jobs in background.
-   */
-  public JobsRunner<T> launchAsync(Stream<Job<T>> jobs) {
-    launch(jobs, false);
-    return this;
-  }
-
-  @SafeVarargs
-  public static <U> JobsRunner<U> launchSync(Job<U>... jobs) {
-    return new JobsRunner<U>().launchSync(Stream.of(jobs));
-  }
-
-  /**
-   * Launches the jobs and blocks the current thread.
-   */
-  public JobsRunner<T> launchSync(Stream<Job<T>> jobs) {
-    launch(jobs, true);
-    return this;
-  }
-
-  private void launch(Stream<Job<T>> jobs, boolean join) {
-    CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
-      try {
-        List<T> results = jobs.map(job -> job.launch(executor)).collect(collectResult()).get();
-        successCallbacks.forEach(c -> c.accept(results));
-        executor.shutdown();
-      } catch (InterruptedException | ExecutionException e) {
-        log.info("Job cancelled", e);
-      }
-    }, executor);
-    if (join)
-      completableFuture.join();
-  }
-
-  /**
-   * Lets calling site perform side-effects when an uncaught exception reaches the runner
-   */
-  public JobsRunner<T> onError(Consumer<Throwable> errorCallback) {
-    errorCallbacks.add(errorCallback);
-    return this;
-  }
-
-  /**
-   * Lets calling site perform side-effects after successfully completing all its jobs.
-   */
-  public JobsRunner<T> onSuccess(Consumer<List<T>> successCallback) {
-    successCallbacks.add(successCallback);
-    return this;
-  }
-
-  /**
-   * Cancels the background jobs:
-   * <ul>
-   * <li>Ongoing jobs won't be affected</li>
-   * <li>Jobs in the queue won't be started</li>
-   * <li>New jobs will be rejected</li>
-   * </ul>
-   */
   public void cancel() {
     executor.shutdownNow();
   }

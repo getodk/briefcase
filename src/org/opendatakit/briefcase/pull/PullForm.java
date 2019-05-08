@@ -58,7 +58,7 @@ public class PullForm {
   private final Path briefcaseDir;
   private final boolean includeIncomplete;
 
-  PullForm(Http http, RemoteServer server, Path briefcaseDir, boolean includeIncomplete) {
+  public PullForm(Http http, RemoteServer server, Path briefcaseDir, boolean includeIncomplete) {
     this.http = http;
     this.server = server;
     this.briefcaseDir = briefcaseDir;
