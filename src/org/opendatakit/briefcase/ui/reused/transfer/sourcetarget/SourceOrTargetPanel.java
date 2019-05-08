@@ -25,7 +25,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JPanel;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer;
@@ -62,6 +61,7 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
         ShowSourceOrTargetForm.pull()
     );
     panel.addOption(PullSource.aggregate(http, panel::triggerOnSelect));
+    panel.addOption(PullSource.central(http, panel::triggerOnSelect));
     panel.addOption(PullSource.customDir(panel::triggerOnSelect));
     panel.addOption(PullSource.formInComputer(panel::triggerOnSelect));
     return panel;
@@ -73,6 +73,7 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
         ShowSourceOrTargetForm.push()
     );
     panel.addOption(PushTarget.aggregate(http, panel::triggerOnSelect));
+    panel.addOption(PushTarget.central(http, panel::triggerOnSelect));
     return panel;
   }
 

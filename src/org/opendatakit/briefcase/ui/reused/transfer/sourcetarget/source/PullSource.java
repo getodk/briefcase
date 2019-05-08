@@ -26,6 +26,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
+import org.opendatakit.briefcase.reused.transfer.CentralServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.SourceOrTarget;
 import org.slf4j.Logger;
@@ -36,12 +37,17 @@ public interface PullSource<T> extends SourceOrTarget<T> {
 
   static void clearAllPreferences(BriefcasePreferences prefs) {
     Aggregate.clearPreferences(prefs);
+    Central.clearPreferences(prefs);
     CustomDir.clearPreferences(prefs);
     FormInComputer.clearPreferences(prefs);
   }
 
   static PullSource<AggregateServer> aggregate(Http http, Consumer<PullSource> consumer) {
     return new Aggregate(http, server -> server.testPull(http), "Data Viewer", consumer);
+  }
+
+  static PullSource<CentralServer> central(Http http, Consumer<PullSource> consumer) {
+    return new Central(http, server -> server.testCredentials(http), consumer);
   }
 
   static PullSource<Path> customDir(Consumer<PullSource> consumer) {

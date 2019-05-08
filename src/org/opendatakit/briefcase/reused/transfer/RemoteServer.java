@@ -26,7 +26,8 @@ public interface RemoteServer {
   @SuppressWarnings("unchecked")
   static <T extends RemoteServer> Optional<T> readPreferences(BriefcasePreferences prefs) {
     return Optionals.race(
-        AggregateServer.readPreferences(prefs).map(o -> (T) o)
+        AggregateServer.readPreferences(prefs).map(o -> (T) o),
+        CentralServer.readPreferences(prefs).map(o -> (T) o)
     );
   }
 

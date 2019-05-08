@@ -21,6 +21,7 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.newInputStream;
 
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +43,12 @@ public class CentralServer implements RemoteServer {
   private static final String PREFS_KEY_CENTRAL_PROJECT_ID = "central_project_id";
   private static final String PREFS_KEY_CENTRAL_USERNAME = "central_username";
   private static final String PREFS_KEY_CENTRAL_PASSWORD = "central_password";
+  public static List<String> PREFERENCE_KEYS = Arrays.asList(
+      PREFS_KEY_CENTRAL_URL,
+      PREFS_KEY_CENTRAL_PROJECT_ID,
+      PREFS_KEY_CENTRAL_USERNAME,
+      PREFS_KEY_CENTRAL_PASSWORD
+  );
   private final URL baseUrl;
   private final int projectId;
   private final Credentials credentials;

@@ -22,6 +22,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
+import org.opendatakit.briefcase.reused.transfer.CentralServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.SourceOrTarget;
 import org.slf4j.Logger;
@@ -32,10 +33,15 @@ public interface PushTarget<T> extends SourceOrTarget<T> {
 
   static void clearAllPreferences(BriefcasePreferences prefs) {
     Aggregate.clearPreferences(prefs);
+    Central.clearPreferences(prefs);
   }
 
   static PushTarget<AggregateServer> aggregate(Http http, Consumer<PushTarget> consumer) {
     return new Aggregate(http, server -> server.testPush(http), "Form Manager", consumer);
+  }
+
+  static PushTarget<CentralServer> central(Http http, Consumer<PushTarget> consumer) {
+    return new Central(http, server -> server.testCredentials(http), consumer);
   }
 
   void storePreferences(BriefcasePreferences prefs, boolean storePasswords);

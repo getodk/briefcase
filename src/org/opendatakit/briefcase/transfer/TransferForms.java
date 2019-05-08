@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -201,6 +202,10 @@ public class TransferForms implements Iterable<FormStatus> {
 
   public <T> Stream<T> map(Function<FormStatus, T> mapper) {
     return forms.stream().map(mapper);
+  }
+
+  public TransferForms filter(Predicate<FormStatus> predicate) {
+    return new TransferForms(forms.stream().filter(predicate).collect(toList()), lastPullCursorsByFormId);
   }
 
   public Optional<Cursor> getLastCursor(FormStatus fs) {
