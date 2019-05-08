@@ -193,7 +193,7 @@ public class FormDefinition {
   /**
    * Returns true if the form is encrypted, false otherwise.
    */
-  boolean isFileEncryptedForm() {
+  public boolean isFileEncryptedForm() {
     return isEncrypted;
   }
 

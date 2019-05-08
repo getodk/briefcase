@@ -117,7 +117,7 @@ public class SubmissionParser {
    *     criteria, or {@link Optional#empty()} otherwise
    * @see #decrypt(Submission, SubmissionExportErrorCallback)
    */
-  static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, SubmissionExportErrorCallback onError) {
+  public static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, SubmissionExportErrorCallback onError) {
     Path workingDir = isEncrypted ? createTempDirectory("briefcase") : path.getParent();
     return parse(path, onError).flatMap(document -> {
       XmlElement root = XmlElement.of(document);
