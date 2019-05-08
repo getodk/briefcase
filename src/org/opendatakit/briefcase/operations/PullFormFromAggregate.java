@@ -36,12 +36,12 @@ import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Optionals;
-import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.push.PushPanel;
 import org.opendatakit.briefcase.util.FormCache;
@@ -114,8 +114,9 @@ public class PullFormFromAggregate {
       forms.load(filteredForms, BriefcasePreferences.forClass(PushPanel.class));
       forms.selectAll();
 
+      PullFromAggregate pullOp = new PullFromAggregate(http, aggregateServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent);
       JobsRunner.launchAsync(
-          forms.map(form -> PullFromAggregate.pull(http, aggregateServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent, form, Optionals.race(
+          forms.map(form -> pullOp.pull(form, Optionals.race(
               startFromDate.map(Cursor::of),
               forms.getLastCursor(form))
           )),

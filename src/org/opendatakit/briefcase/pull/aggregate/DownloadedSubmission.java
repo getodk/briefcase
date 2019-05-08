@@ -28,7 +28,7 @@ public class DownloadedSubmission {
   private final String instanceId;
   private final List<MediaFile> attachments;
 
-  private DownloadedSubmission(String xml, String instanceId, List<MediaFile> attachments) {
+  DownloadedSubmission(String xml, String instanceId, List<MediaFile> attachments) {
     this.xml = xml;
     this.instanceId = instanceId;
     this.attachments = attachments;

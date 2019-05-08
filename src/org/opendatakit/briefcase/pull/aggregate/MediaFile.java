@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Objects;
 import javax.xml.bind.DatatypeConverter;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
@@ -64,7 +65,39 @@ public class MediaFile {
     return mediaDir.resolve(filename);
   }
 
-  URL getDownloadUrl() {
+  public String getFilename() {
+    return filename;
+  }
+
+  public String getHash() {
+    return hash;
+  }
+
+  public URL getDownloadUrl() {
     return downloadUrl;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    MediaFile mediaFile = (MediaFile) o;
+    return Objects.equals(filename, mediaFile.filename) &&
+        Objects.equals(hash, mediaFile.hash) &&
+        Objects.equals(downloadUrl, mediaFile.downloadUrl);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(filename, hash, downloadUrl);
+  }
+
+  @Override
+  public String toString() {
+    return "MediaFile{" +
+        "filename='" + filename + '\'' +
+        ", hash='" + hash + '\'' +
+        ", downloadUrl=" + downloadUrl +
+        '}';
   }
 }

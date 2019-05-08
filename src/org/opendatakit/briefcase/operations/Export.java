@@ -41,11 +41,11 @@ import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregateResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
-import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.common.cli.Operation;
@@ -135,7 +135,8 @@ public class Export {
             ).map(Credentials::from)
         );
 
-        pullJob = PullFromAggregate.pull(CommonsHttp.of(8), server, briefcaseDir, false, Export::onEvent, formStatus, Optional.empty());
+        pullJob = new PullFromAggregate(CommonsHttp.of(8), server, briefcaseDir, false, Export::onEvent)
+            .pull(formStatus, Optional.empty());
       }
     }
     FormDefinition formDef = FormDefinition.from(formDefinition);

@@ -47,10 +47,10 @@ import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregateResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
-import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
@@ -195,7 +195,7 @@ public class ExportPanel {
       Optional<AggregateServer> server = forms.getTransferSettings(formId).map(AggregateServer::from);
 
       Job<PullFromAggregateResult> pullJob = configuration.resolvePullBefore() && server.isPresent()
-          ? PullFromAggregate.pull(http, server.get(), briefcaseDir, false, EventBus::publish, form, Optional.empty())
+          ? new PullFromAggregate(http, server.get(), briefcaseDir, false, EventBus::publish).pull(form, Optional.empty())
           : Job.noOpSupplier();
 
       Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration, analytics));

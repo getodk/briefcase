@@ -19,7 +19,7 @@ package org.opendatakit.briefcase.pull.aggregate;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.pull.aggregate.PullTestHelpers.buildSubmissionXml;
+import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildAggregateSubmissionDownloadXml;
 
 import java.util.UUID;
 import org.junit.Test;
@@ -30,7 +30,7 @@ public class DownloadedSubmissionTest {
   @Test
   public void parses_the_download_submission_response_from_a_remote_server() {
     String expectedInstanceId = "uuid:" + UUID.randomUUID().toString();
-    DownloadedSubmission ds = DownloadedSubmission.from(XmlElement.from(buildSubmissionXml(expectedInstanceId, 3)));
+    DownloadedSubmission ds = DownloadedSubmission.from(XmlElement.from(buildAggregateSubmissionDownloadXml(expectedInstanceId, 3)));
     assertThat(ds.getInstanceId(), is(expectedInstanceId));
     assertThat(ds.getAttachments(), hasSize(3));
   }

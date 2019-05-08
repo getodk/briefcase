@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Nafundi
+ * Copyright (C) 2019 Nafundi
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,17 +21,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.reused.http.response.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PullFromAggregateTracker {
+class PullFromAggregateTracker {
   private static final Logger log = LoggerFactory.getLogger(PullFromAggregateTracker.class);
   private final FormStatus form;
   private final Consumer<FormStatusEvent> onEventCallback;
   private int totalSubmissions;
   private AtomicInteger submissionCounter = new AtomicInteger(0);
 
-  public PullFromAggregateTracker(FormStatus form, Consumer<FormStatusEvent> onEventCallback) {
+  PullFromAggregateTracker(FormStatus form, Consumer<FormStatusEvent> onEventCallback) {
     this.form = form;
     this.onEventCallback = onEventCallback;
   }
@@ -43,7 +44,7 @@ public class PullFromAggregateTracker {
   }
 
   void trackBatches(List<InstanceIdBatch> batches) {
-    totalSubmissions = batches.stream().map(InstanceIdBatch::count).reduce(0, (a, b) -> a + b);
+    totalSubmissions = batches.stream().map(InstanceIdBatch::count).reduce(0, Integer::sum);
     form.setStatusString("Downloading " + totalSubmissions + " submissions");
     log.info("Downloaded {} submissions", totalSubmissions);
     notifyTrackingEvent();
@@ -55,21 +56,51 @@ public class PullFromAggregateTracker {
     notifyTrackingEvent();
   }
 
-  void trackMediaFiles(List<MediaFile> manifestMediaFiles, List<MediaFile> downloadedMediaFiles) {
-    if (!downloadedMediaFiles.isEmpty()) {
-      form.setStatusString("Downloaded " + downloadedMediaFiles.size() + " attachments");
-      log.info("Downloaded {} attachments", downloadedMediaFiles.size());
-      notifyTrackingEvent();
-    }
-    if (manifestMediaFiles.size() > downloadedMediaFiles.size()) {
-      int number = manifestMediaFiles.size() - downloadedMediaFiles.size();
-      form.setStatusString("Ignoring " + number + " attachments (already present)");
-      log.info("Ignoring {} attachments (already present)", number);
+  void trackMediaFiles(int totalAttachments, int attachmentsToDownload) {
+    if (totalAttachments > 0) {
+      form.setStatusString("Downloading " + attachmentsToDownload + " form attachments");
+      log.info("Downloading {} form attachments", attachmentsToDownload);
+      if (totalAttachments > attachmentsToDownload) {
+        int number = totalAttachments - attachmentsToDownload;
+        form.setStatusString("Ignoring " + number + " form attachments (already present)");
+        log.info("Ignoring {} form attachments (already present)", number);
+      }
       notifyTrackingEvent();
     }
   }
 
   private void notifyTrackingEvent() {
     onEventCallback.accept(new FormStatusEvent(form));
+  }
+
+  void trackError(String error, Response response) {
+    form.setStatusString(error + ": " + response.getStatusPhrase());
+    log.error("{}: HTTP {} {}", error, response.getStatusCode(), response.getStatusPhrase());
+    notifyTrackingEvent();
+  }
+
+  void trackCancellation(String job) {
+    form.setStatusString("Operation cancelled - " + job);
+    log.warn("Operation cancelled - {}", job);
+    notifyTrackingEvent();
+  }
+
+  void formAttachmentDownloaded(MediaFile mediaFile) {
+    form.setStatusString("Downloaded form attachment " + mediaFile.getFilename());
+    log.info("Downloaded form attachment {}", mediaFile.getFilename());
+    notifyTrackingEvent();
+  }
+
+  void trackTotalSubmissions(int totalSubmissions) {
+    this.totalSubmissions = totalSubmissions;
+    form.setStatusString("Downloading " + totalSubmissions + " submissions");
+    log.info("Downloading {} submissions", totalSubmissions);
+    notifyTrackingEvent();
+  }
+
+  void submissionAttachmentDownloaded(String instanceId, MediaFile attachment) {
+    form.setStatusString("Downloaded attachment " + attachment.getFilename() + " of submission " + instanceId);
+    log.info("Downloaded attachment {} of submission {}", attachment.getFilename(), instanceId);
+    notifyTrackingEvent();
   }
 }

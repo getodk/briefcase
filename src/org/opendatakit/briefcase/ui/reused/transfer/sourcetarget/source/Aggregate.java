@@ -106,8 +106,9 @@ public class Aggregate implements PullSource<AggregateServer> {
 
   @Override
   public JobsRunner pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
+    PullFromAggregate pullOp = new PullFromAggregate(http, server, briefcaseDir, includeIncomplete, EventBus::publish);
     return JobsRunner.launchAsync(
-        forms.map(form -> PullFromAggregate.pull(http, server, briefcaseDir, includeIncomplete, EventBus::publish, form, resumeLastPull ? forms.getLastCursor(form) : Optional.empty())),
+        forms.map(form -> pullOp.pull(form, resumeLastPull ? forms.getLastCursor(form) : Optional.empty())),
         results -> {
           results.forEach(result -> forms.setLastPullCursor(result.getForm(), result.getLastCursor()));
           EventBus.publish(new PullEvent.Success(forms, server.asServerConnectionInfo()));
