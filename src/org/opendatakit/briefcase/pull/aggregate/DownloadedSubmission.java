@@ -16,7 +16,7 @@
 
 package org.opendatakit.briefcase.pull.aggregate;
 
-import static org.opendatakit.briefcase.pull.aggregate.PullForm.asMediaFileList;
+import static org.opendatakit.briefcase.pull.aggregate.PullFromAggregate.asMediaFileList;
 
 import java.util.List;
 import org.opendatakit.briefcase.export.SubmissionMetaData;

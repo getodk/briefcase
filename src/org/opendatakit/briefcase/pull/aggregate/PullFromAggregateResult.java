@@ -20,21 +20,21 @@ import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
-public class PullResult {
+public class PullFromAggregateResult {
   private final FormStatus form;
   private final Optional<Cursor> lastCursor;
 
-  private PullResult(FormStatus form, Optional<Cursor> lastCursor) {
+  private PullFromAggregateResult(FormStatus form, Optional<Cursor> lastCursor) {
     this.form = form;
     this.lastCursor = lastCursor;
   }
 
-  public static PullResult of(FormStatus form, Cursor lastCursor) {
-    return new PullResult(form, Optional.of(lastCursor));
+  public static PullFromAggregateResult of(FormStatus form, Cursor lastCursor) {
+    return new PullFromAggregateResult(form, Optional.of(lastCursor));
   }
 
-  public static PullResult of(FormStatus form) {
-    return new PullResult(form, Optional.empty());
+  public static PullFromAggregateResult of(FormStatus form) {
+    return new PullFromAggregateResult(form, Optional.empty());
   }
 
   public FormStatus getForm() {

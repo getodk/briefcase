@@ -51,26 +51,26 @@ import org.opendatakit.briefcase.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PullForm {
-  public static final Logger log = LoggerFactory.getLogger(PullForm.class);
+public class PullFromAggregate {
+  public static final Logger log = LoggerFactory.getLogger(PullFromAggregate.class);
   private final Http http;
   private final AggregateServer server;
   private final Path briefcaseDir;
   private final boolean includeIncomplete;
 
-  public PullForm(Http http, AggregateServer server, Path briefcaseDir, boolean includeIncomplete) {
+  public PullFromAggregate(Http http, AggregateServer server, Path briefcaseDir, boolean includeIncomplete) {
     this.http = http;
     this.server = server;
     this.briefcaseDir = briefcaseDir;
     this.includeIncomplete = includeIncomplete;
   }
 
-  public static Job<PullResult> pull(Http http, AggregateServer server, Path briefcaseDir, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback, FormStatus form, Optional<Cursor> lastCursor) {
-    return new PullForm(http, server, briefcaseDir, includeIncomplete).pull(form, lastCursor, onEventCallback);
+  public static Job<PullFromAggregateResult> pull(Http http, AggregateServer server, Path briefcaseDir, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback, FormStatus form, Optional<Cursor> lastCursor) {
+    return new PullFromAggregate(http, server, briefcaseDir, includeIncomplete).pull(form, lastCursor, onEventCallback);
   }
 
-  public Job<PullResult> pull(FormStatus form, Optional<Cursor> lastCursor, Consumer<FormStatusEvent> onEventCallback) {
-    PullTracker tracker = new PullTracker(form, onEventCallback);
+  public Job<PullFromAggregateResult> pull(FormStatus form, Optional<Cursor> lastCursor, Consumer<FormStatusEvent> onEventCallback) {
+    PullFromAggregateTracker tracker = new PullFromAggregateTracker(form, onEventCallback);
     return withDb(form.getFormDir(briefcaseDir), db -> allOf(
         supply(runnerStatus -> downloadForm(form, tracker)),
         supply(runnerStatus -> getInstanceIdBatches(form, lastCursor.orElse(Cursor.empty()), tracker, runnerStatus)),
@@ -91,7 +91,7 @@ public class PullForm {
           });
 
       // Return the pull result with the last cursor
-      return PullResult.of(form, getLastCursor(t.get2()));
+      return PullFromAggregateResult.of(form, getLastCursor(t.get2()));
     }));
   }
 
@@ -120,14 +120,14 @@ public class PullForm {
         .collect(toList());
   }
 
-  String downloadForm(FormStatus form, PullTracker tracker) {
+  String downloadForm(FormStatus form, PullFromAggregateTracker tracker) {
     String formXml = http.execute(server.getDownloadFormRequest(form.getFormId())).get();
     writeForm(form, formXml);
     tracker.trackFormDownloaded();
     return formXml;
   }
 
-  private List<InstanceIdBatch> getInstanceIdBatches(FormStatus form, Cursor lastCursor, PullTracker tracker, RunnerStatus runnerStatus) {
+  private List<InstanceIdBatch> getInstanceIdBatches(FormStatus form, Cursor lastCursor, PullFromAggregateTracker tracker, RunnerStatus runnerStatus) {
     List<InstanceIdBatch> batches = new ArrayList<>();
     InstanceIdBatchGetter batchPager = new InstanceIdBatchGetter(server, http, form.getFormId(), includeIncomplete, lastCursor);
     while (runnerStatus.isStillRunning() && batchPager.hasNext())
@@ -136,7 +136,7 @@ public class PullForm {
     return batches;
   }
 
-  void downloadFormAttachments(FormStatus form, PullTracker tracker) {
+  void downloadFormAttachments(FormStatus form, PullFromAggregateTracker tracker) {
     form.getManifestUrl()
         .filter(RequestBuilder::isUri)
         .ifPresent(manifestUrl -> {
@@ -144,14 +144,14 @@ public class PullForm {
           if (!exists(mediaDir))
             createDirectories(mediaDir);
           downloadMediaFiles(
-              http.execute(RequestBuilder.get(manifestUrl).asXmlElement().withResponseMapper(PullForm::parseMediaFiles).build()).get(),
+              http.execute(RequestBuilder.get(manifestUrl).asXmlElement().withResponseMapper(PullFromAggregate::parseMediaFiles).build()).get(),
               mediaDir,
               tracker
           );
         });
   }
 
-  void downloadSubmissionAndMedia(FormStatus form, PullTracker tracker, String instanceId, SubmissionKeyGenerator subKeyGen) {
+  void downloadSubmissionAndMedia(FormStatus form, PullFromAggregateTracker tracker, String instanceId, SubmissionKeyGenerator subKeyGen) {
     DownloadedSubmission submission = downloadSubmission(form, subKeyGen, instanceId);
     writeSubmission(form, submission);
     downloadSubmissionAttachments(form, submission, tracker);
@@ -166,7 +166,7 @@ public class PullForm {
     return http.execute(server.getDownloadSubmissionRequest(submissionKey)).orElseThrow(BriefcaseException::new);
   }
 
-  private void downloadSubmissionAttachments(FormStatus form, DownloadedSubmission submission, PullTracker tracker) {
+  private void downloadSubmissionAttachments(FormStatus form, DownloadedSubmission submission, PullFromAggregateTracker tracker) {
     Path mediaDir = form.getSubmissionDir(briefcaseDir, submission.getInstanceId());
     if (!exists(mediaDir))
       createDirectories(mediaDir);
@@ -174,7 +174,7 @@ public class PullForm {
     downloadMediaFiles(mediaFiles, mediaDir, tracker);
   }
 
-  private void downloadMediaFiles(List<MediaFile> mediaFiles, Path mediaDir, PullTracker tracker) {
+  private void downloadMediaFiles(List<MediaFile> mediaFiles, Path mediaDir, PullFromAggregateTracker tracker) {
     List<MediaFile> mediaFilesToDownload = mediaFiles.stream().filter(mediaFile -> mediaFile.needsUpdate(mediaDir)).collect(Collectors.toList());
     mediaFilesToDownload.forEach(mediaFile -> {
       Path target = mediaFile.getTargetPath(mediaDir);

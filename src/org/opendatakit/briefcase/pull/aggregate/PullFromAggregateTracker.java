@@ -24,14 +24,14 @@ import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PullTracker {
-  private static final Logger log = LoggerFactory.getLogger(PullTracker.class);
+public class PullFromAggregateTracker {
+  private static final Logger log = LoggerFactory.getLogger(PullFromAggregateTracker.class);
   private final FormStatus form;
   private final Consumer<FormStatusEvent> onEventCallback;
   private int totalSubmissions;
   private AtomicInteger submissionCounter = new AtomicInteger(0);
 
-  public PullTracker(FormStatus form, Consumer<FormStatusEvent> onEventCallback) {
+  public PullFromAggregateTracker(FormStatus form, Consumer<FormStatusEvent> onEventCallback) {
     this.form = form;
     this.onEventCallback = onEventCallback;
   }

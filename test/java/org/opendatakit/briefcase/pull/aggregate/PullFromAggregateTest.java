@@ -43,19 +43,19 @@ import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
 
-public class PullFormTest {
+public class PullFromAggregateTest {
   private static final AggregateServer SERVER = AggregateServer.normal(url("http://foo.bar"));
   private static final FormStatus FORM = PullTestHelpers.buildFormStatus(SERVER.getBaseUrl().toString());
   private final Path briefcaseDir = createTempDirectory("briefcase-test-");
   private FakeHttp http = new FakeHttp();
   private List<String> events;
-  private PullTracker tracker;
+  private PullFromAggregateTracker tracker;
 
   @Before
   public void init() {
     http = new FakeHttp();
     events = new ArrayList<>();
-    tracker = new PullTracker(FORM, e -> events.add(e.getStatusString()));
+    tracker = new PullFromAggregateTracker(FORM, e -> events.add(e.getStatusString()));
   }
 
   @After
@@ -71,7 +71,7 @@ public class PullFormTest {
         ok(expectedContent)
     );
 
-    PullForm pf = new PullForm(http, SERVER, briefcaseDir, true);
+    PullFromAggregate pf = new PullFromAggregate(http, SERVER, briefcaseDir, true);
     pf.downloadForm(FORM, tracker);
 
     String sanitizedFormName = stripIllegalChars(FORM.getFormName());
@@ -97,7 +97,7 @@ public class PullFormTest {
     // Stub the individual media attachment requests
     urlsAndNames.forEach(pair -> http.stub(get(pair.getRight()).build(), ok("file 1")));
 
-    PullForm pf = new PullForm(http, SERVER, briefcaseDir, true);
+    PullFromAggregate pf = new PullFromAggregate(http, SERVER, briefcaseDir, true);
     pf.downloadFormAttachments(FORM, tracker);
 
     assertThat(urlsAndNames, hasSize(3));
@@ -123,7 +123,7 @@ public class PullFormTest {
         ok("media file contents")
     );
 
-    PullForm pf = new PullForm(http, SERVER, briefcaseDir, true);
+    PullFromAggregate pf = new PullFromAggregate(http, SERVER, briefcaseDir, true);
     pf.downloadSubmissionAndMedia(FORM, tracker, instanceId, subKeyGen);
 
     Path submissionDir = FORM.getSubmissionDir(briefcaseDir, instanceId);

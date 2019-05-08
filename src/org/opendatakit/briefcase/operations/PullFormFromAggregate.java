@@ -33,7 +33,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
-import org.opendatakit.briefcase.pull.aggregate.PullForm;
+import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
@@ -115,7 +115,7 @@ public class PullFormFromAggregate {
       forms.selectAll();
 
       JobsRunner.launchAsync(
-          forms.map(form -> PullForm.pull(http, aggregateServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent, form, Optionals.race(
+          forms.map(form -> PullFromAggregate.pull(http, aggregateServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent, form, Optionals.race(
               startFromDate.map(Cursor::of),
               forms.getLastCursor(form))
           )),
@@ -131,7 +131,7 @@ public class PullFormFromAggregate {
 
   private static void onEvent(FormStatusEvent event) {
     System.out.println(event.getStatusString());
-    // The PullTracker already logs normal events
+    // The PullFromAggregateTracker already logs normal events
   }
 
   private static void onError(Throwable e) {

@@ -37,8 +37,8 @@ import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.pull.aggregate.PullForm;
-import org.opendatakit.briefcase.pull.aggregate.PullResult;
+import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
+import org.opendatakit.briefcase.pull.aggregate.PullFromAggregateResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
@@ -117,7 +117,7 @@ public class Export {
         .setRemoveGroupNames(removeGroupNames)
         .build();
 
-    Job<PullResult> pullJob = Job.noOpSupplier();
+    Job<PullFromAggregateResult> pullJob = Job.noOpSupplier();
     if (configuration.resolvePullBefore()) {
       BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
       FormStatus formStatus = new FormStatus(formDefinition);
@@ -135,7 +135,7 @@ public class Export {
             ).map(Credentials::from)
         );
 
-        pullJob = PullForm.pull(CommonsHttp.of(8), server, briefcaseDir, false, Export::onEvent, formStatus, Optional.empty());
+        pullJob = PullFromAggregate.pull(CommonsHttp.of(8), server, briefcaseDir, false, Export::onEvent, formStatus, Optional.empty());
       }
     }
     FormDefinition formDef = FormDefinition.from(formDefinition);

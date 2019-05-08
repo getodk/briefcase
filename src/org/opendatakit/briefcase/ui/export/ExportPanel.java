@@ -43,8 +43,8 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.SavePasswordsConsentGiven;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.pull.aggregate.PullEvent;
-import org.opendatakit.briefcase.pull.aggregate.PullForm;
-import org.opendatakit.briefcase.pull.aggregate.PullResult;
+import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
+import org.opendatakit.briefcase.pull.aggregate.PullFromAggregateResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
@@ -194,8 +194,8 @@ public class ExportPanel {
       FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());
       Optional<AggregateServer> server = forms.getTransferSettings(formId).map(AggregateServer::from);
 
-      Job<PullResult> pullJob = configuration.resolvePullBefore() && server.isPresent()
-          ? PullForm.pull(http, server.get(), briefcaseDir, false, EventBus::publish, form, Optional.empty())
+      Job<PullFromAggregateResult> pullJob = configuration.resolvePullBefore() && server.isPresent()
+          ? PullFromAggregate.pull(http, server.get(), briefcaseDir, false, EventBus::publish, form, Optional.empty())
           : Job.noOpSupplier();
 
       Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration, analytics));
