@@ -74,7 +74,7 @@ public class FormDefinition {
    * @throws BriefcaseException if the given {@link Path} doesn't exist
    * @throws ParsingException   if there is any problem while parsing the file
    */
-  static FormDefinition from(Path formFile) {
+  public static FormDefinition from(Path formFile) {
     if (!Files.exists(formFile))
       throw new BriefcaseException("No form file found");
 

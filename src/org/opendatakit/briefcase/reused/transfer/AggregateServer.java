@@ -16,16 +16,22 @@
 
 package org.opendatakit.briefcase.reused.transfer;
 
+import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0_URL;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.getFileExtension;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.newInputStream;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.get;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.head;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -186,7 +192,13 @@ public class AggregateServer implements RemoteServer {
         )).collect(toList())).build();
   }
 
-  Request<String> getPushFormPreflightRequest() {
+  public Request<Boolean> getFormExistsRequest(String formId) {
+    return getFormListRequest().builder()
+        .withResponseMapper(formDefs -> formDefs.stream().anyMatch(formDef -> formDef.getFormId().equals(formId)))
+        .build();
+  }
+
+  public Request<String> getPushFormPreflightRequest() {
     return head(baseUrl)
         .asText()
         .withPath("/upload")
@@ -205,5 +217,78 @@ public class AggregateServer implements RemoteServer {
             Pair.of("includeIncomplete", includeIncomplete ? "true" : "false")
         )
         .build();
+  }
+
+  public Request<InputStream> getPushFormRequest(Path formFile, List<Path> attachments) {
+    RequestBuilder<InputStream> builder = RequestBuilder.post(baseUrl)
+        .withPath("/formUpload")
+        .withMultipartMessage(
+            "form_def_file",
+            "application/xml",
+            formFile.getFileName().toString(),
+            newInputStream(formFile)
+        );
+    for (Path attachment : attachments) {
+      builder = builder.withMultipartMessage(
+          attachment.getFileName().toString(),
+          getContentType(attachment),
+          attachment.getFileName().toString(),
+          newInputStream(attachment)
+      );
+    }
+    return builder
+        .withHeader("X-OpenRosa-Version", "1.0")
+        .withHeader("Date", OffsetDateTime.now().format(RFC_1123_DATE_TIME))
+        .build();
+  }
+
+  public Request<XmlElement> getPushSubmissionRequest(Path submissionFile, List<Path> attachments) {
+    RequestBuilder<XmlElement> builder = RequestBuilder.post(baseUrl)
+        .asXmlElement()
+        .withPath("/submission")
+        .withMultipartMessage(
+            "xml_submission_file",
+            "application/xml",
+            submissionFile.getFileName().toString(),
+            newInputStream(submissionFile)
+        );
+    for (Path attachment : attachments) {
+      builder = builder.withMultipartMessage(
+          attachment.getFileName().toString(),
+          getContentType(attachment),
+          attachment.getFileName().toString(),
+          newInputStream(attachment)
+      );
+    }
+    return builder
+        .withHeader("X-OpenRosa-Version", "1.0")
+        .withHeader("Date", OffsetDateTime.now().format(RFC_1123_DATE_TIME))
+        .build();
+  }
+
+  private String getContentType(Path file) {
+    return getFileExtension(file.getFileName().toString())
+        .map(extension -> {
+          switch (extension) {
+            case "xml":
+              return "text/xml";
+            case "jpg":
+              return "image/jpeg";
+            case "3gpp":
+              return "audio/3gpp";
+            case "3gp":
+              return "video/3gpp";
+            case "mp4":
+              return "video/mp4";
+            case "csv":
+              return "text/csv";
+            case "xls":
+              return "application/vnd.ms-excel";
+            default:
+              return null;
+          }
+        })
+        .orElse("application/octet-stream");
+
   }
 }

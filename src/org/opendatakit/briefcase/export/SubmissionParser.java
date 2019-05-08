@@ -63,7 +63,7 @@ import org.xmlpull.v1.XmlPullParserException;
 /**
  * This class holds the main submission parsing code.
  */
-class SubmissionParser {
+public class SubmissionParser {
   private static final Logger log = LoggerFactory.getLogger(SubmissionParser.class);
   private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 
@@ -74,7 +74,7 @@ class SubmissionParser {
    * Each file gets briefly parsed to obtain their submission date and use it as
    * the sorting criteria and for filtering.
    */
-  static List<Path> getListOfSubmissionFiles(FormDefinition formDef, DateRange dateRange, SubmissionExportErrorCallback onParsingError) {
+  public static List<Path> getListOfSubmissionFiles(FormDefinition formDef, DateRange dateRange, SubmissionExportErrorCallback onParsingError) {
     Path instancesDir = formDef.getFormDir().resolve("instances");
     if (!Files.exists(instancesDir) || !Files.isReadable(instancesDir))
       return Collections.emptyList();
