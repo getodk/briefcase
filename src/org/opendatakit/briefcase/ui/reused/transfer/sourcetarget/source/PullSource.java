@@ -43,11 +43,11 @@ public interface PullSource<T> extends SourceOrTarget<T> {
   }
 
   static PullSource<AggregateServer> aggregate(Http http, Consumer<PullSource> consumer) {
-    return new Aggregate(http, server -> server.testPull(http), "Data Viewer", consumer);
+    return new Aggregate(http, server -> http.execute(server.getFormListRequest()), "Data Viewer", consumer);
   }
 
   static PullSource<CentralServer> central(Http http, Consumer<PullSource> consumer) {
-    return new Central(http, server -> server.testCredentials(http), consumer);
+    return new Central(http, server -> http.execute(server.getCredentialsTestRequest()), consumer);
   }
 
   static PullSource<Path> customDir(Consumer<PullSource> consumer) {

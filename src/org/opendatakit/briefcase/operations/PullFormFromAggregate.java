@@ -22,8 +22,6 @@ import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
 import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -32,6 +30,7 @@ import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -39,6 +38,7 @@ import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
@@ -84,16 +84,10 @@ public class PullFormFromAggregate {
 
     Http http = CommonsHttp.of(8);
 
-    URL baseUrl;
-    try {
-      baseUrl = new URL(server);
-    } catch (MalformedURLException e) {
-      throw new BriefcaseException(e);
-    }
-    AggregateServer aggregateServer = AggregateServer.authenticated(baseUrl, new Credentials(username, password));
+    AggregateServer aggregateServer = AggregateServer.authenticated(RequestBuilder.url(server), new Credentials(username, password));
 
-    Response response = aggregateServer.testPull(http);
-    if (!response.isSuccess())
+    Response<List<RemoteFormDefinition>> response = http.execute(aggregateServer.getFormListRequest());
+    if (!response.isSuccess()) {
       System.err.println(response.isRedirection()
           ? "Error connecting to Aggregate: Redirection detected"
           : response.isUnauthorized()
@@ -101,34 +95,35 @@ public class PullFormFromAggregate {
           : response.isNotFound()
           ? "Error connecting to Aggregate: Aggregate not found"
           : "Error connecting to Aggregate");
-    else {
-      // TODO v2.0 invert this into http.execute(server.getFormsListRequest(...)
-      List<FormStatus> filteredForms = aggregateServer.getFormsList(http).stream()
-          .filter(f -> formId.map(id -> f.getFormId().equals(id)).orElse(true))
-          .map(FormStatus::new)
-          .collect(toList());
-
-      if (formId.isPresent() && filteredForms.isEmpty())
-        throw new FormNotFoundException(formId.get());
-
-      TransferForms forms = TransferForms.empty();
-      forms.load(filteredForms, BriefcasePreferences.forClass(PushPanel.class));
-      forms.selectAll();
-
-      PullFromAggregate pullOp = new PullFromAggregate(http, aggregateServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent);
-      JobsRunner.launchAsync(
-          forms.map(form -> pullOp.pull(form, Optionals.race(
-              startFromDate.map(Cursor::of),
-              forms.getLastCursor(form))
-          )),
-          results -> {
-            results.forEach(result -> forms.setLastPullCursor(result.getForm(), result.getLastCursor()));
-            System.out.println();
-            System.out.println("All forms have been pulled");
-          },
-          PullFormFromAggregate::onError
-      );
+      return;
     }
+
+    List<FormStatus> filteredForms = response.orElseThrow(BriefcaseException::new)
+        .stream()
+        .filter(f -> formId.map(id -> f.getFormId().equals(id)).orElse(true))
+        .map(FormStatus::new)
+        .collect(toList());
+
+    if (formId.isPresent() && filteredForms.isEmpty())
+      throw new FormNotFoundException(formId.get());
+
+    TransferForms forms = TransferForms.empty();
+    forms.load(filteredForms, BriefcasePreferences.forClass(PushPanel.class));
+    forms.selectAll();
+
+    PullFromAggregate pullOp = new PullFromAggregate(http, aggregateServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent);
+    JobsRunner.launchAsync(
+        forms.map(form -> pullOp.pull(form, Optionals.race(
+            startFromDate.map(Cursor::of),
+            forms.getLastCursor(form))
+        )),
+        results -> {
+          results.forEach(result -> forms.setLastPullCursor(result.getForm(), result.getLastCursor()));
+          System.out.println();
+          System.out.println("All forms have been pulled");
+        },
+        PullFormFromAggregate::onError
+    );
   }
 
   private static void onEvent(FormStatusEvent event) {

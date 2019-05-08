@@ -20,8 +20,6 @@ import static java.net.URLEncoder.encode;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.noContent;
-import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.ok;
 
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -30,41 +28,13 @@ import java.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
-import org.opendatakit.briefcase.reused.http.FakeHttp;
 
 public class AggregateServerTest {
-  private FakeHttp http;
   private AggregateServer server;
 
   @Before
   public void setUp() throws MalformedURLException {
-    http = new FakeHttp();
     server = AggregateServer.normal(new URL("https://some.server.com"));
-  }
-
-  @Test
-  public void knows_if_it_contains_a_form() {
-    http.stub(server.getFormListRequest(), ok("" +
-        "<forms>\n" +
-        "<form url=\"https://some.server.com/formXml?formId=some-form\">Some form</form>\n" +
-        "</forms>\n"));
-    assertThat(server.containsForm(http, "some-form"), is(true));
-    assertThat(server.containsForm(http, "some-other-form"), is(false));
-  }
-
-  @Test
-  public void knows_how_to_test_connection_params_for_pulling_forms() {
-    http.stub(server.getFormListRequest(), ok("" +
-        "<forms>\n" +
-        "<form url=\"https://some.server.com/formXml?formId=some-form\">Some form</form>\n" +
-        "</forms>\n"));
-    assertThat(server.testPull(http).isSuccess(), is(true));
-  }
-
-  @Test
-  public void knows_how_to_test_connection_params_for_pushing_forms() {
-    http.stub(server.getPushFormPreflightRequest(), noContent());
-    assertThat(server.testPush(http).isSuccess(), is(true));
   }
 
   @Test

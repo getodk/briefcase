@@ -29,10 +29,8 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Credentials;
-import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.Request;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
-import org.opendatakit.briefcase.reused.http.response.Response;
 
 /**
  * This class represents a remote ODK Central server and provides methods to get
@@ -100,11 +98,14 @@ public class CentralServer implements RemoteServer {
     );
   }
 
-  public Response<Boolean> testCredentials(Http http) {
-    return http.execute(getSessionTokenRequest()
-        .builder()
-        .withResponseMapper(token -> !token.isEmpty())
-        .build());
+  public Request<Boolean> getCredentialsTestRequest() {
+    return RequestBuilder.post(baseUrl)
+        .asJsonMap()
+        .withPath("/v1/sessions")
+        .withHeader("Content-Type", "application/json")
+        .withBody(buildSessionPayload(credentials))
+        .withResponseMapper(json -> !((String) json.get("token")).isEmpty())
+        .build();
   }
 
   public Request<String> getSessionTokenRequest() {

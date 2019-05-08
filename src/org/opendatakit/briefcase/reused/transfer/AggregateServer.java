@@ -34,7 +34,6 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
@@ -45,11 +44,8 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.http.Credentials;
-import org.opendatakit.briefcase.reused.http.Http;
-import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.reused.http.Request;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
-import org.opendatakit.briefcase.reused.http.response.Response;
 
 /**
  * This class represents a remote Aggregate server and it has some methods
@@ -129,29 +125,6 @@ public class AggregateServer implements RemoteServer {
     );
   }
 
-  public Response testPull(Http http) {
-    return http.execute(getFormListRequest());
-  }
-
-  public Response testPush(Http http) {
-    return http.execute(getPushFormPreflightRequest());
-  }
-
-  public boolean containsForm(Http http, String formId) {
-    return http.execute(get(baseUrl)
-        .asText()
-        .withPath("/formList")
-        .withCredentials(credentials)
-        .withResponseMapper(body -> Stream.of(body.split("\n")).anyMatch(line -> line.contains("?formId=" + formId)))
-        .build())
-        .orElse(false);
-  }
-
-  public List<RemoteFormDefinition> getFormsList(Http http) {
-    Response<List<RemoteFormDefinition>> response = http.execute(getFormListRequest());
-    return response.orElseThrow(() -> new HttpException(response));
-  }
-
   public Request<String> getDownloadFormRequest(String formId) {
     return get(baseUrl)
         .asText()
@@ -188,7 +161,7 @@ public class AggregateServer implements RemoteServer {
         .build();
   }
 
-  Request<String> getPushFormPreflightRequest() {
+  public Request<String> getPushFormPreflightRequest() {
     return head(baseUrl)
         .asText()
         .withPath("/upload")
