@@ -18,6 +18,8 @@ package org.opendatakit.briefcase.pull.aggregate;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildBlankFormXml;
+import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildEncryptedBlankFormXml;
 
 import org.junit.Test;
 
@@ -25,7 +27,7 @@ public class SubmissionKeyGeneratorTest {
   @Test
   public void parses_a_blank_form_and_produces_valid_keys() {
     SubmissionKeyGenerator subKeyGen = SubmissionKeyGenerator.from(
-        PullTestHelpers.buildBlankFormXml("some-form", "2010010101", "instance-name")
+        buildBlankFormXml("some-form", "2010010101", "instance-name")
     );
 
     assertThat(
@@ -37,7 +39,7 @@ public class SubmissionKeyGeneratorTest {
   @Test
   public void parses_a_blank_form_and_produces_valid_keys_on_encrypted_forms() {
     SubmissionKeyGenerator subKeyGen = SubmissionKeyGenerator.from(
-        PullTestHelpers.buildEncryptedBlankFormXml("some-form", "2010010101", "instance-name")
+        buildEncryptedBlankFormXml("some-form", "2010010101", "instance-name")
     );
 
     // Encrypted forms generate keys with a fixed "data" instance name

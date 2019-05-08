@@ -52,7 +52,7 @@ public class AggregateServerDialogTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void locks_the_UI_while_testing_the_server() {
-    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> {
+    AggregateServerDialogPageObject page = AggregateServerDialogPageObject.setUp(robot(), server -> {
       uncheckedSleep(150); // Some delay to let junit run the assertions
       return ok("").map(__ -> true);
     });
@@ -69,7 +69,7 @@ public class AggregateServerDialogTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void unlocks_the_UI_after_testing_the_server() {
-    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> ok("").map(__ -> false));
+    AggregateServerDialogPageObject page = AggregateServerDialogPageObject.setUp(robot(), server -> ok("").map(__ -> false));
     page.show();
     page.fillForm("http://it.does.not.matter");
     page.clickOnConnect();
@@ -83,7 +83,7 @@ public class AggregateServerDialogTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void hides_when_the_configuration_is_ok() {
-    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> ok("").map(__ -> true));
+    AggregateServerDialogPageObject page = AggregateServerDialogPageObject.setUp(robot(), server -> ok("").map(__ -> true));
     page.show();
     page.fillForm("http://it.does.not.matter");
     page.clickOnConnect();
@@ -93,7 +93,7 @@ public class AggregateServerDialogTest extends AssertJSwingJUnitTestCase {
   @Test
   public void launches_any_defined_callback_when_the_configuration_is_ok() {
     AtomicBoolean triggered = new AtomicBoolean(false);
-    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> ok("").map(__ -> true));
+    AggregateServerDialogPageObject page = AggregateServerDialogPageObject.setUp(robot(), server -> ok("").map(__ -> true));
     page.component.onConnect(server -> triggered.set(true));
     page.show();
     page.fillForm("http://it.does.not.matter");
@@ -104,7 +104,7 @@ public class AggregateServerDialogTest extends AssertJSwingJUnitTestCase {
   @Test
   public void shows_error_dialog_when_the_server_responds_with_a_302() {
     // HTTP 302 Found means that the server is redirecting the request somewhere else
-    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> found());
+    AggregateServerDialogPageObject page = AggregateServerDialogPageObject.setUp(robot(), server -> found());
     page.show();
     page.fillForm("http://it.does.not.matter");
     page.clickOnConnect();
@@ -116,7 +116,7 @@ public class AggregateServerDialogTest extends AssertJSwingJUnitTestCase {
   @Test
   public void shows_error_dialog_when_the_server_responds_with_a_401() {
     // HTTP 401 Unauthorized means that credentials are required or that the provided credentials are wrong
-    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> unauthorized());
+    AggregateServerDialogPageObject page = AggregateServerDialogPageObject.setUp(robot(), server -> unauthorized());
     page.show();
     page.fillForm("http://it.does.not.matter");
     page.clickOnConnect();
@@ -128,7 +128,7 @@ public class AggregateServerDialogTest extends AssertJSwingJUnitTestCase {
   @Test
   public void shows_error_dialog_when_the_server_responds_with_a_404() {
     // HTTP 404 Not Found means that the user has configured the wrong URL
-    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> notFound());
+    AggregateServerDialogPageObject page = AggregateServerDialogPageObject.setUp(robot(), server -> notFound());
     page.show();
     page.fillForm("http://it.does.not.matter");
     page.clickOnConnect();
@@ -140,7 +140,7 @@ public class AggregateServerDialogTest extends AssertJSwingJUnitTestCase {
   @Test
   public void shows_error_dialog_when_an_http_exception_is_catched() {
     String expectedError = "Unknown host";
-    RemoteServerDialogPageObject page = RemoteServerDialogPageObject.setUp(robot(), server -> {
+    AggregateServerDialogPageObject page = AggregateServerDialogPageObject.setUp(robot(), server -> {
       throw new HttpException(expectedError);
     });
     page.show();

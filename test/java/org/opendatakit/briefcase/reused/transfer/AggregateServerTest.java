@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.reused.transfer;
 
 import static java.net.URLEncoder.encode;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.noContent;
@@ -25,7 +26,6 @@ import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.ok;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -76,7 +76,7 @@ public class AggregateServerTest {
     Cursor cursor = Cursor.of(LocalDate.parse("2010-01-01"));
     assertThat(
         server.getInstanceIdBatchRequest("some-form", 100, cursor, false).getUrl().toString(),
-        is("https://some.server.com/view/submissionList?formId=some-form&cursor=" + encode(cursor.get(), StandardCharsets.UTF_8.toString()) + "&numEntries=100&includeIncomplete=false")
+        is("https://some.server.com/view/submissionList?formId=some-form&cursor=" + encode(cursor.get(), UTF_8.toString()) + "&numEntries=100&includeIncomplete=false")
     );
   }
 }

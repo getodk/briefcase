@@ -31,19 +31,19 @@ import org.assertj.swing.fixture.JOptionPaneFixture;
 import org.assertj.swing.timing.Timeout;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 
-class RemoteServerDialogPageObject {
+class AggregateServerDialogPageObject {
   final AggregateServerDialog component;
   private final DialogFixture fixture;
 
-  private RemoteServerDialogPageObject(AggregateServerDialog component, DialogFixture window) {
+  private AggregateServerDialogPageObject(AggregateServerDialog component, DialogFixture window) {
     this.component = component;
     this.fixture = window;
   }
 
-  static RemoteServerDialogPageObject setUp(Robot robot, AggregateServer.Test serverTester) {
+  static AggregateServerDialogPageObject setUp(Robot robot, AggregateServer.Test serverTester) {
     AggregateServerDialog dialog = execute(() -> AggregateServerDialog.empty(serverTester, "Form Manager"));
     DialogFixture fixture = new DialogFixture(robot, dialog.form);
-    return new RemoteServerDialogPageObject(dialog, fixture);
+    return new AggregateServerDialogPageObject(dialog, fixture);
   }
 
   void show() {
