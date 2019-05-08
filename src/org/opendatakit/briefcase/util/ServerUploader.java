@@ -41,7 +41,7 @@ import org.opendatakit.briefcase.model.TransmissionException;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.InstanceIdBatch;
 import org.opendatakit.briefcase.pull.aggregate.InstanceIdBatchGetter;
-import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.AggregateUtils.DocumentFetchResult;

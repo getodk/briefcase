@@ -40,7 +40,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.Pair;
-import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
 
 public class PullFormTest {

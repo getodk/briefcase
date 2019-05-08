@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.reused;
+package org.opendatakit.briefcase.reused.transfer;
 
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0_URL;
@@ -37,6 +37,9 @@ import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.DownloadedSubmission;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.OptionalProduct;
+import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;

@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JPanel;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source.PullSource;

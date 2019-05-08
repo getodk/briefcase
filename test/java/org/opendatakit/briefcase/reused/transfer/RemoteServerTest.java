@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.reused;
+package org.opendatakit.briefcase.reused.transfer;
 
 import static java.net.URLEncoder.encode;
 import static org.hamcrest.Matchers.is;

@@ -29,7 +29,7 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.DialogFixture;
 import org.assertj.swing.fixture.JOptionPaneFixture;
 import org.assertj.swing.timing.Timeout;
-import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 
 class RemoteServerDialogPageObject {
   final RemoteServerDialog component;

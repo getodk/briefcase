@@ -41,7 +41,7 @@ import java.util.stream.StreamSupport;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
-import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
 
