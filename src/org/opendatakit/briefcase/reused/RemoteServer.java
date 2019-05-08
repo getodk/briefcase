@@ -35,6 +35,7 @@ import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
+import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.DownloadedSubmission;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -190,13 +191,13 @@ public class RemoteServer {
         .build();
   }
 
-  public Request<XmlElement> getInstanceIdBatchRequest(String formId, int entriesPerBatch, String cursor, boolean includeIncomplete) {
+  public Request<XmlElement> getInstanceIdBatchRequest(String formId, int entriesPerBatch, Cursor cursor, boolean includeIncomplete) {
     return get(baseUrl)
         .asXmlElement()
         .withPath("/view/submissionList")
         .withQuery(
             Pair.of("formId", formId),
-            Pair.of("cursor", cursor),
+            Pair.of("cursor", cursor.get()),
             Pair.of("numEntries", String.valueOf(entriesPerBatch)),
             Pair.of("includeIncomplete", includeIncomplete ? "true" : "false")
         )

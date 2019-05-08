@@ -27,8 +27,8 @@ public class InstanceIdBatch {
     this.cursor = cursor;
   }
 
-  public static InstanceIdBatch from(List<String> instanceIds, String cursorXml) {
-    return new InstanceIdBatch(instanceIds, Cursor.from(cursorXml));
+  public static InstanceIdBatch from(List<String> instanceIds, Cursor cursor) {
+    return new InstanceIdBatch(instanceIds, cursor);
   }
 
   Cursor getCursor() {

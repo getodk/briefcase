@@ -135,7 +135,7 @@ public class Export {
             ).map(Credentials::from)
         );
 
-        pullJob = PullForm.pull(CommonsHttp.of(8), server, briefcaseDir, false, Export::onEvent, formStatus);
+        pullJob = PullForm.pull(CommonsHttp.of(8), server, briefcaseDir, false, Export::onEvent, formStatus, Optional.empty());
       }
     }
     FormDefinition formDef = FormDefinition.from(formDefinition);

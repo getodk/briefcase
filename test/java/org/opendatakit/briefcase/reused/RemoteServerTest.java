@@ -16,15 +16,20 @@
 
 package org.opendatakit.briefcase.reused;
 
+import static java.net.URLEncoder.encode;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.noContent;
 import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.ok;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
+import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
 
 public class RemoteServerTest {
@@ -63,14 +68,15 @@ public class RemoteServerTest {
   }
 
   @Test
-  public void knows_how_to_build_instance_id_batch_urls() {
+  public void knows_how_to_build_instance_id_batch_urls() throws UnsupportedEncodingException {
     assertThat(
-        server.getInstanceIdBatchRequest("some-form", 100, "", true).getUrl().toString(),
+        server.getInstanceIdBatchRequest("some-form", 100, Cursor.empty(), true).getUrl().toString(),
         is("https://some.server.com/view/submissionList?formId=some-form&cursor=&numEntries=100&includeIncomplete=true")
     );
+    Cursor cursor = Cursor.of(LocalDate.parse("2010-01-01"));
     assertThat(
-        server.getInstanceIdBatchRequest("some-form", 100, "some-cursor", false).getUrl().toString(),
-        is("https://some.server.com/view/submissionList?formId=some-form&cursor=some-cursor&numEntries=100&includeIncomplete=false")
+        server.getInstanceIdBatchRequest("some-form", 100, cursor, false).getUrl().toString(),
+        is("https://some.server.com/view/submissionList?formId=some-form&cursor=" + encode(cursor.get(), StandardCharsets.UTF_8.toString()) + "&numEntries=100&includeIncomplete=false")
     );
   }
 }

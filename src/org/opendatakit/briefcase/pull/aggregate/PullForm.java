@@ -65,15 +65,15 @@ public class PullForm {
     this.includeIncomplete = includeIncomplete;
   }
 
-  public static Job<PullResult> pull(Http http, RemoteServer server, Path briefcaseDir, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback, FormStatus form) {
-    return new PullForm(http, server, briefcaseDir, includeIncomplete).pull(form, onEventCallback);
+  public static Job<PullResult> pull(Http http, RemoteServer server, Path briefcaseDir, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback, FormStatus form, Optional<Cursor> lastCursor) {
+    return new PullForm(http, server, briefcaseDir, includeIncomplete).pull(form, lastCursor, onEventCallback);
   }
 
-  public Job<PullResult> pull(FormStatus form, Consumer<FormStatusEvent> onEventCallback) {
+  public Job<PullResult> pull(FormStatus form, Optional<Cursor> lastCursor, Consumer<FormStatusEvent> onEventCallback) {
     PullTracker tracker = new PullTracker(form, onEventCallback);
     return withDb(form.getFormDir(briefcaseDir), db -> allOf(
         supply(runnerStatus -> downloadForm(form, tracker)),
-        supply(runnerStatus -> getInstanceIdBatches(form, tracker, runnerStatus)),
+        supply(runnerStatus -> getInstanceIdBatches(form, lastCursor.orElse(Cursor.empty()), tracker, runnerStatus)),
         run(runnerStatus -> downloadFormAttachments(form, tracker))
     ).thenApply((runnerStatus, t) -> {
       // Build the submission key generator with the blank form XML
@@ -95,12 +95,11 @@ public class PullForm {
     }));
   }
 
-  private static String getLastCursor(List<InstanceIdBatch> batches) {
+  private static Cursor getLastCursor(List<InstanceIdBatch> batches) {
     return batches.stream()
         .map(InstanceIdBatch::getCursor)
         .reduce(maxBy(Cursor::compareTo))
-        .orElseThrow(BriefcaseException::new)
-        .get();
+        .orElseThrow(BriefcaseException::new);
   }
 
   private static List<MediaFile> parseMediaFiles(XmlElement root) {
@@ -128,9 +127,9 @@ public class PullForm {
     return formXml;
   }
 
-  private List<InstanceIdBatch> getInstanceIdBatches(FormStatus form, PullTracker tracker, RunnerStatus runnerStatus) {
+  private List<InstanceIdBatch> getInstanceIdBatches(FormStatus form, Cursor lastCursor, PullTracker tracker, RunnerStatus runnerStatus) {
     List<InstanceIdBatch> batches = new ArrayList<>();
-    InstanceIdBatchGetter batchPager = new InstanceIdBatchGetter(server, http, form.getFormId(), includeIncomplete);
+    InstanceIdBatchGetter batchPager = new InstanceIdBatchGetter(server, http, form.getFormId(), includeIncomplete, lastCursor);
     while (runnerStatus.isStillRunning() && batchPager.hasNext())
       batches.add(batchPager.next());
     tracker.trackBatches(batches);

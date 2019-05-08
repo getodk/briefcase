@@ -27,11 +27,15 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullForm;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
@@ -39,6 +43,7 @@ import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
+import org.opendatakit.briefcase.ui.push.PushPanel;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
@@ -97,18 +102,23 @@ public class PullFormFromAggregate {
           ? "Error connecting to Aggregate: Aggregate not found"
           : "Error connecting to Aggregate");
     else {
-      TransferForms forms = TransferForms.from(remoteServer.getFormsList(http).stream()
+      List<FormStatus> filteredForms = remoteServer.getFormsList(http).stream()
           .filter(f -> formId.map(id -> f.getFormId().equals(id)).orElse(true))
           .map(FormStatus::new)
-          .collect(toList()));
+          .collect(toList());
 
-      if (formId.isPresent() && forms.isEmpty())
+      if (formId.isPresent() && filteredForms.isEmpty())
         throw new FormNotFoundException(formId.get());
 
+      TransferForms forms = TransferForms.empty();
+      forms.load(filteredForms, BriefcasePreferences.forClass(PushPanel.class));
       forms.selectAll();
 
       JobsRunner.launchAsync(
-          forms.map(form -> PullForm.pull(http, remoteServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent, form)),
+          forms.map(form -> PullForm.pull(http, remoteServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent, form, Optionals.race(
+              startFromDate.map(Cursor::of),
+              forms.getLastCursor(form))
+          )),
           results -> {
             results.forEach(result -> forms.setLastPullCursor(result.getForm(), result.getLastCursor()));
             System.out.println();

@@ -131,48 +131,4 @@ class PullTestHelpers {
         "</html>" +
         "";
   }
-
-  static String buildCursorXml(OffsetDateTime lastUpdate) {
-    return buildCursorXml(lastUpdate, UUID.randomUUID().toString());
-  }
-
-  static String buildCursorXml(OffsetDateTime lastUpdate, String lastId) {
-    return buildCursorXml(lastUpdate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME), lastId);
-  }
-
-  static String buildCursorXml(String lastUpdate) {
-    return buildCursorXml(lastUpdate, UUID.randomUUID().toString());
-  }
-
-  static String buildCursorXml(String lastUpdate, String lastId) {
-    return "" +
-        "<cursor xmlns=\"http://www.opendatakit.org/cursor\">\n" +
-        "<attributeName>_LAST_UPDATE_DATE</attributeName>\n" +
-        "<attributeValue>" + lastUpdate + "</attributeValue>\n" +
-        "<uriLastReturnedValue>" + lastId + "</uriLastReturnedValue>\n" +
-        "<isForwardCursor>true</isForwardCursor>\n" +
-        "</cursor>" +
-        "";
-  }
-
-  private static String escape(String xml) {
-    return xml
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll("\n", "");
-
-  }
-
-  static String buildIdChunkXml(String cursorXml) {
-    return buildIdChunkXml(Collections.emptyList(), cursorXml);
-  }
-
-  static String buildIdChunkXml(List<String> ids, String cursorXml) {
-    return "" +
-        "<idChunk xmlns=\"http://opendatakit.org/submissions\">" +
-        "<idList>" + ids.stream().map(id -> "<id>" + id + "</id>").collect(joining("")) + "</idList>" +
-        "<resumptionCursor>" + escape(cursorXml) + "</resumptionCursor>" +
-        "</idChunk>" +
-        "";
-  }
 }

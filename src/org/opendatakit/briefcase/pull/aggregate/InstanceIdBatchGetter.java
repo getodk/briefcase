@@ -21,7 +21,6 @@ import static java.util.stream.Collectors.toList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Pair;
@@ -33,32 +32,34 @@ public class InstanceIdBatchGetter implements Iterator<InstanceIdBatch> {
   private final Http http;
   private final String formId;
   private final boolean includeIncomplete;
-  private Optional<String> nextCursor = Optional.empty();
+  private Cursor nextCursor;
   private List<String> nextUids;
 
-  public InstanceIdBatchGetter(RemoteServer server, Http http, String formId, boolean includeIncomplete) {
+  public InstanceIdBatchGetter(RemoteServer server, Http http, String formId, boolean includeIncomplete, Cursor nextCursor) {
     this.server = server;
     this.http = http;
     this.formId = formId;
     this.includeIncomplete = includeIncomplete;
+    this.nextCursor = nextCursor;
     fetchNext();
   }
 
   private void fetchNext() {
-    Pair<String, List<String>> batch = http.execute(server.getInstanceIdBatchRequest(
+    Pair<Cursor, List<String>> batch = http.execute(server.getInstanceIdBatchRequest(
         formId,
         100,
-        nextCursor.orElse(""),
+        nextCursor,
         includeIncomplete
     )).map(this::parseBatch).orElseThrow(BriefcaseException::new);
     nextUids = batch.getRight();
-    nextCursor = Optional.of(batch.getLeft());
+    nextCursor = batch.getLeft();
   }
 
-  private Pair<String, List<String>> parseBatch(XmlElement xmlElement) {
-    String nextCursor = xmlElement.findElement("resumptionCursor")
-        .orElseThrow(BriefcaseException::new)
-        .getValue();
+  private Pair<Cursor, List<String>> parseBatch(XmlElement xmlElement) {
+    Cursor nextCursor = xmlElement.findElement("resumptionCursor")
+        .flatMap(XmlElement::maybeValue)
+        .map(Cursor::from)
+        .orElse(Cursor.empty());
     List<String> uids = xmlElement
         .findElement("idList")
         .map(e -> e.findElements("id"))
@@ -76,7 +77,7 @@ public class InstanceIdBatchGetter implements Iterator<InstanceIdBatch> {
 
   @Override
   public InstanceIdBatch next() {
-    InstanceIdBatch batch = InstanceIdBatch.from(nextUids, nextCursor.orElseThrow(BriefcaseException::new));
+    InstanceIdBatch batch = InstanceIdBatch.from(nextUids, nextCursor);
     fetchNext();
     return batch;
   }

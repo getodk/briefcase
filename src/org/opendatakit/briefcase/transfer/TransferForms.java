@@ -30,6 +30,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.Pair;
 
 /**
@@ -40,10 +41,10 @@ public class TransferForms implements Iterable<FormStatus> {
   public static final String LAST_CURSOR_PREFERENCE_KEY_SUFFIX = "-last-cursor";
   private List<FormStatus> forms;
   private Map<String, FormStatus> formsIndex = new HashMap<>();
-  private Map<String, String> lastPullCursorsByFormId;
+  private Map<String, Cursor> lastPullCursorsByFormId;
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
-  private TransferForms(List<FormStatus> forms, Map<String, String> lastPullCursorsByFormId) {
+  private TransferForms(List<FormStatus> forms, Map<String, Cursor> lastPullCursorsByFormId) {
     this.forms = forms;
     this.lastPullCursorsByFormId = lastPullCursorsByFormId;
     rebuildIndex();
@@ -82,7 +83,7 @@ public class TransferForms implements Iterable<FormStatus> {
         .map(form -> Pair.of(form.getFormId(), preferences.nullSafeGet(form.getFormId() + LAST_CURSOR_PREFERENCE_KEY_SUFFIX)))
         .filter(pair -> pair.getRight().isPresent())
         .map(pair -> pair.map(identity(), Optional::get))
-        .collect(toMap(Pair::getLeft, Pair::getRight));
+        .collect(toMap(Pair::getLeft, p -> Cursor.from(p.getRight())));
     triggerOnChange();
   }
 
@@ -202,16 +203,16 @@ public class TransferForms implements Iterable<FormStatus> {
     return forms.stream().map(mapper);
   }
 
-  public String getLastCursor(FormStatus fs) {
-    return Optional.ofNullable(lastPullCursorsByFormId.get(fs.getFormId())).orElse("");
+  public Optional<Cursor> getLastCursor(FormStatus fs) {
+    return Optional.ofNullable(lastPullCursorsByFormId.get(fs.getFormId()));
   }
 
-  public void setLastPullCursor(FormStatus fs, String cursor) {
+  public void setLastPullCursor(FormStatus fs, Cursor cursor) {
     lastPullCursorsByFormId.put(fs.getFormId(), cursor);
     triggerOnChange();
   }
 
-  public Map<String, String> getLastPullCursorsByFormId() {
+  public Map<String, Cursor> getLastPullCursorsByFormId() {
     return lastPullCursorsByFormId;
   }
 

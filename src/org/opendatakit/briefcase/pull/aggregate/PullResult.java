@@ -22,14 +22,14 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class PullResult {
   private final FormStatus form;
-  private final Optional<String> lastCursor;
+  private final Optional<Cursor> lastCursor;
 
-  private PullResult(FormStatus form, Optional<String> lastCursor) {
+  private PullResult(FormStatus form, Optional<Cursor> lastCursor) {
     this.form = form;
     this.lastCursor = lastCursor;
   }
 
-  public static PullResult of(FormStatus form, String lastCursor) {
+  public static PullResult of(FormStatus form, Cursor lastCursor) {
     return new PullResult(form, Optional.of(lastCursor));
   }
 
@@ -41,7 +41,7 @@ public class PullResult {
     return form;
   }
 
-  public String getLastCursor() {
+  public Cursor getLastCursor() {
     return lastCursor.orElseThrow(BriefcaseException::new);
   }
 }

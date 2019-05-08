@@ -195,7 +195,7 @@ public class ExportPanel {
       Optional<RemoteServer> server = forms.getTransferSettings(formId).map(RemoteServer::from);
 
       Job<PullResult> pullJob = configuration.resolvePullBefore() && server.isPresent()
-          ? PullForm.pull(http, server.get(), briefcaseDir, false, EventBus::publish, form)
+          ? PullForm.pull(http, server.get(), briefcaseDir, false, EventBus::publish, form, Optional.empty())
           : Job.noOpSupplier();
 
       Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration, analytics));

@@ -117,7 +117,7 @@ public class PullPanel {
     // TODO Preserve encapsulation of the suffix constant
     forms.onChange(() -> forms.getLastPullCursorsByFormId().forEach((key, value) -> tabPreferences.put(
         key + TransferForms.LAST_CURSOR_PREFERENCE_KEY_SUFFIX,
-        value
+        value.get()
     )));
   }
 

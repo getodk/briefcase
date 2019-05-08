@@ -27,7 +27,6 @@ import static java.lang.Math.min;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.pull.aggregate.CursorTest.buildCursorXml;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
 import com.github.dreamhead.moco.HttpServer;
@@ -60,7 +59,7 @@ public class InstanceIdBatchGetterTest {
   }
 
   private static List<InstanceIdBatch> getAllBatches(Http http) {
-    InstanceIdBatchGetter batcher = new InstanceIdBatchGetter(InstanceIdBatchGetterTest.REMOTE_SERVER, http, "fomdId", true);
+    InstanceIdBatchGetter batcher = new InstanceIdBatchGetter(InstanceIdBatchGetterTest.REMOTE_SERVER, http, "fomdId", true, Cursor.empty());
     Iterable<InstanceIdBatch> iterable = () -> batcher;
     return StreamSupport.stream(iterable.spliterator(), false).collect(toList());
   }
@@ -86,28 +85,28 @@ public class InstanceIdBatchGetterTest {
 
   private List<String> generatePages(int totalIds, int idsPerPage) {
     OffsetDateTime startingDateTime = OffsetDateTime.parse("2010-01-01T00:00:00.000Z");
-    String lastCursorXml = "";
+    Cursor lastCursor = Cursor.empty();
     List<String> pages = new ArrayList<>();
     for (int page : IntStream.range(0, (totalIds / idsPerPage) + 1).boxed().collect(Collectors.toList())) {
       int from = page * idsPerPage;
       int to = min(totalIds, (page + 1) * idsPerPage);
 
       List<String> ids = IntStream.range(from, to).mapToObj(i -> UUID.randomUUID().toString()).collect(Collectors.toList());
-      String cursorXml = buildCursorXml(startingDateTime.plusDays(to - 1));
+      Cursor cursor = Cursor.of(startingDateTime.plusDays(to - 1), ids.get(ids.size() - 1));
 
       pages.add("" +
           "<idChunk xmlns=\"http://opendatakit.org/submissions\">" +
           "<idList>" + ids.stream().map(id -> "<id>" + id + "</id>").collect(Collectors.joining("")) + "</idList>" +
-          "<resumptionCursor>" + escape(cursorXml) + "</resumptionCursor>" +
+          "<resumptionCursor>" + escape(cursor.get()) + "</resumptionCursor>" +
           "</idChunk>" +
           "");
 
-      lastCursorXml = cursorXml;
+      lastCursor = cursor;
     }
     pages.add("" +
         "<idChunk xmlns=\"http://opendatakit.org/submissions\">" +
         "<idList></idList>" +
-        "<resumptionCursor>" + escape(lastCursorXml) + "</resumptionCursor>" +
+        "<resumptionCursor>" + escape(lastCursor.get()) + "</resumptionCursor>" +
         "</idChunk>" +
         "");
 

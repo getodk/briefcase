@@ -38,6 +38,7 @@ import org.opendatakit.briefcase.model.MetadataUpdateException;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.TransmissionException;
+import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.InstanceIdBatch;
 import org.opendatakit.briefcase.pull.aggregate.InstanceIdBatchGetter;
 import org.opendatakit.briefcase.reused.RemoteServer;
@@ -124,7 +125,7 @@ class ServerUploader {
     RemoteServer server = RemoteServer.from(serverInfo);
 
     List<InstanceIdBatch> batches = new ArrayList<>();
-    InstanceIdBatchGetter batchPager = new InstanceIdBatchGetter(server, http, fs.getFormId(), false);
+    InstanceIdBatchGetter batchPager = new InstanceIdBatchGetter(server, http, fs.getFormId(), false, Cursor.empty());
     while (batchPager.hasNext())
       batches.add(batchPager.next());
 
