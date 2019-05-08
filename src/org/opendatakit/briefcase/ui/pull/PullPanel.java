@@ -21,6 +21,7 @@ import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
+import static org.opendatakit.briefcase.reused.job.Job.supply;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
@@ -37,7 +38,6 @@ import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.aggregate.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer;
@@ -139,14 +139,18 @@ public class PullPanel {
   }
 
   private void onSource(TransferPanelForm view, TransferForms forms, PullSource<?> source) {
-    source.getFormList().thenAccept(formList -> {
-      forms.load(formList, tabPreferences);
-      view.refresh();
-      updateActionButtons();
-    }).onError(cause -> {
-      log.warn("Unable to load form list from {}", source.getDescription(), cause);
-      errorMessage("Error Loading Forms", "Briefcase wasn't able to load forms using the configured source. Try Reload or Reset.");
-    });
+    JobsRunner.launchAsync(
+        supply(__ -> source.getFormList()),
+        formList -> {
+          forms.load(formList, tabPreferences);
+          view.refresh();
+          updateActionButtons();
+        },
+        cause -> {
+          log.warn("Unable to load form list from {}", source.getDescription(), cause);
+          errorMessage("Error Loading Forms", "Briefcase wasn't able to load forms using the configured source. Try Reload or Reset.");
+        }
+    );
   }
 
   private void updateActionButtons() {

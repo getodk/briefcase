@@ -35,7 +35,6 @@ import javax.swing.JLabel;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.reused.DeferredValue;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
@@ -88,10 +87,10 @@ public class CustomDir implements PullSource<Path> {
   }
 
   @Override
-  public DeferredValue<List<FormStatus>> getFormList() {
-    return DeferredValue.of(() -> FileSystemUtils.getODKFormList(path.toFile()).stream()
+  public List<FormStatus> getFormList() {
+    return FileSystemUtils.getODKFormList(path.toFile()).stream()
         .map(FormStatus::new)
-        .collect(toList()));
+        .collect(toList());
   }
 
   @Override

@@ -23,10 +23,9 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.reused.DeferredValue;
-import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.SourceOrTarget;
 import org.slf4j.Logger;
@@ -53,7 +52,7 @@ public interface PullSource<T> extends SourceOrTarget<T> {
     return new FormInComputer(consumer);
   }
 
-  DeferredValue<List<FormStatus>> getFormList();
+  List<FormStatus> getFormList();
 
   void storePreferences(BriefcasePreferences prefs, boolean storePasswords);
 

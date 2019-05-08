@@ -36,7 +36,6 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.pull.FormInstaller;
-import org.opendatakit.briefcase.reused.DeferredValue;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
@@ -88,8 +87,8 @@ public class FormInComputer implements PullSource<FormStatus> {
   }
 
   @Override
-  public DeferredValue<List<FormStatus>> getFormList() {
-    return DeferredValue.of(() -> Collections.singletonList(form));
+  public List<FormStatus> getFormList() {
+    return Collections.singletonList(form);
   }
 
   @Override

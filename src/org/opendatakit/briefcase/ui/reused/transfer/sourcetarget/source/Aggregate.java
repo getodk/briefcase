@@ -39,7 +39,6 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.pull.aggregate.PullEvent;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.DeferredValue;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
@@ -93,10 +92,10 @@ public class Aggregate implements PullSource<AggregateServer> {
   }
 
   @Override
-  public DeferredValue<List<FormStatus>> getFormList() {
-    return DeferredValue.of(() -> server.getFormsList(http).stream()
-        .map(FormStatus::new)
-        .collect(toList()));
+  public List<FormStatus> getFormList() {
+    return http.execute(server.getFormListRequest())
+        .map(formDefs -> formDefs.stream().map(FormStatus::new).collect(toList()))
+        .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"));
   }
 
   @Override
