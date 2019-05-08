@@ -60,7 +60,6 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
 
   private final JFrame frame;
-  private final TerminationFuture transferTerminationFuture = new TerminationFuture();
   private final JTabbedPane tabbedPane;
   private final Map<String, Integer> tabTitleIndexes = new HashMap<>();
 
@@ -111,7 +110,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     tabbedPane = new JTabbedPane(JTabbedPane.TOP);
     frame.setContentPane(tabbedPane);
 
-    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, transferTerminationFuture, analytics).getContainer());
+    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, analytics).getContainer());
 
     PushPanel pushPanel = PushPanel.from(http, appPreferences, formCache, analytics);
     addPane(PushPanel.TAB_NAME, pushPanel.getContainer());
@@ -178,12 +177,6 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private void addPane(String title, Component pane) {
     tabTitleIndexes.put(title, tabbedPane.getTabCount());
     tabbedPane.addTab(title, null, pane, null);
-  }
-
-  @Override
-  public void windowClosing(WindowEvent arg0) {
-    transferTerminationFuture.markAsCancelled(new PullEvent.Cancel("Main window closed"));
-    transferTerminationFuture.markAsCancelled(new PushEvent.Cancel("Main window closed"));
   }
 
   @EventSubscriber(eventClass = StorageLocationEvent.LocationDefined.class)

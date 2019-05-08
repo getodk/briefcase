@@ -35,7 +35,6 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
-import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.aggregate.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -57,16 +56,14 @@ public class PullPanel {
   private final BriefcasePreferences appPreferences;
   private final Analytics analytics;
   private JobsRunner pullJobRunner;
-  private TerminationFuture terminationFuture;
   private Optional<PullSource> source;
 
-  public PullPanel(TransferPanelForm<PullSource> view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
+  public PullPanel(TransferPanelForm<PullSource> view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, Analytics analytics) {
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
     this.tabPreferences = tabPreferences;
     this.appPreferences = appPreferences;
-    this.terminationFuture = terminationFuture;
     this.analytics = analytics;
     getContainer().addComponentListener(analytics.buildComponentListener("Pull"));
 
@@ -122,14 +119,13 @@ public class PullPanel {
     )));
   }
 
-  public static PullPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
+  public static PullPanel from(Http http, BriefcasePreferences appPreferences, Analytics analytics) {
     TransferForms forms = TransferForms.empty();
     return new PullPanel(
         TransferPanelForm.pull(http, forms),
         forms,
         BriefcasePreferences.forClass(PullPanel.class),
         appPreferences,
-        terminationFuture,
         analytics
     );
   }
@@ -192,7 +188,6 @@ public class PullPanel {
 
   @EventSubscriber(eventClass = PullEvent.Failure.class)
   public void onPullFailure(PullEvent.Failure event) {
-    terminationFuture.reset();
     view.unsetWorking();
     updateActionButtons();
     analytics.event("Pull", "Transfer", "Failure", null);
@@ -200,7 +195,6 @@ public class PullPanel {
 
   @EventSubscriber(eventClass = PullEvent.Success.class)
   public void onPullSuccess(PullEvent.Success event) {
-    terminationFuture.reset();
     view.unsetWorking();
     updateActionButtons();
     if (getStorePasswordsConsentProperty()) {
