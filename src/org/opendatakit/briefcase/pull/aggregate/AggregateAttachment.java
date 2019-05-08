@@ -28,19 +28,19 @@ import javax.xml.bind.DatatypeConverter;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 
-public class MediaFile {
+public class AggregateAttachment {
   private final String filename;
   private final String hash;
   private final URL downloadUrl;
 
-  private MediaFile(String filename, String hash, URL downloadUrl) {
+  private AggregateAttachment(String filename, String hash, URL downloadUrl) {
     this.filename = filename;
     this.hash = hash;
     this.downloadUrl = downloadUrl;
   }
 
-  public static MediaFile of(String filename, String hash, String downloadUrl) {
-    return new MediaFile(filename, hash, url(downloadUrl));
+  public static AggregateAttachment of(String filename, String hash, String downloadUrl) {
+    return new AggregateAttachment(filename, hash, url(downloadUrl));
   }
 
   private static String md5(Path file) {
@@ -81,10 +81,10 @@ public class MediaFile {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    MediaFile mediaFile = (MediaFile) o;
-    return Objects.equals(filename, mediaFile.filename) &&
-        Objects.equals(hash, mediaFile.hash) &&
-        Objects.equals(downloadUrl, mediaFile.downloadUrl);
+    AggregateAttachment other = (AggregateAttachment) o;
+    return Objects.equals(filename, other.filename) &&
+        Objects.equals(hash, other.hash) &&
+        Objects.equals(downloadUrl, other.downloadUrl);
   }
 
   @Override
@@ -94,7 +94,7 @@ public class MediaFile {
 
   @Override
   public String toString() {
-    return "MediaFile{" +
+    return "AggregateAttachment{" +
         "filename='" + filename + '\'' +
         ", hash='" + hash + '\'' +
         ", downloadUrl=" + downloadUrl +

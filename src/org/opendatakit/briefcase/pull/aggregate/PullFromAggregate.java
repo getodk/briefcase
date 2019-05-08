@@ -127,7 +127,7 @@ public class PullFromAggregate {
     return formXml;
   }
 
-  List<MediaFile> getFormAttachments(FormStatus form, RunnerStatus runnerStatus, PullFromAggregateTracker tracker) {
+  List<AggregateAttachment> getFormAttachments(FormStatus form, RunnerStatus runnerStatus, PullFromAggregateTracker tracker) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Get form attachments");
       return emptyList();
@@ -137,18 +137,18 @@ public class PullFromAggregate {
       return emptyList();
 
     URL manifestUrl = form.getManifestUrl().map(RequestBuilder::url).get();
-    Request<List<MediaFile>> request = get(manifestUrl)
+    Request<List<AggregateAttachment>> request = get(manifestUrl)
         .asXmlElement()
         .withResponseMapper(PullFromAggregate::parseMediaFiles)
         .build();
-    Response<List<MediaFile>> response = http.execute(request);
+    Response<List<AggregateAttachment>> response = http.execute(request);
     if (!response.isSuccess()) {
       tracker.trackError("Error getting form attachments", response);
-      return Collections.<MediaFile>emptyList();
+      return Collections.emptyList();
     }
 
-    List<MediaFile> attachments = response.get();
-    List<MediaFile> attachmentsToDownload = attachments.stream()
+    List<AggregateAttachment> attachments = response.get();
+    List<AggregateAttachment> attachmentsToDownload = attachments.stream()
         .filter(mediaFile -> mediaFile.needsUpdate(form.getFormMediaDir(briefcaseDir)))
         .collect(toList());
     tracker.trackMediaFiles(attachments.size(), attachmentsToDownload.size());
@@ -164,20 +164,20 @@ public class PullFromAggregate {
     return getInstanceIdBatches(form, runnerStatus, tracker, lastCursor);
   }
 
-  void downloadFormAttachment(FormStatus form, MediaFile mediaFile, RunnerStatus runnerStatus, PullFromAggregateTracker tracker) {
+  void downloadFormAttachment(FormStatus form, AggregateAttachment attachment, RunnerStatus runnerStatus, PullFromAggregateTracker tracker) {
     if (runnerStatus.isCancelled()) {
-      tracker.trackCancellation("Download form attachment " + mediaFile.getFilename());
+      tracker.trackCancellation("Download form attachment " + attachment.getFilename());
       return;
     }
 
-    Path target = form.getFormMediaFile(briefcaseDir, mediaFile.getFilename());
+    Path target = form.getFormMediaFile(briefcaseDir, attachment.getFilename());
     createDirectories(target.getParent());
 
-    Response response = http.execute(get(mediaFile.getDownloadUrl()).downloadTo(target).build());
+    Response response = http.execute(get(attachment.getDownloadUrl()).downloadTo(target).build());
     if (response.isSuccess())
-      tracker.formAttachmentDownloaded(mediaFile);
+      tracker.formAttachmentDownloaded(attachment);
     else
-      tracker.trackError("Error downloading form attachment " + mediaFile.getFilename(), response);
+      tracker.trackError("Error downloading form attachment " + attachment.getFilename(), response);
   }
 
   DownloadedSubmission downloadSubmission(FormStatus form, String instanceId, SubmissionKeyGenerator subKeyGen, RunnerStatus runnerStatus, PullFromAggregateTracker tracker) {
@@ -206,7 +206,7 @@ public class PullFromAggregate {
     return submission;
   }
 
-  void downloadSubmissionAttachment(FormStatus form, DownloadedSubmission submission, MediaFile attachment, RunnerStatus runnerStatus, PullFromAggregateTracker tracker) {
+  void downloadSubmissionAttachment(FormStatus form, DownloadedSubmission submission, AggregateAttachment attachment, RunnerStatus runnerStatus, PullFromAggregateTracker tracker) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Download submission attachment " + attachment.getFilename() + " of " + submission.getInstanceId());
       return;
@@ -222,17 +222,17 @@ public class PullFromAggregate {
       tracker.trackError("Error downloading attachment " + attachment.getFilename() + " of submission " + submission.getInstanceId(), response);
   }
 
-  private static List<MediaFile> parseMediaFiles(XmlElement root) {
+  private static List<AggregateAttachment> parseMediaFiles(XmlElement root) {
     return asMediaFileList(root.findElements("mediaFile"));
   }
 
-  static List<MediaFile> asMediaFileList(List<XmlElement> xmlElements) {
+  static List<AggregateAttachment> asMediaFileList(List<XmlElement> xmlElements) {
     return xmlElements.stream()
         .map(mediaFile -> OptionalProduct.all(
             mediaFile.findElement("filename").flatMap(XmlElement::maybeValue),
             mediaFile.findElement("hash").flatMap(XmlElement::maybeValue),
             mediaFile.findElement("downloadUrl").flatMap(XmlElement::maybeValue)
-        ).map(MediaFile::of))
+        ).map(AggregateAttachment::of))
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(toList());

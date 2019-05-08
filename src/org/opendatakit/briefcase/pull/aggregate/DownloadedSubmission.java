@@ -26,9 +26,9 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 public class DownloadedSubmission {
   private final String xml;
   private final String instanceId;
-  private final List<MediaFile> attachments;
+  private final List<AggregateAttachment> attachments;
 
-  DownloadedSubmission(String xml, String instanceId, List<MediaFile> attachments) {
+  DownloadedSubmission(String xml, String instanceId, List<AggregateAttachment> attachments) {
     this.xml = xml;
     this.instanceId = instanceId;
     this.attachments = attachments;
@@ -51,7 +51,7 @@ public class DownloadedSubmission {
     return xml;
   }
 
-  List<MediaFile> getAttachments() {
+  List<AggregateAttachment> getAttachments() {
     return attachments;
   }
 }

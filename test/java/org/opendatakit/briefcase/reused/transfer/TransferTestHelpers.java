@@ -40,8 +40,8 @@ import org.opendatakit.briefcase.export.SubmissionMetaData;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.pull.aggregate.AggregateAttachment;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
-import org.opendatakit.briefcase.pull.aggregate.MediaFile;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
@@ -74,7 +74,7 @@ public class TransferTestHelpers {
         "";
   }
 
-  public static String buildAggregateSubmissionDownloadXml(String instanceId, List<MediaFile> attachments) {
+  public static String buildAggregateSubmissionDownloadXml(String instanceId, List<AggregateAttachment> attachments) {
     return "" +
         "<submission xmlns=\"http://opendatakit.org/submissions\" xmlns:orx=\"http://openrosa.org/xforms\">\n" +
         "  <data>\n" +
@@ -100,7 +100,7 @@ public class TransferTestHelpers {
         "";
   }
 
-  public static String buildMediaFileXml(MediaFile attachment) {
+  public static String buildMediaFileXml(AggregateAttachment attachment) {
     return "" +
         "  <mediaFile>\n" +
         "    <filename>" + attachment.getFilename() + "</filename>\n" +
@@ -120,13 +120,13 @@ public class TransferTestHelpers {
         "";
   }
 
-  public static List<MediaFile> buildMediaFiles(String baseUrl, int mediaFiles) {
+  public static List<AggregateAttachment> buildMediaFiles(String baseUrl, int mediaFiles) {
     return IntStream.range(0, mediaFiles).boxed()
-        .map(i -> MediaFile.of("some-file-" + i + ".txt", "some-hash", baseUrl + "/file/" + i))
+        .map(i -> AggregateAttachment.of("some-file-" + i + ".txt", "some-hash", baseUrl + "/file/" + i))
         .collect(toList());
   }
 
-  public static String buildManifestXml(List<MediaFile> attachments) {
+  public static String buildManifestXml(List<AggregateAttachment> attachments) {
     return "<manifest>\n" +
         attachments.stream().map(TransferTestHelpers::buildMediaFileXml).collect(joining("\n")) + "\n" +
         "</manifest>";

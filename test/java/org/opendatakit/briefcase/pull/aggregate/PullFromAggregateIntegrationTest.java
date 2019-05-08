@@ -94,7 +94,7 @@ public class PullFromAggregateIntegrationTest {
   @Test
   public void knows_how_to_pull_a_form() throws Exception {
     // Create and stub a couple of attachments that we will reuse on the form and all submissions
-    List<MediaFile> attachments = buildMediaFiles(BASE_URL.toString(), 2);
+    List<AggregateAttachment> attachments = buildMediaFiles(BASE_URL.toString(), 2);
     attachments.forEach(a -> server
         .request(by(uri(a.getDownloadUrl().toString().substring(BASE_URL.toString().length()))))
         .response("some attachment contents"));

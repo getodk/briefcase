@@ -85,9 +85,9 @@ class PullFromAggregateTracker {
     notifyTrackingEvent();
   }
 
-  void formAttachmentDownloaded(MediaFile mediaFile) {
-    form.setStatusString("Downloaded form attachment " + mediaFile.getFilename());
-    log.info("Downloaded form attachment {}", mediaFile.getFilename());
+  void formAttachmentDownloaded(AggregateAttachment attachment) {
+    form.setStatusString("Downloaded form attachment " + attachment.getFilename());
+    log.info("Downloaded form attachment {}", attachment.getFilename());
     notifyTrackingEvent();
   }
 
@@ -98,7 +98,7 @@ class PullFromAggregateTracker {
     notifyTrackingEvent();
   }
 
-  void submissionAttachmentDownloaded(String instanceId, MediaFile attachment) {
+  void submissionAttachmentDownloaded(String instanceId, AggregateAttachment attachment) {
     form.setStatusString("Downloaded attachment " + attachment.getFilename() + " of submission " + instanceId);
     log.info("Downloaded attachment {} of submission {}", attachment.getFilename(), instanceId);
     notifyTrackingEvent();

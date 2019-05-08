@@ -99,15 +99,15 @@ public class PullFromAggregateTest {
 
   @Test
   public void knows_how_to_get_form_attachments() {
-    List<MediaFile> expectedAttachments = buildMediaFiles(server.getBaseUrl().toString(), 3);
+    List<AggregateAttachment> expectedAttachments = buildMediaFiles(server.getBaseUrl().toString(), 3);
 
     // Stub the manifest request
     http.stub(get(server.getBaseUrl()).build(), ok(buildManifestXml(expectedAttachments)));
 
-    List<MediaFile> actualAttachments = pullOp.getFormAttachments(form, runnerStatus, tracker);
+    List<AggregateAttachment> actualAttachments = pullOp.getFormAttachments(form, runnerStatus, tracker);
 
     assertThat(actualAttachments, hasSize(actualAttachments.size()));
-    for (MediaFile attachment : expectedAttachments)
+    for (AggregateAttachment attachment : expectedAttachments)
       assertThat(actualAttachments, hasItem(attachment));
 
     assertThat(events, contains("Downloading 3 form attachments"));
@@ -115,7 +115,7 @@ public class PullFromAggregateTest {
 
   @Test
   public void knows_how_to_download_a_form_attachment() {
-    List<MediaFile> attachments = buildMediaFiles(server.getBaseUrl().toString(), 3);
+    List<AggregateAttachment> attachments = buildMediaFiles(server.getBaseUrl().toString(), 3);
 
     attachments.forEach(attachment -> http.stub(get(attachment.getDownloadUrl()).build(), ok("some body")));
 
@@ -161,7 +161,7 @@ public class PullFromAggregateTest {
   @Test
   public void knows_how_to_download_a_submission_attachment() {
     String instanceId = "some instance id";
-    List<MediaFile> attachments = buildMediaFiles(server.getBaseUrl().toString(), 3);
+    List<AggregateAttachment> attachments = buildMediaFiles(server.getBaseUrl().toString(), 3);
     DownloadedSubmission submission = new DownloadedSubmission("some xml", instanceId, attachments);
 
     attachments.forEach(attachment -> http.stub(get(attachment.getDownloadUrl()).build(), ok("some body")));
