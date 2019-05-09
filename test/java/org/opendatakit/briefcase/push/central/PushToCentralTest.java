@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.push.central;
 
-
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
@@ -172,7 +171,7 @@ public class PushToCentralTest {
     http.stub(server.getPushSubmissionRequest(token, formStatus.getFormId(), submission), ok("{}"));
     http.stub(server.getPushSubmissionAttachmentRequest(token, formStatus.getFormId(), instanceId, submissionAttachment), ok("{}"));
 
-    launchSync(pushOp.push(formStatus), result -> {}, error -> {});
+    launchSync(pushOp.push(formStatus), result -> { }, error -> { });
 
     assertThat(events, allOf(
         hasItem("Form doesn't exist in Central"),
@@ -192,7 +191,7 @@ public class PushToCentralTest {
     http.stub(server.getPushSubmissionRequest(token, formStatus.getFormId(), submission), ok("{\"a\":3}"));
     http.stub(server.getPushSubmissionAttachmentRequest(token, formStatus.getFormId(), instanceId, submissionAttachment), ok("{\"a\":4}"));
 
-    launchSync(pushOp.push(formStatus), result -> {}, error -> {});
+    launchSync(pushOp.push(formStatus), result -> { }, error -> { });
 
     assertThat(events, allOf(
         hasItem("Form already exists in Central"),

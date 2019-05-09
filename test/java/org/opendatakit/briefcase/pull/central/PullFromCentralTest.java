@@ -65,7 +65,7 @@ public class PullFromCentralTest {
     http = new FakeHttp();
     events = new ArrayList<>();
     tracker = new PullFromCentralTracker(form, e -> events.add(e.getStatusString()));
-    pullOp = new PullFromCentral(http, server, briefcaseDir, token, e -> {});
+    pullOp = new PullFromCentral(http, server, briefcaseDir, token, e -> { });
     runnerStatus = new TestRunnerStatus(false);
   }
 

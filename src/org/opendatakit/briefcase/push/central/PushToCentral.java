@@ -56,6 +56,7 @@ public class PushToCentral {
     this.onEventCallback = onEventCallback;
   }
 
+  @SuppressWarnings("checkstyle:Indentation")
   public Job<Void> push(FormStatus form) {
     PushToCentralTracker tracker = new PushToCentralTracker(form, onEventCallback);
 
@@ -77,9 +78,10 @@ public class PushToCentral {
           pushSubmission(formDef.getFormId(), submission.getInstanceId(), submission.getPath(), runnerStatus, tracker);
           list(form.getSubmissionDir(briefcaseDir, submission.getInstanceId()))
               .filter(p -> !p.getFileName().toString().equals("submission.xml"))
-              .collect(toList()).forEach(attachment ->
-              pushSubmissionAttachment(formDef.getFormId(), submission.getInstanceId(), attachment, runnerStatus, tracker)
-          );
+              .collect(toList())
+              .forEach(attachment ->
+                  pushSubmissionAttachment(formDef.getFormId(), submission.getInstanceId(), attachment, runnerStatus, tracker)
+              );
         }));
   }
 

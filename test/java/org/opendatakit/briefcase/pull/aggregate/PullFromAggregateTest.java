@@ -70,7 +70,7 @@ public class PullFromAggregateTest {
     http = new FakeHttp();
     events = new ArrayList<>();
     tracker = new PullFromAggregateTracker(form, e -> events.add(e.getStatusString()));
-    pullOp = new PullFromAggregate(http, server, briefcaseDir, includeIncomplete, e -> {});
+    pullOp = new PullFromAggregate(http, server, briefcaseDir, includeIncomplete, e -> { });
     runnerStatus = new TestRunnerStatus(false);
   }
 

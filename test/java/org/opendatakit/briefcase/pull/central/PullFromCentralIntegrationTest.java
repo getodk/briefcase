@@ -73,7 +73,7 @@ public class PullFromCentralIntegrationTest {
   @Before
   public void setUp() {
     server = httpServer(serverPort);
-    pullOp = new PullFromCentral(CommonsHttp.of(1), centralServer, briefcaseDir, token, e -> {});
+    pullOp = new PullFromCentral(CommonsHttp.of(1), centralServer, briefcaseDir, token, e -> { });
   }
 
   @After

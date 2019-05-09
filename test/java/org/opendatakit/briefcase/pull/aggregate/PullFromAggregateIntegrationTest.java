@@ -81,8 +81,8 @@ public class PullFromAggregateIntegrationTest {
   @Before
   public void setUp() {
     server = httpServer(serverPort);
-    tracker = new PullFromAggregateTracker(form, e -> {});
-    pullOp = new PullFromAggregate(CommonsHttp.of(1), aggregateServer, briefcaseDir, true, e -> {});
+    tracker = new PullFromAggregateTracker(form, e -> { });
+    pullOp = new PullFromAggregate(CommonsHttp.of(1), aggregateServer, briefcaseDir, true, e -> { });
     runnerStatus = new TestRunnerStatus(false);
   }
 

@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.push.aggregate;
 
-
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasItem;

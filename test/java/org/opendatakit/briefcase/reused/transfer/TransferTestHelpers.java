@@ -293,7 +293,7 @@ public class TransferTestHelpers {
   public static JobsRunner launchJob(Job<Void> job) {
     return launchSync(
         job,
-        result -> {},
+        result -> { },
         error -> fail("Got an exception while running a test: " + error.getMessage())
     );
   }

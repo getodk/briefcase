@@ -102,8 +102,8 @@ public class CustomDir implements PullSource<Path> {
   public JobsRunner pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
     return JobsRunner.launchAsync(
         run(jobStatus -> TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), new TerminationFuture(), forms)),
-        __ -> {},
-        __ -> {}
+        __ -> { },
+        __ -> { }
     );
   }
 

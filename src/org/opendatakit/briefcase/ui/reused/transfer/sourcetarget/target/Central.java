@@ -73,7 +73,7 @@ public class Central implements PushTarget<CentralServer> {
     return JobsRunner.launchAsync(
         forms.filter(f -> !f.isEncrypted()).map(pushOp::push),
         __ -> onPushSuccess(forms),
-        error -> {}
+        error -> { }
     );
   }
 

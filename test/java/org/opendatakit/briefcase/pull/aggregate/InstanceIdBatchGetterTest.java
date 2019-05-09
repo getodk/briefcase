@@ -65,8 +65,8 @@ public class InstanceIdBatchGetterTest {
             pages.get(0).getLeft(),
             pages.get(1).getLeft(),
             pages.get(2).getLeft(),
-            pages.get(3).getLeft())
-        );
+            pages.get(3).getLeft()
+        ));
 
     running(server, () -> {
       List<InstanceIdBatch> idBatches = getAllBatches(CommonsHttp.of(1));

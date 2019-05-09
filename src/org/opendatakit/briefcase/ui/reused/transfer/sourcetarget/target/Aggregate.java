@@ -86,7 +86,7 @@ public class Aggregate implements PushTarget<AggregateServer> {
     return JobsRunner.launchAsync(
         forms.map(pushOp::push),
         __ -> onPushSuccess(forms),
-        error -> {}
+        error -> { }
     );
   }
 

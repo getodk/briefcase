@@ -100,8 +100,8 @@ public class FormInComputer implements PullSource<FormStatus> {
   public JobsRunner pull(TransferForms forms, Path briefcaseDir, boolean pullInParallel, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
     return JobsRunner.launchAsync(
         run(jobStatus -> FormInstaller.install(briefcaseDir, form)),
-        __ -> {},
-        __ -> {}
+        __ -> { },
+        __ -> { }
     );
   }
 
