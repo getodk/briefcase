@@ -33,25 +33,35 @@ import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.InputStreamBody;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class CommonsHttp implements Http {
-  private final Executor executor;
+  private Executor executor;
+  private final int maxConnections;
 
-  private CommonsHttp(Executor executor) {
+  private CommonsHttp(Executor executor, int maxConnections) {
     this.executor = executor;
+    this.maxConnections = maxConnections;
+  }
+
+  public static Http of(int maxConnections, HttpHost httpProxy) {
+    return new CommonsHttp(Executor.newInstance(HttpClientBuilder
+        .create()
+        .setMaxConnPerRoute(maxConnections)
+        .setMaxConnTotal(maxConnections)
+        .setProxy(httpProxy)
+        .setDefaultRequestConfig(custom().setCookieSpec(STANDARD).build())
+        .build()), maxConnections);
   }
 
   public static Http of(int maxConnections) {
-    CloseableHttpClient client = HttpClientBuilder
+    return new CommonsHttp(Executor.newInstance(HttpClientBuilder
         .create()
         .setMaxConnPerRoute(maxConnections)
         .setMaxConnTotal(maxConnections)
         .setDefaultRequestConfig(custom().setCookieSpec(STANDARD).build())
-        .build();
-    return new CommonsHttp(Executor.newInstance(client));
+        .build()), maxConnections);
   }
 
   @Override
@@ -68,12 +78,23 @@ public class CommonsHttp implements Http {
 
   @Override
   public void setProxy(HttpHost proxy) {
-
+    executor = Executor.newInstance(HttpClientBuilder
+        .create()
+        .setMaxConnPerRoute(maxConnections)
+        .setMaxConnTotal(maxConnections)
+        .setProxy(proxy)
+        .setDefaultRequestConfig(custom().setCookieSpec(STANDARD).build())
+        .build());
   }
 
   @Override
   public void unsetProxy() {
-
+    executor = Executor.newInstance(HttpClientBuilder
+        .create()
+        .setMaxConnPerRoute(maxConnections)
+        .setMaxConnTotal(maxConnections)
+        .setDefaultRequestConfig(custom().setCookieSpec(STANDARD).build())
+        .build());
   }
 
   private <T> Response<T> uncheckedExecute(Request<T> request, Executor executor) {
