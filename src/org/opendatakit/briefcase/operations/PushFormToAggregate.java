@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.push.aggregate.PushToAggregate;
@@ -66,8 +67,11 @@ public class PushFormToAggregate {
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
+    BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
 
-    Http http = CommonsHttp.of(8);
+    Http http = appPreferences.getHttpProxy()
+        .map(host -> CommonsHttp.of(8, host))
+        .orElseGet(() -> CommonsHttp.of(8));
 
     AggregateServer aggregateServer = AggregateServer.authenticated(RequestBuilder.url(server), new Credentials(username, password));
 
@@ -91,7 +95,7 @@ public class PushFormToAggregate {
     TransferForms forms = TransferForms.of(form);
     forms.selectAll();
 
-    PushToAggregate pushOp = new PushToAggregate(CommonsHttp.of(8), aggregateServer, briefcaseDir, forceSendBlank, PushFormToAggregate::onEvent);
+    PushToAggregate pushOp = new PushToAggregate(http, aggregateServer, briefcaseDir, forceSendBlank, PushFormToAggregate::onEvent);
     JobsRunner.launchAsync(
         forms.map(pushOp::push),
         results -> System.out.println("All forms have been pushed"),

@@ -43,6 +43,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
+import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
@@ -95,6 +96,12 @@ public class Export {
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
+    BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
+
+    Http http = appPreferences.getHttpProxy()
+        .map(host -> CommonsHttp.of(8, host))
+        .orElseGet(() -> CommonsHttp.of(8));
+
     Optional<BriefcaseFormDefinition> maybeFormDefinition = formCache.getForms().stream()
         .filter(form -> form.getFormId().equals(formid))
         .findFirst();
@@ -119,7 +126,6 @@ public class Export {
 
     Job<PullFromAggregateResult> pullJob = Job.noOpSupplier();
     if (configuration.resolvePullBefore()) {
-      BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
       FormStatus formStatus = new FormStatus(formDefinition);
 
       String urlKey = String.format("%s_pull_settings_url", formid);
@@ -135,7 +141,7 @@ public class Export {
             ).map(Credentials::from)
         );
 
-        pullJob = new PullFromAggregate(CommonsHttp.of(8), server, briefcaseDir, false, Export::onEvent)
+        pullJob = new PullFromAggregate(http, server, briefcaseDir, false, Export::onEvent)
             .pull(formStatus, Optional.empty());
       }
     }

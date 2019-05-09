@@ -43,7 +43,7 @@ import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.ui.push.PushPanel;
+import org.opendatakit.briefcase.ui.pull.PullPanel;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
@@ -81,8 +81,12 @@ public class PullFormFromAggregate {
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
+    BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
+    BriefcasePreferences pullPanelPrefs = BriefcasePreferences.forClass(PullPanel.class);
 
-    Http http = CommonsHttp.of(8);
+    Http http = appPreferences.getHttpProxy()
+        .map(host -> CommonsHttp.of(8, host))
+        .orElseGet(() -> CommonsHttp.of(8));
 
     AggregateServer aggregateServer = AggregateServer.authenticated(RequestBuilder.url(server), new Credentials(username, password));
 
@@ -108,7 +112,7 @@ public class PullFormFromAggregate {
       throw new FormNotFoundException(formId.get());
 
     TransferForms forms = TransferForms.empty();
-    forms.load(filteredForms, BriefcasePreferences.forClass(PushPanel.class));
+    forms.load(filteredForms, pullPanelPrefs);
     forms.selectAll();
 
     PullFromAggregate pullOp = new PullFromAggregate(http, aggregateServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent);
