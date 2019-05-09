@@ -24,6 +24,7 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
+import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FormCache;
 
@@ -33,7 +34,7 @@ public class SettingsPanel {
   private final SettingsPanelForm form;
 
   @SuppressWarnings("checkstyle:Indentation")
-  private SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
+  private SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http) {
     this.form = form;
 
     appPreferences.getBriefcaseDir().ifPresent(path -> form.setStorageLocation(path.getParent()));
@@ -65,7 +66,13 @@ public class SettingsPanel {
       appPreferences.setSendUsage(enabled);
       analytics.enableTracking(enabled, false);
     });
-    form.onHttpProxy(appPreferences::setHttpProxy, appPreferences::unsetHttpProxy);
+    form.onHttpProxy(proxy -> {
+      http.setProxy(proxy);
+      appPreferences.setHttpProxy(proxy);
+    }, () -> {
+      http.unsetProxy();
+      appPreferences.unsetHttpProxy();
+    });
     form.onReloadCache(() -> {
       formCache.update();
       infoMessage("Forms successfully reloaded from storage location.");
@@ -73,9 +80,9 @@ public class SettingsPanel {
     form.onCleanAllPullResumePoints(() -> EventBus.publish(new PullEvent.CleanAllResumePoints()));
   }
 
-  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache) {
+  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http) {
     SettingsPanelForm settingsPanelForm = new SettingsPanelForm();
-    return new SettingsPanel(settingsPanelForm, appPreferences, analytics, formCache);
+    return new SettingsPanel(settingsPanelForm, appPreferences, analytics, formCache, http);
   }
 
   public JPanel getContainer() {

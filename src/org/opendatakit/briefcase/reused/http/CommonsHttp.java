@@ -66,6 +66,16 @@ public class CommonsHttp implements Http {
     return uncheckedExecute(request, executor);
   }
 
+  @Override
+  public void setProxy(HttpHost proxy) {
+
+  }
+
+  @Override
+  public void unsetProxy() {
+
+  }
+
   private <T> Response<T> uncheckedExecute(Request<T> request, Executor executor) {
     org.apache.http.client.fluent.Request commonsRequest = getCommonsRequest(request);
     commonsRequest.connectTimeout(10_000);

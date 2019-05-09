@@ -114,7 +114,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     ExportPanel exportPanel = ExportPanel.from(BriefcasePreferences.forClass(ExportPanel.class), appPreferences, analytics, formCache, http);
     addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
 
-    Component settingsPanel = SettingsPanel.from(appPreferences, analytics, formCache).getContainer();
+    Component settingsPanel = SettingsPanel.from(appPreferences, analytics, formCache, http).getContainer();
     addPane(SettingsPanel.TAB_NAME, settingsPanel);
 
     frame.addWindowListener(this);

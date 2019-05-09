@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import org.apache.http.HttpHost;
 import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class FakeHttp implements Http {
@@ -42,6 +43,16 @@ public class FakeHttp implements Http {
         .findFirst()
         .orElseThrow(() -> new RuntimeException("No stub defined for Query " + request.toString()));
     return handler.handle(request);
+  }
+
+  @Override
+  public void setProxy(HttpHost proxy) {
+
+  }
+
+  @Override
+  public void unsetProxy() {
+
   }
 
   public <T> RequestSpy<T> spyOn(Request<T> request) {
