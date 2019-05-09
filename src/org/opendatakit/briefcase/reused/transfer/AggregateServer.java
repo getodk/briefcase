@@ -48,9 +48,10 @@ import org.opendatakit.briefcase.reused.http.Request;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
 
 /**
- * This class represents a remote Aggregate server and it has some methods
- * to query its state.
+ * This class represents a remote ODK Aggregate server and provides methods to get
+ * the different HTTP requests available in Aggregate's web API.
  */
+// TODO v2.0 Test the methods that return Request objects
 public class AggregateServer implements RemoteServer {
   public static List<String> PREFERENCE_KEYS = Arrays.asList(AGGREGATE_1_0_URL, USERNAME, PASSWORD);
   private final URL baseUrl;

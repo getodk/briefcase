@@ -38,6 +38,7 @@ import org.opendatakit.briefcase.reused.StorageLocationEvent;
  */
 public class BriefcasePreferences {
 
+  // TODO v2.0 Move these to AggregateServer
   public static final String USERNAME = "username";
   public static final String PASSWORD = "password";
   public static final String AGGREGATE_1_0_URL = "url_1_0";

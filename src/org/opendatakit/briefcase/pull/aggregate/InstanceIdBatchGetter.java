@@ -27,6 +27,10 @@ import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 
+/**
+ * This class will request batches of submission instanceIDs to Aggregate until
+ * all have been retrieved using the <a href="https://docs.opendatakit.org/briefcase-api/#">Briefcase Aggregate API</a>.
+ */
 public class InstanceIdBatchGetter implements Iterator<InstanceIdBatch> {
   private final AggregateServer server;
   private final Http http;
@@ -35,6 +39,7 @@ public class InstanceIdBatchGetter implements Iterator<InstanceIdBatch> {
   private Cursor nextCursor;
   private List<String> nextUids;
 
+  // TODO v2.0 Remove the public keyword if possible
   public InstanceIdBatchGetter(AggregateServer server, Http http, String formId, boolean includeIncomplete, Cursor nextCursor) {
     this.server = server;
     this.http = http;

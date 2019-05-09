@@ -42,6 +42,7 @@ class PushToCentralTracker {
     onEventCallback.accept(new FormStatusEvent(form));
   }
 
+  // TODO v2.0 Move this factory to the CentralErrorMessage class
   private static CentralErrorMessage parseErrorResponse(String errorResponse) {
     if (errorResponse.isEmpty())
       return CentralErrorMessage.empty();

@@ -56,6 +56,14 @@ public class PushToAggregate {
     this.onEventCallback = onEventCallback;
   }
 
+  /**
+   * Pushes a form completely, sending the form file, form attachments,
+   * submission files and their attachments to the Aggregate server.
+   *
+   * By default, it won't push a form and form attachments if it's already
+   * present in the server, which can be overriden with the {@link #forceSendForm}
+   * field.
+   */
   public Job<Void> push(FormStatus form) {
     PushToAggregateTracker tracker = new PushToAggregateTracker(form, onEventCallback);
     tracker.trackForceSendForm(forceSendForm);

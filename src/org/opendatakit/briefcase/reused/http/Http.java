@@ -20,16 +20,10 @@ import org.apache.http.HttpHost;
 import org.opendatakit.briefcase.reused.http.response.Response;
 
 /**
- * This interface has Briefcase's HTTP API to interact with external services
+ * This interface describes how Briefcase interacts with
+ * remote systems using the HTTP protocol.
  */
 public interface Http {
-  /**
-   * Runs a {@link Request} and returns some output value.
-   *
-   * @param request the {@link Request} to be executed
-   * @param <T>     type of the output {@link Response}
-   * @return an output value of type T
-   */
   <T> Response<T> execute(Request<T> request);
 
   void setProxy(HttpHost proxy);

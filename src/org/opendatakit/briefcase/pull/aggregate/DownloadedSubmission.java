@@ -23,6 +23,9 @@ import org.opendatakit.briefcase.export.SubmissionMetaData;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
+/**
+ * Stores a form submission's contents and a list to its attachments.
+ */
 public class DownloadedSubmission {
   private final String xml;
   private final String instanceId;
@@ -34,6 +37,14 @@ public class DownloadedSubmission {
     this.attachments = attachments;
   }
 
+  /**
+   * Returns a new DownloadedSubmission instance by extracting the primary
+   * instance and a list of attachments from a submission download document,
+   * as described in the <a href="https://docs.opendatakit.org/briefcase-api/#response-document">Briefcase Aggregate API docs</a>.
+   * <p>
+   * The instance is then serialized to produce the XML document that
+   * ultimately will be saved to the local filesystem.
+   */
   public static DownloadedSubmission from(XmlElement submission) {
     XmlElement instance = submission.findElement("data").orElseThrow(BriefcaseException::new).childrenOf().get(0);
     return new DownloadedSubmission(

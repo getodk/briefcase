@@ -44,6 +44,9 @@ import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.CentralServerDialog;
 
+/**
+ * Represents an ODK Central server as a source of forms for the Pull UI Panel.
+ */
 public class Central implements PullSource<CentralServer> {
   private final Http http;
   private final Test<CentralServer> serverTester;

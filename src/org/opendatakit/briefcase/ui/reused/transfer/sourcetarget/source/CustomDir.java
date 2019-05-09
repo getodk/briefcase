@@ -41,6 +41,9 @@ import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.TransferAction;
 
+/**
+ * Represents a filesystem location pointing to Collect's form directory as a source of forms for the Pull UI Panel.
+ */
 public class CustomDir implements PullSource<Path> {
   private final Consumer<PullSource> consumer;
   private Path path;

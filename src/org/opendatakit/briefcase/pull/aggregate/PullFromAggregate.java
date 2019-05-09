@@ -74,36 +74,51 @@ public class PullFromAggregate {
         .orElseThrow(BriefcaseException::new);
   }
 
+  /**
+   * Pulls a form completely, writing the form file, form attachments,
+   * submission files and their attachments to the local filesystem
+   * under the Briefcase Storage directory.
+   * <p>
+   * A {@link Cursor} can be provided to define the starting point to
+   * download the form's submissions.
+   * <p>
+   * Returns a Job that will produce a pull operation result.
+   */
   public Job<PullFromAggregateResult> pull(FormStatus form, Optional<Cursor> lastCursor) {
     PullFromAggregateTracker tracker = new PullFromAggregateTracker(form, onEventCallback);
 
+    // Download the form and attachments, and get the submissions list
     return allOf(
         supply(runnerStatus -> downloadForm(form, runnerStatus, tracker)),
         supply(runnerStatus -> getSubmissions(form, lastCursor.orElse(Cursor.empty()), runnerStatus, tracker)),
-        supply(runnerStatus -> getFormAttachments(form, runnerStatus, tracker))
-            .thenAccept((runnerStatus, attachments) ->
-                attachments.forEach(attachment -> downloadFormAttachment(form, attachment, runnerStatus, tracker))
-            )
-    ).thenApply((runnerStatus, t) -> withDb(form.getFormDir(briefcaseDir), db -> {
-      // Build the submission key generator with the blank form XML
-      SubmissionKeyGenerator subKeyGen = SubmissionKeyGenerator.from(t.get1());
+        supply(runnerStatus -> getFormAttachments(form, runnerStatus, tracker)).thenAccept((runnerStatus, attachments) ->
+            attachments.forEach(attachment -> downloadFormAttachment(form, attachment, runnerStatus, tracker)))
+    )
+        // Then use the downloaded form's XML contents, and the submissions
+        // list to download all submissions and their attachments
+        .thenApply((runnerStatus, t) -> withDb(form.getFormDir(briefcaseDir), db -> {
+          String formXml = t.get1();
+          List<InstanceIdBatch> instanceIdBatches = t.get2();
 
-      // Extract all the instance IDs from all the batches and download each instance
-      t.get2().stream()
-          .flatMap(batch -> batch.getInstanceIds().stream())
-          .filter(instanceId -> db.hasRecordedInstance(instanceId) == null)
-          .map(instanceId -> downloadSubmission(form, instanceId, subKeyGen, runnerStatus, tracker))
-          .filter(Objects::nonNull)
-          .forEach(submission -> {
-            submission.getAttachments().forEach(attachment ->
-                downloadSubmissionAttachment(form, submission, attachment, runnerStatus, tracker)
-            );
-            db.putRecordedInstanceDirectory(submission.getInstanceId(), form.getSubmissionDir(briefcaseDir, submission.getInstanceId()).toFile());
-          });
+          // Build the submission key generator with the form's XML contents
+          SubmissionKeyGenerator subKeyGen = SubmissionKeyGenerator.from(formXml);
 
-      // Return the pull result with the last cursor
-      return PullFromAggregateResult.of(form, getLastCursor(t.get2()));
-    }));
+          // Extract all the instance IDs from all the batches and download each instance
+          instanceIdBatches.stream()
+              .flatMap(batch -> batch.getInstanceIds().stream())
+              .filter(instanceId -> db.hasRecordedInstance(instanceId) == null)
+              .map(instanceId -> downloadSubmission(form, instanceId, subKeyGen, runnerStatus, tracker))
+              .filter(Objects::nonNull)
+              .forEach(submission -> {
+                submission.getAttachments().forEach(attachment ->
+                    downloadSubmissionAttachment(form, submission, attachment, runnerStatus, tracker)
+                );
+                db.putRecordedInstanceDirectory(submission.getInstanceId(), form.getSubmissionDir(briefcaseDir, submission.getInstanceId()).toFile());
+              });
+
+          // Return the pull result with the last cursor
+          return PullFromAggregateResult.of(form, getLastCursor(instanceIdBatches));
+        }));
   }
 
   String downloadForm(FormStatus form, RunnerStatus runnerStatus, PullFromAggregateTracker tracker) {
@@ -197,11 +212,7 @@ public class PullFromAggregate {
 
     Path submissionFile = form.getSubmissionFile(briefcaseDir, submission.getInstanceId());
     createDirectories(submissionFile.getParent());
-    write(
-        submissionFile,
-        submission.getXml(),
-        CREATE, TRUNCATE_EXISTING
-    );
+    write(submissionFile, submission.getXml(), CREATE, TRUNCATE_EXISTING);
     tracker.trackSubmission();
     return submission;
   }

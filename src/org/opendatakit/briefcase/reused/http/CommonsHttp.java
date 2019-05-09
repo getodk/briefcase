@@ -98,11 +98,17 @@ public class CommonsHttp implements Http {
   }
 
   private <T> Response<T> uncheckedExecute(Request<T> request, Executor executor) {
+    // Get an Apache Commons HTTPClient request and set some reasonable timeouts
     org.apache.http.client.fluent.Request commonsRequest = getCommonsRequest(request);
     commonsRequest.connectTimeout(10_000);
     commonsRequest.socketTimeout(10_000);
+
+    // Add the declared headers
+    // TODO v2.0 remove this header, since this is not a concern of this class
     commonsRequest.addHeader("X-OpenRosa-Version", "1.0");
     request.headers.forEach(commonsRequest::addHeader);
+
+    // Set the request's body if it's a POST request
     if (request.getMethod() == POST) {
       HttpEntity body;
       if (request.isMultipart()) {
@@ -110,11 +116,8 @@ public class CommonsHttp implements Http {
         for (MultipartMessage part : request.multipartMessages)
           bodyBuilder = bodyBuilder.addPart(
               part.name,
-              new InputStreamBody(
-                  part.body,
-                  ContentType.create(part.contentType),
-                  part.attachmentName
-              ));
+              new InputStreamBody(part.body, ContentType.create(part.contentType), part.attachmentName)
+          );
         body = bodyBuilder.build();
       } else {
         body = new BasicHttpEntity();
@@ -123,6 +126,7 @@ public class CommonsHttp implements Http {
       commonsRequest.body(body);
     }
     try {
+      // Send the request and handle the response
       return executor
           .execute(commonsRequest)
           .handleResponse(res -> Response.from(request, res));

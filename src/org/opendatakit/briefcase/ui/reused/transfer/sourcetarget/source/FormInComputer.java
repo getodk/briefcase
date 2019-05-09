@@ -41,6 +41,9 @@ import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.BadFormDefinition;
 
+/**
+ * Represents a filesystem location pointing to a form file as a source of forms for the Pull UI Panel.
+ */
 public class FormInComputer implements PullSource<FormStatus> {
   private final Consumer<PullSource> consumer;
   private Path path;

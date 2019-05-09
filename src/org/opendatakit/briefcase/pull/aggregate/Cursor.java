@@ -26,11 +26,30 @@ import java.util.Optional;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.Iso8601Helpers;
 
+/**
+ * This class stores information about a cursor to a list of remote submission
+ * instance IDs, or "resumptionCursor" as described in the <a href="https://docs.opendatakit.org/briefcase-api/#returned-document">Briefcase Aggregate API docs</a>
+ * <p>
+ * The contents of a Cursor are basically a date ({@link #lastUpdate} field) and
+ * a submission instanceID ({@link #lastReturnedValue} field), which are used by
+ * Aggregate to define the lower bound of a page of submission instanceIDs (also
+ * called batch or chunk in the documentation). The upper bound is a defined by
+ * another parameter that's not part of the cursor.
+ * <p>
+ * The date ({@link #lastUpdate} field) in a cursor is related to the last update
+ * date of a submission stored in Aggregate's database, not to be mistaken with
+ * the completion or submission dates, which can be different.
+ * <p>
+ * The submission instanceID of a Cursor ({@link #lastReturnedValue} field) is used
+ * to further filter the contents of a submission instanceID page when the existing
+ * submissions from the provided date don't fit in the same page.
+ */
 public class Cursor implements Comparable<Cursor> {
   /**
    * This date is used only to compare Cursors that might have an empty value in lastUpdate
    */
   private static final OffsetDateTime SOME_OLD_DATE = OffsetDateTime.parse("2010-01-01T00:00:00.000Z");
+  // TODO v2.0 Use a better name, like xml
   private final String value;
   private final Optional<OffsetDateTime> lastUpdate;
   private final Optional<String> lastReturnedValue;
@@ -45,6 +64,9 @@ public class Cursor implements Comparable<Cursor> {
     return new Cursor("", Optional.empty(), Optional.empty());
   }
 
+  /**
+   * Parses the provided cursor xml document and returns a new Cursor instance.
+   */
   public static Cursor from(String cursorXml) {
     XmlElement root = XmlElement.from(cursorXml);
 
@@ -60,6 +82,9 @@ public class Cursor implements Comparable<Cursor> {
     return new Cursor(cursorXml, lastUpdate, lastReturnedValue);
   }
 
+  /**
+   * Returns a synthetic Cursor instance with the provided values.
+   */
   public static Cursor of(OffsetDateTime lastUpdate, String lastReturnedValue) {
     String cursorXml = String.format("<cursor xmlns=\"http://www.opendatakit.org/cursor\">" +
             "<attributeName>_LAST_UPDATE_DATE</attributeName>" +
@@ -73,6 +98,9 @@ public class Cursor implements Comparable<Cursor> {
     return new Cursor(cursorXml, Optional.of(lastUpdate), Optional.of(lastReturnedValue));
   }
 
+  /**
+   * Returns a synthetic Cursor instance with the provided values.
+   */
   public static Cursor of(LocalDate date) {
     OffsetDateTime lastUpdate = date.atStartOfDay().atOffset(ZoneOffset.UTC);
     String cursorXml = String.format("<cursor xmlns=\"http://www.opendatakit.org/cursor\">" +
@@ -86,10 +114,14 @@ public class Cursor implements Comparable<Cursor> {
     return new Cursor(cursorXml, Optional.of(lastUpdate), Optional.empty());
   }
 
+  /**
+   * Returns a synthetic Cursor instance with the provided values.
+   */
   public static Cursor of(LocalDate date, String lastReturnedValue) {
     return of(date.atStartOfDay().atOffset(ZoneOffset.UTC), lastReturnedValue);
   }
 
+  // TODO v2.0 Use a better name, like getXml();
   public String get() {
     return value;
   }

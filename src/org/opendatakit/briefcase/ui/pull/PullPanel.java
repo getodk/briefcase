@@ -112,7 +112,8 @@ public class PullPanel {
       updateActionButtons();
     });
 
-    // TODO Preserve encapsulation of the suffix constant
+    // TODO Preserve encapsulation of the suffix constant. AKA, move this to the Cursor class.
+    // TODO v2.0 study how having Central not implement this affects to this.
     forms.onChange(() -> forms.getLastPullCursorsByFormId().forEach((key, value) -> tabPreferences.put(
         key + TransferForms.LAST_CURSOR_PREFERENCE_KEY_SUFFIX,
         value.get()

@@ -54,6 +54,11 @@ public class PullFromCentral {
     this.onEventCallback = onEventCallback;
   }
 
+  /**
+   * Pulls a form completely, writing the form file, form attachments,
+   * submission files and their attachments to the local filesystem
+   * under the Briefcase Storage directory.
+   */
   public Job<Void> pull(FormStatus form) {
     createDirectories(form.getFormDir(briefcaseDir));
     createDirectories(form.getFormMediaDir(briefcaseDir));

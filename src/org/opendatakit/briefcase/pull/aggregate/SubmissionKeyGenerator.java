@@ -22,6 +22,11 @@ import java.util.Optional;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
+/**
+ * This class generates the keys required by Aggregate to download a
+ * submission, as described in the <a href="https://docs.opendatakit.org/briefcase-api/#">Briefcase Aggregate API docs</a>.
+ */
+// TODO v2.0 Write unit tests
 public class SubmissionKeyGenerator {
   private final String formId;
   private final Optional<String> version;

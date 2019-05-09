@@ -8,6 +8,9 @@ import java.net.URL;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class SwingUtils {
+  /**
+   * Opens a tab in the default desktop web browser with the provided URL
+   */
   public static void uncheckedBrowse(URL url) {
     try {
       getDesktop().browse(url.toURI());

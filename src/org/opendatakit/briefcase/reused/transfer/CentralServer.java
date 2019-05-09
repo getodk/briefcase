@@ -36,6 +36,7 @@ import org.opendatakit.briefcase.reused.http.RequestBuilder;
  * This class represents a remote ODK Central server and provides methods to get
  * the different HTTP requests available in Central's REST API.
  */
+// TODO v2.0 Test the methods that return Request objects
 public class CentralServer implements RemoteServer {
   private static final String PREFS_KEY_CENTRAL_URL = "central_url";
   private static final String PREFS_KEY_CENTRAL_PROJECT_ID = "central_project_id";

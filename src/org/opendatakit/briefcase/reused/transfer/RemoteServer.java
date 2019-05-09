@@ -25,6 +25,8 @@ public interface RemoteServer {
 
   @SuppressWarnings("unchecked")
   static <T extends RemoteServer> Optional<T> readPreferences(BriefcasePreferences prefs) {
+    // Hacky way to get the correct subtype. Basically, try to de-serialize saved prefs
+    // until one of the de-serializers successfully manages to get an instance
     return Optionals.race(
         AggregateServer.readPreferences(prefs).map(o -> (T) o),
         CentralServer.readPreferences(prefs).map(o -> (T) o)

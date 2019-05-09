@@ -26,6 +26,9 @@ import org.apache.http.HttpResponse;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.Request;
 
+/**
+ * Represents an HTTP 2xx response
+ */
 class Success<T> implements Response<T> {
   private final int statusCode;
   private final String statusPhrase;

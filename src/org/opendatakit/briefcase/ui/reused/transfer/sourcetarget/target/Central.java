@@ -40,6 +40,9 @@ import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.CentralServerDialog;
 
+/**
+ * Represents an ODK Central server as a target for sending forms for the Push UI Panel.
+ */
 public class Central implements PushTarget<CentralServer> {
   private final Http http;
   private final Test<CentralServer> serverTester;

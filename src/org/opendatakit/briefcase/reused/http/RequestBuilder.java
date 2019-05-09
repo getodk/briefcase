@@ -56,6 +56,12 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Pair;
 import org.xmlpull.v1.XmlPullParserException;
 
+/**
+ * Builder class used to produce instances of {@link Request}.
+ * <p>
+ * Use the {@link #get(String)}, {@link #get(URL)}, {@link #post(URL)} )},
+ * and {@link #head(URL)} factories to get an instance of this class.
+ */
 public class RequestBuilder<T> {
   private static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
   private static final TypeReference<Map<String, Object>> JSON_MAP_TYPE_REF = new TypeReference<Map<String, Object>>() {};

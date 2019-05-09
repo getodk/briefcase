@@ -38,6 +38,9 @@ import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.SwingUtils;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.AggregateServerDialog;
 
+/**
+ * Represents an ODK Aggregate server as a target for sending forms for the Push UI Panel.
+ */
 public class Aggregate implements PushTarget<AggregateServer> {
   private final Http http;
   private final Consumer<PushTarget> consumer;

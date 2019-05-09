@@ -29,11 +29,11 @@ import java.util.function.Function;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
 /**
- * This Value Object class represents an HTTP request to some {@link URL}, maybe using
- * some {@link Credentials} for authentication.
+ * Stores information to execute an HTTP request and provides an API to
+ * transform and obtain the output of the related HTTP response in a
+ * type-safe way.
  * <p>
- * It also gives type hints about the result calling sites would be able to expect
- * when executed.
+ * Build instances of Request with {@link RequestBuilder} class
  */
 public class Request<T> {
   private final RequestMethod method;
@@ -70,6 +70,7 @@ public class Request<T> {
     return method;
   }
 
+  // TODO v2.0 Move this to RequestBuilder, with uri() and isUri()
   URI asUri() {
     try {
       return url.toURI();
@@ -78,6 +79,9 @@ public class Request<T> {
     }
   }
 
+  /**
+   * Returns a RequestBuilder that would produce this instance when built.
+   */
   public RequestBuilder<T> builder() {
     return new RequestBuilder<>(method, url, responseMapper, credentials, headers, body, multipartMessages);
   }

@@ -28,6 +28,7 @@ import javax.xml.bind.DatatypeConverter;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 
+// TODO v2.0 Move to reused.transfer with CentralAttachment
 public class AggregateAttachment {
   private final String filename;
   private final String hash;
@@ -54,6 +55,15 @@ public class AggregateAttachment {
     }
   }
 
+  /**
+   * Returns true when we would have to download a fresh copy of this attachment. This
+   * can be due to one of the following reasons:
+   * <ul>
+   * <li>There's no local file</li>
+   * <li>The local file has a different hash</li>
+   * <li>The hash is unknown</li>
+   * </ul>
+   */
   boolean needsUpdate(Path mediaDir) {
     Path targetPath = mediaDir.resolve(filename);
     return !hash.startsWith("md5:") || // we didn't get an MD5 hash

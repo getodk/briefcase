@@ -27,6 +27,9 @@ import org.apache.http.HttpResponse;
 import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.reused.http.Request;
 
+/**
+ * Represents an HTTP 4xx response
+ */
 class ClientError<T> implements Response<T> {
   private final int statusCode;
   private final String statusPhrase;

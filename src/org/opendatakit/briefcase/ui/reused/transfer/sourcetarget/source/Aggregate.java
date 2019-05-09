@@ -44,6 +44,9 @@ import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.AggregateServerDialog;
 
+/**
+ * Represents an ODK Aggregate server as a source of forms for the Pull UI Panel.
+ */
 public class Aggregate implements PullSource<AggregateServer> {
   private final Http http;
   private final Consumer<PullSource> consumer;
@@ -98,6 +101,7 @@ public class Aggregate implements PullSource<AggregateServer> {
     return JobsRunner.launchAsync(
         forms.map(form -> pullOp.pull(form, resumeLastPull ? forms.getLastCursor(form) : Optional.empty())),
         results -> {
+          // TODO v2.0 Study how to get this "saving the cursor" part closer to the Cursor-Prefs interactions in the PullPanel
           results.forEach(result -> forms.setLastPullCursor(result.getForm(), result.getLastCursor()));
           EventBus.publish(new PullEvent.Success(forms, server.asServerConnectionInfo()));
         },

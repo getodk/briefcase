@@ -56,6 +56,13 @@ public class PushToCentral {
     this.onEventCallback = onEventCallback;
   }
 
+  /**
+   * Pushes a form completely, sending the form file, form attachments,
+   * submission files and their attachments to the Aggregate server.
+   * <p>
+   * It won't push a form and form attachments if it's already
+   * present in the server.
+   */
   @SuppressWarnings("checkstyle:Indentation")
   public Job<Void> push(FormStatus form) {
     PushToCentralTracker tracker = new PushToCentralTracker(form, onEventCallback);
