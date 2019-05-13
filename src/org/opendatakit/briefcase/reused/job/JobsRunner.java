@@ -20,7 +20,6 @@ import static java.util.concurrent.ForkJoinPool.commonPool;
 import static org.opendatakit.briefcase.reused.job.CompletableFutureHelpers.collectResult;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
@@ -45,20 +44,10 @@ public class JobsRunner {
    * Run the provided stream of jobs asynchronously and return an
    * instance that will let the caller cancel the background process.
    */
-  public static <T> JobsRunner launchAsync(Stream<Job<T>> jobs, Consumer<List<T>> onSuccess, Consumer<Throwable> onError) {
-    // Get a clone of the ForkJoinPool that we can shutdown
+  public static <T> JobsRunner launchAsync(Stream<Job<T>> jobs, Consumer<T> onSuccess, Consumer<Throwable> onError) {
     ForkJoinPool executor = buildCancellableForkJoinPool(onError);
-    // Fork off a thread to act as the main thread of this collection of background jobs
-    CompletableFuture.runAsync(() -> {
-      try {
-        onSuccess.accept(jobs.map(job -> job.launch(executor)).collect(collectResult()).get());
-        executor.shutdown();
-      } catch (InterruptedException | ExecutionException e) {
-        log.warn("Job cancelled", e);
-        onError.accept(e);
-      }
-    }, executor);
-    // Return a JobsRunner to let the calling site cancel this background operation
+    RunnerStatus runnerStatus = new RunnerStatus(executor::isShutdown);
+    jobs.forEach(job -> executor.submit(() -> onSuccess.accept(job.runnerAwareSupplier.apply(runnerStatus))));
     return new JobsRunner(executor);
   }
 
@@ -67,17 +56,7 @@ public class JobsRunner {
    * will let the caller cancel the background process.
    */
   public static <T> JobsRunner launchAsync(Job<T> job, Consumer<T> onSuccess, Consumer<Throwable> onError) {
-    ForkJoinPool executor = buildCancellableForkJoinPool(onError);
-    // Fork off a thread to act as the main thread of this collection of background jobs
-    CompletableFuture.runAsync(() -> {
-      try {
-        onSuccess.accept(job.launch(executor).get());
-      } catch (InterruptedException | ExecutionException e) {
-        log.warn("Job cancelled", e);
-        onError.accept(e);
-      }
-    });
-    return new JobsRunner(executor);
+    return launchAsync(Stream.of(job), onSuccess, onError);
   }
 
   /**

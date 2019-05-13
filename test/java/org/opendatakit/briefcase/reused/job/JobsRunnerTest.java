@@ -52,7 +52,7 @@ public class JobsRunnerTest {
   public void can_launch_jobs_asynchronously_and_cancel_them() {
     runner = JobsRunner.launchAsync(
         IntStream.range(0, 100).mapToObj(n -> Job.supply(returnWhenCancelled(n))),
-        result -> externalOutput = result.stream().mapToInt(i -> i).sum(),
+        result -> externalOutput += result,
         error -> log.error("Error in job", error)
     );
     // Give a chance to the background thread to launch the job and give us the runner

@@ -35,7 +35,7 @@ import org.opendatakit.briefcase.reused.Triple;
  */
 // TODO v2.0 Study if using @FunctionalInterface could produce a cleaner API. The idea is to compose only Job instances, not Jobs with Functions
 public class Job<T> {
-  private final Function<RunnerStatus, T> runnerAwareSupplier;
+  final Function<RunnerStatus, T> runnerAwareSupplier;
 
   private Job(Function<RunnerStatus, T> runnerAwareSupplier) {
     this.runnerAwareSupplier = runnerAwareSupplier;

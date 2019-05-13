@@ -100,9 +100,9 @@ public class Aggregate implements PullSource<AggregateServer> {
     PullFromAggregate pullOp = new PullFromAggregate(http, server, briefcaseDir, includeIncomplete, EventBus::publish);
     return JobsRunner.launchAsync(
         forms.map(form -> pullOp.pull(form, resumeLastPull ? forms.getLastCursor(form) : Optional.empty())),
-        results -> {
+        result -> {
           // TODO v2.0 Study how to get this "saving the cursor" part closer to the Cursor-Prefs interactions in the PullPanel
-          results.forEach(result -> forms.setLastPullCursor(result.getForm(), result.getLastCursor()));
+          forms.setLastPullCursor(result.getForm(), result.getLastCursor());
           EventBus.publish(new PullEvent.Success(forms, server.asServerConnectionInfo()));
         },
         e -> {

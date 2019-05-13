@@ -121,8 +121,8 @@ public class PullFormFromAggregate {
             startFromDate.map(Cursor::of),
             forms.getLastCursor(form))
         )),
-        results -> {
-          results.forEach(result -> forms.setLastPullCursor(result.getForm(), result.getLastCursor()));
+        result -> {
+          forms.setLastPullCursor(result.getForm(), result.getLastCursor());
           System.out.println();
           System.out.println("All forms have been pulled");
         },
