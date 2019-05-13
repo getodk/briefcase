@@ -67,7 +67,7 @@ public class JobsRunner {
    * will let the caller cancel the background process.
    */
   public static <T> JobsRunner launchAsync(Job<T> job, Consumer<T> onSuccess, Consumer<Throwable> onError) {
-    ForkJoinPool executor = commonPool();
+    ForkJoinPool executor = buildCancellableForkJoinPool(onError);
     // Fork off a thread to act as the main thread of this collection of background jobs
     CompletableFuture.runAsync(() -> {
       try {
