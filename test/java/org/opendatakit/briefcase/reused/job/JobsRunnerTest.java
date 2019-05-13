@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import org.junit.After;
@@ -18,12 +19,12 @@ public class JobsRunnerTest {
   // complains about them not being effectively final. Declaring
   // them as fields somehow works around it
   private JobsRunner runner;
-  private int externalOutput;
+  private AtomicInteger externalOutput;
 
   @Before
   public void setUp() {
     runner = null;
-    externalOutput = 0;
+    externalOutput = new AtomicInteger(0);
   }
 
   @After
@@ -37,7 +38,7 @@ public class JobsRunnerTest {
     int expectedOutput = 1;
     runner = JobsRunner.launchAsync(
         Job.supply(returnWhenCancelled(expectedOutput)),
-        result -> externalOutput = result,
+        result -> externalOutput.accumulateAndGet(result, Integer::sum),
         error -> log.error("Error in job", error)
     );
     // Give a chance to the background thread to launch the job and give us the runner
@@ -45,14 +46,14 @@ public class JobsRunnerTest {
     runner.cancel();
     // Give a chance to the success callback to update our test state
     sleep(100);
-    assertThat(externalOutput, is(expectedOutput));
+    assertThat(externalOutput.get(), is(expectedOutput));
   }
 
   @Test
   public void can_launch_jobs_asynchronously_and_cancel_them() {
     runner = JobsRunner.launchAsync(
         IntStream.range(0, 100).mapToObj(n -> Job.supply(returnWhenCancelled(n))),
-        result -> externalOutput += result,
+        result -> externalOutput.accumulateAndGet(result, Integer::sum),
         error -> log.error("Error in job", error)
     );
     // Give a chance to the background thread to launch the job and give us the runner
@@ -60,7 +61,20 @@ public class JobsRunnerTest {
     runner.cancel();
     // Give a chance to the success callback to update our test state
     sleep(100);
-    assertThat(externalOutput, greaterThan(0));
+    assertThat(externalOutput.get(), greaterThan(0));
+  }
+
+  @Test
+  public void launched_async_jobs_will_eventually_end() {
+    runner = JobsRunner.launchAsync(
+        // Ensure that we will launch more Jobs than the thread pool's capacity
+        IntStream.range(0, 1000).mapToObj(n -> Job.supply(__ -> 1)),
+        result -> externalOutput.accumulateAndGet(result, Integer::sum),
+        error -> log.error("Error in job", error)
+    );
+    // Give a chance to the jobs to complete
+    sleep(100);
+    assertThat(externalOutput.get(), is(1000));
   }
 
   private <T> Function<RunnerStatus, T> returnWhenCancelled(T t) {
