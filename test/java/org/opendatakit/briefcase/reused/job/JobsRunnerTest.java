@@ -1,9 +1,11 @@
 package org.opendatakit.briefcase.reused.job;
 
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -75,6 +77,32 @@ public class JobsRunnerTest {
     // Give a chance to the jobs to complete
     sleep(100);
     assertThat(externalOutput.get(), is(1000));
+  }
+
+  @Test
+  public void can_launch_a_job_synchronously() {
+    JobsRunner.launchSync(
+        Job.supply(__ -> 1),
+        result -> externalOutput.accumulateAndGet(result, Integer::sum),
+        error -> log.error("Error in job", error)
+    );
+    assertThat(externalOutput.get(), is(1));
+    // TODO This should be:
+    // assertThat(JobsRunner.launchSync(Job.supply(__ -> 1)), is(1));
+  }
+
+  @Test
+  public void can_launch_jobs_synchronously() {
+    JobsRunner.launchSync(
+        IntStream.range(0, 1000).mapToObj(n -> Job.supply(__ -> 1)),
+        result -> externalOutput.set(result.stream().mapToInt(i->i).sum()),
+        error -> log.error("Error in job", error)
+    );
+    assertThat(externalOutput.get(), is(1000));
+    // TODO This should be:
+    // List<Integer> result = JobsRunner.launchSync(IntStream.range(0, 1000).mapToObj(n -> Job.supply(__ -> 1)));
+    // assertThat(result, hasSize(1000));
+    // assertThat(result.stream().mapToInt(i -> i).sum(), is(1000));
   }
 
   private <T> Function<RunnerStatus, T> returnWhenCancelled(T t) {
