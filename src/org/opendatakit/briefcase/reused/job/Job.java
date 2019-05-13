@@ -16,8 +16,6 @@
 
 package org.opendatakit.briefcase.reused.job;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -147,9 +145,5 @@ public class Job<T> {
       this.runnerAwareSupplier.apply(runnerStatus);
       return runnerAwareSupplier.apply(runnerStatus);
     });
-  }
-
-  CompletableFuture<T> launch(ExecutorService executor) {
-    return CompletableFuture.supplyAsync(() -> runnerAwareSupplier.apply(new RunnerStatus(executor::isShutdown)), executor);
   }
 }

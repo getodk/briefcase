@@ -20,10 +20,8 @@ import static java.nio.file.Files.copy;
 import static java.nio.file.Files.createDirectories;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.fail;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.readAllBytes;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.toURI;
-import static org.opendatakit.briefcase.reused.job.JobsRunner.launchSync;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -43,8 +41,6 @@ import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.pull.aggregate.AggregateAttachment;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.Pair;
-import org.opendatakit.briefcase.reused.job.Job;
-import org.opendatakit.briefcase.reused.job.JobsRunner;
 
 public class TransferTestHelpers {
   public static String buildSubmissionXml(String instanceId) {
