@@ -142,7 +142,7 @@ public class PullFromCentralIntegrationTest {
     });
 
     // Run the pull operation and just check that some key events are published
-    running(server, () -> launchSync(pullOp.pull(form), result -> { }, e -> { }));
+    running(server, () -> launchSync(pullOp.pull(form)));
 
     assertThat(form.getStatusHistory(), containsString("Downloaded form some-form"));
     assertThat(form.getStatusHistory(), containsString("Downloading 2 form attachments"));

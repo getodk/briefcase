@@ -17,22 +17,18 @@
 package org.opendatakit.briefcase.reused.job;
 
 import static java.util.concurrent.ForkJoinPool.commonPool;
-import static org.opendatakit.briefcase.reused.job.CompletableFutureHelpers.collectResult;
+import static java.util.stream.Collectors.toList;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Runs {@link Job} instances in synchronous or asyncjhronous modes.
  */
 public class JobsRunner {
-  private static final Logger log = LoggerFactory.getLogger(JobsRunner.class);
   private static final ForkJoinPool SYSTEM_FORK_JOIN_POOL = commonPool();
   private final ExecutorService executor;
 
@@ -60,38 +56,22 @@ public class JobsRunner {
   }
 
   /**
-   * Run the provided stream of jobs synchronously (blocking the current Thread).
+   * Run the provided stream of jobs synchronously (blocking the current Thread)
+   * and return a list with their outputs.
    */
-  // TODO v2.0 make it return List<T>, since the JobsRunner can't really be used for anything
-  public static <T> JobsRunner launchSync(Stream<Job<T>> jobs, Consumer<List<T>> onSuccess, Consumer<Throwable> onError) {
-    ForkJoinPool executor = commonPool();
-    // Canonical use of the ForkJoinPool and Completable futures
-    try {
-      onSuccess.accept(jobs
-          .map(job -> job.launch(executor)).collect(collectResult())
-          // Wait until the CompletableFutures are completed
-          .get());
-    } catch (InterruptedException | ExecutionException e) {
-      log.error("Error launching sync jobs", e);
-      onError.accept(e);
-    }
-    return new JobsRunner(executor);
+  public static <T> List<T> launchSync(Stream<Job<T>> jobs) {
+    RunnerStatus runnerStatus = new RunnerStatus(() -> false);
+    return jobs.parallel()
+        .map(job -> job.runnerAwareSupplier.apply(runnerStatus))
+        .collect(toList());
   }
 
-  // TODO v2.0 make it return T, since the JobsRunner can't really be used for anything
-  public static <T> JobsRunner launchSync(Job<T> job, Consumer<T> onSuccess, Consumer<Throwable> onError) {
-    ForkJoinPool executor = commonPool();
-    // Canonical use of the ForkJoinPool and Completable futures
-    try {
-      onSuccess.accept(job
-          .launch(executor)
-          // Wait until the CompletableFuture is completed
-          .get());
-    } catch (InterruptedException | ExecutionException e) {
-      log.error("Error launching sync jobs", e);
-      onError.accept(e);
-    }
-    return new JobsRunner(executor);
+  /**
+   * Run the provided job synchronously (blocking the current Thread) and return
+   * its output.
+   */
+  public static <T> T launchSync(Job<T> job) {
+    return launchSync(Stream.of(job)).get(0);
   }
 
   private static ForkJoinPool buildCancellableForkJoinPool(Consumer<Throwable> onError) {

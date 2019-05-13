@@ -29,6 +29,7 @@ import static org.opendatakit.briefcase.reused.http.RequestSpyMatchers.hasBeenCa
 import static org.opendatakit.briefcase.reused.http.RequestSpyMatchers.hasPart;
 import static org.opendatakit.briefcase.reused.http.RequestSpyMatchers.isMultipart;
 import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.ok;
+import static org.opendatakit.briefcase.reused.job.JobsRunner.launchSync;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildFormStatus;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.listOfFormsResponseFromAggregate;
 
@@ -160,7 +161,7 @@ public class PushToAggregateTest {
     http.stub(server.getPushFormRequest(form, singletonList(formAttachment)), ok("<root/>"));
     http.stub(server.getPushSubmissionRequest(submission, singletonList(submissionAttachment)), ok("<root/>"));
 
-    TransferTestHelpers.launchJob(pushOp.push(formStatus));
+    launchSync(pushOp.push(formStatus));
 
     assertThat(events, allOf(
         hasItem("Form doesn't exist in Aggregate"),
@@ -178,7 +179,7 @@ public class PushToAggregateTest {
     http.stub(server.getPushFormRequest(form, singletonList(formAttachment)), ok("<root/>"));
     http.stub(server.getPushSubmissionRequest(submission, singletonList(submissionAttachment)), ok("<root/>"));
 
-    TransferTestHelpers.launchJob(pushOp.push(formStatus));
+    launchSync(pushOp.push(formStatus));
 
     assertThat(events, allOf(
         hasItem("Form already exists in Aggregate"),
@@ -196,7 +197,7 @@ public class PushToAggregateTest {
     http.stub(server.getPushFormRequest(form, singletonList(formAttachment)), ok("<root/>"));
     http.stub(server.getPushSubmissionRequest(submission, singletonList(submissionAttachment)), ok("<root/>"));
 
-    TransferTestHelpers.launchJob(pushOp.push(formStatus));
+    launchSync(pushOp.push(formStatus));
 
     assertThat(events, allOf(
         hasItem("Forcing push of form and attachments"),

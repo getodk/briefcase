@@ -132,7 +132,7 @@ public class PullFromAggregateIntegrationTest {
     ));
 
     // Run the pull operation and just check that some key events are published
-    running(server, () -> launchSync(pullOp.pull(form, Optional.empty()), result -> { }, e -> { }));
+    running(server, () -> launchSync(pullOp.pull(form, Optional.empty())));
 
     assertThat(form.getStatusHistory(), containsString("Downloaded form some-form"));
     assertThat(form.getStatusHistory(), containsString("Downloading 2 form attachments"));
