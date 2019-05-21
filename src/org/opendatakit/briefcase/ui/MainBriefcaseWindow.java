@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.ui;
 
+import static org.opendatakit.briefcase.Launcher.MAX_HTTP_CLIENT_CONNECTIONS;
 import static org.opendatakit.briefcase.ui.BriefcaseCLI.launchLegacyCLI;
 import static org.opendatakit.briefcase.ui.MessageStrings.BRIEFCASE_WELCOME;
 import static org.opendatakit.briefcase.ui.MessageStrings.TRACKING_WARNING;
@@ -100,8 +101,8 @@ public class MainBriefcaseWindow extends WindowAdapter {
     Runtime.getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
     Http http = appPreferences.getHttpProxy()
-        .map(host -> CommonsHttp.of(8, host))
-        .orElseGet(() -> CommonsHttp.of(8));
+        .map(host -> CommonsHttp.of(MAX_HTTP_CLIENT_CONNECTIONS, host))
+        .orElseGet(() -> CommonsHttp.of(MAX_HTTP_CLIENT_CONNECTIONS));
 
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 

@@ -47,6 +47,8 @@ import org.slf4j.LoggerFactory;
  */
 public class Launcher {
   private static final Logger log = LoggerFactory.getLogger(Launcher.class);
+  // TODO Remove this constant and replace with some user setting
+  public static final int MAX_HTTP_CLIENT_CONNECTIONS = 8;
 
   public static void main(String[] args) {
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();

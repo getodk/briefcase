@@ -16,6 +16,7 @@
 package org.opendatakit.briefcase.operations;
 
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.Launcher.MAX_HTTP_CLIENT_CONNECTIONS;
 import static org.opendatakit.briefcase.operations.Common.AGGREGATE_SERVER;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
@@ -85,8 +86,8 @@ public class PullFormFromAggregate {
     BriefcasePreferences pullPanelPrefs = BriefcasePreferences.forClass(PullPanel.class);
 
     Http http = appPreferences.getHttpProxy()
-        .map(host -> CommonsHttp.of(8, host))
-        .orElseGet(() -> CommonsHttp.of(8));
+        .map(host -> CommonsHttp.of(MAX_HTTP_CLIENT_CONNECTIONS, host))
+        .orElseGet(() -> CommonsHttp.of(MAX_HTTP_CLIENT_CONNECTIONS));
 
     AggregateServer aggregateServer = AggregateServer.authenticated(RequestBuilder.url(server), new Credentials(username, password));
 
