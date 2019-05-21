@@ -93,7 +93,13 @@ public class JobsRunnerTest {
 
   private <T> Function<RunnerStatus, T> returnWhenCancelled(T t) {
     return runnerStatus -> {
-      while (runnerStatus.isStillRunning()) { }
+      while (runnerStatus.isStillRunning()) {
+        try {
+          Thread.sleep(10);
+        } catch (InterruptedException e) {
+          // Do nothing
+        }
+      }
       return t;
     };
   }
