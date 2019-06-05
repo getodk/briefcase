@@ -16,11 +16,11 @@
 package org.opendatakit.briefcase.operations;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
-import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePrefix;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
+import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
 import java.nio.file.Path;

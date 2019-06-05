@@ -580,6 +580,8 @@ public class SettingsPanelForm {
   /**
    * @noinspection ALL
    */
-  public JComponent $$$getRootComponent$$$() { return container; }
+  public JComponent $$$getRootComponent$$$() {
+    return container;
+  }
 
 }

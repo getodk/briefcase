@@ -15,12 +15,12 @@
  */
 package org.opendatakit.briefcase.operations;
 
-import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.operations.Common.AGGREGATE_SERVER;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
 import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
+import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
 import java.nio.file.Path;
 import java.util.Arrays;
