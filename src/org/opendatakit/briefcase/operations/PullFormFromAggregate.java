@@ -58,6 +58,7 @@ public class PullFormFromAggregate {
   private static final Param<Void> RESUME_LAST_PULL = Param.flag("sfl", "start_from_last", "Start pull from last submission pulled");
   private static final Param<LocalDate> START_FROM_DATE = Param.arg("sfd", "start_from_date", "Start pull from date", LocalDate::parse);
   private static final Param<Void> INCLUDE_INCOMPLETE = Param.flag("ii", "include_incomplete", "Include incomplete submissions");
+  private static final Param<Integer> MAX_HTTP_CONNECTIONS = Param.arg("mhc", "max_http_connections", "Maximum HTTP simultaneous connections (defaults to 8)", Integer::parseInt);
 
   public static Operation PULL_FORM_FROM_AGGREGATE = Operation.of(
       PULL_AGGREGATE,
@@ -69,13 +70,14 @@ public class PullFormFromAggregate {
           args.get(AGGREGATE_SERVER),
           args.has(RESUME_LAST_PULL),
           args.getOptional(START_FROM_DATE),
-          args.has(INCLUDE_INCOMPLETE)
+          args.has(INCLUDE_INCOMPLETE),
+          args.getOptional(MAX_HTTP_CONNECTIONS).orElse(MAX_HTTP_CLIENT_CONNECTIONS)
       ),
       Arrays.asList(STORAGE_DIR, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER),
-      Arrays.asList(RESUME_LAST_PULL, INCLUDE_INCOMPLETE, FORM_ID, START_FROM_DATE)
+      Arrays.asList(RESUME_LAST_PULL, INCLUDE_INCOMPLETE, FORM_ID, START_FROM_DATE, MAX_HTTP_CONNECTIONS)
   );
 
-  public static void pullFormFromAggregate(String storageDir, Optional<String> formId, String username, String password, String server, boolean resumeLastPull, Optional<LocalDate> startFromDate, boolean includeIncomplete) {
+  public static void pullFormFromAggregate(String storageDir, Optional<String> formId, String username, String password, String server, boolean resumeLastPull, Optional<LocalDate> startFromDate, boolean includeIncomplete, int maxHttpConnections) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -84,8 +86,8 @@ public class PullFormFromAggregate {
     BriefcasePreferences pullPanelPrefs = BriefcasePreferences.forClass(PullPanel.class);
 
     Http http = appPreferences.getHttpProxy()
-        .map(host -> CommonsHttp.of(MAX_HTTP_CLIENT_CONNECTIONS, host))
-        .orElseGet(() -> CommonsHttp.of(MAX_HTTP_CLIENT_CONNECTIONS));
+        .map(host -> CommonsHttp.of(maxHttpConnections, host))
+        .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
 
     AggregateServer aggregateServer = AggregateServer.authenticated(RequestBuilder.url(server), new Credentials(username, password));
 

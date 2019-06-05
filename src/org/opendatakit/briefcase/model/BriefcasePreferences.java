@@ -51,6 +51,7 @@ public class BriefcasePreferences {
   public static final String BRIEFCASE_TRACKING_CONSENT_PROPERTY = "briefcaseTrackingConsent";
   private static final String BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY = "briefcaseStorePasswordsConsent";
   private static final String BRIEFCASE_UNIQUE_USER_ID_PROPERTY = "uniqueUserID";
+  private static final String BRIEFCASE_MAX_HTTP_CONNECTIONS_PROPERTY = "maxHttpConnections";
   public static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
   private static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
 
@@ -207,6 +208,14 @@ public class BriefcasePreferences {
 
   public Optional<Boolean> getPullInParallel() {
     return nullSafeGet(BRIEFCASE_PARALLEL_PULLS_PROPERTY).map(Boolean::parseBoolean);
+  }
+
+  public Optional<Integer> getMaxHttpConnections() {
+    return nullSafeGet(BRIEFCASE_MAX_HTTP_CONNECTIONS_PROPERTY).map(Integer::parseInt);
+  }
+
+  public void setMaxHttpConnections(int value) {
+    put(BRIEFCASE_MAX_HTTP_CONNECTIONS_PROPERTY, String.valueOf(value));
   }
 
   public void setResumeLastPull(Boolean enabled) {
