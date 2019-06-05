@@ -120,7 +120,7 @@ public class PullFormFromAggregate {
     JobsRunner.launchAsync(
         forms.map(form -> pullOp.pull(form, Optionals.race(
             startFromDate.map(Cursor::of),
-            forms.getLastCursor(form))
+            resumeLastPull ? forms.getLastCursor(form) : Optional.empty())
         )),
         result -> {
           forms.setLastPullCursor(result.getForm(), result.getLastCursor());
