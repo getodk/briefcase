@@ -66,15 +66,6 @@
           </hspacer>
         </children>
       </grid>
-      <component id="5aa16" class="javax.swing.JCheckBox" binding="pullInParallelField">
-        <constraints>
-          <grid row="3" column="1" row-span="1" col-span="5" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
-        </constraints>
-        <properties>
-          <text value="Pull submissions in parallel (experimental)"/>
-        </properties>
-      </component>
       <component id="ebec7" class="javax.swing.JCheckBox" binding="rememberPasswordsField">
         <constraints>
           <grid row="7" column="1" row-span="1" col-span="5" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
@@ -192,12 +183,6 @@
       <vspacer id="6a393">
         <constraints>
           <grid row="8" column="1" row-span="1" col-span="5" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
-        </constraints>
-      </vspacer>
-      <vspacer id="2d577">
-        <constraints>
-          <grid row="4" column="1" row-span="1" col-span="5" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
       </vspacer>

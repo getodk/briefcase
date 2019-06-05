@@ -51,7 +51,6 @@ public class SettingsPanelForm {
   private JPanel storageLocationButtons;
   private JButton storageLocationClearButton;
   private JButton storageLocationChooseButton;
-  private JCheckBox pullInParallelField;
   private JCheckBox resumeLastPullField;
   private JCheckBox rememberPasswordsField;
   private JCheckBox sendUsageDataField;
@@ -159,14 +158,6 @@ public class SettingsPanelForm {
     };
   }
 
-  void onPullInParallelChange(Consumer<Boolean> callback) {
-    pullInParallelField.addActionListener(__ -> callback.accept(pullInParallelField.isSelected()));
-  }
-
-  void setPullInParallel(Boolean enabled) {
-    pullInParallelField.setSelected(enabled);
-  }
-
   void onResumeLastPullChange(Consumer<Boolean> callback) {
     resumeLastPullField.addActionListener(__ -> callback.accept(resumeLastPullField.isSelected()));
   }
@@ -260,14 +251,6 @@ public class SettingsPanelForm {
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     storageLocationContainer.add(spacer1, gbc);
-    pullInParallelField = new JCheckBox();
-    pullInParallelField.setText("Pull submissions in parallel (experimental)");
-    gbc = new GridBagConstraints();
-    gbc.gridx = 1;
-    gbc.gridy = 3;
-    gbc.gridwidth = 5;
-    gbc.anchor = GridBagConstraints.WEST;
-    container.add(pullInParallelField, gbc);
     rememberPasswordsField = new JCheckBox();
     rememberPasswordsField.setText("Remember passwords (unencrypted)");
     gbc = new GridBagConstraints();
@@ -385,13 +368,6 @@ public class SettingsPanelForm {
     gbc.gridwidth = 5;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer10, gbc);
-    final JPanel spacer11 = new JPanel();
-    gbc = new GridBagConstraints();
-    gbc.gridx = 1;
-    gbc.gridy = 4;
-    gbc.gridwidth = 5;
-    gbc.fill = GridBagConstraints.VERTICAL;
-    container.add(spacer11, gbc);
     final JPanel panel1 = new JPanel();
     panel1.setLayout(new GridBagLayout());
     gbc = new GridBagConstraints();
@@ -409,32 +385,32 @@ public class SettingsPanelForm {
     gbc.gridy = 8;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel1.add(reloadCacheButton, gbc);
-    final JPanel spacer12 = new JPanel();
+    final JPanel spacer11 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 7;
     gbc.fill = GridBagConstraints.VERTICAL;
-    panel1.add(spacer12, gbc);
-    final JPanel spacer13 = new JPanel();
+    panel1.add(spacer11, gbc);
+    final JPanel spacer12 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 9;
     gbc.fill = GridBagConstraints.VERTICAL;
-    panel1.add(spacer13, gbc);
-    final JPanel spacer14 = new JPanel();
+    panel1.add(spacer12, gbc);
+    final JPanel spacer13 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 3;
     gbc.gridy = 8;
     gbc.weightx = 0.5;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    panel1.add(spacer14, gbc);
-    final JPanel spacer15 = new JPanel();
+    panel1.add(spacer13, gbc);
+    final JPanel spacer14 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 8;
     gbc.weightx = 0.5;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    panel1.add(spacer15, gbc);
+    panel1.add(spacer14, gbc);
     final JLabel label1 = new JLabel();
     label1.setText("The form list in Briefcase can get out of date if files are moved manually.");
     gbc = new GridBagConstraints();
@@ -451,30 +427,30 @@ public class SettingsPanelForm {
     gbc.gridwidth = 3;
     gbc.anchor = GridBagConstraints.WEST;
     panel1.add(label2, gbc);
-    final JPanel spacer16 = new JPanel();
+    final JPanel spacer15 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 5;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    panel1.add(spacer16, gbc);
-    final JPanel spacer17 = new JPanel();
+    panel1.add(spacer15, gbc);
+    final JPanel spacer16 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.VERTICAL;
-    panel1.add(spacer17, gbc);
-    final JPanel spacer18 = new JPanel();
+    panel1.add(spacer16, gbc);
+    final JPanel spacer17 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 4;
     gbc.gridy = 5;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    panel1.add(spacer18, gbc);
-    final JPanel spacer19 = new JPanel();
+    panel1.add(spacer17, gbc);
+    final JPanel spacer18 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 4;
     gbc.fill = GridBagConstraints.VERTICAL;
-    panel1.add(spacer19, gbc);
+    panel1.add(spacer18, gbc);
     cleanAllPullResumePointsButton = new JButton();
     cleanAllPullResumePointsButton.setEnabled(false);
     cleanAllPullResumePointsButton.setText("Clear pull history");
@@ -491,19 +467,19 @@ public class SettingsPanelForm {
     gbc.gridwidth = 3;
     gbc.anchor = GridBagConstraints.WEST;
     panel1.add(label3, gbc);
-    final JPanel spacer20 = new JPanel();
+    final JPanel spacer19 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 2;
     gbc.fill = GridBagConstraints.VERTICAL;
-    panel1.add(spacer20, gbc);
-    final JPanel spacer21 = new JPanel();
+    panel1.add(spacer19, gbc);
+    final JPanel spacer20 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 16;
     gbc.gridwidth = 6;
     gbc.fill = GridBagConstraints.VERTICAL;
-    container.add(spacer21, gbc);
+    container.add(spacer20, gbc);
     resumeLastPullField = new JCheckBox();
     resumeLastPullField.setText("Start pull from last submission pulled");
     gbc = new GridBagConstraints();
@@ -512,20 +488,18 @@ public class SettingsPanelForm {
     gbc.gridwidth = 5;
     gbc.anchor = GridBagConstraints.WEST;
     container.add(resumeLastPullField, gbc);
-    final JPanel spacer22 = new JPanel();
+    final JPanel spacer21 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 6;
     gbc.gridwidth = 5;
     gbc.fill = GridBagConstraints.VERTICAL;
-    container.add(spacer22, gbc);
+    container.add(spacer21, gbc);
   }
 
   /**
    * @noinspection ALL
    */
-  public JComponent $$$getRootComponent$$$() {
-    return container;
-  }
+  public JComponent $$$getRootComponent$$$() { return container; }
 
 }

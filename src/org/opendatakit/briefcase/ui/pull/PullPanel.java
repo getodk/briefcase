@@ -95,7 +95,6 @@ public class PullPanel {
       new Thread(() -> source.ifPresent(s -> pullJobRunner = s.pull(
           forms.getSelectedForms(),
           appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
-          appPreferences.getPullInParallel().orElse(false),
           false,
           appPreferences.getResumeLastPull().orElse(false),
           Optional.empty()

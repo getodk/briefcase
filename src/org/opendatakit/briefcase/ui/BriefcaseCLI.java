@@ -307,7 +307,7 @@ public class BriefcaseCLI {
         throw new BriefcaseException("You need to provide a form ID (legacy CLI)");
 
       if (odkDir == null && server != null)
-        pullFormFromAggregate(storageDir, Optional.ofNullable(formid), username, password, server, false, false, Optional.empty(), false);
+        pullFormFromAggregate(storageDir, Optional.ofNullable(formid), username, password, server, false, Optional.empty(), false);
 
       if (exportPath != null)
         export(
