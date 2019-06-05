@@ -26,7 +26,7 @@ import javax.swing.text.NumberFormatter;
 //https://stackoverflow.com/questions/6449350/make-jspinner-completely-numeric
 class JIntegerSpinner extends JSpinner {
   JIntegerSpinner(int value, int min, int max, int step) {
-    super(new SpinnerNumberModel(8080, 0, 65535, 1));
+    super(new SpinnerNumberModel(value, min, max, step));
     JFormattedTextField txt = ((JSpinner.NumberEditor) this.getEditor()).getTextField();
     NumberFormatter formatter = (NumberFormatter) txt.getFormatter();
     formatter.setFormat(new DecimalFormat("#####"));
