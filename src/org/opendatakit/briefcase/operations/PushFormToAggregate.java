@@ -15,7 +15,7 @@
  */
 package org.opendatakit.briefcase.operations;
 
-import static org.opendatakit.briefcase.Launcher.MAX_HTTP_CLIENT_CONNECTIONS;
+import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.operations.Common.AGGREGATE_SERVER;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
@@ -70,7 +70,7 @@ public class PushFormToAggregate {
     formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
 
-    int maxConnections = appPreferences.getMaxHttpConnections().orElse(MAX_HTTP_CLIENT_CONNECTIONS);
+    int maxConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
         .map(host -> CommonsHttp.of(maxConnections, host))
         .orElseGet(() -> CommonsHttp.of(maxConnections));

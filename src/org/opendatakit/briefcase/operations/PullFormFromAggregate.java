@@ -16,12 +16,12 @@
 package org.opendatakit.briefcase.operations;
 
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.Launcher.MAX_HTTP_CLIENT_CONNECTIONS;
 import static org.opendatakit.briefcase.operations.Common.AGGREGATE_SERVER;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
 import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
+import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -86,9 +86,9 @@ public class PullFormFromAggregate {
     BriefcasePreferences pullPanelPrefs = BriefcasePreferences.forClass(PullPanel.class);
 
     int maxConnections = Optionals.race(
-        maybeMaxConnections.filter(n -> n >= 1 && n <= 32),
+        maybeMaxConnections,
         appPreferences.getMaxHttpConnections()
-    ).orElse(MAX_HTTP_CLIENT_CONNECTIONS);
+    ).orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
         .map(host -> CommonsHttp.of(maxConnections, host))
         .orElseGet(() -> CommonsHttp.of(maxConnections));

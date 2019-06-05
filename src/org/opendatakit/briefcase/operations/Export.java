@@ -16,7 +16,7 @@
 package org.opendatakit.briefcase.operations;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
-import static org.opendatakit.briefcase.Launcher.MAX_HTTP_CLIENT_CONNECTIONS;
+import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePrefix;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
@@ -99,7 +99,7 @@ public class Export {
     formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
 
-    int maxConnections = appPreferences.getMaxHttpConnections().orElse(MAX_HTTP_CLIENT_CONNECTIONS);
+    int maxConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
         .map(host -> CommonsHttp.of(maxConnections, host))
         .orElseGet(() -> CommonsHttp.of(maxConnections));

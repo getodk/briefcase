@@ -16,6 +16,10 @@
 
 package org.opendatakit.briefcase.ui.settings;
 
+import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
+import static org.opendatakit.briefcase.reused.http.Http.MAX_HTTP_CONNECTIONS;
+import static org.opendatakit.briefcase.reused.http.Http.MIN_HTTP_CONNECTIONS;
+
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -71,7 +75,7 @@ public class SettingsPanelForm {
 
   SettingsPanelForm() {
     httpProxyPortField = new JIntegerSpinner(8080, 0, 65535, 1);
-    maxHttpConnectionsField = new JIntegerSpinner(8, 1, 32, 1);
+    maxHttpConnectionsField = new JIntegerSpinner(DEFAULT_HTTP_CONNECTIONS, MIN_HTTP_CONNECTIONS, MAX_HTTP_CONNECTIONS, 1);
     $$$setupUI$$$();
 
     storageLocationChooseButton.addActionListener(__ -> FileChooser.directory(container, Optional.empty())

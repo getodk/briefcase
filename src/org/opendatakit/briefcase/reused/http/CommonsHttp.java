@@ -34,6 +34,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class CommonsHttp implements Http {
@@ -46,6 +47,8 @@ public class CommonsHttp implements Http {
   }
 
   public static Http of(int maxConnections, HttpHost httpProxy) {
+    if (!Http.isValidHttpConnections(maxConnections))
+      throw new BriefcaseException("Invalid maximum simultaneous HTTP connections " + maxConnections + ". Try a value between " + MIN_HTTP_CONNECTIONS + " and " + MAX_HTTP_CONNECTIONS);
     return new CommonsHttp(Executor.newInstance(HttpClientBuilder
         .create()
         .setMaxConnPerRoute(maxConnections)
@@ -56,6 +59,8 @@ public class CommonsHttp implements Http {
   }
 
   public static Http of(int maxConnections) {
+    if (!Http.isValidHttpConnections(maxConnections))
+      throw new BriefcaseException("Invalid maximum simultaneous HTTP connections " + maxConnections + ". Try a value between " + MIN_HTTP_CONNECTIONS + " and " + MAX_HTTP_CONNECTIONS);
     return new CommonsHttp(Executor.newInstance(HttpClientBuilder
         .create()
         .setMaxConnPerRoute(maxConnections)
