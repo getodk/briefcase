@@ -86,7 +86,7 @@ public class PullFormFromAggregate {
     BriefcasePreferences pullPanelPrefs = BriefcasePreferences.forClass(PullPanel.class);
 
     int maxConnections = Optionals.race(
-        maybeMaxConnections,
+        maybeMaxConnections.filter(n -> n >= 1 && n <= 32),
         appPreferences.getMaxHttpConnections()
     ).orElse(MAX_HTTP_CLIENT_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
