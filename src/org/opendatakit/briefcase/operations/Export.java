@@ -99,9 +99,10 @@ public class Export {
     formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
 
+    int maxConnections = appPreferences.getMaxHttpConnections().orElse(MAX_HTTP_CLIENT_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
-        .map(host -> CommonsHttp.of(MAX_HTTP_CLIENT_CONNECTIONS, host))
-        .orElseGet(() -> CommonsHttp.of(MAX_HTTP_CLIENT_CONNECTIONS));
+        .map(host -> CommonsHttp.of(maxConnections, host))
+        .orElseGet(() -> CommonsHttp.of(maxConnections));
 
     Optional<BriefcaseFormDefinition> maybeFormDefinition = formCache.getForms().stream()
         .filter(form -> form.getFormId().equals(formid))
