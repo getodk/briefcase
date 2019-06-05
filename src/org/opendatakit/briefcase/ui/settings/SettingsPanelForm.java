@@ -162,6 +162,14 @@ public class SettingsPanelForm {
     };
   }
 
+  void onMaxHttpConnectionsChange(Consumer<Integer> callback) {
+    maxHttpConnectionsField.addChangeListener(__ -> callback.accept((Integer) maxHttpConnectionsField.getValue()));
+  }
+
+  void setMaxHttpConnections(int value) {
+    maxHttpConnectionsField.setValue(value);
+  }
+
   void onResumeLastPullChange(Consumer<Boolean> callback) {
     resumeLastPullField.addActionListener(__ -> callback.accept(resumeLastPullField.isSelected()));
   }

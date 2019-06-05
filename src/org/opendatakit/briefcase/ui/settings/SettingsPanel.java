@@ -38,6 +38,7 @@ public class SettingsPanel {
     this.form = form;
 
     appPreferences.getBriefcaseDir().ifPresent(path -> form.setStorageLocation(path.getParent()));
+    appPreferences.getMaxHttpConnections().ifPresent(form::setMaxHttpConnections);
     appPreferences.getResumeLastPull().ifPresent(form::setResumeLastPull);
     appPreferences.getRememberPasswords().ifPresent(form::setRememberPasswords);
     appPreferences.getSendUsageData().ifPresent(form::setSendUsageData);
@@ -58,6 +59,7 @@ public class SettingsPanel {
       formCache.update();
       appPreferences.unsetStorageDir();
     });
+    form.onMaxHttpConnectionsChange(appPreferences::setMaxHttpConnections);
     form.onResumeLastPullChange(appPreferences::setResumeLastPull);
     form.onRememberPasswordsChange(appPreferences::setRememberPasswords);
     form.onSendUsageDataChange(enabled -> {
