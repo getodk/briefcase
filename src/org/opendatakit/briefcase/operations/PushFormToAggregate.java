@@ -102,7 +102,7 @@ public class PushFormToAggregate {
         forms.map(pushOp::push),
         results -> System.out.println("All forms have been pushed"),
         PushFormToAggregate::onError
-    );
+    ).waitForCompletion();
   }
 
   private static void onEvent(FormStatusEvent event) {

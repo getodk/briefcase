@@ -133,7 +133,7 @@ public class PullFormFromAggregate {
           System.out.println("All forms have been pulled");
         },
         PullFormFromAggregate::onError
-    );
+    ).waitForCompletion();
   }
 
   private static void onEvent(FormStatusEvent event) {

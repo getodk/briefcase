@@ -20,8 +20,8 @@ import static java.util.concurrent.ForkJoinPool.commonPool;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -30,7 +30,7 @@ import java.util.stream.Stream;
  */
 public class JobsRunner {
   private static final ForkJoinPool SYSTEM_FORK_JOIN_POOL = commonPool();
-  private final ExecutorService executor;
+  private final ForkJoinPool executor;
 
   private JobsRunner(ForkJoinPool executor) {
     this.executor = executor;
@@ -90,5 +90,21 @@ public class JobsRunner {
    */
   public void cancel() {
     executor.shutdownNow();
+  }
+
+  /**
+   * Blocks current thread until all the submitted jobs are completed (executor's
+   * quiescent state), and shuts down the executor, preventing more work to be
+   * submitted
+   */
+  public void waitForCompletion() {
+    try {
+      while (!executor.isQuiescent())
+        Thread.sleep(10);
+      executor.shutdown();
+      executor.awaitTermination(10, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
