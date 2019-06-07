@@ -136,9 +136,9 @@ public class CommonsHttp implements Http {
           .execute(commonsRequest)
           .handleResponse(res -> Response.from(request, res));
     } catch (HttpHostConnectException e) {
-      throw new HttpException("Connection refused");
+      throw new HttpException("Connection refused", e);
     } catch (SocketTimeoutException | ConnectTimeoutException e) {
-      throw new HttpException("The connection has timed out");
+      throw new HttpException("The connection has timed out", e);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
