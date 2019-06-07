@@ -27,6 +27,8 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Stores information to execute an HTTP request and provides an API to
@@ -36,6 +38,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
  * Build instances of Request with {@link RequestBuilder} class
  */
 public class Request<T> {
+  private static final Logger log = LoggerFactory.getLogger(Request.class);
   private final RequestMethod method;
   private final URL url;
   private final Optional<Credentials> credentials;
@@ -55,7 +58,12 @@ public class Request<T> {
   }
 
   public T map(InputStream responseBody) {
-    return responseMapper.apply(responseBody);
+    try {
+      return responseMapper.apply(responseBody);
+    } catch (Throwable t) {
+      log.error("Error", t);
+      throw t;
+    }
   }
 
   void ifCredentials(BiConsumer<URL, Credentials> consumer) {
