@@ -92,7 +92,7 @@ public class PullFromAggregate {
         supply(runnerStatus -> downloadForm(form, runnerStatus, tracker)),
         supply(runnerStatus -> getSubmissions(form, lastCursor.orElse(Cursor.empty()), runnerStatus, tracker)),
         supply(runnerStatus -> getFormAttachments(form, runnerStatus, tracker)).thenAccept((runnerStatus, attachments) ->
-            attachments.forEach(attachment -> downloadFormAttachment(form, attachment, runnerStatus, tracker)))
+            attachments.parallelStream().forEach(attachment -> downloadFormAttachment(form, attachment, runnerStatus, tracker)))
     )
         // Then use the downloaded form's XML contents, and the submissions
         // list to download all submissions and their attachments
@@ -104,13 +104,17 @@ public class PullFromAggregate {
           SubmissionKeyGenerator subKeyGen = SubmissionKeyGenerator.from(formXml);
 
           // Extract all the instance IDs from all the batches and download each instance
-          instanceIdBatches.stream()
+          List<String> ids = instanceIdBatches.stream()
               .flatMap(batch -> batch.getInstanceIds().stream())
+              .collect(toList());
+
+          // We need to collect to be able to create a parallel stream again
+          ids.parallelStream()
               .filter(instanceId -> db.hasRecordedInstance(instanceId) == null)
               .map(instanceId -> downloadSubmission(form, instanceId, subKeyGen, runnerStatus, tracker))
               .filter(Objects::nonNull)
               .forEach(submission -> {
-                submission.getAttachments().forEach(attachment ->
+                submission.getAttachments().parallelStream().forEach(attachment ->
                     downloadSubmissionAttachment(form, submission, attachment, runnerStatus, tracker)
                 );
                 db.putRecordedInstanceDirectory(submission.getInstanceId(), form.getSubmissionDir(briefcaseDir, submission.getInstanceId()).toFile());
