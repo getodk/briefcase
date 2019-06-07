@@ -108,6 +108,7 @@ public class PullPanel {
         EventBus.publish(new FormStatusEvent(form));
       });
       view.unsetWorking();
+      view.refresh();
       updateActionButtons();
     });
 

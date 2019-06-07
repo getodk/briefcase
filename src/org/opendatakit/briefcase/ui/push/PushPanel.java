@@ -105,6 +105,7 @@ public class PushPanel {
         EventBus.publish(new FormStatusEvent(form));
       });
       view.unsetWorking();
+      view.refresh();
       updateActionButtons();
     });
   }
