@@ -40,7 +40,6 @@ import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.DownloadedSubmission;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.http.Credentials;
@@ -148,12 +147,16 @@ public class AggregateServer implements RemoteServer {
         .asXmlElement()
         .withPath("/formList")
         .withCredentials(credentials)
-        .withResponseMapper(root -> root.findElements("xform").stream().map(e -> new RemoteFormDefinition(
-            e.findElement("name").flatMap(XmlElement::maybeValue).orElseThrow(BriefcaseException::new),
-            e.findElement("formID").flatMap(XmlElement::maybeValue).orElseThrow(BriefcaseException::new),
-            e.findElement("version").flatMap(XmlElement::maybeValue).orElse(null),
-            e.findElement("manifestUrl").flatMap(XmlElement::maybeValue).orElse(null)
-        )).collect(toList())).build();
+        .withResponseMapper(root -> root.findElements("xform")
+            .stream()
+            .filter(e -> e.findElement("name").flatMap(XmlElement::maybeValue).isPresent() &&
+                e.findElement("formID").flatMap(XmlElement::maybeValue).isPresent())
+            .map(e -> new RemoteFormDefinition(
+                e.findElement("name").flatMap(XmlElement::maybeValue).get(),
+                e.findElement("formID").flatMap(XmlElement::maybeValue).get(),
+                e.findElement("version").flatMap(XmlElement::maybeValue).orElse(null),
+                e.findElement("manifestUrl").flatMap(XmlElement::maybeValue).orElse(null)
+            )).collect(toList())).build();
   }
 
   public Request<Boolean> getFormExistsRequest(String formId) {
