@@ -24,11 +24,14 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Runs {@link Job} instances in synchronous or asyncjhronous modes.
  */
 public class JobsRunner {
+  private static final Logger log = LoggerFactory.getLogger(JobsRunner.class);
   private static final ForkJoinPool SYSTEM_FORK_JOIN_POOL = commonPool();
   private final ForkJoinPool executor;
 
@@ -43,7 +46,14 @@ public class JobsRunner {
   public static <T> JobsRunner launchAsync(Stream<Job<T>> jobs, Consumer<T> onSuccess, Consumer<Throwable> onError) {
     ForkJoinPool executor = buildCancellableForkJoinPool(onError);
     RunnerStatus runnerStatus = new RunnerStatus(executor::isShutdown);
-    jobs.forEach(job -> executor.submit(() -> onSuccess.accept(job.runnerAwareSupplier.apply(runnerStatus))));
+    jobs.forEach(job -> executor.submit(() -> {
+      try {
+        onSuccess.accept(job.runnerAwareSupplier.apply(runnerStatus));
+      } catch (Throwable t) {
+        log.error("Error running Job", t);
+        onError.accept(t);
+      }
+    }));
     return new JobsRunner(executor);
   }
 
