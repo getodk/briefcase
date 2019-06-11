@@ -112,8 +112,8 @@ public class PushFormToAggregate {
   }
 
   private static void onError(Throwable e) {
-    System.err.println("Error pushing forms");
-    log.error("Error pushing forms", e);
+    System.err.println("Error pulling a form: " + e.getMessage() + " (see the logs for more info)");
+    log.error("Error pushing a form", e);
   }
 
 }
