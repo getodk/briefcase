@@ -127,13 +127,11 @@ public class PullFormFromAggregate {
             startFromDate.map(Cursor::of),
             resumeLastPull ? forms.getLastCursor(form) : Optional.empty())
         )),
-        result -> {
-          forms.setLastPullCursor(result.getForm(), result.getLastCursor());
-          System.out.println();
-          System.out.println("All forms have been pulled");
-        },
+        result -> forms.setLastPullCursor(result.getForm(), result.getLastCursor()),
         PullFormFromAggregate::onError
     ).waitForCompletion();
+    System.out.println();
+    System.out.println("All forms have been pulled");
   }
 
   private static void onEvent(FormStatusEvent event) {

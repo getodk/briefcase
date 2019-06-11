@@ -100,9 +100,10 @@ public class PushFormToAggregate {
     PushToAggregate pushOp = new PushToAggregate(http, aggregateServer, briefcaseDir, forceSendBlank, PushFormToAggregate::onEvent);
     JobsRunner.launchAsync(
         forms.map(pushOp::push),
-        results -> System.out.println("All forms have been pushed"),
+        __ -> { },
         PushFormToAggregate::onError
     ).waitForCompletion();
+    System.out.println("All forms have been pushed");
   }
 
   private static void onEvent(FormStatusEvent event) {
