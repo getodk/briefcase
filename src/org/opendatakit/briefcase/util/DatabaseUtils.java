@@ -58,8 +58,6 @@ public class DatabaseUtils implements AutoCloseable {
   private Connection connection;
 
   private boolean hasRecordedInstanceTable = false;
-  private PreparedStatement getRecordedInstanceQuery = null;
-  private PreparedStatement insertRecordedInstanceQuery = null;
 
   private DatabaseUtils(File formDir) throws FileSystemException, SQLException {
     this.formDir = formDir;
@@ -131,15 +129,6 @@ public class DatabaseUtils implements AutoCloseable {
 
   @Override
   public synchronized void close() throws SQLException {
-    if (getRecordedInstanceQuery != null) {
-      try {
-        getRecordedInstanceQuery.close();
-      } catch (SQLException e) {
-        log.error("failed to close connection", e);
-      } finally {
-        getRecordedInstanceQuery = null;
-      }
-    }
     try {
       connection.close();
     } finally {
@@ -152,10 +141,7 @@ public class DatabaseUtils implements AutoCloseable {
     try {
       assertRecordedInstanceTable();
 
-      if (insertRecordedInstanceQuery == null) {
-        insertRecordedInstanceQuery =
-            connection.prepareStatement(INSERT_DML);
-      }
+      PreparedStatement insertRecordedInstanceQuery = connection.prepareStatement(INSERT_DML);
 
       insertRecordedInstanceQuery.setString(1, instanceId);
       insertRecordedInstanceQuery.setString(2, makeRelative(formDir, instanceDir).toString());
@@ -209,9 +195,7 @@ public class DatabaseUtils implements AutoCloseable {
     try {
       assertRecordedInstanceTable();
 
-      if (getRecordedInstanceQuery == null) {
-        getRecordedInstanceQuery = connection.prepareStatement(SELECT_DIR_SQL);
-      }
+      PreparedStatement getRecordedInstanceQuery = connection.prepareStatement(SELECT_DIR_SQL);
 
       getRecordedInstanceQuery.setString(1, instanceId);
       ResultSet values = getRecordedInstanceQuery.executeQuery();
