@@ -176,7 +176,7 @@ public class PullFromAggregateIntegrationTest {
 
     running(server, () -> {
       List<InstanceIdBatch> submissions = pullOp.getSubmissions(form, Cursor.empty(), runnerStatus, tracker);
-      Cursor lastCursor = PullFromAggregate.getLastCursor(submissions);
+      Cursor lastCursor = PullFromAggregate.getLastCursor(submissions).orElse(Cursor.empty());
       assertThat(lastCursor, is(pages.get(3).getRight()));
     });
   }

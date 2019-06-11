@@ -39,7 +39,6 @@ import java.util.function.Consumer;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.Request;
@@ -67,11 +66,10 @@ public class PullFromAggregate {
     this.onEventCallback = onEventCallback;
   }
 
-  static Cursor getLastCursor(List<InstanceIdBatch> batches) {
+  static Optional<Cursor> getLastCursor(List<InstanceIdBatch> batches) {
     return batches.stream()
         .map(InstanceIdBatch::getCursor)
-        .reduce(maxBy(Cursor::compareTo))
-        .orElseThrow(BriefcaseException::new);
+        .reduce(maxBy(Cursor::compareTo));
   }
 
   /**
@@ -121,7 +119,7 @@ public class PullFromAggregate {
               });
 
           // Return the pull result with the last cursor
-          return PullFromAggregateResult.of(form, getLastCursor(instanceIdBatches));
+          return PullFromAggregateResult.of(form, getLastCursor(instanceIdBatches).orElse(Cursor.empty()));
         }));
   }
 
