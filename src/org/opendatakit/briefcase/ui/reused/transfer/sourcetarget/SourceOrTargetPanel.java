@@ -57,7 +57,7 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
 
   public static SourceOrTargetPanel<PullSource> pull(Http http) {
     SourceOrTargetPanel<PullSource> panel = new SourceOrTargetPanel<>(
-        new SelectSourceOrTargetForm<>(),
+        SelectSourceOrTargetForm.pull(),
         ShowSourceOrTargetForm.pull()
     );
     panel.addOption(PullSource.aggregate(http, panel::triggerOnSelect));
@@ -69,7 +69,7 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
 
   public static SourceOrTargetPanel<PushTarget> push(Http http) {
     SourceOrTargetPanel<PushTarget> panel = new SourceOrTargetPanel<>(
-        new SelectSourceOrTargetForm<>(),
+        SelectSourceOrTargetForm.push(),
         ShowSourceOrTargetForm.push()
     );
     panel.addOption(PushTarget.aggregate(http, panel::triggerOnSelect));

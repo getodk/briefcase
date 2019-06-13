@@ -26,20 +26,32 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source.PullSource;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.target.PushTarget;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class SelectSourceOrTargetForm<T extends SourceOrTarget> extends JComponent {
   public JPanel container;
   private JComboBox<T> selectField;
   private JButton configureButton;
-  private JLabel label;
+  private JLabel actionLabel;
 
-  SelectSourceOrTargetForm() {
+  private SelectSourceOrTargetForm(String action) {
     $$$setupUI$$$();
+
+    actionLabel.setText(action);
 
     configureButton.addActionListener(__ -> getSelectedOption()
         .orElseThrow(BriefcaseException::new)
         .onSelect(container));
+  }
+
+  public static SelectSourceOrTargetForm<PullSource> pull() {
+    return new SelectSourceOrTargetForm<>("Pull from:");
+  }
+
+  public static SelectSourceOrTargetForm<PushTarget> push() {
+    return new SelectSourceOrTargetForm<>("Push to:");
   }
 
   void addOption(T item) {
@@ -72,13 +84,13 @@ public class SelectSourceOrTargetForm<T extends SourceOrTarget> extends JCompone
   private void $$$setupUI$$$() {
     container = new JPanel();
     container.setLayout(new GridBagLayout());
-    label = new JLabel();
-    label.setText("Pull from");
+    actionLabel = new JLabel();
+    actionLabel.setText("Pull from");
     GridBagConstraints gbc;
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 0;
-    container.add(label, gbc);
+    container.add(actionLabel, gbc);
     final JPanel spacer1 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
