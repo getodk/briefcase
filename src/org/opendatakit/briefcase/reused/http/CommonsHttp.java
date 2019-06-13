@@ -49,24 +49,29 @@ public class CommonsHttp implements Http {
   public static Http of(int maxConnections, HttpHost httpProxy) {
     if (!Http.isValidHttpConnections(maxConnections))
       throw new BriefcaseException("Invalid maximum simultaneous HTTP connections " + maxConnections + ". Try a value between " + MIN_HTTP_CONNECTIONS + " and " + MAX_HTTP_CONNECTIONS);
-    return new CommonsHttp(Executor.newInstance(HttpClientBuilder
-        .create()
-        .setMaxConnPerRoute(maxConnections)
-        .setMaxConnTotal(maxConnections)
-        .setProxy(httpProxy)
-        .setDefaultRequestConfig(custom().setCookieSpec(STANDARD).build())
-        .build()), maxConnections);
+    return new CommonsHttp(Executor.newInstance(
+        getBaseBuilder(maxConnections).setProxy(httpProxy).build()
+    ), maxConnections);
   }
 
   public static Http of(int maxConnections) {
     if (!Http.isValidHttpConnections(maxConnections))
       throw new BriefcaseException("Invalid maximum simultaneous HTTP connections " + maxConnections + ". Try a value between " + MIN_HTTP_CONNECTIONS + " and " + MAX_HTTP_CONNECTIONS);
-    return new CommonsHttp(Executor.newInstance(HttpClientBuilder
+    return new CommonsHttp(Executor.newInstance(
+        getBaseBuilder(maxConnections).build()
+    ), maxConnections);
+  }
+
+  private static HttpClientBuilder getBaseBuilder(int maxConnections) {
+    return HttpClientBuilder
         .create()
         .setMaxConnPerRoute(maxConnections)
         .setMaxConnTotal(maxConnections)
-        .setDefaultRequestConfig(custom().setCookieSpec(STANDARD).build())
-        .build()), maxConnections);
+        .setDefaultRequestConfig(custom()
+            .setConnectionRequestTimeout(0)
+            .setSocketTimeout(0)
+            .setConnectTimeout(0)
+            .setCookieSpec(STANDARD).build());
   }
 
   @Override
@@ -83,30 +88,17 @@ public class CommonsHttp implements Http {
 
   @Override
   public void setProxy(HttpHost proxy) {
-    executor = Executor.newInstance(HttpClientBuilder
-        .create()
-        .setMaxConnPerRoute(maxConnections)
-        .setMaxConnTotal(maxConnections)
-        .setProxy(proxy)
-        .setDefaultRequestConfig(custom().setCookieSpec(STANDARD).build())
-        .build());
+    executor = Executor.newInstance(getBaseBuilder(maxConnections).setProxy(proxy).build());
   }
 
   @Override
   public void unsetProxy() {
-    executor = Executor.newInstance(HttpClientBuilder
-        .create()
-        .setMaxConnPerRoute(maxConnections)
-        .setMaxConnTotal(maxConnections)
-        .setDefaultRequestConfig(custom().setCookieSpec(STANDARD).build())
-        .build());
+    executor = Executor.newInstance(getBaseBuilder(maxConnections).build());
   }
 
   private <T> Response<T> uncheckedExecute(Request<T> request, Executor executor) {
     // Get an Apache Commons HTTPClient request and set some reasonable timeouts
     org.apache.http.client.fluent.Request commonsRequest = getCommonsRequest(request);
-    commonsRequest.connectTimeout(10_000);
-    commonsRequest.socketTimeout(10_000);
 
     // Add the declared headers
     // TODO v2.0 remove this header, since this is not a concern of this class
