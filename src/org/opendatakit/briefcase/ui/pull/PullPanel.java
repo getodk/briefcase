@@ -91,6 +91,7 @@ public class PullPanel {
       forms.forEach(FormStatus::clearStatusHistory);
       new Thread(() -> source.ifPresent(s -> {
         pullJobRunner = s.pull(forms.getSelectedForms(), appPreferences);
+        pullJobRunner.waitForCompletion();
       })).start();
     });
 

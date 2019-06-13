@@ -92,10 +92,13 @@ public class PushPanel {
     view.onAction(() -> {
       view.setWorking();
       forms.forEach(FormStatus::clearStatusHistory);
-      new Thread(() -> target.ifPresent(s -> pushJobRunner = s.push(
-          forms.getSelectedForms(),
-          appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new)
-      ))).start();
+      new Thread(() -> target.ifPresent(s -> {
+        pushJobRunner = s.push(
+            forms.getSelectedForms(),
+            appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new)
+        );
+        pushJobRunner.waitForCompletion();
+      })).start();
     });
 
     view.onCancel(() -> {
