@@ -27,7 +27,6 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -37,6 +36,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
@@ -104,15 +104,15 @@ public class CustomDir implements PullSource<Path> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, Path briefcaseDir, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
+  public JobsRunner pull(TransferForms forms, BriefcasePreferences prefs) {
     return JobsRunner.launchAsync(
         forms.map(form -> supply(jobStatus -> {
-          TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), new TerminationFuture(), forms);
+          TransferAction.transferODKToBriefcase(prefs.getBriefcaseDir().orElseThrow(BriefcaseException::new), path.toFile(), new TerminationFuture(), TransferForms.of(form));
           return form;
         })),
         this::onSuccess,
         this::onError
-    ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+    );
   }
 
   private void onError(Throwable t) {

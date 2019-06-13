@@ -252,8 +252,11 @@ public class PullFromAggregate {
   }
 
   private List<InstanceIdBatch> getInstanceIdBatches(FormStatus form, RunnerStatus runnerStatus, PullFromAggregateTracker tracker, Cursor lastCursor) {
-    List<InstanceIdBatch> batches = new ArrayList<>();
     InstanceIdBatchGetter batchPager = new InstanceIdBatchGetter(server, http, form.getFormId(), includeIncomplete, lastCursor);
+    List<InstanceIdBatch> batches = new ArrayList<>();
+    // The first batch is always an empty batch with the last cursor
+    // to avoid losing it if there are no new submissions available
+    batches.add(InstanceIdBatch.from(emptyList(), lastCursor));
     while (runnerStatus.isStillRunning() && batchPager.hasNext())
       batches.add(batchPager.next());
     tracker.trackBatches(batches);

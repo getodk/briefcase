@@ -123,15 +123,21 @@ public class Central implements PullSource<CentralServer> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, Path briefcaseDir, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
+  public JobsRunner pull(TransferForms forms, BriefcasePreferences prefs) {
     String token = http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
-    PullFromCentral pullOp = new PullFromCentral(http, server, briefcaseDir, token, EventBus::publish);
+    PullFromCentral pullOp = new PullFromCentral(
+        http,
+        server,
+        prefs.getBriefcaseDir().orElseThrow(BriefcaseException::new),
+        token,
+        EventBus::publish
+    );
 
     return JobsRunner.launchAsync(
         forms.map(pullOp::pull),
         this::onSuccess,
         this::onPullError
-    ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+    );
   }
 
   private void onSuccess(FormStatus form) {

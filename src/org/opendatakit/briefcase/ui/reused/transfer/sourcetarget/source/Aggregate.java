@@ -24,8 +24,6 @@ import static org.opendatakit.briefcase.ui.reused.SwingUtils.uncheckedBrowse;
 import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
 
 import java.awt.Container;
-import java.nio.file.Path;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -34,6 +32,7 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregateResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -97,10 +96,20 @@ public class Aggregate implements PullSource<AggregateServer> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, Path briefcaseDir, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
-    PullFromAggregate pullOp = new PullFromAggregate(http, server, briefcaseDir, includeIncomplete, EventBus::publish);
+  public JobsRunner pull(TransferForms forms, BriefcasePreferences prefs) {
+    PullFromAggregate pullOp = new PullFromAggregate(
+        http,
+        server,
+        prefs.getBriefcaseDir().orElseThrow(BriefcaseException::new),
+        false,
+        EventBus::publish
+    );
+
     return JobsRunner.launchAsync(
-        forms.map(form -> pullOp.pull(form, resumeLastPull ? forms.getLastCursor(form) : Optional.empty())),
+        forms.map(form -> pullOp.pull(
+            form,
+            prefs.getResumeLastPull().orElse(false) ? Cursor.readPrefs(form, prefs) : Optional.empty()
+        )),
         this::onSuccess,
         this::onError
     ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));

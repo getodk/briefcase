@@ -16,25 +16,23 @@
 
 package org.opendatakit.briefcase.pull.aggregate;
 
-import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class PullFromAggregateResult {
   private final FormStatus form;
-  private final Optional<Cursor> lastCursor;
+  private final Cursor lastCursor;
 
-  private PullFromAggregateResult(FormStatus form, Optional<Cursor> lastCursor) {
+  private PullFromAggregateResult(FormStatus form, Cursor lastCursor) {
     this.form = form;
     this.lastCursor = lastCursor;
   }
 
   public static PullFromAggregateResult of(FormStatus form, Cursor lastCursor) {
-    return new PullFromAggregateResult(form, Optional.of(lastCursor));
+    return new PullFromAggregateResult(form, lastCursor);
   }
 
   public static PullFromAggregateResult of(FormStatus form) {
-    return new PullFromAggregateResult(form, Optional.empty());
+    return new PullFromAggregateResult(form, Cursor.empty());
   }
 
   public FormStatus getForm() {
@@ -42,6 +40,6 @@ public class PullFromAggregateResult {
   }
 
   public Cursor getLastCursor() {
-    return lastCursor.orElseThrow(BriefcaseException::new);
+    return lastCursor;
   }
 }

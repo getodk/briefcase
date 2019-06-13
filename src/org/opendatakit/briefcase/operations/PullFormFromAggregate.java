@@ -34,6 +34,7 @@ import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
+import org.opendatakit.briefcase.pull.aggregate.PullFromAggregateResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
@@ -118,20 +119,24 @@ public class PullFormFromAggregate {
       throw new FormNotFoundException(formId.get());
 
     TransferForms forms = TransferForms.empty();
-    forms.load(filteredForms, pullPanelPrefs);
+    forms.load(filteredForms);
     forms.selectAll();
 
     PullFromAggregate pullOp = new PullFromAggregate(http, aggregateServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent);
     JobsRunner.launchAsync(
         forms.map(form -> pullOp.pull(form, Optionals.race(
             startFromDate.map(Cursor::of),
-            resumeLastPull ? forms.getLastCursor(form) : Optional.empty())
+            resumeLastPull ? Cursor.readPrefs(form, appPreferences) : Optional.empty())
         )),
-        result -> forms.setLastPullCursor(result.getForm(), result.getLastCursor()),
+        PullFormFromAggregate::onSuccess,
         PullFormFromAggregate::onError
     ).waitForCompletion();
     System.out.println();
     System.out.println("All forms have been pulled");
+  }
+
+  private static void onSuccess(PullFromAggregateResult result) {
+    System.out.println("Successfully pulled " + result.getForm().getFormName());
   }
 
   private static void onEvent(FormStatusEvent event) {

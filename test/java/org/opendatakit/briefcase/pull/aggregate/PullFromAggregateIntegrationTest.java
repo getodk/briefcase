@@ -156,9 +156,9 @@ public class PullFromAggregateIntegrationTest {
         ));
 
     running(server, () -> {
-      List<InstanceIdBatch> submissions = pullOp.getSubmissions(form, Cursor.empty(), runnerStatus, tracker);
-      int total = submissions.stream().map(InstanceIdBatch::count).reduce(0, Integer::sum);
-      assertThat(submissions, hasSize(3));
+      List<InstanceIdBatch> submissionBatches = pullOp.getSubmissions(form, Cursor.empty(), runnerStatus, tracker);
+      int total = submissionBatches.stream().map(InstanceIdBatch::count).reduce(0, Integer::sum);
+      assertThat(submissionBatches, hasSize(4));
       assertThat(total, is(250));
     });
   }

@@ -62,7 +62,7 @@ public interface PullSource<T> extends SourceOrTarget<T> {
 
   void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords);
 
-  JobsRunner pull(TransferForms forms, Path briefcaseDir, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate);
+  JobsRunner pull(TransferForms forms, BriefcasePreferences prefs);
 
   String getDescription();
 

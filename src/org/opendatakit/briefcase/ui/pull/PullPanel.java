@@ -34,7 +34,6 @@ import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer;
@@ -90,13 +89,9 @@ public class PullPanel {
     view.onAction(() -> {
       view.setWorking();
       forms.forEach(FormStatus::clearStatusHistory);
-      new Thread(() -> source.ifPresent(s -> pullJobRunner = s.pull(
-          forms.getSelectedForms(),
-          appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
-          false,
-          appPreferences.getResumeLastPull().orElse(false),
-          Optional.empty()
-      ))).start();
+      new Thread(() -> source.ifPresent(s -> {
+        pullJobRunner = s.pull(forms.getSelectedForms(), appPreferences);
+      })).start();
     });
 
     view.onCancel(() -> {
@@ -130,7 +125,7 @@ public class PullPanel {
     JobsRunner.launchAsync(
         supply(__ -> source.getFormList()),
         formList -> {
-          forms.load(formList, tabPreferences);
+          forms.load(formList);
           view.refresh();
           updateActionButtons();
         },

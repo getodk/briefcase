@@ -26,7 +26,6 @@ import java.awt.Cursor;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +37,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.pull.FormInstaller;
 import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
@@ -102,12 +102,21 @@ public class FormInComputer implements PullSource<FormStatus> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, Path briefcaseDir, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
+  public JobsRunner pull(TransferForms forms, BriefcasePreferences prefs) {
     return JobsRunner.launchAsync(
-        run(jobStatus -> FormInstaller.install(briefcaseDir, form)),
-        __ -> { },
-        __ -> { }
-    ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+        run(jobStatus -> FormInstaller.install(prefs.getBriefcaseDir().orElseThrow(BriefcaseException::new), form)),
+        this::onSuccess,
+        this::onError
+    );
+  }
+
+  private void onSuccess(Void nothing) {
+    EventBus.publish(PullEvent.Success.of(form));
+  }
+
+  private void onError(Throwable t) {
+    log.error("Error pulling form", t);
+    EventBus.publish(new PullEvent.Failure());
   }
 
   @Override
