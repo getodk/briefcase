@@ -95,7 +95,7 @@ public class FormInComputer implements PullSource<FormStatus> {
   }
 
   @Override
-  public void storePreferences(BriefcasePreferences prefs, boolean storePasswords) {
+  public void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords) {
     // No prefs to store
   }
 

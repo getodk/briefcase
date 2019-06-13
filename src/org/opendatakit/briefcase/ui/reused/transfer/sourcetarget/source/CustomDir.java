@@ -97,7 +97,7 @@ public class CustomDir implements PullSource<Path> {
   }
 
   @Override
-  public void storePreferences(BriefcasePreferences prefs, boolean storePasswords) {
+  public void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords) {
     // No prefs to store
   }
 

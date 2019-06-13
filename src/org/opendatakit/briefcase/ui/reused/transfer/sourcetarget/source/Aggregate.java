@@ -91,8 +91,8 @@ public class Aggregate implements PullSource<AggregateServer> {
   }
 
   @Override
-  public void storePreferences(BriefcasePreferences prefs, boolean storePasswords) {
-    server.storePreferences(prefs, storePasswords);
+  public void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords) {
+    server.storeSourcePrefs(prefs, storePasswords);
   }
 
   @Override

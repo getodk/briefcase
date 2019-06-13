@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 public interface PullSource<T> extends SourceOrTarget<T> {
   Logger log = LoggerFactory.getLogger(PullSource.class);
 
-  static void clearAllPreferences(BriefcasePreferences prefs) {
+  static void clearSourcePrefs(BriefcasePreferences prefs) {
     Aggregate.clearPreferences(prefs);
     Central.clearPreferences(prefs);
     CustomDir.clearPreferences(prefs);
@@ -60,7 +60,7 @@ public interface PullSource<T> extends SourceOrTarget<T> {
 
   List<FormStatus> getFormList();
 
-  void storePreferences(BriefcasePreferences prefs, boolean storePasswords);
+  void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords);
 
   JobsRunner pull(TransferForms forms, Path briefcaseDir, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate);
 

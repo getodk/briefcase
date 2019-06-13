@@ -78,8 +78,8 @@ public class Aggregate implements PushTarget<AggregateServer> {
   }
 
   @Override
-  public void storePreferences(BriefcasePreferences prefs, boolean storePasswords) {
-    server.storePreferences(prefs, storePasswords);
+  public void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords) {
+    server.storeSourcePrefs(prefs, storePasswords);
   }
 
   @Override

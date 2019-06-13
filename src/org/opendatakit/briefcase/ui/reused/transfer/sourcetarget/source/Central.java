@@ -83,9 +83,9 @@ public class Central implements PullSource<CentralServer> {
   }
 
   @Override
-  public void storePreferences(BriefcasePreferences prefs, boolean storePasswords) {
+  public void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords) {
     if (storePasswords)
-      server.storePreferences(prefs);
+      server.storeSourcePrefs(prefs);
   }
 
   @Override

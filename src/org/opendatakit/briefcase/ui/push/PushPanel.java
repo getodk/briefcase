@@ -69,21 +69,21 @@ public class PushPanel {
     getContainer().addComponentListener(analytics.buildComponentListener("Push"));
 
     // Read prefs and load saved remote server if available
-    this.target = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadOption);
+    this.target = RemoteServer.readSourcePrefs(tabPreferences).flatMap(view::preloadOption);
 
     this.target.ifPresent(source -> updateActionButtons());
 
     // Register callbacks to view events
     view.onSelect(target -> {
       this.target = Optional.of(target);
-      PushTarget.clearAllPreferences(tabPreferences);
-      target.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
+      PushTarget.clearSourcePrefs(tabPreferences);
+      target.storeSourcePrefs(tabPreferences, getStorePasswordsConsentProperty());
       updateActionButtons();
     });
 
     view.onReset(() -> {
       target = Optional.empty();
-      PushTarget.clearAllPreferences(tabPreferences);
+      PushTarget.clearSourcePrefs(tabPreferences);
       updateActionButtons();
     });
 

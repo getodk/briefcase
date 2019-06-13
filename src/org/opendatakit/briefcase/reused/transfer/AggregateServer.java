@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
@@ -77,40 +78,6 @@ public class AggregateServer implements RemoteServer {
             Optional.ofNullable(sci.getPassword()).map(String::new)
         ).map(Credentials::new)
     );
-  }
-
-  static Optional<AggregateServer> readPreferences(BriefcasePreferences prefs) {
-    if (prefs.hasKey(AGGREGATE_1_0_URL)) {
-      return prefs.nullSafeGet(AGGREGATE_1_0_URL)
-          .map(RequestBuilder::url)
-          .map(baseUrl -> new AggregateServer(
-              baseUrl,
-              OptionalProduct.all(
-                  prefs.nullSafeGet(USERNAME),
-                  prefs.nullSafeGet(PASSWORD)
-              ).map(Credentials::new)
-          ));
-    }
-    return Optional.empty();
-  }
-
-  public void storePreferences(BriefcasePreferences prefs, boolean storePasswords) {
-    prefs.remove(AGGREGATE_1_0_URL);
-    prefs.remove(USERNAME);
-    prefs.remove(PASSWORD);
-
-    // We only save the Aggregate URL if no credentials are defined or
-    // if they're defined and we have the user's consent to save passwords,
-    // to avoid saving a URL that won't work without credentials.
-    if (!credentials.isPresent() || storePasswords)
-      prefs.put(AGGREGATE_1_0_URL, getBaseUrl().toString());
-
-    // We only save the credentials if we have the user's consent to save
-    // passwords
-    if (credentials.isPresent() && storePasswords) {
-      prefs.put(USERNAME, credentials.get().getUsername());
-      prefs.put(PASSWORD, credentials.get().getPassword());
-    }
   }
 
   public URL getBaseUrl() {
@@ -256,6 +223,85 @@ public class AggregateServer implements RemoteServer {
           }
         })
         .orElse("application/octet-stream");
-
   }
+
+
+  //region Saved preferences management - Soon to be replace by a database
+
+  /**
+   * Returns true if the given key is a prefs key managed by this class.
+   * <p>
+   * Includes keys used to store the last configured source in the Pull & Push
+   * panels, and the keys used to support the "pull before export" feature.
+   */
+  static boolean isPrefKey(String key) {
+    boolean sourcePanelKey = key.equals(AGGREGATE_1_0_URL)
+        || key.equals(USERNAME)
+        || key.equals(PASSWORD);
+    boolean lastPullServerKey = key.endsWith("_pull_settings_url")
+        || key.endsWith("_pull_settings_username")
+        || key.endsWith("_pull_settings_password");
+    return sourcePanelKey || lastPullServerKey;
+  }
+
+  @Override
+  public void storePullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form) {
+    prefs.put(String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()), this.baseUrl.toString());
+    prefs.put(String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()), credentials.map(Credentials::getUsername).orElse(""));
+    prefs.put(String.format("%s_pull_settings_password", form.getFormDefinition().getFormId()), credentials.map(Credentials::getPassword).orElse(""));
+  }
+
+  @Override
+  public void removePullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form) {
+    prefs.removeAll(
+        String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()),
+        String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()),
+        String.format("%s_pull_settings_password", form.getFormDefinition().getFormId())
+    );
+  }
+
+  public static void clearSourcePrefs(BriefcasePreferences prefs) {
+    prefs.removeAll(AggregateServer.PREFERENCE_KEYS);
+  }
+
+  /**
+   * Searches for keys used to store the last configured source in the Pull & Push
+   * panels and returns a non-empty value when they're found.
+   */
+  static Optional<AggregateServer> readSourcePrefs(BriefcasePreferences prefs) {
+    if (!prefs.hasKey(AGGREGATE_1_0_URL))
+      return Optional.empty();
+
+    return Optional.of(new AggregateServer(
+        prefs.nullSafeGet(AGGREGATE_1_0_URL).map(RequestBuilder::url).get(),
+        OptionalProduct.all(
+            prefs.nullSafeGet(USERNAME),
+            prefs.nullSafeGet(PASSWORD)
+        ).map(Credentials::new)
+    ));
+  }
+
+  /**
+   * Stores this instance in the given prefs using the keys to store the last
+   * configured source in the Pull & Push panels
+   */
+  public void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords) {
+    prefs.remove(AGGREGATE_1_0_URL);
+    prefs.remove(USERNAME);
+    prefs.remove(PASSWORD);
+
+    // We only save the Aggregate URL if no credentials are defined or
+    // if they're defined and we have the user's consent to save passwords,
+    // to avoid saving a URL that won't work without credentials.
+    if (!credentials.isPresent() || storePasswords)
+      prefs.put(AGGREGATE_1_0_URL, getBaseUrl().toString());
+
+    // We only save the credentials if we have the user's consent to save
+    // passwords
+    if (credentials.isPresent() && storePasswords) {
+      prefs.put(USERNAME, credentials.get().getUsername());
+      prefs.put(PASSWORD, credentials.get().getPassword());
+    }
+  }
+  //endregion
 }

@@ -18,20 +18,45 @@ package org.opendatakit.briefcase.reused.transfer;
 
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.http.response.Response;
 
 public interface RemoteServer {
 
+  /**
+   * Searches for keys used to store the last configured source in the Pull & Push
+   * panels and returns a non-empty value when they're found.
+   */
   @SuppressWarnings("unchecked")
-  static <T extends RemoteServer> Optional<T> readPreferences(BriefcasePreferences prefs) {
+  static <T extends RemoteServer> Optional<T> readSourcePrefs(BriefcasePreferences prefs) {
     // Hacky way to get the correct subtype. Basically, try to de-serialize saved prefs
     // until one of the de-serializers successfully manages to get an instance
     return Optionals.race(
-        AggregateServer.readPreferences(prefs).map(o -> (T) o),
-        CentralServer.readPreferences(prefs).map(o -> (T) o)
+        AggregateServer.readSourcePrefs(prefs).map(o -> (T) o),
+        CentralServer.readSourcePrefs(prefs).map(o -> (T) o)
     );
   }
+
+  /**
+   * Returns true if the given key is a prefs key managed by this class hierarchy.
+   * <p>
+   * Includes keys used to store the last configured source in the Pull & Push
+   * panels, and the keys used to support the "pull before export" feature.
+   */
+  static boolean isPrefKey(String key) {
+    return AggregateServer.isPrefKey(key) || CentralServer.isPrefKey(key);
+  }
+
+  /**
+   * Stores in the given prefs object this RemoteServer's information used to pull the given form.
+   */
+  void storePullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form);
+
+  /**
+   * Removes from the given prefs object this RemoteServer's information used to pull the given form.
+   */
+  void removePullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form);
 
   @FunctionalInterface
   interface Test<T extends RemoteServer> {

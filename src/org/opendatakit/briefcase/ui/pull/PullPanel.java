@@ -68,14 +68,14 @@ public class PullPanel {
     getContainer().addComponentListener(analytics.buildComponentListener("Pull"));
 
     // Read prefs and load saved remote server if available
-    source = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadOption);
+    source = RemoteServer.readSourcePrefs(tabPreferences).flatMap(view::preloadOption);
     view.onReady(() -> source.ifPresent(source -> onSource(view, forms, source)));
 
     // Register callbacks to view events
     view.onSelect(source -> {
       this.source = Optional.of(source);
-      PullSource.clearAllPreferences(tabPreferences);
-      source.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
+      PullSource.clearSourcePrefs(tabPreferences);
+      source.storeSourcePrefs(tabPreferences, getStorePasswordsConsentProperty());
       onSource(view, forms, source);
     });
 
@@ -83,7 +83,7 @@ public class PullPanel {
       forms.clear();
       view.refresh();
       source = Optional.empty();
-      PullSource.clearAllPreferences(tabPreferences);
+      PullSource.clearSourcePrefs(tabPreferences);
       updateActionButtons();
     });
 
@@ -177,14 +177,9 @@ public class PullPanel {
 
   @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
   public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
-    tabPreferences.remove(AGGREGATE_1_0_URL);
-    tabPreferences.remove(USERNAME);
-    tabPreferences.remove(PASSWORD);
-    appPreferences.removeAll(appPreferences.keys().stream().filter((String key) ->
-        key.endsWith("_pull_settings_url")
-            || key.endsWith("_pull_settings_username")
-            || key.endsWith("_pull_settings_password")
-    ).collect(toList()));
+    // TODO This should be managed by the Settings vertical. We'll deal with it when we have a central database
+    tabPreferences.removeAll(tabPreferences.keys().stream().filter(RemoteServer::isPrefKey).collect(toList()));
+    appPreferences.removeAll(appPreferences.keys().stream().filter(RemoteServer::isPrefKey).collect(toList()));
   }
 
   @EventSubscriber(eventClass = PullEvent.Failure.class)

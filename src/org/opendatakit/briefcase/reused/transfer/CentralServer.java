@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Credentials;
@@ -74,30 +75,6 @@ public class CentralServer implements RemoteServer {
     );
   }
 
-  static Optional<CentralServer> readPreferences(BriefcasePreferences prefs) {
-    return OptionalProduct.all(
-        prefs.nullSafeGet(PREFS_KEY_CENTRAL_URL).map(RequestBuilder::url),
-        prefs.nullSafeGet(PREFS_KEY_CENTRAL_PROJECT_ID).map(Integer::parseInt),
-        prefs.nullSafeGet(PREFS_KEY_CENTRAL_USERNAME),
-        prefs.nullSafeGet(PREFS_KEY_CENTRAL_PASSWORD)
-    ).map(CentralServer::from);
-  }
-
-  public void storePreferences(BriefcasePreferences prefs) {
-    prefs.put(PREFS_KEY_CENTRAL_URL, baseUrl.toString());
-    prefs.put(PREFS_KEY_CENTRAL_PROJECT_ID, String.valueOf(projectId));
-    prefs.put(PREFS_KEY_CENTRAL_USERNAME, credentials.getUsername());
-    prefs.put(PREFS_KEY_CENTRAL_PASSWORD, credentials.getPassword());
-  }
-
-  public static void clearPreferences(BriefcasePreferences prefs) {
-    prefs.removeAll(
-        PREFS_KEY_CENTRAL_URL,
-        PREFS_KEY_CENTRAL_PROJECT_ID,
-        PREFS_KEY_CENTRAL_USERNAME,
-        PREFS_KEY_CENTRAL_PASSWORD
-    );
-  }
 
   public Request<Boolean> getCredentialsTestRequest() {
     return RequestBuilder.post(baseUrl)
@@ -241,4 +218,47 @@ public class CentralServer implements RemoteServer {
             .collect(toList()))
         .build();
   }
+
+  //region Saved preferences management - Soon to be replace by a database
+  @Override
+  public void storePullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form) {
+    // Do nothing for now
+  }
+
+  @Override
+  public void removePullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form) {
+    // Do nothing for now
+  }
+
+  static Optional<CentralServer> readSourcePrefs(BriefcasePreferences prefs) {
+    return OptionalProduct.all(
+        prefs.nullSafeGet(PREFS_KEY_CENTRAL_URL).map(RequestBuilder::url),
+        prefs.nullSafeGet(PREFS_KEY_CENTRAL_PROJECT_ID).map(Integer::parseInt),
+        prefs.nullSafeGet(PREFS_KEY_CENTRAL_USERNAME),
+        prefs.nullSafeGet(PREFS_KEY_CENTRAL_PASSWORD)
+    ).map(CentralServer::from);
+  }
+
+  public void storeSourcePrefs(BriefcasePreferences prefs) {
+    prefs.put(PREFS_KEY_CENTRAL_URL, baseUrl.toString());
+    prefs.put(PREFS_KEY_CENTRAL_PROJECT_ID, String.valueOf(projectId));
+    prefs.put(PREFS_KEY_CENTRAL_USERNAME, credentials.getUsername());
+    prefs.put(PREFS_KEY_CENTRAL_PASSWORD, credentials.getPassword());
+  }
+
+  public static void clearSourcePrefs(BriefcasePreferences prefs) {
+    prefs.removeAll(
+        PREFS_KEY_CENTRAL_URL,
+        PREFS_KEY_CENTRAL_PROJECT_ID,
+        PREFS_KEY_CENTRAL_USERNAME,
+        PREFS_KEY_CENTRAL_PASSWORD
+    );
+  }
+
+  static boolean isPrefKey(String key) {
+    return key.endsWith("_pull_settings_url")
+        || key.endsWith("_pull_settings_username")
+        || key.endsWith("_pull_settings_password");
+  }
+  //endregion
 }

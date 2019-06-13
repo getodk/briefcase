@@ -31,9 +31,9 @@ import org.slf4j.LoggerFactory;
 public interface PushTarget<T> extends SourceOrTarget<T> {
   Logger log = LoggerFactory.getLogger(PushTarget.class);
 
-  static void clearAllPreferences(BriefcasePreferences prefs) {
+  static void clearSourcePrefs(BriefcasePreferences prefs) {
     Aggregate.clearPreferences(prefs);
-    Central.clearPreferences(prefs);
+    Central.clearSourcePrefs(prefs);
   }
 
   static PushTarget<AggregateServer> aggregate(Http http, Consumer<PushTarget> consumer) {
@@ -44,7 +44,7 @@ public interface PushTarget<T> extends SourceOrTarget<T> {
     return new Central(http, server -> http.execute(server.getCredentialsTestRequest()), consumer);
   }
 
-  void storePreferences(BriefcasePreferences prefs, boolean storePasswords);
+  void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords);
 
   JobsRunner push(TransferForms forms, Path briefcaseDir);
 
