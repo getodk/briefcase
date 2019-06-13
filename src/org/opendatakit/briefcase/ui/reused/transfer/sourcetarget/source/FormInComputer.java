@@ -17,7 +17,7 @@
 package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source;
 
 import static java.awt.Cursor.getPredefinedCursor;
-import static org.opendatakit.briefcase.reused.job.Job.run;
+import static org.opendatakit.briefcase.reused.job.Job.supply;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
 
@@ -100,13 +100,16 @@ public class FormInComputer implements PullSource<FormStatus> {
   @Override
   public JobsRunner pull(TransferForms forms, BriefcasePreferences prefs) {
     return JobsRunner.launchAsync(
-        run(jobStatus -> FormInstaller.install(prefs.getBriefcaseDir().orElseThrow(BriefcaseException::new), form)),
+        supply(jobStatus -> {
+          FormInstaller.install(prefs.getBriefcaseDir().orElseThrow(BriefcaseException::new), form);
+          return form;
+        }),
         this::onSuccess,
         this::onError
     );
   }
 
-  private void onSuccess(Void nothing) {
+  private void onSuccess(FormStatus form) {
     EventBus.publish(PullEvent.Success.of(form));
   }
 

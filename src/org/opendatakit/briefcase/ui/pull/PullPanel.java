@@ -169,13 +169,6 @@ public class PullPanel {
     appPreferences.removeAll(appPreferences.keys().stream().filter(RemoteServer::isPrefKey).collect(toList()));
   }
 
-  @EventSubscriber(eventClass = PullEvent.Failure.class)
-  public void onPullFailure(PullEvent.Failure event) {
-    view.unsetWorking();
-    updateActionButtons();
-    analytics.event("Pull", "Transfer", "Failure", null);
-  }
-
   @EventSubscriber(eventClass = PullEvent.Success.class)
   public void onPullSuccess(PullEvent.Success event) {
     if (getStorePasswordsConsentProperty())

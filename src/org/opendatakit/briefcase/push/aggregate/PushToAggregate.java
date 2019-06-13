@@ -59,12 +59,12 @@ public class PushToAggregate {
   /**
    * Pushes a form completely, sending the form file, form attachments,
    * submission files and their attachments to the Aggregate server.
-   *
+   * <p>
    * By default, it won't push a form and form attachments if it's already
    * present in the server, which can be overriden with the {@link #forceSendForm}
    * field.
    */
-  public Job<Void> push(FormStatus form) {
+  public Job<FormStatus> push(FormStatus form) {
     PushToAggregateTracker tracker = new PushToAggregateTracker(form, onEventCallback);
     tracker.trackForceSendForm(forceSendForm);
     return Job.supply(runnerStatus -> !forceSendForm && checkFormExists(form.getFormId(), runnerStatus, tracker))
@@ -75,13 +75,16 @@ public class PushToAggregate {
           }
         }))
         .thenSupply(__ -> getSubmissions(form))
-        .thenAccept((runnerStatus, submissions) -> submissions.forEach(submission -> {
-          String instanceId = submission.getInstanceId().orElseThrow(BriefcaseException::new);
-          List<Path> attachments = UncheckedFiles.list(form.getSubmissionDir(briefcaseDir, instanceId))
-              .filter(p -> !p.getFileName().toString().equals("submission.xml"))
-              .collect(toList());
-          pushSubmissionAndAttachments(form, instanceId, attachments, runnerStatus, tracker);
-        }));
+        .thenApply((runnerStatus, submissions) -> {
+          submissions.forEach(submission -> {
+            String instanceId = submission.getInstanceId().orElseThrow(BriefcaseException::new);
+            List<Path> attachments = UncheckedFiles.list(form.getSubmissionDir(briefcaseDir, instanceId))
+                .filter(p -> !p.getFileName().toString().equals("submission.xml"))
+                .collect(toList());
+            pushSubmissionAndAttachments(form, instanceId, attachments, runnerStatus, tracker);
+          });
+          return form;
+        });
   }
 
   boolean checkFormExists(String formId, RunnerStatus runnerStatus, PushToAggregateTracker tracker) {

@@ -64,7 +64,7 @@ public class PushToCentral {
    * present in the server.
    */
   @SuppressWarnings("checkstyle:Indentation")
-  public Job<Void> push(FormStatus form) {
+  public Job<FormStatus> push(FormStatus form) {
     PushToCentralTracker tracker = new PushToCentralTracker(form, onEventCallback);
 
     // Verify that the form is not encrypted
@@ -81,15 +81,18 @@ public class PushToCentral {
           }
         }))
         .thenSupply(__ -> getSubmissions(formDef))
-        .thenAccept((runnerStatus, submissions) -> submissions.forEach(submission -> {
-          pushSubmission(formDef.getFormId(), submission.getInstanceId(), submission.getPath(), runnerStatus, tracker);
-          list(form.getSubmissionDir(briefcaseDir, submission.getInstanceId()))
-              .filter(p -> !p.getFileName().toString().equals("submission.xml"))
-              .collect(toList())
-              .forEach(attachment ->
-                  pushSubmissionAttachment(formDef.getFormId(), submission.getInstanceId(), attachment, runnerStatus, tracker)
-              );
-        }));
+        .thenApply((runnerStatus, submissions) -> {
+          submissions.forEach(submission -> {
+            pushSubmission(formDef.getFormId(), submission.getInstanceId(), submission.getPath(), runnerStatus, tracker);
+            list(form.getSubmissionDir(briefcaseDir, submission.getInstanceId()))
+                .filter(p -> !p.getFileName().toString().equals("submission.xml"))
+                .collect(toList())
+                .forEach(attachment ->
+                    pushSubmissionAttachment(formDef.getFormId(), submission.getInstanceId(), attachment, runnerStatus, tracker)
+                );
+          });
+          return form;
+        });
   }
 
   boolean checkFormExists(String formId, RunnerStatus runnerStatus, PushToCentralTracker tracker) {

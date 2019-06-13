@@ -71,13 +71,17 @@ public class Central implements PushTarget<CentralServer> {
 
     return JobsRunner.launchAsync(
         forms.filter(f -> !f.isEncrypted()).map(pushOp::push),
-        __ -> onPushSuccess(forms),
-        error -> { }
+        this::onSuccess,
+        this::onError
     );
   }
 
-  private static void onPushSuccess(TransferForms forms) {
-    EventBus.publish(new PushEvent.Success(forms, null));
+  private void onSuccess(FormStatus form) {
+    EventBus.publish(new PushEvent.Success(form));
+  }
+
+  private void onError(Throwable e) {
+    log.error("Error pushing forms", e);
   }
 
   @Override
