@@ -17,9 +17,6 @@
 package org.opendatakit.briefcase.ui.pull;
 
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0_URL;
-import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
-import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
 import static org.opendatakit.briefcase.reused.job.Job.supply;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
@@ -36,6 +33,7 @@ import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
@@ -213,9 +211,7 @@ public class PullPanel {
 
   @EventSubscriber(eventClass = PullEvent.CleanAllResumePoints.class)
   public void onCleanAllResumePoints(PullEvent.CleanAllResumePoints e) {
-    // TODO Preserve encapsulation of the suffix constant
-    tabPreferences.keys().stream().filter(key -> key.endsWith(TransferForms.LAST_CURSOR_PREFERENCE_KEY_SUFFIX)).collect(toList()).forEach(tabPreferences::remove);
-    forms.cleanAllResumePoints();
+    Cursor.cleanAllPrefs(appPreferences);
     infoMessage("Pull history cleared.");
   }
 }

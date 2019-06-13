@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.pull.aggregate;
 
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+import static org.opendatakit.briefcase.transfer.TransferForms.LAST_CURSOR_PREFERENCE_KEY_SUFFIX;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -24,6 +25,8 @@ import java.time.ZoneOffset;
 import java.util.Objects;
 import java.util.Optional;
 import org.opendatakit.briefcase.export.XmlElement;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.Iso8601Helpers;
 
 /**
@@ -152,5 +155,21 @@ public class Cursor implements Comparable<Cursor> {
   @Override
   public int hashCode() {
     return Objects.hash(lastUpdate, lastReturnedValue);
+  }
+
+  public static Optional<Cursor> readPrefs(FormStatus form, BriefcasePreferences prefs) {
+    return prefs.nullSafeGet(form.getFormId() + LAST_CURSOR_PREFERENCE_KEY_SUFFIX)
+        .filter(s -> !s.isEmpty())
+        .map(Cursor::from);
+  }
+
+  public static void cleanAllPrefs(BriefcasePreferences prefs) {
+    prefs.keys().stream()
+        .filter(key -> key.endsWith(LAST_CURSOR_PREFERENCE_KEY_SUFFIX))
+        .forEach(prefs::remove);
+  }
+
+  public void storePrefs(FormStatus form, BriefcasePreferences prefs) {
+    prefs.put(form.getFormId() + LAST_CURSOR_PREFERENCE_KEY_SUFFIX, value);
   }
 }
