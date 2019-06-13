@@ -75,7 +75,6 @@ public class CentralServer implements RemoteServer {
     );
   }
 
-
   public Request<Boolean> getCredentialsTestRequest() {
     return RequestBuilder.post(baseUrl)
         .asJsonMap()

@@ -61,10 +61,6 @@ public class Central implements PushTarget<CentralServer> {
       server.storeSourcePrefs(prefs);
   }
 
-  static void clearSourcePrefs(BriefcasePreferences prefs) {
-    CentralServer.clearSourcePrefs(prefs);
-  }
-
   @Override
   public JobsRunner push(TransferForms forms, Path briefcaseDir) {
     forms.filter(FormStatus::isEncrypted)

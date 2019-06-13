@@ -17,9 +17,7 @@
 package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source;
 
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -36,10 +34,9 @@ public interface PullSource<T> extends SourceOrTarget<T> {
   Logger log = LoggerFactory.getLogger(PullSource.class);
 
   static void clearSourcePrefs(BriefcasePreferences prefs) {
-    Aggregate.clearPreferences(prefs);
-    Central.clearPreferences(prefs);
-    CustomDir.clearPreferences(prefs);
-    FormInComputer.clearPreferences(prefs);
+    AggregateServer.clearSourcePrefs(prefs);
+    CentralServer.clearSourcePrefs(prefs);
+    // Other subtypes don't save any prefs
   }
 
   static PullSource<AggregateServer> aggregate(Http http, Consumer<PullSource> consumer) {

@@ -32,8 +32,8 @@ public interface PushTarget<T> extends SourceOrTarget<T> {
   Logger log = LoggerFactory.getLogger(PushTarget.class);
 
   static void clearSourcePrefs(BriefcasePreferences prefs) {
-    Aggregate.clearPreferences(prefs);
-    Central.clearSourcePrefs(prefs);
+    AggregateServer.clearSourcePrefs(prefs);
+    CentralServer.clearSourcePrefs(prefs);
   }
 
   static PushTarget<AggregateServer> aggregate(Http http, Consumer<PushTarget> consumer) {

@@ -55,10 +55,6 @@ public class FormInComputer implements PullSource<FormStatus> {
     this.consumer = consumer;
   }
 
-  static void clearPreferences(BriefcasePreferences prefs) {
-    // No prefs to clear
-  }
-
   @Override
   public void onSelect(Container container) {
     Optional<Path> selectedFile = FileChooser

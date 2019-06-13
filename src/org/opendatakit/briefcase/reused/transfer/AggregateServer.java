@@ -84,14 +84,6 @@ public class AggregateServer implements RemoteServer {
     return baseUrl;
   }
 
-  public ServerConnectionInfo asServerConnectionInfo() {
-    return new ServerConnectionInfo(
-        baseUrl.toString(),
-        credentials.map(Credentials::getUsername).orElse(null),
-        credentials.map(Credentials::getPassword).orElse("").toCharArray()
-    );
-  }
-
   public Request<String> getDownloadFormRequest(String formId) {
     return get(baseUrl)
         .asText()

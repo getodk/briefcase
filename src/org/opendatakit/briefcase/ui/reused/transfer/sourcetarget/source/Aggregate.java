@@ -61,10 +61,6 @@ public class Aggregate implements PullSource<AggregateServer> {
     this.consumer = consumer;
   }
 
-  static void clearPreferences(BriefcasePreferences prefs) {
-    prefs.removeAll(AggregateServer.PREFERENCE_KEYS);
-  }
-
   @Override
   public void onSelect(Container ignored) {
     AggregateServerDialog dialog = AggregateServerDialog.empty(serverTester, requiredPermission);

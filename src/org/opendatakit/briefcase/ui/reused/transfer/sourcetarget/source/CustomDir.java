@@ -58,10 +58,6 @@ public class CustomDir implements PullSource<Path> {
     return Files.exists(f) && Files.isDirectory(f) && !isUnderBriefcaseFolder(f.toFile()) && Files.exists(f.resolve("forms")) && Files.isDirectory(f.resolve("forms"));
   }
 
-  static void clearPreferences(BriefcasePreferences prefs) {
-    // No prefs to clear
-  }
-
   @Override
   public void onSelect(Container container) {
     FileChooser
