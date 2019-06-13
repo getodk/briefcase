@@ -20,6 +20,7 @@ import static java.util.concurrent.ForkJoinPool.commonPool;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -34,6 +35,7 @@ public class JobsRunner {
   private static final Logger log = LoggerFactory.getLogger(JobsRunner.class);
   private static final ForkJoinPool SYSTEM_FORK_JOIN_POOL = commonPool();
   private final ForkJoinPool executor;
+  private Optional<Runnable> onCompleteCallback = Optional.empty();
 
   private JobsRunner(ForkJoinPool executor) {
     this.executor = executor;
@@ -113,8 +115,14 @@ public class JobsRunner {
         Thread.sleep(10);
       executor.shutdown();
       executor.awaitTermination(10, TimeUnit.SECONDS);
+      onCompleteCallback.ifPresent(Runnable::run);
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public JobsRunner onComplete(Runnable onCompleteCallback) {
+    this.onCompleteCallback = Optional.of(onCompleteCallback);
+    return this;
   }
 }
