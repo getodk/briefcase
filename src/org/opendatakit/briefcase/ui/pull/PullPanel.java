@@ -109,13 +109,6 @@ public class PullPanel {
       view.refresh();
       updateActionButtons();
     });
-
-    // TODO Preserve encapsulation of the suffix constant. AKA, move this to the Cursor class.
-    // TODO v2.0 study how having Central not implement this affects to this.
-    forms.onChange(() -> forms.getLastPullCursorsByFormId().forEach((key, value) -> tabPreferences.put(
-        key + TransferForms.LAST_CURSOR_PREFERENCE_KEY_SUFFIX,
-        value.get()
-    )));
   }
 
   public static PullPanel from(Http http, BriefcasePreferences appPreferences, Analytics analytics) {
@@ -189,23 +182,17 @@ public class PullPanel {
 
   @EventSubscriber(eventClass = PullEvent.Success.class)
   public void onPullSuccess(PullEvent.Success event) {
+    if (getStorePasswordsConsentProperty())
+      event.ifRemoteServer((form, server) -> server.storePullBeforeExportPrefs(appPreferences, form));
+    else
+      event.ifRemoteServer((form, server) -> server.removePullBeforeExportPrefs(appPreferences, form));
+    event.lastCursor.ifPresent(cursor -> cursor.storePrefs(event.form, appPreferences));
+  }
+
+  @EventSubscriber(eventClass = PullEvent.PullComplete.class)
+  public void onPullComplete(PullEvent.PullComplete event) {
     view.unsetWorking();
     updateActionButtons();
-    if (getStorePasswordsConsentProperty()) {
-      if (event.transferSettings.isPresent()) {
-        event.forms.forEach(form -> {
-          appPreferences.put(String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()), event.transferSettings.get().getUrl());
-          appPreferences.put(String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()), event.transferSettings.get().getUsername());
-          appPreferences.put(String.format("%s_pull_settings_password", form.getFormDefinition().getFormId()), String.valueOf(event.transferSettings.get().getPassword()));
-        });
-      } else {
-        event.forms.forEach(form -> appPreferences.removeAll(
-            String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()),
-            String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()),
-            String.format("%s_pull_settings_password", form.getFormDefinition().getFormId())
-        ));
-      }
-    }
     analytics.event("Pull", "Transfer", "Success", null);
   }
 

@@ -59,15 +59,6 @@ public class Central implements PullSource<CentralServer> {
     this.onSourceCallback = onSourceCallback;
   }
 
-  private static void onPullError(Throwable e) {
-    log.error("Error pulling forms", e);
-    EventBus.publish(new PullEvent.Failure());
-  }
-
-  private static void onPullSuccess(TransferForms forms) {
-    EventBus.publish(new PullEvent.Success(forms));
-  }
-
   static void clearPreferences(BriefcasePreferences prefs) {
     prefs.removeAll(CentralServer.PREFERENCE_KEYS);
   }
@@ -138,8 +129,17 @@ public class Central implements PullSource<CentralServer> {
 
     return JobsRunner.launchAsync(
         forms.map(pullOp::pull),
-        results -> onPullSuccess(forms),
-        Central::onPullError
-    );
+        this::onSuccess,
+        this::onPullError
+    ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+  }
+
+  private void onSuccess(FormStatus form) {
+    EventBus.publish(PullEvent.Success.of(form, server));
+  }
+
+  private void onPullError(Throwable e) {
+    log.error("Error pulling forms", e);
+    EventBus.publish(new PullEvent.Failure());
   }
 }

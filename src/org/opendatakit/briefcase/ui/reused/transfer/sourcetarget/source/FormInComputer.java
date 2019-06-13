@@ -32,10 +32,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.pull.FormInstaller;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
@@ -105,7 +107,7 @@ public class FormInComputer implements PullSource<FormStatus> {
         run(jobStatus -> FormInstaller.install(briefcaseDir, form)),
         __ -> { },
         __ -> { }
-    );
+    ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
   @Override

@@ -55,9 +55,7 @@ public class TransferAction {
     public void run() {
       try {
         if (src.doAction())
-          EventBus.publish(src.getTransferSettings()
-              .map(ts -> new PullEvent.Success(formsToTransfer, ts))
-              .orElse(new PullEvent.Success(formsToTransfer)));
+          formsToTransfer.forEach(form -> EventBus.publish(PullEvent.Success.of(form)));
         else
           EventBus.publish(new PullEvent.Failure());
       } catch (Exception e) {

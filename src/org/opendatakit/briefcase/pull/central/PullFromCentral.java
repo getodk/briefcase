@@ -59,7 +59,7 @@ public class PullFromCentral {
    * submission files and their attachments to the local filesystem
    * under the Briefcase Storage directory.
    */
-  public Job<Void> pull(FormStatus form) {
+  public Job<FormStatus> pull(FormStatus form) {
     createDirectories(form.getFormDir(briefcaseDir));
     createDirectories(form.getFormMediaDir(briefcaseDir));
 
@@ -70,7 +70,7 @@ public class PullFromCentral {
         run(runnerStatus -> downloadForm(form, token, runnerStatus, tracker))
             .thenSupply(runnerStatus -> getFormAttachments(form, token, runnerStatus, tracker))
             .thenAccept((runnerStatus, attachments) -> attachments.forEach(attachment -> downloadFormAttachment(form, attachment, token, runnerStatus, tracker)))
-    ).thenAccept((runnerStatus, pair) -> withDb(form.getFormDir(briefcaseDir), db -> {
+    ).thenApply((runnerStatus, pair) -> withDb(form.getFormDir(briefcaseDir), db -> {
       pair.getLeft().stream()
           .filter(instanceId -> db.hasRecordedInstance(instanceId) == null)
           .forEach(instanceId -> {
@@ -80,6 +80,7 @@ public class PullFromCentral {
             );
             db.putRecordedInstanceDirectory(instanceId, form.getSubmissionDir(briefcaseDir, instanceId).toFile());
           });
+      return form;
     }));
   }
 

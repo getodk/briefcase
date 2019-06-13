@@ -30,7 +30,6 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.transfer.TransferForms;
 
 /**
  * This class has UI/CLI independent methods to install forms into
@@ -51,7 +50,7 @@ public class FormInstaller {
   public static void install(Path briefcaseDir, FormStatus fs) {
     try {
       installForm(briefcaseDir, fs);
-      EventBus.publish(new PullEvent.Success(TransferForms.of(fs)));
+      EventBus.publish(PullEvent.Success.of(fs));
     } catch (BriefcaseException e) {
       EventBus.publish(new PullEvent.Failure());
     }

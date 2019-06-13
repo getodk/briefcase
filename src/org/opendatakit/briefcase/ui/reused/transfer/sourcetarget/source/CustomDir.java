@@ -18,7 +18,7 @@ package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source;
 
 import static java.awt.Cursor.getPredefinedCursor;
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.reused.job.Job.run;
+import static org.opendatakit.briefcase.reused.job.Job.supply;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
@@ -32,9 +32,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
@@ -104,10 +106,22 @@ public class CustomDir implements PullSource<Path> {
   @Override
   public JobsRunner pull(TransferForms forms, Path briefcaseDir, Boolean includeIncomplete, boolean resumeLastPull, Optional<LocalDate> startFromDate) {
     return JobsRunner.launchAsync(
-        run(jobStatus -> TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), new TerminationFuture(), forms)),
-        __ -> { },
-        __ -> { }
-    );
+        forms.map(form -> supply(jobStatus -> {
+          TransferAction.transferODKToBriefcase(briefcaseDir, path.toFile(), new TerminationFuture(), forms);
+          return form;
+        })),
+        this::onSuccess,
+        this::onError
+    ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+  }
+
+  private void onError(Throwable t) {
+    log.error("Error pulling form", t);
+    EventBus.publish(new PullEvent.Failure());
+  }
+
+  private void onSuccess(FormStatus form) {
+    EventBus.publish(PullEvent.Success.of(form));
   }
 
   @Override

@@ -35,6 +35,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
+import org.opendatakit.briefcase.pull.aggregate.PullFromAggregateResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
@@ -100,16 +101,18 @@ public class Aggregate implements PullSource<AggregateServer> {
     PullFromAggregate pullOp = new PullFromAggregate(http, server, briefcaseDir, includeIncomplete, EventBus::publish);
     return JobsRunner.launchAsync(
         forms.map(form -> pullOp.pull(form, resumeLastPull ? forms.getLastCursor(form) : Optional.empty())),
-        result -> {
-          // TODO v2.0 Study how to get this "saving the cursor" part closer to the Cursor-Prefs interactions in the PullPanel
-          forms.setLastPullCursor(result.getForm(), result.getLastCursor());
-          EventBus.publish(new PullEvent.Success(forms, server.asServerConnectionInfo()));
-        },
-        e -> {
-          log.error("Error pulling forms", e);
-          EventBus.publish(new PullEvent.Failure());
-        }
-    );
+        this::onSuccess,
+        this::onError
+    ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+  }
+
+  private void onSuccess(PullFromAggregateResult result) {
+    EventBus.publish(PullEvent.Success.of(result.getForm(), server, result.getLastCursor()));
+  }
+
+  private void onError(Throwable e) {
+    log.error("Error pulling forms", e);
+    EventBus.publish(new PullEvent.Failure());
   }
 
   @Override
