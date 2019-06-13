@@ -334,4 +334,12 @@ public class UncheckedFiles {
       throw new UncheckedIOException(e);
     }
   }
+
+  public static long size(Path path) {
+    try {
+      return Files.size(path);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
 }

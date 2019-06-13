@@ -55,18 +55,6 @@ class PushToAggregateTracker {
     notifyTrackingEvent();
   }
 
-  void trackPushForm(int attachments) {
-    form.setStatusString("Pushed form with " + attachments + " attachments");
-    log.info("Pushed form with {} attachments", attachments);
-    notifyTrackingEvent();
-  }
-
-  void trackPushSubmission(int attachments, String instanceId) {
-    form.setStatusString("Pushed submission " + instanceId + " with " + attachments + " attachments");
-    log.info("Pushed submission {} with {} attachments", instanceId, attachments);
-    notifyTrackingEvent();
-  }
-
   void trackFormAlreadyExists(boolean exists) {
     String message = exists ? "Form already exists in Aggregate" : "Form doesn't exist in Aggregate";
     form.setStatusString(message);
@@ -80,5 +68,57 @@ class PushToAggregateTracker {
       log.info("Forcing push of form and attachments");
       notifyTrackingEvent();
     }
+  }
+
+  void trackStartSendingForm(int parts) {
+    String message = parts == 1
+        ? "Start pushing form " + form.getFormName() + " and attachments"
+        : "Start pushing form " + form.getFormName() + " and attachments in " + parts + " parts";
+    form.setStatusString(message);
+    log.info(message);
+  }
+
+  void trackEndSendingForm() {
+    String message = "Form " + form.getFormName() + " and attachments pushed";
+    form.setStatusString(message);
+    log.info(message);
+  }
+
+  void trackStartSendingFormPart(int part, int parts) {
+    String message = "Start pushing part " + part + " of " + parts + " of form " + form.getFormName() + " and attachments";
+    form.setStatusString(message);
+    log.info(message);
+  }
+
+  void trackEndSendingFormPart(int part, int parts) {
+    String message = "Part " + part + " of " + parts + " of form " + form.getFormName() + " and attachments pushed";
+    form.setStatusString(message);
+    log.info(message);
+  }
+
+  void trackStartSendingSubmission(int parts, String instanceId) {
+    String message = parts == 1
+        ? "Start pushing submission " + instanceId + " and attachments"
+        : "Start pushing submission " + instanceId + " and attachments in " + parts + " parts";
+    form.setStatusString(message);
+    log.info(message);
+  }
+
+  void trackEndSendingSubmission(String instanceId) {
+    String message = "Submission " + instanceId + " and attachments pushed";
+    form.setStatusString(message);
+    log.info(message);
+  }
+
+  void trackStartSendingSubmissionPart(int part, int parts, String instanceId) {
+    String message = "Start pushing part " + part + " of " + parts + " of submission " + instanceId + " and attachments";
+    form.setStatusString(message);
+    log.info(message);
+  }
+
+  void trackEndSendingSubmissionPart(int part, int parts, String instanceId) {
+    String message = "Part " + part + " of " + parts + " of submission " + instanceId + " and attachments pushed";
+    form.setStatusString(message);
+    log.info(message);
   }
 }

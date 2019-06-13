@@ -19,6 +19,7 @@ package org.opendatakit.briefcase.push.aggregate;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
@@ -34,8 +35,11 @@ import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buil
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.listOfFormsResponseFromAggregate;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.After;
 import org.junit.Before;
@@ -140,7 +144,7 @@ public class PushToAggregateTest {
         ok("<root/>")
     );
 
-    pushOp.pushSubmissionAndAttachments(formStatus, instanceId, singletonList(submissionAttachment), runnerStatus, tracker);
+    pushOp.pushSubmissionAndAttachments(formStatus.getSubmissionFile(briefcaseDir, instanceId), instanceId, singletonList(submissionAttachment), runnerStatus, tracker);
 
     assertThat(requestSpy, allOf(
         hasBeenCalled(),
@@ -148,8 +152,6 @@ public class PushToAggregateTest {
         hasPart("xml_submission_file", "application/xml", "submission.xml"),
         hasPart("1556532531101.jpg", "image/jpeg", "1556532531101.jpg")
     ));
-
-    assertThat(events, hasItem("Pushed submission uuid:520e7b86-1572-45b1-a89e-7da26ad1624e with 1 attachments"));
   }
 
   @Test
@@ -206,5 +208,28 @@ public class PushToAggregateTest {
     ));
   }
 
+  @Test
+  public void knows_how_to_group_form_and_attachmets_in_groups_under_10_megabytes_in_total() throws IOException {
+    List<Path> attachments = Arrays.asList(
+        createTempFileOfSize(500), // Will go into group 1
+        createTempFileOfSize(600), // Will go into group 2
+        createTempFileOfSize(900), // Will go into group 3
+        createTempFileOfSize(300), // Will go into group 4
+        createTempFileOfSize(600)  // Will go into group 4
+    );
+    List<List<Path>> groupsOfMaxSize = PushToAggregate.createGroupsOfMaxSize(formStatus.getFormFile(briefcaseDir), attachments, 1);
+    assertThat(groupsOfMaxSize.get(0), hasSize(1));
+    assertThat(groupsOfMaxSize.get(1), hasSize(1));
+    assertThat(groupsOfMaxSize.get(2), hasSize(1));
+    assertThat(groupsOfMaxSize.get(3), hasSize(2));
+  }
+
+  private Path createTempFileOfSize(int sizeInKiloBytes) throws IOException {
+    Path path = Files.createTempFile("attachment_" + sizeInKiloBytes + "k_", ".txt");
+    RandomAccessFile raf = new RandomAccessFile(path.toFile(), "rw");
+    raf.setLength(sizeInKiloBytes * 1024);
+    raf.close();
+    return path;
+  }
 }
 
