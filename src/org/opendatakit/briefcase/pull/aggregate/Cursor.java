@@ -68,6 +68,9 @@ public class Cursor implements Comparable<Cursor> {
    * Parses the provided cursor xml document and returns a new Cursor instance.
    */
   public static Cursor from(String cursorXml) {
+    if (cursorXml.isEmpty())
+      return Cursor.empty();
+
     XmlElement root = XmlElement.from(cursorXml);
 
     Optional<OffsetDateTime> lastUpdate = root
@@ -124,6 +127,10 @@ public class Cursor implements Comparable<Cursor> {
   // TODO v2.0 Use a better name, like getXml();
   public String get() {
     return value;
+  }
+
+  public boolean isEmpty() {
+    return value.isEmpty();
   }
 
   @Override
