@@ -108,7 +108,7 @@ public class CustomDir implements PullSource<Path> {
         })),
         this::onSuccess,
         this::onError
-    );
+    ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
   private void onError(Throwable t) {

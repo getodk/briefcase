@@ -130,7 +130,7 @@ public class Central implements PullSource<CentralServer> {
         forms.map(pullOp::pull),
         this::onSuccess,
         this::onPullError
-    );
+    ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
   private void onSuccess(FormStatus form) {

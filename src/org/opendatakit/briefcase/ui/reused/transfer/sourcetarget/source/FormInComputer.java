@@ -106,7 +106,7 @@ public class FormInComputer implements PullSource<FormStatus> {
         }),
         this::onSuccess,
         this::onError
-    );
+    ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
   private void onSuccess(FormStatus form) {
