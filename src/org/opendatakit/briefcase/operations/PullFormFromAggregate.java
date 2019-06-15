@@ -85,7 +85,6 @@ public class PullFormFromAggregate {
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
-    BriefcasePreferences pullPanelPrefs = BriefcasePreferences.forClass(PullPanel.class);
 
     int maxConnections = Optionals.race(
         maybeMaxConnections,
