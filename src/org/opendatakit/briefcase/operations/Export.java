@@ -110,7 +110,7 @@ public class Export {
 
     createDirectories(exportDir);
 
-    BriefcaseFormDefinition formDefinition = maybeFormDefinition.orElseThrow(() -> new FormNotFoundException(formid));
+    BriefcaseFormDefinition formDefinition = maybeFormDefinition.orElseThrow(() -> new BriefcaseException("Form " + formid + " not found"));
 
     System.out.println("Exporting form " + formDefinition.getFormName() + " (" + formDefinition.getFormId() + ") to: " + exportDir);
     DateRange dateRange = new DateRange(startDate, endDate);

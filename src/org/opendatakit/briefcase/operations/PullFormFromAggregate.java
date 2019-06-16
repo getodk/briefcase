@@ -114,7 +114,7 @@ public class PullFormFromAggregate {
         .collect(toList());
 
     if (formId.isPresent() && filteredForms.isEmpty())
-      throw new FormNotFoundException(formId.get());
+      throw new BriefcaseException("Form " + formId.get() + " not found");
 
     TransferForms forms = TransferForms.empty();
     forms.load(filteredForms);

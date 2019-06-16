@@ -30,6 +30,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.push.aggregate.PushToAggregate;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -93,7 +94,7 @@ public class PushFormToAggregate {
         .map(FormStatus::new)
         .findFirst();
 
-    FormStatus form = maybeFormStatus.orElseThrow(() -> new FormNotFoundException(formid));
+    FormStatus form = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + formid + " not found"));
     TransferForms forms = TransferForms.of(form);
     forms.selectAll();
 
