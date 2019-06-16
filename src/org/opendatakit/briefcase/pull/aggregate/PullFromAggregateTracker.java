@@ -27,6 +27,7 @@ class PullFromAggregateTracker {
   private static final Logger log = LoggerFactory.getLogger(PullFromAggregateTracker.class);
   private final FormStatus form;
   private final Consumer<FormStatusEvent> onEventCallback;
+  private boolean errored = false;
 
   PullFromAggregateTracker(FormStatus form, Consumer<FormStatusEvent> onEventCallback) {
     this.form = form;
@@ -45,7 +46,7 @@ class PullFromAggregateTracker {
   }
 
   void trackEnd() {
-    String message = "Completed pulling form and submissions";
+    String message = errored ? "Complete with errors" : "Complete";
     form.setStatusString(message);
     log.info("Pull {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
@@ -66,6 +67,7 @@ class PullFromAggregateTracker {
   }
 
   void trackErrorDownloadingForm(Response response) {
+    errored = true;
     String message = "Error downloading form";
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
@@ -108,6 +110,7 @@ class PullFromAggregateTracker {
   }
 
   void trackErrorGettingFormManifest(Response response) {
+    errored = true;
     String message = "Error getting form manifest";
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
@@ -145,6 +148,7 @@ class PullFromAggregateTracker {
   }
 
   void trackErrorDownloadingFormAttachment(int attachmentNumber, int totalAttachments, Response response) {
+    errored = true;
     String message = "Error downloading form attachment " + attachmentNumber + " of " + totalAttachments;
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
@@ -159,6 +163,7 @@ class PullFromAggregateTracker {
   }
 
   void trackErrorDownloadingSubmission(int submissionNumber, int totalSubmissions, Response response) {
+    errored = true;
     String message = "Error downloading submission " + submissionNumber + " of " + totalSubmissions;
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
@@ -187,6 +192,7 @@ class PullFromAggregateTracker {
   }
 
   void trackErrorDownloadingSubmissionAttachment(int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments, Response response) {
+    errored = true;
     String message = "Error downloading attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions;
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());

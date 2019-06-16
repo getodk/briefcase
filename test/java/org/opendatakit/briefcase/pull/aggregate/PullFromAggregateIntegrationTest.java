@@ -147,7 +147,7 @@ public class PullFromAggregateIntegrationTest {
     assertThat(form.getStatusHistory(), containsString("Submission 250 of 250 downloaded"));
     assertThat(form.getStatusHistory(), containsString("Attachment 1 of 2 of submission 250 of 250 downloaded"));
     assertThat(form.getStatusHistory(), containsString("Attachment 2 of 2 of submission 250 of 250 downloaded"));
-    assertThat(form.getStatusHistory(), containsString("Completed pulling form and submissions"));
+    assertThat(form.getStatusHistory(), containsString("Complete"));
   }
 
   @Test

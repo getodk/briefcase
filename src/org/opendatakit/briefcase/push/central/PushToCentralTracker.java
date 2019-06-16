@@ -31,6 +31,7 @@ class PushToCentralTracker {
   private static final Logger log = LoggerFactory.getLogger(PushToCentralTracker.class);
   private final FormStatus form;
   private final Consumer<FormStatusEvent> onEventCallback;
+  private boolean errored = false;
 
   PushToCentralTracker(FormStatus form, Consumer<FormStatusEvent> onEventCallback) {
     this.form = form;
@@ -57,6 +58,7 @@ class PushToCentralTracker {
   }
 
   void trackErrorCheckingForm(Response response) {
+    errored = true;
     CentralErrorMessage centralErrorMessage = parseErrorResponse(response.getServerErrorResponse());
     String message = "Error checking if form exists in Aggregate";
     form.setStatusString(message + ": " + response.getStatusPhrase());
@@ -93,7 +95,7 @@ class PushToCentralTracker {
   }
 
   void trackEnd() {
-    String message = "Completed pushing form and submissions";
+    String message = errored ? "Complete with errors" : "Complete";
     form.setStatusString(message);
     log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
@@ -128,6 +130,7 @@ class PushToCentralTracker {
   }
 
   void trackErrorSendingForm(Response response) {
+    errored = true;
     CentralErrorMessage centralErrorMessage = parseErrorResponse(response.getServerErrorResponse());
     String message = "Error sending form";
     form.setStatusString(message + ": " + response.getStatusPhrase());
@@ -157,6 +160,7 @@ class PushToCentralTracker {
   }
 
   void trackErrorSendingFormAttachment(int attachmentNumber, int totalAttachments, Response response) {
+    errored = true;
     CentralErrorMessage centralErrorMessage = parseErrorResponse(response.getServerErrorResponse());
     String message = "Error sending form attachment " + attachmentNumber + " of " + totalAttachments;
     form.setStatusString(message + ": " + response.getStatusPhrase());
@@ -179,6 +183,7 @@ class PushToCentralTracker {
   }
 
   void trackErrorSendingSubmission(int submissionNumber, int totalSubmissions, Response response) {
+    errored = true;
     CentralErrorMessage centralErrorMessage = parseErrorResponse(response.getServerErrorResponse());
     String message = "Error sending submission " + submissionNumber + " of " + totalSubmissions;
     form.setStatusString(message + ": " + response.getStatusPhrase());
@@ -222,6 +227,7 @@ class PushToCentralTracker {
   }
 
   void trackErrorSendingSubmissionAttachment(int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments, Response response) {
+    errored = true;
     CentralErrorMessage centralErrorMessage = parseErrorResponse(response.getServerErrorResponse());
     String message = "Error sending attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions;
     form.setStatusString(message + ": " + response.getStatusPhrase());

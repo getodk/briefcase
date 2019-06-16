@@ -27,6 +27,7 @@ class PushToAggregateTracker {
   private static final Logger log = LoggerFactory.getLogger(PushToAggregateTracker.class);
   private final FormStatus form;
   private final Consumer<FormStatusEvent> onEventCallback;
+  private boolean errored = false;
 
   PushToAggregateTracker(FormStatus form, Consumer<FormStatusEvent> onEventCallback) {
     this.form = form;
@@ -45,13 +46,14 @@ class PushToAggregateTracker {
   }
 
   void trackEnd() {
-    String message = "Completed pushing form and submissions";
+    String message = errored ? "Complete with errors" : "Complete";
     form.setStatusString(message);
     log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
 
   void trackErrorCheckingForm(Response response) {
+    errored = true;
     String message = "Error checking if form exists in Aggregate";
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Push {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
@@ -96,6 +98,7 @@ class PushToAggregateTracker {
   }
 
   void trackErrorSendingFormAndAttachments(int part, int parts, Response response) {
+    errored = true;
     String message = "Error sending form" + (parts == 1 ? "" : " (" + part + "/" + parts + ")");
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Push {} - {} HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
@@ -117,6 +120,7 @@ class PushToAggregateTracker {
   }
 
   void trackErrorSendingSubmissionAndAttachments(int submissionNumber, int totalSubmissions, int part, int parts, Response response) {
+    errored = true;
     String message = "Error sending submission " + submissionNumber + " of " + totalSubmissions + (parts == 1 ? "" : " (" + part + "/" + parts + ")");
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Push {} - {} HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());

@@ -182,7 +182,7 @@ public class PushToCentralTest {
         hasItem("Submission 1 of 1 sent"),
         hasItem("Sending attachment 1 of 1 of submission 1 of 1"),
         hasItem("Attachment 1 of 1 of submission 1 of 1 sent"),
-        hasItem("Completed pushing form and submissions")
+        hasItem("Complete")
     ));
   }
 
@@ -208,7 +208,7 @@ public class PushToCentralTest {
         hasItem("Submission 1 of 1 sent"),
         hasItem("Sending attachment 1 of 1 of submission 1 of 1"),
         hasItem("Attachment 1 of 1 of submission 1 of 1 sent"),
-        hasItem("Completed pushing form and submissions")
+        hasItem("Complete")
     ));
   }
 

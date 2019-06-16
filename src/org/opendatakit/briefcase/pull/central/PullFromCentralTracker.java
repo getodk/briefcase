@@ -27,6 +27,7 @@ class PullFromCentralTracker {
   private static final Logger log = LoggerFactory.getLogger(PullFromCentralTracker.class);
   private final FormStatus form;
   private final Consumer<FormStatusEvent> onEventCallback;
+  private boolean errored = false;
 
   PullFromCentralTracker(FormStatus form, Consumer<FormStatusEvent> onEventCallback) {
     this.form = form;
@@ -45,7 +46,7 @@ class PullFromCentralTracker {
   }
 
   void trackEnd() {
-    String message = "Completed pulling form and submissions";
+    String message = errored ? "Complete with errors" : "Complete";
     form.setStatusString(message);
     log.info("Pull {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
@@ -66,6 +67,7 @@ class PullFromCentralTracker {
   }
 
   void trackErrorDownloadingForm(Response response) {
+    errored = true;
     String message = "Error downloading form";
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
@@ -87,6 +89,7 @@ class PullFromCentralTracker {
   }
 
   void trackErrorGettingSubmissionIds(Response response) {
+    errored = true;
     String message = "Error getting submission IDs";
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
@@ -116,6 +119,7 @@ class PullFromCentralTracker {
   }
 
   void trackErrorGettingFormAttachments(Response response) {
+    errored = true;
     String message = "Error getting form attachments";
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
@@ -153,6 +157,7 @@ class PullFromCentralTracker {
   }
 
   void trackErrorDownloadingFormAttachment(int attachmentNumber, int totalAttachments, Response response) {
+    errored = true;
     String message = "Error downloading form attachment " + attachmentNumber + " of " + totalAttachments;
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
@@ -167,6 +172,7 @@ class PullFromCentralTracker {
   }
 
   void trackErrorDownloadingSubmission(int submissionNumber, int totalSubmissions, Response response) {
+    errored = true;
     String message = "Error downloading submission " + submissionNumber + " of " + totalSubmissions;
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
@@ -188,6 +194,7 @@ class PullFromCentralTracker {
   }
 
   void trackErrorGettingSubmissionAttachments(int submissionNumber, int totalSubmissions, Response response) {
+    errored = true;
     String message = "Error getting attachments of submission " + submissionNumber + " of " + totalSubmissions;
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
@@ -217,6 +224,7 @@ class PullFromCentralTracker {
   }
 
   void trackErrorDownloadingSubmissionAttachment(int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments, Response response) {
+    errored = true;
     String message = "Error downloading attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions;
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
