@@ -107,7 +107,7 @@ public class PushFormToAggregate {
   }
 
   private static void onEvent(FormStatusEvent event) {
-    System.out.println(event.getStatusString());
+    System.out.println(event.getStatus().getFormName() + " - " + event.getStatusString());
     // The PullTracker already logs normal events
   }
 
