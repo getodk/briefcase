@@ -30,6 +30,10 @@ public class FormStatusTest {
         is(get("/storage/directory/forms/Form _1/Form _1-media/form attachment #1.jpg"))
     );
     assertThat(
+        form.getSubmissionsDir(briefcaseDir),
+        is(get("/storage/directory/forms/Form _1/instances"))
+    );
+    assertThat(
         form.getSubmissionDir(briefcaseDir, "uuid:520e7b86-1572-45b1-a89e-7da26ad1624e"),
         is(get("/storage/directory/forms/Form _1/instances/uuid520e7b86-1572-45b1-a89e-7da26ad1624e"))
     );

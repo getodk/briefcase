@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Path;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
@@ -57,40 +56,18 @@ class PushToCentralTracker {
     }
   }
 
-  void trackError(String error, Response response) {
+  void trackErrorCheckingForm(Response response) {
     CentralErrorMessage centralErrorMessage = parseErrorResponse(response.getServerErrorResponse());
-    form.setStatusString(error + ": " + response.getStatusPhrase());
-    log.error("{}: HTTP {} {} {}", error, response.getStatusCode(), response.getStatusPhrase(), centralErrorMessage.message);
+    String message = "Error checking if form exists in Aggregate";
+    form.setStatusString(message + ": " + response.getStatusPhrase());
+    log.error("Push {} - {}: HTTP {} {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase(), centralErrorMessage.message);
     notifyTrackingEvent();
   }
 
   void trackCancellation(String job) {
-    form.setStatusString("Operation cancelled - " + job);
-    log.warn("Operation cancelled - {}", job);
-    notifyTrackingEvent();
-  }
-
-  void trackPushForm() {
-    form.setStatusString("Pushed form");
-    log.info("Pushed form");
-    notifyTrackingEvent();
-  }
-
-  void trackPushFormAttachment(Path attachment) {
-    form.setStatusString("Pushed form attachment " + attachment.getFileName());
-    log.info("Pushed form attachment {}", attachment.getFileName());
-    notifyTrackingEvent();
-  }
-
-  void pushSubmission(String instanceId) {
-    form.setStatusString("Pushed submission " + instanceId);
-    log.info("Pushed submission {}", instanceId);
-    notifyTrackingEvent();
-  }
-
-  void trackPushSubmissionAttachment(Path attachment, String instanceId) {
-    form.setStatusString("Pushed attachment " + attachment.getFileName() + " of submission " + instanceId);
-    log.info("Pushed attachment {} of submission {}", attachment.getFileName(), instanceId);
+    String message = "Operation cancelled - " + job;
+    form.setStatusString(message);
+    log.warn("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
 
@@ -101,27 +78,161 @@ class PushToCentralTracker {
     notifyTrackingEvent();
   }
 
+  void trackEncryptedForm() {
+    String message = "Encrypted form - Can't push to Central";
+    form.setStatusString(message);
+    log.warn(message);
+    notifyTrackingEvent();
+  }
+
+  void trackCannotDetermineEncryption(Throwable t) {
+    String message = "Can't determine form encryption";
+    form.setStatusString(message + ":" + t.getMessage());
+    log.error(message, t);
+    notifyTrackingEvent();
+  }
+
+  void trackStart() {
+    String message = "Start pushing form and submissions";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackEnd() {
+    String message = "Completed pushing form and submissions";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackNoSubmissions() {
+    String message = "There are no submissions to send";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackStartSendingForm() {
+    String message = "Sending form";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackEndSendingForm() {
+    String message = "Form sent";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
   void trackFormAlreadyExists() {
-    form.setStatusString("Skipping: form already exists in Central");
-    log.info("Skipping: form already exists in Central");
+    String message = "Skipping form: already exists";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
 
-  void trackFormAttachmentAlreadyExists(Path attachment) {
-    form.setStatusString("Skipping: form attachment " + attachment.getFileName() + " already exists in Central");
-    log.info("Skipping: form attachment {} already exists in Central", attachment.getFileName());
+  void trackErrorSendingForm(Response response) {
+    CentralErrorMessage centralErrorMessage = parseErrorResponse(response.getServerErrorResponse());
+    String message = "Error sending form";
+    form.setStatusString(message + ": " + response.getStatusPhrase());
+    log.error("Push {} - {} HTTP {} {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase(), centralErrorMessage.message);
     notifyTrackingEvent();
   }
 
-  void trackSubmissionAlreadyExists(String instanceId) {
-    form.setStatusString("Skipping: submission " + instanceId + " already exists in Central");
-    log.info("Skipping: submission {} already exists in Central", instanceId);
+  void trackStartSendingFormAttachment(int attachmentNumber, int totalAttachments) {
+    String message = "Sending form attachment " + attachmentNumber + " of " + totalAttachments;
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
 
-  void trackSubmissionAttachmentAlreadyExists(Path attachment, String instanceId) {
-    form.setStatusString("Skipping: attachment " + attachment.getFileName() + " of submission " + instanceId + " already exists in Central");
-    log.info("Skipping: attachment {} of submission {} already exists in Central", attachment.getFileName(), instanceId);
+  void trackEndSendingFormAttachment(int attachmentNumber, int totalAttachments) {
+    String message = "Form attachment " + attachmentNumber + " of " + totalAttachments + " sent";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackFormAttachmentAlreadyExists(int attachmentNumber, int totalAttachments) {
+    String message = "Skipping form attachment " + attachmentNumber + " of " + totalAttachments + ": already exists";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackErrorSendingFormAttachment(int attachmentNumber, int totalAttachments, Response response) {
+    CentralErrorMessage centralErrorMessage = parseErrorResponse(response.getServerErrorResponse());
+    String message = "Error sending form attachment " + attachmentNumber + " of " + totalAttachments;
+    form.setStatusString(message + ": " + response.getStatusPhrase());
+    log.error("Push {} - {} HTTP {} {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase(), centralErrorMessage.message);
+    notifyTrackingEvent();
+  }
+
+  void trackStartSendingSubmission(int submissionNumber, int totalSubmissions) {
+    String message = "Sending submission " + submissionNumber + " of " + totalSubmissions;
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackEndSendingSubmission(int submissionNumber, int totalSubmissions) {
+    String message = "Submission " + submissionNumber + " of " + totalSubmissions + " sent";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackErrorSendingSubmission(int submissionNumber, int totalSubmissions, Response response) {
+    CentralErrorMessage centralErrorMessage = parseErrorResponse(response.getServerErrorResponse());
+    String message = "Error sending submission " + submissionNumber + " of " + totalSubmissions;
+    form.setStatusString(message + ": " + response.getStatusPhrase());
+    log.error("Push {} - {} HTTP {} {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase(), centralErrorMessage);
+    notifyTrackingEvent();
+  }
+
+  void trackSubmissionAlreadyExists(int submissionNumber, int totalSubmissions) {
+    String message = "Skipping submission " + submissionNumber + " of " + totalSubmissions + ": already exists";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackNoInstanceId(int submissionNumber, int totalSubmissions) {
+    String message = "Skipping submission " + submissionNumber + " of " + totalSubmissions + ": missing instance ID";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackStartSendingSubmissionAttachment(int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
+    String message = "Sending attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions;
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackEndSendingSubmissionAttachment(int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
+    String message = "Attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions + " sent";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackSubmissionAttachmentAlreadyExists(int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
+    String message = "Skipping attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions + ": already exists";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackErrorSendingSubmissionAttachment(int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments, Response response) {
+    CentralErrorMessage centralErrorMessage = parseErrorResponse(response.getServerErrorResponse());
+    String message = "Error sending attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions;
+    form.setStatusString(message + ": " + response.getStatusPhrase());
+    log.error("Push {} - {} HTTP {} {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase(), centralErrorMessage.message);
     notifyTrackingEvent();
   }
 }

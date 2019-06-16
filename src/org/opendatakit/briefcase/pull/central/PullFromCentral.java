@@ -26,9 +26,11 @@ import static org.opendatakit.briefcase.util.DatabaseUtils.withDb;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.reused.Triple;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.Job;
@@ -60,28 +62,51 @@ public class PullFromCentral {
    * under the Briefcase Storage directory.
    */
   public Job<FormStatus> pull(FormStatus form) {
-    createDirectories(form.getFormDir(briefcaseDir));
-    createDirectories(form.getFormMediaDir(briefcaseDir));
-
     PullFromCentralTracker tracker = new PullFromCentralTracker(form, onEventCallback);
 
-    return allOf(
-        supply(runnerStatus -> getSubmissions(form, token, runnerStatus, tracker)),
-        run(runnerStatus -> downloadForm(form, token, runnerStatus, tracker))
-            .thenSupply(runnerStatus -> getFormAttachments(form, token, runnerStatus, tracker))
-            .thenAccept((runnerStatus, attachments) -> attachments.forEach(attachment -> downloadFormAttachment(form, attachment, token, runnerStatus, tracker)))
-    ).thenApply((runnerStatus, pair) -> withDb(form.getFormDir(briefcaseDir), db -> {
-      pair.getLeft().stream()
-          .filter(instanceId -> db.hasRecordedInstance(instanceId) == null)
-          .forEach(instanceId -> {
-            downloadSubmission(form, instanceId, token, runnerStatus, tracker);
-            getSubmissionAttachments(form, instanceId, token, runnerStatus, tracker).forEach(attachment ->
-                downloadSubmissionAttachment(form, instanceId, attachment, token, runnerStatus, tracker)
-            );
-            db.putRecordedInstanceDirectory(instanceId, form.getSubmissionDir(briefcaseDir, instanceId).toFile());
-          });
-      return form;
-    }));
+    return run(rs -> tracker.trackStart())
+        .thenRun(allOf(
+            supply(runnerStatus -> getSubmissionIds(form, token, runnerStatus, tracker)),
+            run(runnerStatus -> {
+              downloadForm(form, token, runnerStatus, tracker);
+              List<CentralAttachment> attachments = getFormAttachments(form, token, runnerStatus, tracker);
+              int totalAttachments = attachments.size();
+              AtomicInteger attachmentNumber = new AtomicInteger(1);
+              attachments.parallelStream().forEach(attachment ->
+                  downloadFormAttachment(form, attachment, token, runnerStatus, tracker, attachmentNumber.getAndIncrement(), totalAttachments)
+              );
+            })
+        ))
+        .thenApply((runnerStatus, pair) -> withDb(form.getFormDir(briefcaseDir), db -> {
+          List<String> submissions = pair.getLeft();
+          int totalSubmissions = submissions.size();
+          AtomicInteger submissionNumber = new AtomicInteger(1);
+
+          if (submissions.isEmpty())
+            tracker.trackNoSubmissions();
+
+          submissions.stream()
+              .map(instanceId -> Triple.of(submissionNumber.getAndIncrement(), instanceId, db.hasRecordedInstance(instanceId) == null))
+              .peek(triple -> {
+                if (!triple.get3())
+                  tracker.trackSubmissionAlreadyDownloaded(triple.get1(), totalSubmissions);
+              })
+              .filter(Triple::get3)
+              .forEach(triple -> {
+                int currentSubmissionNumber = triple.get1();
+                String instanceId = triple.get2();
+                downloadSubmission(form, instanceId, token, runnerStatus, tracker, currentSubmissionNumber, totalSubmissions);
+                List<CentralAttachment> attachments = getSubmissionAttachments(form, instanceId, token, runnerStatus, tracker, currentSubmissionNumber, totalSubmissions);
+                int totalAttachments = attachments.size();
+                AtomicInteger attachmentNumber = new AtomicInteger(1);
+                attachments.forEach(attachment ->
+                    downloadSubmissionAttachment(form, instanceId, attachment, token, runnerStatus, tracker, currentSubmissionNumber, totalSubmissions, attachmentNumber.getAndIncrement(), totalAttachments)
+                );
+                db.putRecordedInstanceDirectory(instanceId, form.getSubmissionDir(briefcaseDir, instanceId).toFile());
+              });
+          tracker.trackEnd();
+          return form;
+        }));
   }
 
   void downloadForm(FormStatus form, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker) {
@@ -93,11 +118,12 @@ public class PullFromCentral {
     Path formFile = form.getFormFile(briefcaseDir);
     createDirectories(formFile.getParent());
 
+    tracker.trackStartDownloadingForm();
     Response response = http.execute(server.getDownloadFormRequest(form.getFormId(), formFile, token));
     if (response.isSuccess())
-      tracker.trackFormDownloaded();
+      tracker.trackEndDownloadingForm();
     else
-      tracker.trackError("Error downloading form", response);
+      tracker.trackErrorDownloadingForm(response);
   }
 
   List<CentralAttachment> getFormAttachments(FormStatus form, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker) {
@@ -106,87 +132,89 @@ public class PullFromCentral {
       return emptyList();
     }
 
+    tracker.trackStartGettingFormAttachments();
     Response<List<CentralAttachment>> response = http.execute(server.getFormAttachmentListRequest(form.getFormId(), token));
     if (!response.isSuccess()) {
-      tracker.trackError("Error getting form attachments", response);
+      tracker.trackErrorGettingFormAttachments(response);
       return emptyList();
     }
 
     List<CentralAttachment> attachments = response.get();
     List<CentralAttachment> existingAttachments = attachments.stream().filter(CentralAttachment::exists).collect(toList());
-    if (existingAttachments.size() != attachments.size())
-      tracker.trackError("The remote server is missing some form attachments");
-
-    tracker.trackFormAttachments(existingAttachments.size());
+    tracker.trackNonExistingFormAttachments(existingAttachments.size(), attachments.size());
     return existingAttachments;
   }
 
-  void downloadFormAttachment(FormStatus form, CentralAttachment attachment, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker) {
+  void downloadFormAttachment(FormStatus form, CentralAttachment attachment, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker, int attachmentNumber, int totalAttachments) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Download form attachment " + attachment.getName());
       return;
     }
 
-
     Path targetFile = form.getFormMediaFile(briefcaseDir, attachment.getName());
     createDirectories(targetFile.getParent());
 
+    tracker.trackStartDownloadingFormAttachment(attachmentNumber, totalAttachments);
     Response response = http.execute(server.getDownloadFormAttachmentRequest(form.getFormId(), attachment, targetFile, token));
     if (response.isSuccess())
-      tracker.formAttachmentDownloaded(attachment);
+      tracker.trackEndDownloadingFormAttachment(attachmentNumber, totalAttachments);
     else
-      tracker.trackError("Error downloading form attachment " + attachment.getName(), response);
+      tracker.trackErrorDownloadingFormAttachment(attachmentNumber, totalAttachments, response);
   }
 
-  List<String> getSubmissions(FormStatus form, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker) {
+  List<String> getSubmissionIds(FormStatus form, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Get submissions");
       return emptyList();
     }
 
+    tracker.trackStartGettingSubmissionIds();
     Response<List<String>> response = http.execute(server.getInstanceIdListRequest(form.getFormId(), token));
     if (!response.isSuccess()) {
-      tracker.trackError("Error getting submissions", response);
+      tracker.trackErrorGettingSubmissionIds(response);
       return emptyList();
     }
 
     List<String> instanceIds = response.get();
-    tracker.trackTotalSubmissions(instanceIds.size());
+    tracker.trackEndGettingSubmissionIds();
     return instanceIds;
   }
 
-  void downloadSubmission(FormStatus form, String instanceId, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker) {
+  void downloadSubmission(FormStatus form, String instanceId, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker, int submissionNumber, int totalSubmissions) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Download submission " + instanceId);
       return;
     }
 
     createDirectories(form.getSubmissionDir(briefcaseDir, instanceId));
+
+    tracker.trackStartDownloadingSubmission(submissionNumber, totalSubmissions);
     Response response = http.execute(server.getDownloadSubmissionRequest(form.getFormId(), instanceId, form.getSubmissionFile(briefcaseDir, instanceId), token));
     if (response.isSuccess())
-      tracker.trackSubmission();
+      tracker.trackEndDownloadingSubmission(submissionNumber, totalSubmissions);
     else
-      tracker.trackError("Error downloading submission " + instanceId, response);
+      tracker.trackErrorDownloadingSubmission(submissionNumber, totalSubmissions, response);
   }
 
-  List<CentralAttachment> getSubmissionAttachments(FormStatus form, String instanceId, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker) {
+  List<CentralAttachment> getSubmissionAttachments(FormStatus form, String instanceId, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker, int submissionNumber, int totalSubmissions) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Get submission attachments of " + instanceId);
       return emptyList();
     }
 
+    tracker.trackStartGettingSubmissionAttachments(submissionNumber, totalSubmissions);
     Response<List<CentralAttachment>> response = http.execute(server.getSubmissionAttachmentListRequest(form.getFormId(), instanceId, token));
     if (!response.isSuccess()) {
-      tracker.trackError("Error getting submission attachments of " + instanceId, response);
+      tracker.trackErrorGettingSubmissionAttachments(submissionNumber, totalSubmissions, response);
       return emptyList();
     }
 
     List<CentralAttachment> attachments = response.get();
-    tracker.trackSubmissionAttachments(instanceId, attachments.size());
+    tracker.trackEndGettingSubmissionAttachments(submissionNumber, totalSubmissions);
     return attachments;
   }
 
-  void downloadSubmissionAttachment(FormStatus form, String instanceId, CentralAttachment attachment, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker) {
+  void downloadSubmissionAttachment(FormStatus form, String instanceId, CentralAttachment attachment, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker, int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Download submission attachment " + attachment.getName() + " of " + instanceId);
       return;
@@ -195,10 +223,11 @@ public class PullFromCentral {
     Path targetFile = form.getSubmissionMediaFile(briefcaseDir, instanceId, attachment.getName());
     createDirectories(targetFile.getParent());
 
+    tracker.trackStartDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
     Response response = http.execute(server.getDownloadSubmissionAttachmentRequest(form.getFormId(), instanceId, attachment, targetFile, token));
     if (response.isSuccess())
-      tracker.submissionAttachmentDownloaded(instanceId, attachment);
+      tracker.trackEndDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
     else
-      tracker.trackError("Error downloading attachment " + attachment.getName() + " of submission " + instanceId, response);
+      tracker.trackErrorDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments, response);
   }
 }

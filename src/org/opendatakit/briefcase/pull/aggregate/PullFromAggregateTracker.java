@@ -17,7 +17,6 @@
 package org.opendatakit.briefcase.pull.aggregate;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
@@ -29,78 +28,169 @@ class PullFromAggregateTracker {
   private static final Logger log = LoggerFactory.getLogger(PullFromAggregateTracker.class);
   private final FormStatus form;
   private final Consumer<FormStatusEvent> onEventCallback;
-  private int totalSubmissions;
-  private AtomicInteger submissionCounter = new AtomicInteger(0);
 
   PullFromAggregateTracker(FormStatus form, Consumer<FormStatusEvent> onEventCallback) {
     this.form = form;
     this.onEventCallback = onEventCallback;
   }
 
-  void trackFormDownloaded() {
-    form.setStatusString("Downloaded form " + form.getFormName());
-    log.info("Downloaded form {}", form.getFormName());
-    notifyTrackingEvent();
-  }
-
-  void trackBatches(List<InstanceIdBatch> batches) {
-    totalSubmissions = batches.stream().map(InstanceIdBatch::count).reduce(0, Integer::sum);
-    form.setStatusString("Downloading " + totalSubmissions + " submissions");
-    log.info("Downloaded {} submissions", totalSubmissions);
-    notifyTrackingEvent();
-  }
-
-  void trackSubmission() {
-    form.setStatusString("Downloaded submission " + submissionCounter.incrementAndGet() + " of " + totalSubmissions);
-    log.info("Downloaded submission {} of {}", submissionCounter.get(), totalSubmissions);
-    notifyTrackingEvent();
-  }
-
-  void trackMediaFiles(int totalAttachments, int attachmentsToDownload) {
-    if (totalAttachments > 0) {
-      form.setStatusString("Downloading " + attachmentsToDownload + " form attachments");
-      log.info("Downloading {} form attachments", attachmentsToDownload);
-      if (totalAttachments > attachmentsToDownload) {
-        int number = totalAttachments - attachmentsToDownload;
-        form.setStatusString("Ignoring " + number + " form attachments (already present)");
-        log.info("Ignoring {} form attachments (already present)", number);
-      }
-      notifyTrackingEvent();
-    }
-  }
-
   private void notifyTrackingEvent() {
     onEventCallback.accept(new FormStatusEvent(form));
   }
 
-  void trackError(String error, Response response) {
-    form.setStatusString(error + ": " + response.getStatusPhrase());
-    log.error("{}: HTTP {} {}", error, response.getStatusCode(), response.getStatusPhrase());
+  void trackStart() {
+    String message = "Start pulling form and submissions";
+    form.setStatusString(message);
+    log.info("Pull {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackEnd() {
+    String message = "Completed pulling form and submissions";
+    form.setStatusString(message);
+    log.info("Pull {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
 
   void trackCancellation(String job) {
-    form.setStatusString("Operation cancelled - " + job);
-    log.warn("Operation cancelled - {}", job);
+    String message = "Operation cancelled - " + job;
+    form.setStatusString(message);
+    log.warn("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
 
-  void formAttachmentDownloaded(AggregateAttachment attachment) {
-    form.setStatusString("Downloaded form attachment " + attachment.getFilename());
-    log.info("Downloaded form attachment {}", attachment.getFilename());
+  void trackStartDownloadingForm() {
+    String message = "Start downloading form";
+    form.setStatusString(message);
+    log.info("Pull {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
 
-  void trackTotalSubmissions(int totalSubmissions) {
-    this.totalSubmissions = totalSubmissions;
-    form.setStatusString("Downloading " + totalSubmissions + " submissions");
-    log.info("Downloading {} submissions", totalSubmissions);
+  void trackErrorDownloadingForm(Response response) {
+    String message = "Error downloading form";
+    form.setStatusString(message + ": " + response.getStatusPhrase());
+    log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
     notifyTrackingEvent();
   }
 
-  void submissionAttachmentDownloaded(String instanceId, AggregateAttachment attachment) {
-    form.setStatusString("Downloaded attachment " + attachment.getFilename() + " of submission " + instanceId);
-    log.info("Downloaded attachment {} of submission {}", attachment.getFilename(), instanceId);
+  void trackEndDownloadingForm() {
+    String message = "Form downloaded";
+    form.setStatusString(message);
+    log.info("Pull {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackStartGettingSubmissionIds() {
+    String message = "Start getting submission IDs";
+    form.setStatusString(message);
+    log.info("Pull {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackEndGettingSubmissionIds() {
+    String message = "Got all the submission IDs";
+    form.setStatusString(message);
+    log.info("Pull {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackStartGettingFormManifest() {
+    String message = "Start getting form manifest";
+    form.setStatusString(message);
+    log.info("Pull {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackErrorGettingFormManifest(Response response) {
+    String message = "Error getting form manifest";
+    form.setStatusString(message + ": " + response.getStatusPhrase());
+    log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
+    notifyTrackingEvent();
+  }
+
+  void trackIgnoredFormAttachments(int attachmentsToDownload, int totalAttachments) {
+    if (attachmentsToDownload < totalAttachments) {
+      String message = "Skipping " + (totalAttachments - attachmentsToDownload) + " form attachments that have been already downloaded";
+      form.setStatusString(message);
+      log.info("Pull {} - {}", form.getFormName(), message);
+      notifyTrackingEvent();
+    }
+  }
+
+  void trackSubmissionAlreadyDownloaded(int submissionNumber, int totalSubmissions) {
+    String message = "Skipping submission " + submissionNumber + " of " + totalSubmissions + ": already downloaded";
+    form.setStatusString(message);
+    log.info("Pull {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackStartDownloadingFormAttachment(int attachmentNumber, int totalAttachments) {
+    String message = "Start downloading form attachment " + attachmentNumber + " of " + totalAttachments;
+    form.setStatusString(message);
+    log.info("Pull {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackEndDownloadingFormAttachment(int attachmentNumber, int totalAttachments) {
+    String message = "Form attachment " + attachmentNumber + " of " + totalAttachments + " downloaded";
+    form.setStatusString(message);
+    log.info("Pull {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackErrorDownloadingFormAttachment(int attachmentNumber, int totalAttachments, Response response) {
+    String message = "Error downloading form attachment " + attachmentNumber + " of " + totalAttachments;
+    form.setStatusString(message + ": " + response.getStatusPhrase());
+    log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
+    notifyTrackingEvent();
+  }
+
+  void trackStartDownloadingSubmission(int submissionNumber, int totalSubmissions) {
+    String message = "Start downloading submission " + submissionNumber + " of " + totalSubmissions;
+    form.setStatusString(message);
+    log.info("Pull {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackErrorDownloadingSubmission(int submissionNumber, int totalSubmissions, Response response) {
+    String message = "Error downloading submission " + submissionNumber + " of " + totalSubmissions;
+    form.setStatusString(message + ": " + response.getStatusPhrase());
+    log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
+    notifyTrackingEvent();
+  }
+
+  void trackEndDownloadingSubmission(int submissionNumber, int totalSubmissions) {
+    String message = "Submission " + submissionNumber + " of " + totalSubmissions + " downloaded";
+    form.setStatusString(message);
+    log.info("Pull {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackStartDownloadingSubmissionAttachment(int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
+    String message = "Start downloading attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions;
+    form.setStatusString(message);
+    log.info("Pull {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackEndDownloadingSubmissionAttachment(int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
+    String message = "Attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions + " downloaded";
+    form.setStatusString(message);
+    log.info("Pull {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackErrorDownloadingSubmissionAttachment(int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments, Response response) {
+    String message = "Error downloading attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions;
+    form.setStatusString(message + ": " + response.getStatusPhrase());
+    log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
+    notifyTrackingEvent();
+  }
+
+  void trackNoSubmissions() {
+    String message = "There are no submissions to download";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
 }

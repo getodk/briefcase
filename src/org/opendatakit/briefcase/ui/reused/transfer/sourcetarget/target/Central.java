@@ -73,7 +73,7 @@ public class Central implements PushTarget<CentralServer> {
         forms.filter(f -> !f.isEncrypted()).map(pushOp::push),
         this::onSuccess,
         this::onError
-    );
+    ).onComplete(() -> EventBus.publish(new PushEvent.Complete()));
   }
 
   private void onSuccess(FormStatus form) {

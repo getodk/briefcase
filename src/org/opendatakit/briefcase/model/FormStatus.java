@@ -98,28 +98,32 @@ public class FormStatus {
     return briefcaseDir.resolve("forms").resolve(stripIllegalChars(form.getFormName()));
   }
 
-  public Path getFormMediaDir(Path briefcaseDir) {
-    return getFormDir(briefcaseDir).resolve(stripIllegalChars(form.getFormName()) + "-media");
-  }
-
-  public Path getSubmissionDir(Path briefcaseDir, String instanceId) {
-    return getFormDir(briefcaseDir).resolve("instances").resolve(instanceId.replace(":", ""));
-  }
-
-  public Path getSubmissionMediaDir(Path briefcaseDir, String instanceId) {
-    return getSubmissionDir(briefcaseDir, instanceId);
-  }
-
   public Path getFormFile(Path briefcaseDir) {
     return getFormDir(briefcaseDir).resolve(stripIllegalChars(form.getFormName()) + ".xml");
+  }
+
+  public Path getFormMediaDir(Path briefcaseDir) {
+    return getFormDir(briefcaseDir).resolve(stripIllegalChars(form.getFormName()) + "-media");
   }
 
   public Path getFormMediaFile(Path briefcaseDir, String name) {
     return getFormMediaDir(briefcaseDir).resolve(name);
   }
 
+  public Path getSubmissionsDir(Path briefcaseDir) {
+    return getFormDir(briefcaseDir).resolve("instances");
+  }
+
+  public Path getSubmissionDir(Path briefcaseDir, String instanceId) {
+    return getSubmissionsDir(briefcaseDir).resolve(instanceId.replace(":", ""));
+  }
+
   public Path getSubmissionFile(Path briefcaseDir, String instanceId) {
     return getSubmissionDir(briefcaseDir, instanceId).resolve("submission.xml");
+  }
+
+  public Path getSubmissionMediaDir(Path briefcaseDir, String instanceId) {
+    return getSubmissionDir(briefcaseDir, instanceId);
   }
 
   public Path getSubmissionMediaFile(Path briefcaseDir, String instanceId, String filename) {

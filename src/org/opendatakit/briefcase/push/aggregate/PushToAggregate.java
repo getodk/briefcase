@@ -16,27 +16,20 @@
 
 package org.opendatakit.briefcase.push.aggregate;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.export.SubmissionParser.getListOfSubmissionFiles;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.readAllBytes;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.size;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
-import org.opendatakit.briefcase.export.DateRange;
-import org.opendatakit.briefcase.export.FormDefinition;
-import org.opendatakit.briefcase.export.SubmissionMetaData;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.response.Response;
@@ -45,7 +38,7 @@ import org.opendatakit.briefcase.reused.job.RunnerStatus;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 
 public class PushToAggregate {
-  public static final int BYTES_IN_ONE_MEGABYTE = 1_048_576;
+  private static final int BYTES_IN_ONE_MEGABYTE = 1_048_576;
   private final Http http;
   private final AggregateServer server;
   private final Path briefcaseDir;
@@ -70,55 +63,55 @@ public class PushToAggregate {
    */
   public Job<FormStatus> push(FormStatus form) {
     PushToAggregateTracker tracker = new PushToAggregateTracker(form, onEventCallback);
-    tracker.trackForceSendForm(forceSendForm);
-    return Job.supply(runnerStatus -> !forceSendForm && checkFormExists(form.getFormId(), runnerStatus, tracker))
+    return Job
+        .run(runnerStatus -> {
+          tracker.trackStart();
+          tracker.trackForceSendForm(forceSendForm);
+        })
+        .thenSupply(runnerStatus -> !forceSendForm && checkFormExists(form.getFormId(), runnerStatus, tracker))
         .thenAccept(((runnerStatus, formExists) -> {
           if (!formExists) {
             Path formFile = form.getFormFile(briefcaseDir);
             List<Path> allAttachments = getFormAttachments(form);
             if (allAttachments.isEmpty()) {
-              tracker.trackStartSendingForm(1);
-              pushFormAndAttachments(form, Collections.emptyList(), runnerStatus, tracker);
-              tracker.trackEndSendingForm();
+              pushFormAndAttachments(form, emptyList(), runnerStatus, tracker);
             } else {
-              List<List<Path>> groupsOfAttachments = createGroupsOfMaxSize(formFile, allAttachments, 10);
-              tracker.trackStartSendingForm(groupsOfAttachments.size());
-              AtomicInteger seq = new AtomicInteger(1);
-              groupsOfAttachments.forEach((List<Path> attachments) -> {
-                tracker.trackStartSendingFormPart(seq.getAndIncrement(), groupsOfAttachments.size());
-                pushFormAndAttachments(form, attachments, runnerStatus, tracker);
-                tracker.trackEndSendingFormPart(seq.get(), groupsOfAttachments.size());
-              });
-              tracker.trackEndSendingForm();
+              AtomicInteger partsSeq = new AtomicInteger(1);
+              List<List<Path>> attachmentGroups = createGroupsOfMaxSize(formFile, allAttachments, 10);
+              attachmentGroups.forEach(attachments ->
+                  pushFormAndAttachments(form, attachments, runnerStatus, tracker, partsSeq.getAndIncrement(), attachmentGroups.size())
+              );
             }
           }
         }))
         .thenSupply(__ -> getSubmissions(form))
         .thenApply((runnerStatus, submissions) -> {
-          submissions.forEach(submission -> {
-            String instanceId = submission.getInstanceId().orElseThrow(BriefcaseException::new);
-            List<Path> allAttachments = UncheckedFiles.list(form.getSubmissionDir(briefcaseDir, instanceId))
-                .filter(p -> !p.getFileName().toString().equals("submission.xml"))
-                .collect(toList());
-            Path submissionFile = form.getSubmissionFile(briefcaseDir, instanceId);
+          AtomicInteger submissionsSeq = new AtomicInteger(1);
+          int totalSubmissions = submissions.size();
+          if (submissions.isEmpty())
+            tracker.trackNoSubmissions();
+          submissions.parallelStream().forEach(submission -> {
+            List<Path> allAttachments = getSubmissionAttachments(submission);
             if (allAttachments.isEmpty()) {
-              tracker.trackStartSendingSubmission(1, instanceId);
-              pushSubmissionAndAttachments(submissionFile, instanceId, Collections.emptyList(), runnerStatus, tracker);
-              tracker.trackEndSendingSubmission(instanceId);
+              pushSubmissionAndAttachments(submission, emptyList(), runnerStatus, tracker, submissionsSeq.getAndIncrement(), totalSubmissions);
             } else {
-              List<List<Path>> groupsOfAttachments = createGroupsOfMaxSize(submissionFile, allAttachments, 10);
-              tracker.trackStartSendingSubmission(groupsOfAttachments.size(), instanceId);
-              AtomicInteger seq = new AtomicInteger(1);
-              groupsOfAttachments.forEach(attachment -> {
-                tracker.trackStartSendingSubmissionPart(seq.getAndIncrement(), groupsOfAttachments.size(), instanceId);
-                pushSubmissionAndAttachments(submissionFile, instanceId, allAttachments, runnerStatus, tracker);
-                tracker.trackEndSendingSubmissionPart(seq.get(), groupsOfAttachments.size(), instanceId);
-              });
-              tracker.trackEndSendingSubmission(instanceId);
+              AtomicInteger partsSeq = new AtomicInteger(1);
+              List<List<Path>> attachmentGroups = createGroupsOfMaxSize(submission, allAttachments, 10);
+              attachmentGroups.forEach(attachment ->
+                  pushSubmissionAndAttachments(submission, allAttachments, runnerStatus, tracker, submissionsSeq.getAndIncrement(), totalSubmissions, partsSeq.getAndIncrement(), attachmentGroups.size())
+              );
             }
           });
+          tracker.trackEnd();
           return form;
         });
+  }
+
+  private List<Path> getSubmissionAttachments(Path formFile) {
+    Path submissionDir = formFile.getParent();
+    return UncheckedFiles.list(submissionDir)
+        .filter(p -> !p.getFileName().toString().equals("submission.xml"))
+        .collect(toList());
   }
 
   static List<List<Path>> createGroupsOfMaxSize(Path baseDocument, List<Path> attachments, int sizeInMegabytes) {
@@ -149,7 +142,7 @@ public class PushToAggregate {
 
     Response<Boolean> response = http.execute(server.getFormExistsRequest(formId));
     if (!response.isSuccess()) {
-      tracker.trackError("Error checking if form exists in Aggregate", response);
+      tracker.trackErrorCheckingForm(response);
       return false;
     }
 
@@ -159,46 +152,58 @@ public class PushToAggregate {
   }
 
   void pushFormAndAttachments(FormStatus form, List<Path> attachments, RunnerStatus runnerStatus, PushToAggregateTracker tracker) {
+    pushFormAndAttachments(form, attachments, runnerStatus, tracker, 1, 1);
+  }
+
+  void pushFormAndAttachments(FormStatus form, List<Path> attachments, RunnerStatus runnerStatus, PushToAggregateTracker tracker, int part, int parts) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Push form");
       return;
     }
 
-    tracker.trackStartPushing();
-
+    tracker.trackStartSendingFormAndAttachments(part, parts);
     Response response = http.execute(server.getPushFormRequest(form.getFormFile(briefcaseDir), attachments));
-    if (!response.isSuccess())
-      tracker.trackError("Failed to push form", response);
+    if (response.isSuccess())
+      tracker.trackEndSendingFormAndAttachments(part, parts);
+    else
+      tracker.trackErrorSendingFormAndAttachments(part, parts, response);
   }
 
-  void pushSubmissionAndAttachments(Path submissionFile, String instanceId, List<Path> attachments, RunnerStatus runnerStatus, PushToAggregateTracker tracker) {
+  void pushSubmissionAndAttachments(Path submissionFile, List<Path> attachments, RunnerStatus runnerStatus, PushToAggregateTracker tracker, int submissionNumber, int totalSubmissions) {
+    pushSubmissionAndAttachments(submissionFile, attachments, runnerStatus, tracker, submissionNumber, totalSubmissions, 1, 1);
+  }
+
+  void pushSubmissionAndAttachments(Path submissionFile, List<Path> attachments, RunnerStatus runnerStatus, PushToAggregateTracker tracker, int submissionNumber, int totalSubmissions, int part, int parts) {
     if (runnerStatus.isCancelled()) {
-      tracker.trackCancellation("Push submission " + instanceId);
+      tracker.trackCancellation("Sending submissions " + submissionNumber + " of " + totalSubmissions);
       return;
     }
 
+    tracker.trackStartSendingSubmissionAndAttachments(submissionNumber, totalSubmissions, part, parts);
     Response<XmlElement> response = http.execute(server.getPushSubmissionRequest(
         submissionFile,
         attachments
     ));
-    if (!response.isSuccess())
-      tracker.trackError("Failed to push form", response);
+    if (response.isSuccess())
+      tracker.trackEndSendingSubmissionAndAttachments(submissionNumber, totalSubmissions, part, parts);
+    else
+      tracker.trackErrorSendingSubmissionAndAttachments(submissionNumber, totalSubmissions, part, parts, response);
   }
 
-  private Stream<SubmissionMetaData> getSubmissions(FormStatus form) {
-    return getListOfSubmissionFiles(FormDefinition.from(form.getFormFile(briefcaseDir)), DateRange.empty(), (path, message) -> { })
-        .stream()
-        .map(file -> {
-          String xml = new String(readAllBytes(file));
-          XmlElement from = XmlElement.from(xml);
-          return new SubmissionMetaData(from);
-        });
+  private List<Path> getSubmissions(FormStatus form) {
+    Path submissionsDir = form.getSubmissionsDir(briefcaseDir);
+    if (!UncheckedFiles.exists(submissionsDir))
+      return emptyList();
+    return UncheckedFiles.list(submissionsDir)
+        .filter(UncheckedFiles::isInstanceDir)
+        .map(submissionDir -> submissionDir.resolve("submission.xml"))
+        .collect(toList());
   }
 
   private List<Path> getFormAttachments(FormStatus form) {
     Path formMediaDir = form.getFormMediaDir(briefcaseDir);
     return Files.exists(formMediaDir)
         ? list(formMediaDir).filter(Files::isRegularFile).collect(toList())
-        : Collections.emptyList();
+        : emptyList();
   }
 }
