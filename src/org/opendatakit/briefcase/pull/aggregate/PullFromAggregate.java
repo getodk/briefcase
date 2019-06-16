@@ -199,6 +199,7 @@ public class PullFromAggregate {
     List<AggregateAttachment> attachmentsToDownload = attachments.stream()
         .filter(mediaFile -> mediaFile.needsUpdate(form.getFormMediaDir(briefcaseDir)))
         .collect(toList());
+    tracker.trackEndGettingFormManifest();
     tracker.trackIgnoredFormAttachments(attachmentsToDownload.size(), attachments.size());
     return attachmentsToDownload;
   }

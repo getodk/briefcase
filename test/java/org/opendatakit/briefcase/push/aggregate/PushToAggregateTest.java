@@ -144,7 +144,7 @@ public class PushToAggregateTest {
         ok("<root/>")
     );
 
-    pushOp.pushSubmissionAndAttachments(formStatus.getSubmissionFile(briefcaseDir, instanceId), instanceId, singletonList(submissionAttachment), runnerStatus, tracker);
+    pushOp.pushSubmissionAndAttachments(formStatus.getSubmissionFile(briefcaseDir, instanceId), singletonList(submissionAttachment), runnerStatus, tracker, 1, 1, 1, 1);
 
     assertThat(requestSpy, allOf(
         hasBeenCalled(),
@@ -166,9 +166,13 @@ public class PushToAggregateTest {
     launchSync(pushOp.push(formStatus));
 
     assertThat(events, allOf(
+        hasItem("Start pushing form and submissions"),
         hasItem("Form doesn't exist in Aggregate"),
-        hasItem("Pushed form with 1 attachments"),
-        hasItem("Pushed submission uuid:520e7b86-1572-45b1-a89e-7da26ad1624e with 1 attachments")
+        hasItem("Sending form"),
+        hasItem("Form sent"),
+        hasItem("Sending submission 1 of 1"),
+        hasItem("Submission 1 of 1 sent"),
+        hasItem("Completed pushing form and submissions")
     ));
   }
 
@@ -184,9 +188,13 @@ public class PushToAggregateTest {
     launchSync(pushOp.push(formStatus));
 
     assertThat(events, allOf(
+        hasItem("Start pushing form and submissions"),
+        not(hasItem("Sending form")),
+        not(hasItem("Form sent")),
         hasItem("Form already exists in Aggregate"),
-        not(hasItem("Pushed form with 1 attachments")),
-        hasItem("Pushed submission uuid:520e7b86-1572-45b1-a89e-7da26ad1624e with 1 attachments")
+        hasItem("Sending submission 1 of 1"),
+        hasItem("Submission 1 of 1 sent"),
+        hasItem("Completed pushing form and submissions")
     ));
   }
 
@@ -202,9 +210,11 @@ public class PushToAggregateTest {
     launchSync(pushOp.push(formStatus));
 
     assertThat(events, allOf(
-        hasItem("Forcing push of form and attachments"),
-        hasItem("Pushed form with 1 attachments"),
-        hasItem("Pushed submission uuid:520e7b86-1572-45b1-a89e-7da26ad1624e with 1 attachments")
+        hasItem("Forcing push of form"),
+        hasItem("Sending form"),
+        hasItem("Form sent"),
+        hasItem("Sending submission 1 of 1"),
+        hasItem("Submission 1 of 1 sent")
     ));
   }
 

@@ -45,7 +45,6 @@ import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.ui.pull.PullPanel;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;

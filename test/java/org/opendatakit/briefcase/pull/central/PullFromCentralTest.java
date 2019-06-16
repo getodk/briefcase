@@ -18,7 +18,6 @@ package org.opendatakit.briefcase.pull.central;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
@@ -37,6 +36,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.After;
@@ -119,7 +119,10 @@ public class PullFromCentralTest {
 
     String actualXml = new String(readAllBytes(actualFormFile));
     assertThat(actualXml, is(expectedContent));
-    assertThat(events, contains("Downloaded form some-form"));
+    assertThat(events, contains(
+        "Start downloading form",
+        "Form downloaded"
+    ));
   }
 
   @Test
@@ -128,16 +131,18 @@ public class PullFromCentralTest {
     String expectedSubmissionXml = buildSubmissionXml(instanceId);
     Path submissionFile = form.getSubmissionFile(briefcaseDir, instanceId);
     http.stub(server.getDownloadSubmissionRequest(form.getFormId(), instanceId, submissionFile, token), ok(expectedSubmissionXml));
-    tracker.trackTotalSubmissions(1);
 
-    pullOp.downloadSubmission(form, instanceId, token, runnerStatus, tracker);
+    pullOp.downloadSubmission(form, instanceId, token, runnerStatus, tracker, 1, 1);
 
     String actualSubmissionXml = new String(readAllBytes(submissionFile));
     assertThat(submissionFile, exists());
     assertThat(actualSubmissionXml, is(expectedSubmissionXml));
     // There's actually another event from the call to tracker.trackTotalSubmissions(1) in this test.
     // Since we don't really care about it, we use Matchers.hasItem() instead of Matchers.contains()
-    assertThat(events, hasItem("Downloaded submission 1 of 1"));
+    assertThat(events, contains(
+        "Start downloading submission 1 of 1",
+        "Submission 1 of 1 downloaded"
+    ));
   }
 
   @Test
@@ -153,7 +158,10 @@ public class PullFromCentralTest {
     for (CentralAttachment attachment : expectedAttachments)
       assertThat(actualAttachments, hasItem(attachment));
 
-    assertThat(events, contains("Downloading 3 form attachments"));
+    assertThat(events, contains(
+        "Start getting form attachments",
+        "Got all form attachments"
+    ));
   }
 
   @Test
@@ -165,14 +173,18 @@ public class PullFromCentralTest {
         ok("some body")
     ));
 
-    attachments.forEach(attachment -> pullOp.downloadFormAttachment(form, attachment, token, runnerStatus, tracker));
+    AtomicInteger seq = new AtomicInteger(1);
+    attachments.forEach(attachment -> pullOp.downloadFormAttachment(form, attachment, token, runnerStatus, tracker, seq.getAndIncrement(), 3));
 
     attachments.forEach(attachment -> assertThat(form.getFormMediaFile(briefcaseDir, attachment.getName()), exists()));
 
-    assertThat(events, allOf(
-        hasItem("Downloaded form attachment some-file-0.txt"),
-        hasItem("Downloaded form attachment some-file-1.txt"),
-        hasItem("Downloaded form attachment some-file-2.txt")
+    assertThat(events, contains(
+        "Start downloading form attachment 1 of 3",
+        "Form attachment 1 of 3 downloaded",
+        "Start downloading form attachment 2 of 3",
+        "Form attachment 2 of 3 downloaded",
+        "Start downloading form attachment 3 of 3",
+        "Form attachment 3 of 3 downloaded"
     ));
   }
 
@@ -185,12 +197,15 @@ public class PullFromCentralTest {
         server.getInstanceIdListRequest(form.getFormId(), token),
         ok(jsonOfSubmissions(expectedInstanceIds))
     );
-    List<String> actualInstanceIds = pullOp.getSubmissions(form, token, runnerStatus, tracker);
+    List<String> actualInstanceIds = pullOp.getSubmissionIds(form, token, runnerStatus, tracker);
     assertThat(actualInstanceIds, hasSize(expectedInstanceIds.size()));
     for (String instanceId : actualInstanceIds)
       assertThat(expectedInstanceIds, hasItem(instanceId));
 
-    assertThat(events, contains("Downloading 250 submissions"));
+    assertThat(events, contains(
+        "Start getting submission IDs",
+        "Got all the submission IDs"
+    ));
   }
 
   @Test
@@ -202,12 +217,15 @@ public class PullFromCentralTest {
         ok(jsonOfAttachments(expectedAttachments))
     );
 
-    List<CentralAttachment> actualAttachments = pullOp.getSubmissionAttachments(form, instanceId, token, runnerStatus, tracker);
+    List<CentralAttachment> actualAttachments = pullOp.getSubmissionAttachments(form, instanceId, token, runnerStatus, tracker, 1, 1);
     assertThat(actualAttachments, hasSize(expectedAttachments.size()));
     for (CentralAttachment attachment : actualAttachments)
       assertThat(expectedAttachments, hasItem(attachment));
 
-    assertThat(events, contains("Downloading 3 attachments of submission " + instanceId));
+    assertThat(events, contains(
+        "Start getting attachments of submission 1 of 1",
+        "Got all the attachments of submission 1 of 1"
+    ));
   }
 
   @Test
@@ -217,14 +235,18 @@ public class PullFromCentralTest {
 
     expectedAttachments.forEach(attachment -> http.stub(server.getDownloadSubmissionAttachmentRequest(form.getFormId(), instanceId, attachment, form.getSubmissionMediaFile(briefcaseDir, instanceId, attachment.getName()), token), ok("some body")));
 
-    expectedAttachments.forEach(attachment -> pullOp.downloadSubmissionAttachment(form, instanceId, attachment, token, runnerStatus, tracker));
+    AtomicInteger seq = new AtomicInteger(1);
+    expectedAttachments.forEach(attachment -> pullOp.downloadSubmissionAttachment(form, instanceId, attachment, token, runnerStatus, tracker, 1, 1, seq.getAndIncrement(), 3));
 
     expectedAttachments.forEach(attachment -> assertThat(form.getSubmissionMediaFile(briefcaseDir, instanceId, attachment.getName()), exists()));
 
-    assertThat(events, allOf(
-        hasItem("Downloaded attachment some-file-0.txt of submission some instance id"),
-        hasItem("Downloaded attachment some-file-1.txt of submission some instance id"),
-        hasItem("Downloaded attachment some-file-2.txt of submission some instance id")
+    assertThat(events, contains(
+        "Start downloading attachment 1 of 3 of submission 1 of 1",
+        "Attachment 1 of 3 of submission 1 of 1 downloaded",
+        "Start downloading attachment 2 of 3 of submission 1 of 1",
+        "Attachment 2 of 3 of submission 1 of 1 downloaded",
+        "Start downloading attachment 3 of 3 of submission 1 of 1",
+        "Attachment 3 of 3 of submission 1 of 1 downloaded"
     ));
   }
 }

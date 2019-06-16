@@ -133,7 +133,7 @@ public class PushToCentralTest {
     // Low-level test that drives an individual step of the push operation
     RequestSpy<?> requestSpy = http.spyOn(server.getPushFormAttachmentRequest(formStatus.getFormId(), formAttachment, token), ok("{}"));
 
-    pushOp.pushFormAttachment(formStatus.getFormId(), formAttachment, runnerStatus, tracker);
+    pushOp.pushFormAttachment(formStatus.getFormId(), formAttachment, runnerStatus, tracker, 1, 1);
 
     assertThat(requestSpy, allOf(hasBeenCalled(), not(isMultipart()), hasBody(readAllBytes(formAttachment))));
   }
@@ -143,7 +143,7 @@ public class PushToCentralTest {
     // Low-level test that drives an individual step of the push operation
     RequestSpy<?> requestSpy = http.spyOn(server.getPushSubmissionRequest(token, formStatus.getFormId(), submission), ok("{}"));
 
-    pushOp.pushSubmission(formStatus.getFormId(), instanceId, submission, runnerStatus, tracker);
+    pushOp.pushSubmission(formStatus.getFormId(), submission, runnerStatus, tracker, 1, 1);
 
     assertThat(requestSpy, allOf(hasBeenCalled(), not(isMultipart()), hasBody(readAllBytes(submission))));
   }
@@ -156,7 +156,7 @@ public class PushToCentralTest {
         ok("{}")
     );
 
-    pushOp.pushSubmissionAttachment(formStatus.getFormId(), instanceId, submissionAttachment, runnerStatus, tracker);
+    pushOp.pushSubmissionAttachment(formStatus.getFormId(), instanceId, submissionAttachment, runnerStatus, tracker, 1, 1, 1, 1);
 
     assertThat(requestSpy, allOf(hasBeenCalled(), not(isMultipart())));
   }
@@ -174,11 +174,15 @@ public class PushToCentralTest {
     launchSync(pushOp.push(formStatus));
 
     assertThat(events, allOf(
-        hasItem("Form doesn't exist in Central"),
-        hasItem("Pushed form"),
-        hasItem("Pushed form attachment sparrow.png"),
-        hasItem("Pushed submission uuid:520e7b86-1572-45b1-a89e-7da26ad1624e"),
-        hasItem("Pushed attachment 1556532531101.jpg of submission uuid:520e7b86-1572-45b1-a89e-7da26ad1624e")
+        hasItem("Sending form"),
+        hasItem("Form sent"),
+        hasItem("Sending form attachment 1 of 1"),
+        hasItem("Form attachment 1 of 1 sent"),
+        hasItem("Sending submission 1 of 1"),
+        hasItem("Submission 1 of 1 sent"),
+        hasItem("Sending attachment 1 of 1 of submission 1 of 1"),
+        hasItem("Attachment 1 of 1 of submission 1 of 1 sent"),
+        hasItem("Completed pushing form and submissions")
     ));
   }
 
@@ -194,11 +198,17 @@ public class PushToCentralTest {
     launchSync(pushOp.push(formStatus));
 
     assertThat(events, allOf(
-        hasItem("Form already exists in Central"),
-        not(hasItem("Pushed form")),
-        not(hasItem("Pushed form attachment sparrow.png")),
-        hasItem("Pushed submission uuid:520e7b86-1572-45b1-a89e-7da26ad1624e"),
-        hasItem("Pushed attachment 1556532531101.jpg of submission uuid:520e7b86-1572-45b1-a89e-7da26ad1624e")
+        hasItem("Start pushing form and submissions"),
+        hasItem("Skipping form: already exists"),
+        not(hasItem("Sending form")),
+        not(hasItem("Form sent")),
+        not(hasItem("Sending form attachment 1 of 1")),
+        not(hasItem("Form attachment 1 of 1 sent")),
+        hasItem("Sending submission 1 of 1"),
+        hasItem("Submission 1 of 1 sent"),
+        hasItem("Sending attachment 1 of 1 of submission 1 of 1"),
+        hasItem("Attachment 1 of 1 of submission 1 of 1 sent"),
+        hasItem("Completed pushing form and submissions")
     ));
   }
 

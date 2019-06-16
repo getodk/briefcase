@@ -141,6 +141,7 @@ public class PullFromCentral {
 
     List<CentralAttachment> attachments = response.get();
     List<CentralAttachment> existingAttachments = attachments.stream().filter(CentralAttachment::exists).collect(toList());
+    tracker.trackEndGettingFormAttachments();
     tracker.trackNonExistingFormAttachments(existingAttachments.size(), attachments.size());
     return existingAttachments;
   }

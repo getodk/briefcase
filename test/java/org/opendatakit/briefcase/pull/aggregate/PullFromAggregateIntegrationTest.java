@@ -134,14 +134,20 @@ public class PullFromAggregateIntegrationTest {
     // Run the pull operation and just check that some key events are published
     running(server, () -> launchSync(pullOp.pull(form, Optional.empty())));
 
-    assertThat(form.getStatusHistory(), containsString("Downloaded form some-form"));
-    assertThat(form.getStatusHistory(), containsString("Downloading 2 form attachments"));
-    assertThat(form.getStatusHistory(), containsString("Downloaded form attachment some-file-0.txt"));
-    assertThat(form.getStatusHistory(), containsString("Downloaded form attachment some-file-1.txt"));
-    assertThat(form.getStatusHistory(), containsString("Downloading 250 submissions"));
-    assertThat(form.getStatusHistory(), containsString("Downloaded submission 250 of 250"));
-    assertThat(form.getStatusHistory(), containsString("Downloaded attachment some-file-0.txt of submission some sequential uid 250"));
-    assertThat(form.getStatusHistory(), containsString("Downloaded attachment some-file-1.txt of submission some sequential uid 250"));
+    assertThat(form.getStatusHistory(), containsString("Form downloaded"));
+    assertThat(form.getStatusHistory(), containsString("Start downloading form attachment 1 of 2"));
+    assertThat(form.getStatusHistory(), containsString("Start downloading form attachment 2 of 2"));
+    assertThat(form.getStatusHistory(), containsString("Form attachment 1 of 2 downloaded"));
+    assertThat(form.getStatusHistory(), containsString("Form attachment 2 of 2 downloaded"));
+    assertThat(form.getStatusHistory(), containsString("Start downloading submission 1 of 250"));
+    assertThat(form.getStatusHistory(), containsString("Submission 1 of 250 downloaded"));
+    assertThat(form.getStatusHistory(), containsString("Attachment 1 of 2 of submission 1 of 250 downloaded"));
+    assertThat(form.getStatusHistory(), containsString("Attachment 2 of 2 of submission 1 of 250 downloaded"));
+    assertThat(form.getStatusHistory(), containsString("Start downloading submission 250 of 250"));
+    assertThat(form.getStatusHistory(), containsString("Submission 250 of 250 downloaded"));
+    assertThat(form.getStatusHistory(), containsString("Attachment 1 of 2 of submission 250 of 250 downloaded"));
+    assertThat(form.getStatusHistory(), containsString("Attachment 2 of 2 of submission 250 of 250 downloaded"));
+    assertThat(form.getStatusHistory(), containsString("Completed pulling form and submissions"));
   }
 
   @Test
@@ -156,7 +162,7 @@ public class PullFromAggregateIntegrationTest {
         ));
 
     running(server, () -> {
-      List<InstanceIdBatch> submissionBatches = pullOp.getSubmissions(form, Cursor.empty(), runnerStatus, tracker);
+      List<InstanceIdBatch> submissionBatches = pullOp.getSubmissionIds(form, Cursor.empty(), runnerStatus, tracker);
       int total = submissionBatches.stream().map(InstanceIdBatch::count).reduce(0, Integer::sum);
       assertThat(submissionBatches, hasSize(4));
       assertThat(total, is(250));
@@ -175,7 +181,7 @@ public class PullFromAggregateIntegrationTest {
         ));
 
     running(server, () -> {
-      List<InstanceIdBatch> submissions = pullOp.getSubmissions(form, Cursor.empty(), runnerStatus, tracker);
+      List<InstanceIdBatch> submissions = pullOp.getSubmissionIds(form, Cursor.empty(), runnerStatus, tracker);
       Cursor lastCursor = PullFromAggregate.getLastCursor(submissions).orElse(Cursor.empty());
       assertThat(lastCursor, is(pages.get(3).getRight()));
     });

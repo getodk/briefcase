@@ -108,6 +108,13 @@ class PullFromCentralTracker {
     notifyTrackingEvent();
   }
 
+  void trackEndGettingFormAttachments() {
+    String message = "Got all form attachments";
+    form.setStatusString(message);
+    log.info("Pull {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
   void trackErrorGettingFormAttachments(Response response) {
     String message = "Error getting form attachments";
     form.setStatusString(message + ": " + response.getStatusPhrase());

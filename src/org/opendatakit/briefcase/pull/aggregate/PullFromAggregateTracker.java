@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.pull.aggregate;
 
-import java.util.List;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
@@ -96,6 +95,13 @@ class PullFromAggregateTracker {
 
   void trackStartGettingFormManifest() {
     String message = "Start getting form manifest";
+    form.setStatusString(message);
+    log.info("Pull {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackEndGettingFormManifest() {
+    String message = "Got the form manifest";
     form.setStatusString(message);
     log.info("Pull {} - {}", form.getFormName(), message);
     notifyTrackingEvent();

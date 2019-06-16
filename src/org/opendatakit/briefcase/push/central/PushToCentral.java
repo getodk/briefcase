@@ -157,7 +157,8 @@ public class PushToCentral {
     }
 
     boolean exists = response.get();
-    tracker.trackFormAlreadyExists(exists);
+    if (exists)
+      tracker.trackFormAlreadyExists();
     return exists;
   }
 

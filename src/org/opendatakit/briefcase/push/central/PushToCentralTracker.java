@@ -71,13 +71,6 @@ class PushToCentralTracker {
     notifyTrackingEvent();
   }
 
-  void trackFormAlreadyExists(boolean exists) {
-    String message = exists ? "Form already exists in Central" : "Form doesn't exist in Central";
-    form.setStatusString(message);
-    log.info(message);
-    notifyTrackingEvent();
-  }
-
   void trackEncryptedForm() {
     String message = "Encrypted form - Can't push to Central";
     form.setStatusString(message);

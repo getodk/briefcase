@@ -144,13 +144,27 @@ public class PullFromCentralIntegrationTest {
     // Run the pull operation and just check that some key events are published
     running(server, () -> launchSync(pullOp.pull(form)));
 
-    assertThat(form.getStatusHistory(), containsString("Downloaded form some-form"));
-    assertThat(form.getStatusHistory(), containsString("Downloading 2 form attachments"));
-    assertThat(form.getStatusHistory(), containsString("Downloaded form attachment some-file-0.txt"));
-    assertThat(form.getStatusHistory(), containsString("Downloaded form attachment some-file-1.txt"));
-    assertThat(form.getStatusHistory(), containsString("Downloading 250 submissions"));
-    assertThat(form.getStatusHistory(), containsString("Downloaded submission 250 of 250"));
-    assertThat(form.getStatusHistory(), containsString("Downloaded attachment some-file-0.txt of submission some_sequential_instance_id_250"));
-    assertThat(form.getStatusHistory(), containsString("Downloaded attachment some-file-1.txt of submission some_sequential_instance_id_250"));
+    assertThat(form.getStatusHistory(), containsString("Start pulling form and submissions"));
+    assertThat(form.getStatusHistory(), containsString("Start getting submission IDs"));
+    assertThat(form.getStatusHistory(), containsString("Got all the submission IDs"));
+    assertThat(form.getStatusHistory(), containsString("Start downloading form"));
+    assertThat(form.getStatusHistory(), containsString("Form downloaded"));
+    assertThat(form.getStatusHistory(), containsString("Start getting form attachments"));
+    assertThat(form.getStatusHistory(), containsString("Start downloading form attachment 2 of 2"));
+    assertThat(form.getStatusHistory(), containsString("Start downloading form attachment 1 of 2"));
+    assertThat(form.getStatusHistory(), containsString("Form attachment 1 of 2 downloaded"));
+    assertThat(form.getStatusHistory(), containsString("Form attachment 2 of 2 downloaded"));
+    assertThat(form.getStatusHistory(), containsString("Start downloading submission 1 of 250"));
+    assertThat(form.getStatusHistory(), containsString("Submission 1 of 250 downloaded"));
+    assertThat(form.getStatusHistory(), containsString("Start getting attachments of submission 1 of 250"));
+    assertThat(form.getStatusHistory(), containsString("Got all the attachments of submission 1 of 250"));
+    assertThat(form.getStatusHistory(), containsString("Start downloading submission 250 of 250"));
+    assertThat(form.getStatusHistory(), containsString("Submission 250 of 250 downloaded"));
+    assertThat(form.getStatusHistory(), containsString("Start getting attachments of submission 250 of 250"));
+    assertThat(form.getStatusHistory(), containsString("Got all the attachments of submission 250 of 250"));
+    assertThat(form.getStatusHistory(), containsString("Start downloading attachment 1 of 2 of submission 250 of 250"));
+    assertThat(form.getStatusHistory(), containsString("Attachment 1 of 2 of submission 250 of 250 downloaded"));
+    assertThat(form.getStatusHistory(), containsString("Start downloading attachment 2 of 2 of submission 250 of 250"));
+    assertThat(form.getStatusHistory(), containsString("Attachment 2 of 2 of submission 250 of 250 downloaded"));
   }
 }

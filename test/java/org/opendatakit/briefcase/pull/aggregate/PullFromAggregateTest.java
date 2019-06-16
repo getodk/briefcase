@@ -17,7 +17,6 @@
 package org.opendatakit.briefcase.pull.aggregate;
 
 import static java.nio.file.Files.readAllBytes;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
@@ -42,6 +41,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -94,7 +94,10 @@ public class PullFromAggregateTest {
 
     String actualXml = new String(readAllBytes(actualFormFile));
     assertThat(actualXml, is(expectedContent));
-    assertThat(events, contains("Downloaded form some-form"));
+    assertThat(events, contains(
+        "Start downloading form",
+        "Form downloaded"
+    ));
   }
 
   @Test
@@ -110,7 +113,10 @@ public class PullFromAggregateTest {
     for (AggregateAttachment attachment : expectedAttachments)
       assertThat(actualAttachments, hasItem(attachment));
 
-    assertThat(events, contains("Downloading 3 form attachments"));
+    assertThat(events, contains(
+        "Start getting form manifest",
+        "Got the form manifest"
+    ));
   }
 
   @Test
@@ -119,14 +125,18 @@ public class PullFromAggregateTest {
 
     attachments.forEach(attachment -> http.stub(get(attachment.getDownloadUrl()).build(), ok("some body")));
 
-    attachments.forEach(attachment -> pullOp.downloadFormAttachment(form, attachment, runnerStatus, tracker));
+    AtomicInteger seq = new AtomicInteger(1);
+    attachments.forEach(attachment -> pullOp.downloadFormAttachment(form, attachment, runnerStatus, tracker, seq.getAndIncrement(), 3));
 
     attachments.forEach(attachment -> assertThat(form.getFormMediaFile(briefcaseDir, attachment.getFilename()), PathMatchers.exists()));
 
-    assertThat(events, allOf(
-        hasItem("Downloaded form attachment some-file-0.txt"),
-        hasItem("Downloaded form attachment some-file-1.txt"),
-        hasItem("Downloaded form attachment some-file-2.txt")
+    assertThat(events, contains(
+        "Start downloading form attachment 1 of 3",
+        "Form attachment 1 of 3 downloaded",
+        "Start downloading form attachment 2 of 3",
+        "Form attachment 2 of 3 downloaded",
+        "Start downloading form attachment 3 of 3",
+        "Form attachment 3 of 3 downloaded"
     ));
   }
 
@@ -137,9 +147,8 @@ public class PullFromAggregateTest {
     SubmissionKeyGenerator subKeyGen = SubmissionKeyGenerator.from(buildBlankFormXml("some-form", "2010010101", "instance-name"));
     String key = subKeyGen.buildKey(instanceId);
     http.stub(server.getDownloadSubmissionRequest(key), ok(expectedContent));
-    tracker.trackTotalSubmissions(1);
 
-    DownloadedSubmission actualSubmission = pullOp.downloadSubmission(form, instanceId, subKeyGen, runnerStatus, tracker);
+    DownloadedSubmission actualSubmission = pullOp.downloadSubmission(form, instanceId, subKeyGen, runnerStatus, tracker, 1, 1);
 
     assertThat(form.getSubmissionFile(briefcaseDir, actualSubmission.getInstanceId()), PathMatchers.exists());
     // There's no easy way to assert the submission's contents because the document we stub
@@ -155,7 +164,10 @@ public class PullFromAggregateTest {
         "    </some-form>"));
     // There's actually another event from the call to tracker.trackTotalSubmissions(1) in this test.
     // Since we don't really care about it, we use Matchers.hasItem() instead of Matchers.contains()
-    assertThat(events, hasItem("Downloaded submission 1 of 1"));
+    assertThat(events, contains(
+        "Start downloading submission 1 of 1",
+        "Submission 1 of 1 downloaded"
+    ));
   }
 
   @Test
@@ -166,14 +178,18 @@ public class PullFromAggregateTest {
 
     attachments.forEach(attachment -> http.stub(get(attachment.getDownloadUrl()).build(), ok("some body")));
 
-    attachments.forEach(attachment -> pullOp.downloadSubmissionAttachment(form, submission, attachment, runnerStatus, tracker));
+    AtomicInteger seq = new AtomicInteger(1);
+    attachments.forEach(attachment -> pullOp.downloadSubmissionAttachment(form, submission, attachment, runnerStatus, tracker, 1, 1, seq.getAndIncrement(), 3));
 
     attachments.forEach(attachment -> assertThat(form.getSubmissionMediaFile(briefcaseDir, instanceId, attachment.getFilename()), PathMatchers.exists()));
 
-    assertThat(events, allOf(
-        hasItem("Downloaded attachment some-file-0.txt of submission some instance id"),
-        hasItem("Downloaded attachment some-file-1.txt of submission some instance id"),
-        hasItem("Downloaded attachment some-file-2.txt of submission some instance id")
+    assertThat(events, contains(
+        "Start downloading attachment 1 of 3 of submission 1 of 1",
+        "Attachment 1 of 3 of submission 1 of 1 downloaded",
+        "Start downloading attachment 2 of 3 of submission 1 of 1",
+        "Attachment 2 of 3 of submission 1 of 1 downloaded",
+        "Start downloading attachment 3 of 3 of submission 1 of 1",
+        "Attachment 3 of 3 of submission 1 of 1 downloaded"
     ));
   }
 
@@ -200,7 +216,7 @@ public class PullFromAggregateTest {
         ok(pages.get(1).getLeft())
     );
 
-    pullOp.getSubmissions(form, cursor, runnerStatus, tracker);
+    pullOp.getSubmissionIds(form, cursor, runnerStatus, tracker);
     assertThat(request1Spy, not(hasBeenCalled()));
     assertThat(request2Spy, hasBeenCalled());
   }
