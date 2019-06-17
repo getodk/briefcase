@@ -252,7 +252,7 @@ public class CentralServerDialogForm extends JDialog {
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(spacer5, gbc);
     final JLabel label2 = new JLabel();
-    label2.setText("Username");
+    label2.setText("Email");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 3;
@@ -330,8 +330,6 @@ public class CentralServerDialogForm extends JDialog {
   /**
    * @noinspection ALL
    */
-  public JComponent $$$getRootComponent$$$() {
-    return dialog;
-  }
+  public JComponent $$$getRootComponent$$$() { return dialog; }
 
 }

@@ -118,7 +118,7 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
             <properties>
-              <text value="Username"/>
+              <text value="Email"/>
             </properties>
           </component>
           <hspacer id="ffb4c">
