@@ -330,6 +330,8 @@ public class CentralServerDialogForm extends JDialog {
   /**
    * @noinspection ALL
    */
-  public JComponent $$$getRootComponent$$$() { return dialog; }
+  public JComponent $$$getRootComponent$$$() {
+    return dialog;
+  }
 
 }

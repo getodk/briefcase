@@ -25,7 +25,6 @@ import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTION
 
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
