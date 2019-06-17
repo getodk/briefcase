@@ -46,7 +46,7 @@ class PushToAggregateTracker {
   }
 
   void trackEnd() {
-    String message = errored ? "Complete with errors" : "Complete";
+    String message = errored ? "Success with errors" : "Success";
     form.setStatusString(message);
     log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();

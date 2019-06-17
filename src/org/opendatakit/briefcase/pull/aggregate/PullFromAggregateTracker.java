@@ -46,7 +46,7 @@ class PullFromAggregateTracker {
   }
 
   void trackEnd() {
-    String message = errored ? "Complete with errors" : "Complete";
+    String message = errored ? "Success with errors" : "Success";
     form.setStatusString(message);
     log.info("Pull {} - {}", form.getFormName(), message);
     notifyTrackingEvent();

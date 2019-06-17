@@ -104,7 +104,9 @@ public class PushFormToAggregate {
         __ -> { },
         PushFormToAggregate::onError
     ).waitForCompletion();
-    System.out.println("All forms have been pushed");
+    System.out.println();
+    System.out.println("All operations completed");
+    System.out.println();
   }
 
   private static void onEvent(FormStatusEvent event) {
@@ -113,7 +115,7 @@ public class PushFormToAggregate {
   }
 
   private static void onError(Throwable e) {
-    System.err.println("Error pulling a form: " + e.getMessage() + " (see the logs for more info)");
+    System.err.println("Error pushing a form: " + e.getMessage() + " (see the logs for more info)");
     log.error("Error pushing a form", e);
   }
 

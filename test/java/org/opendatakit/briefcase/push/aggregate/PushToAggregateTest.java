@@ -172,7 +172,7 @@ public class PushToAggregateTest {
         hasItem("Form sent"),
         hasItem("Sending submission 1 of 1"),
         hasItem("Submission 1 of 1 sent"),
-        hasItem("Complete")
+        hasItem("Success")
     ));
   }
 
@@ -194,7 +194,7 @@ public class PushToAggregateTest {
         hasItem("Form already exists in Aggregate"),
         hasItem("Sending submission 1 of 1"),
         hasItem("Submission 1 of 1 sent"),
-        hasItem("Complete")
+        hasItem("Success")
     ));
   }
 

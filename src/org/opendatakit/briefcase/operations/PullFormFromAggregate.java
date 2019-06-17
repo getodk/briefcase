@@ -34,7 +34,6 @@ import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
-import org.opendatakit.briefcase.pull.aggregate.PullFromAggregateResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
@@ -126,15 +125,12 @@ public class PullFormFromAggregate {
             startFromDate.map(Cursor::of),
             resumeLastPull ? Cursor.readPrefs(form, appPreferences) : Optional.empty())
         )),
-        PullFormFromAggregate::onSuccess,
+        __ -> { },
         PullFormFromAggregate::onError
     ).waitForCompletion();
     System.out.println();
-    System.out.println("All forms have been pulled");
-  }
-
-  private static void onSuccess(PullFromAggregateResult result) {
-    System.out.println("Successfully pulled " + result.getForm().getFormName());
+    System.out.println("All operations completed");
+    System.out.println();
   }
 
   private static void onEvent(FormStatusEvent event) {
