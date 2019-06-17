@@ -23,11 +23,12 @@ import java.util.HashMap;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportForms;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 
 public class ExportFormsTableUnitTest {
   @Test
   public void can_select_all_forms() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>());
     TestExportFormsTableViewModel viewModel = new TestExportFormsTableViewModel(forms);
     ExportFormsTable formsTable = new ExportFormsTable(forms, new TestExportFormsTableView(viewModel), viewModel);
 
@@ -40,7 +41,7 @@ public class ExportFormsTableUnitTest {
 
   @Test
   public void can_clear_selection_of_forms() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+    ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>());
     TestExportFormsTableViewModel viewModel = new TestExportFormsTableViewModel(forms);
     ExportFormsTable formsTable = new ExportFormsTable(forms, new TestExportFormsTableView(viewModel), viewModel);
     formsTable.selectAll();
@@ -58,7 +59,7 @@ public class ExportFormsTableUnitTest {
 
   private class TestExportFormsTableViewModel extends ExportFormsTableViewModel {
     TestExportFormsTableViewModel(ExportForms forms) {
-      super(forms);
+      super(forms, BriefcasePreferences.appScoped());
     }
   }
 }

@@ -53,7 +53,7 @@ public class ExportPanelUnitTest {
     initialDefaultConf = empty().build();
     BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
-    ExportForms forms = load(initialDefaultConf, new ArrayList<>(), exportPreferences, appPreferences);
+    ExportForms forms = load(initialDefaultConf, new ArrayList<>(), exportPreferences);
     ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, appPreferences, initialDefaultConf);
     new ExportPanel(
         forms,
@@ -76,7 +76,7 @@ public class ExportPanelUnitTest {
     BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     List<FormStatus> formsList = FormStatusBuilder.buildFormStatusList(10);
     initialDefaultConf = empty().build();
-    ExportForms forms = load(initialDefaultConf, formsList, exportPreferences, appPreferences);
+    ExportForms forms = load(initialDefaultConf, formsList, exportPreferences);
     ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, appPreferences, initialDefaultConf);
     new ExportPanel(
         forms,
@@ -107,7 +107,7 @@ public class ExportPanelUnitTest {
     BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     List<FormStatus> formsList = FormStatusBuilder.buildFormStatusList(10);
     initialDefaultConf = empty().build();
-    ExportForms forms = load(initialDefaultConf, formsList, exportPreferences, appPreferences);
+    ExportForms forms = load(initialDefaultConf, formsList, exportPreferences);
     new ExportPanel(
         forms,
         ExportPanelForm.from(forms, appPreferences, initialDefaultConf),

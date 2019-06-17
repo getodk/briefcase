@@ -39,6 +39,20 @@ public interface RemoteServer {
   }
 
   /**
+   * Searches for keys used to store the last used pull source for
+   * a form to support the "pull before export" feature and returns
+   * a non-empty value when they're found.
+   */
+  static <T extends RemoteServer> Optional<T> readPullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form) {
+    // Hacky way to get the correct subtype. Basically, try to de-serialize saved prefs
+    // until one of the de-serializers successfully manages to get an instance
+    return Optionals.race(
+        AggregateServer.readPullBeforeExportPrefs(prefs, form).map(o -> (T) o),
+        CentralServer.readPullBeforeExportPrefs(prefs, form).map(o -> (T) o)
+    );
+  }
+
+  /**
    * Returns true if the given key is a prefs key managed by this class hierarchy.
    * <p>
    * Includes keys used to store the last configured source in the Pull & Push

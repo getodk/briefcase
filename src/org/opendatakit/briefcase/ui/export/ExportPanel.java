@@ -40,9 +40,6 @@ import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.SavePasswordsConsentGiven;
-import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
-import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregateResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -51,6 +48,7 @@ import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
+import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
@@ -157,7 +155,7 @@ public class ExportPanel {
 
   public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http) {
     ExportConfiguration initialDefaultConf = load(exportPreferences);
-    ExportForms forms = ExportForms.load(initialDefaultConf, toFormStatuses(formCache.getForms()), exportPreferences, appPreferences);
+    ExportForms forms = ExportForms.load(initialDefaultConf, toFormStatuses(formCache.getForms()), exportPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, initialDefaultConf);
     return new ExportPanel(
         forms,
@@ -192,10 +190,11 @@ public class ExportPanel {
       ExportConfiguration configuration = forms.getConfiguration(formId);
       Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
       FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());
-      Optional<AggregateServer> server = forms.getTransferSettings(formId).map(AggregateServer::from);
+      // TODO Abstract away the subtype of RemoteServer. This should say Optional<RemoteServer>
+      Optional<AggregateServer> savedPullSource = RemoteServer.readPullBeforeExportPrefs(appPreferences, form);
 
-      Job<PullFromAggregateResult> pullJob = configuration.resolvePullBefore() && server.isPresent()
-          ? new PullFromAggregate(http, server.get(), briefcaseDir, false, EventBus::publish).pull(form, Optional.empty())
+      Job<PullFromAggregateResult> pullJob = configuration.resolvePullBefore() && savedPullSource.isPresent()
+          ? new PullFromAggregate(http, savedPullSource.get(), briefcaseDir, false, EventBus::publish).pull(form, Optional.empty())
           : Job.noOpSupplier();
 
       Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration, analytics));
@@ -221,25 +220,6 @@ public class ExportPanel {
   @EventSubscriber(eventClass = CacheUpdateEvent.class)
   public void onCacheUpdateEvent(CacheUpdateEvent event) {
     updateForms();
-  }
-
-  @EventSubscriber(eventClass = PullEvent.NewForm.class)
-  public void onNewFormPulledEvent(PullEvent.NewForm event) {
-    if (BriefcasePreferences.getStorePasswordsConsentProperty())
-      if (event.transferSettings.isPresent())
-        forms.putTransferSettings(event.form, event.transferSettings.get());
-      else
-        forms.removeTransferSettings(event.form);
-  }
-
-  @EventSubscriber(eventClass = SavePasswordsConsentGiven.class)
-  public void onSavePasswordsConsentGiven(SavePasswordsConsentGiven event) {
-    forms.flushTransferSettings();
-  }
-
-  @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
-  public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
-    forms.flushTransferSettings();
   }
 
   @EventSubscriber(eventClass = ExportEvent.Success.class)

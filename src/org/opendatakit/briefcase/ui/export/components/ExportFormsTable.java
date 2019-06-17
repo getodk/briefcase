@@ -19,6 +19,7 @@ import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.export.ExportForms;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 
 public class ExportFormsTable {
   private final ExportFormsTableView view;
@@ -32,8 +33,8 @@ public class ExportFormsTable {
     AnnotationProcessor.process(this);
   }
 
-  public static ExportFormsTable from(ExportForms forms) {
-    ExportFormsTableViewModel viewModel = new ExportFormsTableViewModel(forms);
+  public static ExportFormsTable from(ExportForms forms, BriefcasePreferences appPreferences) {
+    ExportFormsTableViewModel viewModel = new ExportFormsTableViewModel(forms, appPreferences);
     return new ExportFormsTable(forms, new ExportFormsTableView(viewModel), viewModel);
   }
 

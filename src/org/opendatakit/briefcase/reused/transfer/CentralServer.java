@@ -229,6 +229,10 @@ public class CentralServer implements RemoteServer {
     // Do nothing for now
   }
 
+  static Optional<RemoteServer> readPullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form) {
+    return Optional.empty();
+  }
+
   static Optional<CentralServer> readSourcePrefs(BriefcasePreferences prefs) {
     return OptionalProduct.all(
         prefs.nullSafeGet(PREFS_KEY_CENTRAL_URL).map(RequestBuilder::url),

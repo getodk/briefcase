@@ -89,7 +89,7 @@ public class ExportPanelForm {
 
   public static ExportPanelForm from(ExportForms forms, BriefcasePreferences appPreferences, ExportConfiguration defaultConf) {
     return new ExportPanelForm(
-        ExportFormsTable.from(forms),
+        ExportFormsTable.from(forms, appPreferences),
         appPreferences,
         defaultConf
     );

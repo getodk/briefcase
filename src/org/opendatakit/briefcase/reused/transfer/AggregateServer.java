@@ -252,6 +252,19 @@ public class AggregateServer implements RemoteServer {
     );
   }
 
+  static Optional<RemoteServer> readPullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form) {
+    if (!prefs.hasKey(String.format("%s_pull_source_url", form.getFormDefinition().getFormId())))
+      return Optional.empty();
+
+    return Optional.of(new AggregateServer(
+        prefs.nullSafeGet(String.format("%s_pull_source_url", form.getFormDefinition().getFormId())).map(RequestBuilder::url).get(),
+        OptionalProduct.all(
+            prefs.nullSafeGet(String.format("%s_pull_settings_username", form.getFormDefinition().getFormId())),
+            prefs.nullSafeGet(String.format("%s_pull_settings_password", form.getFormDefinition().getFormId()))
+        ).map(Credentials::new)
+    ));
+  }
+
   public static void clearSourcePrefs(BriefcasePreferences prefs) {
     prefs.removeAll(AggregateServer.PREFERENCE_KEYS);
   }

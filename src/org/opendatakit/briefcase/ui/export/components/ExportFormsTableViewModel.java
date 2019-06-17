@@ -37,6 +37,7 @@ import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.ui.reused.FontUtils;
 import org.opendatakit.briefcase.ui.reused.UI;
 
@@ -46,12 +47,14 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
   private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
   private final Map<FormStatus, JButton> confButtons = new HashMap<>();
   private final ExportForms forms;
+  private final BriefcasePreferences appPreferences;
 
   private static final Font ic_settings = FontUtils.getCustomFont("ic_settings.ttf", 16f);
   private boolean enabled = true;
 
-  ExportFormsTableViewModel(ExportForms forms) {
+  ExportFormsTableViewModel(ExportForms forms, BriefcasePreferences appPreferences) {
     this.forms = forms;
+    this.appPreferences = appPreferences;
   }
 
   public void onChange(Runnable callback) {
@@ -82,7 +85,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
         ConfigurationDialog dialog = ConfigurationDialog.overridePanel(
             forms.getCustomConfiguration(form).orElse(empty().build()),
             form.getFormName(),
-            forms.hasTransferSettings(form),
+            RemoteServer.readPullBeforeExportPrefs(appPreferences, form).isPresent(),
             BriefcasePreferences.getStorePasswordsConsentProperty()
         );
         dialog.onRemove(() -> removeConfiguration(form));
