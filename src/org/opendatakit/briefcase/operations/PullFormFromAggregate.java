@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.operations;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.operations.Common.AGGREGATE_SERVER;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
+import static org.opendatakit.briefcase.operations.Common.MAX_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
 import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
@@ -58,7 +59,6 @@ public class PullFormFromAggregate {
   private static final Param<Void> RESUME_LAST_PULL = Param.flag("sfl", "start_from_last", "Start pull from last submission pulled");
   private static final Param<LocalDate> START_FROM_DATE = Param.arg("sfd", "start_from_date", "Start pull from date", LocalDate::parse);
   private static final Param<Void> INCLUDE_INCOMPLETE = Param.flag("ii", "include_incomplete", "Include incomplete submissions");
-  public static final Param<Integer> MAX_HTTP_CONNECTIONS = Param.arg("mhc", "max_http_connections", "Maximum HTTP simultaneous connections (defaults to 8)", Integer::parseInt);
 
   public static Operation PULL_FORM_FROM_AGGREGATE = Operation.of(
       PULL_AGGREGATE,

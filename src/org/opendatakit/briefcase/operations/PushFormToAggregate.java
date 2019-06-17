@@ -17,6 +17,7 @@ package org.opendatakit.briefcase.operations;
 
 import static org.opendatakit.briefcase.operations.Common.AGGREGATE_SERVER;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
+import static org.opendatakit.briefcase.operations.Common.MAX_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
 import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
@@ -31,6 +32,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.push.aggregate.PushToAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -58,20 +60,24 @@ public class PushFormToAggregate {
           args.get(ODK_USERNAME),
           args.get(ODK_PASSWORD),
           args.get(AGGREGATE_SERVER),
-          args.has(FORCE_SEND_BLANK)
+          args.has(FORCE_SEND_BLANK),
+          args.getOptional(MAX_HTTP_CONNECTIONS)
       ),
       Arrays.asList(STORAGE_DIR, FORM_ID, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER),
-      Collections.singletonList(FORCE_SEND_BLANK)
+      Arrays.asList(FORCE_SEND_BLANK, MAX_HTTP_CONNECTIONS)
   );
 
-  private static void pushFormToAggregate(String storageDir, String formid, String username, String password, String server, boolean forceSendBlank) {
+  private static void pushFormToAggregate(String storageDir, String formid, String username, String password, String server, boolean forceSendBlank, Optional<Integer> maybeMaxConnections) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
 
-    int maxConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
+    int maxConnections = Optionals.race(
+        maybeMaxConnections,
+        appPreferences.getMaxHttpConnections()
+    ).orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
         .map(host -> CommonsHttp.of(maxConnections, host))
         .orElseGet(() -> CommonsHttp.of(maxConnections));
