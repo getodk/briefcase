@@ -124,6 +124,7 @@ public class Export {
         .setOverwriteFiles(overwriteFiles)
         .setExportMedia(exportMedia)
         .setSplitSelectMultiples(splitSelectMultiples)
+        .setIncludeGeoJsonExport(includeGeoJsonExport)
         .setRemoveGroupNames(removeGroupNames)
         .build();
 
