@@ -126,19 +126,9 @@ public class Central implements PullSource<CentralServer> {
         EventBus::publish
     );
 
-    return JobsRunner.launchAsync(
-        forms.map(pullOp::pull),
-        this::onSuccess,
-        this::onPullError
-    ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+    return JobsRunner
+        .launchAsync(forms.map(pullOp::pull))
+        .onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
-  private void onSuccess(FormStatus form) {
-    EventBus.publish(PullEvent.Success.of(form, server));
-  }
-
-  private void onPullError(Throwable e) {
-    log.error("Error pulling forms", e);
-    EventBus.publish(new PullEvent.Failure());
-  }
 }

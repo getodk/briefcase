@@ -29,7 +29,6 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 
 /**
  * This class has UI/CLI independent methods to install forms into
@@ -48,12 +47,8 @@ public class FormInstaller {
    * This method won't install any submission.
    */
   public static void install(Path briefcaseDir, FormStatus fs) {
-    try {
-      installForm(briefcaseDir, fs);
-      EventBus.publish(PullEvent.Success.of(fs));
-    } catch (BriefcaseException e) {
-      EventBus.publish(new PullEvent.Failure());
-    }
+    installForm(briefcaseDir, fs);
+    EventBus.publish(PullEvent.Success.of(fs));
   }
 
   private static void installForm(Path briefcaseDir, FormStatus form) {

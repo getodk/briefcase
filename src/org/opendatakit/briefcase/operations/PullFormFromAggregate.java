@@ -119,18 +119,21 @@ public class PullFormFromAggregate {
     forms.load(filteredForms);
     forms.selectAll();
 
-    PullFromAggregate pullOp = new PullFromAggregate(http, aggregateServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent);
+    PullFromAggregate pullOp = new PullFromAggregate(http, aggregateServer, appPreferences, includeIncomplete, PullFormFromAggregate::onEvent);
     JobsRunner.launchAsync(
-        forms.map(form -> pullOp.pull(form, Optionals.race(
-            startFromDate.map(Cursor::of),
-            resumeLastPull ? Cursor.readPrefs(form, appPreferences) : Optional.empty())
-        )),
-        __ -> { },
+        forms.map(form -> pullOp.pull(form, resolveCursor(resumeLastPull, startFromDate, appPreferences, form))),
         PullFormFromAggregate::onError
     ).waitForCompletion();
     System.out.println();
     System.out.println("All operations completed");
     System.out.println();
+  }
+
+  private static Optional<Cursor> resolveCursor(boolean resumeLastPull, Optional<LocalDate> startFromDate, BriefcasePreferences appPreferences, FormStatus form) {
+    return Optionals.race(
+        startFromDate.map(Cursor::of),
+        resumeLastPull ? Cursor.readPrefs(form, appPreferences) : Optional.empty()
+    );
   }
 
   private static void onEvent(FormStatusEvent event) {

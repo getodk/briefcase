@@ -27,9 +27,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.response.Response;
@@ -61,7 +63,7 @@ public class PushToAggregate {
    * present in the server, which can be overriden with the {@link #forceSendForm}
    * field.
    */
-  public Job<FormStatus> push(FormStatus form) {
+  public Job<Void> push(FormStatus form) {
     PushToAggregateTracker tracker = new PushToAggregateTracker(form, onEventCallback);
     return Job
         .run(runnerStatus -> {
@@ -85,7 +87,7 @@ public class PushToAggregate {
           }
         }))
         .thenSupply(__ -> getSubmissions(form))
-        .thenApply((runnerStatus, submissions) -> {
+        .thenAccept((runnerStatus, submissions) -> {
           AtomicInteger submissionsSeq = new AtomicInteger(1);
           int totalSubmissions = submissions.size();
           if (submissions.isEmpty())
@@ -103,8 +105,8 @@ public class PushToAggregate {
             }
           });
           tracker.trackEnd();
-          return form;
-        });
+        })
+        .thenRun(rs -> EventBus.publish(new PushEvent.Success(form)));
   }
 
   private List<Path> getSubmissionAttachments(Path formFile) {

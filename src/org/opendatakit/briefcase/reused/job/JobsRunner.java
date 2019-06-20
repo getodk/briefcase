@@ -44,13 +44,25 @@ public class JobsRunner {
   /**
    * Run the provided stream of jobs asynchronously and return an
    * instance that will let the caller cancel the background process.
+   *
+   * @see #launchAsync(Stream, Consumer)
    */
-  public static <T> JobsRunner launchAsync(Stream<Job<T>> jobs, Consumer<T> onSuccess, Consumer<Throwable> onError) {
-    ForkJoinPool executor = buildCancellableForkJoinPool(onError);
+  public static JobsRunner launchAsync(Stream<Job<?>> jobs) {
+    return launchAsync(jobs, __ -> { });
+  }
+
+  /**
+   * Run the provided stream of jobs asynchronously and return an
+   * instance that will let the caller cancel the background process.
+   *
+   * @param onError callback that will be executed each time an individual job throws an exception
+   */
+  public static JobsRunner launchAsync(Stream<Job<?>> jobs, Consumer<Throwable> onError) {
+    ForkJoinPool executor = buildCancellableForkJoinPool();
     RunnerStatus runnerStatus = new RunnerStatus(executor::isShutdown);
     jobs.forEach(job -> executor.submit(() -> {
       try {
-        onSuccess.accept(job.runnerAwareSupplier.apply(runnerStatus));
+        job.runnerAwareSupplier.apply(runnerStatus);
       } catch (Throwable t) {
         log.error("Error running Job", t);
         onError.accept(t);
@@ -59,12 +71,25 @@ public class JobsRunner {
     return new JobsRunner(executor);
   }
 
+
   /**
    * Run the provided job asynchronously and return an instance that
    * will let the caller cancel the background process.
+   *
+   * @see #launchAsync(Job, Consumer)
    */
-  public static <T> JobsRunner launchAsync(Job<T> job, Consumer<T> onSuccess, Consumer<Throwable> onError) {
-    return launchAsync(Stream.of(job), onSuccess, onError);
+  public static JobsRunner launchAsync(Job<?> job) {
+    return launchAsync(job, __ -> { });
+  }
+
+  /**
+   * Run the provided job asynchronously and return an instance that
+   * will let the caller cancel the background process.
+   *
+   * @param onError callback that will be executed when the provided job throws an exception
+   */
+  public static JobsRunner launchAsync(Job<?> job, Consumer<Throwable> onError) {
+    return launchAsync(Stream.of(job), onError);
   }
 
   /**
@@ -86,11 +111,11 @@ public class JobsRunner {
     return launchSync(Stream.of(job)).get(0);
   }
 
-  private static ForkJoinPool buildCancellableForkJoinPool(Consumer<Throwable> onError) {
+  private static ForkJoinPool buildCancellableForkJoinPool() {
     return new ForkJoinPool(
         SYSTEM_FORK_JOIN_POOL.getParallelism(),
         SYSTEM_FORK_JOIN_POOL.getFactory(),
-        (thread, throwable) -> onError.accept(throwable),
+        (thread, throwable) -> log.error("An uncaught exception reached the thread pool", throwable),
         SYSTEM_FORK_JOIN_POOL.getAsyncMode()
     );
   }

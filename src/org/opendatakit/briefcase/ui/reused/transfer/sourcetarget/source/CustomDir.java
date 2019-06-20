@@ -18,10 +18,11 @@ package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source;
 
 import static java.awt.Cursor.getPredefinedCursor;
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.reused.job.Job.supply;
+import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
+import static org.opendatakit.briefcase.util.TransferAction.transferODKToBriefcase;
 
 import java.awt.Container;
 import java.awt.Cursor;
@@ -41,7 +42,6 @@ import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.FileSystemUtils;
-import org.opendatakit.briefcase.util.TransferAction;
 
 /**
  * Represents a filesystem location pointing to Collect's form directory as a source of forms for the Pull UI Panel.
@@ -101,23 +101,12 @@ public class CustomDir implements PullSource<Path> {
 
   @Override
   public JobsRunner pull(TransferForms forms, BriefcasePreferences prefs) {
-    return JobsRunner.launchAsync(
-        forms.map(form -> supply(jobStatus -> {
-          TransferAction.transferODKToBriefcase(prefs.getBriefcaseDir().orElseThrow(BriefcaseException::new), path.toFile(), new TerminationFuture(), TransferForms.of(form));
-          return form;
-        })),
-        this::onSuccess,
-        this::onError
-    ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
-  }
-
-  private void onError(Throwable t) {
-    log.error("Error pulling form", t);
-    EventBus.publish(new PullEvent.Failure());
-  }
-
-  private void onSuccess(FormStatus form) {
-    EventBus.publish(PullEvent.Success.of(form));
+    return JobsRunner.launchAsync(forms.map(form -> run(jobStatus -> transferODKToBriefcase(
+        prefs.getBriefcaseDir().orElseThrow(BriefcaseException::new),
+        path.toFile(),
+        new TerminationFuture(),
+        TransferForms.of(form)
+    )))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
   @Override

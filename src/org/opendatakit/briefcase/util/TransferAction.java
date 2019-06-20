@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,10 +58,10 @@ public class TransferAction {
         if (src.doAction())
           formsToTransfer.forEach(form -> EventBus.publish(PullEvent.Success.of(form)));
         else
-          EventBus.publish(new PullEvent.Failure());
+          throw new BriefcaseException("Failed to pull form (legacy)");
       } catch (Exception e) {
         log.error("gather transfer action failed", e);
-        EventBus.publish(new PullEvent.Failure());
+        throw new BriefcaseException("Failed to pull form (legacy)", e);
       }
     }
 

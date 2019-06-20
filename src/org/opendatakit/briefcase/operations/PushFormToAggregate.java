@@ -104,11 +104,7 @@ public class PushFormToAggregate {
     forms.selectAll();
 
     PushToAggregate pushOp = new PushToAggregate(http, aggregateServer, briefcaseDir, forceSendBlank, PushFormToAggregate::onEvent);
-    JobsRunner.launchAsync(
-        forms.map(pushOp::push),
-        __ -> { },
-        PushFormToAggregate::onError
-    ).waitForCompletion();
+    JobsRunner.launchAsync(forms.map(pushOp::push), PushFormToAggregate::onError).waitForCompletion();
     System.out.println();
     System.out.println("All operations completed");
     System.out.println();

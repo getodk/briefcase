@@ -28,11 +28,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.export.SubmissionMetaData;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.reused.Triple;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -65,7 +67,7 @@ public class PushToCentral {
    * present in the server.
    */
   @SuppressWarnings("checkstyle:Indentation")
-  public Job<FormStatus> push(FormStatus form) {
+  public Job<Void> push(FormStatus form) {
     PushToCentralTracker tracker = new PushToCentralTracker(form, onEventCallback);
 
     Job<Void> startTrackingJob = Job.run(runnerStatus -> tracker.trackStart());
@@ -77,12 +79,12 @@ public class PushToCentral {
         return startTrackingJob.thenRun(rs -> {
           tracker.trackEncryptedForm();
           tracker.trackEnd();
-        }).thenSupply(rs -> form);
+        });
     } catch (RuntimeException e) {
       return startTrackingJob.thenRun(rs -> {
         tracker.trackCannotDetermineEncryption(e);
         tracker.trackEnd();
-      }).thenSupply(rs -> form);
+      });
     }
 
     return startTrackingJob
@@ -101,7 +103,7 @@ public class PushToCentral {
           }
         }))
         .thenSupply(__ -> getSubmissions(form))
-        .thenApply((rs, submissions) -> {
+        .thenAccept((rs, submissions) -> {
           AtomicInteger submissionNumber = new AtomicInteger(1);
           int totalSubmissions = submissions.size();
           if (submissions.isEmpty())
@@ -133,8 +135,8 @@ public class PushToCentral {
                 }
               });
           tracker.trackEnd();
-          return form;
-        });
+        })
+        .thenRun(rs -> EventBus.publish(new PushEvent.Success(form)));
   }
 
   private List<Path> getSubmissionAttachments(Path formFile) {

@@ -25,11 +25,6 @@ import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 
 public class PullEvent {
 
-  public static class Failure extends PullEvent {
-    public Failure() {
-    }
-  }
-
   public static class Success extends PullEvent {
     public final FormStatus form;
     public final Optional<RemoteServer> remoteServer;

@@ -18,7 +18,7 @@ package org.opendatakit.briefcase.ui.pull;
 
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
-import static org.opendatakit.briefcase.reused.job.Job.supply;
+import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
@@ -124,12 +124,11 @@ public class PullPanel {
 
   private void onSource(TransferPanelForm view, TransferForms forms, PullSource<?> source) {
     JobsRunner.launchAsync(
-        supply(__ -> source.getFormList()),
-        formList -> {
-          forms.load(formList);
+        run(__ -> {
+          forms.load(source.getFormList());
           view.refresh();
           updateActionButtons();
-        },
+        }),
         cause -> {
           log.warn("Unable to load form list from {}", source.getDescription(), cause);
           errorMessage("Error Loading Forms", "Briefcase wasn't able to load forms using the configured source. Try Reload or Reset.");

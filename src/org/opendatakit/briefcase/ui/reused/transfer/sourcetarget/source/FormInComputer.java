@@ -17,7 +17,8 @@
 package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source;
 
 import static java.awt.Cursor.getPredefinedCursor;
-import static org.opendatakit.briefcase.reused.job.Job.supply;
+import static org.opendatakit.briefcase.pull.FormInstaller.install;
+import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
 
@@ -35,7 +36,6 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
-import org.opendatakit.briefcase.pull.FormInstaller;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
@@ -99,23 +99,9 @@ public class FormInComputer implements PullSource<FormStatus> {
 
   @Override
   public JobsRunner pull(TransferForms forms, BriefcasePreferences prefs) {
-    return JobsRunner.launchAsync(
-        supply(jobStatus -> {
-          FormInstaller.install(prefs.getBriefcaseDir().orElseThrow(BriefcaseException::new), form);
-          return form;
-        }),
-        this::onSuccess,
-        this::onError
-    ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
-  }
-
-  private void onSuccess(FormStatus form) {
-    EventBus.publish(PullEvent.Success.of(form));
-  }
-
-  private void onError(Throwable t) {
-    log.error("Error pulling form", t);
-    EventBus.publish(new PullEvent.Failure());
+    return JobsRunner.launchAsync(run(jobStatus ->
+        install(prefs.getBriefcaseDir().orElseThrow(BriefcaseException::new), form)
+    )).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
   @Override

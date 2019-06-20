@@ -41,7 +41,9 @@ import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buil
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.generatePages;
 
 import com.github.dreamhead.moco.HttpServer;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
@@ -53,7 +55,9 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.InMemoryPreferences;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.job.RunnerStatus;
@@ -66,7 +70,9 @@ public class PullFromAggregateIntegrationTest {
   private static final URL BASE_URL = url("http://localhost:" + serverPort);
   private static final AggregateServer aggregateServer = AggregateServer.normal(BASE_URL);
   private static final FormStatus form = buildFormStatus("some-form", BASE_URL + "/manifest");
-  private final Path briefcaseDir = createTempDirectory("briefcase-test-");
+  private Path tmpDir = createTempDirectory("briefcase-test-");
+  private Path briefcaseDir = tmpDir.resolve(BriefcasePreferences.BRIEFCASE_DIR);
+  private BriefcasePreferences prefs;
   private HttpServer server;
   private PullFromAggregate pullOp;
   private RunnerStatus runnerStatus;
@@ -79,11 +85,15 @@ public class PullFromAggregateIntegrationTest {
   }
 
   @Before
-  public void setUp() {
+  public void setUp() throws IOException {
+    Files.createDirectories(briefcaseDir);
+    prefs = new BriefcasePreferences(InMemoryPreferences.empty());
+    prefs.setStorageDir(tmpDir);
     server = httpServer(serverPort);
     tracker = new PullFromAggregateTracker(form, e -> { });
-    pullOp = new PullFromAggregate(CommonsHttp.of(1), aggregateServer, briefcaseDir, true, e -> { });
+    pullOp = new PullFromAggregate(CommonsHttp.of(1), aggregateServer, prefs, true, e -> { });
     runnerStatus = new TestRunnerStatus(false);
+
   }
 
   @After

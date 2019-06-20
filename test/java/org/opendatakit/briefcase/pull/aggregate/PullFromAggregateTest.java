@@ -37,6 +37,7 @@ import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buil
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.generatePages;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -47,7 +48,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.matchers.PathMatchers;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.InMemoryPreferences;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
 import org.opendatakit.briefcase.reused.http.RequestSpy;
@@ -55,8 +58,10 @@ import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 
 public class PullFromAggregateTest {
+  private Path tmpDir = createTempDirectory("briefcase-test-");
+  private Path briefcaseDir = tmpDir.resolve(BriefcasePreferences.BRIEFCASE_DIR);
+  private BriefcasePreferences prefs;
   private FakeHttp http;
-  private Path briefcaseDir = createTempDirectory("briefcase-test-");
   private AggregateServer server = AggregateServer.normal(url("http://foo.bar"));
   private FormStatus form = buildFormStatus("some-form", server.getBaseUrl().toString());
   private PullFromAggregate pullOp;
@@ -66,11 +71,14 @@ public class PullFromAggregateTest {
   private boolean includeIncomplete = true;
 
   @Before
-  public void init() {
+  public void init() throws IOException {
+    Files.createDirectories(briefcaseDir);
+    prefs = new BriefcasePreferences(InMemoryPreferences.empty());
+    prefs.setStorageDir(tmpDir);
     http = new FakeHttp();
     events = new ArrayList<>();
     tracker = new PullFromAggregateTracker(form, e -> events.add(e.getStatusString()));
-    pullOp = new PullFromAggregate(http, server, briefcaseDir, includeIncomplete, e -> { });
+    pullOp = new PullFromAggregate(http, server, prefs, includeIncomplete, e -> { });
     runnerStatus = new TestRunnerStatus(false);
   }
 

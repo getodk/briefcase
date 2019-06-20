@@ -39,7 +39,6 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
-import org.opendatakit.briefcase.pull.aggregate.PullFromAggregateResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
@@ -98,6 +97,7 @@ public class Export {
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
+    BriefcasePreferences tabPreferences = BriefcasePreferences.forClass(ExportPanel.class);
 
     int maxConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
@@ -111,6 +111,7 @@ public class Export {
     createDirectories(exportDir);
 
     BriefcaseFormDefinition formDefinition = maybeFormDefinition.orElseThrow(() -> new BriefcaseException("Form " + formid + " not found"));
+    FormDefinition formDef = FormDefinition.from(formDefinition);
 
     System.out.println("Exporting form " + formDefinition.getFormName() + " (" + formDefinition.getFormId() + ") to: " + exportDir);
     DateRange dateRange = new DateRange(startDate, endDate);
@@ -126,7 +127,7 @@ public class Export {
         .setRemoveGroupNames(removeGroupNames)
         .build();
 
-    Job<PullFromAggregateResult> pullJob = Job.noOpSupplier();
+    Job<Void> pullJob = Job.noOpSupplier();
     if (configuration.resolvePullBefore()) {
       FormStatus formStatus = new FormStatus(formDefinition);
 
@@ -143,11 +144,11 @@ public class Export {
             ).map(Credentials::from)
         );
 
-        pullJob = new PullFromAggregate(http, server, briefcaseDir, false, Export::onEvent)
+        pullJob = new PullFromAggregate(http, server, appPreferences, false, Export::onEvent)
             .pull(formStatus, Optional.empty());
       }
     }
-    FormDefinition formDef = FormDefinition.from(formDefinition);
+
     Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration));
 
     Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
@@ -157,16 +158,12 @@ public class Export {
     Job<Void> job = pullJob
         .thenRun(exportJob)
         .thenRun(exportGeoJsonJob)
-        .thenRun(__ -> BriefcasePreferences.forClass(ExportPanel.class).put(
+        .thenRun(__ -> tabPreferences.put(
             buildExportDateTimePrefix(formDefinition.getFormId()),
             LocalDateTime.now().format(ISO_DATE_TIME)
         ));
 
-    JobsRunner.launchAsync(
-        job,
-        __ -> { },
-        Export::onError
-    ).waitForCompletion();
+    JobsRunner.launchAsync(job, Export::onError).waitForCompletion();
     System.out.println();
     System.out.println("All operations completed");
     System.out.println();

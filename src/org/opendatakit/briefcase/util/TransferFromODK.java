@@ -112,7 +112,6 @@ public class TransferFromODK implements ITransferFromSourceAction {
   public static void pull(Path briefcaseDir, Path odk, TransferForms forms) {
     TransferFromODK action = new TransferFromODK(briefcaseDir, odk.toFile(), new TerminationFuture(), forms);
     if (!action.doAction()) {
-      EventBus.publish(new PullEvent.Failure());
       throw new PullFromODKException(forms);
     }
   }

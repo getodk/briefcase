@@ -37,9 +37,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.export.XmlElement;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.Triple;
@@ -57,14 +61,16 @@ public class PullFromAggregate {
   public static final Logger log = LoggerFactory.getLogger(PullFromAggregate.class);
   private final Http http;
   private final AggregateServer server;
+  private final BriefcasePreferences prefs;
   private final Path briefcaseDir;
   private final boolean includeIncomplete;
   private final Consumer<FormStatusEvent> onEventCallback;
 
-  public PullFromAggregate(Http http, AggregateServer server, Path briefcaseDir, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback) {
+  public PullFromAggregate(Http http, AggregateServer server, BriefcasePreferences prefs, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback) {
     this.http = http;
     this.server = server;
-    this.briefcaseDir = briefcaseDir;
+    this.prefs = prefs;
+    this.briefcaseDir = prefs.getBriefcaseDir().orElseThrow(BriefcaseException::new);
     this.includeIncomplete = includeIncomplete;
     this.onEventCallback = onEventCallback;
   }
@@ -85,7 +91,7 @@ public class PullFromAggregate {
    * <p>
    * Returns a Job that will produce a pull operation result.
    */
-  public Job<PullFromAggregateResult> pull(FormStatus form, Optional<Cursor> lastCursor) {
+  public Job<Void> pull(FormStatus form, Optional<Cursor> lastCursor) {
     PullFromAggregateTracker tracker = new PullFromAggregateTracker(form, onEventCallback);
 
     // Download the form and attachments, and get the submissions list
@@ -149,7 +155,11 @@ public class PullFromAggregate {
           tracker.trackEnd();
           // Return the pull result with the last cursor
           return PullFromAggregateResult.of(form, getLastCursor(instanceIdBatches).orElse(Cursor.empty()));
-        }));
+        }))
+        .thenAccept((rs, result) -> {
+          result.getLastCursor().storePrefs(result.getForm(), prefs);
+          EventBus.publish(PullEvent.Success.of(result.getForm(), server, result.getLastCursor()));
+        });
   }
 
   String downloadForm(FormStatus form, RunnerStatus runnerStatus, PullFromAggregateTracker tracker) {

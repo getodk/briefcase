@@ -28,8 +28,10 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.Triple;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.response.Response;
@@ -77,7 +79,7 @@ public class PullFromCentral {
               );
             })
         ))
-        .thenApply((runnerStatus, pair) -> withDb(form.getFormDir(briefcaseDir), db -> {
+        .thenAccept((runnerStatus, pair) -> withDb(form.getFormDir(briefcaseDir), db -> {
           List<String> submissions = pair.getLeft();
           int totalSubmissions = submissions.size();
           AtomicInteger submissionNumber = new AtomicInteger(1);
@@ -105,8 +107,8 @@ public class PullFromCentral {
                 db.putRecordedInstanceDirectory(instanceId, form.getSubmissionDir(briefcaseDir, instanceId).toFile());
               });
           tracker.trackEnd();
-          return form;
-        }));
+        }))
+        .thenRun(__ -> EventBus.publish(PullEvent.Success.of(form, server)));
   }
 
   void downloadForm(FormStatus form, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker) {

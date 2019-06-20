@@ -34,7 +34,6 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
-import org.opendatakit.briefcase.pull.aggregate.PullFromAggregateResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
@@ -96,28 +95,20 @@ public class Aggregate implements PullSource<AggregateServer> {
     PullFromAggregate pullOp = new PullFromAggregate(
         http,
         server,
-        prefs.getBriefcaseDir().orElseThrow(BriefcaseException::new),
+        prefs,
         false,
         EventBus::publish
     );
 
     return JobsRunner.launchAsync(
-        forms.map(form -> pullOp.pull(
-            form,
-            prefs.getResumeLastPull().orElse(false) ? Cursor.readPrefs(form, prefs) : Optional.empty()
-        )),
-        this::onSuccess,
-        this::onError
+        forms.map(form -> pullOp.pull(form, getCursor(prefs, form)))
     ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
-  private void onSuccess(PullFromAggregateResult result) {
-    EventBus.publish(PullEvent.Success.of(result.getForm(), server, result.getLastCursor()));
-  }
-
-  private void onError(Throwable e) {
-    log.error("Error pulling forms", e);
-    EventBus.publish(new PullEvent.Failure());
+  private Optional<Cursor> getCursor(BriefcasePreferences prefs, FormStatus form) {
+    return prefs.getResumeLastPull().orElse(false)
+        ? Cursor.readPrefs(form, prefs)
+        : Optional.empty();
   }
 
   @Override

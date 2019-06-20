@@ -69,19 +69,9 @@ public class Central implements PushTarget<CentralServer> {
     String token = http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
     PushToCentral pushOp = new PushToCentral(http, server, briefcaseDir, token, EventBus::publish);
 
-    return JobsRunner.launchAsync(
-        forms.filter(f -> !f.isEncrypted()).map(pushOp::push),
-        this::onSuccess,
-        this::onError
-    ).onComplete(() -> EventBus.publish(new PushEvent.Complete()));
-  }
-
-  private void onSuccess(FormStatus form) {
-    EventBus.publish(new PushEvent.Success(form));
-  }
-
-  private void onError(Throwable e) {
-    log.error("Error pushing forms", e);
+    return JobsRunner
+        .launchAsync(forms.filter(f -> !f.isEncrypted()).map(pushOp::push))
+        .onComplete(() -> EventBus.publish(new PushEvent.Complete()));
   }
 
   @Override

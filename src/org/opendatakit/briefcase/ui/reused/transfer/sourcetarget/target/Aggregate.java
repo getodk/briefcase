@@ -27,7 +27,6 @@ import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.push.aggregate.PushToAggregate;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -83,19 +82,9 @@ public class Aggregate implements PushTarget<AggregateServer> {
   public JobsRunner push(TransferForms forms, Path briefcaseDir) {
     PushToAggregate pushOp = new PushToAggregate(http, server, briefcaseDir, false, EventBus::publish);
 
-    return JobsRunner.launchAsync(
-        forms.map(pushOp::push),
-        this::onSuccess,
-        this::onError
-    ).onComplete(() -> EventBus.publish(new PushEvent.Complete()));
-  }
-
-  private void onSuccess(FormStatus form) {
-    EventBus.publish(new PushEvent.Success(form));
-  }
-
-  private void onError(Throwable e) {
-    log.error("Error pushing forms", e);
+    return JobsRunner
+        .launchAsync(forms.map(pushOp::push))
+        .onComplete(() -> EventBus.publish(new PushEvent.Complete()));
   }
 
   @Override

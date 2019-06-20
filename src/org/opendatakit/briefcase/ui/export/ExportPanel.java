@@ -41,7 +41,6 @@ import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
-import org.opendatakit.briefcase.pull.aggregate.PullFromAggregateResult;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -184,7 +183,7 @@ public class ExportPanel {
   }
 
   private void export() {
-    Stream<Job<Void>> allJobs = forms.getSelectedForms().stream().map(form -> {
+    Stream<Job<?>> allJobs = forms.getSelectedForms().stream().map(form -> {
       form.setStatusString("Starting to export form");
       String formId = form.getFormDefinition().getFormId();
       ExportConfiguration configuration = forms.getConfiguration(formId);
@@ -193,8 +192,8 @@ public class ExportPanel {
       // TODO Abstract away the subtype of RemoteServer. This should say Optional<RemoteServer>
       Optional<AggregateServer> savedPullSource = RemoteServer.readPullBeforeExportPrefs(appPreferences, form);
 
-      Job<PullFromAggregateResult> pullJob = configuration.resolvePullBefore() && savedPullSource.isPresent()
-          ? new PullFromAggregate(http, savedPullSource.get(), briefcaseDir, false, EventBus::publish).pull(form, Optional.empty())
+      Job<Void> pullJob = configuration.resolvePullBefore() && savedPullSource.isPresent()
+          ? new PullFromAggregate(http, savedPullSource.get(), appPreferences, false, EventBus::publish).pull(form, Optional.empty())
           : Job.noOpSupplier();
 
       Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration, analytics));
@@ -210,11 +209,7 @@ public class ExportPanel {
           .thenRun(exportGeoJsonJob);
     });
 
-    JobsRunner.launchAsync(
-        allJobs,
-        __ -> form.unsetExporting(),
-        e -> log.error("Error exporting form", e)
-    );
+    JobsRunner.launchAsync(allJobs).onComplete(form::unsetExporting);
   }
 
   @EventSubscriber(eventClass = CacheUpdateEvent.class)
