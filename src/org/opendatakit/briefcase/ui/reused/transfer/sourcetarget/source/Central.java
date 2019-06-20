@@ -116,12 +116,12 @@ public class Central implements PullSource<CentralServer> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, BriefcasePreferences prefs) {
+  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, BriefcasePreferences localPreferences) {
     String token = http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
     PullFromCentral pullOp = new PullFromCentral(
         http,
         server,
-        prefs.getBriefcaseDir().orElseThrow(BriefcaseException::new),
+        appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
         token,
         EventBus::publish
     );

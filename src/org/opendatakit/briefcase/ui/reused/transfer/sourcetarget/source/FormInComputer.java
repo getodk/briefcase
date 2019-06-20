@@ -98,9 +98,9 @@ public class FormInComputer implements PullSource<FormStatus> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, BriefcasePreferences prefs) {
+  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, BriefcasePreferences localPreferences) {
     return JobsRunner.launchAsync(run(jobStatus ->
-        install(prefs.getBriefcaseDir().orElseThrow(BriefcaseException::new), form)
+        install(appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), form)
     )).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 

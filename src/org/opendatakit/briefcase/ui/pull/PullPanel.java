@@ -90,7 +90,7 @@ public class PullPanel {
       view.setWorking();
       forms.forEach(FormStatus::clearStatusHistory);
       new Thread(() -> source.ifPresent(s -> {
-        pullJobRunner = s.pull(forms.getSelectedForms(), appPreferences);
+        pullJobRunner = s.pull(forms.getSelectedForms(), appPreferences, tabPreferences);
         pullJobRunner.waitForCompletion();
       })).start();
     });

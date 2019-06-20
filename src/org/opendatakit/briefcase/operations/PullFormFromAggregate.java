@@ -45,6 +45,7 @@ import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
+import org.opendatakit.briefcase.ui.pull.PullPanel;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
@@ -83,6 +84,7 @@ public class PullFormFromAggregate {
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
+    BriefcasePreferences tabPreferences = BriefcasePreferences.forClass(PullPanel.class);
 
     int maxConnections = Optionals.race(
         maybeMaxConnections,
@@ -121,7 +123,13 @@ public class PullFormFromAggregate {
 
     PullFromAggregate pullOp = new PullFromAggregate(http, aggregateServer, appPreferences, includeIncomplete, PullFormFromAggregate::onEvent);
     JobsRunner.launchAsync(
-        forms.map(form -> pullOp.pull(form, resolveCursor(resumeLastPull, startFromDate, appPreferences, form))),
+        forms.map(form -> pullOp.pull(form, resolveCursor(
+            resumeLastPull,
+            startFromDate,
+            appPreferences,
+            tabPreferences,
+            form
+        ))),
         PullFormFromAggregate::onError
     ).waitForCompletion();
     System.out.println();
@@ -129,10 +137,12 @@ public class PullFormFromAggregate {
     System.out.println();
   }
 
-  private static Optional<Cursor> resolveCursor(boolean resumeLastPull, Optional<LocalDate> startFromDate, BriefcasePreferences appPreferences, FormStatus form) {
+  private static Optional<Cursor> resolveCursor(boolean resumeLastPull, Optional<LocalDate> startFromDate, BriefcasePreferences appPreferences, BriefcasePreferences localPreferences, FormStatus form) {
     return Optionals.race(
         startFromDate.map(Cursor::of),
-        resumeLastPull ? Cursor.readPrefs(form, appPreferences) : Optional.empty()
+        resumeLastPull
+            ? Optionals.race(Cursor.readPrefs(form, appPreferences), Cursor.readPrefs(form, localPreferences))
+            : Optional.empty()
     );
   }
 

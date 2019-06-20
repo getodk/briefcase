@@ -59,7 +59,7 @@ public interface PullSource<T> extends SourceOrTarget<T> {
 
   void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords);
 
-  JobsRunner pull(TransferForms forms, BriefcasePreferences prefs);
+  JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, BriefcasePreferences localPreferences);
 
   String getDescription();
 

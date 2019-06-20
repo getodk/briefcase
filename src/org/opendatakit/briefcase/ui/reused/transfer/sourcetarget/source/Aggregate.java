@@ -35,6 +35,7 @@ import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
@@ -91,23 +92,23 @@ public class Aggregate implements PullSource<AggregateServer> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, BriefcasePreferences prefs) {
+  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, BriefcasePreferences localPreferences) {
     PullFromAggregate pullOp = new PullFromAggregate(
         http,
         server,
-        prefs,
+        appPreferences,
         false,
         EventBus::publish
     );
 
     return JobsRunner.launchAsync(
-        forms.map(form -> pullOp.pull(form, getCursor(prefs, form)))
+        forms.map(form -> pullOp.pull(form, getCursor(appPreferences, localPreferences, form)))
     ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
-  private Optional<Cursor> getCursor(BriefcasePreferences prefs, FormStatus form) {
-    return prefs.getResumeLastPull().orElse(false)
-        ? Cursor.readPrefs(form, prefs)
+  private Optional<Cursor> getCursor(BriefcasePreferences appPreferences, BriefcasePreferences localPreferences, FormStatus form) {
+    return appPreferences.getResumeLastPull().orElse(false)
+        ? Optionals.race(Cursor.readPrefs(form, appPreferences), Cursor.readPrefs(form, localPreferences))
         : Optional.empty();
   }
 

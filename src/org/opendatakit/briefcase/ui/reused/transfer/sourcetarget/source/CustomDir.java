@@ -100,9 +100,9 @@ public class CustomDir implements PullSource<Path> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, BriefcasePreferences prefs) {
+  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, BriefcasePreferences localPreferences) {
     return JobsRunner.launchAsync(forms.map(form -> run(jobStatus -> transferODKToBriefcase(
-        prefs.getBriefcaseDir().orElseThrow(BriefcaseException::new),
+        appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
         path.toFile(),
         new TerminationFuture(),
         TransferForms.of(form)
