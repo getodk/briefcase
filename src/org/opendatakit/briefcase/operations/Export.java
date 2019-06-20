@@ -164,20 +164,20 @@ public class Export {
 
     JobsRunner.launchAsync(
         job,
-        __ -> {
-          System.out.println();
-          System.out.println("Successfully exported all forms");
-          log.info("Successfully exported all forms");
-        },
-        Export::onError);
+        __ -> { },
+        Export::onError
+    ).waitForCompletion();
+    System.out.println();
+    System.out.println("All operations completed");
+    System.out.println();
+  }
+
+  private static void onEvent(FormStatusEvent event) {
+    System.out.println(event.getStatus().getFormName() + " - " + event.getStatusString());
   }
 
   private static void onError(Throwable e) {
-    System.err.println("Error pulling form");
-    log.error("Error pulling form", e);
-  }
-
-  private static void onEvent(FormStatusEvent formStatusEvent) {
-    System.out.println(formStatusEvent.getStatusString());
+    System.err.println("Error exporting a form: " + e.getMessage() + " (see the logs for more info)");
+    log.error("Error exporting a form", e);
   }
 }
