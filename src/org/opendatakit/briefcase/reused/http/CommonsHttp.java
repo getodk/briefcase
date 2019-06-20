@@ -67,6 +67,7 @@ public class CommonsHttp implements Http {
         .create()
         .setMaxConnPerRoute(maxConnections)
         .setMaxConnTotal(maxConnections)
+        .disableAuthCaching()
         .setDefaultRequestConfig(custom()
             .setConnectionRequestTimeout(0)
             .setSocketTimeout(0)
@@ -76,6 +77,8 @@ public class CommonsHttp implements Http {
 
   @Override
   public <T> Response<T> execute(Request<T> request) {
+    // Ensure that we will be using fresh credentials
+    executor.clearAuth();
     // Apply auth settings if credentials are received
     request.ifCredentials((URL url, Credentials credentials) -> executor.auth(
         HttpHost.create(url.getHost()),
