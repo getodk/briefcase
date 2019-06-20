@@ -17,7 +17,6 @@
 package org.opendatakit.briefcase.pull.aggregate;
 
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-import static org.opendatakit.briefcase.transfer.TransferForms.LAST_CURSOR_PREFERENCE_KEY_SUFFIX;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -48,6 +47,7 @@ import org.opendatakit.briefcase.reused.Iso8601Helpers;
  * submissions from the provided date don't fit in the same page.
  */
 public class Cursor implements Comparable<Cursor> {
+  private static final String LAST_CURSOR_PREFERENCE_KEY_SUFFIX = "-last-cursor";
   /**
    * This date is used only to compare Cursors that might have an empty value in lastUpdate
    */

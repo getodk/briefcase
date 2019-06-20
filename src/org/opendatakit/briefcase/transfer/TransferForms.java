@@ -34,7 +34,6 @@ import org.opendatakit.briefcase.model.FormStatus;
  * selection of those forms, as well as merging changes in the forms cache.
  */
 public class TransferForms implements Iterable<FormStatus> {
-  public static final String LAST_CURSOR_PREFERENCE_KEY_SUFFIX = "-last-cursor";
   private List<FormStatus> forms;
   private Map<String, FormStatus> formsIndex = new HashMap<>();
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
