@@ -147,6 +147,8 @@ public class JobsRunner {
   }
 
   public JobsRunner onComplete(Runnable onCompleteCallback) {
+    // TODO The callback will only be called when combined with waitForCompletion, which makes it really weird
+    // TODO Since the design of JobsRunner isn't intended to accept more jobs after instantiating it, we might want to actually always waitForCompletion by default, maybe submitting an extra long-running job that will call the callback by default.
     this.onCompleteCallback = Optional.of(onCompleteCallback);
     return this;
   }

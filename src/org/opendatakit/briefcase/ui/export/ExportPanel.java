@@ -209,7 +209,7 @@ public class ExportPanel {
           .thenRun(exportGeoJsonJob);
     });
 
-    JobsRunner.launchAsync(allJobs).onComplete(form::unsetExporting);
+    JobsRunner.launchAsync(allJobs).onComplete(form::unsetExporting).waitForCompletion();
   }
 
   @EventSubscriber(eventClass = CacheUpdateEvent.class)
