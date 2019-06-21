@@ -50,16 +50,17 @@ public class ExportPanelUnitTest {
 
   @Test
   public void saves_to_user_preferences_changes_on_the_default_configuration() throws IOException {
+    List<FormStatus> formsList = new ArrayList<>();
+    BriefcasePreferences inMemoryPrefs = new BriefcasePreferences(InMemoryPreferences.empty());
     initialDefaultConf = empty().build();
-    BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
-    BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
-    ExportForms forms = load(initialDefaultConf, new ArrayList<>(), exportPreferences);
-    ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, appPreferences, initialDefaultConf);
+    ExportForms forms = load(initialDefaultConf, formsList, inMemoryPrefs);
+    ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, inMemoryPrefs, inMemoryPrefs, initialDefaultConf);
     new ExportPanel(
         forms,
         exportPanelForm,
-        appPreferences,
-        exportPreferences,
+        inMemoryPrefs,
+        inMemoryPrefs,
+        inMemoryPrefs,
         new NoOpAnalytics(),
         FormCache.empty(),
         new FakeHttp()
@@ -67,22 +68,22 @@ public class ExportPanelUnitTest {
 
     exportPanelForm.setDefaultConf(empty().setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri())).build());
 
-    assertThat(load(exportPreferences).getExportDir(), notNullValue());
+    assertThat(load(inMemoryPrefs).getExportDir(), notNullValue());
   }
 
   @Test
   public void saves_to_user_preferences_changes_on_a_custom_configuration() throws IOException {
-    BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
-    BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     List<FormStatus> formsList = FormStatusBuilder.buildFormStatusList(10);
+    BriefcasePreferences inMemoryPrefs = new BriefcasePreferences(InMemoryPreferences.empty());
     initialDefaultConf = empty().build();
-    ExportForms forms = load(initialDefaultConf, formsList, exportPreferences);
-    ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, appPreferences, initialDefaultConf);
+    ExportForms forms = load(initialDefaultConf, formsList, inMemoryPrefs);
+    ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, inMemoryPrefs, inMemoryPrefs, initialDefaultConf);
     new ExportPanel(
         forms,
         exportPanelForm,
-        appPreferences,
-        exportPreferences,
+        inMemoryPrefs,
+        inMemoryPrefs,
+        inMemoryPrefs,
         new NoOpAnalytics(),
         FormCache.empty(),
         new FakeHttp()
@@ -98,21 +99,22 @@ public class ExportPanelUnitTest {
     forms.putConfiguration(form, conf);
     exportPanelForm.getFormsTable().getViewModel().triggerChange();
 
-    assertThat(load(exportPreferences, buildCustomConfPrefix(formId)).getExportDir(), notNullValue());
+    assertThat(load(inMemoryPrefs, buildCustomConfPrefix(formId)).getExportDir(), notNullValue());
   }
 
   @Test
   public void saves_to_user_preferences_the_last_successful_export_date_for_a_form() {
-    BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
-    BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     List<FormStatus> formsList = FormStatusBuilder.buildFormStatusList(10);
+    BriefcasePreferences inMemoryPrefs = new BriefcasePreferences(InMemoryPreferences.empty());
     initialDefaultConf = empty().build();
-    ExportForms forms = load(initialDefaultConf, formsList, exportPreferences);
+    ExportForms forms = load(initialDefaultConf, formsList, inMemoryPrefs);
+    ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, inMemoryPrefs, inMemoryPrefs, initialDefaultConf);
     new ExportPanel(
         forms,
-        ExportPanelForm.from(forms, appPreferences, initialDefaultConf),
-        appPreferences,
-        exportPreferences,
+        exportPanelForm,
+        inMemoryPrefs,
+        inMemoryPrefs,
+        inMemoryPrefs,
         new NoOpAnalytics(),
         FormCache.empty(),
         new FakeHttp()
@@ -121,12 +123,12 @@ public class ExportPanelUnitTest {
     FormStatus form = formsList.get(0);
     String formId = form.getFormDefinition().getFormId();
 
-    assertThat(exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId)), isEmpty());
+    assertThat(inMemoryPrefs.nullSafeGet(buildExportDateTimePrefix(formId)), isEmpty());
 
     FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());
     ExportEvent event = ExportEvent.successForm(formDef, 10);
     forms.appendStatus(event);
 
-    assertThat(exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId)), isPresent());
+    assertThat(inMemoryPrefs.nullSafeGet(buildExportDateTimePrefix(formId)), isPresent());
   }
 }

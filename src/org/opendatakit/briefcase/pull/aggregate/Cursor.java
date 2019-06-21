@@ -157,6 +157,7 @@ public class Cursor implements Comparable<Cursor> {
     return Objects.hash(lastUpdate, lastReturnedValue);
   }
 
+  //region Saved preferences management - Soon to be replace by a database
   public static Optional<Cursor> readPrefs(FormStatus form, BriefcasePreferences prefs) {
     return prefs.nullSafeGet(form.getFormId() + LAST_CURSOR_PREFERENCE_KEY_SUFFIX)
         .filter(s -> !s.isEmpty())
@@ -172,4 +173,5 @@ public class Cursor implements Comparable<Cursor> {
   public void storePrefs(FormStatus form, BriefcasePreferences prefs) {
     prefs.put(form.getFormId() + LAST_CURSOR_PREFERENCE_KEY_SUFFIX, value);
   }
+  //endregion
 }

@@ -24,6 +24,7 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.ui.pull.PullPanel;
 
 public class ExportFormsTableUnitTest {
   @Test
@@ -59,7 +60,7 @@ public class ExportFormsTableUnitTest {
 
   private class TestExportFormsTableViewModel extends ExportFormsTableViewModel {
     TestExportFormsTableViewModel(ExportForms forms) {
-      super(forms, BriefcasePreferences.appScoped());
+      super(forms, BriefcasePreferences.appScoped(), BriefcasePreferences.forClass(PullPanel.class));
     }
   }
 }

@@ -21,7 +21,6 @@ import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
-import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,11 +37,10 @@ import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
-import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
@@ -97,7 +95,8 @@ public class Export {
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
-    BriefcasePreferences tabPreferences = BriefcasePreferences.forClass(ExportPanel.class);
+    BriefcasePreferences exportPrefs = BriefcasePreferences.forClass(ExportPanel.class);
+    BriefcasePreferences pullPrefs = BriefcasePreferences.forClass(ExportPanel.class);
 
     int maxConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
@@ -131,23 +130,15 @@ public class Export {
     Job<Void> pullJob = Job.noOpSupplier();
     if (configuration.resolvePullBefore()) {
       FormStatus formStatus = new FormStatus(formDefinition);
-
-      String urlKey = String.format("%s_pull_settings_url", formid);
-      String usernameKey = String.format("%s_pull_settings_username", formid);
-      String passwordKey = String.format("%s_pull_settings_password", formid);
-
-      if (appPreferences.hasKey(urlKey)) {
-        AggregateServer server = new AggregateServer(
-            url(appPreferences.nullSafeGet(urlKey).orElseThrow(BriefcaseException::new)),
-            OptionalProduct.all(
-                appPreferences.nullSafeGet(usernameKey),
-                appPreferences.nullSafeGet(passwordKey)
-            ).map(Credentials::from)
-        );
-
-        pullJob = new PullFromAggregate(http, server, appPreferences, false, Export::onEvent)
-            .pull(formStatus, Optional.empty());
-      }
+      Optional<AggregateServer> server = AggregateServer.readFromPrefs(appPreferences, pullPrefs, formStatus);
+      if (server.isPresent())
+        pullJob = new PullFromAggregate(
+            http,
+            server.get(),
+            appPreferences,
+            false,
+            Export::onEvent
+        ).pull(formStatus, Optional.empty());
     }
 
     Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration));
@@ -159,7 +150,7 @@ public class Export {
     Job<Void> job = pullJob
         .thenRun(exportJob)
         .thenRun(exportGeoJsonJob)
-        .thenRun(__ -> tabPreferences.put(
+        .thenRun(__ -> exportPrefs.put(
             buildExportDateTimePrefix(formDefinition.getFormId()),
             LocalDateTime.now().format(ISO_DATE_TIME)
         ));

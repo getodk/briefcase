@@ -33,12 +33,6 @@ import org.slf4j.LoggerFactory;
 public interface PullSource<T> extends SourceOrTarget<T> {
   Logger log = LoggerFactory.getLogger(PullSource.class);
 
-  static void clearSourcePrefs(BriefcasePreferences prefs) {
-    AggregateServer.clearSourcePrefs(prefs);
-    CentralServer.clearSourcePrefs(prefs);
-    // Other subtypes don't save any prefs
-  }
-
   static PullSource<AggregateServer> aggregate(Http http, Consumer<PullSource> consumer) {
     return new Aggregate(http, server -> http.execute(server.getFormListRequest()), "Data Viewer", consumer);
   }

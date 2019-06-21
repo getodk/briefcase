@@ -33,8 +33,8 @@ public class ExportFormsTable {
     AnnotationProcessor.process(this);
   }
 
-  public static ExportFormsTable from(ExportForms forms, BriefcasePreferences appPreferences) {
-    ExportFormsTableViewModel viewModel = new ExportFormsTableViewModel(forms, appPreferences);
+  public static ExportFormsTable from(ExportForms forms, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs) {
+    ExportFormsTableViewModel viewModel = new ExportFormsTableViewModel(forms, appPreferences, pullPrefs);
     return new ExportFormsTable(forms, new ExportFormsTableView(viewModel), viewModel);
   }
 

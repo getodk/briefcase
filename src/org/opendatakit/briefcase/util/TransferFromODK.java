@@ -32,7 +32,6 @@ import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

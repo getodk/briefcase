@@ -51,39 +51,39 @@ public class PushPanel {
   public static final String TAB_NAME = "Push";
   private final TransferPanelForm view;
   private final TransferForms forms;
-  private final BriefcasePreferences tabPreferences;
+  private final BriefcasePreferences pushPreferences;
   private final BriefcasePreferences appPreferences;
   private final FormCache formCache;
   private final Analytics analytics;
   private JobsRunner pushJobRunner;
   private Optional<PushTarget> target;
 
-  private PushPanel(TransferPanelForm<PushTarget> view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, FormCache formCache, Analytics analytics) {
+  private PushPanel(TransferPanelForm<PushTarget> view, TransferForms forms, BriefcasePreferences pushPreferences, BriefcasePreferences appPreferences, FormCache formCache, Analytics analytics) {
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
-    this.tabPreferences = tabPreferences;
+    this.pushPreferences = pushPreferences;
     this.appPreferences = appPreferences;
     this.formCache = formCache;
     this.analytics = analytics;
     getContainer().addComponentListener(analytics.buildComponentListener("Push"));
 
     // Read prefs and load saved remote server if available
-    this.target = RemoteServer.readSourcePrefs(tabPreferences).flatMap(view::preloadOption);
+    this.target = RemoteServer.readFromPrefs(pushPreferences).flatMap(view::preloadOption);
 
     this.target.ifPresent(source -> updateActionButtons());
 
     // Register callbacks to view events
     view.onSelect(target -> {
       this.target = Optional.of(target);
-      PushTarget.clearSourcePrefs(tabPreferences);
-      target.storeSourcePrefs(tabPreferences, getStorePasswordsConsentProperty());
+      PushTarget.clearSourcePrefs(pushPreferences);
+      target.storeTargetPrefs(pushPreferences, getStorePasswordsConsentProperty());
       updateActionButtons();
     });
 
     view.onReset(() -> {
       target = Optional.empty();
-      PushTarget.clearSourcePrefs(tabPreferences);
+      PushTarget.clearSourcePrefs(pushPreferences);
       updateActionButtons();
     });
 
@@ -173,9 +173,9 @@ public class PushPanel {
 
   @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
   public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
-    tabPreferences.remove(AGGREGATE_1_0_URL);
-    tabPreferences.remove(USERNAME);
-    tabPreferences.remove(PASSWORD);
+    pushPreferences.remove(AGGREGATE_1_0_URL);
+    pushPreferences.remove(USERNAME);
+    pushPreferences.remove(PASSWORD);
     appPreferences.removeAll(appPreferences.keys().stream().filter((String key) ->
         key.endsWith("_push_settings_url")
             || key.endsWith("_push_settings_username")

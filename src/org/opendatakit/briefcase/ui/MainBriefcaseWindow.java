@@ -80,6 +80,8 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
   private MainBriefcaseWindow() {
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
+    BriefcasePreferences pullPreferences = BriefcasePreferences.forClass(PullPanel.class);
+    BriefcasePreferences exportPreferences = BriefcasePreferences.forClass(ExportPanel.class);
     Optional<Path> briefcaseDir = appPreferences.getBriefcaseDir().filter(Files::exists);
     if (!briefcaseDir.isPresent())
       appPreferences.unsetStorageDir();
@@ -110,12 +112,12 @@ public class MainBriefcaseWindow extends WindowAdapter {
     tabbedPane = new JTabbedPane(JTabbedPane.TOP);
     frame.setContentPane(tabbedPane);
 
-    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, analytics).getContainer());
+    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics).getContainer());
 
     PushPanel pushPanel = PushPanel.from(http, appPreferences, formCache, analytics);
     addPane(PushPanel.TAB_NAME, pushPanel.getContainer());
 
-    ExportPanel exportPanel = ExportPanel.from(BriefcasePreferences.forClass(ExportPanel.class), appPreferences, analytics, formCache, http);
+    ExportPanel exportPanel = ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, formCache, http);
     addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
 
     Component settingsPanel = SettingsPanel.from(appPreferences, analytics, formCache, http).getContainer();

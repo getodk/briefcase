@@ -21,7 +21,6 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.newInputStream;
 
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,16 +38,6 @@ import org.opendatakit.briefcase.reused.http.RequestBuilder;
  */
 // TODO v2.0 Test the methods that return Request objects
 public class CentralServer implements RemoteServer {
-  private static final String PREFS_KEY_CENTRAL_URL = "central_url";
-  private static final String PREFS_KEY_CENTRAL_PROJECT_ID = "central_project_id";
-  private static final String PREFS_KEY_CENTRAL_USERNAME = "central_username";
-  private static final String PREFS_KEY_CENTRAL_PASSWORD = "central_password";
-  public static List<String> PREFERENCE_KEYS = Arrays.asList(
-      PREFS_KEY_CENTRAL_URL,
-      PREFS_KEY_CENTRAL_PROJECT_ID,
-      PREFS_KEY_CENTRAL_USERNAME,
-      PREFS_KEY_CENTRAL_PASSWORD
-  );
   private final URL baseUrl;
   private final int projectId;
   private final Credentials credentials;
@@ -219,49 +208,68 @@ public class CentralServer implements RemoteServer {
   }
 
   //region Saved preferences management - Soon to be replace by a database
-  @Override
-  public void storePullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form) {
-    // Do nothing for now
+  private static String buildUrlKey() {
+    return "pull_source_central_url";
   }
 
-  @Override
-  public void removePullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form) {
-    // Do nothing for now
+  private static String buildProjectIdKey() {
+    return "pull_source_central_project_id";
   }
 
-  static Optional<RemoteServer> readPullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form) {
-    return Optional.empty();
+  private static String buildPasswordKey() {
+    return "pull_source_central_password";
   }
 
-  static Optional<CentralServer> readSourcePrefs(BriefcasePreferences prefs) {
-    return OptionalProduct.all(
-        prefs.nullSafeGet(PREFS_KEY_CENTRAL_URL).map(RequestBuilder::url),
-        prefs.nullSafeGet(PREFS_KEY_CENTRAL_PROJECT_ID).map(Integer::parseInt),
-        prefs.nullSafeGet(PREFS_KEY_CENTRAL_USERNAME),
-        prefs.nullSafeGet(PREFS_KEY_CENTRAL_PASSWORD)
-    ).map(CentralServer::from);
-  }
-
-  public void storeSourcePrefs(BriefcasePreferences prefs) {
-    prefs.put(PREFS_KEY_CENTRAL_URL, baseUrl.toString());
-    prefs.put(PREFS_KEY_CENTRAL_PROJECT_ID, String.valueOf(projectId));
-    prefs.put(PREFS_KEY_CENTRAL_USERNAME, credentials.getUsername());
-    prefs.put(PREFS_KEY_CENTRAL_PASSWORD, credentials.getPassword());
-  }
-
-  public static void clearSourcePrefs(BriefcasePreferences prefs) {
-    prefs.removeAll(
-        PREFS_KEY_CENTRAL_URL,
-        PREFS_KEY_CENTRAL_PROJECT_ID,
-        PREFS_KEY_CENTRAL_USERNAME,
-        PREFS_KEY_CENTRAL_PASSWORD
-    );
+  private static String buildUsernameKey() {
+    return "pull_source_central_username";
   }
 
   static boolean isPrefKey(String key) {
-    return key.endsWith("_pull_settings_url")
-        || key.endsWith("_pull_settings_username")
-        || key.endsWith("_pull_settings_password");
+    return key.endsWith(buildUrlKey())
+        || key.endsWith(buildProjectIdKey())
+        || key.endsWith(buildUsernameKey())
+        || key.endsWith(buildPasswordKey());
+  }
+
+  @Override
+  public void storeInPrefs(BriefcasePreferences prefs, boolean storePasswords) {
+    if (storePasswords) {
+      prefs.put(buildUrlKey(), baseUrl.toString());
+      prefs.put(buildProjectIdKey(), String.valueOf(projectId));
+      prefs.put(buildUsernameKey(), credentials.getUsername());
+      prefs.put(buildPasswordKey(), credentials.getPassword());
+    }
+  }
+
+  @Override
+  public void storeInPrefs(BriefcasePreferences prefs, FormStatus form, boolean storePasswords) {
+    // Do nothing for now
+  }
+
+  public static void clearStoredPrefs(BriefcasePreferences prefs) {
+    prefs.remove(buildUrlKey());
+    prefs.remove(buildProjectIdKey());
+    prefs.remove(buildUsernameKey());
+    prefs.remove(buildPasswordKey());
+  }
+
+  @Override
+  public void clearStoredPrefs(BriefcasePreferences prefs, FormStatus form) {
+    // Do nothing for now
+  }
+
+  static Optional<CentralServer> readFromPrefs(BriefcasePreferences prefs) {
+    return OptionalProduct.all(
+        prefs.nullSafeGet(buildUrlKey()).map(RequestBuilder::url),
+        prefs.nullSafeGet(buildProjectIdKey()).map(Integer::parseInt),
+        prefs.nullSafeGet(buildUsernameKey()),
+        prefs.nullSafeGet(buildPasswordKey())
+    ).map(CentralServer::from);
+  }
+
+  static Optional<RemoteServer> readFromPrefs(BriefcasePreferences prefs, FormStatus form) {
+    // Do nothing for now
+    return Optional.empty();
   }
   //endregion
 }

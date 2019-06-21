@@ -65,13 +65,12 @@ public class PullPanel {
     getContainer().addComponentListener(analytics.buildComponentListener("Pull"));
 
     // Read prefs and load saved remote server if available
-    source = RemoteServer.readSourcePrefs(tabPreferences).flatMap(view::preloadOption);
+    source = RemoteServer.readFromPrefs(tabPreferences).flatMap(view::preloadOption);
     view.onReady(() -> source.ifPresent(source -> onSource(view, forms, source)));
 
     // Register callbacks to view events
     view.onSelect(source -> {
       this.source = Optional.of(source);
-      PullSource.clearSourcePrefs(tabPreferences);
       source.storeSourcePrefs(tabPreferences, getStorePasswordsConsentProperty());
       onSource(view, forms, source);
     });
@@ -80,7 +79,7 @@ public class PullPanel {
       forms.clear();
       view.refresh();
       source = Optional.empty();
-      PullSource.clearSourcePrefs(tabPreferences);
+      RemoteServer.clearStoredPrefs(tabPreferences);
       updateActionButtons();
     });
 
@@ -107,12 +106,12 @@ public class PullPanel {
     });
   }
 
-  public static PullPanel from(Http http, BriefcasePreferences appPreferences, Analytics analytics) {
+  public static PullPanel from(Http http, BriefcasePreferences appPreferences, BriefcasePreferences pullPanelPreferences, Analytics analytics) {
     TransferForms forms = TransferForms.empty();
     return new PullPanel(
         TransferPanelForm.pull(http, forms),
         forms,
-        BriefcasePreferences.forClass(PullPanel.class),
+        pullPanelPreferences,
         appPreferences,
         analytics
     );
@@ -170,10 +169,10 @@ public class PullPanel {
 
   @EventSubscriber(eventClass = PullEvent.Success.class)
   public void onPullSuccess(PullEvent.Success event) {
-    if (getStorePasswordsConsentProperty())
-      event.ifRemoteServer((form, server) -> server.storePullBeforeExportPrefs(appPreferences, form));
-    else
-      event.ifRemoteServer((form, server) -> server.removePullBeforeExportPrefs(appPreferences, form));
+    event.ifRemoteServer((form, server) -> {
+      server.clearStoredPrefs(appPreferences, form);
+      server.storeInPrefs(appPreferences, form, getStorePasswordsConsentProperty());
+    });
     event.lastCursor.ifPresent(cursor -> cursor.storePrefs(event.form, appPreferences));
   }
 

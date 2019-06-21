@@ -56,9 +56,8 @@ public class Central implements PushTarget<CentralServer> {
   }
 
   @Override
-  public void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords) {
-    if (storePasswords)
-      server.storeSourcePrefs(prefs);
+  public void storeTargetPrefs(BriefcasePreferences prefs, boolean storePasswords) {
+    server.storeInPrefs(prefs, storePasswords);
   }
 
   @Override

@@ -23,35 +23,6 @@ import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.http.response.Response;
 
 public interface RemoteServer {
-
-  /**
-   * Searches for keys used to store the last configured source in the Pull & Push
-   * panels and returns a non-empty value when they're found.
-   */
-  @SuppressWarnings("unchecked")
-  static <T extends RemoteServer> Optional<T> readSourcePrefs(BriefcasePreferences prefs) {
-    // Hacky way to get the correct subtype. Basically, try to de-serialize saved prefs
-    // until one of the de-serializers successfully manages to get an instance
-    return Optionals.race(
-        AggregateServer.readSourcePrefs(prefs).map(o -> (T) o),
-        CentralServer.readSourcePrefs(prefs).map(o -> (T) o)
-    );
-  }
-
-  /**
-   * Searches for keys used to store the last used pull source for
-   * a form to support the "pull before export" feature and returns
-   * a non-empty value when they're found.
-   */
-  static <T extends RemoteServer> Optional<T> readPullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form) {
-    // Hacky way to get the correct subtype. Basically, try to de-serialize saved prefs
-    // until one of the de-serializers successfully manages to get an instance
-    return Optionals.race(
-        AggregateServer.readPullBeforeExportPrefs(prefs, form).map(o -> (T) o),
-        CentralServer.readPullBeforeExportPrefs(prefs, form).map(o -> (T) o)
-    );
-  }
-
   /**
    * Returns true if the given key is a prefs key managed by this class hierarchy.
    * <p>
@@ -63,14 +34,57 @@ public interface RemoteServer {
   }
 
   /**
+   * Stores in the given prefs object this RemoteServer's information used as a pull source or push target in the UI
+   */
+  void storeInPrefs(BriefcasePreferences prefs, boolean storePasswords);
+
+  /**
    * Stores in the given prefs object this RemoteServer's information used to pull the given form.
    */
-  void storePullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form);
+  void storeInPrefs(BriefcasePreferences prefs, FormStatus form, boolean storePasswords);
+
+  static void clearStoredPrefs(BriefcasePreferences prefs) {
+    AggregateServer.clearStoredPrefs(prefs);
+    CentralServer.clearStoredPrefs(prefs);
+  }
 
   /**
    * Removes from the given prefs object this RemoteServer's information used to pull the given form.
    */
-  void removePullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form);
+  void clearStoredPrefs(BriefcasePreferences prefs, FormStatus form);
+
+  /**
+   * Searches for keys used to store the last configured source in the Pull & Push
+   * panels and returns a non-empty value when they're found.
+   */
+  @SuppressWarnings("unchecked")
+  static <T extends RemoteServer> Optional<T> readFromPrefs(BriefcasePreferences prefs) {
+    // Hacky way to get the correct subtype. Basically, try to de-serialize saved prefs
+    // until one of the de-serializers successfully manages to get an instance
+    return Optionals.race(
+        AggregateServer.readFromPrefs(prefs).map(o -> (T) o),
+        CentralServer.readFromPrefs(prefs).map(o -> (T) o)
+    );
+  }
+
+  /**
+   * Searches for keys used to store the last used pull source for
+   * a form to support the "pull before export" feature and returns
+   * a non-empty value when they're found.
+   * <p>
+   * This method requires both the app's prefs object and the pull
+   * panel's prefs object to be able to be backwards-compatible with
+   * older versions that store prefs using different keys
+   */
+  @SuppressWarnings("unchecked")
+  static <T extends RemoteServer> Optional<T> readFromPrefs(BriefcasePreferences prefs, BriefcasePreferences pullPanelPrefs, FormStatus form) {
+    // Hacky way to get the correct subtype. Basically, try to de-serialize saved prefs
+    // until one of the de-serializers successfully manages to get an instance
+    return Optionals.race(
+        AggregateServer.readFromPrefs(prefs, pullPanelPrefs, form).map(o -> (T) o),
+        CentralServer.readFromPrefs(prefs, form).map(o -> (T) o)
+    );
+  }
 
   @FunctionalInterface
   interface Test<T extends RemoteServer> {

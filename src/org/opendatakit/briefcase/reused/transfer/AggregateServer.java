@@ -31,7 +31,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.export.XmlElement;
@@ -42,6 +41,7 @@ import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.DownloadedSubmission;
 import org.opendatakit.briefcase.reused.OptionalProduct;
+import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Request;
@@ -53,7 +53,6 @@ import org.opendatakit.briefcase.reused.http.RequestBuilder;
  */
 // TODO v2.0 Test the methods that return Request objects
 public class AggregateServer implements RemoteServer {
-  public static List<String> PREFERENCE_KEYS = Arrays.asList(AGGREGATE_1_0_URL, USERNAME, PASSWORD);
   private final URL baseUrl;
   private final Optional<Credentials> credentials;
 
@@ -219,94 +218,141 @@ public class AggregateServer implements RemoteServer {
 
 
   //region Saved preferences management - Soon to be replace by a database
+  private static String buildUrlKey() {
+    return "pull_source_aggregate_url";
+  }
 
-  /**
-   * Returns true if the given key is a prefs key managed by this class.
-   * <p>
-   * Includes keys used to store the last configured source in the Pull & Push
-   * panels, and the keys used to support the "pull before export" feature.
-   */
+  private static String buildUrlKey(String formId) {
+    return String.format("%s_pull_source_aggregate_url", formId);
+  }
+
+  private static String buildUsernameKey() {
+    return "pull_source_aggregate_username";
+  }
+
+  private static String buildUsernameKey(String formId) {
+    return String.format("%s_pull_source_aggregate_username", formId);
+  }
+
+  private static String buildPasswordKey() {
+    return "pull_source_aggregate_password";
+  }
+
+  private static String buildPasswordKey(String formId) {
+    return String.format("%s_pull_source_aggregate_password", formId);
+  }
+
+  private static String buildLegacyUrlKey() {
+    return AGGREGATE_1_0_URL;
+  }
+
+  private static String buildLegacyUrlKey(String formId) {
+    return String.format("%s_pull_settings_url", formId);
+  }
+
+  private static String buildLegacyUsernameKey() {
+    return USERNAME;
+  }
+
+  private static String buildLegacyUsernameKey(String formId) {
+    return String.format("%s_pull_settings_username", formId);
+  }
+
+  private static String buildLegacyPasswordKey() {
+    return PASSWORD;
+  }
+
+  private static String buildLegacyPasswordKey(String formId) {
+    return String.format("%s_pull_settings_password", formId);
+  }
+
   static boolean isPrefKey(String key) {
-    boolean sourcePanelKey = key.equals(AGGREGATE_1_0_URL)
-        || key.equals(USERNAME)
-        || key.equals(PASSWORD);
-    boolean lastPullServerKey = key.endsWith("_pull_settings_url")
-        || key.endsWith("_pull_settings_username")
-        || key.endsWith("_pull_settings_password");
-    return sourcePanelKey || lastPullServerKey;
+    boolean sourceKey = key.equals(buildUrlKey())
+        || key.equals(buildUsernameKey())
+        || key.equals(buildPasswordKey());
+    boolean legacySourceKey = key.equals(buildLegacyUrlKey())
+        || key.equals(buildLegacyUsernameKey())
+        || key.equals(buildLegacyPasswordKey());
+    boolean formKey = key.endsWith(buildUrlKey(""))
+        || key.endsWith(buildUsernameKey(""))
+        || key.endsWith(buildPasswordKey(""));
+    boolean legacyFormKey = key.endsWith(buildLegacyUrlKey(""))
+        || key.endsWith(buildLegacyUsernameKey(""))
+        || key.endsWith(buildLegacyPasswordKey(""));
+    return sourceKey || legacySourceKey || formKey || legacyFormKey;
   }
 
   @Override
-  public void storePullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form) {
-    prefs.put(String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()), this.baseUrl.toString());
-    prefs.put(String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()), credentials.map(Credentials::getUsername).orElse(""));
-    prefs.put(String.format("%s_pull_settings_password", form.getFormDefinition().getFormId()), credentials.map(Credentials::getPassword).orElse(""));
-  }
-
-  @Override
-  public void removePullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form) {
-    prefs.removeAll(
-        String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()),
-        String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()),
-        String.format("%s_pull_settings_password", form.getFormDefinition().getFormId())
-    );
-  }
-
-  static Optional<RemoteServer> readPullBeforeExportPrefs(BriefcasePreferences prefs, FormStatus form) {
-    if (!prefs.hasKey(String.format("%s_pull_source_url", form.getFormDefinition().getFormId())))
-      return Optional.empty();
-
-    return Optional.of(new AggregateServer(
-        prefs.nullSafeGet(String.format("%s_pull_source_url", form.getFormDefinition().getFormId())).map(RequestBuilder::url).get(),
-        OptionalProduct.all(
-            prefs.nullSafeGet(String.format("%s_pull_settings_username", form.getFormDefinition().getFormId())),
-            prefs.nullSafeGet(String.format("%s_pull_settings_password", form.getFormDefinition().getFormId()))
-        ).map(Credentials::new)
-    ));
-  }
-
-  public static void clearSourcePrefs(BriefcasePreferences prefs) {
-    prefs.removeAll(AggregateServer.PREFERENCE_KEYS);
-  }
-
-  /**
-   * Searches for keys used to store the last configured source in the Pull & Push
-   * panels and returns a non-empty value when they're found.
-   */
-  static Optional<AggregateServer> readSourcePrefs(BriefcasePreferences prefs) {
-    if (!prefs.hasKey(AGGREGATE_1_0_URL))
-      return Optional.empty();
-
-    return Optional.of(new AggregateServer(
-        prefs.nullSafeGet(AGGREGATE_1_0_URL).map(RequestBuilder::url).get(),
-        OptionalProduct.all(
-            prefs.nullSafeGet(USERNAME),
-            prefs.nullSafeGet(PASSWORD)
-        ).map(Credentials::new)
-    ));
-  }
-
-  /**
-   * Stores this instance in the given prefs using the keys to store the last
-   * configured source in the Pull & Push panels
-   */
-  public void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords) {
-    prefs.remove(AGGREGATE_1_0_URL);
-    prefs.remove(USERNAME);
-    prefs.remove(PASSWORD);
+  public void storeInPrefs(BriefcasePreferences prefs, boolean storePasswords) {
+    clearStoredPrefs(prefs);
 
     // We only save the Aggregate URL if no credentials are defined or
     // if they're defined and we have the user's consent to save passwords,
     // to avoid saving a URL that won't work without credentials.
     if (!credentials.isPresent() || storePasswords)
-      prefs.put(AGGREGATE_1_0_URL, getBaseUrl().toString());
+      prefs.put(buildUrlKey(), getBaseUrl().toString());
 
     // We only save the credentials if we have the user's consent to save
     // passwords
     if (credentials.isPresent() && storePasswords) {
-      prefs.put(USERNAME, credentials.get().getUsername());
-      prefs.put(PASSWORD, credentials.get().getPassword());
+      prefs.put(buildUsernameKey(), credentials.get().getUsername());
+      prefs.put(buildPasswordKey(), credentials.get().getPassword());
     }
   }
+
+  @Override
+  public void storeInPrefs(BriefcasePreferences prefs, FormStatus form, boolean storePasswords) {
+    if (storePasswords) {
+      String formId = form.getFormDefinition().getFormId();
+      prefs.put(buildUrlKey(formId), this.baseUrl.toString());
+      prefs.put(buildUsernameKey(formId), credentials.map(Credentials::getUsername).orElse(""));
+      prefs.put(buildPasswordKey(formId), credentials.map(Credentials::getPassword).orElse(""));
+    }
+  }
+
+  public static void clearStoredPrefs(BriefcasePreferences prefs) {
+    prefs.remove(buildUrlKey());
+    prefs.remove(buildUsernameKey());
+    prefs.remove(buildUsernameKey());
+  }
+
+  @Override
+  public void clearStoredPrefs(BriefcasePreferences prefs, FormStatus form) {
+    String formId = form.getFormDefinition().getFormId();
+    prefs.remove(buildUrlKey(formId));
+    prefs.remove(buildUsernameKey(formId));
+    prefs.remove(buildPasswordKey(formId));
+  }
+
+  static Optional<AggregateServer> readFromPrefs(BriefcasePreferences prefs) {
+    return Optionals.race(
+        readFromPrefs(prefs, buildUrlKey(), buildUsernameKey(), buildPasswordKey()),
+        readFromPrefs(prefs, buildLegacyUrlKey(), buildLegacyUsernameKey(), buildLegacyPasswordKey())
+    );
+  }
+
+  public static Optional<AggregateServer> readFromPrefs(BriefcasePreferences prefs, BriefcasePreferences pullPanelPrefs, FormStatus form) {
+    String formId = form.getFormDefinition().getFormId();
+    return Optionals.race(
+        readFromPrefs(prefs, buildUrlKey(formId), buildUsernameKey(formId), buildPasswordKey(formId)),
+        readFromPrefs(pullPanelPrefs, buildUrlKey(formId), buildUsernameKey(formId), buildPasswordKey(formId)),
+        readFromPrefs(prefs, buildLegacyUrlKey(formId), buildLegacyUsernameKey(formId), buildLegacyPasswordKey(formId)),
+        readFromPrefs(pullPanelPrefs, buildLegacyUrlKey(formId), buildLegacyUsernameKey(formId), buildLegacyPasswordKey(formId))
+    );
+  }
+
+  private static Optional<AggregateServer> readFromPrefs(BriefcasePreferences prefs, String urlKey, String usernameKey, String passwordKey) {
+    if (!prefs.hasKey(urlKey))
+      return Optional.empty();
+
+    return Optional.of(new AggregateServer(
+        prefs.nullSafeGet(urlKey).map(RequestBuilder::url).get(),
+        OptionalProduct.all(
+            prefs.nullSafeGet(usernameKey),
+            prefs.nullSafeGet(passwordKey)
+        ).map(Credentials::new)
+    ));
+  }
+
   //endregion
 }

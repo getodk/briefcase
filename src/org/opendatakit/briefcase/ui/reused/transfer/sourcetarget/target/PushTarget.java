@@ -32,8 +32,8 @@ public interface PushTarget<T> extends SourceOrTarget<T> {
   Logger log = LoggerFactory.getLogger(PushTarget.class);
 
   static void clearSourcePrefs(BriefcasePreferences prefs) {
-    AggregateServer.clearSourcePrefs(prefs);
-    CentralServer.clearSourcePrefs(prefs);
+    AggregateServer.clearStoredPrefs(prefs);
+    CentralServer.clearStoredPrefs(prefs);
   }
 
   static PushTarget<AggregateServer> aggregate(Http http, Consumer<PushTarget> consumer) {
@@ -44,7 +44,7 @@ public interface PushTarget<T> extends SourceOrTarget<T> {
     return new Central(http, server -> http.execute(server.getCredentialsTestRequest()), consumer);
   }
 
-  void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords);
+  void storeTargetPrefs(BriefcasePreferences prefs, boolean storePasswords);
 
   JobsRunner push(TransferForms forms, Path briefcaseDir);
 

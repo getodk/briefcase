@@ -22,7 +22,6 @@ import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.load;
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +39,8 @@ import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.Job;
@@ -50,26 +49,25 @@ import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FormCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ExportPanel {
-  private static final Logger log = LoggerFactory.getLogger(ExportPanel.class);
   public static final String TAB_NAME = "Export";
 
   private final ExportForms forms;
   private final ExportPanelForm form;
   private final BriefcasePreferences appPreferences;
-  private final BriefcasePreferences preferences;
+  private final BriefcasePreferences exportPreferences;
+  private final BriefcasePreferences pullPanelPrefs;
   private final Analytics analytics;
   private final FormCache formCache;
   private final Http http;
 
-  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences preferences, Analytics analytics, FormCache formCache, Http http) {
+  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences exportPreferences, BriefcasePreferences pullPanelPrefs, Analytics analytics, FormCache formCache, Http http) {
     this.forms = forms;
     this.form = form;
     this.appPreferences = appPreferences;
-    this.preferences = preferences;
+    this.exportPreferences = exportPreferences;
+    this.pullPanelPrefs = pullPanelPrefs;
     this.analytics = analytics;
     this.formCache = formCache;
     this.http = http;
@@ -78,17 +76,17 @@ public class ExportPanel {
 
     form.onDefaultConfSet(conf -> {
       forms.updateDefaultConfiguration(conf);
-      preferences.removeAll(ExportConfiguration.keys());
-      preferences.putAll(conf.asMap());
+      exportPreferences.removeAll(ExportConfiguration.keys());
+      exportPreferences.putAll(conf.asMap());
     });
 
     form.onDefaultConfReset(() -> {
       forms.updateDefaultConfiguration(empty().build());
-      preferences.removeAll(ExportConfiguration.keys());
+      exportPreferences.removeAll(ExportConfiguration.keys());
     });
 
     forms.onSuccessfulExport((String formId, LocalDateTime exportDateTime) ->
-        preferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME))
+        exportPreferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME))
     );
 
     form.onChange(() -> {
@@ -135,12 +133,12 @@ public class ExportPanel {
   private void updateCustomConfPreferences() {
     // Clean all custom conf keys
     forms.forEach(formId ->
-        preferences.removeAll(ExportConfiguration.keys(buildCustomConfPrefix(formId)))
+        exportPreferences.removeAll(ExportConfiguration.keys(buildCustomConfPrefix(formId)))
     );
 
     // Put custom confs
     forms.getCustomConfigurations().forEach((formId, configuration) ->
-        preferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
+        exportPreferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
     );
   }
 
@@ -152,15 +150,16 @@ public class ExportPanel {
     }
   }
 
-  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http) {
+  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics, FormCache formCache, Http http) {
     ExportConfiguration initialDefaultConf = load(exportPreferences);
     ExportForms forms = ExportForms.load(initialDefaultConf, toFormStatuses(formCache.getForms()), exportPreferences);
-    ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, initialDefaultConf);
+    ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, pullPrefs, initialDefaultConf);
     return new ExportPanel(
         forms,
         form,
         appPreferences,
         exportPreferences,
+        pullPrefs,
         analytics,
         formCache,
         http
@@ -187,10 +186,9 @@ public class ExportPanel {
       form.setStatusString("Starting to export form");
       String formId = form.getFormDefinition().getFormId();
       ExportConfiguration configuration = forms.getConfiguration(formId);
-      Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
       FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());
       // TODO Abstract away the subtype of RemoteServer. This should say Optional<RemoteServer>
-      Optional<AggregateServer> savedPullSource = RemoteServer.readPullBeforeExportPrefs(appPreferences, form);
+      Optional<AggregateServer> savedPullSource = RemoteServer.readFromPrefs(appPreferences, pullPanelPrefs, form);
 
       Job<Void> pullJob = configuration.resolvePullBefore() && savedPullSource.isPresent()
           ? new PullFromAggregate(http, savedPullSource.get(), appPreferences, false, EventBus::publish).pull(form, Optional.empty())

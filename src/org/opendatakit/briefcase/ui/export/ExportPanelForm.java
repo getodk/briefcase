@@ -87,9 +87,9 @@ public class ExportPanelForm {
     setDefaultConfButton.setText("Set Default Configuration");
   }
 
-  public static ExportPanelForm from(ExportForms forms, BriefcasePreferences appPreferences, ExportConfiguration defaultConf) {
+  public static ExportPanelForm from(ExportForms forms, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, ExportConfiguration defaultConf) {
     return new ExportPanelForm(
-        ExportFormsTable.from(forms, appPreferences),
+        ExportFormsTable.from(forms, appPreferences, pullPrefs),
         appPreferences,
         defaultConf
     );

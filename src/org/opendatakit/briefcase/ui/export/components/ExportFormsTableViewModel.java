@@ -48,13 +48,15 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
   private final Map<FormStatus, JButton> confButtons = new HashMap<>();
   private final ExportForms forms;
   private final BriefcasePreferences appPreferences;
+  private BriefcasePreferences pullPrefs;
 
   private static final Font ic_settings = FontUtils.getCustomFont("ic_settings.ttf", 16f);
   private boolean enabled = true;
 
-  ExportFormsTableViewModel(ExportForms forms, BriefcasePreferences appPreferences) {
+  ExportFormsTableViewModel(ExportForms forms, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs) {
     this.forms = forms;
     this.appPreferences = appPreferences;
+    this.pullPrefs = pullPrefs;
   }
 
   public void onChange(Runnable callback) {
@@ -85,7 +87,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
         ConfigurationDialog dialog = ConfigurationDialog.overridePanel(
             forms.getCustomConfiguration(form).orElse(empty().build()),
             form.getFormName(),
-            RemoteServer.readPullBeforeExportPrefs(appPreferences, form).isPresent(),
+            RemoteServer.readFromPrefs(appPreferences, pullPrefs, form).isPresent(),
             BriefcasePreferences.getStorePasswordsConsentProperty()
         );
         dialog.onRemove(() -> removeConfiguration(form));
