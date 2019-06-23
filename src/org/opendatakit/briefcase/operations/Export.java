@@ -138,7 +138,12 @@ public class Export {
             appPreferences,
             false,
             Export::onEvent
-        ).pull(formStatus, Optional.empty());
+        ).pull(
+            formStatus,
+            appPreferences.getResumeLastPull().orElse(false)
+                ? Cursor.readPrefs(formStatus, appPreferences)
+                : Optional.empty()
+        );
     }
 
     Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration));

@@ -191,7 +191,13 @@ public class ExportPanel {
       Optional<AggregateServer> savedPullSource = RemoteServer.readFromPrefs(appPreferences, pullPanelPrefs, form);
 
       Job<Void> pullJob = configuration.resolvePullBefore() && savedPullSource.isPresent()
-          ? new PullFromAggregate(http, savedPullSource.get(), appPreferences, false, EventBus::publish).pull(form, Optional.empty())
+          ? new PullFromAggregate(http, savedPullSource.get(), appPreferences, false, EventBus::publish)
+          .pull(
+              form,
+              appPreferences.getResumeLastPull().orElse(false)
+                  ? Cursor.readPrefs(form, appPreferences)
+                  : Optional.empty()
+          )
           : Job.noOpSupplier();
 
       Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration, analytics));
