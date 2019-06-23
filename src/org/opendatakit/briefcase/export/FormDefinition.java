@@ -37,6 +37,8 @@ import org.javarosa.core.model.IDataReference;
 import org.javarosa.core.model.IFormElement;
 import org.javarosa.core.model.ItemsetBinding;
 import org.javarosa.core.model.QuestionDef;
+import org.javarosa.core.model.condition.EvaluationContext;
+import org.javarosa.core.model.condition.IFunctionHandler;
 import org.javarosa.core.model.instance.DataInstance;
 import org.javarosa.core.model.instance.ExternalDataInstance;
 import org.javarosa.core.model.instance.InstanceInitializationFactory;
@@ -51,6 +53,32 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
  * This class holds all the relevant information about the form being exported.
  */
 public class FormDefinition {
+  private static final IFunctionHandler DUMMY_PULLDATA_HANDLER = new IFunctionHandler() {
+    @Override
+    public String getName() {
+      return "pulldata";
+    }
+
+    @Override
+    public List<Class[]> getPrototypes() {
+      return Collections.emptyList();
+    }
+
+    @Override
+    public boolean rawArgs() {
+      return true;
+    }
+
+    @Override
+    public boolean realTime() {
+      return false;
+    }
+
+    @Override
+    public Object eval(Object[] args, EvaluationContext ec) {
+      return "";
+    }
+  };
   private final String id;
   private final String name;
   private final Path formFile;
@@ -116,6 +144,7 @@ public class FormDefinition {
   }
 
   private static Map<String, QuestionDef> getFormControls(FormDef formDef) {
+    formDef.getEvaluationContext().addFunctionHandler(DUMMY_PULLDATA_HANDLER);
     formDef.initialize(false, new InstanceInitializationFactory());
     return formDef.getChildren()
         .stream()
