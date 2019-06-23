@@ -22,9 +22,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import org.opendatakit.briefcase.export.XmlElement;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 
 /**
@@ -50,12 +50,15 @@ public class InstanceIdBatchGetter implements Iterator<InstanceIdBatch> {
   }
 
   private void fetchNext() {
-    Pair<Cursor, List<String>> batch = http.execute(server.getInstanceIdBatchRequest(
+    Response<XmlElement> response = http.execute(server.getInstanceIdBatchRequest(
         formId,
         100,
         nextCursor,
         includeIncomplete
-    )).map(this::parseBatch).orElseThrow(BriefcaseException::new);
+    ));
+    Pair<Cursor, List<String>> batch = response
+        .map(this::parseBatch)
+        .orElseThrow(() -> new InstanceIdBatchGetterException(response));
     nextUids = batch.getRight();
     nextCursor = batch.getLeft();
   }

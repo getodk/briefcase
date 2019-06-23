@@ -205,4 +205,12 @@ class PullFromAggregateTracker {
     log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
+
+  void trackErrorGettingInstanceIdBatches(Response response) {
+    errored = true;
+    String message = "Error getting batches of instance IDs";
+    form.setStatusString(message + ": " + response.getStatusPhrase());
+    log.error("Pull {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
+    notifyTrackingEvent();
+  }
 }

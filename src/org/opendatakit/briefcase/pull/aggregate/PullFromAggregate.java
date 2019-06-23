@@ -292,7 +292,13 @@ public class PullFromAggregate {
 
   private List<InstanceIdBatch> getInstanceIdBatches(FormStatus form, RunnerStatus runnerStatus, PullFromAggregateTracker tracker, Cursor lastCursor) {
     tracker.trackStartGettingSubmissionIds();
-    InstanceIdBatchGetter batchPager = new InstanceIdBatchGetter(server, http, form.getFormId(), includeIncomplete, lastCursor);
+    InstanceIdBatchGetter batchPager;
+    try {
+      batchPager = new InstanceIdBatchGetter(server, http, form.getFormId(), includeIncomplete, lastCursor);
+    } catch (InstanceIdBatchGetterException e) {
+      tracker.trackErrorGettingInstanceIdBatches(e.aggregateResponse);
+      return emptyList();
+    }
     List<InstanceIdBatch> batches = new ArrayList<>();
     // The first batch is always an empty batch with the last cursor
     // to avoid losing it if there are no new submissions available
