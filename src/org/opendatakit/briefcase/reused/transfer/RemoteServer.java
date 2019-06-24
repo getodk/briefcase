@@ -49,11 +49,6 @@ public interface RemoteServer {
   }
 
   /**
-   * Removes from the given prefs object this RemoteServer's information used to pull the given form.
-   */
-  void clearStoredPrefs(BriefcasePreferences prefs, FormStatus form);
-
-  /**
    * Searches for keys used to store the last configured source in the Pull & Push
    * panels and returns a non-empty value when they're found.
    */

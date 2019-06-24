@@ -23,6 +23,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -233,6 +234,7 @@ public class CentralServer implements RemoteServer {
 
   @Override
   public void storeInPrefs(BriefcasePreferences prefs, boolean storePasswords) {
+    clearStoredPrefs(prefs);
     if (storePasswords) {
       prefs.put(buildUrlKey(), baseUrl.toString());
       prefs.put(buildProjectIdKey(), String.valueOf(projectId));
@@ -253,11 +255,6 @@ public class CentralServer implements RemoteServer {
     prefs.remove(buildPasswordKey());
   }
 
-  @Override
-  public void clearStoredPrefs(BriefcasePreferences prefs, FormStatus form) {
-    // Do nothing for now
-  }
-
   static Optional<CentralServer> readFromPrefs(BriefcasePreferences prefs) {
     return OptionalProduct.all(
         prefs.nullSafeGet(buildUrlKey()).map(RequestBuilder::url),
@@ -272,4 +269,29 @@ public class CentralServer implements RemoteServer {
     return Optional.empty();
   }
   //endregion
+
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    CentralServer that = (CentralServer) o;
+    return projectId == that.projectId &&
+        Objects.equals(baseUrl, that.baseUrl) &&
+        Objects.equals(credentials, that.credentials);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(baseUrl, projectId, credentials);
+  }
+
+  @Override
+  public String toString() {
+    return "CentralServer{" +
+        "baseUrl=" + baseUrl +
+        ", projectId=" + projectId +
+        ", credentials=" + credentials +
+        '}';
+  }
 }

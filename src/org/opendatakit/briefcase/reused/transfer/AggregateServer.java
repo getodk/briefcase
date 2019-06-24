@@ -32,6 +32,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -286,15 +287,14 @@ public class AggregateServer implements RemoteServer {
   public void storeInPrefs(BriefcasePreferences prefs, boolean storePasswords) {
     clearStoredPrefs(prefs);
 
-    // We only save the Aggregate URL if no credentials are defined or
-    // if they're defined and we have the user's consent to save passwords,
-    // to avoid saving a URL that won't work without credentials.
-    if (!credentials.isPresent() || storePasswords)
+    if (!credentials.isPresent()) {
       prefs.put(buildUrlKey(), getBaseUrl().toString());
+      prefs.put(buildUsernameKey(), "");
+      prefs.put(buildPasswordKey(), "");
+    }
 
-    // We only save the credentials if we have the user's consent to save
-    // passwords
     if (credentials.isPresent() && storePasswords) {
+      prefs.put(buildUrlKey(), getBaseUrl().toString());
       prefs.put(buildUsernameKey(), credentials.get().getUsername());
       prefs.put(buildPasswordKey(), credentials.get().getPassword());
     }
@@ -302,6 +302,7 @@ public class AggregateServer implements RemoteServer {
 
   @Override
   public void storeInPrefs(BriefcasePreferences prefs, FormStatus form, boolean storePasswords) {
+    clearStoredPrefs(prefs, form);
     if (storePasswords) {
       String formId = form.getFormDefinition().getFormId();
       prefs.put(buildUrlKey(formId), this.baseUrl.toString());
@@ -313,15 +314,20 @@ public class AggregateServer implements RemoteServer {
   public static void clearStoredPrefs(BriefcasePreferences prefs) {
     prefs.remove(buildUrlKey());
     prefs.remove(buildUsernameKey());
-    prefs.remove(buildUsernameKey());
+    prefs.remove(buildPasswordKey());
+    prefs.remove(buildLegacyUrlKey());
+    prefs.remove(buildLegacyUsernameKey());
+    prefs.remove(buildLegacyPasswordKey());
   }
 
-  @Override
-  public void clearStoredPrefs(BriefcasePreferences prefs, FormStatus form) {
+  void clearStoredPrefs(BriefcasePreferences prefs, FormStatus form) {
     String formId = form.getFormDefinition().getFormId();
     prefs.remove(buildUrlKey(formId));
     prefs.remove(buildUsernameKey(formId));
     prefs.remove(buildPasswordKey(formId));
+    prefs.remove(buildLegacyUrlKey(formId));
+    prefs.remove(buildLegacyUsernameKey(formId));
+    prefs.remove(buildLegacyPasswordKey(formId));
   }
 
   static Optional<AggregateServer> readFromPrefs(BriefcasePreferences prefs) {
@@ -333,12 +339,22 @@ public class AggregateServer implements RemoteServer {
 
   public static Optional<AggregateServer> readFromPrefs(BriefcasePreferences prefs, BriefcasePreferences pullPanelPrefs, FormStatus form) {
     String formId = form.getFormDefinition().getFormId();
-    return Optionals.race(
+    Optional<AggregateServer> maybeServer = Optionals.race(
         readFromPrefs(prefs, buildUrlKey(formId), buildUsernameKey(formId), buildPasswordKey(formId)),
         readFromPrefs(pullPanelPrefs, buildUrlKey(formId), buildUsernameKey(formId), buildPasswordKey(formId)),
         readFromPrefs(prefs, buildLegacyUrlKey(formId), buildLegacyUsernameKey(formId), buildLegacyPasswordKey(formId)),
         readFromPrefs(pullPanelPrefs, buildLegacyUrlKey(formId), buildLegacyUsernameKey(formId), buildLegacyPasswordKey(formId))
     );
+    maybeServer.ifPresent(server -> {
+      // Move prefs from legacy storage to new storage
+      server.clearStoredPrefs(pullPanelPrefs, form);
+      // We assume storePasswords=true because if server has
+      // credentials, then storePasswords must be true, and
+      // if it doesn't have credentials, then storePasswords'
+      // value is irrelevant
+      server.storeInPrefs(prefs, form, true);
+    });
+    return maybeServer;
   }
 
   private static Optional<AggregateServer> readFromPrefs(BriefcasePreferences prefs, String urlKey, String usernameKey, String passwordKey) {
@@ -348,11 +364,33 @@ public class AggregateServer implements RemoteServer {
     return Optional.of(new AggregateServer(
         prefs.nullSafeGet(urlKey).map(RequestBuilder::url).get(),
         OptionalProduct.all(
-            prefs.nullSafeGet(usernameKey),
-            prefs.nullSafeGet(passwordKey)
+            prefs.nullSafeGet(usernameKey).filter(s -> !s.isEmpty()),
+            prefs.nullSafeGet(passwordKey).filter(s -> !s.isEmpty())
         ).map(Credentials::new)
     ));
   }
-
   //endregion
+
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    AggregateServer that = (AggregateServer) o;
+    return Objects.equals(baseUrl, that.baseUrl) &&
+        Objects.equals(credentials, that.credentials);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(baseUrl, credentials);
+  }
+
+  @Override
+  public String toString() {
+    return "AggregateServer{" +
+        "baseUrl=" + baseUrl +
+        ", credentials=" + credentials +
+        '}';
+  }
 }

@@ -169,10 +169,9 @@ public class PullPanel {
 
   @EventSubscriber(eventClass = PullEvent.Success.class)
   public void onPullSuccess(PullEvent.Success event) {
-    event.ifRemoteServer((form, server) -> {
-      server.clearStoredPrefs(appPreferences, form);
-      server.storeInPrefs(appPreferences, form, getStorePasswordsConsentProperty());
-    });
+    event.ifRemoteServer((form, server) ->
+        server.storeInPrefs(appPreferences, form, getStorePasswordsConsentProperty())
+    );
     event.lastCursor.ifPresent(cursor -> cursor.storePrefs(event.form, appPreferences));
   }
 
