@@ -85,7 +85,7 @@ public class Central implements PullSource<CentralServer> {
 
   @Override
   public void decorate(JLabel label) {
-    label.setText("<html><a href=\"" + server.getBaseUrl().toString() + "\">" + getDescription() + "</a></html>");
+    label.setText("<html><a href=\"" + server.getBaseUrl().toString() + "\">" + getDescription() + "</a> - Project " + server.getProjectId() + "</html>");
     label.setCursor(getPredefinedCursor(HAND_CURSOR));
     removeAllMouseListeners(label);
     label.addMouseListener(new MouseAdapterBuilder()

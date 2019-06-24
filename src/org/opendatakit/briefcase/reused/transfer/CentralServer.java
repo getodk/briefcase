@@ -89,6 +89,10 @@ public class CentralServer implements RemoteServer {
     return baseUrl;
   }
 
+  public int getProjectId() {
+    return projectId;
+  }
+
   public Request<Void> getDownloadFormRequest(String formId, Path target, String token) {
     return RequestBuilder.get(baseUrl)
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + ".xml")
