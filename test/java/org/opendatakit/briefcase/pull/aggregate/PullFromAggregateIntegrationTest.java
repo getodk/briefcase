@@ -91,7 +91,7 @@ public class PullFromAggregateIntegrationTest {
     prefs.setStorageDir(tmpDir);
     server = httpServer(serverPort);
     tracker = new PullFromAggregateTracker(form, e -> { });
-    pullOp = new PullFromAggregate(CommonsHttp.of(1), aggregateServer, prefs, true, e -> { });
+    pullOp = new PullFromAggregate(CommonsHttp.of(1), aggregateServer, briefcaseDir, prefs, true, e -> { });
     runnerStatus = new TestRunnerStatus(false);
 
   }

@@ -96,6 +96,7 @@ public class Aggregate implements PullSource<AggregateServer> {
     PullFromAggregate pullOp = new PullFromAggregate(
         http,
         server,
+        appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
         appPreferences,
         false,
         EventBus::publish

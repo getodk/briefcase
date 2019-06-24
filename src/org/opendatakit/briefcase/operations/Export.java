@@ -135,6 +135,7 @@ public class Export {
         pullJob = new PullFromAggregate(
             http,
             server.get(),
+            briefcaseDir,
             appPreferences,
             false,
             Export::onEvent

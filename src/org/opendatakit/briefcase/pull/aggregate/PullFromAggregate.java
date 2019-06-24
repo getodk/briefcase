@@ -41,7 +41,6 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.pull.PullEvent;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.Triple;
@@ -64,11 +63,11 @@ public class PullFromAggregate {
   private final boolean includeIncomplete;
   private final Consumer<FormStatusEvent> onEventCallback;
 
-  public PullFromAggregate(Http http, AggregateServer server, BriefcasePreferences prefs, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback) {
+  public PullFromAggregate(Http http, AggregateServer server, Path briefcaseDir, BriefcasePreferences prefs, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback) {
     this.http = http;
     this.server = server;
     this.prefs = prefs;
-    this.briefcaseDir = prefs.getBriefcaseDir().orElseThrow(BriefcaseException::new);
+    this.briefcaseDir = briefcaseDir;
     this.includeIncomplete = includeIncomplete;
     this.onEventCallback = onEventCallback;
   }

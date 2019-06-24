@@ -84,6 +84,7 @@ public class PullFormFromAggregate {
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
+    appPreferences.setStorageDir(briefcaseDir);
     BriefcasePreferences tabPreferences = BriefcasePreferences.forClass(PullPanel.class);
 
     int maxConnections = Optionals.race(
@@ -121,7 +122,7 @@ public class PullFormFromAggregate {
     forms.load(filteredForms);
     forms.selectAll();
 
-    PullFromAggregate pullOp = new PullFromAggregate(http, aggregateServer, appPreferences, includeIncomplete, PullFormFromAggregate::onEvent);
+    PullFromAggregate pullOp = new PullFromAggregate(http, aggregateServer, briefcaseDir, appPreferences, includeIncomplete, PullFormFromAggregate::onEvent);
     JobsRunner.launchAsync(
         forms.map(form -> pullOp.pull(form, resolveCursor(
             resumeLastPull,
