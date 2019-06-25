@@ -70,18 +70,18 @@ public class OverridableBooleanTest {
   @Test
   public void knows_when_it_is_empty() {
     Arrays.asList(
-        Pair.of(empty(),                                            true), // Only empty cases
-        Pair.of(TRUE,                                               false),
-        Pair.of(FALSE,                                              false),
-        Pair.of(empty().overrideWith(TriStateBoolean.TRUE),         false),
-        Pair.of(empty().overrideWith(TriStateBoolean.FALSE),        false),
+        Pair.of(empty(), true), // Only empty cases
+        Pair.of(TRUE, false),
+        Pair.of(FALSE, false),
+        Pair.of(empty().overrideWith(TriStateBoolean.TRUE), false),
+        Pair.of(empty().overrideWith(TriStateBoolean.FALSE), false),
         Pair.of(empty().overrideWith(TriStateBoolean.UNDETERMINED), true), // Only empty cases
-        Pair.of(TRUE.overrideWith(TriStateBoolean.TRUE),            false),
-        Pair.of(TRUE.overrideWith(TriStateBoolean.FALSE),           false),
-        Pair.of(TRUE.overrideWith(TriStateBoolean.UNDETERMINED),    false),
-        Pair.of(FALSE.overrideWith(TriStateBoolean.TRUE),           false),
-        Pair.of(FALSE.overrideWith(TriStateBoolean.FALSE),          false),
-        Pair.of(FALSE.overrideWith(TriStateBoolean.UNDETERMINED),   false)
+        Pair.of(TRUE.overrideWith(TriStateBoolean.TRUE), false),
+        Pair.of(TRUE.overrideWith(TriStateBoolean.FALSE), false),
+        Pair.of(TRUE.overrideWith(TriStateBoolean.UNDETERMINED), false),
+        Pair.of(FALSE.overrideWith(TriStateBoolean.TRUE), false),
+        Pair.of(FALSE.overrideWith(TriStateBoolean.FALSE), false),
+        Pair.of(FALSE.overrideWith(TriStateBoolean.UNDETERMINED), false)
     ).forEach(pair -> assertThat(pair.getLeft().isEmpty(), is(pair.getRight())));
   }
 

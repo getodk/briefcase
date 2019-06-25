@@ -22,7 +22,6 @@ import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.load;
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,39 +39,36 @@ import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.SavePasswordsConsentGiven;
-import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
-import org.opendatakit.briefcase.pull.PullEvent;
-import org.opendatakit.briefcase.pull.PullForm;
-import org.opendatakit.briefcase.pull.PullResult;
+import org.opendatakit.briefcase.pull.aggregate.Cursor;
+import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
-import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
+import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.FormCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ExportPanel {
-  private static final Logger log = LoggerFactory.getLogger(ExportPanel.class);
   public static final String TAB_NAME = "Export";
 
   private final ExportForms forms;
   private final ExportPanelForm form;
   private final BriefcasePreferences appPreferences;
-  private final BriefcasePreferences preferences;
+  private final BriefcasePreferences exportPreferences;
+  private final BriefcasePreferences pullPanelPrefs;
   private final Analytics analytics;
   private final FormCache formCache;
   private final Http http;
 
-  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences preferences, Analytics analytics, FormCache formCache, Http http) {
+  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences exportPreferences, BriefcasePreferences pullPanelPrefs, Analytics analytics, FormCache formCache, Http http) {
     this.forms = forms;
     this.form = form;
     this.appPreferences = appPreferences;
-    this.preferences = preferences;
+    this.exportPreferences = exportPreferences;
+    this.pullPanelPrefs = pullPanelPrefs;
     this.analytics = analytics;
     this.formCache = formCache;
     this.http = http;
@@ -81,17 +77,17 @@ public class ExportPanel {
 
     form.onDefaultConfSet(conf -> {
       forms.updateDefaultConfiguration(conf);
-      preferences.removeAll(ExportConfiguration.keys());
-      preferences.putAll(conf.asMap());
+      exportPreferences.removeAll(ExportConfiguration.keys());
+      exportPreferences.putAll(conf.asMap());
     });
 
     form.onDefaultConfReset(() -> {
       forms.updateDefaultConfiguration(empty().build());
-      preferences.removeAll(ExportConfiguration.keys());
+      exportPreferences.removeAll(ExportConfiguration.keys());
     });
 
     forms.onSuccessfulExport((String formId, LocalDateTime exportDateTime) ->
-        preferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME))
+        exportPreferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME))
     );
 
     form.onChange(() -> {
@@ -138,12 +134,12 @@ public class ExportPanel {
   private void updateCustomConfPreferences() {
     // Clean all custom conf keys
     forms.forEach(formId ->
-        preferences.removeAll(ExportConfiguration.keys(buildCustomConfPrefix(formId)))
+        exportPreferences.removeAll(ExportConfiguration.keys(buildCustomConfPrefix(formId)))
     );
 
     // Put custom confs
     forms.getCustomConfigurations().forEach((formId, configuration) ->
-        preferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
+        exportPreferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
     );
   }
 
@@ -155,15 +151,16 @@ public class ExportPanel {
     }
   }
 
-  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http) {
+  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics, FormCache formCache, Http http) {
     ExportConfiguration initialDefaultConf = load(exportPreferences);
-    ExportForms forms = ExportForms.load(initialDefaultConf, toFormStatuses(formCache.getForms()), exportPreferences, appPreferences);
-    ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, initialDefaultConf);
+    ExportForms forms = ExportForms.load(initialDefaultConf, toFormStatuses(formCache.getForms()), exportPreferences);
+    ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, pullPrefs, initialDefaultConf);
     return new ExportPanel(
         forms,
         form,
         appPreferences,
         exportPreferences,
+        pullPrefs,
         analytics,
         formCache,
         http
@@ -186,16 +183,22 @@ public class ExportPanel {
   }
 
   private void export() {
-    Stream<Job<Void>> allJobs = forms.getSelectedForms().stream().map(form -> {
+    Stream<Job<?>> allJobs = forms.getSelectedForms().stream().map(form -> {
       form.setStatusString("Starting to export form");
       String formId = form.getFormDefinition().getFormId();
       ExportConfiguration configuration = forms.getConfiguration(formId);
-      Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
       FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());
-      Optional<RemoteServer> server = forms.getTransferSettings(formId).map(RemoteServer::from);
+      // TODO Abstract away the subtype of RemoteServer. This should say Optional<RemoteServer>
+      Optional<AggregateServer> savedPullSource = RemoteServer.readFromPrefs(appPreferences, pullPanelPrefs, form);
 
-      Job<PullResult> pullJob = configuration.resolvePullBefore() && server.isPresent()
-          ? PullForm.pull(http, server.get(), briefcaseDir, false, EventBus::publish, form)
+      Job<Void> pullJob = configuration.resolvePullBefore() && savedPullSource.isPresent()
+          ? new PullFromAggregate(http, savedPullSource.get(), appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), appPreferences, false, EventBus::publish)
+          .pull(
+              form,
+              appPreferences.getResumeLastPull().orElse(false)
+                  ? Cursor.readPrefs(form, appPreferences)
+                  : Optional.empty()
+          )
           : Job.noOpSupplier();
 
       Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration, analytics));
@@ -210,34 +213,13 @@ public class ExportPanel {
           .thenRun(exportJob)
           .thenRun(exportGeoJsonJob);
     });
-    new JobsRunner<Void>()
-        .onError(e -> log.error("Error exporting form", e))
-        .onSuccess(__ -> form.unsetExporting())
-        .launchAsync(allJobs);
+
+    JobsRunner.launchAsync(allJobs).onComplete(form::unsetExporting).waitForCompletion();
   }
 
   @EventSubscriber(eventClass = CacheUpdateEvent.class)
   public void onCacheUpdateEvent(CacheUpdateEvent event) {
     updateForms();
-  }
-
-  @EventSubscriber(eventClass = PullEvent.NewForm.class)
-  public void onNewFormPulledEvent(PullEvent.NewForm event) {
-    if (BriefcasePreferences.getStorePasswordsConsentProperty())
-      if (event.transferSettings.isPresent())
-        forms.putTransferSettings(event.form, event.transferSettings.get());
-      else
-        forms.removeTransferSettings(event.form);
-  }
-
-  @EventSubscriber(eventClass = SavePasswordsConsentGiven.class)
-  public void onSavePasswordsConsentGiven(SavePasswordsConsentGiven event) {
-    forms.flushTransferSettings();
-  }
-
-  @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
-  public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
-    forms.flushTransferSettings();
   }
 
   @EventSubscriber(eventClass = ExportEvent.Success.class)

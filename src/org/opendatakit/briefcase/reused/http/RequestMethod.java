@@ -17,5 +17,5 @@
 package org.opendatakit.briefcase.reused.http;
 
 enum RequestMethod {
-  GET, HEAD
+  GET, POST, HEAD
 }

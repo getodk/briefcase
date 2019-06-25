@@ -32,7 +32,6 @@ import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +64,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
    * @return the Briefcase storage form definition.
    */
   private BriefcaseFormDefinition doResolveOdkCollectFormDefinition(FormStatus fs) {
-    fs.setStatusString("resolving against briefcase form definitions", true);
+    fs.setStatusString("resolving against briefcase form definitions");
     EventBus.publish(new FormStatusEvent(fs));
 
     OdkCollectFormDefinition formDef = (OdkCollectFormDefinition) fs.getFormDefinition();
@@ -83,7 +82,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
         } catch (FileSystemException e) {
           String msg = "unable to create media folder";
           log.error(msg, e);
-          fs.setStatusString(msg + ": " + e.getMessage(), false);
+          fs.setStatusString(msg + ": " + e.getMessage());
           EventBus.publish(new FormStatusEvent(fs));
           return null;
         }
@@ -101,7 +100,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
     } catch (Exception e) {
       String msg = "unable to copy form definition and/or media folder";
       log.error(msg, e);
-      fs.setStatusString(msg + ": " + e.getMessage(), false);
+      fs.setStatusString(msg + ": " + e.getMessage());
       EventBus.publish(new FormStatusEvent(fs));
       return null;
     }
@@ -112,7 +111,6 @@ public class TransferFromODK implements ITransferFromSourceAction {
   public static void pull(Path briefcaseDir, Path odk, TransferForms forms) {
     TransferFromODK action = new TransferFromODK(briefcaseDir, odk.toFile(), new TerminationFuture(), forms);
     if (!action.doAction()) {
-      EventBus.publish(new PullEvent.Failure());
       throw new PullFromODKException(forms);
     }
   }
@@ -131,7 +129,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
       boolean isSuccessful = true;
       try {
         if (terminationFuture.isCancelled()) {
-          fs.setStatusString("Aborted. Skipping fetch of form and submissions...", true);
+          fs.setStatusString("Aborted. Skipping fetch of form and submissions...");
           EventBus.publish(new FormStatusEvent(fs));
           return false;
         }
@@ -160,13 +158,13 @@ public class TransferFromODK implements ITransferFromSourceAction {
             allSuccessful = isSuccessful = false;
             String msg = "unable to create instances folder";
             log.error(msg, e);
-            fs.setStatusString(msg + ": " + e.getMessage(), false);
+            fs.setStatusString(msg + ": " + e.getMessage());
             EventBus.publish(new FormStatusEvent(fs));
             continue;
           }
           // we have the needed directory structure created...
 
-          fs.setStatusString("preparing to retrieve instance data", true);
+          fs.setStatusString("preparing to retrieve instance data");
           EventBus.publish(new FormStatusEvent(fs));
 
           // construct up the list of folders that might have ODK form data.
@@ -190,7 +188,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
             int instanceCount = 1;
             for (File dir : odkFormInstanceDirs) {
               if (terminationFuture.isCancelled()) {
-                fs.setStatusString("aborting retrieving submissions...", true);
+                fs.setStatusString("aborting retrieving submissions...");
                 EventBus.publish(new FormStatusEvent(fs));
                 return false;
               }
@@ -219,7 +217,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                     allSuccessful = isSuccessful = false;
                     String msg = "unable to rename form instance xml";
                     log.error(msg, e);
-                    fs.setStatusString(msg + ": " + e.getMessage(), false);
+                    fs.setStatusString(msg + ": " + e.getMessage());
                     EventBus.publish(new FormStatusEvent(fs));
                     continue;
                   }
@@ -275,7 +273,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                 }
 
                 if (same) {
-                  fs.setStatusString("already present - skipping: " + xml.getName(), true);
+                  fs.setStatusString("already present - skipping: " + xml.getName());
                   EventBus.publish(new FormStatusEvent(fs));
                   continue;
                 }
@@ -286,7 +284,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                   allSuccessful = isSuccessful = false;
                   String msg = "unable to copy saved instance";
                   log.error(msg, e);
-                  fs.setStatusString(msg + ": " + e.getMessage(), false);
+                  fs.setStatusString(msg + ": " + e.getMessage());
                   EventBus.publish(new FormStatusEvent(fs));
                   continue;
                 }
@@ -302,7 +300,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                     allSuccessful = isSuccessful = false;
                     String msg = "unable to rename submission file to submission.xml";
                     log.error(msg, e);
-                    fs.setStatusString(msg + ": " + e.getMessage(), false);
+                    fs.setStatusString(msg + ": " + e.getMessage());
                     EventBus.publish(new FormStatusEvent(fs));
                     continue;
                   }
@@ -313,7 +311,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                   odkSubmissionFile.delete();
                 }
 
-                fs.setStatusString(String.format("retrieving (%1$d)", instanceCount), true);
+                fs.setStatusString(String.format("retrieving (%1$d)", instanceCount));
                 EventBus.publish(new FormStatusEvent(fs));
                 ++instanceCount;
               }
@@ -324,7 +322,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
           allSuccessful = isSuccessful = false;
           String msg = "unable to open form database";
           log.error(msg, e);
-          fs.setStatusString(msg + ": " + e.getMessage(), false);
+          fs.setStatusString(msg + ": " + e.getMessage());
           EventBus.publish(new FormStatusEvent(fs));
           continue;
         } finally {
@@ -335,7 +333,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
               allSuccessful = isSuccessful = false;
               String msg = "unable to close form database";
               log.error(msg, e);
-              fs.setStatusString(msg + ": " + e.getMessage(), false);
+              fs.setStatusString(msg + ": " + e.getMessage());
               EventBus.publish(new FormStatusEvent(fs));
               continue;
             }
@@ -343,10 +341,10 @@ public class TransferFromODK implements ITransferFromSourceAction {
         }
       } finally {
         if (isSuccessful) {
-          fs.setStatusString(ServerFetcher.SUCCESS_STATUS, true);
+          fs.setStatusString("Success.");
           EventBus.publish(new FormStatusEvent(fs));
         } else {
-          fs.setStatusString(ServerFetcher.FAILED_STATUS, true);
+          fs.setStatusString("Failed.");
           EventBus.publish(new FormStatusEvent(fs));
         }
       }

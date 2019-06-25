@@ -38,9 +38,11 @@ class ExportPanelPageObject {
 
   static ExportPanelPageObject setUp(Robot robot) {
     ExportPanel exportPanel = GuiActionRunner.execute(() -> {
+      BriefcasePreferences inMemoryPrefs = new BriefcasePreferences(InMemoryPreferences.empty());
       ExportPanel ep = ExportPanel.from(
-          new BriefcasePreferences(InMemoryPreferences.empty()),
-          new BriefcasePreferences(InMemoryPreferences.empty()),
+          inMemoryPrefs,
+          inMemoryPrefs,
+          inMemoryPrefs,
           new NoOpAnalytics(),
           FormCache.empty(),
           new FakeHttp()

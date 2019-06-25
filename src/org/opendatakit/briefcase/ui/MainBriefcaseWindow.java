@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.ui;
 
+import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.ui.BriefcaseCLI.launchLegacyCLI;
 import static org.opendatakit.briefcase.ui.MessageStrings.BRIEFCASE_WELCOME;
 import static org.opendatakit.briefcase.ui.MessageStrings.TRACKING_WARNING;
@@ -24,7 +25,6 @@ import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -39,9 +39,6 @@ import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.pull.PullEvent;
-import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.reused.StorageLocationEvent;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -60,7 +57,6 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
 
   private final JFrame frame;
-  private final TerminationFuture transferTerminationFuture = new TerminationFuture();
   private final JTabbedPane tabbedPane;
   private final Map<String, Integer> tabTitleIndexes = new HashMap<>();
 
@@ -84,6 +80,8 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
   private MainBriefcaseWindow() {
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
+    BriefcasePreferences pullPreferences = BriefcasePreferences.forClass(PullPanel.class);
+    BriefcasePreferences exportPreferences = BriefcasePreferences.forClass(ExportPanel.class);
     Optional<Path> briefcaseDir = appPreferences.getBriefcaseDir().filter(Files::exists);
     if (!briefcaseDir.isPresent())
       appPreferences.unsetStorageDir();
@@ -104,22 +102,25 @@ public class MainBriefcaseWindow extends WindowAdapter {
     analytics.enter("Briefcase");
     Runtime.getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
-    Http http = CommonsHttp.nonReusing();
+    int maxConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
+    Http http = appPreferences.getHttpProxy()
+        .map(host -> CommonsHttp.of(maxConnections, host))
+        .orElseGet(() -> CommonsHttp.of(maxConnections));
 
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     tabbedPane = new JTabbedPane(JTabbedPane.TOP);
     frame.setContentPane(tabbedPane);
 
-    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, transferTerminationFuture, analytics).getContainer());
+    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics).getContainer());
 
-    PushPanel pushPanel = PushPanel.from(http, appPreferences, transferTerminationFuture, formCache, analytics);
+    PushPanel pushPanel = PushPanel.from(http, appPreferences, formCache, analytics);
     addPane(PushPanel.TAB_NAME, pushPanel.getContainer());
 
-    ExportPanel exportPanel = ExportPanel.from(BriefcasePreferences.forClass(ExportPanel.class), appPreferences, analytics, formCache, http);
+    ExportPanel exportPanel = ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, formCache, http);
     addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
 
-    Component settingsPanel = SettingsPanel.from(appPreferences, analytics, formCache).getContainer();
+    Component settingsPanel = SettingsPanel.from(appPreferences, analytics, formCache, http).getContainer();
     addPane(SettingsPanel.TAB_NAME, settingsPanel);
 
     frame.addWindowListener(this);
@@ -178,12 +179,6 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private void addPane(String title, Component pane) {
     tabTitleIndexes.put(title, tabbedPane.getTabCount());
     tabbedPane.addTab(title, null, pane, null);
-  }
-
-  @Override
-  public void windowClosing(WindowEvent arg0) {
-    transferTerminationFuture.markAsCancelled(new PullEvent.Cancel("Main window closed"));
-    transferTerminationFuture.markAsCancelled(new PushEvent.Cancel("Main window closed"));
   }
 
   @EventSubscriber(eventClass = StorageLocationEvent.LocationDefined.class)

@@ -18,45 +18,67 @@ package org.opendatakit.briefcase.reused.http;
 
 import static org.apache.http.client.config.CookieSpecs.STANDARD;
 import static org.apache.http.client.config.RequestConfig.custom;
+import static org.opendatakit.briefcase.reused.http.RequestMethod.POST;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
-import org.apache.http.impl.NoConnectionReuseStrategy;
+import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class CommonsHttp implements Http {
-  private final Executor executor;
+  private Executor executor;
+  private final int maxConnections;
 
-  private CommonsHttp(Executor executor) {
+  private CommonsHttp(Executor executor, int maxConnections) {
     this.executor = executor;
+    this.maxConnections = maxConnections;
   }
 
-  public static Http nonReusing() {
-    return new CommonsHttp(Executor.newInstance(HttpClientBuilder
-        .create()
-        .setConnectionManager(new BasicHttpClientConnectionManager())
-        .setConnectionReuseStrategy(new NoConnectionReuseStrategy())
-        .setDefaultRequestConfig(custom().setCookieSpec(STANDARD).build())
-        .build()));
+  public static Http of(int maxConnections, HttpHost httpProxy) {
+    if (!Http.isValidHttpConnections(maxConnections))
+      throw new BriefcaseException("Invalid maximum simultaneous HTTP connections " + maxConnections + ". Try a value between " + MIN_HTTP_CONNECTIONS + " and " + MAX_HTTP_CONNECTIONS);
+    return new CommonsHttp(Executor.newInstance(
+        getBaseBuilder(maxConnections).setProxy(httpProxy).build()
+    ), maxConnections);
   }
 
-  public static Http reusing() {
-    return new CommonsHttp(Executor.newInstance(HttpClientBuilder
+  public static Http of(int maxConnections) {
+    if (!Http.isValidHttpConnections(maxConnections))
+      throw new BriefcaseException("Invalid maximum simultaneous HTTP connections " + maxConnections + ". Try a value between " + MIN_HTTP_CONNECTIONS + " and " + MAX_HTTP_CONNECTIONS);
+    return new CommonsHttp(Executor.newInstance(
+        getBaseBuilder(maxConnections).build()
+    ), maxConnections);
+  }
+
+  private static HttpClientBuilder getBaseBuilder(int maxConnections) {
+    return HttpClientBuilder
         .create()
-        .setDefaultRequestConfig(custom().setCookieSpec(STANDARD).build())
-        .build()));
+        .setMaxConnPerRoute(maxConnections)
+        .setMaxConnTotal(maxConnections)
+        .disableAuthCaching()
+        .setDefaultRequestConfig(custom()
+            .setConnectionRequestTimeout(0)
+            .setSocketTimeout(0)
+            .setConnectTimeout(0)
+            .setCookieSpec(STANDARD).build());
   }
 
   @Override
   public <T> Response<T> execute(Request<T> request) {
+    // Ensure that we will be using fresh credentials
+    executor.clearAuth();
     // Apply auth settings if credentials are received
     request.ifCredentials((URL url, Credentials credentials) -> executor.auth(
         HttpHost.create(url.getHost()),
@@ -68,24 +90,50 @@ public class CommonsHttp implements Http {
   }
 
   @Override
-  public Http reusingConnections() {
-    return CommonsHttp.reusing();
+  public void setProxy(HttpHost proxy) {
+    executor = Executor.newInstance(getBaseBuilder(maxConnections).setProxy(proxy).build());
+  }
+
+  @Override
+  public void unsetProxy() {
+    executor = Executor.newInstance(getBaseBuilder(maxConnections).build());
   }
 
   private <T> Response<T> uncheckedExecute(Request<T> request, Executor executor) {
+    // Get an Apache Commons HTTPClient request and set some reasonable timeouts
     org.apache.http.client.fluent.Request commonsRequest = getCommonsRequest(request);
-    commonsRequest.connectTimeout(10_000);
-    commonsRequest.socketTimeout(10_000);
+
+    // Add the declared headers
+    // TODO v2.0 remove this header, since this is not a concern of this class
     commonsRequest.addHeader("X-OpenRosa-Version", "1.0");
     request.headers.forEach(commonsRequest::addHeader);
+
+    // Set the request's body if it's a POST request
+    if (request.getMethod() == POST) {
+      HttpEntity body;
+      if (request.isMultipart()) {
+        MultipartEntityBuilder bodyBuilder = MultipartEntityBuilder.create();
+        for (MultipartMessage part : request.multipartMessages)
+          bodyBuilder = bodyBuilder.addPart(
+              part.name,
+              new InputStreamBody(part.body, ContentType.create(part.contentType), part.attachmentName)
+          );
+        body = bodyBuilder.build();
+      } else {
+        body = new BasicHttpEntity();
+        ((BasicHttpEntity) body).setContent(request.getBody());
+      }
+      commonsRequest.body(body);
+    }
     try {
+      // Send the request and handle the response
       return executor
           .execute(commonsRequest)
           .handleResponse(res -> Response.from(request, res));
     } catch (HttpHostConnectException e) {
-      throw new HttpException("Connection refused");
+      throw new HttpException("Connection refused", e);
     } catch (SocketTimeoutException | ConnectTimeoutException e) {
-      throw new HttpException("The connection has timed out");
+      throw new HttpException("The connection has timed out", e);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -95,6 +143,8 @@ public class CommonsHttp implements Http {
     switch (request.getMethod()) {
       case GET:
         return org.apache.http.client.fluent.Request.Get(request.asUri());
+      case POST:
+        return org.apache.http.client.fluent.Request.Post(request.asUri());
       case HEAD:
         return org.apache.http.client.fluent.Request.Head(request.asUri());
       default:

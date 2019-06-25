@@ -16,29 +16,55 @@
 
 package org.opendatakit.briefcase.reused.http;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.ok;
 
-import java.io.ByteArrayInputStream;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+import org.apache.http.HttpHost;
 import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class FakeHttp implements Http {
-  private final Map<Request<?>, Response<String>> stubs = new ConcurrentHashMap<>();
+  private final List<FakeHttpHandler<?>> handlers = new ArrayList<>();
 
-  public void stub(Request<?> request, Response<String> stub) {
-    stubs.put(request, stub);
+  public void stub(Request<?> request, Response<InputStream> stub) {
+    handlers.add(SimpleFakeHttpHandler.of(request, stub));
   }
 
+  public <T> void stub(Request<T> request, Function<Request<T>, Response<InputStream>> stubSupplier) {
+    handlers.add(SimpleFakeHttpHandler.of(request, stubSupplier));
+  }
+
+  @SuppressWarnings("unchecked")
   public <T> Response<T> execute(Request<T> request) {
-    return Optional.ofNullable(stubs.get(request))
-        .orElseThrow(() -> new RuntimeException("No stub defined for Query " + request.toString()))
-        .map(body -> request.map(new ByteArrayInputStream(Optional.ofNullable(body).orElse("").getBytes(UTF_8))));
+    FakeHttpHandler<T> handler = (FakeHttpHandler<T>) handlers.stream()
+        .filter(h -> h.matches(request))
+        .findFirst()
+        .orElseThrow(() -> new RuntimeException("No stub defined for Query " + request.toString()));
+    return handler.handle(request);
   }
 
   @Override
-  public Http reusingConnections() {
-    return this;
+  public void setProxy(HttpHost proxy) {
+
   }
+
+  @Override
+  public void unsetProxy() {
+
+  }
+
+  public <T> RequestSpy<T> spyOn(Request<T> request) {
+    SpyFakeHttpHandler<T> spy = new SpyFakeHttpHandler<>(request, ok("stub response"));
+    handlers.add(spy);
+    return spy.spy();
+  }
+
+  public <T> RequestSpy<T> spyOn(Request<T> request, Response<InputStream> responseStub) {
+    SpyFakeHttpHandler<T> spy = new SpyFakeHttpHandler<>(request, responseStub);
+    handlers.add(spy);
+    return spy.spy();
+  }
+
 }

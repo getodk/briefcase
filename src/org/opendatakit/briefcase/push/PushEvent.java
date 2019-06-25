@@ -16,9 +16,7 @@
 
 package org.opendatakit.briefcase.push;
 
-import java.util.Optional;
-import org.opendatakit.briefcase.model.ServerConnectionInfo;
-import org.opendatakit.briefcase.transfer.TransferForms;
+import org.opendatakit.briefcase.model.FormStatus;
 
 public class PushEvent {
 
@@ -28,13 +26,16 @@ public class PushEvent {
   }
 
   public static class Success extends PushEvent {
-    public TransferForms forms;
-    public final Optional<ServerConnectionInfo> transferSettings;
 
-    public Success(TransferForms forms, ServerConnectionInfo transferSettings) {
-      this.forms = forms;
-      this.transferSettings = Optional.ofNullable(transferSettings);
+    private final FormStatus form;
+
+    public Success(FormStatus form) {
+      this.form = form;
     }
+  }
+
+  public static class Complete extends PushEvent {
+
   }
 
   public static class Cancel extends PushEvent {

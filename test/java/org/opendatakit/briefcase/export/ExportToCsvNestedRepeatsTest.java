@@ -37,7 +37,7 @@ public class ExportToCsvNestedRepeatsTest {
   public void exports_nested_repeats_to_different_files() {
     scenario.runExport();
     scenario.assertSameContent();
-    scenario.assertSameContentRepeats("","g1", "g2", "g3");
+    scenario.assertSameContentRepeats("", "g1", "g2", "g3");
   }
 
 }

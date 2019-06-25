@@ -40,7 +40,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
  * All instances begin with a {@link ValidationStatus#NOT_VALIDATED} validation status,
  * which is only relevant if the form is encrypted.
  */
-class Submission {
+public class Submission {
   private final Path path;
   private final Path workingDir;
   private final XmlElement root;
@@ -89,6 +89,10 @@ class Submission {
 
   public boolean isValid(boolean formHasRepeatableFields) {
     return !formHasRepeatableFields || metaData.getInstanceId().isPresent();
+  }
+
+  public String getInstanceId() {
+    return metaData.getInstanceId().orElseThrow(BriefcaseException::new);
   }
 
   /**

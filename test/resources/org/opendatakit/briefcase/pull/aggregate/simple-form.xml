@@ -1,0 +1,20 @@
+<h:html xmlns:h="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/2002/xforms">
+  <h:head>
+    <h:title>Simple form</h:title>
+    <model>
+      <instance>
+        <data id="simple-form">
+          <meta>
+            <instanceID/>
+          </meta>
+          <some_text/>
+        </data>
+      </instance>
+      <bind nodeset="/data/meta/instanceID" type="string" readonly="true()" calculate="concat('uuid:', uuid())"/>
+      <bind nodeset="/data/some_text" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <input ref="/data/some_text"/>
+  </h:body>
+</h:html>

@@ -17,26 +17,30 @@ package org.opendatakit.briefcase.operations;
 
 import static org.opendatakit.briefcase.operations.Common.AGGREGATE_SERVER;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
+import static org.opendatakit.briefcase.operations.Common.MAX_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
 import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
+import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Optional;
+import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.push.aggregate.PushToAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.http.response.Response;
+import org.opendatakit.briefcase.reused.job.JobsRunner;
+import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.FormCache;
-import org.opendatakit.briefcase.util.TransferToServer;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
 import org.slf4j.Logger;
@@ -55,30 +59,32 @@ public class PushFormToAggregate {
           args.get(ODK_USERNAME),
           args.get(ODK_PASSWORD),
           args.get(AGGREGATE_SERVER),
-          args.has(FORCE_SEND_BLANK)
+          args.has(FORCE_SEND_BLANK),
+          args.getOptional(MAX_HTTP_CONNECTIONS)
       ),
       Arrays.asList(STORAGE_DIR, FORM_ID, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER),
-      Collections.singletonList(FORCE_SEND_BLANK)
+      Arrays.asList(FORCE_SEND_BLANK, MAX_HTTP_CONNECTIONS)
   );
 
-  private static void pushFormToAggregate(String storageDir, String formid, String username, String password, String server, boolean forceSendBlank) {
+  private static void pushFormToAggregate(String storageDir, String formid, String username, String password, String server, boolean forceSendBlank, Optional<Integer> maybeMaxConnections) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
+    BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
 
-    Http http = CommonsHttp.nonReusing();
+    int maxConnections = Optionals.race(
+        maybeMaxConnections,
+        appPreferences.getMaxHttpConnections()
+    ).orElse(DEFAULT_HTTP_CONNECTIONS);
+    Http http = appPreferences.getHttpProxy()
+        .map(host -> CommonsHttp.of(maxConnections, host))
+        .orElseGet(() -> CommonsHttp.of(maxConnections));
 
-    URL baseUrl;
-    try {
-      baseUrl = new URL(server);
-    } catch (MalformedURLException e) {
-      throw new BriefcaseException(e);
-    }
-    RemoteServer remoteServer = RemoteServer.authenticated(baseUrl, new Credentials(username, password));
+    AggregateServer aggregateServer = AggregateServer.authenticated(RequestBuilder.url(server), new Credentials(username, password));
 
-    Response response = remoteServer.testPush(http);
-    if (!response.isSuccess())
+    Response response = http.execute(aggregateServer.getPushFormPreflightRequest());
+    if (!response.isSuccess()) {
       System.err.println(response.isRedirection()
           ? "Error connecting to Aggregate: Redirection detected"
           : response.isUnauthorized()
@@ -86,18 +92,32 @@ public class PushFormToAggregate {
           : response.isNotFound()
           ? "Error connecting to Aggregate: Aggregate not found"
           : "Error connecting to Aggregate");
-    else {
-      Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
-          .filter(form -> form.getFormId().equals(formid))
-          .map(FormStatus::new)
-          .findFirst();
-
-      FormStatus form = maybeFormStatus.orElseThrow(() -> new FormNotFoundException(formid));
-      TransferForms forms = TransferForms.of(form);
-      forms.selectAll();
-
-      TransferToServer.push(remoteServer.asServerConnectionInfo(), http, remoteServer, forceSendBlank, forms);
+      return;
     }
+    Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
+        .filter(form -> form.getFormId().equals(formid))
+        .map(FormStatus::new)
+        .findFirst();
+
+    FormStatus form = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + formid + " not found"));
+    TransferForms forms = TransferForms.of(form);
+    forms.selectAll();
+
+    PushToAggregate pushOp = new PushToAggregate(http, aggregateServer, briefcaseDir, forceSendBlank, PushFormToAggregate::onEvent);
+    JobsRunner.launchAsync(forms.map(pushOp::push), PushFormToAggregate::onError).waitForCompletion();
+    System.out.println();
+    System.out.println("All operations completed");
+    System.out.println();
+  }
+
+  private static void onEvent(FormStatusEvent event) {
+    System.out.println(event.getStatus().getFormName() + " - " + event.getStatusString());
+    // The PullTracker already logs normal events
+  }
+
+  private static void onError(Throwable e) {
+    System.err.println("Error pushing a form: " + e.getMessage() + " (see the logs for more info)");
+    log.error("Error pushing a form", e);
   }
 
 }

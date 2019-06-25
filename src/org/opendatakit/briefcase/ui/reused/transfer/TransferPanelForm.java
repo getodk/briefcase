@@ -31,18 +31,20 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
-import org.opendatakit.briefcase.reused.RemoteServer;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.ui.reused.source.Source;
-import org.opendatakit.briefcase.ui.reused.source.SourcePanel;
-import org.opendatakit.briefcase.ui.reused.source.SourcePanelForm;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.SourceOrTarget;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.SourceOrTargetPanel;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.SourceOrTargetPanelForm;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source.PullSource;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.target.PushTarget;
 
 @SuppressWarnings("checkstyle:MethodName")
-public class TransferPanelForm {
+public class TransferPanelForm<T extends SourceOrTarget> {
   public JPanel container;
-  private SourcePanel sourcePanel;
-  private SourcePanelForm sourcePanelForm;
+  private SourceOrTargetPanel<T> sourceOrTargetPanel;
+  private SourceOrTargetPanelForm sourceOrTargetPanelForm;
   private JPanel top;
   private JPanel actions;
   private final TransferFormsTable formsTable;
@@ -59,9 +61,9 @@ public class TransferPanelForm {
   private boolean alreadyShownOnce = false;
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
-  private TransferPanelForm(SourcePanel sourcePanel, TransferFormsTable formsTable, String actionName) {
-    this.sourcePanel = sourcePanel;
-    this.sourcePanelForm = sourcePanel.getContainer();
+  private TransferPanelForm(SourceOrTargetPanel<T> sourceOrTargetPanel, TransferFormsTable formsTable, String actionName) {
+    this.sourceOrTargetPanel = sourceOrTargetPanel;
+    this.sourceOrTargetPanelForm = sourceOrTargetPanel.getContainer();
     this.formsTable = formsTable;
     this.formsTableView = formsTable.getView();
     $$$setupUI$$$();
@@ -72,25 +74,25 @@ public class TransferPanelForm {
     clearAllButton.addActionListener(__ -> formsTable.clearAll());
   }
 
-  public static TransferPanelForm from(TransferForms forms, SourcePanel sourcePanel, String actionName) {
+  public static TransferPanelForm<PullSource> from(TransferForms forms, SourceOrTargetPanel<PullSource> sourceOrTargetPanel, String actionName) {
     TransferFormsTable formsTable = TransferFormsTable.from(forms, actionName);
-    return new TransferPanelForm(sourcePanel, formsTable, actionName);
+    return new TransferPanelForm<>(sourceOrTargetPanel, formsTable, actionName);
   }
 
-  public static TransferPanelForm pull(Http http, TransferForms forms) {
-    return new TransferPanelForm(SourcePanel.pull(http), TransferFormsTable.from(forms, "Pull"), "Pull");
+  public static TransferPanelForm<PullSource> pull(Http http, TransferForms forms) {
+    return new TransferPanelForm<>(SourceOrTargetPanel.pull(http), TransferFormsTable.from(forms, "Pull"), "Pull");
   }
 
-  public static TransferPanelForm push(Http http, TransferForms forms) {
-    return new TransferPanelForm(SourcePanel.push(http), TransferFormsTable.from(forms, "Push"), "Push");
+  public static TransferPanelForm<PushTarget> push(Http http, TransferForms forms) {
+    return new TransferPanelForm<>(SourceOrTargetPanel.push(http), TransferFormsTable.from(forms, "Push"), "Push");
   }
 
-  public void onSource(Consumer<Source<?>> callback) {
-    sourcePanel.onSource(callback);
+  public void onSelect(Consumer<T> callback) {
+    sourceOrTargetPanel.onSelect(callback);
   }
 
   public void onReset(Runnable callback) {
-    sourcePanel.onReset(callback);
+    sourceOrTargetPanel.onReset(callback);
   }
 
   private void triggerOnChange() {
@@ -142,7 +144,7 @@ public class TransferPanelForm {
   public void setWorking() {
     working = true;
     progressBar.setVisible(true);
-    sourcePanel.disableInteraction();
+    sourceOrTargetPanel.disableInteraction();
     formsTable.disableInteraction();
     selectAllButton.setEnabled(false);
     clearAllButton.setEnabled(false);
@@ -154,7 +156,7 @@ public class TransferPanelForm {
   public void unsetWorking() {
     working = false;
     progressBar.setVisible(false);
-    sourcePanel.enableInteraction();
+    sourceOrTargetPanel.enableInteraction();
     formsTable.enableInteraction();
     selectAllButton.setEnabled(true);
     clearAllButton.setEnabled(true);
@@ -162,8 +164,8 @@ public class TransferPanelForm {
     actionButton.setVisible(true);
   }
 
-  public Optional<Source<?>> preloadSource(RemoteServer server) {
-    return sourcePanel.preload(server);
+  public Optional<T> preloadOption(RemoteServer server) {
+    return sourceOrTargetPanel.preloadOption(server);
   }
 
   public void onReady(Runnable callback) {
@@ -202,7 +204,7 @@ public class TransferPanelForm {
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(top, gbc);
-    top.add(sourcePanelForm.$$$getRootComponent$$$(), "Card1");
+    top.add(sourceOrTargetPanelForm.$$$getRootComponent$$$(), "Card1");
     final JPanel spacer1 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;

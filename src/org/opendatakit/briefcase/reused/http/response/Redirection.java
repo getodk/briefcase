@@ -20,6 +20,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import org.opendatakit.briefcase.reused.http.HttpException;
 
+/**
+ * Represents an HTTP 3xx response
+ */
 class Redirection<T> implements Response<T> {
   private final int statusCode;
   private final String statusPhrase;
@@ -37,6 +40,16 @@ class Redirection<T> implements Response<T> {
   @Override
   public int getStatusCode() {
     return statusCode;
+  }
+
+  @Override
+  public String getStatusPhrase() {
+    return statusPhrase;
+  }
+
+  @Override
+  public String getServerErrorResponse() {
+    return "";
   }
 
   @Override

@@ -21,9 +21,12 @@ import static org.opendatakit.briefcase.buildconfig.BuildConfig.SENTRY_ENABLED;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY;
 import static org.opendatakit.briefcase.operations.ClearPreferences.CLEAR_PREFS;
+import static org.opendatakit.briefcase.operations.Common.MAX_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.operations.Export.EXPORT_FORM;
 import static org.opendatakit.briefcase.operations.ImportFromODK.IMPORT_FROM_ODK;
 import static org.opendatakit.briefcase.operations.PullFormFromAggregate.DEPRECATED_PULL_AGGREGATE;
+import static org.opendatakit.briefcase.operations.PullFormFromAggregate.DEPRECATED_PULL_IN_PARALLEL;
+import static org.opendatakit.briefcase.operations.PullFormFromAggregate.PULL_AGGREGATE;
 import static org.opendatakit.briefcase.operations.PullFormFromAggregate.PULL_FORM_FROM_AGGREGATE;
 import static org.opendatakit.briefcase.operations.PushFormToAggregate.PUSH_FORM_TO_AGGREGATE;
 import static org.opendatakit.briefcase.ui.BriefcaseCLI.runLegacyCli;
@@ -56,7 +59,8 @@ public class Launcher {
     Optional<SentryClient> sentry = SENTRY_ENABLED ? Optional.of(initSentryClient(appPreferences)) : Optional.empty();
 
     new Cli()
-        .deprecate(DEPRECATED_PULL_AGGREGATE, PULL_FORM_FROM_AGGREGATE)
+        .deprecate(DEPRECATED_PULL_AGGREGATE, PULL_AGGREGATE)
+        .deprecate(DEPRECATED_PULL_IN_PARALLEL, MAX_HTTP_CONNECTIONS)
         .register(PULL_FORM_FROM_AGGREGATE)
         .register(PUSH_FORM_TO_AGGREGATE)
         .register(IMPORT_FROM_ODK)

@@ -30,6 +30,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -51,16 +52,12 @@ public class DatabaseUtils implements AutoCloseable {
   private static final String SELECT_ALL_SQL = "SELECT instanceId, directory FROM recorded_instance";
   private static final String SELECT_DIR_SQL = "SELECT directory FROM recorded_instance WHERE instanceId = ?";
   private static final String INSERT_DML = "INSERT INTO recorded_instance (instanceId, directory) VALUES(?,?)";
-  private static final String DELETE_DML = "DELETE FROM recorded_instance WHERE instanceId = ?";
   private static final String RELATIVE_DML = "UPDATE recorded_instance set directory = regexp_replace(directory,'.*(" + INSTANCE_DIR + ")','$1')";
 
   final private File formDir;
   private Connection connection;
 
   private boolean hasRecordedInstanceTable = false;
-  private PreparedStatement getRecordedInstanceQuery = null;
-  private PreparedStatement insertRecordedInstanceQuery = null;
-  private PreparedStatement deleteRecordedInstanceQuery = null;
 
   private DatabaseUtils(File formDir) throws FileSystemException, SQLException {
     this.formDir = formDir;
@@ -76,6 +73,14 @@ public class DatabaseUtils implements AutoCloseable {
   public static <T> T withDb(Path formDir, Function<DatabaseUtils, T> dbUsingFunction) {
     try (DatabaseUtils db = new DatabaseUtils(formDir.toFile())) {
       return dbUsingFunction.apply(db);
+    } catch (SQLException e) {
+      throw new BriefcaseException(e);
+    }
+  }
+
+  public static void withDb(Path formDir, Consumer<DatabaseUtils> dbUsingFunction) {
+    try (DatabaseUtils db = new DatabaseUtils(formDir.toFile())) {
+      dbUsingFunction.accept(db);
     } catch (SQLException e) {
       throw new BriefcaseException(e);
     }
@@ -124,15 +129,6 @@ public class DatabaseUtils implements AutoCloseable {
 
   @Override
   public synchronized void close() throws SQLException {
-    if (getRecordedInstanceQuery != null) {
-      try {
-        getRecordedInstanceQuery.close();
-      } catch (SQLException e) {
-        log.error("failed to close connection", e);
-      } finally {
-        getRecordedInstanceQuery = null;
-      }
-    }
     try {
       connection.close();
     } finally {
@@ -141,34 +137,11 @@ public class DatabaseUtils implements AutoCloseable {
   }
 
   // recorded instances have known instanceIds
-  private void forgetRecordedInstance(String instanceId) {
-    try {
-      assertRecordedInstanceTable();
-
-      if (deleteRecordedInstanceQuery == null) {
-        deleteRecordedInstanceQuery =
-            connection.prepareStatement(DELETE_DML);
-      }
-
-      deleteRecordedInstanceQuery.setString(1, instanceId);
-
-      if (deleteRecordedInstanceQuery.executeUpdate() > 1) {
-        throw new SQLException("Expected one row to be deleted");
-      }
-    } catch (SQLException e) {
-      log.error("failed to forget instance " + instanceId, e);
-    }
-  }
-
-  // recorded instances have known instanceIds
   public synchronized void putRecordedInstanceDirectory(String instanceId, File instanceDir) {
     try {
       assertRecordedInstanceTable();
 
-      if (insertRecordedInstanceQuery == null) {
-        insertRecordedInstanceQuery =
-            connection.prepareStatement(INSERT_DML);
-      }
+      PreparedStatement insertRecordedInstanceQuery = connection.prepareStatement(INSERT_DML);
 
       insertRecordedInstanceQuery.setString(1, instanceId);
       insertRecordedInstanceQuery.setString(2, makeRelative(formDir, instanceDir).toString());
@@ -178,24 +151,6 @@ public class DatabaseUtils implements AutoCloseable {
       }
     } catch (SQLException e) {
       log.error("failed to record instance " + instanceId, e);
-    }
-  }
-
-  synchronized void updateInstanceLists() {
-    // scan the database's reported set of directories and remove all that are not in the set
-    try (Statement stmt = connection.createStatement()) {
-      assertRecordedInstanceTable();
-      try (ResultSet values = stmt.executeQuery(SELECT_ALL_SQL)) {
-        while (values.next()) {
-          String instanceId = values.getString(1);
-          File f = new File(formDir, values.getString(2));
-          if (!f.exists() || !f.isDirectory()) {
-            forgetRecordedInstance(instanceId);
-          }
-        }
-      }
-    } catch (SQLException e) {
-      log.error("failure while pruning instance registry", e);
     }
   }
 
@@ -240,9 +195,7 @@ public class DatabaseUtils implements AutoCloseable {
     try {
       assertRecordedInstanceTable();
 
-      if (getRecordedInstanceQuery == null) {
-        getRecordedInstanceQuery = connection.prepareStatement(SELECT_DIR_SQL);
-      }
+      PreparedStatement getRecordedInstanceQuery = connection.prepareStatement(SELECT_DIR_SQL);
 
       getRecordedInstanceQuery.setString(1, instanceId);
       ResultSet values = getRecordedInstanceQuery.executeQuery();

@@ -53,11 +53,6 @@ class CliEventsCompanion {
       log.info(fse.getStatusString());
       System.out.println(fse.getStatusString());
     });
-
-    on(StartPullEvent.class, event -> {
-      log.info("Start pull form " + event.form.getFormName());
-      System.out.println("Start pull form " + event.form.getFormName());
-    });
   }
 
   @SuppressWarnings("unchecked")

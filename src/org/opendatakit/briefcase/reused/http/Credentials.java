@@ -19,7 +19,7 @@ package org.opendatakit.briefcase.reused.http;
 import java.util.Objects;
 
 /**
- * This Value Object class holds a username/password pair to be used as credentials.
+ * Stores a username/password pair.
  */
 public class Credentials {
   private final String username;

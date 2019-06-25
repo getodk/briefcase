@@ -17,10 +17,8 @@
 package org.opendatakit.briefcase.ui.pull;
 
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0_URL;
-import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
-import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
+import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
@@ -34,16 +32,15 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
-import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.pull.PullEvent;
-import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.RemoteServer;
+import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
+import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.Analytics;
-import org.opendatakit.briefcase.ui.reused.source.Source;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
+import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source.PullSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,28 +53,25 @@ public class PullPanel {
   private final BriefcasePreferences appPreferences;
   private final Analytics analytics;
   private JobsRunner pullJobRunner;
-  private TerminationFuture terminationFuture;
-  private Optional<Source<?>> source;
+  private Optional<PullSource> source;
 
-  public PullPanel(TransferPanelForm view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
+  private PullPanel(TransferPanelForm<PullSource> view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, Analytics analytics) {
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
     this.tabPreferences = tabPreferences;
     this.appPreferences = appPreferences;
-    this.terminationFuture = terminationFuture;
     this.analytics = analytics;
     getContainer().addComponentListener(analytics.buildComponentListener("Pull"));
 
     // Read prefs and load saved remote server if available
-    source = RemoteServer.readPreferences(tabPreferences).flatMap(view::preloadSource);
+    source = RemoteServer.readFromPrefs(tabPreferences).flatMap(view::preloadOption);
     view.onReady(() -> source.ifPresent(source -> onSource(view, forms, source)));
 
     // Register callbacks to view events
-    view.onSource(source -> {
+    view.onSelect(source -> {
       this.source = Optional.of(source);
-      Source.clearAllPreferences(tabPreferences);
-      source.storePreferences(tabPreferences, getStorePasswordsConsentProperty());
+      source.storeSourcePrefs(tabPreferences, getStorePasswordsConsentProperty());
       onSource(view, forms, source);
     });
 
@@ -85,7 +79,7 @@ public class PullPanel {
       forms.clear();
       view.refresh();
       source = Optional.empty();
-      Source.clearAllPreferences(tabPreferences);
+      RemoteServer.clearStoredPrefs(tabPreferences);
       updateActionButtons();
     });
 
@@ -94,14 +88,10 @@ public class PullPanel {
     view.onAction(() -> {
       view.setWorking();
       forms.forEach(FormStatus::clearStatusHistory);
-      new Thread(() -> source.ifPresent(s -> pullJobRunner = s.pull(
-          forms.getSelectedForms(),
-          appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
-          appPreferences.getPullInParallel().orElse(false),
-          false,
-          appPreferences.getResumeLastPull().orElse(false),
-          Optional.empty()
-      ))).start();
+      new Thread(() -> source.ifPresent(s -> {
+        pullJobRunner = s.pull(forms.getSelectedForms(), appPreferences, tabPreferences);
+        pullJobRunner.waitForCompletion();
+      })).start();
     });
 
     view.onCancel(() -> {
@@ -111,24 +101,18 @@ public class PullPanel {
         EventBus.publish(new FormStatusEvent(form));
       });
       view.unsetWorking();
+      view.refresh();
       updateActionButtons();
     });
-
-    // TODO Preserve encapsulation of the suffix constant
-    forms.onChange(() -> forms.getLastPullCursorsByFormId().forEach((key, value) -> tabPreferences.put(
-        key + TransferForms.LAST_CURSOR_PREFERENCE_KEY_SUFFIX,
-        value
-    )));
   }
 
-  public static PullPanel from(Http http, BriefcasePreferences appPreferences, TerminationFuture terminationFuture, Analytics analytics) {
+  public static PullPanel from(Http http, BriefcasePreferences appPreferences, BriefcasePreferences pullPanelPreferences, Analytics analytics) {
     TransferForms forms = TransferForms.empty();
     return new PullPanel(
         TransferPanelForm.pull(http, forms),
         forms,
-        BriefcasePreferences.forClass(PullPanel.class),
+        pullPanelPreferences,
         appPreferences,
-        terminationFuture,
         analytics
     );
   }
@@ -137,15 +121,18 @@ public class PullPanel {
     return view.container;
   }
 
-  private void onSource(TransferPanelForm view, TransferForms forms, Source<?> source) {
-    source.getFormList().thenAccept(formList -> {
-      forms.load(formList, tabPreferences);
-      view.refresh();
-      updateActionButtons();
-    }).onError(cause -> {
-      log.warn("Unable to load form list from {}", source.getDescription(), cause);
-      errorMessage("Error Loading Forms", "Briefcase wasn't able to load forms using the configured source. Try Reload or Reset.");
-    });
+  private void onSource(TransferPanelForm view, TransferForms forms, PullSource<?> source) {
+    JobsRunner.launchAsync(
+        run(__ -> {
+          forms.load(source.getFormList());
+          view.refresh();
+          updateActionButtons();
+        }),
+        cause -> {
+          log.warn("Unable to load form list from {}", source.getDescription(), cause);
+          errorMessage("Error Loading Forms", "Briefcase wasn't able to load forms using the configured source. Try Reload or Reset.");
+        }
+    );
   }
 
   private void updateActionButtons() {
@@ -175,52 +162,29 @@ public class PullPanel {
 
   @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
   public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
-    tabPreferences.remove(AGGREGATE_1_0_URL);
-    tabPreferences.remove(USERNAME);
-    tabPreferences.remove(PASSWORD);
-    appPreferences.removeAll(appPreferences.keys().stream().filter((String key) ->
-        key.endsWith("_pull_settings_url")
-            || key.endsWith("_pull_settings_username")
-            || key.endsWith("_pull_settings_password")
-    ).collect(toList()));
-  }
-
-  @EventSubscriber(eventClass = PullEvent.Failure.class)
-  public void onPullFailure(PullEvent.Failure event) {
-    terminationFuture.reset();
-    view.unsetWorking();
-    updateActionButtons();
-    analytics.event("Pull", "Transfer", "Failure", null);
+    // TODO This should be managed by the Settings vertical. We'll deal with it when we have a central database
+    tabPreferences.removeAll(tabPreferences.keys().stream().filter(RemoteServer::isPrefKey).collect(toList()));
+    appPreferences.removeAll(appPreferences.keys().stream().filter(RemoteServer::isPrefKey).collect(toList()));
   }
 
   @EventSubscriber(eventClass = PullEvent.Success.class)
   public void onPullSuccess(PullEvent.Success event) {
-    terminationFuture.reset();
+    event.ifRemoteServer((form, server) ->
+        server.storeInPrefs(appPreferences, form, getStorePasswordsConsentProperty())
+    );
+    event.lastCursor.ifPresent(cursor -> cursor.storePrefs(event.form, appPreferences));
+  }
+
+  @EventSubscriber(eventClass = PullEvent.PullComplete.class)
+  public void onPullComplete(PullEvent.PullComplete event) {
     view.unsetWorking();
     updateActionButtons();
-    if (getStorePasswordsConsentProperty()) {
-      if (event.transferSettings.isPresent()) {
-        event.forms.forEach(form -> {
-          appPreferences.put(String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()), event.transferSettings.get().getUrl());
-          appPreferences.put(String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()), event.transferSettings.get().getUsername());
-          appPreferences.put(String.format("%s_pull_settings_password", form.getFormDefinition().getFormId()), String.valueOf(event.transferSettings.get().getPassword()));
-        });
-      } else {
-        event.forms.forEach(form -> appPreferences.removeAll(
-            String.format("%s_pull_settings_url", form.getFormDefinition().getFormId()),
-            String.format("%s_pull_settings_username", form.getFormDefinition().getFormId()),
-            String.format("%s_pull_settings_password", form.getFormDefinition().getFormId())
-        ));
-      }
-    }
     analytics.event("Pull", "Transfer", "Success", null);
   }
 
   @EventSubscriber(eventClass = PullEvent.CleanAllResumePoints.class)
   public void onCleanAllResumePoints(PullEvent.CleanAllResumePoints e) {
-    // TODO Preserve encapsulation of the suffix constant
-    tabPreferences.keys().stream().filter(key -> key.endsWith(TransferForms.LAST_CURSOR_PREFERENCE_KEY_SUFFIX)).collect(toList()).forEach(tabPreferences::remove);
-    forms.cleanAllResumePoints();
+    Cursor.cleanAllPrefs(appPreferences);
     infoMessage("Pull history cleared.");
   }
 }

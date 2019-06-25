@@ -32,7 +32,7 @@ public class RequestTest {
   @Test
   public void can_map_a_response_body() {
     // Create a simple request that will parse any incoming string to ints
-    Request<Integer> req = RequestBuilder.get(BASE_URL).asText().withMapper(Integer::parseInt).build();
+    Request<Integer> req = RequestBuilder.get(BASE_URL).asText().withResponseMapper(Integer::parseInt).build();
     assertThat(req.map(new ByteArrayInputStream("42".getBytes(UTF_8))), is(42));
   }
 

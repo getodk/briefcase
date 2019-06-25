@@ -16,30 +16,24 @@
 
 package org.opendatakit.briefcase.reused.http;
 
-import java.util.Optional;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class HttpException extends BriefcaseException {
-  private final Optional<Response<?>> response;
 
   public HttpException(String message) {
     super(message);
-    response = Optional.empty();
   }
 
   public HttpException(String message, Throwable cause) {
     super(message, cause);
-    response = Optional.empty();
   }
 
   public HttpException(Response<?> response) {
     super("HTTP Response status code " + response.getStatusCode());
-    this.response = Optional.of(response);
   }
 
   public HttpException(Response<?> response, Throwable cause) {
     super("HTTP Response status code " + response.getStatusCode(), cause);
-    this.response = Optional.of(response);
   }
 }

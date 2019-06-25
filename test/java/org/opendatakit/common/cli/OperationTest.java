@@ -17,14 +17,12 @@
 package org.opendatakit.common.cli;
 
 import static java.util.stream.Collectors.toList;
-
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
-
 import org.junit.Test;
 
 public class OperationTest {

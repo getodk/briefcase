@@ -188,7 +188,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     assertThat(component.startDateField(), is(not(enabled())));
     assertThat(component.endDateField(), is(not(enabled())));
     assertThat(component.pullBeforeOverrideLabel(), is(not(enabled())));
-    assertThat(component.pullBeforeOverrideField().$$$getRootComponent$$$(), is(not(enabled())));
+    assertThat(component.pullBeforeOverrideField().getContainer(), is(not(enabled())));
     assertThat(component.pullBeforeHintPanel(), is(not(enabled())));
   }
 
@@ -203,7 +203,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
     assertThat(component.startDateField(), is(enabled()));
     assertThat(component.endDateField(), is(enabled()));
     assertThat(component.pullBeforeOverrideLabel(), is(enabled()));
-    assertThat(component.pullBeforeOverrideField().$$$getRootComponent$$$(), is(enabled()));
+    assertThat(component.pullBeforeOverrideField().getContainer(), is(enabled()));
     assertThat(component.pullBeforeHintPanel(), is(enabled()));
   }
 

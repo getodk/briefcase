@@ -19,16 +19,16 @@ package org.opendatakit.briefcase.reused.http.response;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.Request;
 
+/**
+ * Represents an HTTP 2xx response
+ */
 class Success<T> implements Response<T> {
   private final int statusCode;
   private final String statusPhrase;
@@ -45,17 +45,9 @@ class Success<T> implements Response<T> {
         response.getStatusLine().getStatusCode(),
         response.getStatusLine().getReasonPhrase(),
         request.map(Optional.ofNullable(response.getEntity())
-            .map(Success::uncheckedGetContent)
+            .map(Response::uncheckedGetContent)
             .orElse(new ByteArrayInputStream("".getBytes(UTF_8))))
     );
-  }
-
-  private static InputStream uncheckedGetContent(HttpEntity entity) {
-    try {
-      return entity.getContent();
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
   }
 
   @Override
@@ -66,6 +58,16 @@ class Success<T> implements Response<T> {
   @Override
   public int getStatusCode() {
     return statusCode;
+  }
+
+  @Override
+  public String getStatusPhrase() {
+    return statusPhrase;
+  }
+
+  @Override
+  public String getServerErrorResponse() {
+    throw new BriefcaseException("No error response");
   }
 
   @Override

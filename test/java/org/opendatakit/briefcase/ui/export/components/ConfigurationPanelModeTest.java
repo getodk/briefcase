@@ -71,9 +71,9 @@ public class ConfigurationPanelModeTest extends AssertJSwingJUnitTestCase {
 
     // Pull Before Override label & combo box assertions
     assertThat(component.pullBeforeOverrideLabel(), scenario.overrideFieldVisible ? is(visible()) : is(not(visible())));
-    assertThat(component.pullBeforeOverrideField().$$$getRootComponent$$$(), scenario.overrideFieldVisible ? is(visible()) : is(not(visible())));
+    assertThat(component.pullBeforeOverrideField().getContainer(), scenario.overrideFieldVisible ? is(visible()) : is(not(visible())));
     if (scenario.overrideFieldVisible)
-      assertThat(component.pullBeforeOverrideField().$$$getRootComponent$$$(), scenario.overrideFieldEnabled ? is(enabled()) : is(not(enabled())));
+      assertThat(component.pullBeforeOverrideField().getContainer(), scenario.overrideFieldEnabled ? is(enabled()) : is(not(enabled())));
 
     // Hint text pane assertions
     assertThat(component.pullBeforeHintPanel(), scenario.hintVisible ? is(visible()) : is(not(visible())));

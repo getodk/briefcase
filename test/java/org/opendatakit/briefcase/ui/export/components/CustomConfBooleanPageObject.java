@@ -38,7 +38,7 @@ class CustomConfBooleanPageObject {
     CustomConfBooleanForm component = execute(() -> new CustomConfBooleanForm(initialValue));
     JFrame frame = execute(() -> {
       JFrame f = new JFrame();
-      f.add(component.$$$getRootComponent$$$());
+      f.add(component.getContainer());
       return f;
     });
     FrameFixture fixture = new FrameFixture(robot, frame);

@@ -1,0 +1,39 @@
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:h="http://www.w3.org/1999/xhtml">
+  <h:head>
+    <h:title>Push form test</h:title>
+    <model>
+      <instance>
+        <data id="push-form-test">
+          <text/>
+          <image/>
+          <meta>
+            <instanceID/>
+          </meta>
+        </data>
+      </instance>
+      <itext>
+        <translation lang="English">
+          <text id="sparrow">
+            <value form="long">Sparrow</value>
+            <value form="short">Sparrow</value>
+            <value form="image">jr://images/sparrow.png</value>
+          </text>
+        </translation>
+      </itext>
+      <bind nodeset="/data/text" type="string"/>
+      <bind nodeset="/data/image" type="binary"/>
+      <bind nodeset="/data/meta/instanceID" type="string" readonly="true()" calculate="concat('uuid:', uuid())"/>
+    </model>
+  </h:head>
+  <h:body>
+    <group>
+      <label>Fields</label>
+      <input ref="/data/text">
+        <label ref="jr:itext('sparrow')"/>
+      </input>
+      <upload ref="/data/image" mediatype="image/*">
+        <label>Take a picture</label>
+      </upload>
+    </group>
+  </h:body>
+</h:html>

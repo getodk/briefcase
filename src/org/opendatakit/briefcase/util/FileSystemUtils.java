@@ -29,8 +29,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.slf4j.Logger;
@@ -162,30 +160,8 @@ public class FileSystemUtils {
     return HSQLDB_DB.equals(dbFile.getName()) && parentFile != null && HSQLDB_DIR.equals(parentFile.getName());
   }
 
-  static File getFormDefinitionFileIfExists(File formDirectory) {
-    if (!formDirectory.exists()) {
-      return null;
-    }
-    File formDefnFile = new File(formDirectory, formDirectory.getName() + ".xml");
-    if (!formDefnFile.exists()) {
-      return null;
-    }
-    return formDefnFile;
-  }
-
   public static File getFormDefinitionFile(File formDirectory) throws FileSystemException {
     return new File(formDirectory, formDirectory.getName() + ".xml");
-  }
-
-  static File getMediaDirectoryIfExists(File formDirectory) {
-    if (!formDirectory.exists()) {
-      return null;
-    }
-    File mediaDir = new File(formDirectory, formDirectory.getName() + "-media");
-    if (!mediaDir.exists()) {
-      return null;
-    }
-    return mediaDir;
   }
 
   static File getMediaDirectory(File formDirectory)
@@ -214,31 +190,6 @@ public class FileSystemUtils {
     Path parentPath = parent.toPath();
     Path childPath = child.toPath();
     return parentPath.relativize(childPath);
-  }
-
-  static Set<File> getFormSubmissionDirectories(File formDirectory) {
-    Set<File> files = new TreeSet<>();
-
-    File formInstancesDir;
-    try {
-      formInstancesDir = getFormInstancesDirectory(formDirectory);
-    } catch (FileSystemException e) {
-      log.error("failed to get submission directory", e);
-      return files;
-    }
-
-    File[] briefcaseInstances = formInstancesDir.listFiles();
-    if (briefcaseInstances != null) {
-      for (File briefcaseInstance : briefcaseInstances) {
-        if (!briefcaseInstance.isDirectory() || briefcaseInstance.getName().startsWith(".")) {
-          log.warn("skipping non-directory or dot-file in form instances subdirectory");
-          continue;
-        }
-        files.add(briefcaseInstance);
-      }
-    }
-
-    return files;
   }
 
   static File getFormSubmissionDirectory(File formInstancesDir, String instanceID) {

@@ -34,6 +34,9 @@ import static com.github.dreamhead.moco.Runner.running;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.matchers.ExceptionMatchers.throwsException;
+import static org.opendatakit.briefcase.reused.http.Http.MAX_HTTP_CONNECTIONS;
+import static org.opendatakit.briefcase.reused.http.Http.MIN_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
 import com.github.dreamhead.moco.HttpServer;
@@ -51,7 +54,27 @@ public class CommonsHttpTest {
   @Before
   public void setUp() {
     server = httpServer(12306, log());
-    http = CommonsHttp.nonReusing();
+    http = CommonsHttp.of(1);
+  }
+
+  @Test
+  public void the_factories_reject_max_http_connections_values_out_of_range() {
+    assertThat(
+        () -> CommonsHttp.of(MIN_HTTP_CONNECTIONS - 1),
+        throwsException(BriefcaseException.class)
+    );
+    assertThat(
+        () -> CommonsHttp.of(MAX_HTTP_CONNECTIONS + 1),
+        throwsException(BriefcaseException.class)
+    );
+    assertThat(
+        () -> CommonsHttp.of(MIN_HTTP_CONNECTIONS - 1, null),
+        throwsException(BriefcaseException.class)
+    );
+    assertThat(
+        () -> CommonsHttp.of(MAX_HTTP_CONNECTIONS + 1, null),
+        throwsException(BriefcaseException.class)
+    );
   }
 
   @Test

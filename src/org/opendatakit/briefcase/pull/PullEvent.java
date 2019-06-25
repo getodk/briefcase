@@ -17,29 +17,39 @@
 package org.opendatakit.briefcase.pull;
 
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
-import org.opendatakit.briefcase.transfer.TransferForms;
+import org.opendatakit.briefcase.pull.aggregate.Cursor;
+import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 
 public class PullEvent {
 
-  public static class Failure extends PullEvent {
-    public Failure() {
-    }
-  }
-
   public static class Success extends PullEvent {
-    public final TransferForms forms;
-    public final Optional<ServerConnectionInfo> transferSettings;
+    public final FormStatus form;
+    public final Optional<RemoteServer> remoteServer;
+    public final Optional<Cursor> lastCursor;
 
-    public Success(TransferForms forms) {
-      this.forms = forms;
-      this.transferSettings = Optional.empty();
+    private Success(FormStatus form, Optional<RemoteServer> remoteServer, Optional<Cursor> lastCursor) {
+      this.form = form;
+      this.remoteServer = remoteServer;
+      this.lastCursor = lastCursor;
     }
 
-    public Success(TransferForms forms, ServerConnectionInfo transferSettings) {
-      this.forms = forms;
-      this.transferSettings = Optional.ofNullable(transferSettings);
+    public static Success of(FormStatus form) {
+      return new Success(form, Optional.empty(), Optional.empty());
+    }
+
+    public static Success of(FormStatus form, RemoteServer remoteServer) {
+      return new Success(form, Optional.of(remoteServer), Optional.empty());
+    }
+
+    public static Success of(FormStatus form, RemoteServer remoteServer, Cursor lastCursor) {
+      return new Success(form, Optional.of(remoteServer), Optional.of(lastCursor));
+    }
+
+    public void ifRemoteServer(BiConsumer<FormStatus, RemoteServer> consumer) {
+      remoteServer.ifPresent(server -> consumer.accept(form, server));
     }
   }
 
@@ -62,5 +72,9 @@ public class PullEvent {
   }
 
   public static class CleanAllResumePoints extends PullEvent {
+  }
+
+  public static class PullComplete extends PullEvent {
+
   }
 }
