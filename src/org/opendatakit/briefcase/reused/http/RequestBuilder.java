@@ -220,9 +220,14 @@ public class RequestBuilder<T> {
   }
 
   public RequestBuilder<T> withPath(String path) {
-    if (!baseUrl.getPath().isEmpty())
-      throw new BriefcaseException("Can't apply withPath() twice");
-    URL newBaseUrl = url(baseUrl + (path.startsWith("/") ? path : "/" + path));
+    String cleanPath = path.startsWith("/") && path.endsWith("/")
+        ? path.substring(1, path.length() - 1)
+        : path.startsWith("/")
+        ? path.substring(1)
+        : path.endsWith("/")
+        ? path.substring(0, path.length() - 1)
+        : path;
+    URL newBaseUrl = url(baseUrl + "/" + cleanPath);
     return new RequestBuilder<>(method, newBaseUrl, responseMapper, credentials, headers, body, multipartMessages);
   }
 
