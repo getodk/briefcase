@@ -148,7 +148,7 @@ public class AggregateServer implements RemoteServer {
         .withPath("/view/submissionList")
         .withQuery(
             Pair.of("formId", formId),
-            Pair.of("cursor", cursor.get()),
+            Pair.of("cursor", cursor.getValue()),
             Pair.of("numEntries", String.valueOf(entriesPerBatch)),
             Pair.of("includeIncomplete", includeIncomplete ? "true" : "false")
         )

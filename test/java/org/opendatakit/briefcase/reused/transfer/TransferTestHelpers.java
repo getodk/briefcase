@@ -197,7 +197,7 @@ public class TransferTestHelpers {
       pages.add(Pair.of("" +
           "<idChunk xmlns=\"http://opendatakit.org/submissions\">" +
           "<idList>" + ids.stream().map(id -> "<id>" + id + "</id>").collect(joining("")) + "</idList>" +
-          "<resumptionCursor>" + escape(cursor.get()) + "</resumptionCursor>" +
+          "<resumptionCursor>" + escape(cursor.getValue()) + "</resumptionCursor>" +
           "</idChunk>" +
           "", cursor));
 
@@ -206,7 +206,7 @@ public class TransferTestHelpers {
     pages.add(Pair.of("" +
         "<idChunk xmlns=\"http://opendatakit.org/submissions\">" +
         "<idList></idList>" +
-        "<resumptionCursor>" + escape(lastCursor.get()) + "</resumptionCursor>" +
+        "<resumptionCursor>" + escape(lastCursor.getValue()) + "</resumptionCursor>" +
         "</idChunk>" +
         "", lastCursor));
 
