@@ -16,18 +16,24 @@
 
 package org.opendatakit.briefcase.model;
 
+import java.net.URL;
+import java.util.Optional;
+import org.opendatakit.briefcase.reused.http.RequestBuilder;
+
 public class RemoteFormDefinition implements IFormDefinition {
 
   private final String formName;
   private final String formId;
   private final String versionString;
   private final String manifestUrl;
+  private final String downloadUrl;
 
-  public RemoteFormDefinition(String formName, String formId, String versionString, String manifestUrl) {
+  public RemoteFormDefinition(String formName, String formId, String versionString, String manifestUrl, String downloadUrl) {
     this.formName = formName;
     this.formId = formId;
     this.versionString = versionString;
     this.manifestUrl = manifestUrl;
+    this.downloadUrl = downloadUrl;
   }
 
   @Override
@@ -46,5 +52,9 @@ public class RemoteFormDefinition implements IFormDefinition {
 
   public String getVersionString() {
     return versionString;
+  }
+
+  public Optional<URL> getDownloadUrl() {
+    return Optional.ofNullable(downloadUrl).map(RequestBuilder::url);
   }
 }

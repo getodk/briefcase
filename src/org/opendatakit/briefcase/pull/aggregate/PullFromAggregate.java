@@ -40,6 +40,7 @@ import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.Pair;
@@ -163,7 +164,11 @@ public class PullFromAggregate {
     }
 
     tracker.trackStartDownloadingForm();
-    Response<String> response = http.execute(server.getDownloadFormRequest(form.getFormId()));
+    RemoteFormDefinition formDef = (RemoteFormDefinition) form.getFormDefinition();
+    Request<String> downloadFormRequest = formDef.getDownloadUrl()
+        .map(server::getDownloadFormRequest)
+        .orElse(server.getDownloadFormRequest(form.getFormId()));
+    Response<String> response = http.execute(downloadFormRequest);
     if (!response.isSuccess()) {
       tracker.trackErrorDownloadingForm(response);
       return null;
