@@ -87,14 +87,22 @@ We use [semantic versioning](https://semver.org/): vx.y.z
    
    Tracking IDs follow the pattern `UA-12345678-1`
      
-  
-7. Build the release JAR file with `./gradlew clean build`
+7. Ensure that you're using Java 11 from the Java.net vendor. Run `java -version` and confirm you get this:
+
+    ```
+    openjdk version "11.0.2" 2019-01-15
+    OpenJDK Runtime Environment 18.9 (build 11.0.2+9)
+    OpenJDK 64-Bit Server VM 18.9 (build 11.0.2+9, mixed mode)
+    ``` 
+
+8. Build the release JAR file with `./gradlew clean build`
+
 
     The JAR file will be located at `build/libs` and the filename should be like: `ODK-Briefcase-vx.y.z.jar`. (replace x.y.z with the actual numbers you used in step 2)
   
     If your JAR's filename has `-dirty` or any other deviation from the previous template, you've made some mistake while syncing your repo after publishing the release on GitHub.
   
-8. Go back to the release at GitHub and edit it. Open a file browser and drag your JAR file into the box. Click on `Update release`.
+9. Go back to the release at GitHub and edit it. Open a file browser and drag your JAR file into the box. Click on `Update release`.
 
 ### Releasing a beta version
 
