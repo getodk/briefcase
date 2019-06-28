@@ -22,7 +22,7 @@
           <gridbag weightx="1.0" weighty="0.0"/>
         </constraints>
         <properties>
-          <text value="Pulling data from %s"/>
+          <text value="Action placeholder"/>
         </properties>
       </component>
       <component id="45a9d" class="javax.swing.JButton" binding="resetButton">

@@ -135,7 +135,7 @@ public class ShowSourceOrTargetForm<T extends SourceOrTarget> extends JComponent
     gbc.anchor = GridBagConstraints.WEST;
     container.add(sourceLabel, gbc);
     actionLabel = new JLabel();
-    actionLabel.setText("Pulling data from %s");
+    actionLabel.setText("Action placeholder");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 0;
