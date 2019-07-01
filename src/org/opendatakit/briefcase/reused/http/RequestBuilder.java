@@ -220,13 +220,9 @@ public class RequestBuilder<T> {
   }
 
   public RequestBuilder<T> withPath(String path) {
-    String cleanPath = path.startsWith("/") && path.endsWith("/")
-        ? path.substring(1, path.length() - 1)
-        : path.startsWith("/")
-        ? path.substring(1)
-        : path.endsWith("/")
-        ? path.substring(0, path.length() - 1)
-        : path;
+    int startOffset = path.startsWith("/") ? 1 : 0;
+    int endOffset = path.endsWith("/") ? 1 : 0;
+    String cleanPath = path.substring(startOffset, path.length() - endOffset);
     URL newBaseUrl = url(baseUrl + "/" + cleanPath);
     return new RequestBuilder<>(method, newBaseUrl, responseMapper, credentials, headers, body, multipartMessages);
   }
