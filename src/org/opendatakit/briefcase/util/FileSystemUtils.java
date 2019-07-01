@@ -43,7 +43,7 @@ public class FileSystemUtils {
   private static final String HSQLDB_DIR = "info.hsqldb";
   private static final String HSQLDB_DB = "info";
   private static final String SMALLSQL_DIR = "info.db";
-  private static final String HSQLDB_JDBC_PREFIX = "jdbc:hsqldb:file:";
+  static final String HSQLDB_JDBC_PREFIX = "jdbc:hsqldb:file:";
 
   static final String SMALLSQL_JDBC_PREFIX = "jdbc:smallsql:";
 
