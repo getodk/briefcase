@@ -93,16 +93,8 @@ public class AggregateCursor implements Cursor<AggregateCursor> {
    * Returns a synthetic Cursor instance with the provided values.
    */
   public static AggregateCursor of(OffsetDateTime lastUpdate, String lastReturnedValue) {
-    String cursorXml = String.format("<cursor xmlns=\"http://www.opendatakit.org/cursor\">" +
-            "<attributeName>_LAST_UPDATE_DATE</attributeName>" +
-            "<attributeValue>%s</attributeValue>" +
-            "<uriLastReturnedValue>%s</uriLastReturnedValue>" +
-            "<isForwardCursor>true</isForwardCursor>" +
-            "</cursor>",
-        lastUpdate.format(ISO_OFFSET_DATE_TIME),
-        lastReturnedValue
-    );
-    return new AggregateCursor(cursorXml, Optional.of(lastUpdate), Optional.of(lastReturnedValue));
+    Optional<String> lastUri = Optional.of(lastReturnedValue);
+    return new AggregateCursor(buildCursorXml(lastUpdate, lastUri), Optional.of(lastUpdate), lastUri);
   }
 
   /**
@@ -110,15 +102,8 @@ public class AggregateCursor implements Cursor<AggregateCursor> {
    */
   public static AggregateCursor of(LocalDate date) {
     OffsetDateTime lastUpdate = date.atStartOfDay().atOffset(ZoneOffset.UTC);
-    String cursorXml = String.format("<cursor xmlns=\"http://www.opendatakit.org/cursor\">" +
-            "<attributeName>_LAST_UPDATE_DATE</attributeName>" +
-            "<attributeValue>%s</attributeValue>" +
-            "<uriLastReturnedValue/>" +
-            "<isForwardCursor>true</isForwardCursor>" +
-            "</cursor>",
-        lastUpdate.format(ISO_OFFSET_DATE_TIME)
-    );
-    return new AggregateCursor(cursorXml, Optional.of(lastUpdate), Optional.empty());
+    Optional<String> lastUri = Optional.empty();
+    return new AggregateCursor(buildCursorXml(lastUpdate, lastUri), Optional.of(lastUpdate), lastUri);
   }
 
   /**
@@ -126,6 +111,24 @@ public class AggregateCursor implements Cursor<AggregateCursor> {
    */
   public static AggregateCursor of(LocalDate date, String lastReturnedValue) {
     return of(date.atStartOfDay().atOffset(ZoneOffset.UTC), lastReturnedValue);
+  }
+
+  private static String buildCursorXml(OffsetDateTime lastUpdate, Optional<String> lastUri) {
+    return String.format("<cursor xmlns=\"http://www.opendatakit.org/cursor\">" +
+            "<attributeName>_LAST_UPDATE_DATE</attributeName>" +
+            "<attributeValue>%s</attributeValue>" +
+            "%s" +
+            "<isForwardCursor>true</isForwardCursor>" +
+            "</cursor>",
+        lastUpdate.format(ISO_OFFSET_DATE_TIME),
+        // There can be slight differences in how we represent empty tags
+        // depending on whether it's a <tag></tag> or a self-closed <tag/>
+        lastUri
+            // Encode non-empty values (even the empty string) normally
+            .map(value -> "<uriLastReturnedValue>" + value + "</uriLastReturnedValue>")
+            // Encode empty values as a self-closed tag
+            .orElse("<uriLastReturnedValue/>")
+    );
   }
 
   // TODO v2.0 Use a better name, like getXml();
