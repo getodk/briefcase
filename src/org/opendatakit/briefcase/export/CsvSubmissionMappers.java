@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.export;
 
-import static java.text.DateFormat.getDateTimeInstance;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -26,10 +25,10 @@ import static org.javarosa.core.model.DataType.DATE_TIME;
 import static org.javarosa.core.model.DataType.GEOPOINT;
 import static org.javarosa.core.model.DataType.TIME;
 import static org.opendatakit.briefcase.export.CsvFieldMappers.getMapper;
+import static org.opendatakit.briefcase.export.CsvFieldMappers.iso8601DateTimeToExportCsvFormat;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -135,7 +134,7 @@ final class CsvSubmissionMappers {
   }
 
   private static String format(OffsetDateTime offsetDateTime) {
-    return getDateTimeInstance().format(new Date(offsetDateTime.toInstant().toEpochMilli()));
+    return iso8601DateTimeToExportCsvFormat(offsetDateTime);
   }
 
   static String encodeMainValue(Model field, Pair<String, String> value) {
