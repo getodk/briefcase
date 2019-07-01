@@ -555,7 +555,7 @@ public class SettingsPanelForm {
     gbc.fill = GridBagConstraints.HORIZONTAL;
     maxHttpConnectionContainer.add(maxHttpConnectionsField, gbc);
     maxHttpConnectionsLabel = new JLabel();
-    maxHttpConnectionsLabel.setText("Maximum HTTP simultaneous connections");
+    maxHttpConnectionsLabel.setText("Maximum simultaneous HTTP connections");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 0;

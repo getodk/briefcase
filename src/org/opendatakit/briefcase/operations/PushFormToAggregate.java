@@ -73,13 +73,13 @@ public class PushFormToAggregate {
     formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
 
-    int maxConnections = Optionals.race(
+    int maxHttpConnections = Optionals.race(
         maybeMaxConnections,
         appPreferences.getMaxHttpConnections()
     ).orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
-        .map(host -> CommonsHttp.of(maxConnections, host))
-        .orElseGet(() -> CommonsHttp.of(maxConnections));
+        .map(host -> CommonsHttp.of(maxHttpConnections, host))
+        .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
 
     AggregateServer aggregateServer = AggregateServer.authenticated(RequestBuilder.url(server), new Credentials(username, password));
 
