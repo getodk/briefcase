@@ -94,7 +94,7 @@ public class Aggregate implements PushTarget<AggregateServer> {
 
   @Override
   public void decorate(JLabel label) {
-    label.setText("<html><a href=\"" + server.getBaseUrl().toString() + "\">" + getDescription() + "</a></html>");
+    label.setText("<html>URL: <a href=\"" + server.getBaseUrl().toString() + "\">" + getDescription() + "</a></html>");
     label.setCursor(getPredefinedCursor(HAND_CURSOR));
     removeAllMouseListeners(label);
     label.addMouseListener(new MouseAdapterBuilder()
