@@ -31,7 +31,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
 
-public class CursorTest {
+public class OpenRosaCursorTest {
 
   public static String buildCursorXml(OffsetDateTime lastUpdate) {
     return buildCursorXml(lastUpdate, UUID.randomUUID().toString());
@@ -71,7 +71,7 @@ public class CursorTest {
     Cursor originalCursor = Cursor.from(buildCursorXml("2019-01-01T00:00:00.000Z", "1234"));
 
     originalCursor.storePrefs(form, testBriefcasePrefs);
-    assertThat(testBriefcasePrefs.keys(), hasSize(1));
+    assertThat(testBriefcasePrefs.keys(), hasSize(2));
 
     Optional<Cursor> actualCursor = Cursor.readPrefs(form, testBriefcasePrefs);
     assertThat(actualCursor, isPresentAndIs(originalCursor));
@@ -85,7 +85,7 @@ public class CursorTest {
     Cursor.from(buildCursorXml("2019-01-01T00:00:00.000Z", "1")).storePrefs(buildFormStatus(1), testBriefcasePrefs);
     Cursor.from(buildCursorXml("2019-01-01T00:00:00.000Z", "2")).storePrefs(buildFormStatus(2), testBriefcasePrefs);
     Cursor.from(buildCursorXml("2019-01-01T00:00:00.000Z", "3")).storePrefs(buildFormStatus(3), testBriefcasePrefs);
-    assertThat(testBriefcasePrefs.keys(), hasSize(4));
+    assertThat(testBriefcasePrefs.keys(), hasSize(7));
 
     Cursor.cleanAllPrefs(testBriefcasePrefs);
 

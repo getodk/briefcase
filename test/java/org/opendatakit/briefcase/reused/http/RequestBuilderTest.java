@@ -20,16 +20,38 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Pair;
 
 public class RequestBuilderTest {
 
-  @Test(expected = BriefcaseException.class)
-  public void should_reject_calling_withPath_if_baseUrl_already_has_a_path() {
-    RequestBuilder.get("http://foo.bar/baz")
-        .withPath("/bing");
+  @Test
+  public void can_compose_multiple_path_parts() {
+    List<String> baseUrls = Arrays.asList("http://foo.com", "http://foo.com/");
+    List<Pair<String, String>> pathPairs = generatePathPairs(new String[]{"bar", "/bar", "bar/", "/bar/"}, new String[]{"baz", "/baz", "baz/", "/baz/"});
+    for (String baseUrl : baseUrls)
+      for (Pair<String, String> pathPair : pathPairs)
+        assertThat(
+            String.format("baseUrl: \"%s\", paths: \"%s\" and \"%s\"", baseUrl, pathPair.getLeft(), pathPair.getRight()),
+            RequestBuilder.get(baseUrl)
+                .withPath(pathPair.getLeft())
+                .withPath(pathPair.getRight())
+                .build()
+                .getUrl(),
+            is(url("http://foo.com/bar/baz"))
+        );
+  }
+
+  private static List<Pair<String, String>> generatePathPairs(String[] firsts, String[] seconds) {
+    List<Pair<String, String>> pairs = new ArrayList<>();
+    for (String first : firsts)
+      for (String second : seconds)
+        pairs.add(Pair.of(first, second));
+    return pairs;
   }
 
   @Test(expected = BriefcaseException.class)

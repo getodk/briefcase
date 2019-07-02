@@ -89,6 +89,14 @@ public class AggregateServer implements RemoteServer {
         .asText()
         .withPath("/formXml")
         .withQuery(Pair.of("formId", formId))
+        .withCredentials(credentials)
+        .build();
+  }
+
+  public Request<String> getDownloadFormRequest(URL downloadUrl) {
+    return get(downloadUrl)
+        .asText()
+        .withCredentials(credentials)
         .build();
   }
 
@@ -97,6 +105,7 @@ public class AggregateServer implements RemoteServer {
         .asXmlElement()
         .withPath("/view/downloadSubmission")
         .withQuery(Pair.of("formId", submissionKey))
+        .withCredentials(credentials)
         .withResponseMapper(DownloadedSubmission::from)
         .build();
   }
@@ -114,7 +123,8 @@ public class AggregateServer implements RemoteServer {
                 e.findElement("name").flatMap(XmlElement::maybeValue).get(),
                 e.findElement("formID").flatMap(XmlElement::maybeValue).get(),
                 e.findElement("version").flatMap(XmlElement::maybeValue).orElse(null),
-                e.findElement("manifestUrl").flatMap(XmlElement::maybeValue).orElse(null)
+                e.findElement("manifestUrl").flatMap(XmlElement::maybeValue).orElse(null),
+                e.findElement("downloadUrl").flatMap(XmlElement::maybeValue).orElse(null)
             )).collect(toList())).build();
   }
 
@@ -138,10 +148,11 @@ public class AggregateServer implements RemoteServer {
         .withPath("/view/submissionList")
         .withQuery(
             Pair.of("formId", formId),
-            Pair.of("cursor", cursor.get()),
+            Pair.of("cursor", cursor.getValue()),
             Pair.of("numEntries", String.valueOf(entriesPerBatch)),
             Pair.of("includeIncomplete", includeIncomplete ? "true" : "false")
         )
+        .withCredentials(credentials)
         .build();
   }
 
@@ -165,6 +176,7 @@ public class AggregateServer implements RemoteServer {
     return builder
         .withHeader("X-OpenRosa-Version", "1.0")
         .withHeader("Date", OffsetDateTime.now().format(RFC_1123_DATE_TIME))
+        .withCredentials(credentials)
         .build();
   }
 
@@ -189,6 +201,7 @@ public class AggregateServer implements RemoteServer {
     return builder
         .withHeader("X-OpenRosa-Version", "1.0")
         .withHeader("Date", OffsetDateTime.now().format(RFC_1123_DATE_TIME))
+        .withCredentials(credentials)
         .build();
   }
 

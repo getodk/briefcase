@@ -63,7 +63,7 @@ public class AggregateServerTest {
     Cursor cursor = Cursor.of(LocalDate.parse("2010-01-01"));
     assertThat(
         server.getInstanceIdBatchRequest("some-form", 100, cursor, false).getUrl().toString(),
-        is("https://some.server.com/view/submissionList?formId=some-form&cursor=" + encode(cursor.get(), UTF_8.toString()) + "&numEntries=100&includeIncomplete=false")
+        is("https://some.server.com/view/submissionList?formId=some-form&cursor=" + encode(cursor.getValue(), UTF_8.toString()) + "&numEntries=100&includeIncomplete=false")
     );
   }
 

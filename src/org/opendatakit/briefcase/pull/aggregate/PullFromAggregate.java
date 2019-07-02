@@ -40,6 +40,7 @@ import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.Pair;
@@ -163,7 +164,7 @@ public class PullFromAggregate {
     }
 
     tracker.trackStartDownloadingForm();
-    Response<String> response = http.execute(server.getDownloadFormRequest(form.getFormId()));
+    Response<String> response = http.execute(getDownloadFormRequest(form, tracker));
     if (!response.isSuccess()) {
       tracker.trackErrorDownloadingForm(response);
       return null;
@@ -176,6 +177,32 @@ public class PullFromAggregate {
     write(formFile, formXml, CREATE, TRUNCATE_EXISTING);
     tracker.trackEndDownloadingForm();
     return formXml;
+  }
+
+  private Request<String> getDownloadFormRequest(FormStatus form, PullFromAggregateTracker tracker) {
+    Optional<RemoteFormDefinition> maybeRemoteForm;
+    if (form.getFormDefinition() instanceof RemoteFormDefinition) {
+      maybeRemoteForm = Optional.of((RemoteFormDefinition) form.getFormDefinition());
+    } else {
+      // This is a pull before export operation. We need to get the manifest
+      // to get the download URL of this blank form.
+      Response<List<RemoteFormDefinition>> remoteFormsResponse = http.execute(server.getFormListRequest());
+      if (remoteFormsResponse.isSuccess())
+        maybeRemoteForm = remoteFormsResponse.get().stream()
+            .filter(remoteForm -> remoteForm.getFormId().equals(form.getFormId()))
+            .findFirst();
+      else {
+        tracker.trackErrorGettingFormManifest(remoteFormsResponse);
+        maybeRemoteForm = Optional.empty();
+      }
+    }
+
+    // In case the downloadUrl is empty, we return an Aggregate
+    // compatible url and wish for the best.
+    return maybeRemoteForm
+        .flatMap(RemoteFormDefinition::getDownloadUrl)
+        .map(server::getDownloadFormRequest)
+        .orElse(server.getDownloadFormRequest(form.getFormId()));
   }
 
   List<AggregateAttachment> getFormAttachments(FormStatus form, RunnerStatus runnerStatus, PullFromAggregateTracker tracker) {
@@ -234,7 +261,8 @@ public class PullFromAggregate {
       tracker.trackErrorDownloadingFormAttachment(attachmentNumber, totalAttachments, response);
   }
 
-  DownloadedSubmission downloadSubmission(FormStatus form, String instanceId, SubmissionKeyGenerator subKeyGen, RunnerStatus runnerStatus, PullFromAggregateTracker tracker, int submissionNumber, int totalSubmissions) {
+  DownloadedSubmission downloadSubmission(FormStatus form, String instanceId, SubmissionKeyGenerator subKeyGen, RunnerStatus runnerStatus, PullFromAggregateTracker tracker, int submissionNumber,
+                                          int totalSubmissions) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Download submission " + submissionNumber + " of " + totalSubmissions);
       return null;
@@ -256,7 +284,8 @@ public class PullFromAggregate {
     return submission;
   }
 
-  void downloadSubmissionAttachment(FormStatus form, DownloadedSubmission submission, AggregateAttachment attachment, RunnerStatus runnerStatus, PullFromAggregateTracker tracker, int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
+  void downloadSubmissionAttachment(FormStatus form, DownloadedSubmission submission, AggregateAttachment attachment, RunnerStatus runnerStatus, PullFromAggregateTracker tracker,
+                                    int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Download attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions);
       return;
