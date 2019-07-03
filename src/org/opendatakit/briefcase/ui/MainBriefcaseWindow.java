@@ -35,6 +35,7 @@ import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
+import javax.swing.plaf.metal.MetalLookAndFeel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
@@ -48,6 +49,7 @@ import org.opendatakit.briefcase.ui.push.PushPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.settings.SettingsPanel;
 import org.opendatakit.briefcase.util.FormCache;
+import org.opendatakit.briefcase.util.Host;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +71,10 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
   public static void launchGUI() {
     try {
-      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+      if (Host.isLinux())
+        UIManager.setLookAndFeel(new MetalLookAndFeel());
+      else
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
       new MainBriefcaseWindow();
     } catch (Exception e) {
       log.error("Failed to launch GUI", e);

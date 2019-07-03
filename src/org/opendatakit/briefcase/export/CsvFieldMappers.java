@@ -17,9 +17,6 @@ package org.opendatakit.briefcase.export;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.nio.file.StandardOpenOption.APPEND;
-import static java.text.DateFormat.getDateInstance;
-import static java.text.DateFormat.getDateTimeInstance;
-import static java.text.DateFormat.getTimeInstance;
 import static java.util.stream.Collectors.toList;
 import static org.javarosa.core.model.DataType.BINARY;
 import static org.javarosa.core.model.DataType.DATE;
@@ -36,12 +33,18 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.lines;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.stripFileExtension;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
-import static org.opendatakit.common.utils.WebUtils.parseDate;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DateFormat;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.TextStyle;
+import java.time.temporal.ChronoField;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +54,7 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.javarosa.core.model.DataType;
+import org.opendatakit.briefcase.reused.Iso8601Helpers;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.Pair;
 
@@ -154,21 +158,71 @@ final class CsvFieldMappers {
   }
 
   private static Stream<Pair<String, String>> date(XmlElement element) {
-    return formattedDate(element, getDateInstance());
+    DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+        .appendText(ChronoField.MONTH_OF_YEAR, TextStyle.SHORT)
+        .appendLiteral(' ')
+        .appendValue(ChronoField.DAY_OF_MONTH)
+        .appendLiteral(", ")
+        .appendValue(ChronoField.YEAR, 4)
+        .toFormatter();
+    return Stream.of(Pair.of(element.fqn(), element.maybeValue()
+        .map(value -> LocalDate.parse(value).format(formatter))
+        .orElse("")));
   }
 
   private static Stream<Pair<String, String>> time(XmlElement element) {
-    return formattedDate(element, getTimeInstance());
+    DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+        .appendValue(ChronoField.CLOCK_HOUR_OF_AMPM)
+        .appendLiteral(':')
+        .appendValue(ChronoField.MINUTE_OF_HOUR)
+        .appendLiteral(':')
+        .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
+        .appendLiteral(' ')
+        .appendText(ChronoField.AMPM_OF_DAY, TextStyle.FULL)
+        .toFormatter();
+    return Stream.of(Pair.of(element.fqn(), element.maybeValue()
+        .map(value -> OffsetTime.parse(value).format(formatter))
+        .orElse("")));
   }
 
   private static Stream<Pair<String, String>> dateTime(XmlElement element) {
-    return formattedDate(element, getDateTimeInstance());
+    return Stream.of(Pair.of(element.fqn(), element.maybeValue()
+        .map(CsvFieldMappers::iso8601DateTimeToExportCsvFormat)
+        .orElse("")));
   }
 
-  private static Stream<Pair<String, String>> formattedDate(XmlElement element, DateFormat formatter) {
-    return Stream.of(element.maybeValue()
-        .map(value -> Pair.of(element.fqn(), formatter.format(parseDate(value))))
-        .orElse(Pair.of(element.fqn(), "")));
+  /**
+   * Convert an ISO8601 formatted date-time value into the specific
+   * format users expect in their exported CSV files.
+   */
+  static String iso8601DateTimeToExportCsvFormat(String value) {
+    return iso8601DateTimeToExportCsvFormat(Iso8601Helpers.parseDateTime(value));
+  }
+
+  /**
+   * Convert an ISO8601 formatted date-time value into the specific
+   * format users expect in their exported CSV files.
+   */
+  static String iso8601DateTimeToExportCsvFormat(OffsetDateTime dateTime) {
+    // We make some timezone juggling here to produce exactly what users
+    // are expecting. See the tests for more context.
+    return dateTime
+        .atZoneSameInstant(ZoneOffset.UTC)
+        .format(new DateTimeFormatterBuilder()
+            .appendText(ChronoField.MONTH_OF_YEAR, TextStyle.SHORT)
+            .appendLiteral(' ')
+            .appendValue(ChronoField.DAY_OF_MONTH)
+            .appendLiteral(", ")
+            .appendValue(ChronoField.YEAR, 4)
+            .appendLiteral(' ')
+            .appendValue(ChronoField.CLOCK_HOUR_OF_AMPM)
+            .appendLiteral(':')
+            .appendValue(ChronoField.MINUTE_OF_HOUR, 2)
+            .appendLiteral(':')
+            .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
+            .appendLiteral(' ')
+            .appendText(ChronoField.AMPM_OF_DAY, TextStyle.FULL)
+            .toFormatter());
   }
 
   private static Stream<Pair<String, String>> geopoint(XmlElement element) {

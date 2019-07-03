@@ -178,7 +178,8 @@ class XmlManipulationUtils {
   static Document parseXml(File submission) throws ParsingException, FileSystemException {
     // parse the xml document...
     Document doc;
-    try (InputStream is = new FileInputStream(submission); InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
+    try (InputStream is = new FileInputStream(submission);
+         InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
       Document tempDoc = new Document();
       KXmlParser parser = new KXmlParser();
       parser.setInput(isr);

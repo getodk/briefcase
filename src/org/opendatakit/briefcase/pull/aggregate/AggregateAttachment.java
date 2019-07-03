@@ -24,12 +24,12 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
-import javax.xml.bind.DatatypeConverter;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 // TODO v2.0 Move to reused.transfer with CentralAttachment
 public class AggregateAttachment {
+  private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
   private final String filename;
   private final String hash;
   private final URL downloadUrl;
@@ -44,12 +44,22 @@ public class AggregateAttachment {
     return new AggregateAttachment(filename, hash, url(downloadUrl));
   }
 
-  private static String md5(Path file) {
+  private static String bytesToHex(byte[] bytes) {
+    char[] hexChars = new char[bytes.length * 2];
+    for (int j = 0; j < bytes.length; j++) {
+      int v = bytes[j] & 0xFF;
+      hexChars[j * 2] = hexArray[v >>> 4];
+      hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+    }
+    return new String(hexChars);
+  }
+
+  static String md5(Path file) {
     try {
       MessageDigest md = MessageDigest.getInstance("MD5");
       md.update(UncheckedFiles.readAllBytes(file));
       byte[] digest = md.digest();
-      return DatatypeConverter.printHexBinary(digest);
+      return bytesToHex(digest);
     } catch (NoSuchAlgorithmException e) {
       throw new BriefcaseException(e);
     }

@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.export.CsvFieldMappers.iso8601DateTimeToExportCsvFormat;
 import static org.opendatakit.briefcase.export.Scenario.nonGroup;
 import static org.opendatakit.briefcase.export.Scenario.nonRepeatGroup;
 import static org.opendatakit.briefcase.export.Scenario.repeatGroup;
@@ -33,6 +34,8 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 
 import java.nio.file.Path;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -64,7 +67,8 @@ public class CsvFieldMappersTest {
   public void tearDown() {
     TimeZone.setDefault(backupTimeZone);
     Locale.setDefault(backupLocale);
-    scenario.getPaths().forEach(UncheckedFiles::deleteRecursive);
+    if (scenario != null)
+      scenario.getPaths().forEach(UncheckedFiles::deleteRecursive);
   }
 
   @Test
@@ -359,5 +363,26 @@ public class CsvFieldMappersTest {
     assertThat(output.get(2).getRight(), is("some value 3"));
   }
 
+  @Test
+  public void internal_method_converts_iso8601_format_into_the_export_format() {
+    // We want times to show the UTC time
+    withLocale(
+        Locale.forLanguageTag("es_ES"),
+        TimeZone.getTimeZone(ZoneId.of("Europe/Madrid")),
+        () -> {
+          assertThat(iso8601DateTimeToExportCsvFormat(OffsetDateTime.parse("2019-01-01T10:00:00+02:00")), Matchers.is("Jan 1, 2019 8:00:00 AM"));
+          assertThat(iso8601DateTimeToExportCsvFormat(OffsetDateTime.parse("2019-01-01T10:00:00Z")), Matchers.is("Jan 1, 2019 10:00:00 AM"));
+        }
+    );
+  }
 
+  private static void withLocale(Locale locale, TimeZone timeZone, Runnable runnable) {
+    TimeZone backupTimeZone = TimeZone.getDefault();
+    TimeZone.setDefault(timeZone);
+    Locale backupLocale = Locale.getDefault();
+    Locale.setDefault(locale);
+    runnable.run();
+    TimeZone.setDefault(backupTimeZone);
+    Locale.setDefault(backupLocale);
+  }
 }

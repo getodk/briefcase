@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.util;
 
+import static org.opendatakit.briefcase.util.FileSystemUtils.HSQLDB_JDBC_PREFIX;
 import static org.opendatakit.briefcase.util.FileSystemUtils.INSTANCE_DIR;
 import static org.opendatakit.briefcase.util.FileSystemUtils.SMALLSQL_JDBC_PREFIX;
 import static org.opendatakit.briefcase.util.FileSystemUtils.getFormDatabaseUrl;
@@ -169,6 +170,13 @@ public class DatabaseUtils implements AutoCloseable {
         Class.forName("smallsql.database.SSDriver");
       } catch (ClassNotFoundException e) {
         throw new SQLException("unable to load smallsql driver", e);
+      }
+    }
+    if (jdbcUrl.startsWith(HSQLDB_JDBC_PREFIX)) {
+      try {
+        Class.forName("org.hsqldb.jdbc.JDBCDriver");
+      } catch (ClassNotFoundException e) {
+        throw new SQLException("unable to load hsqldb driver", e);
       }
     }
   }
