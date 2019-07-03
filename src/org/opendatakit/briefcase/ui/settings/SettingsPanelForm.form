@@ -367,7 +367,7 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
             <properties>
-              <text value="Maximum HTTP simultaneous connections"/>
+              <text value="Maximum simultaneous HTTP connections"/>
             </properties>
           </component>
           <hspacer id="b75ef">

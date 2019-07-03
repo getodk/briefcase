@@ -98,10 +98,10 @@ public class Export {
     BriefcasePreferences exportPrefs = BriefcasePreferences.forClass(ExportPanel.class);
     BriefcasePreferences pullPrefs = BriefcasePreferences.forClass(ExportPanel.class);
 
-    int maxConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
+    int maxHttpConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
-        .map(host -> CommonsHttp.of(maxConnections, host))
-        .orElseGet(() -> CommonsHttp.of(maxConnections));
+        .map(host -> CommonsHttp.of(maxHttpConnections, host))
+        .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
 
     Optional<BriefcaseFormDefinition> maybeFormDefinition = formCache.getForms().stream()
         .filter(form -> form.getFormId().equals(formid))

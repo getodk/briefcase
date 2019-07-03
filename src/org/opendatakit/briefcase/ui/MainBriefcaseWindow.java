@@ -107,10 +107,10 @@ public class MainBriefcaseWindow extends WindowAdapter {
     analytics.enter("Briefcase");
     Runtime.getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
-    int maxConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
+    int maxHttpConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
-        .map(host -> CommonsHttp.of(maxConnections, host))
-        .orElseGet(() -> CommonsHttp.of(maxConnections));
+        .map(host -> CommonsHttp.of(maxHttpConnections, host))
+        .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
 
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
