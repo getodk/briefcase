@@ -28,7 +28,6 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
@@ -51,6 +50,7 @@ import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.ui.reused.FocusAdapterBuilder;
+import org.opendatakit.briefcase.ui.reused.KeyAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 
 @SuppressWarnings("checkstyle:MethodName")
@@ -98,24 +98,10 @@ public class AggregateServerDialogForm extends JDialog {
       }
     }).build());
 
-    urlField.addKeyListener(new KeyAdapter() {
-      @Override
-      public void keyReleased(KeyEvent e) {
-        updateConnectButton();
-      }
-    });
-    usernameField.addKeyListener(new KeyAdapter() {
-      @Override
-      public void keyReleased(KeyEvent e) {
-        updateConnectButton();
-      }
-    });
-    passwordField.addKeyListener(new KeyAdapter() {
-      @Override
-      public void keyReleased(KeyEvent e) {
-        updateConnectButton();
-      }
-    });
+    KeyAdapter onKeyReleasedAdapter = new KeyAdapterBuilder().onKeyReleased(e -> updateConnectButton()).build();
+    urlField.addKeyListener(onKeyReleasedAdapter);
+    usernameField.addKeyListener(onKeyReleasedAdapter);
+    passwordField.addKeyListener(onKeyReleasedAdapter);
 
     getRootPane().setDefaultButton(connectButton);
 
