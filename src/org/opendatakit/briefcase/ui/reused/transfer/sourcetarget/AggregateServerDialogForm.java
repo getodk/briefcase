@@ -25,11 +25,16 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -44,6 +49,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
+import org.opendatakit.briefcase.ui.reused.UI;
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 
 @SuppressWarnings("checkstyle:MethodName")
@@ -57,6 +63,7 @@ public class AggregateServerDialogForm extends JDialog {
   JPasswordField passwordField;
   JProgressBar progressBar;
   private JTextPane accountTipTextPane;
+  private JLabel feedbackLabel;
   private final List<Consumer<AggregateServer>> onConnectCallbacks = new ArrayList<>();
 
   AggregateServerDialogForm(String requiredPermission) {
@@ -76,6 +83,31 @@ public class AggregateServerDialogForm extends JDialog {
     cancelButton.addActionListener(e -> dispose());
 
     connectButton.addActionListener(__ -> triggerConnect());
+
+    FocusAdapter focusAdapter = new FocusAdapter() {
+      @Override
+      public void focusLost(FocusEvent e) {
+        String url = urlField.getText();
+        // Fix for common copy&paste issue with Aggregate servers
+        if (url.contains("/Aggregate.html")) {
+          urlField.setText(url.substring(0, url.indexOf("/Aggregate.html")));
+          feedbackLabel.setText("URL cleaned");
+          feedbackLabel.setVisible(true);
+          Timer timer = new Timer();
+          TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+              feedbackLabel.setText("");
+              feedbackLabel.setVisible(false);
+              timer.cancel();
+              timer.purge();
+            }
+          };
+          timer.schedule(task, Duration.ofSeconds(3).toMillis(), Duration.ofSeconds(3).toMillis());
+        }
+      }
+    };
+    urlField.addFocusListener(focusAdapter);
 
     getRootPane().setDefaultButton(connectButton);
 
@@ -152,7 +184,7 @@ public class AggregateServerDialogForm extends JDialog {
     GridBagConstraints gbc;
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 4;
+    gbc.gridy = 5;
     gbc.gridwidth = 3;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
@@ -202,20 +234,20 @@ public class AggregateServerDialogForm extends JDialog {
     final JPanel spacer2 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 5;
+    gbc.gridy = 6;
     gbc.gridwidth = 3;
     gbc.fill = GridBagConstraints.VERTICAL;
     dialog.add(spacer2, gbc);
     final JPanel spacer3 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 4;
-    gbc.gridy = 3;
+    gbc.gridy = 4;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     dialog.add(spacer3, gbc);
     final JPanel spacer4 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 3;
+    gbc.gridy = 4;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     dialog.add(spacer4, gbc);
     final JPanel panel2 = new JPanel();
@@ -303,7 +335,7 @@ public class AggregateServerDialogForm extends JDialog {
     final JPanel spacer9 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 3;
+    gbc.gridy = 4;
     gbc.gridwidth = 3;
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.VERTICAL;
@@ -327,12 +359,20 @@ public class AggregateServerDialogForm extends JDialog {
     gbc.gridwidth = 3;
     gbc.fill = GridBagConstraints.BOTH;
     dialog.add(accountTipTextPane, gbc);
+    feedbackLabel = new JLabel();
+    feedbackLabel.setText("Label");
+    feedbackLabel.setVisible(false);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 1;
+    gbc.gridy = 3;
+    gbc.gridwidth = 3;
+    gbc.anchor = GridBagConstraints.WEST;
+    dialog.add(feedbackLabel, gbc);
   }
 
   /**
    * @noinspection ALL
    */
-  public JComponent $$$getRootComponent$$$() {
-    return dialog;
-  }
+  public JComponent $$$getRootComponent$$$() { return dialog; }
+
 }
