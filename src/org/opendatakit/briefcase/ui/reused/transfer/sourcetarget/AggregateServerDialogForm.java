@@ -20,6 +20,7 @@ import static java.awt.event.KeyEvent.VK_ESCAPE;
 import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 import static javax.swing.KeyStroke.getKeyStroke;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
+import static org.opendatakit.briefcase.ui.reused.UI.flash;
 
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -33,8 +34,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -49,7 +48,6 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
-import org.opendatakit.briefcase.ui.reused.UI;
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 
 @SuppressWarnings("checkstyle:MethodName")
@@ -92,18 +90,7 @@ public class AggregateServerDialogForm extends JDialog {
         if (url.contains("/Aggregate.html")) {
           urlField.setText(url.substring(0, url.indexOf("/Aggregate.html")));
           feedbackLabel.setText("URL cleaned");
-          feedbackLabel.setVisible(true);
-          Timer timer = new Timer();
-          TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-              feedbackLabel.setText("");
-              feedbackLabel.setVisible(false);
-              timer.cancel();
-              timer.purge();
-            }
-          };
-          timer.schedule(task, Duration.ofSeconds(3).toMillis(), Duration.ofSeconds(3).toMillis());
+          flash(feedbackLabel, Duration.ofSeconds(3));
         }
       }
     };
