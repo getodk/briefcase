@@ -26,8 +26,6 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
@@ -48,6 +46,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
+import org.opendatakit.briefcase.ui.reused.FocusAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 
 @SuppressWarnings("checkstyle:MethodName")
@@ -82,19 +81,15 @@ public class AggregateServerDialogForm extends JDialog {
 
     connectButton.addActionListener(__ -> triggerConnect());
 
-    FocusAdapter focusAdapter = new FocusAdapter() {
-      @Override
-      public void focusLost(FocusEvent e) {
-        String url = urlField.getText();
-        // Fix for common copy&paste issue with Aggregate servers
-        if (url.contains("/Aggregate.html")) {
-          urlField.setText(url.substring(0, url.indexOf("/Aggregate.html")));
-          feedbackLabel.setText("URL cleaned");
-          flash(feedbackLabel, Duration.ofSeconds(3));
-        }
+    urlField.addFocusListener(new FocusAdapterBuilder().onFocusLost(e -> {
+      String url = urlField.getText();
+      // Fix for common copy&paste issue with Aggregate servers
+      if (url.contains("/Aggregate.html")) {
+        urlField.setText(url.substring(0, url.indexOf("/Aggregate.html")));
+        feedbackLabel.setText("URL cleaned");
+        flash(feedbackLabel, Duration.ofSeconds(3));
       }
-    };
-    urlField.addFocusListener(focusAdapter);
+    }).build());
 
     getRootPane().setDefaultButton(connectButton);
 
