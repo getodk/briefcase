@@ -22,10 +22,13 @@ import static javax.swing.KeyStroke.getKeyStroke;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.ui.reused.UI.flash;
 
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
@@ -45,6 +48,7 @@ import javax.swing.JTextPane;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Credentials;
+import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.ui.reused.FocusAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
@@ -61,6 +65,9 @@ public class AggregateServerDialogForm extends JDialog {
   JProgressBar progressBar;
   private JTextPane accountTipTextPane;
   private JLabel feedbackLabel;
+  private JLabel urlFieldLabel;
+  private JLabel usernameFieldLabel;
+  private JLabel passwordFieldLabel;
   private final List<Consumer<AggregateServer>> onConnectCallbacks = new ArrayList<>();
 
   AggregateServerDialogForm(String requiredPermission) {
@@ -91,8 +98,39 @@ public class AggregateServerDialogForm extends JDialog {
       }
     }).build());
 
+    urlField.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyReleased(KeyEvent e) {
+        updateConnectButton();
+      }
+    });
+    usernameField.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyReleased(KeyEvent e) {
+        updateConnectButton();
+      }
+    });
+    passwordField.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyReleased(KeyEvent e) {
+        updateConnectButton();
+      }
+    });
+
     getRootPane().setDefaultButton(connectButton);
 
+  }
+
+  private void updateConnectButton() {
+    boolean validUrl = RequestBuilder.isUri(urlField.getText());
+    boolean validCredentials = (usernameField.getText().isEmpty() && new String(passwordField.getPassword()).isEmpty()) ||
+        (!usernameField.getText().isEmpty() && !new String(passwordField.getPassword()).isEmpty());
+
+    urlFieldLabel.setForeground(validUrl ? Color.BLACK : Color.RED);
+    usernameFieldLabel.setForeground(validCredentials ? Color.BLACK : Color.RED);
+    passwordFieldLabel.setForeground(validCredentials ? Color.BLACK : Color.RED);
+
+    connectButton.setEnabled(validUrl && validCredentials);
   }
 
   private void triggerConnect() {
@@ -190,6 +228,7 @@ public class AggregateServerDialogForm extends JDialog {
     gbc.anchor = GridBagConstraints.WEST;
     actions.add(cancelButton, gbc);
     connectButton = new JButton();
+    connectButton.setEnabled(false);
     connectButton.setHideActionText(false);
     connectButton.setText("Connect");
     gbc = new GridBagConstraints();
@@ -250,26 +289,26 @@ public class AggregateServerDialogForm extends JDialog {
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(urlField, gbc);
-    final JLabel label1 = new JLabel();
-    label1.setText("URL");
+    urlFieldLabel = new JLabel();
+    urlFieldLabel.setText("URL");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 1;
     gbc.anchor = GridBagConstraints.EAST;
-    panel2.add(label1, gbc);
+    panel2.add(urlFieldLabel, gbc);
     final JPanel spacer5 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 1;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(spacer5, gbc);
-    final JLabel label2 = new JLabel();
-    label2.setText("Username");
+    usernameFieldLabel = new JLabel();
+    usernameFieldLabel.setText("Username");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 2;
     gbc.anchor = GridBagConstraints.EAST;
-    panel2.add(label2, gbc);
+    panel2.add(usernameFieldLabel, gbc);
     final JPanel spacer6 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
@@ -285,13 +324,13 @@ public class AggregateServerDialogForm extends JDialog {
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(usernameField, gbc);
-    final JLabel label3 = new JLabel();
-    label3.setText("Password");
+    passwordFieldLabel = new JLabel();
+    passwordFieldLabel.setText("Password");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 3;
     gbc.anchor = GridBagConstraints.EAST;
-    panel2.add(label3, gbc);
+    panel2.add(passwordFieldLabel, gbc);
     final JPanel spacer7 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
@@ -342,8 +381,8 @@ public class AggregateServerDialogForm extends JDialog {
     gbc.fill = GridBagConstraints.BOTH;
     dialog.add(accountTipTextPane, gbc);
     feedbackLabel = new JLabel();
-    feedbackLabel.setText("Label");
-    feedbackLabel.setVisible(false);
+    feedbackLabel.setText("");
+    feedbackLabel.setVisible(true);
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 3;
