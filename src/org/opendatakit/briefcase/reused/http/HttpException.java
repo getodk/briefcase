@@ -17,7 +17,6 @@
 package org.opendatakit.briefcase.reused.http;
 
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class HttpException extends BriefcaseException {
 
@@ -27,13 +26,5 @@ public class HttpException extends BriefcaseException {
 
   public HttpException(String message, Throwable cause) {
     super(message, cause);
-  }
-
-  public HttpException(Response<?> response) {
-    super("HTTP Response status code " + response.getStatusCode());
-  }
-
-  public HttpException(Response<?> response, Throwable cause) {
-    super("HTTP Response status code " + response.getStatusCode(), cause);
   }
 }
