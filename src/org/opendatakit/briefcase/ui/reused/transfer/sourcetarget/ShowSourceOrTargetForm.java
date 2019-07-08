@@ -89,10 +89,6 @@ public class ShowSourceOrTargetForm<T extends SourceOrTarget> extends JComponent
     // TODO: place custom component creation code here
   }
 
-  public JComponent getContainer() {
-    return container;
-  }
-
   @Override
   public void setEnabled(boolean enabled) {
     super.setEnabled(enabled);
