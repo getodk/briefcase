@@ -26,10 +26,6 @@ public class ResponseHelpers {
     return new Success<>(200, "OK", new ByteArrayInputStream(body.getBytes(UTF_8)));
   }
 
-  public static Response<InputStream> noContent() {
-    return new Success<>(204, "No Content", new ByteArrayInputStream("".getBytes(UTF_8)));
-  }
-
   public static Response<Boolean> found() {
     return new Redirection<>(302, "Found");
   }
