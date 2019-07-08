@@ -19,7 +19,6 @@ package org.opendatakit.briefcase.pull;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 
@@ -58,16 +57,6 @@ public class PullEvent {
 
     public Cancel(String cause) {
       this.cause = cause;
-    }
-  }
-
-  public static class NewForm extends PullEvent {
-    public final FormStatus form;
-    public final Optional<ServerConnectionInfo> transferSettings;
-
-    public NewForm(FormStatus form, ServerConnectionInfo transferSettings) {
-      this.form = form;
-      this.transferSettings = Optional.ofNullable(transferSettings);
     }
   }
 
