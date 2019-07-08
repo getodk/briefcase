@@ -20,31 +20,21 @@ import org.opendatakit.briefcase.export.ExportConfiguration;
 
 public class ConfigurationPanel {
   private final ConfigurationPanelForm form;
-  private final ConfigurationPanelMode mode;
 
-  private ConfigurationPanel(ExportConfiguration initialConfiguration, ConfigurationPanelForm form, ConfigurationPanelMode mode) {
+  private ConfigurationPanel(ExportConfiguration initialConfiguration, ConfigurationPanelForm form) {
     this.form = form;
-    this.mode = mode;
 
     form.initialize(initialConfiguration);
   }
 
   static ConfigurationPanel overridePanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent, boolean hasTransferSettings) {
     ConfigurationPanelMode mode = ConfigurationPanelMode.overridePanel(savePasswordsConsent, hasTransferSettings);
-    return new ConfigurationPanel(
-        initialConfiguration,
-        new ConfigurationPanelForm(mode),
-        mode
-    );
+    return new ConfigurationPanel(initialConfiguration, new ConfigurationPanelForm(mode));
   }
 
   static ConfigurationPanel defaultPanel(ExportConfiguration initialConfiguration, boolean savePasswordsConsent) {
     ConfigurationPanelMode mode = ConfigurationPanelMode.defaultPanel(savePasswordsConsent);
-    return new ConfigurationPanel(
-        initialConfiguration,
-        new ConfigurationPanelForm(mode),
-        mode
-    );
+    return new ConfigurationPanel(initialConfiguration, new ConfigurationPanelForm(mode));
   }
 
   public ConfigurationPanelForm getForm() {
@@ -59,9 +49,4 @@ public class ConfigurationPanel {
     form.setEnabled(enabled);
     form.changeMode(savePasswordsConsent);
   }
-
-  public boolean isEmpty() {
-    return form.getConfiguration().isEmpty();
-  }
-
 }
