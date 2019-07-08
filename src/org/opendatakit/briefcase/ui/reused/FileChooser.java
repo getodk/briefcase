@@ -79,7 +79,7 @@ public interface FileChooser {
 
     return isLinux() || isWindows()
         ? new SwingFileChooser(parent, fileChooser, filter, filterDescription)
-        : new NativeFileChooser(parent, buildFileDialog(parent, initialLocation, fileChooser), fileChooser, filter, filterDescription);
+        : new NativeFileChooser(buildFileDialog(parent, initialLocation, fileChooser), fileChooser, filter, filterDescription);
   }
 
   static FileChooser file(Container parent, Optional<File> initialFile) {
@@ -92,7 +92,7 @@ public interface FileChooser {
 
     return isLinux() || isWindows()
         ? new SwingFileChooser(parent, fileChooser, filter, filterDescription)
-        : new NativeFileChooser(parent, buildFileDialog(parent, initialFile, fileChooser), fileChooser, filter, filterDescription);
+        : new NativeFileChooser(buildFileDialog(parent, initialFile, fileChooser), fileChooser, filter, filterDescription);
   }
 
   static FileDialog buildFileDialog(Container parent, Optional<File> initialLocation, JFileChooser fileChooser) {
