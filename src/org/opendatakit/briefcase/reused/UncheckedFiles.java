@@ -22,7 +22,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.math.BigInteger;
 import java.net.URI;
@@ -57,14 +56,6 @@ public class UncheckedFiles {
       "Users should not navigate into or modify its\n" +
       "contents unless explicitly directed to do so.\n";
   private static final Logger log = LoggerFactory.getLogger(UncheckedFiles.class);
-
-  public static Path createTempFile(String prefix, String suffix, FileAttribute<?>... attrs) {
-    try {
-      return Files.createTempFile(prefix, suffix, attrs);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
 
   public static Path write(Path path, List<String> lines, OpenOption... options) {
     return write(path, lines.stream(), options);
@@ -131,14 +122,6 @@ public class UncheckedFiles {
   public static Stream<Path> walk(Path path, FileVisitOption... options) {
     try {
       return Files.walk(path, options);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  public static Path createTempDirectory(Path dir, String prefix, FileAttribute<?>... attrs) {
-    try {
-      return Files.createTempDirectory(dir, prefix, attrs);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -285,23 +268,6 @@ public class UncheckedFiles {
       return url.toURI();
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
-    }
-  }
-
-  public static void append(String content, OutputStreamWriter outputStreamWriter) {
-    try {
-      outputStreamWriter.append(content);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  public static void close(OutputStreamWriter osw) {
-    try {
-      osw.flush();
-      osw.close();
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
     }
   }
 
