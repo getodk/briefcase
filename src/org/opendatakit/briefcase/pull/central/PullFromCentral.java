@@ -39,11 +39,8 @@ import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.RunnerStatus;
 import org.opendatakit.briefcase.reused.transfer.CentralAttachment;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class PullFromCentral {
-  public static final Logger log = LoggerFactory.getLogger(PullFromCentral.class);
   private final Http http;
   private final CentralServer server;
   private final Path briefcaseDir;

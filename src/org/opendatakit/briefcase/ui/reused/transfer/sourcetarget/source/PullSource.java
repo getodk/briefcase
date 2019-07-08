@@ -27,12 +27,8 @@ import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.SourceOrTarget;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public interface PullSource<T> extends SourceOrTarget<T> {
-  Logger log = LoggerFactory.getLogger(PullSource.class);
-
   static PullSource<AggregateServer> aggregate(Http http, Consumer<PullSource> consumer) {
     return new Aggregate(http, server -> http.execute(server.getFormListRequest()), "Data Viewer", consumer);
   }

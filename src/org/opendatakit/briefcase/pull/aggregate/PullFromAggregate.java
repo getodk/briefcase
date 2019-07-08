@@ -52,11 +52,8 @@ import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.RunnerStatus;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class PullFromAggregate {
-  public static final Logger log = LoggerFactory.getLogger(PullFromAggregate.class);
   private final Http http;
   private final AggregateServer server;
   private final BriefcasePreferences prefs;

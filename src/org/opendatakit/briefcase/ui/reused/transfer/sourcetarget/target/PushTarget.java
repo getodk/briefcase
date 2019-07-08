@@ -25,12 +25,8 @@ import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.SourceOrTarget;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public interface PushTarget<T> extends SourceOrTarget<T> {
-  Logger log = LoggerFactory.getLogger(PushTarget.class);
-
   static void clearSourcePrefs(BriefcasePreferences prefs) {
     AggregateServer.clearStoredPrefs(prefs);
     CentralServer.clearStoredPrefs(prefs);
