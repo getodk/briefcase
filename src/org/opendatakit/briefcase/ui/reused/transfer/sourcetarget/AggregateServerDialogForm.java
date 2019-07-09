@@ -85,13 +85,9 @@ public class AggregateServerDialogForm extends JDialog {
 
     connectButton.addActionListener(__ -> triggerConnect());
 
-    urlField.addFocusListener(new FocusAdapterBuilder().onFocusLost(e -> {
-      String url = urlField.getText();
-      // Fix for common copy&paste issue with Aggregate servers
-      if (url.contains("/Aggregate.html")) {
-        urlField.setText(url.substring(0, url.indexOf("/Aggregate.html")));
-      }
-    }).build());
+    urlField.addFocusListener(new FocusAdapterBuilder()
+        .onFocusLost(e -> urlField.setText(AggregateServer.cleanUrl(urlField.getText())))
+        .build());
 
     KeyAdapter onKeyReleasedAdapter = new KeyAdapterBuilder().onKeyReleased(e -> updateConnectButton()).build();
     urlField.addKeyListener(onKeyReleasedAdapter);

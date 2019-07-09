@@ -68,6 +68,12 @@ public class AggregateServer implements RemoteServer {
     return new AggregateServer(baseUrl, Optional.empty());
   }
 
+  public static String cleanUrl(String url) {
+    return url.contains("/Aggregate.html")
+        ? url.substring(0, url.indexOf("/Aggregate.html"))
+        : url;
+  }
+
   public URL getBaseUrl() {
     return baseUrl;
   }
