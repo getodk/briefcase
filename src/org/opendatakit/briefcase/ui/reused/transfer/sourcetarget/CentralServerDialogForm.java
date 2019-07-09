@@ -24,6 +24,7 @@ import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.net.MalformedURLException;
@@ -44,6 +45,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
+import org.opendatakit.briefcase.ui.reused.FocusAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 
 @SuppressWarnings("checkstyle:MethodName")
@@ -76,6 +78,10 @@ public class CentralServerDialogForm extends JDialog {
     cancelButton.addActionListener(e -> dispose());
 
     connectButton.addActionListener(__ -> triggerConnect());
+
+    urlField.addFocusListener(new FocusAdapterBuilder()
+        .onFocusLost(e -> urlField.setText(CentralServer.cleanUrl(urlField.getText())))
+        .build());
 
     getRootPane().setDefaultButton(connectButton);
 
@@ -255,19 +261,19 @@ public class CentralServerDialogForm extends JDialog {
     label2.setText("Email");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 3;
+    gbc.gridy = 5;
     gbc.anchor = GridBagConstraints.EAST;
     panel2.add(label2, gbc);
     final JPanel spacer6 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 3;
+    gbc.gridy = 5;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(spacer6, gbc);
     usernameField = new JTextField();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 3;
+    gbc.gridy = 5;
     gbc.gridwidth = 2;
     gbc.weightx = 1.0;
     gbc.anchor = GridBagConstraints.WEST;
@@ -277,13 +283,13 @@ public class CentralServerDialogForm extends JDialog {
     label3.setText("Password");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 4;
+    gbc.gridy = 6;
     gbc.anchor = GridBagConstraints.EAST;
     panel2.add(label3, gbc);
     final JPanel spacer7 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 4;
+    gbc.gridy = 6;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(spacer7, gbc);
     final JPanel spacer8 = new JPanel();
@@ -296,7 +302,7 @@ public class CentralServerDialogForm extends JDialog {
     passwordField = new JPasswordField();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 4;
+    gbc.gridy = 6;
     gbc.gridwidth = 2;
     gbc.weightx = 1.0;
     gbc.anchor = GridBagConstraints.WEST;
@@ -306,32 +312,59 @@ public class CentralServerDialogForm extends JDialog {
     projectIdLabel.setText("Project ID");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 2;
+    gbc.gridy = 4;
     gbc.anchor = GridBagConstraints.EAST;
     panel2.add(projectIdLabel, gbc);
     projectIdField = new JTextField();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 2;
+    gbc.gridy = 4;
     gbc.gridwidth = 2;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(projectIdField, gbc);
+    final JLabel label4 = new JLabel();
+    Font label4Font = this.$$$getFont$$$(null, Font.PLAIN, -1, label4.getFont());
+    if (label4Font != null) label4.setFont(label4Font);
+    label4.setText("You can copy and paste the URL from your web browser");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 2;
+    gbc.gridwidth = 2;
+    gbc.anchor = GridBagConstraints.WEST;
+    panel2.add(label4, gbc);
     final JPanel spacer9 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 3;
+    gbc.gridy = 3;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    panel2.add(spacer9, gbc);
+    final JPanel spacer10 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 1;
     gbc.gridwidth = 3;
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.VERTICAL;
-    dialog.add(spacer9, gbc);
+    dialog.add(spacer10, gbc);
   }
 
   /**
    * @noinspection ALL
    */
-  public JComponent $$$getRootComponent$$$() {
-    return dialog;
+  private Font $$$getFont$$$(String fontName, int style, int size, Font currentFont) {
+    if (currentFont == null) return null;
+    String resultName;
+    if (fontName == null) {resultName = currentFont.getName();} else {
+      Font testFont = new Font(fontName, Font.PLAIN, 10);
+      if (testFont.canDisplay('a') && testFont.canDisplay('1')) {resultName = fontName;} else {resultName = currentFont.getName();}
+    }
+    return new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
   }
+
+  /**
+   * @noinspection ALL
+   */
+  public JComponent $$$getRootComponent$$$() { return dialog; }
 
 }
