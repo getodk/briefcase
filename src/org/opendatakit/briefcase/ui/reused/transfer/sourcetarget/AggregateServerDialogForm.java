@@ -20,20 +20,22 @@ import static java.awt.event.KeyEvent.VK_ESCAPE;
 import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 import static javax.swing.KeyStroke.getKeyStroke;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.EMAIL;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.REQUIRED;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.URI;
 
-import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.KeyAdapter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -45,10 +47,10 @@ import javax.swing.JTextField;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Credentials;
-import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.ui.reused.FocusAdapterBuilder;
-import org.opendatakit.briefcase.ui.reused.KeyAdapterBuilder;
+import org.opendatakit.briefcase.ui.reused.UiFieldValidator;
+import org.opendatakit.briefcase.ui.reused.UiLinkedFieldValidator;
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 
 @SuppressWarnings("checkstyle:MethodName")
@@ -65,6 +67,10 @@ public class AggregateServerDialogForm extends JDialog {
   private JLabel usernameFieldLabel;
   private JLabel passwordFieldLabel;
   private JLabel usernameHelpLabel;
+  private UiFieldValidator urlValidator;
+  private UiFieldValidator usernameValidator;
+  private UiFieldValidator passwordValidator;
+  private UiLinkedFieldValidator usernameAndPasswordValidator;
   private final List<Consumer<AggregateServer>> onConnectCallbacks = new ArrayList<>();
 
   AggregateServerDialogForm(String requiredPermission) {
@@ -89,25 +95,21 @@ public class AggregateServerDialogForm extends JDialog {
         .onFocusLost(e -> urlField.setText(AggregateServer.cleanUrl(urlField.getText())))
         .build());
 
-    KeyAdapter onKeyReleasedAdapter = new KeyAdapterBuilder().onKeyReleased(e -> updateConnectButton()).build();
-    urlField.addKeyListener(onKeyReleasedAdapter);
-    usernameField.addKeyListener(onKeyReleasedAdapter);
-    passwordField.addKeyListener(onKeyReleasedAdapter);
+    urlValidator = UiFieldValidator.of(urlField, urlFieldLabel, REQUIRED, URI).onChange(this::updateConnectButton);
+    usernameValidator = UiFieldValidator.of(usernameField, usernameFieldLabel, EMAIL.negate()).onChange(this::updateConnectButton);
+    passwordValidator = UiFieldValidator.of(passwordField, passwordFieldLabel).onChange(this::updateConnectButton);
+    usernameAndPasswordValidator = UiLinkedFieldValidator.of(usernameValidator, passwordValidator).onChange(this::updateConnectButton);
 
     getRootPane().setDefaultButton(connectButton);
-
   }
 
   private void updateConnectButton() {
-    boolean validUrl = RequestBuilder.isUri(urlField.getText());
-    boolean validCredentials = (usernameField.getText().isEmpty() && new String(passwordField.getPassword()).isEmpty()) ||
-        (!usernameField.getText().isEmpty() && !new String(passwordField.getPassword()).isEmpty());
-
-    urlFieldLabel.setForeground(validUrl ? Color.BLACK : Color.RED);
-    usernameFieldLabel.setForeground(validCredentials ? Color.BLACK : Color.RED);
-    passwordFieldLabel.setForeground(validCredentials ? Color.BLACK : Color.RED);
-
-    connectButton.setEnabled(validUrl && validCredentials);
+    connectButton.setEnabled(Stream.of(
+        urlValidator.isValid(),
+        usernameValidator.isValid(),
+        passwordValidator.isValid(),
+        usernameAndPasswordValidator.isValid()
+    ).reduce(true, Boolean::logicalAnd));
   }
 
   private void triggerConnect() {

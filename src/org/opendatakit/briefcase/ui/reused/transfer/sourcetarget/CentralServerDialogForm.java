@@ -21,6 +21,10 @@ import static java.lang.Integer.parseInt;
 import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 import static javax.swing.KeyStroke.getKeyStroke;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.EMAIL;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.NUMBER;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.REQUIRED;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.URI;
 
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -45,10 +49,9 @@ import javax.swing.JTextField;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Credentials;
-import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
 import org.opendatakit.briefcase.ui.reused.FocusAdapterBuilder;
-import org.opendatakit.briefcase.ui.reused.UiValidator;
+import org.opendatakit.briefcase.ui.reused.UiFieldValidator;
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 
 @SuppressWarnings("checkstyle:MethodName")
@@ -68,10 +71,10 @@ public class CentralServerDialogForm extends JDialog {
   private JLabel urlFieldLabel;
   private JLabel emailFieldLabel;
   private JLabel passwordFieldLabel;
-  private UiValidator urlValidator;
-  private UiValidator projectIdValidator;
-  private UiValidator emailValidator;
-  private UiValidator passwordValidator;
+  private UiFieldValidator urlValidator;
+  private UiFieldValidator projectIdValidator;
+  private UiFieldValidator emailValidator;
+  private UiFieldValidator passwordValidator;
 
   CentralServerDialogForm() {
     $$$setupUI$$$();
@@ -94,13 +97,12 @@ public class CentralServerDialogForm extends JDialog {
         .onFocusLost(e -> urlField.setText(CentralServer.cleanUrl(urlField.getText())))
         .build());
 
-    urlValidator = new UiValidator(urlField, urlFieldLabel, RequestBuilder::isUri).onChange(this::updateConnectButton);
-    projectIdValidator = new UiValidator(projectIdField, projectIdFieldLabel, s -> s.matches("\\d+")).onChange(this::updateConnectButton);
-    emailValidator = new UiValidator(emailField, emailFieldLabel, s -> s.matches("\\S+@\\S+")).onChange(this::updateConnectButton);
-    passwordValidator = new UiValidator(passwordField, passwordFieldLabel).onChange(this::updateConnectButton);
+    urlValidator = UiFieldValidator.of(urlField, urlFieldLabel, REQUIRED, URI).onChange(this::updateConnectButton);
+    projectIdValidator = UiFieldValidator.of(projectIdField, projectIdFieldLabel, REQUIRED, NUMBER).onChange(this::updateConnectButton);
+    emailValidator = UiFieldValidator.of(emailField, emailFieldLabel, REQUIRED, EMAIL).onChange(this::updateConnectButton);
+    passwordValidator = UiFieldValidator.of(passwordField, passwordFieldLabel, REQUIRED).onChange(this::updateConnectButton);
 
     getRootPane().setDefaultButton(connectButton);
-
   }
 
   private void updateConnectButton() {
