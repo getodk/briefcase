@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -44,23 +45,33 @@ import javax.swing.JTextField;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Credentials;
+import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
 import org.opendatakit.briefcase.ui.reused.FocusAdapterBuilder;
+import org.opendatakit.briefcase.ui.reused.UiValidator;
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class CentralServerDialogForm extends JDialog {
+
   private final List<Consumer<CentralServer>> onConnectCallbacks = new ArrayList<>();
   JButton cancelButton;
   JButton connectButton;
   JTextField urlField;
-  JTextField usernameField;
+  JTextField emailField;
   JPasswordField passwordField;
   JProgressBar progressBar;
   private JPanel dialog;
   private JPanel actions;
-  private JLabel projectIdLabel;
+  private JLabel projectIdFieldLabel;
   private JTextField projectIdField;
+  private JLabel urlFieldLabel;
+  private JLabel emailFieldLabel;
+  private JLabel passwordFieldLabel;
+  private UiValidator urlValidator;
+  private UiValidator projectIdValidator;
+  private UiValidator emailValidator;
+  private UiValidator passwordValidator;
 
   CentralServerDialogForm() {
     $$$setupUI$$$();
@@ -83,15 +94,29 @@ public class CentralServerDialogForm extends JDialog {
         .onFocusLost(e -> urlField.setText(CentralServer.cleanUrl(urlField.getText())))
         .build());
 
+    urlValidator = new UiValidator(urlField, urlFieldLabel, RequestBuilder::isUri).onChange(this::updateConnectButton);
+    projectIdValidator = new UiValidator(projectIdField, projectIdFieldLabel, s -> s.matches("\\d+")).onChange(this::updateConnectButton);
+    emailValidator = new UiValidator(emailField, emailFieldLabel, s -> s.matches("\\S+@\\S+")).onChange(this::updateConnectButton);
+    passwordValidator = new UiValidator(passwordField, passwordFieldLabel).onChange(this::updateConnectButton);
+
     getRootPane().setDefaultButton(connectButton);
 
+  }
+
+  private void updateConnectButton() {
+    connectButton.setEnabled(Stream.of(
+        urlValidator.isValid(),
+        projectIdValidator.isValid(),
+        emailValidator.isValid(),
+        passwordValidator.isValid()
+    ).reduce(true, Boolean::logicalAnd));
   }
 
   private void triggerConnect() {
     setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     try {
       Optional<Credentials> credentials = OptionalProduct.all(
-          Optional.ofNullable(usernameField.getText()).map(String::trim).filter(s -> !s.isEmpty()),
+          Optional.ofNullable(emailField.getText()).map(String::trim).filter(s -> !s.isEmpty()),
           Optional.of(new String(passwordField.getPassword())).filter(s -> !s.isEmpty())
       ).map(Credentials::new);
 
@@ -128,7 +153,7 @@ public class CentralServerDialogForm extends JDialog {
   void setTestingConnection() {
     cancelButton.setEnabled(false);
     urlField.setEditable(false);
-    usernameField.setEditable(false);
+    emailField.setEditable(false);
     passwordField.setEditable(false);
     connectButton.setEnabled(false);
     progressBar.setVisible(true);
@@ -138,7 +163,7 @@ public class CentralServerDialogForm extends JDialog {
   void unsetTestingConnection() {
     cancelButton.setEnabled(true);
     urlField.setEditable(true);
-    usernameField.setEditable(true);
+    emailField.setEditable(true);
     passwordField.setEditable(true);
     connectButton.setEnabled(true);
     progressBar.setVisible(false);
@@ -184,6 +209,7 @@ public class CentralServerDialogForm extends JDialog {
     gbc.anchor = GridBagConstraints.WEST;
     actions.add(cancelButton, gbc);
     connectButton = new JButton();
+    connectButton.setEnabled(false);
     connectButton.setHideActionText(false);
     connectButton.setText("Connect");
     gbc = new GridBagConstraints();
@@ -244,52 +270,52 @@ public class CentralServerDialogForm extends JDialog {
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(urlField, gbc);
-    final JLabel label1 = new JLabel();
-    label1.setText("URL");
+    urlFieldLabel = new JLabel();
+    urlFieldLabel.setText("URL");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 1;
     gbc.anchor = GridBagConstraints.EAST;
-    panel2.add(label1, gbc);
+    panel2.add(urlFieldLabel, gbc);
     final JPanel spacer5 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 1;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(spacer5, gbc);
-    final JLabel label2 = new JLabel();
-    label2.setText("Email");
+    emailFieldLabel = new JLabel();
+    emailFieldLabel.setText("Email");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 5;
+    gbc.gridy = 7;
     gbc.anchor = GridBagConstraints.EAST;
-    panel2.add(label2, gbc);
+    panel2.add(emailFieldLabel, gbc);
     final JPanel spacer6 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 5;
+    gbc.gridy = 7;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(spacer6, gbc);
-    usernameField = new JTextField();
+    emailField = new JTextField();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 5;
+    gbc.gridy = 7;
     gbc.gridwidth = 2;
     gbc.weightx = 1.0;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    panel2.add(usernameField, gbc);
-    final JLabel label3 = new JLabel();
-    label3.setText("Password");
+    panel2.add(emailField, gbc);
+    passwordFieldLabel = new JLabel();
+    passwordFieldLabel.setText("Password");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 6;
+    gbc.gridy = 8;
     gbc.anchor = GridBagConstraints.EAST;
-    panel2.add(label3, gbc);
+    panel2.add(passwordFieldLabel, gbc);
     final JPanel spacer7 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 6;
+    gbc.gridy = 8;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(spacer7, gbc);
     final JPanel spacer8 = new JPanel();
@@ -302,19 +328,19 @@ public class CentralServerDialogForm extends JDialog {
     passwordField = new JPasswordField();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 6;
+    gbc.gridy = 8;
     gbc.gridwidth = 2;
     gbc.weightx = 1.0;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(passwordField, gbc);
-    projectIdLabel = new JLabel();
-    projectIdLabel.setText("Project ID");
+    projectIdFieldLabel = new JLabel();
+    projectIdFieldLabel.setText("Project ID");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 4;
     gbc.anchor = GridBagConstraints.EAST;
-    panel2.add(projectIdLabel, gbc);
+    panel2.add(projectIdFieldLabel, gbc);
     projectIdField = new JTextField();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
@@ -323,30 +349,46 @@ public class CentralServerDialogForm extends JDialog {
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(projectIdField, gbc);
-    final JLabel label4 = new JLabel();
-    Font label4Font = this.$$$getFont$$$(null, Font.PLAIN, -1, label4.getFont());
-    if (label4Font != null) label4.setFont(label4Font);
-    label4.setText("You can copy and paste the URL from your web browser");
+    final JLabel label1 = new JLabel();
+    Font label1Font = this.$$$getFont$$$(null, Font.PLAIN, -1, label1.getFont());
+    if (label1Font != null) label1.setFont(label1Font);
+    label1.setText("You can copy and paste the URL from your web browser");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 2;
     gbc.gridwidth = 2;
     gbc.anchor = GridBagConstraints.WEST;
-    panel2.add(label4, gbc);
+    panel2.add(label1, gbc);
     final JPanel spacer9 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 3;
     gbc.gridy = 3;
     gbc.fill = GridBagConstraints.VERTICAL;
     panel2.add(spacer9, gbc);
+    final JLabel label2 = new JLabel();
+    Font label2Font = this.$$$getFont$$$(null, Font.PLAIN, -1, label2.getFont());
+    if (label2Font != null) label2.setFont(label2Font);
+    label2.setText("Enter the Project's ID number");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 5;
+    gbc.gridwidth = 2;
+    gbc.anchor = GridBagConstraints.WEST;
+    panel2.add(label2, gbc);
     final JPanel spacer10 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 3;
+    gbc.gridy = 6;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    panel2.add(spacer10, gbc);
+    final JPanel spacer11 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 1;
     gbc.gridwidth = 3;
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.VERTICAL;
-    dialog.add(spacer10, gbc);
+    dialog.add(spacer11, gbc);
   }
 
   /**
