@@ -21,13 +21,9 @@ public class UiLinkedFieldValidator {
     boolean previousIsValid = isValid;
     String valueA = validatorA.getValue();
     String valueB = validatorB.getValue();
-    isValid = (
-        valueA == null && valueB == null
-    ) || (
-        valueA != null && valueA.trim().isEmpty() && valueB != null && valueB.trim().isEmpty()
-    ) || (
-        valueA != null && !valueA.trim().isEmpty() && valueB != null && !valueB.trim().isEmpty()
-    );
+    isValid = (valueA == null && valueB == null)
+        || (valueA != null && valueA.trim().isEmpty() && valueB != null && valueB.trim().isEmpty())
+        || (valueA != null && !valueA.trim().isEmpty() && valueB != null && !valueB.trim().isEmpty());
 
     validatorA.label.setForeground(isValid && validatorA.isValid() ? BLACK : RED);
     validatorB.label.setForeground(isValid && validatorB.isValid() ? BLACK : RED);

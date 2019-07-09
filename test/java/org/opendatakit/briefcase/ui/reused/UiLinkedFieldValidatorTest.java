@@ -14,8 +14,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class UiLinkedFieldValidatorTest {
-  private JTextField fieldA, fieldB;
-  private JLabel labelA, labelB;
+  private JTextField fieldA;
+  private JTextField fieldB;
+  private JLabel labelA;
+  private JLabel labelB;
 
   @Before
   public void setUp() {

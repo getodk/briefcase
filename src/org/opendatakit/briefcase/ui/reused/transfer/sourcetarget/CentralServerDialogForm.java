@@ -54,7 +54,7 @@ import org.opendatakit.briefcase.ui.reused.FocusAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.UiFieldValidator;
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 
-@SuppressWarnings("checkstyle:MethodName")
+@SuppressWarnings({"checkstyle:MethodName", "checkstyle:WhitespaceAround", "checkstyle:OneStatementPerLine", "checkstyle:RightCurlyAlone"})
 public class CentralServerDialogForm extends JDialog {
 
   private final List<Consumer<CentralServer>> onConnectCallbacks = new ArrayList<>();

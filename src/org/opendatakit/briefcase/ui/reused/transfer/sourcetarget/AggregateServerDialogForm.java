@@ -53,7 +53,7 @@ import org.opendatakit.briefcase.ui.reused.UiFieldValidator;
 import org.opendatakit.briefcase.ui.reused.UiLinkedFieldValidator;
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 
-@SuppressWarnings("checkstyle:MethodName")
+@SuppressWarnings({"checkstyle:MethodName", "checkstyle:WhitespaceAround", "checkstyle:OneStatementPerLine", "checkstyle:RightCurlyAlone"})
 public class AggregateServerDialogForm extends JDialog {
   private JPanel dialog;
   private JPanel actions;
