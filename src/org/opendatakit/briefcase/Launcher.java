@@ -37,6 +37,7 @@ import io.sentry.Sentry;
 import io.sentry.SentryClient;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.operations.PullFormFromCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.common.cli.Cli;
 import org.slf4j.Logger;
@@ -62,6 +63,7 @@ public class Launcher {
         .deprecate(DEPRECATED_PULL_AGGREGATE, PULL_AGGREGATE)
         .deprecate(DEPRECATED_PULL_IN_PARALLEL, MAX_HTTP_CONNECTIONS)
         .register(PULL_FORM_FROM_AGGREGATE)
+        .register(PullFormFromCentral.OPERATION)
         .register(PUSH_FORM_TO_AGGREGATE)
         .register(IMPORT_FROM_ODK)
         .register(EXPORT_FORM)

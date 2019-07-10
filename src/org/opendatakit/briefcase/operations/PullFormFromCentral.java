@@ -23,7 +23,6 @@ import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTION
 
 import java.net.URL;
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -31,8 +30,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
-import org.opendatakit.briefcase.pull.aggregate.Cursor;
-import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
+import org.opendatakit.briefcase.pull.central.PullFromCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
@@ -41,9 +39,8 @@ import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
-import org.opendatakit.briefcase.reused.transfer.AggregateServer;
+import org.opendatakit.briefcase.reused.transfer.CentralServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.ui.pull.PullPanel;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.common.cli.Args;
 import org.opendatakit.common.cli.Operation;
@@ -53,11 +50,11 @@ import org.slf4j.LoggerFactory;
 
 public class PullFormFromCentral {
   private static final Logger log = LoggerFactory.getLogger(PullFormFromCentral.class);
-  public static final Param<Void> PULL_FROM_CENTRAL = Param.flag("pllc", "pull_central", "Pull form from a Central server");
-  public static final Param<URL> SERVER_URL = Param.arg("url", "url", "Central url", RequestBuilder::url);
-  public static final Param<Integer> PROJECT_ID = Param.arg("pid", "project_id", "Central Project ID number", Integer::parseInt);
-  public static final Param<String> EMAIL = Param.arg("em", "email", "Central user account email");
-  public static final Param<String> PASSWORD = Param.arg("p", "password", "Central user account password");
+  private static final Param<Void> PULL_FROM_CENTRAL = Param.flag("pllc", "pull_central", "Pull form from a Central server");
+  private static final Param<URL> SERVER_URL = Param.arg("U", "url", "Central url", RequestBuilder::url);
+  private static final Param<Integer> PROJECT_ID = Param.arg("pid", "project_id", "Central Project ID number", Integer::parseInt);
+  private static final Param<String> EMAIL = Param.arg("E", "email", "Central user account email");
+  private static final Param<String> PASSWORD = Param.arg("p", "password", "Central user account password");
 
 
   public static Operation OPERATION = Operation.of(
@@ -67,14 +64,13 @@ public class PullFormFromCentral {
       Arrays.asList(FORM_ID, MAX_HTTP_CONNECTIONS)
   );
 
-  public static void pullFormFromAggregate(Args args) {
+  private static void pullFormFromAggregate(Args args) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(args.get(STORAGE_DIR));
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     appPreferences.setStorageDir(briefcaseDir);
-    BriefcasePreferences tabPreferences = BriefcasePreferences.forClass(PullPanel.class);
 
     int maxHttpConnections = Optionals.race(
         args.getOptional(MAX_HTTP_CONNECTIONS),
@@ -84,9 +80,12 @@ public class PullFormFromCentral {
         .map(host -> CommonsHttp.of(maxHttpConnections, host))
         .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
 
-    AggregateServer aggregateServer = AggregateServer.authenticated(args.get(SERVER_URL), new Credentials(args.get(EMAIL), args.get(PASSWORD)));
+    CentralServer server = CentralServer.of(args.get(SERVER_URL), args.get(PROJECT_ID), new Credentials(args.get(EMAIL), args.get(PASSWORD)));
 
-    Response<List<RemoteFormDefinition>> response = http.execute(aggregateServer.getFormListRequest());
+    String token = http.execute(server.getSessionTokenRequest())
+        .orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
+
+    Response<List<RemoteFormDefinition>> response = http.execute(server.getFormsListRequest(token));
     if (!response.isSuccess()) {
       System.err.println(response.isRedirection()
           ? "Error connecting to Aggregate: Redirection detected"
@@ -113,29 +112,14 @@ public class PullFormFromCentral {
     forms.load(filteredForms);
     forms.selectAll();
 
-    PullFromAggregate pullOp = new PullFromAggregate(http, aggregateServer, briefcaseDir, appPreferences, false, PullFormFromCentral::onEvent);
+    PullFromCentral pullOp = new PullFromCentral(http, server, briefcaseDir, token, PullFormFromCentral::onEvent);
     JobsRunner.launchAsync(
-        forms.map(form -> pullOp.pull(form, resolveCursor(
-            false,
-            Optional.empty(),
-            appPreferences,
-            tabPreferences,
-            form
-        ))),
+        forms.map(pullOp::pull),
         PullFormFromCentral::onError
     ).waitForCompletion();
     System.out.println();
     System.out.println("All operations completed");
     System.out.println();
-  }
-
-  private static Optional<Cursor> resolveCursor(boolean resumeLastPull, Optional<LocalDate> startFromDate, BriefcasePreferences appPreferences, BriefcasePreferences localPreferences, FormStatus form) {
-    return Optionals.race(
-        startFromDate.map(Cursor::of),
-        resumeLastPull
-            ? Optionals.race(Cursor.readPrefs(form, appPreferences), Cursor.readPrefs(form, localPreferences))
-            : Optional.empty()
-    );
   }
 
   private static void onEvent(FormStatusEvent event) {
