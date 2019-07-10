@@ -34,6 +34,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -307,7 +308,7 @@ public class BriefcaseCLI {
         throw new BriefcaseException("You need to provide a form ID (legacy CLI)");
 
       if (odkDir == null && server != null)
-        pullFormFromAggregate(storageDir, Optional.ofNullable(formid), username, password, server, false, Optional.empty(), false, Optional.of(1));
+        pullFormFromAggregate(storageDir, Optional.ofNullable(formid), username, password, RequestBuilder.url(server), false, Optional.empty(), false, Optional.of(1));
 
       if (exportPath != null)
         export(

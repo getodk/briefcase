@@ -16,14 +16,15 @@
 package org.opendatakit.briefcase.operations;
 
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.operations.Common.AGGREGATE_SERVER;
+import static org.opendatakit.briefcase.operations.Common.CREDENTIALS_PASSWORD;
+import static org.opendatakit.briefcase.operations.Common.CREDENTIALS_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.MAX_HTTP_CONNECTIONS;
-import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
-import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
+import static org.opendatakit.briefcase.operations.Common.SERVER_URL;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
+import java.net.URL;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -40,7 +41,6 @@ import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
-import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
@@ -66,19 +66,19 @@ public class PullFormFromAggregate {
       args -> pullFormFromAggregate(
           args.get(STORAGE_DIR),
           args.getOptional(FORM_ID),
-          args.get(ODK_USERNAME),
-          args.get(ODK_PASSWORD),
-          args.get(AGGREGATE_SERVER),
+          args.get(CREDENTIALS_USERNAME),
+          args.get(CREDENTIALS_PASSWORD),
+          args.get(SERVER_URL),
           args.has(RESUME_LAST_PULL),
           args.getOptional(START_FROM_DATE),
           args.has(INCLUDE_INCOMPLETE),
           args.getOptional(MAX_HTTP_CONNECTIONS)
       ),
-      Arrays.asList(STORAGE_DIR, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER),
+      Arrays.asList(STORAGE_DIR, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL),
       Arrays.asList(RESUME_LAST_PULL, INCLUDE_INCOMPLETE, FORM_ID, START_FROM_DATE, MAX_HTTP_CONNECTIONS)
   );
 
-  public static void pullFormFromAggregate(String storageDir, Optional<String> formId, String username, String password, String server, boolean resumeLastPull, Optional<LocalDate> startFromDate, boolean includeIncomplete, Optional<Integer> maybeMaxHttpConnections) {
+  public static void pullFormFromAggregate(String storageDir, Optional<String> formId, String username, String password, URL server, boolean resumeLastPull, Optional<LocalDate> startFromDate, boolean includeIncomplete, Optional<Integer> maybeMaxHttpConnections) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -95,7 +95,7 @@ public class PullFormFromAggregate {
         .map(host -> CommonsHttp.of(maxHttpConnections, host))
         .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
 
-    AggregateServer aggregateServer = AggregateServer.authenticated(RequestBuilder.url(server), new Credentials(username, password));
+    AggregateServer aggregateServer = AggregateServer.authenticated(server, new Credentials(username, password));
 
     Response<List<RemoteFormDefinition>> response = http.execute(aggregateServer.getFormListRequest());
     if (!response.isSuccess()) {

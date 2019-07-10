@@ -15,14 +15,15 @@
  */
 package org.opendatakit.briefcase.operations;
 
-import static org.opendatakit.briefcase.operations.Common.AGGREGATE_SERVER;
+import static org.opendatakit.briefcase.operations.Common.CREDENTIALS_PASSWORD;
+import static org.opendatakit.briefcase.operations.Common.CREDENTIALS_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.MAX_HTTP_CONNECTIONS;
-import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
-import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
+import static org.opendatakit.briefcase.operations.Common.SERVER_URL;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +38,6 @@ import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
-import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
@@ -58,17 +58,17 @@ public class PushFormToAggregate {
       args -> pushFormToAggregate(
           args.get(STORAGE_DIR),
           args.getOptional(FORM_ID),
-          args.get(ODK_USERNAME),
-          args.get(ODK_PASSWORD),
-          args.get(AGGREGATE_SERVER),
+          args.get(CREDENTIALS_USERNAME),
+          args.get(CREDENTIALS_PASSWORD),
+          args.get(SERVER_URL),
           args.has(FORCE_SEND_BLANK),
           args.getOptional(MAX_HTTP_CONNECTIONS)
       ),
-      Arrays.asList(STORAGE_DIR, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER),
+      Arrays.asList(STORAGE_DIR, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL),
       Arrays.asList(FORCE_SEND_BLANK, MAX_HTTP_CONNECTIONS, FORM_ID)
   );
 
-  private static void pushFormToAggregate(String storageDir, Optional<String> formid, String username, String password, String server, boolean forceSendBlank, Optional<Integer> maybeMaxConnections) {
+  private static void pushFormToAggregate(String storageDir, Optional<String> formid, String username, String password, URL server, boolean forceSendBlank, Optional<Integer> maybeMaxConnections) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -83,7 +83,7 @@ public class PushFormToAggregate {
         .map(host -> CommonsHttp.of(maxHttpConnections, host))
         .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
 
-    AggregateServer aggregateServer = AggregateServer.authenticated(RequestBuilder.url(server), new Credentials(username, password));
+    AggregateServer aggregateServer = AggregateServer.authenticated(server, new Credentials(username, password));
 
     Response response = http.execute(aggregateServer.getPushFormPreflightRequest());
     if (!response.isSuccess()) {

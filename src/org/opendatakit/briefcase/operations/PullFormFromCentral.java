@@ -16,12 +16,14 @@
 package org.opendatakit.briefcase.operations;
 
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.operations.Common.CREDENTIALS_EMAIL;
+import static org.opendatakit.briefcase.operations.Common.CREDENTIALS_PASSWORD;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.MAX_HTTP_CONNECTIONS;
+import static org.opendatakit.briefcase.operations.Common.SERVER_URL;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -36,7 +38,6 @@ import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Http;
-import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
@@ -51,16 +52,13 @@ import org.slf4j.LoggerFactory;
 public class PullFormFromCentral {
   private static final Logger log = LoggerFactory.getLogger(PullFormFromCentral.class);
   private static final Param<Void> PULL_FROM_CENTRAL = Param.flag("pllc", "pull_central", "Pull form from a Central server");
-  private static final Param<URL> SERVER_URL = Param.arg("U", "url", "Central url", RequestBuilder::url);
-  private static final Param<Integer> PROJECT_ID = Param.arg("pid", "project_id", "Central Project ID number", Integer::parseInt);
-  private static final Param<String> EMAIL = Param.arg("E", "email", "Central user account email");
-  private static final Param<String> PASSWORD = Param.arg("p", "password", "Central user account password");
+  private static final Param<Integer> PROJECT_ID = Param.arg("pid", "project_id", "ODK Project ID number", Integer::parseInt);
 
 
   public static Operation OPERATION = Operation.of(
       PULL_FROM_CENTRAL,
       PullFormFromCentral::pullFormFromAggregate,
-      Arrays.asList(STORAGE_DIR, SERVER_URL, PROJECT_ID, EMAIL, PASSWORD),
+      Arrays.asList(STORAGE_DIR, SERVER_URL, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD),
       Arrays.asList(FORM_ID, MAX_HTTP_CONNECTIONS)
   );
 
@@ -80,7 +78,7 @@ public class PullFormFromCentral {
         .map(host -> CommonsHttp.of(maxHttpConnections, host))
         .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
 
-    CentralServer server = CentralServer.of(args.get(SERVER_URL), args.get(PROJECT_ID), new Credentials(args.get(EMAIL), args.get(PASSWORD)));
+    CentralServer server = CentralServer.of(args.get(SERVER_URL), args.get(PROJECT_ID), new Credentials(args.get(CREDENTIALS_EMAIL), args.get(CREDENTIALS_PASSWORD)));
 
     String token = http.execute(server.getSessionTokenRequest())
         .orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
