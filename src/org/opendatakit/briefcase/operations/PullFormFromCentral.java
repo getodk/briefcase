@@ -20,6 +20,7 @@ import static org.opendatakit.briefcase.operations.Common.CREDENTIALS_EMAIL;
 import static org.opendatakit.briefcase.operations.Common.CREDENTIALS_PASSWORD;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.MAX_HTTP_CONNECTIONS;
+import static org.opendatakit.briefcase.operations.Common.PROJECT_ID;
 import static org.opendatakit.briefcase.operations.Common.SERVER_URL;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
@@ -52,7 +53,6 @@ import org.slf4j.LoggerFactory;
 public class PullFormFromCentral {
   private static final Logger log = LoggerFactory.getLogger(PullFormFromCentral.class);
   private static final Param<Void> PULL_FROM_CENTRAL = Param.flag("pllc", "pull_central", "Pull form from a Central server");
-  private static final Param<Integer> PROJECT_ID = Param.arg("pid", "project_id", "ODK Project ID number", Integer::parseInt);
 
 
   public static Operation OPERATION = Operation.of(

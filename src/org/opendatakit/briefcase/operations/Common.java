@@ -27,6 +27,7 @@ import org.opendatakit.common.cli.Param;
 public class Common {
   static final Param<String> STORAGE_DIR = Param.arg("sd", "storage_directory", "Briefcase storage directory");
   static final Param<String> FORM_ID = Param.arg("id", "form_id", "Form ID");
+  static final Param<Integer> PROJECT_ID = Param.arg("pid", "project_id", "ODK Project ID number", Integer::parseInt);
   static final Param<String> CREDENTIALS_USERNAME = Param.arg("u", "odk_username", "ODK Username");
   static final Param<String> CREDENTIALS_EMAIL = Param.arg("E", "odk_email", "ODK Email");
   static final Param<String> CREDENTIALS_PASSWORD = Param.arg("p", "odk_password", "ODK Password");
