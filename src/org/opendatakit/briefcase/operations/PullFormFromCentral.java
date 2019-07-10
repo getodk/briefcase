@@ -57,12 +57,12 @@ public class PullFormFromCentral {
 
   public static Operation OPERATION = Operation.of(
       PULL_FROM_CENTRAL,
-      PullFormFromCentral::pullFormFromAggregate,
+      PullFormFromCentral::pullFromCentral,
       Arrays.asList(STORAGE_DIR, SERVER_URL, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD),
       Arrays.asList(FORM_ID, MAX_HTTP_CONNECTIONS)
   );
 
-  private static void pullFormFromAggregate(Args args) {
+  private static void pullFromCentral(Args args) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(args.get(STORAGE_DIR));
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -86,12 +86,12 @@ public class PullFormFromCentral {
     Response<List<RemoteFormDefinition>> response = http.execute(server.getFormsListRequest(token));
     if (!response.isSuccess()) {
       System.err.println(response.isRedirection()
-          ? "Error connecting to Aggregate: Redirection detected"
+          ? "Error connecting to Central: Redirection detected"
           : response.isUnauthorized()
-          ? "Error connecting to Aggregate: Wrong credentials"
+          ? "Error connecting to Central: Wrong credentials"
           : response.isNotFound()
-          ? "Error connecting to Aggregate: Aggregate not found"
-          : "Error connecting to Aggregate");
+          ? "Error connecting to Central: Central not found"
+          : "Error connecting to Central");
       return;
     }
 
@@ -122,7 +122,7 @@ public class PullFormFromCentral {
 
   private static void onEvent(FormStatusEvent event) {
     System.out.println(event.getStatus().getFormName() + " - " + event.getStatusString());
-    // The PullFromAggregateTracker already logs normal events
+    // The tracker already logs normal events
   }
 
   private static void onError(Throwable e) {

@@ -17,7 +17,6 @@ package org.opendatakit.briefcase.operations;
 
 import static org.opendatakit.briefcase.operations.Common.CREDENTIALS_EMAIL;
 import static org.opendatakit.briefcase.operations.Common.CREDENTIALS_PASSWORD;
-import static org.opendatakit.briefcase.operations.Common.CREDENTIALS_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.MAX_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.operations.Common.PROJECT_ID;
@@ -32,7 +31,6 @@ import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.push.aggregate.PushToAggregate;
 import org.opendatakit.briefcase.push.central.PushToCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Optionals;
