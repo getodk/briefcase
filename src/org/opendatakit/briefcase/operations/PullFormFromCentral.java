@@ -16,14 +16,12 @@
 package org.opendatakit.briefcase.operations;
 
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.operations.Common.AGGREGATE_SERVER;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.MAX_HTTP_CONNECTIONS;
-import static org.opendatakit.briefcase.operations.Common.ODK_PASSWORD;
-import static org.opendatakit.briefcase.operations.Common.ODK_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
+import java.net.URL;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -47,6 +45,7 @@ import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.pull.PullPanel;
 import org.opendatakit.briefcase.util.FormCache;
+import org.opendatakit.common.cli.Args;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
 import org.slf4j.Logger;
@@ -54,33 +53,23 @@ import org.slf4j.LoggerFactory;
 
 public class PullFormFromCentral {
   private static final Logger log = LoggerFactory.getLogger(PullFormFromCentral.class);
-  public static final Param<Void> DEPRECATED_PULL_AGGREGATE = Param.flag("pa", "pull_aggregate", "(Deprecated. Use -plla instead)");
-  public static final Param<Void> PULL_AGGREGATE = Param.flag("plla", "pull_aggregate", "Pull form from an Aggregate instance");
-  public static final Param<Void> DEPRECATED_PULL_IN_PARALLEL = Param.flag("pp", "parallel_pull", "(Deprecated. Use -mhc instead)");
-  private static final Param<Void> RESUME_LAST_PULL = Param.flag("sfl", "start_from_last", "Start pull from last submission pulled");
-  private static final Param<LocalDate> START_FROM_DATE = Param.arg("sfd", "start_from_date", "Start pull from date", LocalDate::parse);
-  private static final Param<Void> INCLUDE_INCOMPLETE = Param.flag("ii", "include_incomplete", "Include incomplete submissions");
+  public static final Param<Void> PULL_FROM_CENTRAL = Param.flag("pllc", "pull_central", "Pull form from a Central server");
+  public static final Param<URL> SERVER_URL = Param.arg("url", "url", "Central url", RequestBuilder::url);
+  public static final Param<Integer> PROJECT_ID = Param.arg("pid", "project_id", "Central Project ID number", Integer::parseInt);
+  public static final Param<String> EMAIL = Param.arg("em", "email", "Central user account email");
+  public static final Param<String> PASSWORD = Param.arg("p", "password", "Central user account password");
 
-  public static Operation PULL_FORM_FROM_AGGREGATE = Operation.of(
-      PULL_AGGREGATE,
-      args -> pullFormFromAggregate(
-          args.get(STORAGE_DIR),
-          args.getOptional(FORM_ID),
-          args.get(ODK_USERNAME),
-          args.get(ODK_PASSWORD),
-          args.get(AGGREGATE_SERVER),
-          args.has(RESUME_LAST_PULL),
-          args.getOptional(START_FROM_DATE),
-          args.has(INCLUDE_INCOMPLETE),
-          args.getOptional(MAX_HTTP_CONNECTIONS)
-      ),
-      Arrays.asList(STORAGE_DIR, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER),
-      Arrays.asList(RESUME_LAST_PULL, INCLUDE_INCOMPLETE, FORM_ID, START_FROM_DATE, MAX_HTTP_CONNECTIONS)
+
+  public static Operation OPERATION = Operation.of(
+      PULL_FROM_CENTRAL,
+      PullFormFromCentral::pullFormFromAggregate,
+      Arrays.asList(STORAGE_DIR, SERVER_URL, PROJECT_ID, EMAIL, PASSWORD),
+      Arrays.asList(FORM_ID, MAX_HTTP_CONNECTIONS)
   );
 
-  public static void pullFormFromAggregate(String storageDir, Optional<String> formId, String username, String password, String server, boolean resumeLastPull, Optional<LocalDate> startFromDate, boolean includeIncomplete, Optional<Integer> maybeMaxHttpConnections) {
+  public static void pullFormFromAggregate(Args args) {
     CliEventsCompanion.attach(log);
-    Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
+    Path briefcaseDir = Common.getOrCreateBriefcaseDir(args.get(STORAGE_DIR));
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
@@ -88,14 +77,14 @@ public class PullFormFromCentral {
     BriefcasePreferences tabPreferences = BriefcasePreferences.forClass(PullPanel.class);
 
     int maxHttpConnections = Optionals.race(
-        maybeMaxHttpConnections,
+        args.getOptional(MAX_HTTP_CONNECTIONS),
         appPreferences.getMaxHttpConnections()
     ).orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
         .map(host -> CommonsHttp.of(maxHttpConnections, host))
         .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
 
-    AggregateServer aggregateServer = AggregateServer.authenticated(RequestBuilder.url(server), new Credentials(username, password));
+    AggregateServer aggregateServer = AggregateServer.authenticated(args.get(SERVER_URL), new Credentials(args.get(EMAIL), args.get(PASSWORD)));
 
     Response<List<RemoteFormDefinition>> response = http.execute(aggregateServer.getFormListRequest());
     if (!response.isSuccess()) {
@@ -108,6 +97,8 @@ public class PullFormFromCentral {
           : "Error connecting to Aggregate");
       return;
     }
+
+    Optional<String> formId = args.getOptional(FORM_ID);
 
     List<FormStatus> filteredForms = response.orElseThrow(BriefcaseException::new)
         .stream()
@@ -122,11 +113,11 @@ public class PullFormFromCentral {
     forms.load(filteredForms);
     forms.selectAll();
 
-    PullFromAggregate pullOp = new PullFromAggregate(http, aggregateServer, briefcaseDir, appPreferences, includeIncomplete, PullFormFromCentral::onEvent);
+    PullFromAggregate pullOp = new PullFromAggregate(http, aggregateServer, briefcaseDir, appPreferences, false, PullFormFromCentral::onEvent);
     JobsRunner.launchAsync(
         forms.map(form -> pullOp.pull(form, resolveCursor(
-            resumeLastPull,
-            startFromDate,
+            false,
+            Optional.empty(),
             appPreferences,
             tabPreferences,
             form
