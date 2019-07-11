@@ -13,6 +13,8 @@ public class UiFieldValidator {
   public static final Predicate<String> NUMBER = s -> s == null || s.matches("\\d+");
   public static final Predicate<String> EMAIL = s -> s == null || s.matches("\\S+@\\S+");
   public static final Predicate<String> URI = s -> s == null || RequestBuilder.isUri(s);
+  static final Color COLOR_NOT_VALID = new Color(215, 25, 28); // Color-blind safe red
+  static final Color COLOR_VALID = new Color(44, 123, 182); // Color-blind safe blue
   private final JTextField field;
   final JLabel label;
   private final Predicate<String> predicate;
@@ -42,7 +44,7 @@ public class UiFieldValidator {
     isDirty = isDirty || (value != null && !value.isEmpty());
     isValid = predicate.test(value);
 
-    label.setForeground(isDirty && !isValid ? Color.RED : Color.BLACK);
+    label.setForeground(isDirty && !isValid ? COLOR_NOT_VALID : COLOR_VALID);
 
     if (isDirty != previousIsDirty || isValid != previousIsValid)
       onChangeCallback.run();

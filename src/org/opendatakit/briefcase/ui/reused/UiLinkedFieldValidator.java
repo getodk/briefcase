@@ -1,7 +1,7 @@
 package org.opendatakit.briefcase.ui.reused;
 
-import static java.awt.Color.BLACK;
-import static java.awt.Color.RED;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.COLOR_NOT_VALID;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.COLOR_VALID;
 
 public class UiLinkedFieldValidator {
   private final UiFieldValidator validatorA;
@@ -25,8 +25,8 @@ public class UiLinkedFieldValidator {
         || (valueA != null && valueA.trim().isEmpty() && valueB != null && valueB.trim().isEmpty())
         || (valueA != null && !valueA.trim().isEmpty() && valueB != null && !valueB.trim().isEmpty());
 
-    validatorA.label.setForeground(isValid && validatorA.isValid() ? BLACK : RED);
-    validatorB.label.setForeground(isValid && validatorB.isValid() ? BLACK : RED);
+    validatorA.label.setForeground(isValid && validatorA.isValid() ? COLOR_VALID : COLOR_NOT_VALID);
+    validatorB.label.setForeground(isValid && validatorB.isValid() ? COLOR_VALID : COLOR_NOT_VALID);
 
     if (isValid != previousIsValid)
       onChangeCallback.run();

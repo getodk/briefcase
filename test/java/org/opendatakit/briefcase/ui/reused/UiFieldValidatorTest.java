@@ -1,10 +1,11 @@
 package org.opendatakit.briefcase.ui.reused;
 
 import static java.awt.Color.BLACK;
-import static java.awt.Color.RED;
 import static java.awt.event.KeyEvent.KEY_RELEASED;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.COLOR_NOT_VALID;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.COLOR_VALID;
 
 import java.awt.event.KeyEvent;
 import java.time.OffsetDateTime;
@@ -52,7 +53,7 @@ public class UiFieldValidatorTest {
     simulateKeyStroke(field);
     assertThat(validator.isDirty(), is(false)); // aka "pristine"
     assertThat(validator.isValid(), is(false));
-    assertThat(label.getForeground(), is(BLACK));
+    assertThat(label.getForeground(), is(COLOR_VALID));
   }
 
   @Test
@@ -63,7 +64,7 @@ public class UiFieldValidatorTest {
     simulateKeyStroke(field);
     assertThat(validator.isDirty(), is(true));
     assertThat(validator.isValid(), is(false));
-    assertThat(label.getForeground(), is(RED));
+    assertThat(label.getForeground(), is(COLOR_NOT_VALID));
   }
 
   @Test
@@ -74,7 +75,7 @@ public class UiFieldValidatorTest {
     simulateKeyStroke(field);
     assertThat(validator.isDirty(), is(true));
     assertThat(validator.isValid(), is(true));
-    assertThat(label.getForeground(), is(BLACK));
+    assertThat(label.getForeground(), is(COLOR_VALID));
   }
 
   @Test

@@ -1,10 +1,11 @@
 package org.opendatakit.briefcase.ui.reused;
 
 import static java.awt.Color.BLACK;
-import static java.awt.Color.RED;
 import static java.awt.event.KeyEvent.KEY_RELEASED;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.COLOR_NOT_VALID;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.COLOR_VALID;
 
 import java.awt.event.KeyEvent;
 import java.time.OffsetDateTime;
@@ -71,8 +72,8 @@ public class UiLinkedFieldValidatorTest {
     fieldB.setText("");
     simulateKeyStroke(fieldA);
     simulateKeyStroke(fieldB);
-    assertThat(labelA.getForeground(), is(RED));
-    assertThat(labelB.getForeground(), is(RED));
+    assertThat(labelA.getForeground(), is(COLOR_NOT_VALID));
+    assertThat(labelB.getForeground(), is(COLOR_NOT_VALID));
   }
 
   @Test
@@ -89,8 +90,8 @@ public class UiLinkedFieldValidatorTest {
 
     fieldB.setText("bar");
     simulateKeyStroke(fieldB);
-    assertThat(labelA.getForeground(), is(BLACK));
-    assertThat(labelB.getForeground(), is(BLACK));
+    assertThat(labelA.getForeground(), is(COLOR_VALID));
+    assertThat(labelB.getForeground(), is(COLOR_VALID));
   }
 
   @Test
@@ -105,8 +106,8 @@ public class UiLinkedFieldValidatorTest {
     fieldB.setText("baz"); // This value is not valid
     simulateKeyStroke(fieldA);
     simulateKeyStroke(fieldB);
-    assertThat(labelA.getForeground(), is(BLACK));
-    assertThat(labelB.getForeground(), is(RED));
+    assertThat(labelA.getForeground(), is(COLOR_VALID));
+    assertThat(labelB.getForeground(), is(COLOR_NOT_VALID));
   }
 
 
