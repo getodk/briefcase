@@ -32,7 +32,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -108,10 +107,10 @@ public class RequestBuilder<T> {
   }
 
   private static XmlElement readXmlElement(InputStream in) {
-    try (InputStreamReader ir = new InputStreamReader(in)) {
+    try (InputStream in2 = in) {
       Document doc = new Document();
       KXmlParser parser = new KXmlParser();
-      parser.setInput(ir);
+      parser.setInput(in2, UTF_8.name());
       parser.setFeature(FEATURE_PROCESS_NAMESPACES, true);
       doc.parse(parser);
       return XmlElement.of(doc);
