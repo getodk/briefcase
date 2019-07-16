@@ -17,9 +17,10 @@
 package org.opendatakit.briefcase.reused;
 
 import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 
 public class Iso8601Helpers {
-  private static String normalizeDateTime(String value) {
+  private static String normalizeOffset(String value) {
     char charAtMinus3 = value.charAt(value.length() - 3);
     if (value.endsWith("Z") || charAtMinus3 == ':')
       return value;
@@ -29,6 +30,10 @@ public class Iso8601Helpers {
   }
 
   public static OffsetDateTime parseDateTime(String value) {
-    return OffsetDateTime.parse(normalizeDateTime(value));
+    return OffsetDateTime.parse(normalizeOffset(value));
+  }
+
+  public static OffsetTime parseTime(String value) {
+    return OffsetTime.parse(normalizeOffset(value));
   }
 }

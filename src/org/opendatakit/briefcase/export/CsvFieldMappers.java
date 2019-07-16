@@ -24,6 +24,8 @@ import static org.javarosa.core.model.DataType.DATE_TIME;
 import static org.javarosa.core.model.DataType.GEOPOINT;
 import static org.javarosa.core.model.DataType.NULL;
 import static org.javarosa.core.model.DataType.TIME;
+import static org.opendatakit.briefcase.reused.Iso8601Helpers.parseDateTime;
+import static org.opendatakit.briefcase.reused.Iso8601Helpers.parseTime;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
@@ -39,7 +41,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.OffsetTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -54,7 +55,6 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.javarosa.core.model.DataType;
-import org.opendatakit.briefcase.reused.Iso8601Helpers;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.Pair;
 
@@ -181,7 +181,7 @@ final class CsvFieldMappers {
         .appendText(ChronoField.AMPM_OF_DAY, TextStyle.FULL)
         .toFormatter();
     return Stream.of(Pair.of(element.fqn(), element.maybeValue()
-        .map(value -> OffsetTime.parse(value).format(formatter))
+        .map(value -> parseTime(value).format(formatter))
         .orElse("")));
   }
 
@@ -196,7 +196,7 @@ final class CsvFieldMappers {
    * format users expect in their exported CSV files.
    */
   static String iso8601DateTimeToExportCsvFormat(String value) {
-    return iso8601DateTimeToExportCsvFormat(Iso8601Helpers.parseDateTime(value));
+    return iso8601DateTimeToExportCsvFormat(parseDateTime(value));
   }
 
   /**
