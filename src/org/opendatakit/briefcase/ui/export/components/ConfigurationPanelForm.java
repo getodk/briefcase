@@ -415,10 +415,6 @@ public class ConfigurationPanelForm extends JComponent {
     onChangeCallbacks.forEach(callback -> callback.accept(conf));
   }
 
-  public ExportConfiguration getConfiguration() {
-    return null;
-  }
-
   void changeMode(boolean savePasswordsConsent) {
     mode.setSavePasswordsConsent(savePasswordsConsent);
     mode.decorate(this, uiLocked);

@@ -58,10 +58,6 @@ public class SelectSourceOrTargetForm<T extends SourceOrTarget> extends JCompone
     selectField.addItem(item);
   }
 
-  public JPanel getContainer() {
-    return container;
-  }
-
   @SuppressWarnings("unchecked")
   Optional<T> getSelectedOption() {
     return Optional.ofNullable((T) selectField.getSelectedItem());

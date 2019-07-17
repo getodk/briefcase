@@ -25,7 +25,6 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.getFileExtension;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.newInputStream;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.get;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.head;
-import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -38,7 +37,6 @@ import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
-import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.DownloadedSubmission;
 import org.opendatakit.briefcase.reused.OptionalProduct;
@@ -68,16 +66,6 @@ public class AggregateServer implements RemoteServer {
 
   public static AggregateServer normal(URL baseUrl) {
     return new AggregateServer(baseUrl, Optional.empty());
-  }
-
-  public static AggregateServer from(ServerConnectionInfo sci) {
-    return new AggregateServer(
-        url(sci.getUrl()),
-        OptionalProduct.all(
-            Optional.ofNullable(sci.getUsername()),
-            Optional.ofNullable(sci.getPassword()).map(String::new)
-        ).map(Credentials::new)
-    );
   }
 
   public URL getBaseUrl() {

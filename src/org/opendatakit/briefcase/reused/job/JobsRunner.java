@@ -71,7 +71,6 @@ public class JobsRunner {
     return new JobsRunner(executor);
   }
 
-
   /**
    * Run the provided job asynchronously and return an instance that
    * will let the caller cancel the background process.

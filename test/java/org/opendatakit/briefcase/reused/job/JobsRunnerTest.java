@@ -12,11 +12,8 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class JobsRunnerTest {
-  private static final Logger log = LoggerFactory.getLogger(JobsRunnerTest.class);
   // We can't declare these variables locally because the compiler
   // complains about them not being effectively final. Declaring
   // them as fields somehow works around it

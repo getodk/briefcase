@@ -18,7 +18,6 @@ package org.opendatakit.briefcase.ui.reused;
 import static javax.swing.JFileChooser.FILES_ONLY;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
-import java.awt.Container;
 import java.awt.FileDialog;
 import java.io.File;
 import java.nio.file.Files;
@@ -29,14 +28,12 @@ import java.util.function.Predicate;
 import javax.swing.JFileChooser;
 
 class NativeFileChooser implements FileChooser {
-  private Container parent;
   private final FileDialog fileDialog;
   private JFileChooser fileChooser;
   private Predicate<File> filter;
   private String filterDescription;
 
-  NativeFileChooser(Container parent, FileDialog fileDialog, JFileChooser fileChooser, Predicate<File> filter, String filterDescription) {
-    this.parent = parent;
+  NativeFileChooser(FileDialog fileDialog, JFileChooser fileChooser, Predicate<File> filter, String filterDescription) {
     this.fileDialog = fileDialog;
     this.fileChooser = fileChooser;
     this.filter = filter;

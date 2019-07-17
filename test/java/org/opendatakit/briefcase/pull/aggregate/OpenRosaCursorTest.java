@@ -22,8 +22,6 @@ import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.model.FormStatusBuilder.buildFormStatus;
 
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.Test;
@@ -32,14 +30,6 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
 
 public class OpenRosaCursorTest {
-
-  public static String buildCursorXml(OffsetDateTime lastUpdate) {
-    return buildCursorXml(lastUpdate, UUID.randomUUID().toString());
-  }
-
-  public static String buildCursorXml(OffsetDateTime lastUpdate, String lastId) {
-    return buildCursorXml(lastUpdate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME), lastId);
-  }
 
   public static String buildCursorXml(String lastUpdate) {
     return buildCursorXml(lastUpdate, UUID.randomUUID().toString());

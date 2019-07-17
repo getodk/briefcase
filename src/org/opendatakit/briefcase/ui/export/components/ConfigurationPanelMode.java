@@ -71,10 +71,6 @@ class ConfigurationPanelMode {
     form.removeGroupNamesOverrideField.setVisible(isOverridePanel);
   }
 
-  boolean isOverridePanel() {
-    return isOverridePanel;
-  }
-
   boolean isExportDirCleanable() {
     return isOverridePanel;
   }
