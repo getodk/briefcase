@@ -370,7 +370,7 @@ public class CentralServerDialogForm extends JDialog {
     final JLabel label2 = new JLabel();
     Font label2Font = this.$$$getFont$$$(null, Font.PLAIN, -1, label2.getFont());
     if (label2Font != null) label2.setFont(label2Font);
-    label2.setText("Enter the Project's ID number");
+    label2.setText("Project ID is the last number in the URL of the Project Overview");
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 5;
