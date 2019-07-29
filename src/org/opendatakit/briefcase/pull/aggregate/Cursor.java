@@ -81,7 +81,8 @@ public interface Cursor<T extends Cursor> extends Comparable<T> {
   static Cursor from(String value) {
     return firstNonFailing(
         () -> AggregateCursor.from(value),
-        () -> OnaCursor.from(value)
+        () -> OnaCursor.from(value),
+        () -> OpaqueCursor.from(value)
     ).orElseThrow(() -> new BriefcaseException("Unknown cursor format"));
   }
 
@@ -99,8 +100,10 @@ public interface Cursor<T extends Cursor> extends Comparable<T> {
 
 
   enum Type {
+
     AGGREGATE("aggregate", AggregateCursor::from),
-    ONA("ona", OnaCursor::from);
+    ONA("ona", OnaCursor::from),
+    OPAQUE("opaque", OpaqueCursor::from);
 
     private final String name;
     private final Function<String, Cursor> factory;
@@ -115,6 +118,8 @@ public interface Cursor<T extends Cursor> extends Comparable<T> {
         return AGGREGATE;
       if (type.equals("ona"))
         return ONA;
+      if (type.equals("opaque"))
+        return OPAQUE;
       throw new BriefcaseException("Unknown cursor type " + type);
     }
 
