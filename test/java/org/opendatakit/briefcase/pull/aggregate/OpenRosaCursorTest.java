@@ -21,9 +21,9 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.model.FormStatusBuilder.buildFormStatus;
+import static org.opendatakit.briefcase.pull.aggregate.CursorHelpers.buildCursorXml;
 
 import java.util.Optional;
-import java.util.UUID;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -31,22 +31,8 @@ import org.opendatakit.briefcase.model.InMemoryPreferences;
 
 public class OpenRosaCursorTest {
 
-  public static String buildCursorXml(String lastUpdate) {
-    return buildCursorXml(lastUpdate, UUID.randomUUID().toString());
-  }
-
-  public static String buildCursorXml(String lastUpdate, String lastId) {
-    return "" +
-        "<cursor xmlns=\"http://www.opendatakit.org/cursor\">\n" +
-        "<attributeName>_LAST_UPDATE_DATE</attributeName>\n" +
-        "<attributeValue>" + lastUpdate + "</attributeValue>\n" +
-        "<uriLastReturnedValue>" + lastId + "</uriLastReturnedValue>\n" +
-        "<isForwardCursor>true</isForwardCursor>\n" +
-        "</cursor>" +
-        "";
-  }
-
   @Test
+  @SuppressWarnings("unchecked")
   public void fixes_dates_while_parsing_cursors() {
     assertThat(
         Cursor.from(buildCursorXml("2010-01-01T00:00:00.000+0800")),
