@@ -57,7 +57,6 @@ import org.slf4j.LoggerFactory;
 public class MainBriefcaseWindow extends WindowAdapter {
   private static final Logger log = LoggerFactory.getLogger(MainBriefcaseWindow.class.getName());
   public static final String APP_NAME = "ODK Briefcase";
-  private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
 
   private final JFrame frame;
   private final JTabbedPane tabbedPane;
@@ -130,7 +129,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     addPane(SettingsPanel.TAB_NAME, settingsPanel);
 
     frame.addWindowListener(this);
-    frame.setTitle(BRIEFCASE_VERSION);
+    frame.setTitle(APP_NAME);
     ImageIcon imageIcon = new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png"));
     frame.setIconImage(imageIcon.getImage());
     frame.pack();
