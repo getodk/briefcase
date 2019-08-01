@@ -32,9 +32,6 @@ import java.awt.Insets;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
-import java.time.Duration;
-import java.util.Timer;
-import java.util.TimerTask;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -174,19 +171,5 @@ public class UI {
   public static void removeAllMouseListeners(JComponent component) {
     for (MouseListener listener : component.getMouseListeners())
       component.removeMouseListener(listener);
-  }
-
-  public static void flash(JComponent component, Duration duration) {
-    component.setVisible(true);
-    Timer timer = new Timer();
-    TimerTask task = new TimerTask() {
-      @Override
-      public void run() {
-        component.setVisible(false);
-        timer.cancel();
-        timer.purge();
-      }
-    };
-    timer.schedule(task, duration.toMillis(), duration.toMillis());
   }
 }
