@@ -16,6 +16,9 @@
 
 package org.opendatakit.briefcase.ui;
 
+import static java.awt.GridBagConstraints.WEST;
+import static java.lang.Runtime.getRuntime;
+import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.ui.BriefcaseCLI.launchLegacyCLI;
 import static org.opendatakit.briefcase.ui.MessageStrings.BRIEFCASE_WELCOME;
@@ -23,6 +26,8 @@ import static org.opendatakit.briefcase.ui.MessageStrings.TRACKING_WARNING;
 import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
 import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.nio.file.Files;
@@ -58,8 +63,8 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private static final Logger log = LoggerFactory.getLogger(MainBriefcaseWindow.class.getName());
   public static final String APP_NAME = "ODK Briefcase";
 
-  private final JFrame frame;
-  private final JTabbedPane tabbedPane;
+  private final JFrame frame = new JFrame();
+  private final JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
   private final Map<String, Integer> tabTitleIndexes = new HashMap<>();
 
   public static void main(String[] args) {
@@ -84,6 +89,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
   }
 
   private MainBriefcaseWindow() {
+    // Create all dependencies
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     BriefcasePreferences pullPreferences = BriefcasePreferences.forClass(PullPanel.class);
     BriefcasePreferences exportPreferences = BriefcasePreferences.forClass(ExportPanel.class);
@@ -94,49 +100,48 @@ public class MainBriefcaseWindow extends WindowAdapter {
         .map(FormCache::from)
         .orElse(FormCache.empty());
 
-    frame = new JFrame();
+    int maxHttpConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
+    Http http = appPreferences.getHttpProxy()
+        .map(host -> CommonsHttp.of(maxHttpConnections, host))
+        .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
+
+    BriefcaseVersionManager versionManager = new BriefcaseVersionManager(http, VERSION);
 
     Analytics analytics = Analytics.from(
         BuildConfig.GOOGLE_TRACKING_ID,
-        BuildConfig.VERSION,
+        VERSION,
         BriefcasePreferences.getUniqueUserID(),
         Toolkit.getDefaultToolkit().getScreenSize(),
         frame::getSize
     );
     analytics.enableTracking(BriefcasePreferences.getBriefcaseTrackingConsentProperty());
     analytics.enter("Briefcase");
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
+    getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
-    int maxHttpConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
-    Http http = appPreferences.getHttpProxy()
-        .map(host -> CommonsHttp.of(maxHttpConnections, host))
-        .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
-
-    frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
-    tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-    frame.setContentPane(tabbedPane);
-
+    // Add panes to the tabbedPane
     addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics).getContainer());
+    addPane(PushPanel.TAB_NAME, PushPanel.from(http, appPreferences, formCache, analytics).getContainer());
+    addPane(ExportPanel.TAB_NAME, ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, formCache, http).getForm().getContainer());
+    addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(appPreferences, analytics, formCache, http, versionManager).getContainer());
 
-    PushPanel pushPanel = PushPanel.from(http, appPreferences, formCache, analytics);
-    addPane(PushPanel.TAB_NAME, pushPanel.getContainer());
-
-    ExportPanel exportPanel = ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, formCache, http);
-    addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
-
-    Component settingsPanel = SettingsPanel.from(appPreferences, analytics, formCache, http, new BriefcaseVersionManager(http, BuildConfig.VERSION)).getContainer();
-    addPane(SettingsPanel.TAB_NAME, settingsPanel);
-
+    // Set up the frame and put the UI components in it
     frame.addWindowListener(this);
+    frame.setLayout(new GridBagLayout());
     frame.setTitle(APP_NAME);
-    ImageIcon imageIcon = new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png"));
-    frame.setIconImage(imageIcon.getImage());
-    frame.pack();
+    frame.setIconImage(new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png")).getImage());
     frame.setLocationRelativeTo(null);
     frame.setVisible(true);
+    frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    GridBagConstraints tabbedPaneConstraint;
+    tabbedPaneConstraint = new GridBagConstraints();
+    tabbedPaneConstraint.gridx = 0;
+    tabbedPaneConstraint.gridy = 0;
+    tabbedPaneConstraint.weightx = 1.0;
+    tabbedPaneConstraint.weighty = 1.0;
+    tabbedPaneConstraint.anchor = WEST;
+    frame.add(tabbedPane, tabbedPaneConstraint);
+    frame.pack();
 
-    // Subscribe to events once the UI is ready to react (lock/unlock)
     AnnotationProcessor.process(this);
 
     if (isFirstLaunch(appPreferences)) {
