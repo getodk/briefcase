@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.ui;
 
+import static java.awt.GridBagConstraints.CENTER;
 import static java.awt.GridBagConstraints.WEST;
 import static java.lang.Runtime.getRuntime;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
@@ -28,6 +29,7 @@ import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.nio.file.Files;
@@ -37,6 +39,7 @@ import java.util.Map;
 import java.util.Optional;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -65,6 +68,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
   private final JFrame frame = new JFrame();
   private final JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+  private final JLabel versionLabel = new JLabel("Checking for updates...");
   private final Map<String, Integer> tabTitleIndexes = new HashMap<>();
 
   public static void main(String[] args) {
@@ -140,6 +144,13 @@ public class MainBriefcaseWindow extends WindowAdapter {
     tabbedPaneConstraint.weighty = 1.0;
     tabbedPaneConstraint.anchor = WEST;
     frame.add(tabbedPane, tabbedPaneConstraint);
+    GridBagConstraints versionLabelConstraints;
+    versionLabelConstraints = new GridBagConstraints();
+    versionLabelConstraints.gridx = 0;
+    versionLabelConstraints.gridy = 1;
+    versionLabelConstraints.anchor = CENTER;
+    versionLabelConstraints.insets = new Insets(5, 10, 5, 10);
+    frame.add(versionLabel, versionLabelConstraints);
     frame.pack();
 
     AnnotationProcessor.process(this);
