@@ -3,6 +3,20 @@ package org.opendatakit.briefcase.ui.reused;
 import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.COLOR_NOT_VALID;
 import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.COLOR_VALID;
 
+/**
+ * UI form field validator class to be used with field pairs that can't be considered to be
+ * valid individually when the other has not been filled in. Examples:
+ * <ul>
+ * <li>Password and "repeat password" fields</li>
+ * <li>Username and password fields</li>
+ * </ul>
+ * <p>
+ * This validator class is always evaluated after individual field validators.
+ * <p>
+ * For more insights see the tests at UiLinkedFieldValidatorTest
+ *
+ * @see UiFieldValidator
+ */
 public class UiLinkedFieldValidator {
   private final UiFieldValidator validatorA;
   private final UiFieldValidator validatorB;
