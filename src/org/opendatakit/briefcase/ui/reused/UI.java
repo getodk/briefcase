@@ -19,11 +19,15 @@ package org.opendatakit.briefcase.ui.reused;
 import static java.awt.Color.DARK_GRAY;
 import static java.awt.Color.GRAY;
 import static java.awt.Color.LIGHT_GRAY;
+import static java.awt.Cursor.HAND_CURSOR;
+import static java.awt.Cursor.getPredefinedCursor;
+import static java.awt.Desktop.getDesktop;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static javax.swing.JOptionPane.YES_OPTION;
 import static javax.swing.JOptionPane.getFrameForComponent;
+import static javax.swing.SwingUtilities.invokeLater;
 import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.APP_NAME;
 import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
 
@@ -33,6 +37,9 @@ import java.awt.Insets;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Optional;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -47,6 +54,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Credentials;
 
@@ -177,6 +185,24 @@ public class UI {
   public static void removeAllMouseListeners(JComponent component) {
     for (MouseListener listener : component.getMouseListeners())
       component.removeMouseListener(listener);
+  }
+
+  public static void makeClickable(JLabel label, Runnable callback) {
+    label.setText(label.getText().startsWith("<html>") ? label.getText() : String.format("<html><a href=\"\">%s</a></html>", label.getText()));
+    label.setCursor(getPredefinedCursor(HAND_CURSOR));
+    removeAllMouseListeners(label);
+    label.addMouseListener(new MouseAdapterBuilder().onClick(__ -> invokeLater(callback)).build());
+  }
+
+  /**
+   * Opens a tab in the default desktop web browser with the provided URL
+   */
+  public static void uncheckedBrowse(URL url) {
+    try {
+      getDesktop().browse(url.toURI());
+    } catch (URISyntaxException | IOException e) {
+      throw new BriefcaseException(e);
+    }
   }
 
   public static Optional<Credentials> credentialsFromFields(JTextField username, JPasswordField password) {
