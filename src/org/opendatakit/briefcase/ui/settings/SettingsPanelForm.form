@@ -242,7 +242,7 @@
       </grid>
       <vspacer id="af488">
         <constraints>
-          <grid row="18" column="0" row-span="1" col-span="6" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <grid row="20" column="0" row-span="1" col-span="6" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
       </vspacer>
@@ -384,6 +384,23 @@
           </hspacer>
         </children>
       </grid>
+      <vspacer id="4ba1">
+        <constraints>
+          <grid row="18" column="1" row-span="1" col-span="5" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
+        </constraints>
+      </vspacer>
+      <component id="53404" class="javax.swing.JLabel" binding="versionLabel">
+        <constraints>
+          <grid row="19" column="1" row-span="1" col-span="5" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="0.0"/>
+        </constraints>
+        <properties>
+          <enabled value="false"/>
+          <font style="0"/>
+          <text value="[version placeholder]"/>
+        </properties>
+      </component>
     </children>
   </grid>
 </form>

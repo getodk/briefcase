@@ -48,6 +48,7 @@ import org.opendatakit.briefcase.ui.pull.PullPanel;
 import org.opendatakit.briefcase.ui.push.PushPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.settings.SettingsPanel;
+import org.opendatakit.briefcase.util.BriefcaseVersionManager;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.briefcase.util.Host;
 import org.slf4j.Logger;
@@ -125,7 +126,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     ExportPanel exportPanel = ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, formCache, http);
     addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
 
-    Component settingsPanel = SettingsPanel.from(appPreferences, analytics, formCache, http).getContainer();
+    Component settingsPanel = SettingsPanel.from(appPreferences, analytics, formCache, http, new BriefcaseVersionManager(http, BuildConfig.VERSION)).getContainer();
     addPane(SettingsPanel.TAB_NAME, settingsPanel);
 
     frame.addWindowListener(this);

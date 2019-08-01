@@ -22,6 +22,7 @@ import static org.opendatakit.briefcase.reused.http.Http.MIN_HTTP_CONNECTIONS;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.FocusAdapter;
@@ -68,6 +69,7 @@ public class SettingsPanelForm {
   private JLabel maxHttpConnectionsLabel;
   private JPanel maxHttpConnectionContainer;
   private JPanel httpProxyContainer;
+  private JLabel versionLabel;
   private final List<Consumer<Path>> onStorageLocationCallbacks = new ArrayList<>();
   private final List<Runnable> onClearStorageLocationCallbacks = new ArrayList<>();
   private final List<Consumer<HttpHost>> onHttpProxyCallbacks = new ArrayList<>();
@@ -91,6 +93,10 @@ public class SettingsPanelForm {
     httpProxyPortField.addChangeListener(__ -> processHttpProxyFields());
 
     updateProxyFields(useHttpProxyField.isSelected());
+  }
+
+  void setVersion(String version) {
+    versionLabel.setText("ODK Briefcase " + version);
   }
 
   void updateHttpProxyFields() {
@@ -442,7 +448,7 @@ public class SettingsPanelForm {
     final JPanel spacer17 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 18;
+    gbc.gridy = 20;
     gbc.gridwidth = 6;
     gbc.fill = GridBagConstraints.VERTICAL;
     container.add(spacer17, gbc);
@@ -575,13 +581,42 @@ public class SettingsPanelForm {
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     maxHttpConnectionContainer.add(spacer26, gbc);
+    final JPanel spacer27 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 1;
+    gbc.gridy = 18;
+    gbc.gridwidth = 5;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    container.add(spacer27, gbc);
+    versionLabel = new JLabel();
+    versionLabel.setEnabled(false);
+    Font versionLabelFont = this.$$$getFont$$$(null, Font.PLAIN, -1, versionLabel.getFont());
+    if (versionLabelFont != null) versionLabel.setFont(versionLabelFont);
+    versionLabel.setText("[version placeholder]");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 1;
+    gbc.gridy = 19;
+    gbc.gridwidth = 5;
+    gbc.weightx = 1.0;
+    container.add(versionLabel, gbc);
   }
 
   /**
    * @noinspection ALL
    */
-  public JComponent $$$getRootComponent$$$() {
-    return container;
+  private Font $$$getFont$$$(String fontName, int style, int size, Font currentFont) {
+    if (currentFont == null) return null;
+    String resultName;
+    if (fontName == null) {resultName = currentFont.getName();} else {
+      Font testFont = new Font(fontName, Font.PLAIN, 10);
+      if (testFont.canDisplay('a') && testFont.canDisplay('1')) {resultName = fontName;} else {resultName = currentFont.getName();}
+    }
+    return new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
   }
+
+  /**
+   * @noinspection ALL
+   */
+  public JComponent $$$getRootComponent$$$() { return container; }
 
 }
