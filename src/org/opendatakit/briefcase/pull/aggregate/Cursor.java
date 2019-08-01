@@ -118,9 +118,7 @@ public interface Cursor<T extends Cursor> extends Comparable<T> {
         return AGGREGATE;
       if (type.equals("ona"))
         return ONA;
-      if (type.equals("opaque"))
-        return OPAQUE;
-      throw new BriefcaseException("Unknown cursor type " + type);
+      return OPAQUE;
     }
 
     public Cursor create(String rawValue) {
