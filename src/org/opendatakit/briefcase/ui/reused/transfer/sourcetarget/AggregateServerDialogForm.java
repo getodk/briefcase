@@ -19,6 +19,7 @@ package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget;
 import static java.awt.event.KeyEvent.VK_ESCAPE;
 import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 import static javax.swing.KeyStroke.getKeyStroke;
+import static org.opendatakit.briefcase.ui.reused.UI.credentialsFromFields;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.EMAIL;
 import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.REQUIRED;
@@ -33,7 +34,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -44,8 +44,6 @@ import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.OptionalProduct;
-import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.ui.reused.FocusAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.UiFieldValidator;
@@ -112,14 +110,9 @@ public class AggregateServerDialogForm extends JDialog {
   private void triggerConnect() {
     setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     try {
-      Optional<Credentials> credentials = OptionalProduct.all(
-          Optional.ofNullable(usernameField.getText()).map(String::trim).filter(s -> !s.isEmpty()),
-          Optional.of(new String(passwordField.getPassword())).filter(s -> !s.isEmpty())
-      ).map(Credentials::new);
-
       URL baseUrl = new URL(urlField.getText());
 
-      AggregateServer server = credentials
+      AggregateServer server = credentialsFromFields(usernameField, passwordField)
           .map(c -> AggregateServer.authenticated(baseUrl, c))
           .orElse(AggregateServer.normal(baseUrl));
 

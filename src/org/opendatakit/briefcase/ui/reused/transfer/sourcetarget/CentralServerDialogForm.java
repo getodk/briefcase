@@ -35,7 +35,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import javax.swing.JButton;
@@ -47,10 +46,9 @@ import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.OptionalProduct;
-import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
 import org.opendatakit.briefcase.ui.reused.FocusAdapterBuilder;
+import org.opendatakit.briefcase.ui.reused.UI;
 import org.opendatakit.briefcase.ui.reused.UiFieldValidator;
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 
@@ -117,17 +115,12 @@ public class CentralServerDialogForm extends JDialog {
   private void triggerConnect() {
     setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     try {
-      Optional<Credentials> credentials = OptionalProduct.all(
-          Optional.ofNullable(emailField.getText()).map(String::trim).filter(s -> !s.isEmpty()),
-          Optional.of(new String(passwordField.getPassword())).filter(s -> !s.isEmpty())
-      ).map(Credentials::new);
-
       URL baseUrl = new URL(urlField.getText());
 
       CentralServer server = CentralServer.of(
           baseUrl,
           parseInt(projectIdField.getText()),
-          credentials.orElseThrow(BriefcaseException::new)
+          UI.credentialsFromFields(emailField, passwordField).orElseThrow(BriefcaseException::new)
       );
 
       onConnectCallbacks.forEach(callback -> callback.accept(server));
