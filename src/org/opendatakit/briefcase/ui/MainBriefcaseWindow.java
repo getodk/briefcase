@@ -21,10 +21,15 @@ import static java.awt.GridBagConstraints.WEST;
 import static java.lang.Runtime.getRuntime;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
+import static org.opendatakit.briefcase.reused.job.Job.run;
+import static org.opendatakit.briefcase.reused.job.JobsRunner.launchAsync;
 import static org.opendatakit.briefcase.ui.BriefcaseCLI.launchLegacyCLI;
 import static org.opendatakit.briefcase.ui.MessageStrings.BRIEFCASE_WELCOME;
 import static org.opendatakit.briefcase.ui.MessageStrings.TRACKING_WARNING;
 import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
+import static org.opendatakit.briefcase.ui.reused.UI.makeClickable;
+import static org.opendatakit.briefcase.ui.reused.UI.uncheckedBrowse;
+import static org.opendatakit.briefcase.util.BriefcaseVersionManager.getLatestUrl;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -153,6 +158,15 @@ public class MainBriefcaseWindow extends WindowAdapter {
     frame.add(versionLabel, versionLabelConstraints);
     frame.pack();
 
+    launchAsync(run(rs -> {
+      if (versionManager.isUpToDate()) {
+        this.removeVersionLabel();
+      } else {
+        versionLabel.setText("Update available");
+        makeClickable(versionLabel, () -> uncheckedBrowse(getLatestUrl()));
+      }
+    }));
+
     AnnotationProcessor.process(this);
 
     if (isFirstLaunch(appPreferences)) {
@@ -167,6 +181,12 @@ public class MainBriefcaseWindow extends WindowAdapter {
       showTrackingWarning();
       appPreferences.setTrackingWarningShowed();
     }
+  }
+
+  private void removeVersionLabel() {
+    versionLabel.setVisible(false);
+    frame.remove(versionLabel);
+    frame.pack();
   }
 
   private void lockUI() {
