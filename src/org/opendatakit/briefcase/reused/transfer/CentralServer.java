@@ -66,9 +66,8 @@ public class CentralServer implements RemoteServer {
   }
 
   public static String cleanUrl(String url) {
-    return url.contains("/#/")
-        ? url.substring(0, url.indexOf("/#/"))
-        : url;
+    int index = url.indexOf("/#/");
+    return index == -1 ? url : url.substring(0, index);
   }
 
   public Request<Boolean> getCredentialsTestRequest() {
