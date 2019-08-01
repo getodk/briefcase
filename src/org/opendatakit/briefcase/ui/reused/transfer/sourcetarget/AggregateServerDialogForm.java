@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -104,12 +103,10 @@ public class AggregateServerDialogForm extends JDialog {
   }
 
   private void updateConnectButton() {
-    connectButton.setEnabled(Stream.of(
-        urlValidator.isValid(),
-        usernameValidator.isValid(),
-        passwordValidator.isValid(),
-        usernameAndPasswordValidator.isValid()
-    ).reduce(true, Boolean::logicalAnd));
+    connectButton.setEnabled(urlValidator.isValid() &&
+        usernameValidator.isValid() &&
+        passwordValidator.isValid() &&
+        usernameAndPasswordValidator.isValid());
   }
 
   private void triggerConnect() {
