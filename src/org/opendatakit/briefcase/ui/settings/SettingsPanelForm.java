@@ -46,7 +46,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 
-@SuppressWarnings("checkstyle:MethodName")
+@SuppressWarnings({"checkstyle:MethodName", "checkstyle:OneStatementPerLine", "checkstyle:RightCurlyAlone"})
 public class SettingsPanelForm {
   public JPanel container;
   private JPanel storageLocationContainer;
