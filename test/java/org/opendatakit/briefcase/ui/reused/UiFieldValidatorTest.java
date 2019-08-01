@@ -84,7 +84,7 @@ public class UiFieldValidatorTest {
     JTextField field = new JTextField();
     JLabel label = new JLabel();
     label.setForeground(BLACK);
-    UiFieldValidator validator = UiFieldValidator.of(field, label, s -> s.equals("foo")).onChange(() -> changeCallbackCalledTimes.getAndIncrement());
+    UiFieldValidator validator = UiFieldValidator.of(field, label, s -> s.equals("foo")).onChange(changeCallbackCalledTimes::getAndIncrement);
 
     simulateKeyStroke(field);
     assertThat(validator.isValid(), is(false));
