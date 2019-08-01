@@ -29,7 +29,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
 
-public class OpenRosaCursorTest {
+public class AggregateCursorTest {
 
   @Test
   @SuppressWarnings("unchecked")
