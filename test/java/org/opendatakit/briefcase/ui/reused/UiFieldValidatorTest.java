@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.COLOR_NOT_VALID;
 import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.COLOR_VALID;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.REQUIRED;
 
 import java.awt.event.KeyEvent;
 import java.time.OffsetDateTime;
@@ -104,6 +105,13 @@ public class UiFieldValidatorTest {
     simulateKeyStroke(field);
     assertThat(validator.isValid(), is(false));
     assertThat(changeCallbackCalledTimes.get(), is(3)); // goes from "valid" to "invalid"
+  }
+
+  @Test
+  public void not_REQUIRED_fields_should_be_valid_by_default() {
+    // i.e. even if the user doesn't input any value on those fields
+    assertThat(UiFieldValidator.of(field, label, REQUIRED).isValid(), is(false));
+    assertThat(UiFieldValidator.of(field, label).isValid(), is(true));
   }
 
   private void simulateKeyStroke(JTextField field) {

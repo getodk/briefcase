@@ -33,17 +33,21 @@ public class UiLinkedFieldValidator {
 
   private void update() {
     boolean previousIsValid = isValid;
-    String valueA = validatorA.getValue();
-    String valueB = validatorB.getValue();
-    isValid = (valueA == null && valueB == null)
-        || (valueA != null && valueA.trim().isEmpty() && valueB != null && valueB.trim().isEmpty())
-        || (valueA != null && !valueA.trim().isEmpty() && valueB != null && !valueB.trim().isEmpty());
+    updateIsValid();
 
     validatorA.label.setForeground(isValid && validatorA.isValid() ? COLOR_VALID : COLOR_NOT_VALID);
     validatorB.label.setForeground(isValid && validatorB.isValid() ? COLOR_VALID : COLOR_NOT_VALID);
 
     if (isValid != previousIsValid)
       onChangeCallback.run();
+  }
+
+  private void updateIsValid() {
+    String valueA = validatorA.getValue();
+    String valueB = validatorB.getValue();
+    isValid = (valueA == null && valueB == null)
+        || (valueA != null && valueA.trim().isEmpty() && valueB != null && valueB.trim().isEmpty())
+        || (valueA != null && !valueA.trim().isEmpty() && valueB != null && !valueB.trim().isEmpty());
   }
 
   public static UiLinkedFieldValidator of(UiFieldValidator validatorA, UiFieldValidator validatorB) {
@@ -56,6 +60,7 @@ public class UiLinkedFieldValidator {
   }
 
   public boolean isValid() {
+    updateIsValid();
     return isValid;
   }
 }

@@ -42,7 +42,7 @@ public class UiFieldValidator {
     String value = getValue();
 
     isDirty = isDirty || (value != null && !value.isEmpty());
-    isValid = predicate.test(value);
+    updateIsValid();
 
     label.setForeground(isDirty && !isValid ? COLOR_NOT_VALID : COLOR_VALID);
 
@@ -52,7 +52,12 @@ public class UiFieldValidator {
   }
 
   public boolean isValid() {
+    updateIsValid();
     return isValid;
+  }
+
+  private void updateIsValid() {
+    isValid = predicate.test(getValue());
   }
 
   public UiFieldValidator onChange(Runnable callback) {
