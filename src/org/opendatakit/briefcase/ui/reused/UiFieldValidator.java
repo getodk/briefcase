@@ -52,7 +52,7 @@ public class UiFieldValidator {
   }
 
   public boolean isValid() {
-    return isDirty && isValid;
+    return isValid;
   }
 
   public UiFieldValidator onChange(Runnable callback) {
