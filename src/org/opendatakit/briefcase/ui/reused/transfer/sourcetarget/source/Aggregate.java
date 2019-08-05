@@ -51,19 +51,19 @@ public class Aggregate implements PullSource<AggregateServer> {
   private final Http http;
   private final Consumer<PullSource> consumer;
   private Test<AggregateServer> serverTester;
-  private String requiredPermission;
+  private String usernameHelp;
   private AggregateServer server;
 
-  Aggregate(Http http, Test<AggregateServer> serverTester, String requiredPermission, Consumer<PullSource> consumer) {
+  Aggregate(Http http, Test<AggregateServer> serverTester, String usernameHelp, Consumer<PullSource> consumer) {
     this.http = http;
     this.serverTester = serverTester;
-    this.requiredPermission = requiredPermission;
+    this.usernameHelp = usernameHelp;
     this.consumer = consumer;
   }
 
   @Override
   public void onSelect(Container ignored) {
-    AggregateServerDialog dialog = AggregateServerDialog.empty(serverTester, requiredPermission);
+    AggregateServerDialog dialog = AggregateServerDialog.empty(serverTester, usernameHelp);
     dialog.onConnect(this::set);
     dialog.getForm().setVisible(true);
   }

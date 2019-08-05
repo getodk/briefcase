@@ -70,9 +70,9 @@ public class AggregateServerDialogForm extends JDialog {
   private UiLinkedFieldValidator usernameAndPasswordValidator;
   private final List<Consumer<AggregateServer>> onConnectCallbacks = new ArrayList<>();
 
-  AggregateServerDialogForm(String requiredPermission) {
+  AggregateServerDialogForm(String usernameHelp) {
     $$$setupUI$$$();
-    usernameHelpLabel.setText("Must have \"" + requiredPermission + "\" permissions");
+    usernameHelpLabel.setText(usernameHelp);
     setContentPane(dialog);
     setPreferredSize(new Dimension(500, 240));
     setModal(true);

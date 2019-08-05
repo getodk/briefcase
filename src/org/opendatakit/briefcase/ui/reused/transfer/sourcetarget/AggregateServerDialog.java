@@ -68,9 +68,9 @@ public class AggregateServerDialog {
     ));
   }
 
-  public static AggregateServerDialog empty(Test<AggregateServer> serverTester, String requiredPermission) {
+  public static AggregateServerDialog empty(Test<AggregateServer> serverTester, String usernameHelp) {
     return new AggregateServerDialog(
-        new AggregateServerDialogForm(requiredPermission),
+        new AggregateServerDialogForm(usernameHelp),
         serverTester
     );
   }
