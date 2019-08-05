@@ -16,13 +16,15 @@
 
 package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget;
 
+import static javax.swing.SwingUtilities.invokeLater;
+import static org.opendatakit.briefcase.reused.job.Job.run;
+import static org.opendatakit.briefcase.reused.job.JobsRunner.launchAsync;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
-import javax.swing.SwingWorker;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer.Test;
@@ -37,34 +39,23 @@ public class AggregateServerDialog {
     this.form.onConnect(server -> {
       form.setTestingConnection();
 
-      new SwingWorker<Response, Void>() {
-        @Override
-        protected Response doInBackground() {
-          return serverTester.test(server);
+      launchAsync(run(rs -> {
+        try {
+          Response response = serverTester.test(server);
+          if (response.isSuccess()) {
+            triggerConnect(server);
+            form.hideDialog();
+          } else
+            showErrorMessage(
+                response.isRedirection() ? "Redirection detected" : response.isUnauthorized() ? "Wrong credentials" : response.isNotFound() ? "Aggregate not found" : "",
+                response.isRedirection() ? "Unexpected error" : "Configuration error"
+            );
+        } catch (BriefcaseException e) {
+          showErrorMessage("Briefcase wasn't able to interact with the provided server", "Unexpected error");
         }
-
-        @Override
-        protected void done() {
-          try {
-            Response response = get();
-            if (response.isSuccess()) {
-              triggerConnect(server);
-              form.hideDialog();
-            } else
-              showErrorMessage(
-                  response.isRedirection() ? "Redirection detected" : response.isUnauthorized() ? "Wrong credentials" : response.isNotFound() ? "Aggregate not found" : "",
-                  response.isRedirection() ? "Unexpected error" : "Configuration error"
-              );
-          } catch (InterruptedException ignore) {
-            // Ignore
-          } catch (ExecutionException e) {
-            if (e.getCause() != null) {
-              showErrorMessage(e.getCause().getMessage(), "Unexpected error");
-            }
-          }
-          form.unsetTestingConnection();
-        }
-      }.execute();
+        // Avoid EDT violations
+        invokeLater(form::unsetTestingConnection);
+      }));
     });
   }
 
