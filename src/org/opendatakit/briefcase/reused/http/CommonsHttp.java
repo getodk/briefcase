@@ -16,7 +16,7 @@
 
 package org.opendatakit.briefcase.reused.http;
 
-import static org.apache.http.client.config.CookieSpecs.STANDARD;
+import static org.apache.http.client.config.CookieSpecs.IGNORE_COOKIES;
 import static org.apache.http.client.config.RequestConfig.custom;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.POST;
 
@@ -71,7 +71,8 @@ public class CommonsHttp implements Http {
             .setConnectionRequestTimeout(0)
             .setSocketTimeout(0)
             .setConnectTimeout(0)
-            .setCookieSpec(STANDARD).build());
+            .setCookieSpec(IGNORE_COOKIES)
+            .build());
   }
 
   @Override
