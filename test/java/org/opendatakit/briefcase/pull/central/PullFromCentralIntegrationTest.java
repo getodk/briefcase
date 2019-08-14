@@ -49,11 +49,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.transfer.CentralAttachment;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
-import org.opendatakit.briefcase.ui.export.InMemoryFormMetadataAdapter;
 
 public class PullFromCentralIntegrationTest {
   private static final String token = "some token";

@@ -15,14 +15,18 @@
  */
 package org.opendatakit.briefcase.export;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.javarosa.xform.parse.XFormParser.getXMLText;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,6 +42,7 @@ import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
 import org.kxml2.kdom.Node;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -72,6 +77,20 @@ public class XmlElement {
       tempDoc.parse(parser);
       return XmlElement.of(tempDoc);
     } catch (XmlPullParserException | IOException e) {
+      throw new BriefcaseException(e);
+    }
+  }
+
+  public static XmlElement from(Path xmlFile) {
+    try (InputStream is = UncheckedFiles.newInputStream(xmlFile);
+         InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
+      Document tempDoc = new Document();
+      KXmlParser parser = new KXmlParser();
+      parser.setInput(isr);
+      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      tempDoc.parse(parser);
+      return XmlElement.of(tempDoc);
+    } catch (IOException | XmlPullParserException e) {
       throw new BriefcaseException(e);
     }
   }
@@ -172,6 +191,16 @@ public class XmlElement {
   public Optional<String> maybeValue() {
     return Optional.ofNullable(getXMLText(element, true))
         .filter(s -> !s.isEmpty());
+  }
+
+  /**
+   * Returns true if this element has an attribute with the given name, false otherwise
+   */
+  public boolean hasAttribute(String name) {
+    for (int i = 0, max = element.getAttributeCount(); i < max; i++)
+      if (element.getAttributeName(i).equals(name))
+        return true;
+    return false;
   }
 
   /**

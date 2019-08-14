@@ -58,13 +58,13 @@ import org.junit.Test;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
+import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.job.RunnerStatus;
 import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.transfer.TransferTestHelpers;
-import org.opendatakit.briefcase.ui.export.InMemoryFormMetadataAdapter;
 
 public class PullFromAggregateIntegrationTest {
   private static final int serverPort = 12306;

@@ -16,14 +16,17 @@
 
 package org.opendatakit.briefcase.pull.aggregate;
 
+import static org.opendatakit.briefcase.model.form.AsJson.getJson;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
+import org.opendatakit.briefcase.model.form.AsJson;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class stores information about a cursor to a list of remote submission
@@ -33,12 +36,18 @@ import org.slf4j.LoggerFactory;
  * and "start from date" features, we need to try to parse it and even create artificial
  * cursors.
  */
-public interface Cursor<T extends Cursor> extends Comparable<T> {
-  Logger log = LoggerFactory.getLogger(Cursor.class);
+public interface Cursor extends Comparable<Cursor>, AsJson {
 
   static Cursor empty() {
     return new EmptyCursor();
   }
+
+  static Cursor from(JsonNode root) {
+    Type type = getJson(root, "type").map(JsonNode::asText).map(Type::from).orElseThrow(BriefcaseException::new);
+    String value = getJson(root, "value").map(JsonNode::asText).orElse("");
+    return type.create(value);
+  }
+
 
   String getValue();
 
@@ -80,7 +89,7 @@ public interface Cursor<T extends Cursor> extends Comparable<T> {
 
 
   enum Type {
-
+    EMPTY("empty", s -> new EmptyCursor()),
     AGGREGATE("aggregate", AggregateCursor::from),
     ONA("ona", OnaCursor::from),
     OPAQUE("opaque", OpaqueCursor::from);
@@ -94,11 +103,10 @@ public interface Cursor<T extends Cursor> extends Comparable<T> {
     }
 
     public static Type from(String type) {
-      if (type.equals("aggregate"))
-        return AGGREGATE;
-      if (type.equals("ona"))
-        return ONA;
-      return OPAQUE;
+      return Stream.of(values())
+          .filter(t -> t.getName().equals(type))
+          .findFirst()
+          .orElse(OPAQUE);
     }
 
     public Cursor create(String rawValue) {

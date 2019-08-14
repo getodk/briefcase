@@ -1,6 +1,7 @@
 package org.opendatakit.briefcase.model.form;
 
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -10,7 +11,11 @@ public interface FormMetadataPort {
 
   void execute(Consumer<FormMetadataPort> command);
 
-  void syncWithFilesAt(Path storageRoot);
+  FormMetadataPort syncWithFilesAt(Path storageRoot);
 
   void flush();
+
+  void persist(FormMetadata formMetadata);
+
+  Optional<FormMetadata> fetch(FormKey key);
 }

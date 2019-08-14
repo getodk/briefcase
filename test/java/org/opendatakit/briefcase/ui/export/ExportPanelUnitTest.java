@@ -40,6 +40,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusBuilder;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
+import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
 import org.opendatakit.briefcase.ui.reused.NoOpAnalytics;
 import org.opendatakit.briefcase.util.FormCache;
