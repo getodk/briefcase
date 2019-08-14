@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
@@ -49,7 +50,7 @@ public interface PullSource<T> extends SourceOrTarget<T> {
 
   void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords);
 
-  JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, BriefcasePreferences localPreferences);
+  JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort);
 
   String getDescription();
 

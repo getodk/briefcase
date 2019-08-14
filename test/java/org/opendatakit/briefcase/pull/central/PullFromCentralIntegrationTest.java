@@ -53,6 +53,7 @@ import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.transfer.CentralAttachment;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
+import org.opendatakit.briefcase.ui.export.InMemoryFormMetadataAdapter;
 
 public class PullFromCentralIntegrationTest {
   private static final String token = "some token";
@@ -73,7 +74,7 @@ public class PullFromCentralIntegrationTest {
   @Before
   public void setUp() {
     server = httpServer(serverPort);
-    pullOp = new PullFromCentral(CommonsHttp.of(1), centralServer, briefcaseDir, token, e -> { });
+    pullOp = new PullFromCentral(CommonsHttp.of(1), centralServer, briefcaseDir, token, e -> { }, new InMemoryFormMetadataAdapter());
   }
 
   @After

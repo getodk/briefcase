@@ -20,9 +20,8 @@ import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
 import java.nio.file.Path;
 import javax.swing.JPanel;
-import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.reused.Analytics;
@@ -35,7 +34,7 @@ public class SettingsPanel {
   private final SettingsPanelForm form;
 
   @SuppressWarnings("checkstyle:Indentation")
-  private SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http, BriefcaseVersionManager versionManager) {
+  private SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http, BriefcaseVersionManager versionManager, FormMetadataPort formMetadataPort) {
     this.form = form;
 
     appPreferences.getBriefcaseDir().ifPresent(path -> form.setStorageLocation(path.getParent()));
@@ -55,10 +54,12 @@ public class SettingsPanel {
       formCache.setLocation(briefcaseDir);
       formCache.update();
       appPreferences.setStorageDir(path);
+      formMetadataPort.syncWithFilesAt(briefcaseDir);
     }, () -> {
       formCache.unsetLocation();
       formCache.update();
       appPreferences.unsetStorageDir();
+      formMetadataPort.flush();
     });
     form.onMaxHttpConnectionsChange(appPreferences::setMaxHttpConnections);
     form.onResumeLastPullChange(appPreferences::setStartFromLast);
@@ -78,14 +79,17 @@ public class SettingsPanel {
       formCache.update();
       infoMessage("Forms successfully reloaded from storage location.");
     });
-    form.onCleanAllPullResumePoints(() -> EventBus.publish(new PullEvent.CleanAllResumePoints()));
+    form.onCleanAllPullResumePoints(() -> {
+      formMetadataPort.flush();
+      infoMessage("Pull history cleared.");
+    });
 
     form.setVersion(versionManager.getCurrent());
   }
 
-  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http, BriefcaseVersionManager versionManager) {
+  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http, BriefcaseVersionManager versionManager, FormMetadataPort formMetadataPort) {
     SettingsPanelForm settingsPanelForm = new SettingsPanelForm();
-    return new SettingsPanel(settingsPanelForm, appPreferences, analytics, formCache, http, versionManager);
+    return new SettingsPanel(settingsPanelForm, appPreferences, analytics, formCache, http, versionManager, formMetadataPort);
   }
 
   public JPanel getContainer() {

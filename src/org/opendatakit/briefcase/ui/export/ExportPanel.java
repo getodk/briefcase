@@ -20,7 +20,7 @@ import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.load;
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
-import static org.opendatakit.briefcase.reused.LegacyPrefs.readCursor;
+import static org.opendatakit.briefcase.model.form.FormMetadataQueries.lastCursorOf;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.time.LocalDateTime;
@@ -40,6 +40,8 @@ import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
@@ -62,8 +64,9 @@ public class ExportPanel {
   private final Analytics analytics;
   private final FormCache formCache;
   private final Http http;
+  private final FormMetadataPort formMetadataPort;
 
-  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences exportPreferences, BriefcasePreferences pullPanelPrefs, Analytics analytics, FormCache formCache, Http http) {
+  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences exportPreferences, BriefcasePreferences pullPanelPrefs, Analytics analytics, FormCache formCache, Http http, FormMetadataPort formMetadataPort) {
     this.forms = forms;
     this.form = form;
     this.appPreferences = appPreferences;
@@ -72,6 +75,7 @@ public class ExportPanel {
     this.analytics = analytics;
     this.formCache = formCache;
     this.http = http;
+    this.formMetadataPort = formMetadataPort;
     AnnotationProcessor.process(this);// if not using AOP
     analytics.register(form.getContainer());
 
@@ -151,7 +155,7 @@ public class ExportPanel {
     }
   }
 
-  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics, FormCache formCache, Http http) {
+  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics, FormCache formCache, Http http, FormMetadataPort formMetadataPort) {
     ExportConfiguration initialDefaultConf = load(exportPreferences);
     ExportForms forms = ExportForms.load(initialDefaultConf, toFormStatuses(formCache.getForms()), exportPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, pullPrefs, initialDefaultConf);
@@ -163,7 +167,8 @@ public class ExportPanel {
         pullPrefs,
         analytics,
         formCache,
-        http
+        http,
+        formMetadataPort
     );
   }
 
@@ -184,6 +189,7 @@ public class ExportPanel {
 
   private void export() {
     Stream<Job<?>> allJobs = forms.getSelectedForms().stream().map(form -> {
+      FormKey key = FormKey.from(form);
       form.setStatusString("Starting to export form");
       String formId = form.getFormDefinition().getFormId();
       ExportConfiguration configuration = forms.getConfiguration(formId);
@@ -192,11 +198,11 @@ public class ExportPanel {
       Optional<AggregateServer> savedPullSource = RemoteServer.readFromPrefs(appPreferences, pullPanelPrefs, form);
 
       Job<Void> pullJob = configuration.resolvePullBefore() && savedPullSource.isPresent()
-          ? new PullFromAggregate(http, savedPullSource.get(), appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), appPreferences, false, EventBus::publish)
+          ? new PullFromAggregate(http, savedPullSource.get(), appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), false, EventBus::publish, formMetadataPort)
           .pull(
               form,
               appPreferences.resolveStartFromLast()
-                  ? readCursor(form.getFormId())
+                  ? formMetadataPort.query(lastCursorOf(key))
                   : Optional.empty()
           )
           : Job.noOpSupplier();

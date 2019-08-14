@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.pull.central;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.model.form.FormMetadataCommands.updateAsPulled;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.job.Job.allOf;
 import static org.opendatakit.briefcase.reused.job.Job.run;
@@ -31,6 +32,8 @@ import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.Triple;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -46,13 +49,15 @@ public class PullFromCentral {
   private final Path briefcaseDir;
   private final String token;
   private final Consumer<FormStatusEvent> onEventCallback;
+  private final FormMetadataPort formMetadataPort;
 
-  public PullFromCentral(Http http, CentralServer server, Path briefcaseDir, String token, Consumer<FormStatusEvent> onEventCallback) {
+  public PullFromCentral(Http http, CentralServer server, Path briefcaseDir, String token, Consumer<FormStatusEvent> onEventCallback, FormMetadataPort formMetadataPort) {
     this.http = http;
     this.server = server;
     this.briefcaseDir = briefcaseDir;
     this.token = token;
     this.onEventCallback = onEventCallback;
+    this.formMetadataPort = formMetadataPort;
   }
 
   /**
@@ -61,6 +66,8 @@ public class PullFromCentral {
    * under the Briefcase Storage directory.
    */
   public Job<Void> pull(FormStatus form) {
+    FormKey key = FormKey.from(form);
+
     PullFromCentralTracker tracker = new PullFromCentralTracker(form, onEventCallback);
 
     return run(rs -> tracker.trackStart())
@@ -104,8 +111,10 @@ public class PullFromCentral {
                 db.putRecordedInstanceDirectory(instanceId, form.getSubmissionDir(briefcaseDir, instanceId).toFile());
               });
           tracker.trackEnd();
-        }))
-        .thenRun(__ -> EventBus.publish(PullEvent.Success.of(form, server)));
+
+          formMetadataPort.execute(updateAsPulled(key));
+          EventBus.publish(PullEvent.Success.of(form, server));
+        }));
   }
 
   void downloadForm(FormStatus form, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker) {

@@ -53,6 +53,7 @@ import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.form.FileSystemFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.StorageLocationEvent;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -109,6 +110,9 @@ public class MainBriefcaseWindow extends WindowAdapter {
         .map(FormCache::from)
         .orElse(FormCache.empty());
 
+    FileSystemFormMetadataAdapter formMetadataAdapter = new FileSystemFormMetadataAdapter();
+    briefcaseDir.ifPresent(formMetadataAdapter::syncWithFilesAt);
+
     int maxHttpConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
         .map(host -> CommonsHttp.of(maxHttpConnections, host))
@@ -128,10 +132,10 @@ public class MainBriefcaseWindow extends WindowAdapter {
     getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
     // Add panes to the tabbedPane
-    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics).getContainer());
+    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics, formMetadataAdapter).getContainer());
     addPane(PushPanel.TAB_NAME, PushPanel.from(http, appPreferences, formCache, analytics).getContainer());
-    addPane(ExportPanel.TAB_NAME, ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, formCache, http).getForm().getContainer());
-    addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(appPreferences, analytics, formCache, http, versionManager).getContainer());
+    addPane(ExportPanel.TAB_NAME, ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, formCache, http, formMetadataAdapter).getForm().getContainer());
+    addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(appPreferences, analytics, formCache, http, versionManager, formMetadataAdapter).getContainer());
 
     // Set up the frame and put the UI components in it
     frame.addWindowListener(this);

@@ -16,13 +16,13 @@
 package org.opendatakit.briefcase.operations;
 
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.model.form.FormMetadataQueries.lastCursorOf;
 import static org.opendatakit.briefcase.operations.Common.CREDENTIALS_PASSWORD;
 import static org.opendatakit.briefcase.operations.Common.CREDENTIALS_USERNAME;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.MAX_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.operations.Common.SERVER_URL;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
-import static org.opendatakit.briefcase.reused.LegacyPrefs.readCursor;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
 import java.net.URL;
@@ -35,6 +35,9 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.model.form.FileSystemFormMetadataAdapter;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -46,7 +49,6 @@ import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.ui.pull.PullPanel;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
@@ -86,7 +88,7 @@ public class PullFormFromAggregate {
     formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     appPreferences.setStorageDir(briefcaseDir);
-    BriefcasePreferences tabPreferences = BriefcasePreferences.forClass(PullPanel.class);
+    FormMetadataPort formMetadataPort = FileSystemFormMetadataAdapter.at(briefcaseDir);
 
     int maxHttpConnections = Optionals.race(
         maybeMaxHttpConnections,
@@ -123,14 +125,13 @@ public class PullFormFromAggregate {
     forms.load(filteredForms);
     forms.selectAll();
 
-    PullFromAggregate pullOp = new PullFromAggregate(http, aggregateServer, briefcaseDir, appPreferences, includeIncomplete, PullFormFromAggregate::onEvent);
+    PullFromAggregate pullOp = new PullFromAggregate(http, aggregateServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent, formMetadataPort);
     JobsRunner.launchAsync(
         forms.map(form -> pullOp.pull(form, resolveCursor(
             resumeLastPull,
             startFromDate,
-            appPreferences,
-            tabPreferences,
-            form
+            form,
+            formMetadataPort
         ))),
         PullFormFromAggregate::onError
     ).waitForCompletion();
@@ -139,11 +140,12 @@ public class PullFormFromAggregate {
     System.out.println();
   }
 
-  private static Optional<Cursor> resolveCursor(boolean resumeLastPull, Optional<LocalDate> startFromDate, BriefcasePreferences appPreferences, BriefcasePreferences localPreferences, FormStatus form) {
+  private static Optional<Cursor> resolveCursor(boolean resumeLastPull, Optional<LocalDate> startFromDate, FormStatus form, FormMetadataPort formMetadataPort) {
+    FormKey key = FormKey.from(form);
     return Optionals.race(
         startFromDate.map(Cursor::of),
         resumeLastPull
-            ? Optionals.race(readCursor(form.getFormId(), appPreferences), readCursor(form.getFormId(), localPreferences))
+            ? formMetadataPort.query(lastCursorOf(key))
             : Optional.empty()
     );
   }

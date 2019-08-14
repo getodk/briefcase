@@ -64,6 +64,7 @@ import org.opendatakit.briefcase.reused.job.RunnerStatus;
 import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.transfer.TransferTestHelpers;
+import org.opendatakit.briefcase.ui.export.InMemoryFormMetadataAdapter;
 
 public class PullFromAggregateIntegrationTest {
   private static final int serverPort = 12306;
@@ -91,7 +92,7 @@ public class PullFromAggregateIntegrationTest {
     prefs.setStorageDir(tmpDir);
     server = httpServer(serverPort);
     tracker = new PullFromAggregateTracker(form, e -> { });
-    pullOp = new PullFromAggregate(CommonsHttp.of(1), aggregateServer, briefcaseDir, prefs, true, e -> { });
+    pullOp = new PullFromAggregate(CommonsHttp.of(1), aggregateServer, briefcaseDir, true, e -> { }, new InMemoryFormMetadataAdapter());
     runnerStatus = new TestRunnerStatus(false);
 
   }

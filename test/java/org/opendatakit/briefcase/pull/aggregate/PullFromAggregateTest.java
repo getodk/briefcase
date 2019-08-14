@@ -56,6 +56,7 @@ import org.opendatakit.briefcase.reused.http.FakeHttp;
 import org.opendatakit.briefcase.reused.http.RequestSpy;
 import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
+import org.opendatakit.briefcase.ui.export.InMemoryFormMetadataAdapter;
 
 public class PullFromAggregateTest {
   private Path tmpDir = createTempDirectory("briefcase-test-");
@@ -78,7 +79,7 @@ public class PullFromAggregateTest {
     http = new FakeHttp();
     events = new ArrayList<>();
     tracker = new PullFromAggregateTracker(form, e -> events.add(e.getStatusString()));
-    pullOp = new PullFromAggregate(http, server, briefcaseDir, prefs, includeIncomplete, e -> { });
+    pullOp = new PullFromAggregate(http, server, briefcaseDir, includeIncomplete, e -> { }, new InMemoryFormMetadataAdapter());
     runnerStatus = new TestRunnerStatus(false);
   }
 

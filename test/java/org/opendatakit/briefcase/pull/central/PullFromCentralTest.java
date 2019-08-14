@@ -48,6 +48,7 @@ import org.opendatakit.briefcase.reused.http.FakeHttp;
 import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
 import org.opendatakit.briefcase.reused.transfer.CentralAttachment;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
+import org.opendatakit.briefcase.ui.export.InMemoryFormMetadataAdapter;
 
 public class PullFromCentralTest {
   private static final CentralServer server = CentralServer.of(url("http://foo.bar"), 1, Credentials.from("username", "password"));
@@ -65,7 +66,7 @@ public class PullFromCentralTest {
     http = new FakeHttp();
     events = new ArrayList<>();
     tracker = new PullFromCentralTracker(form, e -> events.add(e.getStatusString()));
-    pullOp = new PullFromCentral(http, server, briefcaseDir, token, e -> { });
+    pullOp = new PullFromCentral(http, server, briefcaseDir, token, e -> { }, new InMemoryFormMetadataAdapter());
     runnerStatus = new TestRunnerStatus(false);
   }
 

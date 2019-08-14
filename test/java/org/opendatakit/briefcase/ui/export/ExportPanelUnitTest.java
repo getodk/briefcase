@@ -63,7 +63,8 @@ public class ExportPanelUnitTest {
         inMemoryPrefs,
         new NoOpAnalytics(),
         FormCache.empty(),
-        new FakeHttp()
+        new FakeHttp(),
+        new InMemoryFormMetadataAdapter()
     );
 
     exportPanelForm.setDefaultConf(empty().setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri())).build());
@@ -86,7 +87,8 @@ public class ExportPanelUnitTest {
         inMemoryPrefs,
         new NoOpAnalytics(),
         FormCache.empty(),
-        new FakeHttp()
+        new FakeHttp(),
+        new InMemoryFormMetadataAdapter()
     );
 
     FormStatus form = formsList.get(0);
@@ -117,7 +119,8 @@ public class ExportPanelUnitTest {
         inMemoryPrefs,
         new NoOpAnalytics(),
         FormCache.empty(),
-        new FakeHttp()
+        new FakeHttp(),
+        new InMemoryFormMetadataAdapter()
     );
 
     FormStatus form = formsList.get(0);

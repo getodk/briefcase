@@ -27,6 +27,7 @@ import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.central.PullFromCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -111,14 +112,15 @@ public class Central implements PullSource<CentralServer> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, BriefcasePreferences localPreferences) {
+  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
     String token = http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
     PullFromCentral pullOp = new PullFromCentral(
         http,
         server,
         appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
         token,
-        EventBus::publish
+        EventBus::publish,
+        formMetadataPort
     );
 
     return JobsRunner

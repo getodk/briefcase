@@ -45,7 +45,8 @@ class ExportPanelPageObject {
           inMemoryPrefs,
           new NoOpAnalytics(),
           FormCache.empty(),
-          new FakeHttp()
+          new FakeHttp(),
+          new InMemoryFormMetadataAdapter()
       );
       ep.updateForms();
       return ep;

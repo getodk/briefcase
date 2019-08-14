@@ -17,9 +17,9 @@ package org.opendatakit.briefcase.operations;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePrefix;
+import static org.opendatakit.briefcase.model.form.FormMetadataQueries.lastCursorOf;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
-import static org.opendatakit.briefcase.reused.LegacyPrefs.readCursor;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
@@ -38,6 +38,10 @@ import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.form.FileSystemFormMetadataAdapter;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
+import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
@@ -97,6 +101,7 @@ public class Export {
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     BriefcasePreferences exportPrefs = BriefcasePreferences.forClass(ExportPanel.class);
     BriefcasePreferences pullPrefs = BriefcasePreferences.forClass(ExportPanel.class);
+    FormMetadataPort formMetadataPort = FileSystemFormMetadataAdapter.at(briefcaseDir);
 
     int maxHttpConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
@@ -127,24 +132,20 @@ public class Export {
         .setRemoveGroupNames(removeGroupNames)
         .build();
 
+    FormStatus formStatus = new FormStatus(formDefinition);
+    FormKey key = FormKey.from(formStatus);
+
     Job<Void> pullJob = Job.noOpSupplier();
     if (configuration.resolvePullBefore()) {
-      FormStatus formStatus = new FormStatus(formDefinition);
       Optional<AggregateServer> server = AggregateServer.readFromPrefs(appPreferences, pullPrefs, formStatus);
-      if (server.isPresent())
-        pullJob = new PullFromAggregate(
-            http,
-            server.get(),
-            briefcaseDir,
-            appPreferences,
-            false,
-            Export::onEvent
-        ).pull(
-            formStatus,
-            appPreferences.resolveStartFromLast()
-                ? readCursor(formStatus.getFormId())
-                : Optional.empty()
-        );
+      if (server.isPresent()) {
+        Optional<Cursor> lastCursor = appPreferences.resolveStartFromLast()
+            ? formMetadataPort.query(lastCursorOf(key))
+            : Optional.empty();
+
+        pullJob = new PullFromAggregate(http, server.get(), briefcaseDir, false, Export::onEvent, formMetadataPort)
+            .pull(formStatus, lastCursor);
+      }
     }
 
     Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration));
