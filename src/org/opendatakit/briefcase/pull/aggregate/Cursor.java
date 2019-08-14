@@ -49,6 +49,14 @@ public interface Cursor extends Comparable<Cursor>, AsJson {
   }
 
 
+  static Cursor from(String value) {
+    return firstNonFailing(
+        () -> AggregateCursor.from(value),
+        () -> OnaCursor.from(value),
+        () -> OpaqueCursor.from(value)
+    ).orElseThrow(() -> new BriefcaseException("Unknown cursor format"));
+  }
+
   String getValue();
 
   boolean isEmpty();
@@ -65,14 +73,6 @@ public interface Cursor extends Comparable<Cursor>, AsJson {
    */
   static Cursor of(OffsetDateTime lastUpdateDateTime, String uid) {
     return AggregateCursor.of(lastUpdateDateTime, uid);
-  }
-
-  static Cursor from(String value) {
-    return firstNonFailing(
-        () -> AggregateCursor.from(value),
-        () -> OnaCursor.from(value),
-        () -> OpaqueCursor.from(value)
-    ).orElseThrow(() -> new BriefcaseException("Unknown cursor format"));
   }
 
   @SafeVarargs
