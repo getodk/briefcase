@@ -60,7 +60,7 @@ public class PullFromCentral {
    * submission files and their attachments to the local filesystem
    * under the Briefcase Storage directory.
    */
-  public Job<FormStatus> pull(FormStatus form) {
+  public Job<Void> pull(FormStatus form) {
     PullFromCentralTracker tracker = new PullFromCentralTracker(form, onEventCallback);
 
     return run(rs -> tracker.trackStart())
