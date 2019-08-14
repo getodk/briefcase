@@ -16,19 +16,11 @@
 
 package org.opendatakit.briefcase.pull.aggregate;
 
-import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAndIs;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.model.FormStatusBuilder.buildFormStatus;
 import static org.opendatakit.briefcase.pull.aggregate.CursorHelpers.buildCursorXml;
-import static org.opendatakit.briefcase.reused.LegacyPrefs.readCursor;
 
-import java.util.Optional;
 import org.junit.Test;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.InMemoryPreferences;
 
 public class AggregateCursorTest {
 
@@ -39,33 +31,5 @@ public class AggregateCursorTest {
         Cursor.from(buildCursorXml("2010-01-01T00:00:00.000+0800")),
         lessThan(Cursor.from(buildCursorXml("2010-01-01T00:00:00.000+03")))
     );
-  }
-
-  @Test
-  public void stores_and_reads_using_prefs() {
-    BriefcasePreferences testBriefcasePrefs = new BriefcasePreferences(InMemoryPreferences.empty());
-    FormStatus form = buildFormStatus(1);
-    Cursor originalCursor = Cursor.from(buildCursorXml("2019-01-01T00:00:00.000Z", "1234"));
-
-    originalCursor.storePrefs(form, testBriefcasePrefs);
-    assertThat(testBriefcasePrefs.keys(), hasSize(2));
-
-    Optional<Cursor> actualCursor = readCursor(form.getFormId(), testBriefcasePrefs);
-    assertThat(actualCursor, isPresentAndIs(originalCursor));
-  }
-
-  @Test
-  public void cleans_all_cursors_stored_in_prefs() {
-    BriefcasePreferences testBriefcasePrefs = new BriefcasePreferences(InMemoryPreferences.empty());
-    // Store something we don't want to be removed
-    testBriefcasePrefs.put("dummy key", "dummy value");
-    Cursor.from(buildCursorXml("2019-01-01T00:00:00.000Z", "1")).storePrefs(buildFormStatus(1), testBriefcasePrefs);
-    Cursor.from(buildCursorXml("2019-01-01T00:00:00.000Z", "2")).storePrefs(buildFormStatus(2), testBriefcasePrefs);
-    Cursor.from(buildCursorXml("2019-01-01T00:00:00.000Z", "3")).storePrefs(buildFormStatus(3), testBriefcasePrefs);
-    assertThat(testBriefcasePrefs.keys(), hasSize(7));
-
-    Cursor.cleanAllPrefs(testBriefcasePrefs);
-
-    assertThat(testBriefcasePrefs.keys(), hasSize(1));
   }
 }

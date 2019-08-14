@@ -24,8 +24,6 @@ import java.time.ZoneOffset;
 import java.util.Objects;
 import java.util.Optional;
 import org.opendatakit.briefcase.export.XmlElement;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.Iso8601Helpers;
 
 /**
@@ -163,9 +161,4 @@ public class AggregateCursor implements Cursor<AggregateCursor> {
     return Objects.hash(lastUpdate, lastReturnedValue);
   }
 
-  @Override
-  public void storePrefs(FormStatus form, BriefcasePreferences prefs) {
-    prefs.put(form.getFormId() + LAST_CURSOR_PREFERENCE_KEY_SUFFIX, getValue());
-    prefs.put(form.getFormId() + LAST_CURSOR_TYPE_PREFERENCE_KEY_SUFFIX, Type.AGGREGATE.getName());
-  }
 }

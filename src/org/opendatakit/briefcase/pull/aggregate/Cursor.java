@@ -21,8 +21,6 @@ import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,14 +35,6 @@ import org.slf4j.LoggerFactory;
  */
 public interface Cursor<T extends Cursor> extends Comparable<T> {
   Logger log = LoggerFactory.getLogger(Cursor.class);
-  String LAST_CURSOR_PREFERENCE_KEY_SUFFIX = "-last-cursor";
-  String LAST_CURSOR_TYPE_PREFERENCE_KEY_SUFFIX = "-last-cursor-type";
-
-  static void cleanAllPrefs(BriefcasePreferences prefs) {
-    prefs.keys().stream()
-        .filter(key -> key.endsWith(LAST_CURSOR_PREFERENCE_KEY_SUFFIX) || key.endsWith(LAST_CURSOR_TYPE_PREFERENCE_KEY_SUFFIX))
-        .forEach(prefs::remove);
-  }
 
   static Cursor empty() {
     return new EmptyCursor();
@@ -53,8 +43,6 @@ public interface Cursor<T extends Cursor> extends Comparable<T> {
   String getValue();
 
   boolean isEmpty();
-
-  void storePrefs(FormStatus form, BriefcasePreferences prefs);
 
   /**
    * Create a cursor that would start pulling from the provided date in Aggregate servers.

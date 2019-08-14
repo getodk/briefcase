@@ -148,7 +148,7 @@ public class PullFromAggregate {
           tracker.trackEnd();
           // Return the pull result with the last cursor
           Cursor newLastCursor = getLastCursor(instanceIdBatches).orElse(Cursor.empty());
-          newLastCursor.storePrefs(form, prefs);
+          // newLastCursor.storePrefs(form, prefs);
           EventBus.publish(PullEvent.Success.of(form, server, newLastCursor));
         });
 

@@ -1,8 +1,6 @@
 package org.opendatakit.briefcase.pull.aggregate;
 
 import java.util.Optional;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 
 /**
  * This class represents Ona's implementation of a Cursor.
@@ -38,12 +36,6 @@ public class OnaCursor implements Cursor<OnaCursor> {
   @Override
   public boolean isEmpty() {
     return !value.isPresent();
-  }
-
-  @Override
-  public void storePrefs(FormStatus form, BriefcasePreferences prefs) {
-    prefs.put(form.getFormId() + LAST_CURSOR_PREFERENCE_KEY_SUFFIX, getValue());
-    prefs.put(form.getFormId() + LAST_CURSOR_TYPE_PREFERENCE_KEY_SUFFIX, Type.ONA.getName());
   }
 
 }

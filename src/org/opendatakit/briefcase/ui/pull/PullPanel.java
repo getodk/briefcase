@@ -33,7 +33,6 @@ import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.pull.PullEvent;
-import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer;
@@ -172,7 +171,7 @@ public class PullPanel {
     event.ifRemoteServer((form, server) ->
         server.storeInPrefs(appPreferences, form, getStorePasswordsConsentProperty())
     );
-    event.lastCursor.ifPresent(cursor -> cursor.storePrefs(event.form, appPreferences));
+//    event.lastCursor.ifPresent(cursor -> cursor.storePrefs(event.form, appPreferences));
   }
 
   @EventSubscriber(eventClass = PullEvent.PullComplete.class)
@@ -184,7 +183,7 @@ public class PullPanel {
 
   @EventSubscriber(eventClass = PullEvent.CleanAllResumePoints.class)
   public void onCleanAllResumePoints(PullEvent.CleanAllResumePoints e) {
-    Cursor.cleanAllPrefs(appPreferences);
+//    Cursor.cleanAllPrefs(appPreferences);
     infoMessage("Pull history cleared.");
   }
 }

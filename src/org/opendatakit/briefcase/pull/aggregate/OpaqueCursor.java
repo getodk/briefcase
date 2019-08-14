@@ -1,8 +1,6 @@
 package org.opendatakit.briefcase.pull.aggregate;
 
 import java.util.Optional;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 
 public class OpaqueCursor implements Cursor<OpaqueCursor> {
 
@@ -24,12 +22,6 @@ public class OpaqueCursor implements Cursor<OpaqueCursor> {
   @Override
   public boolean isEmpty() {
     return !Optional.ofNullable(value).isPresent();
-  }
-
-  @Override
-  public void storePrefs(FormStatus form, BriefcasePreferences prefs) {
-    prefs.put(form.getFormId() + LAST_CURSOR_PREFERENCE_KEY_SUFFIX, getValue());
-    prefs.put(form.getFormId() + LAST_CURSOR_TYPE_PREFERENCE_KEY_SUFFIX, Type.OPAQUE.getName());
   }
 
   @Override
