@@ -141,7 +141,7 @@ public class Export {
             Export::onEvent
         ).pull(
             formStatus,
-            appPreferences.getResumeLastPull().orElse(false)
+            appPreferences.resolveStartFromLast()
                 ? Cursor.readPrefs(formStatus, appPreferences)
                 : Optional.empty()
         );

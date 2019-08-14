@@ -47,7 +47,7 @@ public class BriefcasePreferences {
   private static final String BRIEFCASE_PROXY_HOST_PROPERTY = "briefcaseProxyHost";
   private static final String BRIEFCASE_PROXY_PORT_PROPERTY = "briefcaseProxyPort";
   private static final String BRIEFCASE_PARALLEL_PULLS_PROPERTY = "briefcaseParallelPulls";
-  private static final String BRIEFCASE_RESUME_LAST_PULL_PROPERTY = "briefcaseResumeLastPull";
+  private static final String BRIEFCASE_START_FROM_LAST_PROPERTY = "briefcaseResumeLastPull";
   public static final String BRIEFCASE_TRACKING_CONSENT_PROPERTY = "briefcaseTrackingConsent";
   private static final String BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY = "briefcaseStorePasswordsConsent";
   private static final String BRIEFCASE_UNIQUE_USER_ID_PROPERTY = "uniqueUserID";
@@ -202,8 +202,8 @@ public class BriefcasePreferences {
     put(BRIEFCASE_PARALLEL_PULLS_PROPERTY, enabled.toString());
   }
 
-  public Optional<Boolean> getResumeLastPull() {
-    return nullSafeGet(BRIEFCASE_RESUME_LAST_PULL_PROPERTY).map(Boolean::parseBoolean);
+  public Optional<Boolean> getStartFromLast() {
+    return nullSafeGet(BRIEFCASE_START_FROM_LAST_PROPERTY).map(Boolean::parseBoolean);
   }
 
   public Optional<Boolean> getPullInParallel() {
@@ -218,8 +218,8 @@ public class BriefcasePreferences {
     put(BRIEFCASE_MAX_HTTP_CONNECTIONS_PROPERTY, String.valueOf(value));
   }
 
-  public void setResumeLastPull(Boolean enabled) {
-    put(BRIEFCASE_RESUME_LAST_PULL_PROPERTY, enabled.toString());
+  public void setStartFromLast(Boolean enabled) {
+    put(BRIEFCASE_START_FROM_LAST_PROPERTY, enabled.toString());
   }
 
   public void setRememberPasswords(Boolean enabled) {
@@ -245,6 +245,10 @@ public class BriefcasePreferences {
 
   public boolean hasTrackingWarningBeenShowed() {
     return hasKey(TRACKING_WARNING_SHOWED_PREF_KEY);
+  }
+
+  public boolean resolveStartFromLast() {
+    return getStartFromLast().orElse(false);
   }
 
   /**

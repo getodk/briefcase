@@ -104,7 +104,7 @@ public class Aggregate implements PullSource<AggregateServer> {
   }
 
   private Optional<Cursor> getCursor(BriefcasePreferences appPreferences, BriefcasePreferences localPreferences, FormStatus form) {
-    return appPreferences.getResumeLastPull().orElse(false)
+    return appPreferences.resolveStartFromLast()
         ? Optionals.race(Cursor.readPrefs(form, appPreferences), Cursor.readPrefs(form, localPreferences))
         : Optional.empty();
   }

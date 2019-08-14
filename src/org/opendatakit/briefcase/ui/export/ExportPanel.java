@@ -195,7 +195,7 @@ public class ExportPanel {
           ? new PullFromAggregate(http, savedPullSource.get(), appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), appPreferences, false, EventBus::publish)
           .pull(
               form,
-              appPreferences.getResumeLastPull().orElse(false)
+              appPreferences.resolveStartFromLast()
                   ? Cursor.readPrefs(form, appPreferences)
                   : Optional.empty()
           )
