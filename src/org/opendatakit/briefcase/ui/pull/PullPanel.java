@@ -20,7 +20,6 @@ import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
-import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
 import java.util.Optional;
 import javax.swing.JPanel;
@@ -173,7 +172,6 @@ public class PullPanel {
     event.ifRemoteServer((form, server) ->
         server.storeInPrefs(appPreferences, form, getStorePasswordsConsentProperty())
     );
-//    event.lastCursor.ifPresent(cursor -> cursor.storePrefs(event.form, appPreferences));
   }
 
   @EventSubscriber(eventClass = PullEvent.PullComplete.class)
@@ -181,11 +179,5 @@ public class PullPanel {
     view.unsetWorking();
     updateActionButtons();
     analytics.event("Pull", "Transfer", "Success", null);
-  }
-
-  @EventSubscriber(eventClass = PullEvent.CleanAllResumePoints.class)
-  public void onCleanAllResumePoints(PullEvent.CleanAllResumePoints e) {
-//    Cursor.cleanAllPrefs(appPreferences);
-    infoMessage("Pull history cleared.");
   }
 }

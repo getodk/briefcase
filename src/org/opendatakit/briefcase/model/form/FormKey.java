@@ -45,6 +45,10 @@ public class FormKey implements AsJson {
     return id;
   }
 
+  public String getName() {
+    return name;
+  }
+
   @Override
   public ObjectNode asJson(ObjectMapper mapper) {
     ObjectNode root = mapper.createObjectNode();

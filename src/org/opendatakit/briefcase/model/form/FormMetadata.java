@@ -87,6 +87,10 @@ public class FormMetadata implements AsJson {
     return new FormMetadata(key, storageDirectory, hasBeenPulled, cursor);
   }
 
+  FormMetadata withHasBeenPulled(boolean hasBeenPulled) {
+    return new FormMetadata(key, storageDirectory, hasBeenPulled, cursor);
+  }
+
   @Override
   public ObjectNode asJson(ObjectMapper mapper) {
     ObjectNode root = mapper.createObjectNode();

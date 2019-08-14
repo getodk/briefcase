@@ -20,6 +20,7 @@ import static com.github.dreamhead.moco.Moco.by;
 import static com.github.dreamhead.moco.Moco.httpServer;
 import static com.github.dreamhead.moco.Moco.uri;
 import static com.github.dreamhead.moco.Runner.running;
+import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
 import static java.util.stream.Collectors.joining;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
@@ -49,6 +50,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
@@ -64,6 +66,7 @@ public class PullFromCentralIntegrationTest {
   private final Path briefcaseDir = createTempDirectory("briefcase-test-");
   private HttpServer server;
   private PullFromCentral pullOp;
+  private InMemoryFormMetadataAdapter formMetadataPort;
 
   private static Path getPath(String fileName) {
     return Optional.ofNullable(PullFromCentralIntegrationTest.class.getClassLoader().getResource("org/opendatakit/briefcase/pull/aggregate/" + fileName))
@@ -74,7 +77,8 @@ public class PullFromCentralIntegrationTest {
   @Before
   public void setUp() {
     server = httpServer(serverPort);
-    pullOp = new PullFromCentral(CommonsHttp.of(1), centralServer, briefcaseDir, token, e -> { }, new InMemoryFormMetadataAdapter());
+    formMetadataPort = new InMemoryFormMetadataAdapter();
+    pullOp = new PullFromCentral(CommonsHttp.of(1), centralServer, briefcaseDir, token, e -> { }, formMetadataPort);
   }
 
   @After
@@ -167,5 +171,8 @@ public class PullFromCentralIntegrationTest {
     assertThat(form.getStatusHistory(), containsString("Attachment 1 of 2 of submission 250 of 250 downloaded"));
     assertThat(form.getStatusHistory(), containsString("Start downloading attachment 2 of 2 of submission 250 of 250"));
     assertThat(form.getStatusHistory(), containsString("Attachment 2 of 2 of submission 250 of 250 downloaded"));
+
+    // Assert that saves form metadata
+    assertThat(formMetadataPort.fetch(FormKey.from(form)), isPresent());
   }
 }
