@@ -28,8 +28,8 @@ public class AggregateCursorTest {
   @SuppressWarnings("unchecked")
   public void fixes_dates_while_parsing_cursors() {
     assertThat(
-        Cursor.from(buildCursorXml("2010-01-01T00:00:00.000+0800")),
-        lessThan(Cursor.from(buildCursorXml("2010-01-01T00:00:00.000+03")))
+        AggregateCursor.from(buildCursorXml("2010-01-01T00:00:00.000+0800")),
+        lessThan(AggregateCursor.from(buildCursorXml("2010-01-01T00:00:00.000+03")))
     );
   }
 }
