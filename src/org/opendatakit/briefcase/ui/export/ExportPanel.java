@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.load;
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
+import static org.opendatakit.briefcase.reused.LegacyPrefs.readCursor;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.time.LocalDateTime;
@@ -39,7 +40,6 @@ import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
@@ -196,7 +196,7 @@ public class ExportPanel {
           .pull(
               form,
               appPreferences.resolveStartFromLast()
-                  ? Cursor.readPrefs(form, appPreferences)
+                  ? readCursor(form.getFormId())
                   : Optional.empty()
           )
           : Job.noOpSupplier();

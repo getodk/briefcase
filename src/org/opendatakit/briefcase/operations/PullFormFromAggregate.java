@@ -22,6 +22,7 @@ import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.MAX_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.operations.Common.SERVER_URL;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
+import static org.opendatakit.briefcase.reused.LegacyPrefs.readCursor;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
 import java.net.URL;
@@ -142,7 +143,7 @@ public class PullFormFromAggregate {
     return Optionals.race(
         startFromDate.map(Cursor::of),
         resumeLastPull
-            ? Optionals.race(Cursor.readPrefs(form, appPreferences), Cursor.readPrefs(form, localPreferences))
+            ? Optionals.race(readCursor(form.getFormId(), appPreferences), readCursor(form.getFormId(), localPreferences))
             : Optional.empty()
     );
   }

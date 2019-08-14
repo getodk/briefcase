@@ -40,14 +40,6 @@ public interface Cursor<T extends Cursor> extends Comparable<T> {
   String LAST_CURSOR_PREFERENCE_KEY_SUFFIX = "-last-cursor";
   String LAST_CURSOR_TYPE_PREFERENCE_KEY_SUFFIX = "-last-cursor-type";
 
-  static Optional<Cursor> readPrefs(FormStatus form, BriefcasePreferences prefs) {
-    Type type = prefs.nullSafeGet(form.getFormId() + LAST_CURSOR_TYPE_PREFERENCE_KEY_SUFFIX)
-        .map(Type::from)
-        .orElse(Type.AGGREGATE);
-    return prefs.nullSafeGet(form.getFormId() + LAST_CURSOR_PREFERENCE_KEY_SUFFIX)
-        .map(type::create);
-  }
-
   static void cleanAllPrefs(BriefcasePreferences prefs) {
     prefs.keys().stream()
         .filter(key -> key.endsWith(LAST_CURSOR_PREFERENCE_KEY_SUFFIX) || key.endsWith(LAST_CURSOR_TYPE_PREFERENCE_KEY_SUFFIX))
@@ -113,7 +105,7 @@ public interface Cursor<T extends Cursor> extends Comparable<T> {
       this.factory = factory;
     }
 
-    static Type from(String type) {
+    public static Type from(String type) {
       if (type.equals("aggregate"))
         return AGGREGATE;
       if (type.equals("ona"))

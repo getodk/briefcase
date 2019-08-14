@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source;
 
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.reused.LegacyPrefs.readCursor;
 import static org.opendatakit.briefcase.ui.reused.UI.makeClickable;
 import static org.opendatakit.briefcase.ui.reused.UI.uncheckedBrowse;
 
@@ -105,7 +106,7 @@ public class Aggregate implements PullSource<AggregateServer> {
 
   private Optional<Cursor> getCursor(BriefcasePreferences appPreferences, BriefcasePreferences localPreferences, FormStatus form) {
     return appPreferences.resolveStartFromLast()
-        ? Optionals.race(Cursor.readPrefs(form, appPreferences), Cursor.readPrefs(form, localPreferences))
+        ? Optionals.race(readCursor(form.getFormId(), appPreferences), readCursor(form.getFormId(), localPreferences))
         : Optional.empty();
   }
 

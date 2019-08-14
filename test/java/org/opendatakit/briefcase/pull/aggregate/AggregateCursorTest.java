@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.model.FormStatusBuilder.buildFormStatus;
 import static org.opendatakit.briefcase.pull.aggregate.CursorHelpers.buildCursorXml;
+import static org.opendatakit.briefcase.reused.LegacyPrefs.readCursor;
 
 import java.util.Optional;
 import org.junit.Test;
@@ -49,7 +50,7 @@ public class AggregateCursorTest {
     originalCursor.storePrefs(form, testBriefcasePrefs);
     assertThat(testBriefcasePrefs.keys(), hasSize(2));
 
-    Optional<Cursor> actualCursor = Cursor.readPrefs(form, testBriefcasePrefs);
+    Optional<Cursor> actualCursor = readCursor(form.getFormId(), testBriefcasePrefs);
     assertThat(actualCursor, isPresentAndIs(originalCursor));
   }
 
