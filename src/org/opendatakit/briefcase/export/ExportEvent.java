@@ -28,7 +28,7 @@ public class ExportEvent {
   }
 
   public static ExportEvent progress(FormDefinition form, double percentage) {
-    int base100Percentage = new Double(percentage * 100).intValue();
+    int base100Percentage = Double.valueOf(percentage * 100).intValue();
     String statusLine = String.format("Exported %s%% of the submissions", base100Percentage);
     return new ExportEvent(form.getFormId(), statusLine, false);
   }
