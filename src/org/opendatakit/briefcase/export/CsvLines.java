@@ -36,12 +36,12 @@ class CsvLines {
     return new CsvLines(null, new ArrayList<>());
   }
 
-  public static CsvLines of(String modelFqn, OffsetDateTime submissionDate, String line) {
-    return new CsvLines(modelFqn, Collections.singletonList(new CsvLine(submissionDate, line)));
+  public static CsvLines of(String modelFqn, String instanceId, OffsetDateTime submissionDate, String line) {
+    return new CsvLines(modelFqn, Collections.singletonList(new CsvLine(instanceId, submissionDate, line)));
   }
 
-  public static CsvLines of(String modelFqn, OffsetDateTime submissionDate, List<String> lines) {
-    return new CsvLines(modelFqn, lines.stream().map(line -> new CsvLine(submissionDate, line)).collect(Collectors.toList()));
+  public static CsvLines of(String modelFqn, String instanceId, OffsetDateTime submissionDate, List<String> lines) {
+    return new CsvLines(modelFqn, lines.stream().map(line -> new CsvLine(instanceId, submissionDate, line)).collect(Collectors.toList()));
   }
 
   /**
