@@ -27,6 +27,7 @@ import static org.junit.Assert.assertThat;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
@@ -41,10 +42,9 @@ public class CsvLinesTest {
 
   @Test
   public void lines_can_be_obtained_sorted_by_insertion_order() {
-    CsvLines csvLines = new CsvLines("some fqdn", Arrays.asList(
-        createCsvLine("uuid:1234", "2018-01-02T00:00:00.000Z"),
-        createCsvLine("uuid:1234", "2018-01-01T00:00:00.000Z")
-    ));
+    CsvLine lastChronological = createCsvLine("uuid:1234", "2018-01-02T00:00:00.000Z");
+    CsvLine firstChronological = createCsvLine("uuid:1234", "2018-01-01T00:00:00.000Z");
+    CsvLines csvLines = new CsvLines("some fqdn", Arrays.asList(lastChronological, firstChronological), Optional.of(lastChronological));
     List<String> lines = csvLines.unsorted().collect(toList());
     assertThat(lines, hasSize(2));
     assertThat(lines, contains("2018-01-02T00:00:00.000Z", "2018-01-01T00:00:00.000Z"));
@@ -52,10 +52,9 @@ public class CsvLinesTest {
 
   @Test
   public void lines_can_be_obtained_sorted_by_submission_date() {
-    CsvLines csvLines = new CsvLines("some fqdn", Arrays.asList(
-        createCsvLine("uuid:1234", "2018-01-02T00:00:00.000Z"),
-        createCsvLine("uuid:1234", "2018-01-01T00:00:00.000Z")
-    ));
+    CsvLine lastChronological = createCsvLine("uuid:1234", "2018-01-02T00:00:00.000Z");
+    CsvLine firstChronological = createCsvLine("uuid:1234", "2018-01-01T00:00:00.000Z");
+    CsvLines csvLines = new CsvLines("some fqdn", Arrays.asList(lastChronological, firstChronological), Optional.of(lastChronological));
     List<String> lines = csvLines.sorted().collect(toList());
     assertThat(lines, hasSize(2));
     assertThat(lines, contains("2018-01-01T00:00:00.000Z", "2018-01-02T00:00:00.000Z"));
@@ -63,8 +62,10 @@ public class CsvLinesTest {
 
   @Test
   public void instances_with_the_same_fqdn_can_be_merged() {
-    CsvLines csvLines1 = new CsvLines("some fqdn", singletonList(createCsvLine("uuid:1234", "2018-01-01T00:00:00.000Z")));
-    CsvLines csvLines2 = new CsvLines("some fqdn", singletonList(createCsvLine("uuid:1234", "2018-01-02T00:00:00.000Z")));
+    CsvLine lastChronological = createCsvLine("uuid:1234", "2018-01-02T00:00:00.000Z");
+    CsvLine firstChronological = createCsvLine("uuid:1234", "2018-01-01T00:00:00.000Z");
+    CsvLines csvLines1 = new CsvLines("some fqdn", singletonList(firstChronological), Optional.of(firstChronological));
+    CsvLines csvLines2 = new CsvLines("some fqdn", singletonList(lastChronological), Optional.of(lastChronological));
     CsvLines mergedCsvLines = CsvLines.merge(csvLines1, csvLines2);
     assertThat(mergedCsvLines.getModelFqn(), is("some fqdn"));
     List<String> lines = mergedCsvLines.unsorted().collect(toList());
@@ -76,7 +77,8 @@ public class CsvLinesTest {
   @Test
   public void instances_can_be_merged_even_if_one_does_not_have_fqdn() {
     CsvLines empty = CsvLines.empty();
-    CsvLines nonEmpty = new CsvLines("some fqdn", singletonList(createCsvLine("uuid:1234", "2018-01-01T00:00:00.000Z")));
+    CsvLine csvLine = createCsvLine("uuid:1234", "2018-01-01T00:00:00.000Z");
+    CsvLines nonEmpty = new CsvLines("some fqdn", singletonList(csvLine), Optional.of(csvLine));
 
     CsvLines leftWasEmpty = CsvLines.merge(empty, nonEmpty);
     assertThat(leftWasEmpty.getModelFqn(), is("some fqdn"));
@@ -89,8 +91,10 @@ public class CsvLinesTest {
 
   @Test(expected = BriefcaseException.class)
   public void throws_when_merging_two_instances_with_non_matching_fqdns() {
-    CsvLines csvLines1 = new CsvLines("some fqdn", singletonList(createCsvLine("uuid:1234", "2018-01-01T00:00:00.000Z")));
-    CsvLines csvLines2 = new CsvLines("some other fqdn", singletonList(createCsvLine("uuid:1234", "2018-01-02T00:00:00.000Z")));
+    CsvLine lastChronological = createCsvLine("uuid:1234", "2018-01-02T00:00:00.000Z");
+    CsvLine firstChronological = createCsvLine("uuid:1234", "2018-01-01T00:00:00.000Z");
+    CsvLines csvLines1 = new CsvLines("some fqdn", singletonList(firstChronological), Optional.of(firstChronological));
+    CsvLines csvLines2 = new CsvLines("some other fqdn", singletonList(lastChronological), Optional.of(lastChronological));
     CsvLines.merge(csvLines1, csvLines2);
   }
 
