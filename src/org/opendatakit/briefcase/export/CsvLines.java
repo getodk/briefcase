@@ -84,6 +84,10 @@ class CsvLines {
     return modelFqn;
   }
 
+  public Optional<CsvLine> getLastLine() {
+    return lastLine;
+  }
+
   /**
    * Return the sorted stream of lines this instance holds
    */
