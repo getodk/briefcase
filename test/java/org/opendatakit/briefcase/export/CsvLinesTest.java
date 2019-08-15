@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.export;
 
+import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAndIs;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.contains;
@@ -26,8 +27,10 @@ import static org.junit.Assert.assertThat;
 
 import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
@@ -101,5 +104,23 @@ public class CsvLinesTest {
   @Test(expected = BriefcaseException.class)
   public void throws_when_merging_two_instances_without_fqdns() {
     CsvLines.merge(CsvLines.empty(), CsvLines.empty());
+  }
+
+  @Test
+  public void remembers_which_csv_line_is_the_last_one_chronologically_while_merging() {
+    OffsetDateTime startDateTime = OffsetDateTime.parse("2019-01-01T00:00:00.000Z");
+    List<OffsetDateTime> dateTimes = IntStream.range(1, 31)
+        .mapToObj(startDateTime::plusDays)
+        .collect(toList());
+    OffsetDateTime lastDateTime = dateTimes.stream().max(OffsetDateTime::compareTo).get();
+
+    // Shuffle so that we make sure the merge method has to handle unordered lines
+    Collections.shuffle(dateTimes);
+
+    CsvLines mergedCsvLines = dateTimes.stream()
+        .map(submissionDate -> CsvLines.of("some_model", "uuid:1234", submissionDate, "some line"))
+        .reduce(CsvLines.empty(), CsvLines::merge);
+
+    assertThat(mergedCsvLines.getLastLine(), isPresentAndIs(new CsvLine("uuid:1234", lastDateTime, "some line")));
   }
 }

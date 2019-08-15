@@ -47,7 +47,7 @@ class CsvLines {
 
   public static CsvLines of(String modelFqn, String instanceId, OffsetDateTime submissionDate, List<String> lines) {
     List<CsvLine> csvLines = lines.stream().map(line -> new CsvLine(instanceId, submissionDate, line)).collect(Collectors.toList());
-    return new CsvLines(modelFqn, csvLines, csvLines.stream().max(comparing(CsvLine::getSubmissionDate)));
+    return new CsvLines(modelFqn, csvLines, csvLines.isEmpty() ? Optional.empty() : Optional.of(csvLines.get(csvLines.size() - 1)));
   }
 
   /**
