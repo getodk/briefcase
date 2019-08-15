@@ -46,6 +46,10 @@ import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
+import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
+import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,7 +148,14 @@ class ExportToCsvScenario {
         .setExportMedia(exportMedia)
         .setSplitSelectMultiples(splitSelectMultiples)
         .build();
-    ExportToCsv.export(formDef, configuration);
+    FormKey formKey = FormKey.of(formDef.getFormName(), formDef.getFormId());
+    FormMetadata formMetadata = new FormMetadata(
+        formKey,
+        formDef.getFormDir().resolve(stripIllegalChars(formDef.getFormName()) + ".xml"),
+        true,
+        Cursor.empty()
+    );
+    ExportToCsv.export(new InMemoryFormMetadataAdapter(), formMetadata, formDef, configuration);
   }
 
   void assertSameContent() {

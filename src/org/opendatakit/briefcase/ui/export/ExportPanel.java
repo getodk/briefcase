@@ -41,6 +41,7 @@ import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -190,6 +191,7 @@ public class ExportPanel {
   private void export() {
     Stream<Job<?>> allJobs = forms.getSelectedForms().stream().map(form -> {
       FormKey key = FormKey.from(form);
+      FormMetadata formMetadata = formMetadataPort.fetch(key).orElseThrow(BriefcaseException::new);
       form.setStatusString("Starting to export form");
       String formId = form.getFormDefinition().getFormId();
       ExportConfiguration configuration = forms.getConfiguration(formId);
@@ -207,7 +209,7 @@ public class ExportPanel {
           )
           : Job.noOpSupplier();
 
-      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration, analytics));
+      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadataPort, formMetadata, formDef, configuration, analytics));
 
       Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
           ? Job.run(runnerStatus -> ExportToGeoJson.export(formDef, configuration, analytics))

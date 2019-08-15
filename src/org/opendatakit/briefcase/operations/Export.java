@@ -40,6 +40,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.form.FileSystemFormMetadataAdapter;
 import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
@@ -134,6 +135,7 @@ public class Export {
 
     FormStatus formStatus = new FormStatus(formDefinition);
     FormKey key = FormKey.from(formStatus);
+    FormMetadata formMetadata = formMetadataPort.fetch(key).orElseThrow(BriefcaseException::new);
 
     Job<Void> pullJob = Job.noOpSupplier();
     if (configuration.resolvePullBefore()) {
@@ -148,7 +150,7 @@ public class Export {
       }
     }
 
-    Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration));
+    Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadataPort, formMetadata, formDef, configuration));
 
     Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
         ? Job.run(runnerStatus -> ExportToGeoJson.export(formDef, configuration))

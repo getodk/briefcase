@@ -33,6 +33,8 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.model.form.FileSystemFormMetadataAdapter;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.central.PullFromCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Optionals;
@@ -69,6 +71,7 @@ public class PullFormFromCentral {
     formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     appPreferences.setStorageDir(briefcaseDir);
+    FormMetadataPort formMetadataPort = FileSystemFormMetadataAdapter.at(briefcaseDir);
 
     int maxHttpConnections = Optionals.race(
         args.getOptional(MAX_HTTP_CONNECTIONS),
@@ -110,7 +113,7 @@ public class PullFormFromCentral {
     forms.load(filteredForms);
     forms.selectAll();
 
-    PullFromCentral pullOp = new PullFromCentral(http, server, briefcaseDir, token, PullFormFromCentral::onEvent);
+    PullFromCentral pullOp = new PullFromCentral(http, server, briefcaseDir, token, PullFormFromCentral::onEvent, formMetadataPort);
     JobsRunner.launchAsync(
         forms.map(pullOp::pull),
         PullFormFromCentral::onError
