@@ -41,6 +41,10 @@ public class FormKey implements AsJson {
     return new FormKey(name, id, Optional.empty());
   }
 
+  public static FormKey of(String name, String id, String version) {
+    return new FormKey(name, id, Optional.of(version));
+  }
+
   public static FormKey of(String name, String id, Optional<String> version) {
     return new FormKey(name, id, version);
   }

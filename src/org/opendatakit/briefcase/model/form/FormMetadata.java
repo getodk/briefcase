@@ -83,6 +83,10 @@ public class FormMetadata implements AsJson {
     return storageDirectory;
   }
 
+  public boolean hasBeenPulled() {
+    return hasBeenPulled;
+  }
+
   public Cursor getCursor() {
     return cursor;
   }

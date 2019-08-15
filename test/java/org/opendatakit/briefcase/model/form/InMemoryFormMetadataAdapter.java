@@ -1,25 +1,23 @@
 package org.opendatakit.briefcase.model.form;
 
 import java.nio.file.Path;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class InMemoryFormMetadataAdapter implements FormMetadataPort {
-  private final Set<FormMetadata> store = new HashSet<>();
+  private final Map<FormKey, FormMetadata> store = new HashMap<>();
 
   @Override
   public void persist(FormMetadata metaData) {
-    store.add(metaData);
+    store.put(metaData.getKey(), metaData);
   }
 
   @Override
   public Optional<FormMetadata> fetch(FormKey key) {
-    return store.stream()
-        .filter(metadata -> metadata.getKey().equals(key))
-        .findFirst();
+    return Optional.ofNullable(store.get(key));
   }
 
   @Override

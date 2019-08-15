@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.OffsetDateTime;
+import java.util.Objects;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class SubmissionExportMetadata implements AsJson {
@@ -28,6 +29,10 @@ public class SubmissionExportMetadata implements AsJson {
     );
   }
 
+  public boolean isBefore(OffsetDateTime submissionDate) {
+    return this.submissionDate.isBefore(submissionDate);
+  }
+
   @Override
   public ObjectNode asJson(ObjectMapper mapper) {
     ObjectNode root = mapper.createObjectNode();
@@ -37,7 +42,27 @@ public class SubmissionExportMetadata implements AsJson {
     return root;
   }
 
-  public boolean isBefore(OffsetDateTime submissionDate) {
-    return this.submissionDate.isBefore(submissionDate);
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    SubmissionExportMetadata that = (SubmissionExportMetadata) o;
+    return Objects.equals(instanceId, that.instanceId) &&
+        Objects.equals(submissionDate, that.submissionDate) &&
+        Objects.equals(exportDateTime, that.exportDateTime);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(instanceId, submissionDate, exportDateTime);
+  }
+
+  @Override
+  public String toString() {
+    return "SubmissionExportMetadata{" +
+        "instanceId='" + instanceId + '\'' +
+        ", submissionDate=" + submissionDate +
+        ", exportDateTime=" + exportDateTime +
+        '}';
   }
 }
