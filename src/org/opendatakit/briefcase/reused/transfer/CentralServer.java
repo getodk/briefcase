@@ -28,8 +28,10 @@ import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Credentials;
+import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.Request;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
 
@@ -77,6 +79,18 @@ public class CentralServer implements RemoteServer {
         .withHeader("Content-Type", "application/json")
         .withBody(buildSessionPayload(credentials))
         .withResponseMapper(json -> !((String) json.get("token")).isEmpty())
+        .build();
+  }
+
+  public Request<String> getProjectTestRequest(Http http) {
+    String token = http.execute(getSessionTokenRequest())
+        .orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
+
+    return RequestBuilder.get(baseUrl)
+        .asText()
+        .withPath("/v1/projects/" + projectId)
+        .withHeader("Authorization", "Bearer " + token)
+        .withResponseMapper(json -> json)
         .build();
   }
 
