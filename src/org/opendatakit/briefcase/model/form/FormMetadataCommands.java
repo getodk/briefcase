@@ -21,6 +21,9 @@ public class FormMetadataCommands {
   }
 
   public static Consumer<FormMetadataPort> updateLastExportedSubmission(FormKey key, String instanceId, OffsetDateTime submissionDate, OffsetDateTime exportDateTime) {
-    return port -> {};
+    return port -> port.persist(port
+        .fetch(key)
+        .orElseGet(() -> FormMetadata.of(key))
+        .withLastExportedSubmission(instanceId, submissionDate, exportDateTime));
   }
 }

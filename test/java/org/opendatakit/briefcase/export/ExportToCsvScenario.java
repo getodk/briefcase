@@ -153,7 +153,8 @@ class ExportToCsvScenario {
         formKey,
         formDef.getFormDir().resolve(stripIllegalChars(formDef.getFormName()) + ".xml"),
         true,
-        Cursor.empty()
+        Cursor.empty(),
+        Optional.empty()
     );
     ExportToCsv.export(new InMemoryFormMetadataAdapter(), formMetadata, formDef, configuration);
   }

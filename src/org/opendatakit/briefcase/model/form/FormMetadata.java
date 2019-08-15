@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import org.opendatakit.briefcase.export.XmlElement;
@@ -20,12 +21,14 @@ public class FormMetadata implements AsJson {
   private final Path storageDirectory;
   private final boolean hasBeenPulled;
   private final Cursor cursor;
+  private final Optional<SubmissionExportMetadata> lastExportedSubmission;
 
-  public FormMetadata(FormKey key, Path storageDirectory, boolean hasBeenPulled, Cursor cursor) {
+  public FormMetadata(FormKey key, Path storageDirectory, boolean hasBeenPulled, Cursor cursor, Optional<SubmissionExportMetadata> lastExportedSubmission) {
     this.key = key;
     this.storageDirectory = storageDirectory;
     this.hasBeenPulled = hasBeenPulled;
     this.cursor = cursor;
+    this.lastExportedSubmission = lastExportedSubmission;
   }
 
   public static FormMetadata of(FormKey key) {
@@ -37,7 +40,7 @@ public class FormMetadata implements AsJson {
         .orElseThrow(BriefcaseException::new)
         .resolve("forms")
         .resolve(stripIllegalChars(key.getName()));
-    return new FormMetadata(key, storageDirectory, false, Cursor.empty());
+    return new FormMetadata(key, storageDirectory, false, Cursor.empty(), Optional.empty());
   }
 
   public static FormMetadata from(Path formFile) {
@@ -53,7 +56,7 @@ public class FormMetadata implements AsJson {
     String id = mainInstance.childrenOf().get(0).getAttributeValue("id").orElseThrow(BriefcaseException::new);
     Optional<String> version = mainInstance.getAttributeValue("version");
     FormKey key = FormKey.of(name, id, version);
-    return new FormMetadata(key, formFile.getParent(), true, Cursor.empty());
+    return new FormMetadata(key, formFile.getParent(), true, Cursor.empty(), Optional.empty());
   }
 
   public static FormMetadata from(JsonNode root) {
@@ -61,7 +64,8 @@ public class FormMetadata implements AsJson {
         FormKey.from(root.get("key")),
         getJson(root, "storageDirectory").map(JsonNode::asText).map(Paths::get).orElseThrow(BriefcaseException::new),
         getJson(root, "hasBeenPulled").map(JsonNode::asBoolean).orElseThrow(BriefcaseException::new),
-        Cursor.from(root.get("cursor"))
+        Cursor.from(root.get("cursor")),
+        getJson(root, "lastExportedSubmission").map(SubmissionExportMetadata::from)
     );
   }
 
@@ -83,12 +87,20 @@ public class FormMetadata implements AsJson {
     return cursor;
   }
 
-  public FormMetadata withCursor(Cursor cursor) {
-    return new FormMetadata(key, storageDirectory, hasBeenPulled, cursor);
+  public Optional<SubmissionExportMetadata> getLastExportedSubmission() {
+    return lastExportedSubmission;
+  }
+
+  FormMetadata withCursor(Cursor cursor) {
+    return new FormMetadata(key, storageDirectory, hasBeenPulled, cursor, lastExportedSubmission);
   }
 
   FormMetadata withHasBeenPulled(boolean hasBeenPulled) {
-    return new FormMetadata(key, storageDirectory, hasBeenPulled, cursor);
+    return new FormMetadata(key, storageDirectory, hasBeenPulled, cursor, lastExportedSubmission);
+  }
+
+  FormMetadata withLastExportedSubmission(String instanceId, OffsetDateTime submissionDate, OffsetDateTime exportDateTime) {
+    return new FormMetadata(key, storageDirectory, hasBeenPulled, cursor, Optional.of(new SubmissionExportMetadata(instanceId, submissionDate, exportDateTime)));
   }
 
   @Override
@@ -98,6 +110,7 @@ public class FormMetadata implements AsJson {
     root.put("storageDirectory", storageDirectory.toAbsolutePath().toString());
     root.put("hasBeenPulled", hasBeenPulled);
     root.putObject("cursor").setAll(cursor.asJson(mapper));
+    lastExportedSubmission.ifPresent(o -> root.putObject("lastExportedSubmission").setAll(o.asJson(mapper)));
     return root;
   }
 
@@ -109,12 +122,13 @@ public class FormMetadata implements AsJson {
     return hasBeenPulled == that.hasBeenPulled &&
         Objects.equals(key, that.key) &&
         Objects.equals(storageDirectory, that.storageDirectory) &&
-        Objects.equals(cursor, that.cursor);
+        Objects.equals(cursor, that.cursor) &&
+        Objects.equals(lastExportedSubmission, that.lastExportedSubmission);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(key, storageDirectory, hasBeenPulled, cursor);
+    return Objects.hash(key, storageDirectory, hasBeenPulled, cursor, lastExportedSubmission);
   }
 
   @Override
@@ -124,6 +138,7 @@ public class FormMetadata implements AsJson {
         ", storageDirectory=" + storageDirectory +
         ", hasBeenPulled=" + hasBeenPulled +
         ", cursor=" + cursor +
+        ", lastExportedSubmission=" + lastExportedSubmission +
         '}';
   }
 }

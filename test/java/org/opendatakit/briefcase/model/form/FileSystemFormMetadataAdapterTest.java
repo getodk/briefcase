@@ -169,6 +169,6 @@ public class FileSystemFormMetadataAdapterTest {
         mainInstance.getAttributeValue("id").orElseThrow(RuntimeException::new),
         mainInstance.getAttributeValue("version")
     );
-    return new FormMetadata(key, formFile.getParent(), cursor.isEmpty(), cursor);
+    return new FormMetadata(key, formFile.getParent(), cursor.isEmpty(), cursor, Optional.empty());
   }
 }
