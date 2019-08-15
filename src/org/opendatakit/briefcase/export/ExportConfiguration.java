@@ -67,6 +67,7 @@ public class ExportConfiguration {
   private static final String SPLIT_SELECT_MULTIPLES_OVERRIDE = "splitSelectMultiplesOverride";
   private static final String INCLUDE_GEOJSON_EXPORT = "includeGeoJsonExport";
   private static final String REMOVE_GROUP_NAMES = "removeGroupNames";
+  private static final String SMART_APPEND = "smartAppend";
   private final Optional<String> exportFileName;
   private final Optional<Path> exportDir;
   private final Optional<Path> pemFile;
@@ -77,8 +78,9 @@ public class ExportConfiguration {
   private final OverridableBoolean splitSelectMultiples;
   private final OverridableBoolean includeGeoJsonExport;
   private final OverridableBoolean removeGroupNames;
+  private final OverridableBoolean smartAppend;
 
-  private ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, DateRange dateRange, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, OverridableBoolean splitSelectMultiples, OverridableBoolean includeGeoJsonExport, OverridableBoolean removeGroupNames) {
+  private ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, DateRange dateRange, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, OverridableBoolean splitSelectMultiples, OverridableBoolean includeGeoJsonExport, OverridableBoolean removeGroupNames, OverridableBoolean smartAppend) {
     this.exportFileName = exportFileName;
     this.exportDir = exportDir;
     this.pemFile = pemFile;
@@ -89,6 +91,7 @@ public class ExportConfiguration {
     this.splitSelectMultiples = splitSelectMultiples;
     this.includeGeoJsonExport = includeGeoJsonExport;
     this.removeGroupNames = removeGroupNames;
+    this.smartAppend = smartAppend;
   }
 
   public static List<String> keys() {
@@ -106,7 +109,8 @@ public class ExportConfiguration {
         keyPrefix + EXPORT_MEDIA,
         keyPrefix + SPLIT_SELECT_MULTIPLES,
         keyPrefix + INCLUDE_GEOJSON_EXPORT,
-        keyPrefix + REMOVE_GROUP_NAMES
+        keyPrefix + REMOVE_GROUP_NAMES,
+        keyPrefix + SMART_APPEND
     );
   }
 
@@ -153,6 +157,7 @@ public class ExportConfiguration {
     map.put(keyPrefix + SPLIT_SELECT_MULTIPLES, splitSelectMultiples.serialize());
     map.put(keyPrefix + INCLUDE_GEOJSON_EXPORT, includeGeoJsonExport.serialize());
     map.put(keyPrefix + REMOVE_GROUP_NAMES, removeGroupNames.serialize());
+    map.put(keyPrefix + SMART_APPEND, smartAppend.serialize());
     return map;
   }
 
@@ -192,6 +197,10 @@ public class ExportConfiguration {
     return removeGroupNames.resolve(false);
   }
 
+  boolean resolveSmartAppend() {
+    return smartAppend.resolve(false);
+  }
+
   public OverridableBoolean getPullBefore() {
     return pullBefore;
   }
@@ -216,6 +225,10 @@ public class ExportConfiguration {
     return removeGroupNames;
   }
 
+  public OverridableBoolean getSmartAppend() {
+    return smartAppend;
+  }
+
   public void ifExportDirPresent(Consumer<Path> consumer) {
     exportDir.ifPresent(consumer);
   }
@@ -233,7 +246,8 @@ public class ExportConfiguration {
         && exportMedia.isEmpty()
         && splitSelectMultiples.isEmpty()
         && includeGeoJsonExport.isEmpty()
-        && removeGroupNames.isEmpty();
+        && removeGroupNames.isEmpty()
+        && smartAppend.isEmpty();
   }
 
   public boolean isValid() {
@@ -252,6 +266,7 @@ public class ExportConfiguration {
         .setSplitSelectMultiples(splitSelectMultiples.fallingBackTo(defaultConfiguration.splitSelectMultiples))
         .setIncludeGeoJsonExport(includeGeoJsonExport.fallingBackTo(defaultConfiguration.includeGeoJsonExport))
         .setRemoveGroupNames(removeGroupNames.fallingBackTo(defaultConfiguration.removeGroupNames))
+        .setSmartAppend(smartAppend.fallingBackTo(defaultConfiguration.smartAppend))
         .build();
   }
 
@@ -294,6 +309,7 @@ public class ExportConfiguration {
         ", splitSelectMultiples=" + splitSelectMultiples +
         ", includeGeoJsonExport=" + includeGeoJsonExport +
         ", removeGroupNames=" + removeGroupNames +
+        ", smartAppend=" + smartAppend +
         '}';
   }
 
@@ -312,12 +328,13 @@ public class ExportConfiguration {
         Objects.equals(exportMedia, that.exportMedia) &&
         Objects.equals(splitSelectMultiples, that.splitSelectMultiples) &&
         Objects.equals(includeGeoJsonExport, that.includeGeoJsonExport) &&
-        Objects.equals(removeGroupNames, that.removeGroupNames);
+        Objects.equals(removeGroupNames, that.removeGroupNames) &&
+        Objects.equals(smartAppend, that.smartAppend);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(exportDir, pemFile, dateRange, pullBefore, overwriteFiles, exportMedia, splitSelectMultiples, includeGeoJsonExport, removeGroupNames);
+    return Objects.hash(exportDir, pemFile, dateRange, pullBefore, overwriteFiles, exportMedia, splitSelectMultiples, includeGeoJsonExport, removeGroupNames, smartAppend);
   }
 
   public static class Builder {
@@ -332,6 +349,7 @@ public class ExportConfiguration {
     private OverridableBoolean splitSelectMultiples = OverridableBoolean.empty();
     private OverridableBoolean includeGeoJsonExport = OverridableBoolean.empty();
     private OverridableBoolean removeGroupNames = OverridableBoolean.empty();
+    private OverridableBoolean smartAppend = OverridableBoolean.empty();
 
     public static Builder empty() {
       return new Builder();
@@ -354,6 +372,7 @@ public class ExportConfiguration {
           .setSplitSelectMultiples(readOverridableBoolean(prefs, keyPrefix + SPLIT_SELECT_MULTIPLES, keyPrefix + SPLIT_SELECT_MULTIPLES_OVERRIDE))
           .setIncludeGeoJsonExport(readOverridableBoolean(prefs, keyPrefix + INCLUDE_GEOJSON_EXPORT))
           .setRemoveGroupNames(readOverridableBoolean(prefs, keyPrefix + REMOVE_GROUP_NAMES))
+          .setSmartAppend(readOverridableBoolean(prefs, keyPrefix + SMART_APPEND))
           .build();
     }
 
@@ -378,7 +397,8 @@ public class ExportConfiguration {
           exportMedia,
           splitSelectMultiples,
           includeGeoJsonExport,
-          removeGroupNames
+          removeGroupNames,
+          smartAppend
       );
     }
 
@@ -529,6 +549,16 @@ public class ExportConfiguration {
       return this;
     }
 
+    public Builder setSmartAppend(OverridableBoolean smartAppend) {
+      this.smartAppend = smartAppend;
+      return this;
+    }
+
+    public Builder setSmartAppend(boolean value) {
+      this.smartAppend = smartAppend.set(value);
+      return this;
+    }
+
     public Builder overridePullBefore(TriStateBoolean overrideValue) {
       pullBefore = pullBefore.overrideWith(overrideValue);
       return this;
@@ -556,6 +586,11 @@ public class ExportConfiguration {
 
     public Builder overrideRemoveGroupNames(TriStateBoolean overrideValue) {
       removeGroupNames = removeGroupNames.overrideWith(overrideValue);
+      return this;
+    }
+
+    public Builder overrideSmartAppend(TriStateBoolean overrideValue) {
+      smartAppend = smartAppend.overrideWith(overrideValue);
       return this;
     }
   }
