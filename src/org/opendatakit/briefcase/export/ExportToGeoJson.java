@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import org.bushe.swing.event.EventBus;
 import org.geojson.Feature;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,15 +43,15 @@ public class ExportToGeoJson {
   /**
    * @see #export(FormDefinition, ExportConfiguration, Optional)
    */
-  public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration) {
-    return export(formDef, configuration, Optional.empty());
+  public static ExportOutcome export(FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration) {
+    return export(formMetadata, formDef, configuration, Optional.empty());
   }
 
   /**
    * @see #export(FormDefinition, ExportConfiguration, Optional)
    */
-  public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration, Analytics analytics) {
-    return export(formDef, configuration, Optional.of(analytics));
+  public static ExportOutcome export(FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Analytics analytics) {
+    return export(formMetadata, formDef, configuration, Optional.of(analytics));
   }
 
   /**
@@ -61,7 +62,7 @@ public class ExportToGeoJson {
    * @return an {@link ExportOutcome} with the export operation's outcome
    * @see ExportConfiguration
    */
-  private static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration, Optional<Analytics> analytics) {
+  private static ExportOutcome export(FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Optional<Analytics> analytics) {
     // Create an export tracker object with the total number of submissions we have to export
     ExportProcessTracker exportTracker = new ExportProcessTracker(formDef);
     exportTracker.start();
@@ -72,7 +73,7 @@ public class ExportToGeoJson {
             analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null))
         );
 
-    List<Path> submissionFiles = getListOfSubmissionFiles(formDef, configuration.getDateRange(), onParsingError);
+    List<Path> submissionFiles = getListOfSubmissionFiles(formMetadata, formDef, configuration.getDateRange(), configuration.resolveSmartAppend(), onParsingError);
     exportTracker.trackTotal(submissionFiles.size());
 
     createDirectories(configuration.getExportDir());

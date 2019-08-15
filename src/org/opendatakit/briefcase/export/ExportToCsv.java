@@ -83,7 +83,7 @@ public class ExportToCsv {
             analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null))
         );
 
-    List<Path> submissionFiles = getListOfSubmissionFiles(formDef, configuration.getDateRange(), onParsingError);
+    List<Path> submissionFiles = getListOfSubmissionFiles(formMetadata, formDef, configuration.getDateRange(), configuration.resolveSmartAppend(), onParsingError);
     exportTracker.trackTotal(submissionFiles.size());
 
     createDirectories(configuration.getExportDir());

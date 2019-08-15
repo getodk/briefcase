@@ -51,6 +51,7 @@ import org.bushe.swing.event.EventBus;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.model.CryptoException;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.Iso8601Helpers;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.Pair;
@@ -74,7 +75,7 @@ public class SubmissionParser {
    * Each file gets briefly parsed to obtain their submission date and use it as
    * the sorting criteria and for filtering.
    */
-  public static List<Path> getListOfSubmissionFiles(FormDefinition formDef, DateRange dateRange, SubmissionExportErrorCallback onParsingError) {
+  public static List<Path> getListOfSubmissionFiles(FormMetadata formMetadata, FormDefinition formDef, DateRange dateRange, boolean smartAppend, SubmissionExportErrorCallback onParsingError) {
     Path instancesDir = formDef.getFormDir().resolve("instances");
     if (!Files.exists(instancesDir) || !Files.isReadable(instancesDir))
       return Collections.emptyList();
@@ -93,8 +94,14 @@ public class SubmissionParser {
           }
         });
     return paths.parallelStream()
-        // Filter out submissions outside the given date range
-        .filter(pair -> dateRange.contains(pair.getRight()))
+        // Filter out submissions outside the given date range and
+        // before the last exported submission, if the smartAppend
+        // feature is enabled
+        .filter(pair -> {
+          boolean inRange = dateRange.contains(pair.getRight());
+          boolean afterLastExportedSubmission = !smartAppend || formMetadata.getLastExportedSubmission().map(s -> s.isBefore(pair.getRight())).orElse(true);
+          return inRange && afterLastExportedSubmission;
+        })
         .map(Pair::getLeft)
         .collect(toList());
   }
