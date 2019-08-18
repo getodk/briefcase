@@ -55,18 +55,18 @@ public class PushFormToAggregate {
       PUSH_AGGREGATE,
       args -> pushFormToAggregate(
           args.get(STORAGE_DIR),
-          args.get(FORM_ID),
+          args.getOptional(FORM_ID),
           args.get(ODK_USERNAME),
           args.get(ODK_PASSWORD),
           args.get(AGGREGATE_SERVER),
           args.has(FORCE_SEND_BLANK),
           args.getOptional(MAX_HTTP_CONNECTIONS)
       ),
-      Arrays.asList(STORAGE_DIR, FORM_ID, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER),
-      Arrays.asList(FORCE_SEND_BLANK, MAX_HTTP_CONNECTIONS)
+      Arrays.asList(STORAGE_DIR, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER),
+      Arrays.asList(FORCE_SEND_BLANK, MAX_HTTP_CONNECTIONS, FORM_ID)
   );
 
-  private static void pushFormToAggregate(String storageDir, String formid, String username, String password, String server, boolean forceSendBlank, Optional<Integer> maybeMaxConnections) {
+  private static void pushFormToAggregate(String storageDir, Optional<String> formid, String username, String password, String server, boolean forceSendBlank, Optional<Integer> maybeMaxConnections) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
