@@ -25,7 +25,9 @@ import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTION
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
@@ -99,8 +101,17 @@ public class PushFormToAggregate {
         .map(FormStatus::new)
         .findFirst();
 
-    FormStatus form = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + formid + " not found"));
-    TransferForms forms = TransferForms.of(form);
+    List<FormStatus> statuses;
+    if (formid.isPresent()) {
+      FormStatus status = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + formid + " not found"));
+      statuses = Arrays.asList(status);
+    } else {
+      statuses = formCache.getForms().stream()
+          .map(FormStatus::new)
+          .collect(Collectors.toList());
+    }
+
+    TransferForms forms = TransferForms.of(statuses);
     forms.selectAll();
 
     PushToAggregate pushOp = new PushToAggregate(http, aggregateServer, briefcaseDir, forceSendBlank, PushFormToAggregate::onEvent);
