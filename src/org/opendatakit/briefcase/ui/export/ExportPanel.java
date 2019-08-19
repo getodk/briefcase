@@ -20,7 +20,6 @@ import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.load;
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
-import static org.opendatakit.briefcase.model.form.FormMetadataQueries.lastCursorOf;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.time.LocalDateTime;
@@ -204,12 +203,12 @@ public class ExportPanel {
           .pull(
               form,
               appPreferences.resolveStartFromLast()
-                  ? formMetadataPort.query(lastCursorOf(key))
+                  ? Optional.of(formMetadata.getCursor())
                   : Optional.empty()
           )
           : Job.noOpSupplier();
 
-      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadataPort, formMetadata, formDef, configuration, analytics));
+      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadataPort, formMetadata, form, formDef, appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), configuration, analytics));
 
       Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
           ? Job.run(runnerStatus -> ExportToGeoJson.export(formMetadata, formDef, configuration, analytics))

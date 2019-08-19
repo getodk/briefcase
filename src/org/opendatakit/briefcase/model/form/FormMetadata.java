@@ -1,7 +1,6 @@
 package org.opendatakit.briefcase.model.form;
 
 import static org.opendatakit.briefcase.model.form.AsJson.getJson;
-import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,7 +11,6 @@ import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import org.opendatakit.briefcase.export.XmlElement;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
@@ -31,15 +29,10 @@ public class FormMetadata implements AsJson {
     this.lastExportedSubmission = lastExportedSubmission;
   }
 
-  public static FormMetadata of(FormKey key) {
+  public static FormMetadata of(FormKey key, Path storageDirectory) {
     // Hardcoded storage directory because we want this class to decide where a
     // form is/should be stored. Now it's based on the Briefcase storage directory,
     // but it will change in the future to be based on a hash of the form key.
-    Path storageDirectory = BriefcasePreferences.appScoped()
-        .getBriefcaseDir()
-        .orElseThrow(BriefcaseException::new)
-        .resolve("forms")
-        .resolve(stripIllegalChars(key.getName()));
     return new FormMetadata(key, storageDirectory, false, Cursor.empty(), Optional.empty());
   }
 

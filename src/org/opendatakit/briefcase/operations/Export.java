@@ -153,7 +153,7 @@ public class Export {
       }
     }
 
-    Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadataPort, formMetadata, formDef, configuration));
+    Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadataPort, formMetadata, formStatus, formDef, briefcaseDir, configuration));
 
     Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
         ? Job.run(runnerStatus -> ExportToGeoJson.export(formMetadata, formDef, configuration))

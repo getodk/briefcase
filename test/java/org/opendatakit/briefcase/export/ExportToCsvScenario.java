@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.model.BriefcaseFormDefinition.resolveAgainstBriefcaseDefn;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createTempDirectory;
@@ -46,60 +47,77 @@ import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
+import org.opendatakit.briefcase.util.BadFormDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class ExportToCsvScenario {
   private static final Logger log = LoggerFactory.getLogger(ExportToCsvScenario.class);
   private final AtomicInteger seq = new AtomicInteger(0);
+  private final Path briefcaseDir;
   private final Path formDir;
   private final Path outputDir;
   private final FormDefinition formDef;
+  private final FormStatus formStatus;
   private final Optional<String> instanceID;
   private final Locale localeBackup;
   private final TimeZone zoneBackup;
 
-  ExportToCsvScenario(Path formDir, Path outputDir, FormDefinition formDef, Optional<String> instanceID, Locale localeBackup, TimeZone zoneBackup) {
+  ExportToCsvScenario(Path briefcaseDir, Path formDir, Path outputDir, FormDefinition formDef, FormStatus formStatus, Optional<String> instanceID, Locale localeBackup, TimeZone zoneBackup) {
+    this.briefcaseDir = briefcaseDir;
     this.formDir = formDir;
     this.outputDir = outputDir;
     this.formDef = formDef;
+    this.formStatus = formStatus;
     this.instanceID = instanceID;
     this.localeBackup = localeBackup;
     this.zoneBackup = zoneBackup;
   }
 
   static ExportToCsvScenario setUp(String formName) {
-    Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+    try {
+      Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+      Path briefcaseDir = createTempDirectory("briefcase");
 
-    Path formDir = createTempDirectory("briefcase_export_test_form_");
-    log.debug("Form dir: {}", formDir);
-    Path formFile = installForm(formDir, formName);
+      Path sourceFormFile = getPath(formName + ".xml");
+      FormStatus formStatus = new FormStatus(resolveAgainstBriefcaseDefn(sourceFormFile.toFile(), true, briefcaseDir.toFile()));
 
-    Path outputDir = createTempDirectory("briefcase_export_test_output_");
-    log.debug("Output dir: {}", outputDir);
-    createDirectories(outputDir.resolve("old"));
-    createDirectories(outputDir.resolve("new"));
+      Path formDir = formStatus.getFormDir(briefcaseDir);
+      createDirectories(formDir);
+      log.debug("Form dir: {}", formDir);
+      Path formFile = installForm(formDir, formName);
 
-    Locale localeBackup = Locale.getDefault();
-    Locale.setDefault(Locale.forLanguageTag("en_US")); // This Locale will force us to escape dates
+      Path outputDir = createTempDirectory("briefcase_export_test_output_");
+      log.debug("Output dir: {}", outputDir);
+      createDirectories(outputDir.resolve("old"));
+      createDirectories(outputDir.resolve("new"));
 
-    // We will run tests on UTC
-    TimeZone zoneBackup = TimeZone.getDefault();
-    TimeZone.setDefault(TimeZone.getTimeZone(ZoneOffset.UTC));
+      Locale localeBackup = Locale.getDefault();
+      Locale.setDefault(Locale.forLanguageTag("en_US")); // This Locale will force us to escape dates
 
-    return new ExportToCsvScenario(
-        formDir,
-        outputDir,
-        FormDefinition.from(formFile),
-        readInstanceId(formName),
-        localeBackup,
-        zoneBackup
-    );
+      // We will run tests on UTC
+      TimeZone zoneBackup = TimeZone.getDefault();
+      TimeZone.setDefault(TimeZone.getTimeZone(ZoneOffset.UTC));
+
+      return new ExportToCsvScenario(
+          briefcaseDir,
+          formDir,
+          outputDir,
+          FormDefinition.from(formFile),
+          formStatus,
+          readInstanceId(formName),
+          localeBackup,
+          zoneBackup
+      );
+    } catch (BadFormDefinition badFormDefinition) {
+      throw new RuntimeException(badFormDefinition);
+    }
   }
 
   static Path getPath(String fileName) {
@@ -107,7 +125,7 @@ class ExportToCsvScenario {
   }
 
   void tearDown() {
-    deleteRecursive(formDir);
+    deleteRecursive(briefcaseDir);
     deleteRecursive(outputDir);
     Locale.setDefault(localeBackup);
     TimeZone.setDefault(zoneBackup);
@@ -156,7 +174,7 @@ class ExportToCsvScenario {
         Cursor.empty(),
         Optional.empty()
     );
-    ExportToCsv.export(new InMemoryFormMetadataAdapter(), formMetadata, formDef, configuration);
+    ExportToCsv.export(new InMemoryFormMetadataAdapter(), formMetadata, formStatus, formDef, briefcaseDir, configuration);
   }
 
   void assertSameContent() {
@@ -263,7 +281,7 @@ class ExportToCsvScenario {
   private static Path installForm(Path formDir, final String formName) {
     // Locate and copy the form definition
     Path sourceForm = getPath(formName + ".xml");
-    Path targetForm = formDir.resolve("form.xml");
+    Path targetForm = formDir.resolve(sourceForm.getFileName());
     copy(sourceForm, targetForm);
 
     // Prepare the instances directory
