@@ -1,0 +1,27 @@
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:h="http://www.w3.org/1999/xhtml">
+  <h:head>
+    <h:title>Simple form</h:title>
+    <model>
+      <instance>
+        <data id="simple-form-case-sensitivity">
+          <field/>
+          <Field/>
+          <meta>
+            <instanceID/>
+          </meta>
+        </data>
+      </instance>
+      <itext>
+        <translation lang="English">
+        </translation>
+      </itext>
+      <bind nodeset="/data/meta/instanceID" type="string" readonly="true()" calculate="concat('uuid:', uuid())"/>
+      <bind nodeset="/data/field" type="string"/>
+      <bind nodeset="/data/Field" type="dateTime"/>
+    </model>
+  </h:head>
+  <h:body>
+    <input ref="/data/field"/>
+    <input ref="/data/Field"/>
+  </h:body>
+</h:html>

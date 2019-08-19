@@ -144,7 +144,7 @@ public class XmlElement {
   public List<XmlElement> findElements(String... namesArray) {
 
     if (namesArray.length == 1)
-      return childrenOf().stream().filter(e -> e.getName().equalsIgnoreCase(namesArray[0])).collect(Collectors.toList());
+      return childrenOf().stream().filter(e -> e.getName().equals(namesArray[0])).collect(Collectors.toList());
     // Shift the first element on array
     List<String> names = Arrays.asList(namesArray);
     return findElement(names.get(0))
@@ -250,7 +250,7 @@ public class XmlElement {
   }
 
   private boolean hasName(String name) {
-    return element.getName().equalsIgnoreCase(name);
+    return element.getName().equals(name);
   }
 
   private boolean isFirstLevelGroup() {
