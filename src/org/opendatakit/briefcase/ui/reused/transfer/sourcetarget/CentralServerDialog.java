@@ -53,11 +53,13 @@ public class CentralServerDialog {
             if (response.isSuccess()) {
               triggerConnect(server);
               form.hideDialog();
-            } else
+            } else {
+              System.out.println(response.getStatusPhrase());
               showErrorMessage(
-                  response.isRedirection() ? "Redirection detected" : response.isUnauthorized() ? "Wrong credentials" : response.isNotFound() ? "Project ID does not exist." : "",
+                  response.isRedirection() ? "Redirection detected" : response.isUnauthorized() ? "Wrong credentials" : response.isNotFound() ? "Project ID does not exist" : "",
                   response.isRedirection() ? "Unexpected error" : "Configuration error"
               );
+            }
           } catch (InterruptedException ignore) {
             // Ignore
           } catch (ExecutionException e) {

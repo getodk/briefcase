@@ -39,12 +39,12 @@ public interface PushTarget<T> extends SourceOrTarget<T> {
 
   static PushTarget<CentralServer> central(Http http, Consumer<PushTarget> consumer) {
     return new Central(http, server -> {
-      Response response = http.execute(server.getCredentialsTestRequest());
+      Response<String> response = http.execute(server.getSessionTokenRequest());
       if (!response.isSuccess()) {
         return response;
       }
 
-      return http.execute(server.getProjectTestRequest(http));
+      return http.execute(server.getProjectTestRequest(response.get()));
     }, consumer);
   }
 
