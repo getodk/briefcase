@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.LegacyPrefs;
@@ -43,36 +44,36 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
 
   public FormMetadataPort syncWithFilesAt(Path storageRoot) {
     flush();
-    store.putAll(walk(storageRoot.resolve("forms"))
 
-        // select XML files that are not submissions
-        .filter(path -> !path.getFileName().toString().equals("submission.xml")
-            && path.getFileName().toString().endsWith(".xml"))
+    Stream<Path> allFiles = walk(storageRoot.resolve("forms"));
 
-        // select XML files that look like forms by parsing them
-        // and looking for key parts that all forms must have
-        .filter(path -> isAForm(XmlElement.from(path)))
+    // select XML files that are not submissions
+    Stream<Path> candidateFormFiles = allFiles.filter(path ->
+        !path.getFileName().toString().equals("submission.xml") && path.getFileName().toString().endsWith(".xml")
+    );
 
-        // Parse existing metadata.json files or build new FormMetadata from form files
-        .map(formFile -> {
-          Path formDir = formFile.getParent();
-          Path metadataFile = formDir.resolve("metadata.json");
-          return Files.exists(metadataFile) ? deserialize(metadataFile) : FormMetadata.from(formFile);
-        })
+    // select XML files that look like forms by parsing them
+    // and looking for key parts that all forms must have
+    Stream<Path> formFiles = candidateFormFiles.filter(path -> isAForm(XmlElement.from(path)));
 
-        // Try to recover any missing cursor from the legacy Java prefs system
-        .map(metadata -> {
-          if (!metadata.getCursor().isEmpty())
-            return metadata;
-          return LegacyPrefs.readCursor(metadata.getKey().getId())
-              .map(metadata::withCursor)
-              .orElse(metadata);
-        })
+    // Parse existing metadata.json files or build new FormMetadata from form files
+    Stream<FormMetadata> metadataFiles = formFiles.map(formFile -> {
+      Path formDir = formFile.getParent();
+      Path metadataFile = formDir.resolve("metadata.json");
+      FormMetadata formMetadata = Files.exists(metadataFile) ? deserialize(metadataFile) : FormMetadata.from(formFile);
+      if (!formMetadata.getCursor().isEmpty())
+        return formMetadata;
+      // Try to recover any missing cursor from the legacy Java prefs system
+      return LegacyPrefs.readCursor(formMetadata.getKey().getId())
+          .map(formMetadata::withCursor)
+          .orElse(formMetadata);
+    });
 
-        // Write updated metadata.json files
-        .peek(this::persist)
+    Map<FormKey, FormMetadata> forms = metadataFiles
+        .peek(this::persist) // Write updated metadata.json files
+        .collect(toMap(FormMetadata::getKey, metadata -> metadata));
 
-        .collect(toMap(FormMetadata::getKey, metadata -> metadata)));
+    store.putAll(forms);
     return this;
   }
 
