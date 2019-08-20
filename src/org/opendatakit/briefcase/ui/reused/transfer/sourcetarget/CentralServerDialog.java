@@ -55,7 +55,7 @@ public class CentralServerDialog {
               form.hideDialog();
             } else
               showErrorMessage(
-                  response.isRedirection() ? "Redirection detected" : response.isUnauthorized() ? "Wrong credentials" : response.isNotFound() ? "Project ID does not exist" : "",
+                  response.isRedirection() ? "Redirection detected" : response.isUnauthorized() ? "Wrong credentials" : response.isNotFound() ? "Central server or project not found" : "",
                   response.isRedirection() ? "Unexpected error" : "Configuration error"
               );
           } catch (InterruptedException ignore) {
