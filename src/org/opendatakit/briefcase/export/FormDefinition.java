@@ -163,7 +163,11 @@ public class FormDefinition {
             // Populate choices of any control using a secondary
             // instance that is not external
             if (secondaryInstance != null && !(secondaryInstance instanceof ExternalDataInstance))
-              formDef.populateDynamicChoices(itemsetBinding, (TreeReference) control.getBind().getReference());
+              try {
+                formDef.populateDynamicChoices(itemsetBinding, (TreeReference) control.getBind().getReference());
+              } catch (NullPointerException e) {
+                // Ignore (see https://github.com/opendatakit/briefcase/issues/789)
+              }
           }
         })
         .collect(toMap(FormDefinition::controlFqn, e -> e));

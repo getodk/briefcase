@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa">
+  <h:head>
+    <h:title>Populate dynamic choices in repeat groups with relative paths</h:title>
+    <model>
+      <instance>
+        <data id="choice-lists-predicate-relative-repeat">
+          <group jr:template="">
+            <category/>
+            <item/>
+          </group>
+          <meta>
+            <instanceID/>
+          </meta>
+        </data>
+      </instance>
+      <instance id="items">
+        <root>
+          <item>
+            <name>1</name>
+            <category>1</category>
+          </item>
+          <item>
+            <name>2</name>
+            <category>1</category>
+          </item>
+          <item>
+            <name>3</name>
+            <category>1</category>
+          </item>
+          <item>
+            <name>4</name>
+            <category>1</category>
+          </item>
+          <item>
+            <name>5</name>
+            <category>2</category>
+          </item>
+          <item>
+            <name>6</name>
+            <category>2</category>
+          </item>
+          <item>
+            <name>7</name>
+            <category>2</category>
+          </item>
+          <item>
+            <name>8</name>
+            <category>3</category>
+          </item>
+          <item>
+            <name>9</name>
+            <category>3</category>
+          </item>
+          <item>
+            <name>10</name>
+            <category>3</category>
+          </item>
+        </root>
+      </instance>
+      <bind nodeset="/data/group/category" required="true()" type="select1"/>
+      <bind nodeset="/data/group/item" required="true()" type="select1"/>
+      <bind nodeset="/data/meta/instanceID" jr:preload="uid" readonly="true()" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <group ref="/data/group">
+      <label>Repeat group</label>
+      <repeat nodeset="/data/group">
+        <select1 ref="/data/group/category">
+          <label>Category</label>
+          <item>
+            <label>1</label>
+            <value>1</value>
+          </item>
+          <item>
+            <label>2</label>
+            <value>2</value>
+          </item>
+          <item>
+            <label>3</label>
+            <value>3</value>
+          </item>
+        </select1>
+        <select1 ref="/data/group/item">
+          <label>Item</label>
+          <itemset nodeset="instance('items')/root/item[category= current()/../category ]">
+            <value ref="name"/>
+            <label ref="name"/>
+          </itemset>
+        </select1>
+      </repeat>
+    </group>
+  </h:body>
+</h:html>
