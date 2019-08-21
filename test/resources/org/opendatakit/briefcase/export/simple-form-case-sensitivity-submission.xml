@@ -1,0 +1,7 @@
+<data id="simple-form-case-sensitivity" instanceID="uuid:0a1b861f-a5fd-4f49-846a-78dcf06cfc1b" version="2018012404" submissionDate="2018-02-01T11:35:19.178Z" isComplete="true" markedAsCompleteDate="2018-02-01T11:35:19.178Z" xmlns="http://opendatakit.org/submissions">
+  <field>Some value</field>
+  <Field>2019-01-01T00:00:00.000Z</Field>
+  <n0:meta xmlns:n0="http://openrosa.org/xforms">
+    <n0:instanceID>uuid:0a1b861f-a5fd-4f49-846a-78dcf06cfc1b</n0:instanceID>
+  </n0:meta>
+</data>
