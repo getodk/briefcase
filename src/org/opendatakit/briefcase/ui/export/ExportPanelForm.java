@@ -111,6 +111,14 @@ public class ExportPanelForm {
     formsTable.onChange(callback);
   }
 
+  void disableSelectAll() {
+    selectAllButton.setEnabled(false);
+  }
+
+  void enableSelectAll() {
+    selectAllButton.setEnabled(true);
+  }
+
   void toggleClearAll() {
     selectAllButton.setVisible(false);
     clearAllButton.setVisible(true);

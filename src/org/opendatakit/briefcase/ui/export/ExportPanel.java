@@ -149,6 +149,11 @@ public class ExportPanel {
     } else {
       form.toggleSelectAll();
     }
+
+    if (forms.isEmpty())
+      form.disableSelectAll();
+    else
+      form.enableSelectAll();
   }
 
   public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics, FormCache formCache, Http http) {
