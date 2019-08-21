@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import javax.swing.JPanel;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.reused.Analytics;
@@ -77,6 +78,8 @@ public class SettingsPanel {
     });
     form.onReloadCache(() -> {
       formCache.update();
+      formMetadataPort.flush();
+      formMetadataPort.syncWithFilesAt(appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new));
       infoMessage("Forms successfully reloaded from storage location.");
     });
     form.onCleanAllPullResumePoints(() -> {
