@@ -96,14 +96,14 @@ public class PushFormToAggregate {
           : "Error connecting to Aggregate");
       return;
     }
-    Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
-        .filter(form -> form.getFormId().equals(formid))
-        .map(FormStatus::new)
-        .findFirst();
 
     List<FormStatus> statuses;
     if (formid.isPresent()) {
-      FormStatus status = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + formid + " not found"));
+      FormStatus status = formCache.getForms().stream()
+          .filter(form -> form.getFormId().equals(formid))
+          .map(FormStatus::new)
+          .findFirst()
+          .orElseThrow(() -> new BriefcaseException("Form " + formid + " not found"));
       statuses = Arrays.asList(status);
     } else {
       statuses = formCache.getForms().stream()
