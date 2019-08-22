@@ -38,7 +38,6 @@ import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.form.FileSystemFormMetadataAdapter;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
@@ -74,29 +73,32 @@ public class Export {
   private static final Param<Void> REMOVE_GROUP_NAMES = Param.flag("rgn", "remove_group_names", "Remove group names from column names");
   private static final Param<Void> SMART_APPEND = Param.flag("sa", "smart_append", "Include only new submissions since last export");
 
-  public static Operation EXPORT_FORM = Operation.of(
-      EXPORT,
-      args -> export(
-          args.get(STORAGE_DIR),
-          args.get(FORM_ID),
-          args.get(EXPORT_DIR),
-          args.get(FILE),
-          !args.has(EXCLUDE_MEDIA),
-          args.has(OVERWRITE),
-          args.has(PULL_BEFORE),
-          args.getOptional(START),
-          args.getOptional(END),
-          args.getOptional(PEM_FILE),
-          args.has(SPLIT_SELECT_MULTIPLES),
-          args.has(INCLUDE_GEOJSON_EXPORT),
-          args.has(REMOVE_GROUP_NAMES),
-          args.has(SMART_APPEND)
-      ),
-      Arrays.asList(STORAGE_DIR, FORM_ID, FILE, EXPORT_DIR),
-      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE, SPLIT_SELECT_MULTIPLES, INCLUDE_GEOJSON_EXPORT, REMOVE_GROUP_NAMES, SMART_APPEND)
-  );
+  public static Operation create(FormMetadataPort formMetadataPort) {
+    return Operation.of(
+        EXPORT,
+        args -> export(
+            formMetadataPort,
+            args.get(STORAGE_DIR),
+            args.get(FORM_ID),
+            args.get(EXPORT_DIR),
+            args.get(FILE),
+            !args.has(EXCLUDE_MEDIA),
+            args.has(OVERWRITE),
+            args.has(PULL_BEFORE),
+            args.getOptional(START),
+            args.getOptional(END),
+            args.getOptional(PEM_FILE),
+            args.has(SPLIT_SELECT_MULTIPLES),
+            args.has(INCLUDE_GEOJSON_EXPORT),
+            args.has(REMOVE_GROUP_NAMES),
+            args.has(SMART_APPEND)
+        ),
+        Arrays.asList(STORAGE_DIR, FORM_ID, FILE, EXPORT_DIR),
+        Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE, SPLIT_SELECT_MULTIPLES, INCLUDE_GEOJSON_EXPORT, REMOVE_GROUP_NAMES, SMART_APPEND)
+    );
+  }
 
-  public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, boolean pullBefore, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile, boolean splitSelectMultiples, boolean includeGeoJsonExport, boolean removeGroupNames, boolean smartAppend) {
+  private static void export(FormMetadataPort formMetadataPort, String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, boolean pullBefore, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile, boolean splitSelectMultiples, boolean includeGeoJsonExport, boolean removeGroupNames, boolean smartAppend) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -104,7 +106,6 @@ public class Export {
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     BriefcasePreferences exportPrefs = BriefcasePreferences.forClass(ExportPanel.class);
     BriefcasePreferences pullPrefs = BriefcasePreferences.forClass(ExportPanel.class);
-    FormMetadataPort formMetadataPort = FileSystemFormMetadataAdapter.at(briefcaseDir);
 
     int maxHttpConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()

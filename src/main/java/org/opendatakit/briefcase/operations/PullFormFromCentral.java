@@ -33,7 +33,6 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
-import org.opendatakit.briefcase.model.form.FileSystemFormMetadataAdapter;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.central.PullFromCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -57,21 +56,22 @@ public class PullFormFromCentral {
   private static final Param<Void> PULL_FROM_CENTRAL = Param.flag("pllc", "pull_central", "Pull form from a Central server");
 
 
-  public static Operation OPERATION = Operation.of(
-      PULL_FROM_CENTRAL,
-      PullFormFromCentral::pullFromCentral,
-      Arrays.asList(STORAGE_DIR, SERVER_URL, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD),
-      Arrays.asList(FORM_ID, MAX_HTTP_CONNECTIONS)
-  );
+  public static Operation create(FormMetadataPort formMetadataPort) {
+    return Operation.of(
+        PULL_FROM_CENTRAL,
+        args -> pullFromCentral(formMetadataPort, args),
+        Arrays.asList(STORAGE_DIR, SERVER_URL, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD),
+        Arrays.asList(FORM_ID, MAX_HTTP_CONNECTIONS)
+    );
+  }
 
-  private static void pullFromCentral(Args args) {
+  private static void pullFromCentral(FormMetadataPort formMetadataPort, Args args) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(args.get(STORAGE_DIR));
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     appPreferences.setStorageDir(briefcaseDir);
-    FormMetadataPort formMetadataPort = FileSystemFormMetadataAdapter.at(briefcaseDir);
 
     int maxHttpConnections = Optionals.race(
         args.getOptional(MAX_HTTP_CONNECTIONS),
