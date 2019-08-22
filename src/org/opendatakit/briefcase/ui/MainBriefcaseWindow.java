@@ -23,7 +23,6 @@ import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.reused.job.JobsRunner.launchAsync;
-import static org.opendatakit.briefcase.ui.BriefcaseCLI.launchLegacyCLI;
 import static org.opendatakit.briefcase.ui.MessageStrings.BRIEFCASE_WELCOME;
 import static org.opendatakit.briefcase.ui.MessageStrings.TRACKING_WARNING;
 import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
@@ -78,10 +77,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private final Map<String, Integer> tabTitleIndexes = new HashMap<>();
 
   public static void main(String[] args) {
-    if (args.length == 0)
-      launchGUI();
-    else
-      launchLegacyCLI(args);
+    launchGUI();
   }
 
   public static void launchGUI() {

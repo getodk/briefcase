@@ -31,7 +31,6 @@ import static org.opendatakit.briefcase.operations.PullFormFromAggregate.DEPRECA
 import static org.opendatakit.briefcase.operations.PullFormFromAggregate.PULL_AGGREGATE;
 import static org.opendatakit.briefcase.operations.PullFormFromAggregate.PULL_FORM_FROM_AGGREGATE;
 import static org.opendatakit.briefcase.operations.PushFormToAggregate.PUSH_FORM_TO_AGGREGATE;
-import static org.opendatakit.briefcase.ui.BriefcaseCLI.runLegacyCli;
 import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.launchGUI;
 import static org.opendatakit.briefcase.util.Host.getOsName;
 
@@ -73,12 +72,7 @@ public class Launcher {
         .register(IMPORT_FROM_ODK)
         .register(EXPORT_FORM)
         .register(CLEAR_PREFS)
-        .otherwise((args, cli, commandLine) -> {
-          if (rawArgs.length == 0)
-            launchGUI();
-          else
-            runLegacyCli(commandLine, cli::printHelp);
-        })
+        .otherwise((args, cli, commandLine) -> launchGUI())
         .onError(throwable -> {
           System.err.println(throwable instanceof BriefcaseException
               ? "Error: " + throwable.getMessage()
