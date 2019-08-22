@@ -172,8 +172,8 @@ task jooqGenerate() {
     "rm -rf db".execute()
     try {
       def dbUrl = Utils.startDb(projectDir)
-      Utils.migrateDb(projectDir, dbUrl)
-      Utils.generateJooq(projectDir, dbUrl)
+      Utils.migrateDb(projectDir, sourceSets.main.resources.getSrcDirs()[0], dbUrl)
+      Utils.generateJooq(projectDir, sourceSets.main.java.getSrcDirs()[0], dbUrl)
     } finally {
       Utils.stopDb()
       "rm -rf db".execute()
