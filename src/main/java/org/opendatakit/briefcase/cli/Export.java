@@ -13,13 +13,13 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.operations;
+package org.opendatakit.briefcase.cli;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
+import static org.opendatakit.briefcase.cli.Common.FORM_ID;
+import static org.opendatakit.briefcase.cli.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePrefix;
 import static org.opendatakit.briefcase.model.form.FormMetadataQueries.lastCursorOf;
-import static org.opendatakit.briefcase.operations.Common.FORM_ID;
-import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 

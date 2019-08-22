@@ -13,11 +13,11 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.operations;
+package org.opendatakit.briefcase.cli;
 
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.operations.Common.FORM_ID;
-import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
+import static org.opendatakit.briefcase.cli.Common.FORM_ID;
+import static org.opendatakit.briefcase.cli.Common.STORAGE_DIR;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

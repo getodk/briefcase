@@ -13,16 +13,16 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.operations;
+package org.opendatakit.briefcase.cli;
 
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.cli.Common.CREDENTIALS_PASSWORD;
+import static org.opendatakit.briefcase.cli.Common.CREDENTIALS_USERNAME;
+import static org.opendatakit.briefcase.cli.Common.FORM_ID;
+import static org.opendatakit.briefcase.cli.Common.MAX_HTTP_CONNECTIONS;
+import static org.opendatakit.briefcase.cli.Common.SERVER_URL;
+import static org.opendatakit.briefcase.cli.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.model.form.FormMetadataQueries.lastCursorOf;
-import static org.opendatakit.briefcase.operations.Common.CREDENTIALS_PASSWORD;
-import static org.opendatakit.briefcase.operations.Common.CREDENTIALS_USERNAME;
-import static org.opendatakit.briefcase.operations.Common.FORM_ID;
-import static org.opendatakit.briefcase.operations.Common.MAX_HTTP_CONNECTIONS;
-import static org.opendatakit.briefcase.operations.Common.SERVER_URL;
-import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
 import java.net.URL;

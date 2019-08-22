@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.operations;
+package org.opendatakit.briefcase.cli;
 
 import java.net.URL;
 import java.nio.file.Files;
