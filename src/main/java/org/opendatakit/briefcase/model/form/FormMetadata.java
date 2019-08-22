@@ -1,22 +1,14 @@
 package org.opendatakit.briefcase.model.form;
 
-import static org.opendatakit.briefcase.model.form.AsJson.getJson;
-import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Optional;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
-public class FormMetadata implements AsJson {
+public class FormMetadata {
   private final FormKey key;
   private final Path formDir;
   private final Path formFilename;
@@ -54,18 +46,6 @@ public class FormMetadata implements AsJson {
     Optional<String> version = mainInstance.childrenOf().get(0).getAttributeValue("version");
     FormKey key = FormKey.of(name, id, version);
     return new FormMetadata(key, formFile.getParent(), formFile.getFileName(), true, Cursor.empty(), Optional.empty());
-  }
-
-  public static FormMetadata from(JsonNode root) {
-    FormKey key = FormKey.from(root.get("key"));
-    return new FormMetadata(
-        key,
-        getJson(root, "storageDirectory").map(JsonNode::asText).map(Paths::get).orElseThrow(BriefcaseException::new),
-        Paths.get(stripIllegalChars(key.getName())),
-        getJson(root, "hasBeenPulled").map(JsonNode::asBoolean).orElseThrow(BriefcaseException::new),
-        Cursor.from(root.get("cursor")),
-        getJson(root, "lastExportedSubmissionDate").map(JsonNode::asText).map(OffsetDateTime::parse)
-    );
   }
 
   private static boolean isTheMainInstance(XmlElement e) {
@@ -112,17 +92,6 @@ public class FormMetadata implements AsJson {
 
   FormMetadata withLastExportedSubmissionDate(OffsetDateTime submissionDate) {
     return new FormMetadata(key, formDir, formFilename, hasBeenPulled, cursor, Optional.of(submissionDate));
-  }
-
-  @Override
-  public ObjectNode asJson(ObjectMapper mapper) {
-    ObjectNode root = mapper.createObjectNode();
-    root.putObject("key").setAll(key.asJson(mapper));
-    root.put("storageDirectory", formDir.toAbsolutePath().toString());
-    root.put("hasBeenPulled", hasBeenPulled);
-    root.putObject("cursor").setAll(cursor.asJson(mapper));
-    root.put("lastExportedSubmissionDate", lastExportedSubmissionDate.map(dt -> dt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)).orElse(null));
-    return root;
   }
 
   @Override

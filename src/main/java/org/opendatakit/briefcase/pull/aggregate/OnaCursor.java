@@ -2,8 +2,6 @@ package org.opendatakit.briefcase.pull.aggregate;
 
 import static org.opendatakit.briefcase.pull.aggregate.Cursor.Type.ONA;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -26,14 +24,6 @@ public class OnaCursor implements Cursor {
 
   public static Cursor from(String rawValue) {
     return new OnaCursor(Optional.ofNullable(rawValue).map(Long::parseLong));
-  }
-
-  @Override
-  public ObjectNode asJson(ObjectMapper mapper) {
-    ObjectNode root = mapper.createObjectNode();
-    root.put("type", ONA.getName());
-    root.put("value", value.map(Object::toString).orElse(null));
-    return root;
   }
 
   @Override

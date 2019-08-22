@@ -2,7 +2,6 @@ package org.opendatakit.briefcase.model.form;
 
 import static java.util.stream.Collectors.toMap;
 
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -36,11 +35,6 @@ public class InMemoryFormMetadataAdapter implements FormMetadataPort {
   @Override
   public void flush() {
     store.clear();
-  }
-
-  @Override
-  public FormMetadataPort syncWithFilesAt(Path storageLocation) {
-    return this;
   }
 
   @Override

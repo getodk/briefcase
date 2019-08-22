@@ -8,7 +8,6 @@ import static org.jooq.impl.DSL.truncate;
 import static org.jooq.impl.DSL.value;
 import static org.opendatakit.briefcase.jooq.Tables.FORM_METADATA;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
@@ -43,11 +42,6 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
   @Override
   public void execute(Consumer<FormMetadataPort> command) {
     command.accept(this);
-  }
-
-  public FormMetadataPort syncWithFilesAt(Path storageRoot) {
-    // Do nothing. This will be implemented as a command in due time
-    return this;
   }
 
   @Override

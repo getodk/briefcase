@@ -16,16 +16,13 @@
 
 package org.opendatakit.briefcase.pull.aggregate;
 
-import static org.opendatakit.briefcase.model.form.AsJson.getJson;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import org.opendatakit.briefcase.model.form.AsJson;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
 /**
@@ -36,18 +33,11 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
  * and "start from date" features, we need to try to parse it and even create artificial
  * cursors.
  */
-public interface Cursor extends Comparable<Cursor>, AsJson {
+public interface Cursor extends Comparable<Cursor> {
 
   static Cursor empty() {
     return new EmptyCursor();
   }
-
-  static Cursor from(JsonNode root) {
-    Type type = getJson(root, "type").map(JsonNode::asText).map(Type::from).orElseThrow(BriefcaseException::new);
-    String value = getJson(root, "value").map(JsonNode::asText).orElse("");
-    return type.create(value);
-  }
-
 
   static Cursor from(String value) {
     return firstNonFailing(

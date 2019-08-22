@@ -1,16 +1,10 @@
 package org.opendatakit.briefcase.model.form;
 
-import static org.opendatakit.briefcase.model.form.AsJson.getJson;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Objects;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 
-public class FormKey implements AsJson {
+public class FormKey {
   private final String name;
   private final String id;
   private final Optional<String> version;
@@ -26,14 +20,6 @@ public class FormKey implements AsJson {
         formStatus.getFormName(),
         formStatus.getFormId(),
         formStatus.getVersion()
-    );
-  }
-
-  public static FormKey from(JsonNode root) {
-    return new FormKey(
-        getJson(root, "name").map(JsonNode::asText).orElseThrow(BriefcaseException::new),
-        getJson(root, "id").map(JsonNode::asText).orElseThrow(BriefcaseException::new),
-        getJson(root, "version").map(JsonNode::asText)
     );
   }
 
@@ -59,15 +45,6 @@ public class FormKey implements AsJson {
 
   public Optional<String> getVersion() {
     return version;
-  }
-
-  @Override
-  public ObjectNode asJson(ObjectMapper mapper) {
-    ObjectNode root = mapper.createObjectNode();
-    root.put("name", name);
-    root.put("id", id);
-    root.put("version", version.orElse(null));
-    return root;
   }
 
   @Override

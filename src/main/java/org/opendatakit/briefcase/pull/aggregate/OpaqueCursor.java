@@ -2,8 +2,6 @@ package org.opendatakit.briefcase.pull.aggregate;
 
 import static org.opendatakit.briefcase.pull.aggregate.Cursor.Type.OPAQUE;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -31,14 +29,6 @@ public class OpaqueCursor implements Cursor {
   @Override
   public boolean isEmpty() {
     return Optional.ofNullable(value).isEmpty();
-  }
-
-  @Override
-  public ObjectNode asJson(ObjectMapper mapper) {
-    ObjectNode root = mapper.createObjectNode();
-    root.put("type", OPAQUE.getName());
-    root.put("value", value);
-    return root;
   }
 
   @Override

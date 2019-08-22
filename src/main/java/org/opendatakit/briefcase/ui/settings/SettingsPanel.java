@@ -21,8 +21,8 @@ import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
 import javax.swing.JPanel;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.form.FormMetadataCommands;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.BriefcaseVersionManager;
@@ -63,7 +63,7 @@ public class SettingsPanel {
     });
     form.onReloadCache(() -> {
       formCache.update();
-      formMetadataPort.syncWithFilesAt(appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new));
+      formMetadataPort.execute(FormMetadataCommands.syncWithFilesAt(appPreferences.getBriefcaseDir().orElseThrow()));
       infoMessage("Forms successfully reloaded from storage location.");
     });
     form.onCleanAllPullResumePoints(() -> {

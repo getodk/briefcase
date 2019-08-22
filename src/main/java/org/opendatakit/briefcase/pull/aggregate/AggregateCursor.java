@@ -19,8 +19,6 @@ package org.opendatakit.briefcase.pull.aggregate;
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 import static org.opendatakit.briefcase.pull.aggregate.Cursor.Type.AGGREGATE;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -88,14 +86,6 @@ public class AggregateCursor implements Cursor {
         .flatMap(XmlElement::maybeValue);
 
     return new AggregateCursor(cursorXml, lastUpdate, lastReturnedValue);
-  }
-
-  @Override
-  public ObjectNode asJson(ObjectMapper mapper) {
-    ObjectNode root = mapper.createObjectNode();
-    root.put("type", AGGREGATE.getName());
-    root.put("value", value);
-    return root;
   }
 
   /**
