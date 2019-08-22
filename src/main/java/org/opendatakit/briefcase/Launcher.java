@@ -35,8 +35,8 @@ import org.opendatakit.briefcase.cli.LaunchGui;
 import org.opendatakit.briefcase.cli.PullFromAggregate;
 import org.opendatakit.briefcase.cli.PullFromCentral;
 import org.opendatakit.briefcase.cli.PullFromCollect;
-import org.opendatakit.briefcase.cli.PushFormToCentral;
 import org.opendatakit.briefcase.cli.PushToAggregate;
+import org.opendatakit.briefcase.cli.PushToCentral;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.form.DatabaseFormMetadataAdapter;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
@@ -69,7 +69,7 @@ public class Launcher {
         .register(PullFromAggregate.create(formMetadataPort))
         .register(PullFromCentral.create(formMetadataPort))
         .register(PushToAggregate.create(formMetadataPort))
-        .register(PushFormToCentral.OPERATION)
+        .register(PushToCentral.create(formMetadataPort))
         .register(PullFromCollect.create(formMetadataPort))
         .register(Export.create(formMetadataPort))
         .register(CLEAR_PREFS)

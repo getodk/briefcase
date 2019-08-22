@@ -31,7 +31,7 @@ import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.push.central.PushToCentral;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.cli.Args;
@@ -47,18 +47,20 @@ import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PushFormToCentral {
-  private static final Logger log = LoggerFactory.getLogger(PushFormToCentral.class);
+public class PushToCentral {
+  private static final Logger log = LoggerFactory.getLogger(PushToCentral.class);
   private static final Param<Void> PUSH_TO_CENTRAL = Param.flag("pshc", "push_central", "Push form to a Central server");
 
-  public static Operation OPERATION = Operation.of(
-      PUSH_TO_CENTRAL,
-      PushFormToCentral::pushToCentral,
-      Arrays.asList(STORAGE_DIR, FORM_ID, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD, SERVER_URL),
-      Collections.singletonList(MAX_HTTP_CONNECTIONS)
-  );
+  public static Operation create(FormMetadataPort formMetadataPort) {
+    return Operation.of(
+        PUSH_TO_CENTRAL,
+        args -> pushToCentral(formMetadataPort, args),
+        Arrays.asList(STORAGE_DIR, FORM_ID, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD, SERVER_URL),
+        Collections.singletonList(MAX_HTTP_CONNECTIONS)
+    );
+  }
 
-  private static void pushToCentral(Args args) {
+  private static void pushToCentral(FormMetadataPort formMetadataPort, Args args) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(args.get(STORAGE_DIR));
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -88,8 +90,8 @@ public class PushFormToCentral {
     TransferForms forms = TransferForms.of(form);
     forms.selectAll();
 
-    PushToCentral pushOp = new PushToCentral(http, server, briefcaseDir, token, PushFormToCentral::onEvent);
-    JobsRunner.launchAsync(forms.map(pushOp::push), PushFormToCentral::onError).waitForCompletion();
+    org.opendatakit.briefcase.push.central.PushToCentral pushOp = new org.opendatakit.briefcase.push.central.PushToCentral(http, server, briefcaseDir, token, PushToCentral::onEvent);
+    JobsRunner.launchAsync(forms.map(pushOp::push), PushToCentral::onError).waitForCompletion();
     System.out.println();
     System.out.println("All operations completed");
     System.out.println();
