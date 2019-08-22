@@ -52,7 +52,7 @@ import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.form.FileSystemFormMetadataAdapter;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.StorageLocationEvent;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -76,17 +76,13 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private final JLabel versionLabel = new JLabel("Checking for updates...");
   private final Map<String, Integer> tabTitleIndexes = new HashMap<>();
 
-  public static void main(String[] args) {
-    launchGUI();
-  }
-
-  public static void launchGUI() {
+  public static void launchGUI(FormMetadataPort formMetadataPort) {
     try {
       if (Host.isLinux())
         UIManager.setLookAndFeel(new MetalLookAndFeel());
       else
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-      new MainBriefcaseWindow();
+      new MainBriefcaseWindow(formMetadataPort);
     } catch (Exception e) {
       log.error("Failed to launch GUI", e);
       System.err.println("Failed to launch Briefcase GUI");
@@ -94,7 +90,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     }
   }
 
-  private MainBriefcaseWindow() {
+  private MainBriefcaseWindow(FormMetadataPort formMetadataPort) {
     // Create all dependencies
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     BriefcasePreferences pullPreferences = BriefcasePreferences.forClass(PullPanel.class);
@@ -105,9 +101,6 @@ public class MainBriefcaseWindow extends WindowAdapter {
     FormCache formCache = briefcaseDir
         .map(FormCache::from)
         .orElse(FormCache.empty());
-
-    FileSystemFormMetadataAdapter formMetadataAdapter = new FileSystemFormMetadataAdapter();
-    briefcaseDir.ifPresent(formMetadataAdapter::syncWithFilesAt);
 
     int maxHttpConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
@@ -128,10 +121,10 @@ public class MainBriefcaseWindow extends WindowAdapter {
     getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
     // Add panes to the tabbedPane
-    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics, formMetadataAdapter).getContainer());
+    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics, formMetadataPort).getContainer());
     addPane(PushPanel.TAB_NAME, PushPanel.from(http, appPreferences, formCache, analytics).getContainer());
-    addPane(ExportPanel.TAB_NAME, ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, formCache, http, formMetadataAdapter).getForm().getContainer());
-    addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(appPreferences, analytics, formCache, http, versionManager, formMetadataAdapter).getContainer());
+    addPane(ExportPanel.TAB_NAME, ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, formCache, http, formMetadataPort).getForm().getContainer());
+    addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(appPreferences, analytics, formCache, http, versionManager, formMetadataPort).getContainer());
 
     // Set up the frame and put the UI components in it
     frame.addWindowListener(this);
@@ -169,7 +162,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
     AnnotationProcessor.process(this);
 
-    if (isFirstLaunch(appPreferences)) {
+    if (isFirstLaunch()) {
       lockUI();
       showWelcomeMessage();
       appPreferences.setTrackingWarningShowed();
@@ -213,8 +206,9 @@ public class MainBriefcaseWindow extends WindowAdapter {
     return !appPreferences.hasTrackingWarningBeenShowed();
   }
 
-  private boolean isFirstLaunch(BriefcasePreferences appPreferences) {
-    return !appPreferences.getBriefcaseDir().isPresent();
+  private boolean isFirstLaunch() {
+    // TODO Implement this using the db. For now, skip
+    return false;
   }
 
   private void addPane(String title, Component pane) {

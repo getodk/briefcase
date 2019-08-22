@@ -24,7 +24,6 @@ import static org.opendatakit.briefcase.operations.ClearPreferences.CLEAR_PREFS;
 import static org.opendatakit.briefcase.operations.Common.WORKSPACE_LOCATION;
 import static org.opendatakit.briefcase.operations.Export.EXPORT_FORM;
 import static org.opendatakit.briefcase.operations.ImportFromODK.IMPORT_FROM_ODK;
-import static org.opendatakit.briefcase.operations.LaunchGui.LAUNCH_GUI;
 import static org.opendatakit.briefcase.operations.PullFormFromAggregate.PULL_FORM_FROM_AGGREGATE;
 import static org.opendatakit.briefcase.operations.PushFormToAggregate.PUSH_FORM_TO_AGGREGATE;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
@@ -38,6 +37,7 @@ import org.flywaydb.core.Flyway;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.form.DatabaseFormMetadataAdapter;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
+import org.opendatakit.briefcase.operations.LaunchGui;
 import org.opendatakit.briefcase.operations.PullFormFromCentral;
 import org.opendatakit.briefcase.operations.PushFormToCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -73,7 +73,7 @@ public class Launcher {
         .register(IMPORT_FROM_ODK)
         .register(EXPORT_FORM)
         .register(CLEAR_PREFS)
-        .registerDefault(LAUNCH_GUI)
+        .registerDefault(LaunchGui.create(formMetadataPort))
         .before(args -> {
           Path storageLocation = args.get(WORKSPACE_LOCATION);
           prepareStorageLocation(storageLocation);
