@@ -16,18 +16,18 @@ repositories {
 sourceSets {
   main {
     java {
-      srcDirs = ['src']
+      srcDirs = ['src/main/java']
     }
     resources {
-      srcDirs = ['res']
+      srcDirs = ['src/main/resources']
     }
   }
   test {
     java {
-      srcDirs = ['test/java']
+      srcDirs = ['src/test/java']
     }
     resources {
-      srcDirs = ['test/resources']
+      srcDirs = ['src/test/resources']
     }
   }
 }

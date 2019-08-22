@@ -25,12 +25,12 @@ import java.util.Arrays;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.cli.Operation;
+import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.briefcase.util.TransferFromODK;
-import org.opendatakit.common.cli.Operation;
-import org.opendatakit.common.cli.Param;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
