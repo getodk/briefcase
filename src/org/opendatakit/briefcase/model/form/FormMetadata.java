@@ -47,7 +47,7 @@ public class FormMetadata implements AsJson {
         .findFirst()
         .orElseThrow(BriefcaseException::new);
     String id = mainInstance.childrenOf().get(0).getAttributeValue("id").orElseThrow(BriefcaseException::new);
-    Optional<String> version = mainInstance.getAttributeValue("version");
+    Optional<String> version = mainInstance.childrenOf().get(0).getAttributeValue("version");
     FormKey key = FormKey.of(name, id, version);
     return new FormMetadata(key, formFile.getParent(), true, Cursor.empty(), Optional.empty());
   }
