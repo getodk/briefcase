@@ -1,4 +1,4 @@
-package org.opendatakit.common.cli;
+package org.opendatakit.briefcase.reused.cli;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;

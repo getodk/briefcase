@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.common.cli;
+package org.opendatakit.briefcase.reused.cli;
 
 import static java.lang.Runtime.getRuntime;
 import static java.util.stream.Collectors.joining;

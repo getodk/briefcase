@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.common.cli;
+package org.opendatakit.briefcase.reused.cli;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.hasSize;

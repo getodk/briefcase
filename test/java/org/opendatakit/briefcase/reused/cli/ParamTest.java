@@ -1,4 +1,4 @@
-package org.opendatakit.common.cli;
+package org.opendatakit.briefcase.reused.cli;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;

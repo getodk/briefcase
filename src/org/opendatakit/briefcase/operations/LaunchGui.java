@@ -22,11 +22,11 @@ import static org.opendatakit.briefcase.operations.Common.WORKSPACE_LOCATION;
 import java.nio.file.Path;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.cli.Args;
+import org.opendatakit.briefcase.reused.cli.Operation;
+import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.ui.MainBriefcaseWindow;
 import org.opendatakit.briefcase.util.FormCache;
-import org.opendatakit.common.cli.Args;
-import org.opendatakit.common.cli.Operation;
-import org.opendatakit.common.cli.Param;
 
 
 public class LaunchGui {

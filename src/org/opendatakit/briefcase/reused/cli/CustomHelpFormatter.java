@@ -1,8 +1,8 @@
-package org.opendatakit.common.cli;
+package org.opendatakit.briefcase.reused.cli;
 
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
-import static org.opendatakit.common.cli.Cli.mapToOptions;
+import static org.opendatakit.briefcase.reused.cli.Cli.mapToOptions;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

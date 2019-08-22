@@ -20,11 +20,11 @@ import static java.util.Comparator.naturalOrder;
 import java.util.List;
 import java.util.stream.Stream;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.cli.Operation;
+import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
 import org.opendatakit.briefcase.ui.pull.PullPanel;
 import org.opendatakit.briefcase.ui.push.PushPanel;
-import org.opendatakit.common.cli.Operation;
-import org.opendatakit.common.cli.Param;
 
 public class ClearPreferences {
 

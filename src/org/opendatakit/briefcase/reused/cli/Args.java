@@ -1,4 +1,4 @@
-package org.opendatakit.common.cli;
+package org.opendatakit.briefcase.reused.cli;
 
 import java.util.Arrays;
 import java.util.HashMap;

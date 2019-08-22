@@ -21,8 +21,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
+import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
-import org.opendatakit.common.cli.Param;
 
 public class Common {
   static final Param<Path> WORKSPACE_LOCATION = Param.arg("wl", "workspace_location", "Workspace location", Paths::get);

@@ -1,4 +1,4 @@
-package org.opendatakit.common.cli;
+package org.opendatakit.briefcase.reused.cli;
 
 import static java.util.Collections.emptySet;
 

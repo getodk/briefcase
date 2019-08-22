@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.common.cli;
+package org.opendatakit.briefcase.reused.cli;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertThat;

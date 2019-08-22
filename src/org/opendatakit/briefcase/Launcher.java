@@ -35,7 +35,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.operations.PullFormFromCentral;
 import org.opendatakit.briefcase.operations.PushFormToCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.common.cli.Cli;
+import org.opendatakit.briefcase.reused.cli.Cli;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
