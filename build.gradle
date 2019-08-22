@@ -45,7 +45,7 @@ dependencies {
   compile(group: 'org.opendatakit', name: 'opendatakit-javarosa', version: '2.15.1') {
     exclude group: 'org.slf4j'
   }
-  compile group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
+
   compile(group: 'com.brsanthu', name: 'google-analytics-java', version: '2.0.0') {
     exclude group: 'org.slf4j'
     exclude group: 'org.apache.httpcomponents', module: 'httpclient'
@@ -74,6 +74,9 @@ dependencies {
   }
 
   compile 'de.grundid.opendatalab:geojson-jackson:1.8'
+
+  compile group: 'org.jooq', name: 'jooq', version: '3.11.11'
+  compile group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
 }
 
 jacocoTestReport {

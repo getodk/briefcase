@@ -21,21 +21,25 @@ import static org.opendatakit.briefcase.buildconfig.BuildConfig.SENTRY_ENABLED;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY;
 import static org.opendatakit.briefcase.operations.ClearPreferences.CLEAR_PREFS;
+import static org.opendatakit.briefcase.operations.Common.WORKSPACE_LOCATION;
 import static org.opendatakit.briefcase.operations.Export.EXPORT_FORM;
 import static org.opendatakit.briefcase.operations.ImportFromODK.IMPORT_FROM_ODK;
 import static org.opendatakit.briefcase.operations.LaunchGui.LAUNCH_GUI;
 import static org.opendatakit.briefcase.operations.PullFormFromAggregate.PULL_FORM_FROM_AGGREGATE;
 import static org.opendatakit.briefcase.operations.PushFormToAggregate.PUSH_FORM_TO_AGGREGATE;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.util.Host.getOsName;
 
 import io.sentry.Sentry;
 import io.sentry.SentryClient;
+import java.nio.file.Path;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.operations.PullFormFromCentral;
 import org.opendatakit.briefcase.operations.PushFormToCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.cli.Cli;
+import org.opendatakit.briefcase.reused.db.BriefcaseDb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +59,8 @@ public class Launcher {
 
     Optional<SentryClient> sentry = SENTRY_ENABLED ? Optional.of(initSentryClient(appPreferences)) : Optional.empty();
 
+    BriefcaseDb db = BriefcaseDb.create();
+
     new Cli()
         .register(PULL_FORM_FROM_AGGREGATE)
         .register(PullFormFromCentral.OPERATION)
@@ -64,6 +70,11 @@ public class Launcher {
         .register(EXPORT_FORM)
         .register(CLEAR_PREFS)
         .registerDefault(LAUNCH_GUI)
+        .before(args -> {
+          Path storageLocation = args.get(WORKSPACE_LOCATION);
+          prepareStorageLocation(storageLocation);
+          db.startAt(storageLocation);
+        })
         .onError(throwable -> {
           System.err.println(throwable instanceof BriefcaseException
               ? "Error: " + throwable.getMessage()
@@ -72,6 +83,7 @@ public class Launcher {
           sentry.ifPresent(client -> client.sendException(throwable));
           System.exit(1);
         })
+        .onExit(db::stop)
         .run(rawArgs);
   }
 
@@ -94,5 +106,9 @@ public class Launcher {
         .orElse(true));
 
     return sentry;
+  }
+
+  private static void prepareStorageLocation(Path storageLocation) {
+    createDirectories(storageLocation.resolve("forms"));
   }
 }
