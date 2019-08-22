@@ -36,6 +36,8 @@ import java.nio.file.Path;
 import java.util.Optional;
 import org.flywaydb.core.Flyway;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.form.DatabaseFormMetadataAdapter;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.operations.PullFormFromCentral;
 import org.opendatakit.briefcase.operations.PushFormToCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -61,6 +63,7 @@ public class Launcher {
     Optional<SentryClient> sentry = SENTRY_ENABLED ? Optional.of(initSentryClient(appPreferences)) : Optional.empty();
 
     BriefcaseDb db = BriefcaseDb.create();
+    FormMetadataPort formMetadataPort = new DatabaseFormMetadataAdapter(db::getDslContext);
 
     new Cli()
         .register(PULL_FORM_FROM_AGGREGATE)

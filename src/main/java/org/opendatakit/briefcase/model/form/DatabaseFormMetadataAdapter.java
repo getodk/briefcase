@@ -10,9 +10,12 @@ import static org.opendatakit.briefcase.jooq.Tables.FORM_METADATA;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -21,10 +24,15 @@ import org.opendatakit.briefcase.jooq.tables.records.FormMetadataRecord;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 
 public class DatabaseFormMetadataAdapter implements FormMetadataPort {
-  private final DSLContext dslContext;
+  private final Supplier<DSLContext> dslContextSupplier;
+  private Map<String, DSLContext> dslContextCache = new ConcurrentHashMap<>();
 
-  public DatabaseFormMetadataAdapter(DSLContext dslContext) {
-    this.dslContext = dslContext;
+  public DatabaseFormMetadataAdapter(Supplier<DSLContext> dslContextSupplier) {
+    this.dslContextSupplier = dslContextSupplier;
+  }
+
+  private DSLContext getDslContext() {
+    return dslContextCache.computeIfAbsent("default", __ -> dslContextSupplier.get());
   }
 
   @Override
@@ -44,13 +52,13 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
 
   @Override
   public void flush() {
-    dslContext.execute(truncate(FORM_METADATA));
+    getDslContext().execute(truncate(FORM_METADATA));
   }
 
   @Override
   public void persist(FormMetadata formMetadata) {
     // TODO Use generated records and let jOOQ do the work instead of explicitly using all the fields in the table, because this will break each time we change the table structure
-    dslContext.execute(mergeInto(FORM_METADATA)
+    getDslContext().execute(mergeInto(FORM_METADATA)
         .using(selectOne())
         .on(Stream.of(
             FORM_METADATA.FORM_NAME.eq(formMetadata.getKey().getName()),
@@ -96,7 +104,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
 
   @Override
   public Optional<FormMetadata> fetch(FormKey key) {
-    return dslContext.fetchOptional(selectFrom(FORM_METADATA)
+    return getDslContext().fetchOptional(selectFrom(FORM_METADATA)
         .where(Stream.of(
             FORM_METADATA.FORM_NAME.eq(key.getName()),
             FORM_METADATA.FORM_ID.eq(key.getId()),
@@ -107,7 +115,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
 
   @Override
   public Stream<FormMetadata> fetchAll() {
-    return dslContext.fetchStream(FORM_METADATA).map(DatabaseFormMetadataAdapter::mapToDomain);
+    return getDslContext().fetchStream(FORM_METADATA).map(DatabaseFormMetadataAdapter::mapToDomain);
   }
 
   private static FormMetadata mapToDomain(FormMetadataRecord record) {
