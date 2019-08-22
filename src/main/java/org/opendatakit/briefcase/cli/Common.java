@@ -32,8 +32,8 @@ public class Common {
   static final Param<String> CREDENTIALS_USERNAME = Param.arg("u", "odk_username", "ODK Username");
   static final Param<String> CREDENTIALS_EMAIL = Param.arg("E", "odk_email", "ODK Email");
   static final Param<String> CREDENTIALS_PASSWORD = Param.arg("p", "odk_password", "ODK Password");
-  public static final Param<URL> SERVER_URL = Param.arg("U", "odk_url", "ODK Server URL", RequestBuilder::url);
-  public static final Param<Integer> MAX_HTTP_CONNECTIONS = Param.arg("mhc", "max_http_connections", "Maximum simultaneous HTTP connections (defaults to 8)", Integer::parseInt);
+  static final Param<URL> SERVER_URL = Param.arg("U", "odk_url", "ODK Server URL", RequestBuilder::url);
+  static final Param<Integer> MAX_HTTP_CONNECTIONS = Param.arg("mhc", "max_http_connections", "Maximum simultaneous HTTP connections (defaults to 8)", Integer::parseInt);
 
   static Path getOrCreateBriefcaseDir(String storageDir) {
     Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));

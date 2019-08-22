@@ -19,7 +19,6 @@ import static java.lang.Boolean.TRUE;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.SENTRY_DSN;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.SENTRY_ENABLED;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
-import static org.opendatakit.briefcase.cli.ClearPreferences.CLEAR_PREFS;
 import static org.opendatakit.briefcase.cli.Common.WORKSPACE_LOCATION;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
@@ -30,6 +29,7 @@ import io.sentry.SentryClient;
 import java.nio.file.Path;
 import java.util.Optional;
 import org.flywaydb.core.Flyway;
+import org.opendatakit.briefcase.cli.ClearPreferences;
 import org.opendatakit.briefcase.cli.Export;
 import org.opendatakit.briefcase.cli.LaunchGui;
 import org.opendatakit.briefcase.cli.PullFromAggregate;
@@ -72,7 +72,7 @@ public class Launcher {
         .register(PushToCentral.create(formMetadataPort))
         .register(PullFromCollect.create(formMetadataPort))
         .register(Export.create(formMetadataPort))
-        .register(CLEAR_PREFS)
+        .register(ClearPreferences.create(formMetadataPort))
         .registerDefault(LaunchGui.create(formMetadataPort))
         .before(args -> {
           Path storageLocation = args.get(WORKSPACE_LOCATION);

@@ -20,6 +20,7 @@ import static java.util.Comparator.naturalOrder;
 import java.util.List;
 import java.util.stream.Stream;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
@@ -30,7 +31,9 @@ public class ClearPreferences {
 
   private static Param<Void> CLEAR = Param.flag("c", "clear_prefs", "Clear saved preferences");
 
-  public static Operation CLEAR_PREFS = Operation.of(CLEAR, __ -> clear());
+  public static Operation create(FormMetadataPort formMetadataPort) {
+    return Operation.of(CLEAR, args -> clear());
+  }
 
   private static void clear() {
     flush(BriefcasePreferences.appScoped());
