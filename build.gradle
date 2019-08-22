@@ -1,3 +1,5 @@
+import org.opendatakit.briefcase.build.Utils
+
 plugins {
   id 'application'
   id 'checkstyle'
@@ -81,7 +83,7 @@ dependencies {
 
 jacocoTestReport {
   reports {
-        xml.enabled = true
+    xml.enabled = true
   }
 }
 
@@ -163,4 +165,18 @@ jar {
 task explodedJar(type: Copy) {
   into '$buildDir/libs/$jar.baseName $jar.version'
   with jar
+}
+
+task jooqGenerate() {
+  doLast {
+    "rm -rf db".execute()
+    try {
+      def dbUrl = Utils.startDb(projectDir)
+      Utils.migrateDb(projectDir, dbUrl)
+      Utils.generateJooq(projectDir, dbUrl)
+    } finally {
+      Utils.stopDb()
+      "rm -rf db".execute()
+    }
+  }
 }

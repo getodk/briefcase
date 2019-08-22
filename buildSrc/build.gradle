@@ -1,0 +1,17 @@
+apply plugin: 'idea'
+
+sourceCompatibility = '1.11'
+targetCompatibility = '1.11'
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  compile gradleApi()
+  compile group: 'org.jooq', name: 'jooq', version: '3.11.11'
+  compile group: 'org.jooq', name: 'jooq-codegen', version: '3.11.11'
+  compile group: 'org.jooq', name: 'jooq-meta', version: '3.11.11'
+  compile group: 'org.flywaydb', name: 'flyway-core', version: '5.2.4'
+  compile group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
+}
