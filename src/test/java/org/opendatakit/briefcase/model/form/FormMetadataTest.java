@@ -21,14 +21,14 @@ public class FormMetadataTest {
         FormKey.of("Some form", "some-form"),
         FormKey.of("Some form", "some-form", "some numeric version")
     ).flatMap(key -> Stream.of(
-        new FormMetadata(key, Paths.get("/some/path"), true, Cursor.empty(), Optional.empty()),
-        new FormMetadata(key, Paths.get("/some/path"), false, Cursor.empty(), Optional.empty()),
-        new FormMetadata(key, Paths.get("/some/path"), true, Cursor.from("some cursor"), Optional.empty()),
-        new FormMetadata(key, Paths.get("/some/path"), false, Cursor.from("some cursor"), Optional.empty()),
-        new FormMetadata(key, Paths.get("/some/path"), true, Cursor.empty(), Optional.of(new SubmissionExportMetadata("some instance ID", SOME_DATE_TIME, SOME_DATE_TIME))),
-        new FormMetadata(key, Paths.get("/some/path"), false, Cursor.empty(), Optional.of(new SubmissionExportMetadata("some instance ID", SOME_DATE_TIME, SOME_DATE_TIME))),
-        new FormMetadata(key, Paths.get("/some/path"), true, Cursor.from("some cursor"), Optional.of(new SubmissionExportMetadata("some instance ID", SOME_DATE_TIME, SOME_DATE_TIME))),
-        new FormMetadata(key, Paths.get("/some/path"), false, Cursor.from("some cursor"), Optional.of(new SubmissionExportMetadata("some instance ID", SOME_DATE_TIME, SOME_DATE_TIME)))
+        new FormMetadata(key, Paths.get("/some/path"), Paths.get("Some form.xml"), true, Cursor.empty(), Optional.empty()),
+        new FormMetadata(key, Paths.get("/some/path"), Paths.get("Some form.xml"), false, Cursor.empty(), Optional.empty()),
+        new FormMetadata(key, Paths.get("/some/path"), Paths.get("Some form.xml"), true, Cursor.from("some cursor"), Optional.empty()),
+        new FormMetadata(key, Paths.get("/some/path"), Paths.get("Some form.xml"), false, Cursor.from("some cursor"), Optional.empty()),
+        new FormMetadata(key, Paths.get("/some/path"), Paths.get("Some form.xml"), true, Cursor.empty(), Optional.of(SOME_DATE_TIME)),
+        new FormMetadata(key, Paths.get("/some/path"), Paths.get("Some form.xml"), false, Cursor.empty(), Optional.of(SOME_DATE_TIME)),
+        new FormMetadata(key, Paths.get("/some/path"), Paths.get("Some form.xml"), true, Cursor.from("some cursor"), Optional.of(SOME_DATE_TIME)),
+        new FormMetadata(key, Paths.get("/some/path"), Paths.get("Some form.xml"), false, Cursor.from("some cursor"), Optional.of(SOME_DATE_TIME))
     )).forEach(formMetadata -> assertThat(FormMetadata.from(formMetadata.asJson(MAPPER)), is(formMetadata)));
   }
 

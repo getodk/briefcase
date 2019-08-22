@@ -7,6 +7,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class EmptyCursor implements Cursor {
   @Override
+  public Type getType() {
+    return EMPTY;
+  }
+
+  @Override
   public String getValue() {
     return "";
   }

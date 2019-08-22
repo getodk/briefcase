@@ -29,6 +29,10 @@ public class SubmissionExportMetadata implements AsJson {
     );
   }
 
+  public OffsetDateTime getSubmissionDate() {
+    return submissionDate;
+  }
+
   public boolean isBefore(OffsetDateTime submissionDate) {
     return this.submissionDate.isBefore(submissionDate);
   }

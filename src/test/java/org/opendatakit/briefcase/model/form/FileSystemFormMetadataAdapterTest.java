@@ -63,7 +63,7 @@ public class FileSystemFormMetadataAdapterTest {
     FormMetadata persistedMetadata = buildMetadataFrom(installedForm, Cursor.empty());
     port.persist(persistedMetadata);
 
-    Path metadataFile = persistedMetadata.getStorageDirectory().resolve("metadata.json");
+    Path metadataFile = persistedMetadata.getFormDir().resolve("metadata.json");
     assertThat(metadataFile, exists());
     // Sanity check of the json file's structure and data.
     // Further checks are make implicitly (using object equality) in other tests
@@ -188,6 +188,6 @@ public class FileSystemFormMetadataAdapterTest {
         mainInstance.getAttributeValue("id").orElseThrow(RuntimeException::new),
         mainInstance.getAttributeValue("version")
     );
-    return new FormMetadata(key, formFile.getParent(), cursor.isEmpty(), cursor, Optional.empty());
+    return new FormMetadata(key, formFile.getParent(), formFile.getFileName(), cursor.isEmpty(), cursor, Optional.empty());
   }
 }

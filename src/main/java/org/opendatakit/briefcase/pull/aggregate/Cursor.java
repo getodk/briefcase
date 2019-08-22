@@ -57,6 +57,8 @@ public interface Cursor extends Comparable<Cursor>, AsJson {
     ).orElseThrow(() -> new BriefcaseException("Unknown cursor format"));
   }
 
+  Cursor.Type getType();
+
   String getValue();
 
   boolean isEmpty();

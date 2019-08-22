@@ -99,7 +99,7 @@ public class SubmissionParser {
         // feature is enabled
         .filter(pair -> {
           boolean inRange = dateRange.contains(pair.getRight());
-          boolean afterLastExportedSubmission = !smartAppend || formMetadata.getLastExportedSubmission().map(s -> s.isBefore(pair.getRight())).orElse(true);
+          boolean afterLastExportedSubmission = !smartAppend || formMetadata.getLastExportedSubmissionDate().map(s -> s.isBefore(pair.getRight())).orElse(true);
           return inRange && afterLastExportedSubmission;
         })
         .map(Pair::getLeft)

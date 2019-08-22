@@ -42,6 +42,11 @@ public class OnaCursor implements Cursor {
   }
 
   @Override
+  public Type getType() {
+    return ONA;
+  }
+
+  @Override
   public String getValue() {
     return value.map(Object::toString).orElse("");
   }

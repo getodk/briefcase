@@ -152,7 +152,7 @@ public class PullFromAggregate {
           tracker.trackEnd();
           Cursor newCursor = getLastCursor(instanceIdBatches).orElse(Cursor.empty());
 
-          formMetadataPort.execute(updateAsPulled(key, newCursor, form.getFormDir(briefcaseDir)));
+          formMetadataPort.execute(updateAsPulled(key, newCursor, form.getFormDir(briefcaseDir), form.getFormFile(briefcaseDir)));
 
           EventBus.publish(PullEvent.Success.of(form, server));
         });

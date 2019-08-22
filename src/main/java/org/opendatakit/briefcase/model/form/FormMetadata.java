@@ -1,6 +1,7 @@
 package org.opendatakit.briefcase.model.form;
 
 import static org.opendatakit.briefcase.model.form.AsJson.getJson;
+import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,6 +9,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Optional;
 import org.opendatakit.briefcase.export.XmlElement;
@@ -16,24 +18,26 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class FormMetadata implements AsJson {
   private final FormKey key;
-  private final Path storageDirectory;
+  private final Path formDir;
+  private final Path formFilename;
   private final boolean hasBeenPulled;
   private final Cursor cursor;
-  private final Optional<SubmissionExportMetadata> lastExportedSubmission;
+  private final Optional<OffsetDateTime> lastExportedSubmissionDate;
 
-  public FormMetadata(FormKey key, Path storageDirectory, boolean hasBeenPulled, Cursor cursor, Optional<SubmissionExportMetadata> lastExportedSubmission) {
+  public FormMetadata(FormKey key, Path formDir, Path formFilename, boolean hasBeenPulled, Cursor cursor, Optional<OffsetDateTime> lastExportedSubmissionDate) {
     this.key = key;
-    this.storageDirectory = storageDirectory;
+    this.formDir = formDir;
+    this.formFilename = formFilename;
     this.hasBeenPulled = hasBeenPulled;
     this.cursor = cursor;
-    this.lastExportedSubmission = lastExportedSubmission;
+    this.lastExportedSubmissionDate = lastExportedSubmissionDate;
   }
 
-  public static FormMetadata of(FormKey key, Path storageDirectory) {
+  public static FormMetadata of(FormKey key, Path storageDirectory, Path formFilename) {
     // Hardcoded storage directory because we want this class to decide where a
     // form is/should be stored. Now it's based on the Briefcase storage directory,
     // but it will change in the future to be based on a hash of the form key.
-    return new FormMetadata(key, storageDirectory, false, Cursor.empty(), Optional.empty());
+    return new FormMetadata(key, storageDirectory, formFilename, false, Cursor.empty(), Optional.empty());
   }
 
   public static FormMetadata from(Path formFile) {
@@ -49,16 +53,18 @@ public class FormMetadata implements AsJson {
     String id = mainInstance.childrenOf().get(0).getAttributeValue("id").orElseThrow(BriefcaseException::new);
     Optional<String> version = mainInstance.childrenOf().get(0).getAttributeValue("version");
     FormKey key = FormKey.of(name, id, version);
-    return new FormMetadata(key, formFile.getParent(), true, Cursor.empty(), Optional.empty());
+    return new FormMetadata(key, formFile.getParent(), formFile.getFileName(), true, Cursor.empty(), Optional.empty());
   }
 
   public static FormMetadata from(JsonNode root) {
+    FormKey key = FormKey.from(root.get("key"));
     return new FormMetadata(
-        FormKey.from(root.get("key")),
+        key,
         getJson(root, "storageDirectory").map(JsonNode::asText).map(Paths::get).orElseThrow(BriefcaseException::new),
+        Paths.get(stripIllegalChars(key.getName())),
         getJson(root, "hasBeenPulled").map(JsonNode::asBoolean).orElseThrow(BriefcaseException::new),
         Cursor.from(root.get("cursor")),
-        getJson(root, "lastExportedSubmission").map(SubmissionExportMetadata::from)
+        getJson(root, "lastExportedSubmissionDate").map(JsonNode::asText).map(OffsetDateTime::parse)
     );
   }
 
@@ -72,8 +78,12 @@ public class FormMetadata implements AsJson {
     return key;
   }
 
-  public Path getStorageDirectory() {
-    return storageDirectory;
+  public Path getFormDir() {
+    return formDir;
+  }
+
+  public Path getFormFilename() {
+    return formFilename;
   }
 
   public boolean hasBeenPulled() {
@@ -84,34 +94,34 @@ public class FormMetadata implements AsJson {
     return cursor;
   }
 
-  public Optional<SubmissionExportMetadata> getLastExportedSubmission() {
-    return lastExportedSubmission;
+  public Optional<OffsetDateTime> getLastExportedSubmissionDate() {
+    return lastExportedSubmissionDate;
   }
 
   FormMetadata withCursor(Cursor cursor) {
-    return new FormMetadata(key, storageDirectory, hasBeenPulled, cursor, lastExportedSubmission);
+    return new FormMetadata(key, formDir, formFilename, hasBeenPulled, cursor, lastExportedSubmissionDate);
   }
 
   public FormMetadata withoutCursor() {
-    return new FormMetadata(key, storageDirectory, hasBeenPulled, Cursor.empty(), lastExportedSubmission);
+    return new FormMetadata(key, formDir, formFilename, hasBeenPulled, Cursor.empty(), lastExportedSubmissionDate);
   }
 
   FormMetadata withHasBeenPulled(boolean hasBeenPulled) {
-    return new FormMetadata(key, storageDirectory, hasBeenPulled, cursor, lastExportedSubmission);
+    return new FormMetadata(key, formDir, formFilename, hasBeenPulled, cursor, lastExportedSubmissionDate);
   }
 
-  FormMetadata withLastExportedSubmission(String instanceId, OffsetDateTime submissionDate, OffsetDateTime exportDateTime) {
-    return new FormMetadata(key, storageDirectory, hasBeenPulled, cursor, Optional.of(new SubmissionExportMetadata(instanceId, submissionDate, exportDateTime)));
+  FormMetadata withLastExportedSubmissionDate(OffsetDateTime submissionDate) {
+    return new FormMetadata(key, formDir, formFilename, hasBeenPulled, cursor, Optional.of(submissionDate));
   }
 
   @Override
   public ObjectNode asJson(ObjectMapper mapper) {
     ObjectNode root = mapper.createObjectNode();
     root.putObject("key").setAll(key.asJson(mapper));
-    root.put("storageDirectory", storageDirectory.toAbsolutePath().toString());
+    root.put("storageDirectory", formDir.toAbsolutePath().toString());
     root.put("hasBeenPulled", hasBeenPulled);
     root.putObject("cursor").setAll(cursor.asJson(mapper));
-    lastExportedSubmission.ifPresent(o -> root.putObject("lastExportedSubmission").setAll(o.asJson(mapper)));
+    root.put("lastExportedSubmissionDate", lastExportedSubmissionDate.map(dt -> dt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)).orElse(null));
     return root;
   }
 
@@ -122,24 +132,26 @@ public class FormMetadata implements AsJson {
     FormMetadata that = (FormMetadata) o;
     return hasBeenPulled == that.hasBeenPulled &&
         Objects.equals(key, that.key) &&
-        Objects.equals(storageDirectory, that.storageDirectory) &&
+        Objects.equals(formDir, that.formDir) &&
+        Objects.equals(formFilename, that.formFilename) &&
         Objects.equals(cursor, that.cursor) &&
-        Objects.equals(lastExportedSubmission, that.lastExportedSubmission);
+        Objects.equals(lastExportedSubmissionDate, that.lastExportedSubmissionDate);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(key, storageDirectory, hasBeenPulled, cursor, lastExportedSubmission);
+    return Objects.hash(key, formDir, formFilename, hasBeenPulled, cursor, lastExportedSubmissionDate);
   }
 
   @Override
   public String toString() {
     return "FormMetadata{" +
         "key=" + key +
-        ", storageDirectory=" + storageDirectory +
+        ", formDir=" + formDir +
+        ", formFilename=" + formFilename +
         ", hasBeenPulled=" + hasBeenPulled +
         ", cursor=" + cursor +
-        ", lastExportedSubmission=" + lastExportedSubmission +
+        ", lastExportedSubmissionDate=" + lastExportedSubmissionDate +
         '}';
   }
 }

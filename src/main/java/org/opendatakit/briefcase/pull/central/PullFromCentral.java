@@ -112,7 +112,7 @@ public class PullFromCentral {
               });
           tracker.trackEnd();
 
-          formMetadataPort.execute(updateAsPulled(key, form.getFormDir(briefcaseDir)));
+          formMetadataPort.execute(updateAsPulled(key, form.getFormDir(briefcaseDir), form.getFormFile(briefcaseDir)));
           EventBus.publish(PullEvent.Success.of(form, server));
         }));
   }

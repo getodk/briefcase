@@ -142,7 +142,7 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
   }
 
   private static Path getMetadataFile(FormMetadata metaData) {
-    return metaData.getStorageDirectory().resolve("metadata.json");
+    return metaData.getFormDir().resolve("metadata.json");
   }
   // endregion
 }

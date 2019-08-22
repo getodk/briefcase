@@ -126,7 +126,7 @@ public class ExportToCsv {
         .orElse(CsvLines.empty())
         .getLastLine()
         .ifPresent(line -> {
-          formMetadataPort.execute(updateLastExportedSubmission(formMetadata.getKey(), line.getInstanceId(), line.getSubmissionDate(), OffsetDateTime.now(), formStatus.getFormDir(briefcaseDir)));
+          formMetadataPort.execute(updateLastExportedSubmission(formMetadata.getKey(), line.getInstanceId(), line.getSubmissionDate(), OffsetDateTime.now(), formStatus.getFormDir(briefcaseDir), formStatus.getFormFile(briefcaseDir)));
         });
 
     ExportOutcome exportOutcome = exportTracker.computeOutcome();

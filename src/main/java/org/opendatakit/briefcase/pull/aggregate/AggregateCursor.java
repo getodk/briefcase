@@ -140,6 +140,11 @@ public class AggregateCursor implements Cursor {
     );
   }
 
+  @Override
+  public Type getType() {
+    return AGGREGATE;
+  }
+
   // TODO v2.0 Use a better name, like getXml();
   @Override
   public String getValue() {
