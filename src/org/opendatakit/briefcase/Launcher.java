@@ -55,7 +55,7 @@ import org.slf4j.LoggerFactory;
 public class Launcher {
   private static final Logger log = LoggerFactory.getLogger(Launcher.class);
 
-  public static void main(String[] args) {
+  public static void main(String[] rawArgs) {
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     if (!appPreferences.hasKey(BRIEFCASE_TRACKING_CONSENT_PROPERTY))
       appPreferences.put(BRIEFCASE_TRACKING_CONSENT_PROPERTY, TRUE.toString());
@@ -73,8 +73,8 @@ public class Launcher {
         .register(IMPORT_FROM_ODK)
         .register(EXPORT_FORM)
         .register(CLEAR_PREFS)
-        .otherwise((cli, commandLine) -> {
-          if (args.length == 0)
+        .otherwise((args, cli, commandLine) -> {
+          if (rawArgs.length == 0)
             launchGUI();
           else
             runLegacyCli(commandLine, cli::printHelp);
@@ -87,7 +87,7 @@ public class Launcher {
           sentry.ifPresent(client -> client.sendException(throwable));
           System.exit(1);
         })
-        .run(args);
+        .run(rawArgs);
   }
 
   private static SentryClient initSentryClient(BriefcasePreferences appPreferences) {

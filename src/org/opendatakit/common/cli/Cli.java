@@ -15,24 +15,22 @@
  */
 package org.opendatakit.common.cli;
 
+import static java.lang.Runtime.getRuntime;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Stream;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
+import org.opendatakit.briefcase.reused.TriConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,12 +44,13 @@ public class Cli {
   private static final Param<Void> SHOW_HELP = Param.flag("h", "help", "Show help");
   private static final Param<Void> SHOW_VERSION = Param.flag("v", "version", "Show version");
 
-  private final Set<Operation> requiredOperations = new HashSet<>();
   private final Set<Operation> operations = new HashSet<>();
-  private final Set<BiConsumer<Cli, CommandLine>> otherwiseCallbacks = new HashSet<>();
+  private final Set<Consumer<Args>> beforeCallbacks = new HashSet<>();
+  private final Set<TriConsumer<Args, Cli, CommandLine>> otherwiseCallbacks = new HashSet<>();
   private final Set<Operation> executedOperations = new HashSet<>();
 
   private final List<Consumer<Throwable>> onErrorCallbacks = new ArrayList<>();
+  private final List<Runnable> onExitCallbacks = new ArrayList<>();
 
   public Cli() {
     register(Operation.of(SHOW_HELP, args -> printHelp()));
@@ -62,7 +61,7 @@ public class Cli {
    * Prints the help message with all the registered operations and their paramsº
    */
   public void printHelp() {
-    CustomHelpFormatter.printHelp(requiredOperations, operations);
+    CustomHelpFormatter.printHelp(operations);
   }
 
   /**
@@ -97,14 +96,19 @@ public class Cli {
     return this;
   }
 
+  public Cli before(Consumer<Args> callback) {
+    beforeCallbacks.add(callback);
+    return this;
+  }
+
   /**
    * Register a {@link Runnable} block that will be executed if no {@link Operation}
    * is executed. For example, if the user passes no arguments when executing this program
    *
-   * @param callback a {@link BiConsumer} that will receive the {@link Cli} and {@link CommandLine} instances
+   * @param callback a {@link TriConsumer} that will receive the {@link Args}, {@link Cli} and {@link CommandLine} instances
    * @return self {@link Cli} instance to chain more method calls
    */
-  public Cli otherwise(BiConsumer<Cli, CommandLine> callback) {
+  public Cli otherwise(TriConsumer<Args, Cli, CommandLine> callback) {
     otherwiseCallbacks.add(callback);
     return this;
   }
@@ -118,11 +122,10 @@ public class Cli {
   public void run(String[] args) {
     Set<Param> allParams = getAllParams();
     CommandLine cli = getCli(args, allParams);
+    Args allArgs = Args.from(cli, allParams);
+    getRuntime().addShutdownHook(new Thread(() -> onExitCallbacks.forEach(Runnable::run)));
     try {
-      requiredOperations.forEach(operation -> {
-        checkForMissingParams(cli, operation.requiredParams);
-        operation.argsConsumer.accept(Args.from(cli, operation.requiredParams));
-      });
+      beforeCallbacks.forEach(callback -> callback.accept(allArgs));
 
       operations.forEach(operation -> {
         if (cli.hasOption(operation.param.shortCode)) {
@@ -133,7 +136,7 @@ public class Cli {
       });
 
       if (executedOperations.isEmpty())
-        otherwiseCallbacks.forEach(callback -> callback.accept(this, cli));
+        otherwiseCallbacks.forEach(callback -> callback.accept(allArgs, this, cli));
     } catch (Throwable t) {
       if (!onErrorCallbacks.isEmpty())
         onErrorCallbacks.forEach(callback -> callback.accept(t));
@@ -155,18 +158,21 @@ public class Cli {
     return this;
   }
 
+  public Cli onExit(Runnable callback) {
+    onExitCallbacks.add(callback);
+    return this;
+  }
+
   /**
-   * Flatmap all required params from all required operations, all params
-   * from all operations and flatmap them into a {@link Set}&lt;{@link Param}>&gt;
+   * Flatmap all required params from all operations and flatmap them into a {@link Set}&lt;{@link Param}>&gt;
    *
    * @return a {@link Set} of {@link Param}> instances
    * @see <a href="https://www.mkyong.com/java8/java-8-flatmap-example/">Java 8 flatmap example</a>
    */
   private Set<Param> getAllParams() {
-    return Stream.of(
-        requiredOperations.stream().flatMap(operation -> operation.requiredParams.stream()),
-        operations.stream().flatMap(operation -> operation.getAllParams().stream())
-    ).flatMap(Function.identity()).collect(toSet());
+    return operations.stream()
+        .flatMap(operation -> operation.getAllParams().stream())
+        .collect(toSet());
   }
 
   private CommandLine getCli(String[] args, Set<Param> params) {
@@ -190,7 +196,7 @@ public class Cli {
     if (!missingParams.isEmpty()) {
       System.out.print("Missing params: ");
       System.out.print(missingParams.stream().map(param -> "-" + param.shortCode).collect(joining(", ")));
-      System.out.println("");
+      System.out.println();
       printHelp();
       System.exit(1);
     }
@@ -206,31 +212,4 @@ public class Cli {
     System.out.println("Briefcase " + BuildConfig.VERSION);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o)
-      return true;
-    if (o == null || getClass() != o.getClass())
-      return false;
-    Cli cli = (Cli) o;
-    return Objects.equals(requiredOperations, cli.requiredOperations) &&
-        Objects.equals(operations, cli.operations) &&
-        Objects.equals(otherwiseCallbacks, cli.otherwiseCallbacks) &&
-        Objects.equals(executedOperations, cli.executedOperations);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(requiredOperations, operations, otherwiseCallbacks, executedOperations);
-  }
-
-  @Override
-  public String toString() {
-    return "Cli{" +
-        "requiredOperations=" + requiredOperations +
-        ", operations=" + operations +
-        ", otherwiseCallbacks=" + otherwiseCallbacks +
-        ", executedOperations=" + executedOperations +
-        '}';
-  }
 }

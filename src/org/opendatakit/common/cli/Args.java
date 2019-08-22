@@ -1,6 +1,8 @@
 package org.opendatakit.common.cli;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -26,6 +28,11 @@ public class Args {
    */
   private Args(Map<Param, String> valuesMap) {
     this.valuesMap = valuesMap;
+  }
+
+
+  public static Args from(CommandLine cli, Param... params) {
+    return Args.from(cli, new HashSet<>(Arrays.asList(params)));
   }
 
   /**

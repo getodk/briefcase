@@ -40,11 +40,9 @@ class CustomHelpFormatter {
     }
   }
 
-  static void printHelp(Set<Operation> requiredOperations, Set<Operation> operations) {
+  static void printHelp(Set<Operation> operations) {
     printUsage();
-    Map<String, String> helpLinesPerShortcode = getParamHelpLines(requiredOperations, operations);
-    if (!requiredOperations.isEmpty())
-      printRequiredParams(helpLinesPerShortcode, requiredOperations);
+    Map<String, String> helpLinesPerShortcode = getParamHelpLines(operations);
     printAvailableOperations(helpLinesPerShortcode, operations);
     printParamsPerOperation(helpLinesPerShortcode, operations);
   }
@@ -68,10 +66,9 @@ class CustomHelpFormatter {
         .forEach(param -> System.out.println("  " + helpLinesPerShortcode.get(param.shortCode)));
   }
 
-  private static void printRequiredParams(Map<String, String> helpLinesPerShortcode, Set<Operation> requiredOperations) {
+  private static void printRequiredParams(Map<String, String> helpLinesPerShortcode, Set<Param> requiredParams) {
     System.out.println("Required params:");
-    requiredOperations.stream()
-        .flatMap(operation -> operation.requiredParams.stream())
+    requiredParams.stream()
         .sorted(Comparator.comparing(param -> param.shortCode))
         .forEach(param -> System.out.println(helpLinesPerShortcode.get(param.shortCode)));
     System.out.println();
@@ -100,11 +97,10 @@ class CustomHelpFormatter {
     System.out.println();
   }
 
-  private static Map<String, String> getParamHelpLines(Set<Operation> requiredOperations, Set<Operation> operations) {
-    Set<Param> allParams = Stream.of(
-        requiredOperations.stream().flatMap(operation -> operation.requiredParams.stream()),
-        operations.stream().flatMap(operation -> operation.getAllParams().stream())
-    ).flatMap(Function.identity()).collect(toSet());
+  private static Map<String, String> getParamHelpLines(Set<Operation> operations) {
+    Set<Param> allParams = operations.stream()
+        .flatMap(operation -> operation.getAllParams().stream())
+        .collect(toSet());
     Options options = mapToOptions(allParams);
 
     StringWriter out = new StringWriter();
