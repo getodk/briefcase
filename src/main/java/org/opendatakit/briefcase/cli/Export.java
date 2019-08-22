@@ -44,6 +44,7 @@ import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
@@ -76,29 +77,28 @@ public class Export {
   public static Operation create(FormMetadataPort formMetadataPort) {
     return Operation.of(
         EXPORT,
-        args -> export(
-            formMetadataPort,
-            args.get(STORAGE_DIR),
-            args.get(FORM_ID),
-            args.get(EXPORT_DIR),
-            args.get(FILE),
-            !args.has(EXCLUDE_MEDIA),
-            args.has(OVERWRITE),
-            args.has(PULL_BEFORE),
-            args.getOptional(START),
-            args.getOptional(END),
-            args.getOptional(PEM_FILE),
-            args.has(SPLIT_SELECT_MULTIPLES),
-            args.has(INCLUDE_GEOJSON_EXPORT),
-            args.has(REMOVE_GROUP_NAMES),
-            args.has(SMART_APPEND)
-        ),
+        args -> export(formMetadataPort, args),
         Arrays.asList(STORAGE_DIR, FORM_ID, FILE, EXPORT_DIR),
         Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE, SPLIT_SELECT_MULTIPLES, INCLUDE_GEOJSON_EXPORT, REMOVE_GROUP_NAMES, SMART_APPEND)
     );
   }
 
-  private static void export(FormMetadataPort formMetadataPort, String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, boolean pullBefore, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile, boolean splitSelectMultiples, boolean includeGeoJsonExport, boolean removeGroupNames, boolean smartAppend) {
+  private static void export(FormMetadataPort formMetadataPort, Args args) {
+    String storageDir = args.get(STORAGE_DIR);
+    String formId = args.get(FORM_ID);
+    Path exportDir = args.get(EXPORT_DIR);
+    String baseFilename = args.get(FILE);
+    boolean exportMedia = !args.has(EXCLUDE_MEDIA);
+    boolean overwriteFiles = args.has(OVERWRITE);
+    boolean startFromLast = args.has(PULL_BEFORE);
+    Optional<LocalDate> startDate = args.getOptional(START);
+    Optional<LocalDate> endDate = args.getOptional(END);
+    Optional<Path> maybePemFile = args.getOptional(PEM_FILE);
+    boolean splitSelectMultiples = args.has(SPLIT_SELECT_MULTIPLES);
+    boolean includeGeoJson = args.has(INCLUDE_GEOJSON_EXPORT);
+    boolean removeGroupNames = args.has(REMOVE_GROUP_NAMES);
+    boolean smartAppend = args.has(SMART_APPEND);
+
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -113,12 +113,12 @@ public class Export {
         .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
 
     Optional<BriefcaseFormDefinition> maybeFormDefinition = formCache.getForms().stream()
-        .filter(form -> form.getFormId().equals(formid))
+        .filter(form -> form.getFormId().equals(formId))
         .findFirst();
 
     createDirectories(exportDir);
 
-    BriefcaseFormDefinition formDefinition = maybeFormDefinition.orElseThrow(() -> new BriefcaseException("Form " + formid + " not found"));
+    BriefcaseFormDefinition formDefinition = maybeFormDefinition.orElseThrow(() -> new BriefcaseException("Form " + formId + " not found"));
     FormDefinition formDef = FormDefinition.from(formDefinition);
 
     System.out.println("Exporting form " + formDefinition.getFormName() + " (" + formDefinition.getFormId() + ") to: " + exportDir);
@@ -128,11 +128,11 @@ public class Export {
         .setExportDir(exportDir)
         .setPemFile(maybePemFile)
         .setDateRange(dateRange)
-        .setPullBefore(pullBefore)
+        .setPullBefore(startFromLast)
         .setOverwriteFiles(overwriteFiles)
         .setExportMedia(exportMedia)
         .setSplitSelectMultiples(splitSelectMultiples)
-        .setIncludeGeoJsonExport(includeGeoJsonExport)
+        .setIncludeGeoJsonExport(includeGeoJson)
         .setRemoveGroupNames(removeGroupNames)
         .setSmartAppend(smartAppend)
         .build();
