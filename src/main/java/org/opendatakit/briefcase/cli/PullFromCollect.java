@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.cli;
 
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.cli.Common.FORM_ID;
 import static org.opendatakit.briefcase.cli.Common.STORAGE_DIR;
@@ -24,7 +25,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.transfer.TransferForms;
@@ -34,27 +37,30 @@ import org.opendatakit.briefcase.util.TransferFromODK;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ImportFromODK {
-  private static final Logger log = LoggerFactory.getLogger(ImportFromODK.class);
+public class PullFromCollect {
+  private static final Logger log = LoggerFactory.getLogger(PullFromCollect.class);
   private static final Param<Void> IMPORT = Param.flag("pc", "pull_collect", "Pull from Collect");
   private static final Param<Path> ODK_DIR = Param.arg("od", "odk_directory", "ODK directory", Paths::get);
 
-  public static final Operation IMPORT_FROM_ODK = Operation.of(
-      IMPORT,
-      args -> importODK(
-          args.get(STORAGE_DIR),
-          args.get(ODK_DIR),
-          args.getOptional(FORM_ID)
-      ),
-      Arrays.asList(STORAGE_DIR, ODK_DIR),
-      Arrays.asList(FORM_ID)
-  );
+  public static final Operation create(FormMetadataPort formMetadataPort) {
+    return Operation.of(
+        IMPORT,
+        args -> importODK(formMetadataPort, args),
+        Arrays.asList(STORAGE_DIR, ODK_DIR),
+        singletonList(FORM_ID)
+    );
+  }
 
-  public static void importODK(String storageDir, Path odkDir, Optional<String> formId) {
+  public static void importODK(FormMetadataPort formMetadataPort, Args args) {
+    String storageDir = args.get(STORAGE_DIR);
+    Path odkDir = args.get(ODK_DIR);
+    Optional<String> formId = args.getOptional(FORM_ID);
+
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
+
 
     TransferForms from = TransferForms.from(FileSystemUtils.getODKFormList(odkDir.toFile()).stream()
         .map(FormStatus::new)
