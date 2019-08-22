@@ -30,7 +30,6 @@ import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
-import org.opendatakit.briefcase.reused.TriConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +45,7 @@ public class Cli {
 
   private final Set<Operation> operations = new HashSet<>();
   private final Set<Consumer<Args>> beforeCallbacks = new HashSet<>();
-  private final Set<TriConsumer<Args, Cli, CommandLine>> otherwiseCallbacks = new HashSet<>();
+  private final Set<Runnable> otherwiseCallbacks = new HashSet<>();
   private final Set<Operation> executedOperations = new HashSet<>();
 
   private final List<Consumer<Throwable>> onErrorCallbacks = new ArrayList<>();
@@ -105,10 +104,10 @@ public class Cli {
    * Register a {@link Runnable} block that will be executed if no {@link Operation}
    * is executed. For example, if the user passes no arguments when executing this program
    *
-   * @param callback a {@link TriConsumer} that will receive the {@link Args}, {@link Cli} and {@link CommandLine} instances
+   * @param callback a {@link Runnable} that will receive the {@link Args}, {@link Cli} and {@link CommandLine} instances
    * @return self {@link Cli} instance to chain more method calls
    */
-  public Cli otherwise(TriConsumer<Args, Cli, CommandLine> callback) {
+  public Cli otherwise(Runnable callback) {
     otherwiseCallbacks.add(callback);
     return this;
   }
@@ -136,7 +135,7 @@ public class Cli {
       });
 
       if (executedOperations.isEmpty())
-        otherwiseCallbacks.forEach(callback -> callback.accept(allArgs, this, cli));
+        otherwiseCallbacks.forEach(Runnable::run);
     } catch (Throwable t) {
       if (!onErrorCallbacks.isEmpty())
         onErrorCallbacks.forEach(callback -> callback.accept(t));
