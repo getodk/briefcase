@@ -78,6 +78,7 @@ dependencies {
   compile 'de.grundid.opendatalab:geojson-jackson:1.8'
 
   compile group: 'org.jooq', name: 'jooq', version: '3.11.11'
+  compile group: 'org.flywaydb', name: 'flyway-core', version: '5.2.4'
   compile group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
 }
 

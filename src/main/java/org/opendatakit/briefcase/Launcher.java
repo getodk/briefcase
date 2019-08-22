@@ -34,6 +34,7 @@ import io.sentry.Sentry;
 import io.sentry.SentryClient;
 import java.nio.file.Path;
 import java.util.Optional;
+import org.flywaydb.core.Flyway;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.operations.PullFormFromCentral;
 import org.opendatakit.briefcase.operations.PushFormToCentral;
@@ -74,6 +75,13 @@ public class Launcher {
           Path storageLocation = args.get(WORKSPACE_LOCATION);
           prepareStorageLocation(storageLocation);
           db.startAt(storageLocation);
+          Flyway
+              .configure()
+              .locations("db/migration")
+              .dataSource(db.getDsn(), db.getUser(), db.getPassword())
+              .validateOnMigrate(false)
+              .load()
+              .migrate();
         })
         .onError(throwable -> {
           System.err.println(throwable instanceof BriefcaseException
