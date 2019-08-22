@@ -19,12 +19,10 @@ package org.opendatakit.briefcase.ui.settings;
 import static org.opendatakit.briefcase.model.form.FormMetadataCommands.cleanAllCursors;
 import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
-import java.nio.file.Path;
 import javax.swing.JPanel;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.BriefcaseVersionManager;
@@ -39,7 +37,6 @@ public class SettingsPanel {
   private SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http, BriefcaseVersionManager versionManager, FormMetadataPort formMetadataPort) {
     this.form = form;
 
-    appPreferences.getBriefcaseDir().ifPresent(path -> form.setStorageLocation(path.getParent()));
     appPreferences.getMaxHttpConnections().ifPresent(form::setMaxHttpConnections);
     appPreferences.getStartFromLast().ifPresent(form::setResumeLastPull);
     appPreferences.getRememberPasswords().ifPresent(form::setRememberPasswords);
@@ -50,19 +47,6 @@ public class SettingsPanel {
       form.updateHttpProxyFields();
     });
 
-    form.onStorageLocation(path -> {
-      Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(path);
-      UncheckedFiles.createBriefcaseDir(briefcaseDir);
-      formCache.setLocation(briefcaseDir);
-      formCache.update();
-      appPreferences.setStorageDir(path);
-      formMetadataPort.syncWithFilesAt(briefcaseDir);
-    }, () -> {
-      formCache.unsetLocation();
-      formCache.update();
-      appPreferences.unsetStorageDir();
-      formMetadataPort.flush();
-    });
     form.onMaxHttpConnectionsChange(appPreferences::setMaxHttpConnections);
     form.onResumeLastPullChange(appPreferences::setStartFromLast);
     form.onRememberPasswordsChange(appPreferences::setRememberPasswords);
