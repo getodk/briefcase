@@ -34,7 +34,6 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
-import org.opendatakit.briefcase.pull.central.PullFromCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.cli.Args;
@@ -51,10 +50,9 @@ import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PullFormFromCentral {
-  private static final Logger log = LoggerFactory.getLogger(PullFormFromCentral.class);
+public class PullFromCentral {
+  private static final Logger log = LoggerFactory.getLogger(PullFromCentral.class);
   private static final Param<Void> PULL_FROM_CENTRAL = Param.flag("pllc", "pull_central", "Pull form from a Central server");
-
 
   public static Operation create(FormMetadataPort formMetadataPort) {
     return Operation.of(
@@ -113,10 +111,10 @@ public class PullFormFromCentral {
     forms.load(filteredForms);
     forms.selectAll();
 
-    PullFromCentral pullOp = new PullFromCentral(http, server, briefcaseDir, token, PullFormFromCentral::onEvent, formMetadataPort);
+    org.opendatakit.briefcase.pull.central.PullFromCentral pullOp = new org.opendatakit.briefcase.pull.central.PullFromCentral(http, server, briefcaseDir, token, PullFromCentral::onEvent, formMetadataPort);
     JobsRunner.launchAsync(
         forms.map(pullOp::pull),
-        PullFormFromCentral::onError
+        PullFromCentral::onError
     ).waitForCompletion();
     System.out.println();
     System.out.println("All operations completed");

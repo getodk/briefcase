@@ -38,9 +38,9 @@ import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
-import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Optionals;
+import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
@@ -54,8 +54,8 @@ import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PullFormFromAggregate {
-  private static final Logger log = LoggerFactory.getLogger(PullFormFromAggregate.class);
+public class PullFromAggregate {
+  private static final Logger log = LoggerFactory.getLogger(PullFromAggregate.class);
   private static final Param<Void> PULL_AGGREGATE = Param.flag("plla", "pull_aggregate", "Pull form from an Aggregate instance");
   private static final Param<Void> RESUME_LAST_PULL = Param.flag("sfl", "start_from_last", "Start pull from last submission pulled");
   private static final Param<LocalDate> START_FROM_DATE = Param.arg("sfd", "start_from_date", "Start pull from date", LocalDate::parse);
@@ -64,24 +64,23 @@ public class PullFormFromAggregate {
   public static Operation create(FormMetadataPort formMetadataPort) {
     return Operation.of(
         PULL_AGGREGATE,
-        args -> pullFormFromAggregate(
-            formMetadataPort,
-            args.get(STORAGE_DIR),
-            args.getOptional(FORM_ID),
-            args.get(CREDENTIALS_USERNAME),
-            args.get(CREDENTIALS_PASSWORD),
-            args.get(SERVER_URL),
-            args.has(RESUME_LAST_PULL),
-            args.getOptional(START_FROM_DATE),
-            args.has(INCLUDE_INCOMPLETE),
-            args.getOptional(MAX_HTTP_CONNECTIONS)
-        ),
+        args -> pullFormFromAggregate(formMetadataPort, args),
         Arrays.asList(STORAGE_DIR, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL),
         Arrays.asList(RESUME_LAST_PULL, INCLUDE_INCOMPLETE, FORM_ID, START_FROM_DATE, MAX_HTTP_CONNECTIONS)
     );
   }
 
-  private static void pullFormFromAggregate(FormMetadataPort formMetadataPort, String storageDir, Optional<String> formId, String username, String password, URL server, boolean resumeLastPull, Optional<LocalDate> startFromDate, boolean includeIncomplete, Optional<Integer> maybeMaxHttpConnections) {
+  private static void pullFormFromAggregate(FormMetadataPort formMetadataPort, Args args) {
+    String storageDir = args.get(STORAGE_DIR);
+    Optional<String> formId = args.getOptional(FORM_ID);
+    String username = args.get(CREDENTIALS_USERNAME);
+    String password = args.get(CREDENTIALS_PASSWORD);
+    URL server = args.get(SERVER_URL);
+    boolean resumeLastPull = args.has(RESUME_LAST_PULL);
+    Optional<LocalDate> startFromDate = args.getOptional(START_FROM_DATE);
+    boolean includeIncomplete = args.has(INCLUDE_INCOMPLETE);
+    Optional<Integer> maybeMaxHttpConnections = args.getOptional(MAX_HTTP_CONNECTIONS);
+
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -124,7 +123,7 @@ public class PullFormFromAggregate {
     forms.load(filteredForms);
     forms.selectAll();
 
-    PullFromAggregate pullOp = new PullFromAggregate(http, aggregateServer, briefcaseDir, includeIncomplete, PullFormFromAggregate::onEvent, formMetadataPort);
+    org.opendatakit.briefcase.pull.aggregate.PullFromAggregate pullOp = new org.opendatakit.briefcase.pull.aggregate.PullFromAggregate(http, aggregateServer, briefcaseDir, includeIncomplete, PullFromAggregate::onEvent, formMetadataPort);
     JobsRunner.launchAsync(
         forms.map(form -> pullOp.pull(form, resolveCursor(
             resumeLastPull,
@@ -132,7 +131,7 @@ public class PullFormFromAggregate {
             form,
             formMetadataPort
         ))),
-        PullFormFromAggregate::onError
+        PullFromAggregate::onError
     ).waitForCompletion();
     System.out.println();
     System.out.println("All operations completed");

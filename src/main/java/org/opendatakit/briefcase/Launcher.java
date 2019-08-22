@@ -33,8 +33,8 @@ import java.util.Optional;
 import org.flywaydb.core.Flyway;
 import org.opendatakit.briefcase.cli.Export;
 import org.opendatakit.briefcase.cli.LaunchGui;
-import org.opendatakit.briefcase.cli.PullFormFromAggregate;
-import org.opendatakit.briefcase.cli.PullFormFromCentral;
+import org.opendatakit.briefcase.cli.PullFromAggregate;
+import org.opendatakit.briefcase.cli.PullFromCentral;
 import org.opendatakit.briefcase.cli.PullFromCollect;
 import org.opendatakit.briefcase.cli.PushFormToCentral;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
@@ -66,8 +66,8 @@ public class Launcher {
     FormMetadataPort formMetadataPort = new DatabaseFormMetadataAdapter(db::getDslContext);
 
     new Cli()
-        .register(PullFormFromAggregate.create(formMetadataPort))
-        .register(PullFormFromCentral.create(formMetadataPort))
+        .register(PullFromAggregate.create(formMetadataPort))
+        .register(PullFromCentral.create(formMetadataPort))
         .register(PUSH_FORM_TO_AGGREGATE)
         .register(PushFormToCentral.OPERATION)
         .register(PullFromCollect.create(formMetadataPort))
