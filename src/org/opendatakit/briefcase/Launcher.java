@@ -23,6 +23,7 @@ import static org.opendatakit.briefcase.model.BriefcasePreferences.BRIEFCASE_TRA
 import static org.opendatakit.briefcase.operations.ClearPreferences.CLEAR_PREFS;
 import static org.opendatakit.briefcase.operations.Export.EXPORT_FORM;
 import static org.opendatakit.briefcase.operations.ImportFromODK.IMPORT_FROM_ODK;
+import static org.opendatakit.briefcase.operations.LaunchGui.LAUNCH_GUI;
 import static org.opendatakit.briefcase.operations.PullFormFromAggregate.PULL_FORM_FROM_AGGREGATE;
 import static org.opendatakit.briefcase.operations.PushFormToAggregate.PUSH_FORM_TO_AGGREGATE;
 import static org.opendatakit.briefcase.util.Host.getOsName;
@@ -34,7 +35,6 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.operations.PullFormFromCentral;
 import org.opendatakit.briefcase.operations.PushFormToCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.ui.MainBriefcaseWindow;
 import org.opendatakit.common.cli.Cli;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +63,7 @@ public class Launcher {
         .register(IMPORT_FROM_ODK)
         .register(EXPORT_FORM)
         .register(CLEAR_PREFS)
-        .otherwise(MainBriefcaseWindow::launchGUI)
+        .registerDefault(LAUNCH_GUI)
         .onError(throwable -> {
           System.err.println(throwable instanceof BriefcaseException
               ? "Error: " + throwable.getMessage()

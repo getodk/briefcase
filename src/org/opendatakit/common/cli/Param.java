@@ -115,6 +115,10 @@ public class Param<T> {
         .apply(value);
   }
 
+  public String getShortCode() {
+    return String.format("-%s", option.getOpt());
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

@@ -17,19 +17,24 @@ package org.opendatakit.common.cli;
 
 import static java.lang.Runtime.getRuntime;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,9 +49,8 @@ public class Cli {
   private static final Param<Void> SHOW_VERSION = Param.flag("v", "version", "Show version");
 
   private final Set<Operation> operations = new HashSet<>();
+  private Optional<Operation> defaultOperation = Optional.empty();
   private final Set<Consumer<Args>> beforeCallbacks = new HashSet<>();
-  private final Set<Runnable> otherwiseCallbacks = new HashSet<>();
-  private final Set<Operation> executedOperations = new HashSet<>();
 
   private final List<Consumer<Throwable>> onErrorCallbacks = new ArrayList<>();
   private final List<Runnable> onExitCallbacks = new ArrayList<>();
@@ -95,20 +99,13 @@ public class Cli {
     return this;
   }
 
-  public Cli before(Consumer<Args> callback) {
-    beforeCallbacks.add(callback);
+  public Cli registerDefault(Operation operation) {
+    defaultOperation = Optional.of(operation);
     return this;
   }
 
-  /**
-   * Register a {@link Runnable} block that will be executed if no {@link Operation}
-   * is executed. For example, if the user passes no arguments when executing this program
-   *
-   * @param callback a {@link Runnable} that will receive the {@link Args}, {@link Cli} and {@link CommandLine} instances
-   * @return self {@link Cli} instance to chain more method calls
-   */
-  public Cli otherwise(Runnable callback) {
-    otherwiseCallbacks.add(callback);
+  public Cli before(Consumer<Args> callback) {
+    beforeCallbacks.add(callback);
     return this;
   }
 
@@ -126,16 +123,20 @@ public class Cli {
     try {
       beforeCallbacks.forEach(callback -> callback.accept(allArgs));
 
-      operations.forEach(operation -> {
-        if (cli.hasOption(operation.param.shortCode)) {
+      List<Operation> flaggedOperations = operations.stream()
+          .filter(operation -> cli.hasOption(operation.param.shortCode))
+          .collect(toList());
+
+      if (flaggedOperations.isEmpty()) {
+        Operation operation = defaultOperation.orElseThrow(() -> new BriefcaseException("No operation was flagged and there's no default operation"));
+        checkForMissingParams(cli, operation.requiredParams);
+        operation.argsConsumer.accept(Args.from(cli, operation.getAllParams()));
+      } else {
+        flaggedOperations.forEach(operation -> {
           checkForMissingParams(cli, operation.requiredParams);
           operation.argsConsumer.accept(Args.from(cli, operation.getAllParams()));
-          executedOperations.add(operation);
-        }
-      });
-
-      if (executedOperations.isEmpty())
-        otherwiseCallbacks.forEach(Runnable::run);
+        });
+      }
     } catch (Throwable t) {
       if (!onErrorCallbacks.isEmpty())
         onErrorCallbacks.forEach(callback -> callback.accept(t));
@@ -169,9 +170,9 @@ public class Cli {
    * @see <a href="https://www.mkyong.com/java8/java-8-flatmap-example/">Java 8 flatmap example</a>
    */
   private Set<Param> getAllParams() {
-    return operations.stream()
-        .flatMap(operation -> operation.getAllParams().stream())
-        .collect(toSet());
+    Stream<Param> paramsFromOperations = operations.stream().flatMap(operation -> operation.getAllParams().stream());
+    Stream<Param> paramsFromDefaultOperation = defaultOperation.map(operation -> operation.getAllParams().stream()).orElse(Stream.empty());
+    return Stream.of(paramsFromOperations, paramsFromDefaultOperation).flatMap(Function.identity()).collect(toSet());
   }
 
   private CommandLine getCli(String[] args, Set<Param> params) {
@@ -210,5 +211,4 @@ public class Cli {
   private static void printVersion() {
     System.out.println("Briefcase " + BuildConfig.VERSION);
   }
-
 }
