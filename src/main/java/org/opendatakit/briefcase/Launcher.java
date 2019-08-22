@@ -77,6 +77,8 @@ public class Launcher {
         .before(args -> {
           Path storageLocation = args.get(WORKSPACE_LOCATION);
           prepareStorageLocation(storageLocation);
+          // Set the workspace location in the app prefs for backwards compatibility. This will be replaced by form metadata
+          appPreferences.setStorageDir(storageLocation);
           db.startAt(storageLocation);
           Flyway
               .configure()

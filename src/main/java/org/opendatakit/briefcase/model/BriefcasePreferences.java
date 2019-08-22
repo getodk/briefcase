@@ -164,7 +164,7 @@ public class BriefcasePreferences {
   }
 
   public Optional<Path> getBriefcaseDir() {
-    return nullSafeGet(BRIEFCASE_DIR_PROPERTY).map(Paths::get).map(BriefcasePreferences::buildBriefcaseDir);
+    return nullSafeGet(BRIEFCASE_DIR_PROPERTY).map(Paths::get);
   }
 
   public static Path buildBriefcaseDir(Path storageDir) {
