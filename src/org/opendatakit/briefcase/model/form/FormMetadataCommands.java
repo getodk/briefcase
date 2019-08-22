@@ -33,4 +33,8 @@ public class FormMetadataCommands {
         .orElseGet(() -> FormMetadata.of(key, storageDirectory))
         .withLastExportedSubmission(instanceId, submissionDate, exportDateTime));
   }
+
+  public static Consumer<FormMetadataPort> cleanAllCursors() {
+    return port -> port.persist(port.fetchAll().map(FormMetadata::withoutCursor));
+  }
 }

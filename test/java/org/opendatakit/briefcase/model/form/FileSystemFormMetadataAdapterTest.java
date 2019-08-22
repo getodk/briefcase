@@ -1,6 +1,9 @@
 package org.opendatakit.briefcase.model.form;
 
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAnd;
+import static java.util.stream.Collectors.toList;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
@@ -20,9 +23,11 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -110,6 +115,20 @@ public class FileSystemFormMetadataAdapterTest {
       Optional<FormMetadata> fetchedMetadata = fetchPort.fetch(metadataToBePersisted.getKey());
       assertThat(fetchedMetadata, isPresentAnd(is(metadataToBePersisted)));
     });
+  }
+
+  @Test
+  public void persists_and_fetches_collections_of_form_metadata() {
+    List<FormMetadata> expectedFormMetadatas = IntStream.range(0, 10)
+        .mapToObj(i -> installForm(storageRoot, "Form " + i, "form-" + i, Optional.empty()))
+        .map(formFile -> buildMetadataFrom(formFile, Cursor.empty()))
+        .collect(toList());
+
+    FileSystemFormMetadataAdapter.at(storageRoot).persist(expectedFormMetadatas.stream());
+
+    List<FormMetadata> actualFormMetadatas = FileSystemFormMetadataAdapter.at(storageRoot).fetchAll().collect(toList());
+    assertThat(actualFormMetadatas, hasSize(expectedFormMetadatas.size()));
+    expectedFormMetadatas.forEach(formMetadata -> assertThat(actualFormMetadatas, hasItem(formMetadata)));
   }
 
   private Path installForm(Path storageRoot, String name, String id, Optional<String> version) {

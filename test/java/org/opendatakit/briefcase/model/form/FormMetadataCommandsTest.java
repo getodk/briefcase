@@ -3,8 +3,10 @@ package org.opendatakit.briefcase.model.form;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.model.form.FormMetadataCommands.cleanAllCursors;
 import static org.opendatakit.briefcase.model.form.FormMetadataCommands.updateAsPulled;
 import static org.opendatakit.briefcase.model.form.FormMetadataCommands.updateLastExportedSubmission;
+import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -12,7 +14,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
@@ -60,5 +65,27 @@ public class FormMetadataCommandsTest {
     assertThat(jsonNode.get("instanceId").asText(), is(expectedInstanceId));
     assertThat(jsonNode.get("submissionDate").asText(), is(expectedSubmissionDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
     assertThat(jsonNode.get("exportDateTime").asText(), is(expectedExportDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+  }
+
+  @Test
+  public void updates_all_metadata_removing_cursors() {
+    List<FormMetadata> existingFormMetadata = IntStream.range(0, 10).mapToObj(this::buildFormMetadata).collect(Collectors.toList());
+    existingFormMetadata.forEach(formMetadataPort::persist);
+
+    formMetadataPort.execute(cleanAllCursors());
+
+    existingFormMetadata
+        .stream()
+        .map(FormMetadata::getKey)
+        .forEach(key -> {
+          FormMetadata actualFormMetadata = formMetadataPort.fetch(key).orElseThrow();
+          assertThat(actualFormMetadata.getCursor().isEmpty(), is(true));
+        });
+  }
+
+  private FormMetadata buildFormMetadata(int number) {
+    Paths.get("/some/path/forms/" + stripIllegalChars("Form #" + number));
+    FormKey key = FormKey.of("Form #" + number, "form-" + number);
+    return new FormMetadata(key, storageDirectory, true, Cursor.from("some cursor data"), Optional.empty());
   }
 }

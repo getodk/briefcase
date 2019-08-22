@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.ui.settings;
 
+import static org.opendatakit.briefcase.model.form.FormMetadataCommands.cleanAllCursors;
 import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
 import java.nio.file.Path;
@@ -78,12 +79,11 @@ public class SettingsPanel {
     });
     form.onReloadCache(() -> {
       formCache.update();
-      formMetadataPort.flush();
       formMetadataPort.syncWithFilesAt(appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new));
       infoMessage("Forms successfully reloaded from storage location.");
     });
     form.onCleanAllPullResumePoints(() -> {
-      formMetadataPort.flush();
+      formMetadataPort.execute(cleanAllCursors());
       infoMessage("Pull history cleared.");
     });
 

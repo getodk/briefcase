@@ -3,7 +3,6 @@ package org.opendatakit.briefcase.model.form;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.util.stream.Collectors.toMap;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.delete;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.walk;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 
@@ -23,6 +22,7 @@ import java.util.stream.Stream;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.LegacyPrefs;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 public class FileSystemFormMetadataAdapter implements FormMetadataPort {
   private static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
@@ -43,8 +43,6 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
   }
 
   public FormMetadataPort syncWithFilesAt(Path storageRoot) {
-    flush();
-
     Stream<Path> allFiles = walk(storageRoot.resolve("forms"));
 
     // select XML files that are not submissions
@@ -86,7 +84,11 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
 
   @Override
   public void flush() {
-    store.values().forEach(metadata -> delete(getMetadataFile(metadata)));
+    store.values()
+        .stream()
+        .map(FileSystemFormMetadataAdapter::getMetadataFile)
+        .filter(Files::exists)
+        .forEach(UncheckedFiles::delete);
     store.clear();
   }
 
@@ -97,8 +99,20 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
   }
 
   @Override
+  public void persist(Stream<FormMetadata> formMetadata) {
+    store.putAll(formMetadata
+        .peek(FileSystemFormMetadataAdapter::serialize)
+        .collect(toMap(FormMetadata::getKey, Function.identity())));
+  }
+
+  @Override
   public Optional<FormMetadata> fetch(FormKey key) {
     return Optional.ofNullable(store.get(key));
+  }
+
+  @Override
+  public Stream<FormMetadata> fetchAll() {
+    return store.values().stream();
   }
 
   // region Path <-> JSON <-> FormMetadata serialization

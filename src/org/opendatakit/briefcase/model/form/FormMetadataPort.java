@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public interface FormMetadataPort {
 
@@ -17,5 +18,9 @@ public interface FormMetadataPort {
 
   void persist(FormMetadata formMetadata);
 
+  void persist(Stream<FormMetadata> formMetadata);
+
   Optional<FormMetadata> fetch(FormKey key);
+
+  Stream<FormMetadata> fetchAll();
 }
