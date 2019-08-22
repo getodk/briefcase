@@ -31,7 +31,6 @@ public class Common {
   static final Param<String> CREDENTIALS_USERNAME = Param.arg("u", "odk_username", "ODK Username");
   static final Param<String> CREDENTIALS_EMAIL = Param.arg("E", "odk_email", "ODK Email");
   static final Param<String> CREDENTIALS_PASSWORD = Param.arg("p", "odk_password", "ODK Password");
-  public static final Param<String> DEPRECATED_AGGREGATE_SERVER = Param.arg("url", "aggregate_url", "Aggregate server URL");
   public static final Param<URL> SERVER_URL = Param.arg("U", "odk_url", "ODK Server URL", RequestBuilder::url);
   public static final Param<Integer> MAX_HTTP_CONNECTIONS = Param.arg("mhc", "max_http_connections", "Maximum simultaneous HTTP connections (defaults to 8)", Integer::parseInt);
 

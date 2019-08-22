@@ -57,9 +57,7 @@ import org.slf4j.LoggerFactory;
 
 public class PullFormFromAggregate {
   private static final Logger log = LoggerFactory.getLogger(PullFormFromAggregate.class);
-  public static final Param<Void> DEPRECATED_PULL_AGGREGATE = Param.flag("pa", "pull_aggregate", "(Deprecated. Use -plla instead)");
   public static final Param<Void> PULL_AGGREGATE = Param.flag("plla", "pull_aggregate", "Pull form from an Aggregate instance");
-  public static final Param<Void> DEPRECATED_PULL_IN_PARALLEL = Param.flag("pp", "parallel_pull", "(Deprecated. Use -mhc instead)");
   private static final Param<Void> RESUME_LAST_PULL = Param.flag("sfl", "start_from_last", "Start pull from last submission pulled");
   private static final Param<LocalDate> START_FROM_DATE = Param.arg("sfd", "start_from_date", "Start pull from date", LocalDate::parse);
   private static final Param<Void> INCLUDE_INCOMPLETE = Param.flag("ii", "include_incomplete", "Include incomplete submissions");
