@@ -32,9 +32,10 @@ import java.util.stream.Collectors;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.push.aggregate.PushToAggregate;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Optionals;
+import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
@@ -48,27 +49,29 @@ import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PushFormToAggregate {
-  private static final Logger log = LoggerFactory.getLogger(PushFormToAggregate.class);
+public class PushToAggregate {
+  private static final Logger log = LoggerFactory.getLogger(PushToAggregate.class);
   private static final Param<Void> PUSH_AGGREGATE = Param.flag("psha", "push_aggregate", "Push form to an Aggregate instance");
   private static final Param<Void> FORCE_SEND_BLANK = Param.flag("fsb", "force_send_blank", "Force sending the blank form to the Aggregate instance");
 
-  public static Operation PUSH_FORM_TO_AGGREGATE = Operation.of(
-      PUSH_AGGREGATE,
-      args -> pushFormToAggregate(
-          args.get(STORAGE_DIR),
-          args.getOptional(FORM_ID),
-          args.get(CREDENTIALS_USERNAME),
-          args.get(CREDENTIALS_PASSWORD),
-          args.get(SERVER_URL),
-          args.has(FORCE_SEND_BLANK),
-          args.getOptional(MAX_HTTP_CONNECTIONS)
-      ),
-      Arrays.asList(STORAGE_DIR, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL),
-      Arrays.asList(FORCE_SEND_BLANK, MAX_HTTP_CONNECTIONS, FORM_ID)
-  );
+  public static Operation create(FormMetadataPort formMetadataPort) {
+    return Operation.of(
+        PUSH_AGGREGATE,
+        args -> pushFormToAggregate(formMetadataPort, args),
+        Arrays.asList(STORAGE_DIR, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL),
+        Arrays.asList(FORCE_SEND_BLANK, MAX_HTTP_CONNECTIONS, FORM_ID)
+    );
+  }
 
-  private static void pushFormToAggregate(String storageDir, Optional<String> formid, String username, String password, URL server, boolean forceSendBlank, Optional<Integer> maybeMaxConnections) {
+  private static void pushFormToAggregate(FormMetadataPort formMetadataPort, Args args) {
+    String storageDir = args.get(STORAGE_DIR);
+    Optional<String> formid = args.getOptional(FORM_ID);
+    String username = args.get(CREDENTIALS_USERNAME);
+    String password = args.get(CREDENTIALS_PASSWORD);
+    URL server = args.get(SERVER_URL);
+    boolean forceSendBlank = args.has(FORCE_SEND_BLANK);
+    Optional<Integer> maybeMaxConnections = args.getOptional(MAX_HTTP_CONNECTIONS);
+
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -115,8 +118,8 @@ public class PushFormToAggregate {
     TransferForms forms = TransferForms.of(statuses);
     forms.selectAll();
 
-    PushToAggregate pushOp = new PushToAggregate(http, aggregateServer, briefcaseDir, forceSendBlank, PushFormToAggregate::onEvent);
-    JobsRunner.launchAsync(forms.map(pushOp::push), PushFormToAggregate::onError).waitForCompletion();
+    org.opendatakit.briefcase.push.aggregate.PushToAggregate pushOp = new org.opendatakit.briefcase.push.aggregate.PushToAggregate(http, aggregateServer, briefcaseDir, forceSendBlank, PushToAggregate::onEvent);
+    JobsRunner.launchAsync(forms.map(pushOp::push), PushToAggregate::onError).waitForCompletion();
     System.out.println();
     System.out.println("All operations completed");
     System.out.println();

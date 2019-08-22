@@ -21,7 +21,6 @@ import static org.opendatakit.briefcase.buildconfig.BuildConfig.SENTRY_ENABLED;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
 import static org.opendatakit.briefcase.cli.ClearPreferences.CLEAR_PREFS;
 import static org.opendatakit.briefcase.cli.Common.WORKSPACE_LOCATION;
-import static org.opendatakit.briefcase.cli.PushFormToAggregate.PUSH_FORM_TO_AGGREGATE;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.util.Host.getOsName;
@@ -37,6 +36,7 @@ import org.opendatakit.briefcase.cli.PullFromAggregate;
 import org.opendatakit.briefcase.cli.PullFromCentral;
 import org.opendatakit.briefcase.cli.PullFromCollect;
 import org.opendatakit.briefcase.cli.PushFormToCentral;
+import org.opendatakit.briefcase.cli.PushToAggregate;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.form.DatabaseFormMetadataAdapter;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
@@ -68,7 +68,7 @@ public class Launcher {
     new Cli()
         .register(PullFromAggregate.create(formMetadataPort))
         .register(PullFromCentral.create(formMetadataPort))
-        .register(PUSH_FORM_TO_AGGREGATE)
+        .register(PushToAggregate.create(formMetadataPort))
         .register(PushFormToCentral.OPERATION)
         .register(PullFromCollect.create(formMetadataPort))
         .register(Export.create(formMetadataPort))
