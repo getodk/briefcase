@@ -21,7 +21,9 @@ import static org.opendatakit.briefcase.buildconfig.BuildConfig.SENTRY_ENABLED;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY;
 import static org.opendatakit.briefcase.operations.ClearPreferences.CLEAR_PREFS;
+import static org.opendatakit.briefcase.operations.Common.DEPRECATED_AGGREGATE_SERVER;
 import static org.opendatakit.briefcase.operations.Common.MAX_HTTP_CONNECTIONS;
+import static org.opendatakit.briefcase.operations.Common.SERVER_URL;
 import static org.opendatakit.briefcase.operations.Export.EXPORT_FORM;
 import static org.opendatakit.briefcase.operations.ImportFromODK.IMPORT_FROM_ODK;
 import static org.opendatakit.briefcase.operations.PullFormFromAggregate.DEPRECATED_PULL_AGGREGATE;
@@ -37,6 +39,8 @@ import io.sentry.Sentry;
 import io.sentry.SentryClient;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
+import org.opendatakit.briefcase.operations.PullFormFromCentral;
+import org.opendatakit.briefcase.operations.PushFormToCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.common.cli.Cli;
 import org.slf4j.Logger;
@@ -61,8 +65,11 @@ public class Launcher {
     new Cli()
         .deprecate(DEPRECATED_PULL_AGGREGATE, PULL_AGGREGATE)
         .deprecate(DEPRECATED_PULL_IN_PARALLEL, MAX_HTTP_CONNECTIONS)
+        .deprecate(DEPRECATED_AGGREGATE_SERVER, SERVER_URL)
         .register(PULL_FORM_FROM_AGGREGATE)
+        .register(PullFormFromCentral.OPERATION)
         .register(PUSH_FORM_TO_AGGREGATE)
+        .register(PushFormToCentral.OPERATION)
         .register(IMPORT_FROM_ODK)
         .register(EXPORT_FORM)
         .register(CLEAR_PREFS)
