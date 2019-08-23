@@ -4,12 +4,10 @@ import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAndIs;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.model.form.FormMetadataCommands.cleanAllCursors;
-import static org.opendatakit.briefcase.model.form.FormMetadataCommands.updateLastExportedSubmission;
 import static org.opendatakit.briefcase.model.form.FormMetadataCommands.upsert;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,24 +31,15 @@ public class FormMetadataCommandsTest {
   }
 
   @Test
-  public void upserts_a_form_providing_the_form_file_path_and_the_cursor() {
-    formMetadataPort.execute(upsert(key, formFile));
+  public void upserts_metadata() {
+    FormMetadata formMetadata = FormMetadata.empty(key).withFormFile(formFile);
+
+    formMetadataPort.execute(upsert(formMetadata));
     assertThat(formMetadataPort.fetch(key).orElseThrow().getFormFile(), isPresentAndIs(formFile));
 
     Cursor cursor = Cursor.from("some cursor data");
-    formMetadataPort.execute(upsert(key, formFile, cursor));
+    formMetadataPort.execute(upsert(formMetadata.withCursor(cursor)));
     assertThat(formMetadataPort.fetch(key).orElseThrow().getCursor(), is(cursor));
-  }
-
-  @Test
-  public void updates_a_forms_last_exported_submission_metadata() {
-    OffsetDateTime expectedSubmissionDate = OffsetDateTime.parse("2019-01-01T00:00:00.000Z");
-
-    formMetadataPort.execute(upsert(key, formFile));
-    FormMetadata formMetadata = formMetadataPort.fetch(key).orElseThrow();
-
-    formMetadataPort.execute(updateLastExportedSubmission(formMetadata, expectedSubmissionDate));
-    assertThat(formMetadataPort.fetch(key).orElseThrow().getLastExportedSubmissionDate(), isPresentAndIs(expectedSubmissionDate));
   }
 
   @Test

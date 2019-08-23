@@ -22,7 +22,7 @@ public class BriefcaseVersionManager {
   public String getLatest() {
     return http.execute(RequestBuilder.get("https://api.github.com/repos/opendatakit/briefcase/releases/latest")
         .asJsonMap()
-        .withResponseMapper(node -> (String) node.get("tag_name"))
+        .withResponseMapper(json -> json.get("tag_name").asText())
         .build())
         .get();
   }

@@ -19,6 +19,7 @@ package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget;
 import static org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.SourceOrTargetPanel.View.SELECT;
 import static org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.SourceOrTargetPanel.View.SHOW;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -55,13 +56,13 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
     container.navigateTo(SELECT);
   }
 
-  public static SourceOrTargetPanel<PullSource> pull(Http http) {
+  public static SourceOrTargetPanel<PullSource> pull(Http http, Path briefcaseDir) {
     SourceOrTargetPanel<PullSource> panel = new SourceOrTargetPanel<>(
         SelectSourceOrTargetForm.pull(),
         ShowSourceOrTargetForm.pull()
     );
-    panel.addOption(PullSource.aggregate(http, panel::triggerOnSelect));
-    panel.addOption(PullSource.central(http, panel::triggerOnSelect));
+    panel.addOption(PullSource.aggregate(http, briefcaseDir, panel::triggerOnSelect));
+    panel.addOption(PullSource.central(http, briefcaseDir, panel::triggerOnSelect));
     panel.addOption(PullSource.customDir(panel::triggerOnSelect));
     panel.addOption(PullSource.formInComputer(panel::triggerOnSelect));
     return panel;

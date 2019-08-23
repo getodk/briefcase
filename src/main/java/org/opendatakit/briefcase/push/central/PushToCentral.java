@@ -171,7 +171,7 @@ public class PushToCentral {
     }
 
     tracker.trackStartSendingForm();
-    Response response = http.execute(server.getPushFormRequest(formFile, token));
+    var response = http.execute(server.getPushFormRequest(formFile, token));
 
     if (response.isSuccess()) {
       tracker.trackEndSendingForm();
@@ -194,7 +194,7 @@ public class PushToCentral {
     }
 
     tracker.trackStartSendingFormAttachment(attachmentNumber, totalAttachments);
-    Response response = http.execute(server.getPushFormAttachmentRequest(formId, attachment, token));
+    var response = http.execute(server.getPushFormAttachmentRequest(formId, attachment, token));
     if (response.isSuccess())
       tracker.trackEndSendingFormAttachment(attachmentNumber, totalAttachments);
     else if (response.getStatusCode() == 409)
@@ -210,7 +210,7 @@ public class PushToCentral {
     }
 
     tracker.trackStartSendingSubmission(submissionNumber, totalSubmissions);
-    Response response = http.execute(server.getPushSubmissionRequest(token, formId, submissionFile));
+    var response = http.execute(server.getPushSubmissionRequest(token, formId, submissionFile));
 
     if (response.isSuccess()) {
       tracker.trackEndSendingSubmission(submissionNumber, totalSubmissions);
@@ -233,7 +233,7 @@ public class PushToCentral {
     }
 
     tracker.trackStartSendingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
-    Response response = http.execute(server.getPushSubmissionAttachmentRequest(token, formId, instanceId, attachment));
+    var response = http.execute(server.getPushSubmissionAttachmentRequest(token, formId, instanceId, attachment));
     if (response.isSuccess())
       tracker.trackEndSendingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
     else if (response.getStatusCode() == 409)

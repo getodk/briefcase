@@ -27,7 +27,6 @@ import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.ui.MainBriefcaseWindow;
-import org.opendatakit.briefcase.util.FormCache;
 
 
 public class LaunchGui {
@@ -50,8 +49,6 @@ public class LaunchGui {
             "hasn't been implemented yet. Please, use " +
             "the " + WORKSPACE_LOCATION.getShortCode()));
 
-    FormCache formCache = FormCache.from(workspaceLocation);
-    formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     appPreferences.setStorageDir(workspaceLocation);
 

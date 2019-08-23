@@ -43,7 +43,6 @@ import org.opendatakit.briefcase.model.InMemoryPreferences;
 import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
 import org.opendatakit.briefcase.ui.reused.NoOpAnalytics;
-import org.opendatakit.briefcase.util.FormCache;
 
 public class ExportPanelUnitTest {
 
@@ -56,6 +55,7 @@ public class ExportPanelUnitTest {
     initialDefaultConf = empty().build();
     ExportForms forms = load(initialDefaultConf, formsList, inMemoryPrefs);
     ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, inMemoryPrefs, inMemoryPrefs, initialDefaultConf);
+    InMemoryFormMetadataAdapter formMetadataPort = new InMemoryFormMetadataAdapter();
     new ExportPanel(
         forms,
         exportPanelForm,
@@ -63,9 +63,8 @@ public class ExportPanelUnitTest {
         inMemoryPrefs,
         inMemoryPrefs,
         new NoOpAnalytics(),
-        FormCache.empty(),
         new FakeHttp(),
-        new InMemoryFormMetadataAdapter()
+        formMetadataPort
     );
 
     exportPanelForm.setDefaultConf(empty().setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri())).build());
@@ -80,6 +79,7 @@ public class ExportPanelUnitTest {
     initialDefaultConf = empty().build();
     ExportForms forms = load(initialDefaultConf, formsList, inMemoryPrefs);
     ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, inMemoryPrefs, inMemoryPrefs, initialDefaultConf);
+    InMemoryFormMetadataAdapter formMetadataPort = new InMemoryFormMetadataAdapter();
     new ExportPanel(
         forms,
         exportPanelForm,
@@ -87,9 +87,8 @@ public class ExportPanelUnitTest {
         inMemoryPrefs,
         inMemoryPrefs,
         new NoOpAnalytics(),
-        FormCache.empty(),
         new FakeHttp(),
-        new InMemoryFormMetadataAdapter()
+        formMetadataPort
     );
 
     FormStatus form = formsList.get(0);
@@ -112,6 +111,7 @@ public class ExportPanelUnitTest {
     initialDefaultConf = empty().build();
     ExportForms forms = load(initialDefaultConf, formsList, inMemoryPrefs);
     ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, inMemoryPrefs, inMemoryPrefs, initialDefaultConf);
+    InMemoryFormMetadataAdapter formMetadataPort = new InMemoryFormMetadataAdapter();
     new ExportPanel(
         forms,
         exportPanelForm,
@@ -119,9 +119,8 @@ public class ExportPanelUnitTest {
         inMemoryPrefs,
         inMemoryPrefs,
         new NoOpAnalytics(),
-        FormCache.empty(),
         new FakeHttp(),
-        new InMemoryFormMetadataAdapter()
+        formMetadataPort
     );
 
     FormStatus form = formsList.get(0);

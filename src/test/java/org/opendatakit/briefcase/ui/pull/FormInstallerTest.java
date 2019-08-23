@@ -37,7 +37,6 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.pull.FormInstaller;
 import org.opendatakit.briefcase.util.BadFormDefinition;
-import org.opendatakit.briefcase.util.FormCache;
 
 public class FormInstallerTest {
 
@@ -49,8 +48,6 @@ public class FormInstallerTest {
     briefcaseDir = createTempDirectory("briefcase_test_");
     formsDir = briefcaseDir.resolve("forms");
     Files.createDirectories(formsDir);
-    FormCache formCache = FormCache.empty();
-    formCache.setLocation(briefcaseDir);
   }
 
   @Test

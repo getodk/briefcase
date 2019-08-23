@@ -3,33 +3,14 @@ package org.opendatakit.briefcase.model.form;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.walk;
 
 import java.nio.file.Path;
-import java.time.OffsetDateTime;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.export.XmlElement;
-import org.opendatakit.briefcase.pull.aggregate.Cursor;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.LegacyPrefs;
 
 public class FormMetadataCommands {
-  public static Consumer<FormMetadataPort> upsert(FormKey key, Path formFile) {
-    return port -> port.persist(port.fetch(key)
-        .orElseGet(() -> FormMetadata.empty(key))
-        .withFormFile(formFile));
+  public static Consumer<FormMetadataPort> upsert(FormMetadata formMetadata) {
+    return port -> port.persist(formMetadata);
 
-  }
-
-  public static Consumer<FormMetadataPort> upsert(FormKey key, Path formFile, Cursor cursor) {
-    return port -> port.persist(port.fetch(key)
-        .orElseGet(() -> FormMetadata.empty(key))
-        .withFormFile(formFile)
-        .withCursor(cursor));
-  }
-
-  public static Consumer<FormMetadataPort> updateLastExportedSubmission(FormMetadata formMetadata, OffsetDateTime submissionDate) {
-    return port -> port.persist(port
-        .fetch(formMetadata.getKey())
-        .orElseThrow(BriefcaseException::new)
-        .withLastExportedSubmissionDate(submissionDate));
   }
 
   public static Consumer<FormMetadataPort> cleanAllCursors() {

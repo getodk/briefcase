@@ -22,6 +22,7 @@ import static org.opendatakit.briefcase.ui.reused.UI.makeClickable;
 import static org.opendatakit.briefcase.ui.reused.UI.uncheckedBrowse;
 
 import java.awt.Container;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -46,13 +47,15 @@ import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.AggregateServer
  */
 public class Aggregate implements PullSource<AggregateServer> {
   private final Http http;
+  private final Path briefcaseDir;
   private final Consumer<PullSource> consumer;
   private Test<AggregateServer> serverTester;
   private String usernameHelp;
   private AggregateServer server;
 
-  Aggregate(Http http, Test<AggregateServer> serverTester, String usernameHelp, Consumer<PullSource> consumer) {
+  Aggregate(Http http, Path briefcaseDir, Test<AggregateServer> serverTester, String usernameHelp, Consumer<PullSource> consumer) {
     this.http = http;
+    this.briefcaseDir = briefcaseDir;
     this.serverTester = serverTester;
     this.usernameHelp = usernameHelp;
     this.consumer = consumer;
@@ -79,8 +82,11 @@ public class Aggregate implements PullSource<AggregateServer> {
   @Override
   public List<FormStatus> getFormList() {
     return http.execute(server.getFormListRequest())
-        .map(formDefs -> formDefs.stream().map(FormStatus::new).collect(toList()))
-        .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"));
+        .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"))
+        .stream()
+        .map(formMetadata -> formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir)))
+        .map(FormStatus::new)
+        .collect(toList());
   }
 
   @Override

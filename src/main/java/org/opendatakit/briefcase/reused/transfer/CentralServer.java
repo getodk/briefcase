@@ -16,15 +16,17 @@
 
 package org.opendatakit.briefcase.reused.transfer;
 
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.newInputStream;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormKey;
@@ -77,7 +79,7 @@ public class CentralServer implements RemoteServer {
         .withPath("/v1/sessions")
         .withHeader("Content-Type", "application/json")
         .withBody(buildSessionPayload(credentials))
-        .withResponseMapper(json -> !((String) json.get("token")).isEmpty())
+        .withResponseMapper(json -> !json.path("token").asText().isBlank())
         .build();
   }
 
@@ -87,7 +89,7 @@ public class CentralServer implements RemoteServer {
         .withPath("/v1/sessions")
         .withHeader("Content-Type", "application/json")
         .withBody(buildSessionPayload(credentials))
-        .withResponseMapper(json -> (String) json.get("token"))
+        .withResponseMapper(json -> json.get("token").asText())
         .build();
   }
 
@@ -109,9 +111,10 @@ public class CentralServer implements RemoteServer {
 
   public Request<List<CentralAttachment>> getFormAttachmentListRequest(String formId, String token) {
     return RequestBuilder.get(baseUrl)
-        .asJsonList(CentralAttachment.class)
+        .asJsonList()
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/attachments")
         .withHeader("Authorization", "Bearer " + token)
+        .withResponseMapper(CentralServer::buildCentralAttachmentList)
         .build();
   }
 
@@ -128,7 +131,7 @@ public class CentralServer implements RemoteServer {
         .asJsonList()
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/submissions")
         .withHeader("Authorization", "Bearer " + token)
-        .withResponseMapper(json -> json.stream().map(o -> (String) o.get("instanceId")).collect(toList()))
+        .withResponseMapper(json -> json.map(o -> o.get("instanceId").asText()).collect(toList()))
         .build();
   }
 
@@ -142,9 +145,10 @@ public class CentralServer implements RemoteServer {
 
   public Request<List<CentralAttachment>> getSubmissionAttachmentListRequest(String formId, String instanceId, String token) {
     return RequestBuilder.get(baseUrl)
-        .asJsonList(CentralAttachment.class)
+        .asJsonList()
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/submissions/" + instanceId + "/attachments")
         .withHeader("Authorization", "Bearer " + token)
+        .withResponseMapper(CentralServer::buildCentralAttachmentList)
         .build();
   }
 
@@ -162,7 +166,7 @@ public class CentralServer implements RemoteServer {
         .build();
   }
 
-  public Request<Map<String, Object>> getPushFormRequest(Path formFile, String token) {
+  public Request<JsonNode> getPushFormRequest(Path formFile, String token) {
     return RequestBuilder.post(baseUrl)
         .asJsonMap()
         .withPath("/v1/projects/" + projectId + "/forms")
@@ -172,7 +176,7 @@ public class CentralServer implements RemoteServer {
         .build();
   }
 
-  public Request<Map<String, Object>> getPushFormAttachmentRequest(String formId, Path attachment, String token) {
+  public Request<JsonNode> getPushFormAttachmentRequest(String formId, Path attachment, String token) {
     return RequestBuilder.post(baseUrl)
         .asJsonMap()
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/attachments/" + attachment.getFileName().toString())
@@ -182,7 +186,7 @@ public class CentralServer implements RemoteServer {
         .build();
   }
 
-  public Request<Map<String, Object>> getPushSubmissionRequest(String token, String formId, Path submission) {
+  public Request<JsonNode> getPushSubmissionRequest(String token, String formId, Path submission) {
     return RequestBuilder.post(baseUrl)
         .asJsonMap()
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/submissions")
@@ -192,7 +196,7 @@ public class CentralServer implements RemoteServer {
         .build();
   }
 
-  public Request<Map<String, Object>> getPushSubmissionAttachmentRequest(String token, String formId, String instanceId, Path attachment) {
+  public Request<JsonNode> getPushSubmissionAttachmentRequest(String token, String formId, String instanceId, Path attachment) {
     return RequestBuilder.post(baseUrl)
         .asJsonMap()
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/submissions/" + instanceId + "/attachments/" + attachment.getFileName().toString())
@@ -207,14 +211,21 @@ public class CentralServer implements RemoteServer {
         .asJsonList()
         .withPath("/v1/projects/" + projectId + "/forms")
         .withHeader("Authorization", "Bearer " + token)
-        .withResponseMapper(list -> list.stream()
+        .withResponseMapper(jsons -> jsons
             // TODO Migrate this to mapper.readTree
             .map(json -> FormMetadata.empty(FormKey.of(
-                (String) json.get("name"),
-                (String) json.get("xmlFormId"),
-                Optional.ofNullable((String) json.get("version"))
+                json.get("name").asText(),
+                json.get("xmlFormId").asText(),
+                Optional.ofNullable(json.path("version").asText()).filter(not(String::isBlank))
             ))).collect(toList()))
         .build();
+  }
+
+  private static List<CentralAttachment> buildCentralAttachmentList(Stream<JsonNode> jsons) {
+    return jsons.map(json -> new CentralAttachment(
+        json.get("name").asText(),
+        json.get("exists").asBoolean()
+    )).collect(toList());
   }
 
   //region Saved preferences management - Soon to be replace by a database
@@ -277,8 +288,8 @@ public class CentralServer implements RemoteServer {
     // Do nothing for now
     return Optional.empty();
   }
-  //endregion
 
+  //endregion
 
   @Override
   public boolean equals(Object o) {

@@ -27,6 +27,7 @@ public class Keys {
   // -------------------------------------------------------------------------
 
   public static final UniqueKey<FormMetadataRecord> SYS_PK_10131 = UniqueKeys0.SYS_PK_10131;
+  public static final UniqueKey<FormMetadataRecord> SYS_CT_10133 = UniqueKeys0.SYS_CT_10133;
 
   // -------------------------------------------------------------------------
   // FOREIGN KEY definitions
@@ -39,5 +40,6 @@ public class Keys {
 
   private static class UniqueKeys0 {
     public static final UniqueKey<FormMetadataRecord> SYS_PK_10131 = Internal.createUniqueKey(FormMetadata.FORM_METADATA, "SYS_PK_10131", FormMetadata.FORM_METADATA.ID);
+    public static final UniqueKey<FormMetadataRecord> SYS_CT_10133 = Internal.createUniqueKey(FormMetadata.FORM_METADATA, "SYS_CT_10133", FormMetadata.FORM_METADATA.FORM_NAME, FormMetadata.FORM_METADATA.FORM_ID, FormMetadata.FORM_METADATA.FORM_VERSION);
   }
 }

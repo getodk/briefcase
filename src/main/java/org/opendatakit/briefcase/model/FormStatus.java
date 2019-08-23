@@ -158,6 +158,10 @@ public class FormStatus implements Serializable {
     return formDef;
   }
 
+  public FormMetadata getFormMetadata() {
+    return formMetadata;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

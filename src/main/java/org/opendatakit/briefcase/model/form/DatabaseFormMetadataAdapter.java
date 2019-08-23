@@ -58,12 +58,15 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
   @Override
   public void persist(FormMetadata formMetadata) {
     // TODO Use generated records and let jOOQ do the work instead of explicitly using all the fields in the table, because this will break each time we change the table structure
+    String version = formMetadata.getKey().getVersion().orElse(null);
     getDslContext().execute(mergeInto(FORM_METADATA)
         .using(selectOne())
         .on(Stream.of(
             FORM_METADATA.FORM_NAME.eq(formMetadata.getKey().getName()),
             FORM_METADATA.FORM_ID.eq(formMetadata.getKey().getId()),
-            FORM_METADATA.FORM_VERSION.eq(formMetadata.getKey().getVersion().orElse(null))
+            formMetadata.getKey().getVersion()
+                .map(FORM_METADATA.FORM_VERSION::eq)
+                .orElse(FORM_METADATA.FORM_VERSION.isNull())
         ).reduce(trueCondition(), Condition::and))
         .whenMatchedThenUpdate()
         .set(FORM_METADATA.FORM_FILE, formMetadata.getFormFile().map(Objects::toString).orElseThrow(BriefcaseException::new))
@@ -114,7 +117,9 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         .where(Stream.of(
             FORM_METADATA.FORM_NAME.eq(key.getName()),
             FORM_METADATA.FORM_ID.eq(key.getId()),
-            FORM_METADATA.FORM_VERSION.eq(key.getVersion().orElse(null))
+            key.getVersion()
+                .map(FORM_METADATA.FORM_VERSION::eq)
+                .orElse(FORM_METADATA.FORM_VERSION.isNull())
         ).reduce(trueCondition(), Condition::and))
     ).map(DatabaseFormMetadataAdapter::mapToDomain);
   }

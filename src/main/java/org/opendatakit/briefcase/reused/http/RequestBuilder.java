@@ -28,6 +28,7 @@ import static org.opendatakit.briefcase.reused.http.RequestMethod.POST;
 import static org.xmlpull.v1.XmlPullParser.FEATURE_PROCESS_NAMESPACES;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -48,6 +49,7 @@ import java.util.Optional;
 import java.util.Scanner;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.export.XmlElement;
@@ -119,25 +121,20 @@ public class RequestBuilder<T> {
     }
   }
 
-  private static Map<String, Object> readJsonMap(InputStream in) {
+  private static JsonNode readJsonObject(InputStream in) {
     try (InputStream inHandle = in) {
-      return JSON_OBJECT_MAPPER.readValue(inHandle, JSON_MAP_TYPE_REF);
+      return JSON_OBJECT_MAPPER.readTree(inHandle);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
   }
 
-  private static <U> Function<InputStream, List<U>> readJsonList(Class<U> mappingClass) {
-    return in -> {
-      try (InputStream inHandle = in) {
-        return JSON_OBJECT_MAPPER.readValue(
-            inHandle,
-            JSON_OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, mappingClass)
-        );
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
-    };
+  private static Stream<JsonNode> readJsonArray(InputStream in) {
+    try (InputStream inHandle = in) {
+      return StreamSupport.stream(JSON_OBJECT_MAPPER.readTree(inHandle).spliterator(), false);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   private static String urlEncode(String text) {
@@ -187,16 +184,12 @@ public class RequestBuilder<T> {
     return new RequestBuilder<>(method, baseUrl, RequestBuilder::readXmlElement, credentials, headers, body, multipartMessages);
   }
 
-  public RequestBuilder<Map<String, Object>> asJsonMap() {
-    return new RequestBuilder<>(method, baseUrl, RequestBuilder::readJsonMap, credentials, headers, body, multipartMessages);
+  public RequestBuilder<JsonNode> asJsonMap() {
+    return new RequestBuilder<>(method, baseUrl, RequestBuilder::readJsonObject, credentials, headers, body, multipartMessages);
   }
 
-  public RequestBuilder<List<Map>> asJsonList() {
-    return new RequestBuilder<>(method, baseUrl, RequestBuilder.readJsonList(Map.class), credentials, headers, body, multipartMessages);
-  }
-
-  public <U> RequestBuilder<List<U>> asJsonList(Class<U> mappingClass) {
-    return new RequestBuilder<>(method, baseUrl, RequestBuilder.readJsonList(mappingClass), credentials, headers, body, multipartMessages);
+  public RequestBuilder<Stream<JsonNode>> asJsonList() {
+    return new RequestBuilder<>(method, baseUrl, RequestBuilder::readJsonArray, credentials, headers, body, multipartMessages);
   }
 
   public RequestBuilder<Void> downloadTo(Path target) {

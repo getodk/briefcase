@@ -30,7 +30,7 @@ import org.opendatakit.briefcase.jooq.tables.records.FormMetadataRecord;
 @SuppressWarnings({"all", "unchecked", "rawtypes"})
 public class FormMetadata extends TableImpl<FormMetadataRecord> {
 
-  private static final long serialVersionUID = 362510443;
+  private static final long serialVersionUID = -301457439;
 
   /**
    * The reference instance of <code>PUBLIC.FORM_METADATA</code>
@@ -146,7 +146,7 @@ public class FormMetadata extends TableImpl<FormMetadataRecord> {
    */
   @Override
   public List<Index> getIndexes() {
-    return Arrays.<Index>asList(Indexes.SYS_IDX_SYS_PK_10131_10133);
+    return Arrays.<Index>asList(Indexes.SYS_IDX_SYS_CT_10133_10137, Indexes.SYS_IDX_SYS_PK_10131_10134);
   }
 
   /**
@@ -162,7 +162,7 @@ public class FormMetadata extends TableImpl<FormMetadataRecord> {
    */
   @Override
   public List<UniqueKey<FormMetadataRecord>> getKeys() {
-    return Arrays.<UniqueKey<FormMetadataRecord>>asList(Keys.SYS_PK_10131);
+    return Arrays.<UniqueKey<FormMetadataRecord>>asList(Keys.SYS_PK_10131, Keys.SYS_CT_10133);
   }
 
   /**

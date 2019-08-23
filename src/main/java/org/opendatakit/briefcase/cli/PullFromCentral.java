@@ -46,7 +46,6 @@ import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,8 +65,6 @@ public class PullFromCentral {
   private static void pullFromCentral(FormMetadataPort formMetadataPort, Args args) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(args.get(STORAGE_DIR));
-    FormCache formCache = FormCache.from(briefcaseDir);
-    formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     appPreferences.setStorageDir(briefcaseDir);
 
@@ -101,6 +98,7 @@ public class PullFromCentral {
     List<FormStatus> filteredForms = response.orElseThrow(BriefcaseException::new)
         .stream()
         .filter(f -> formId.map(id -> f.getKey().getId().equals(id)).orElse(true))
+        .map(formMetadata -> formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir)))
         .map(FormStatus::new)
         .collect(toList());
 

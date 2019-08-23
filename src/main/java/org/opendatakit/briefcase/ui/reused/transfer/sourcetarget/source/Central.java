@@ -21,6 +21,7 @@ import static org.opendatakit.briefcase.ui.reused.UI.makeClickable;
 import static org.opendatakit.briefcase.ui.reused.UI.uncheckedBrowse;
 
 import java.awt.Container;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
@@ -43,12 +44,14 @@ import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.CentralServerDi
  */
 public class Central implements PullSource<CentralServer> {
   private final Http http;
+  private final Path briefcaseDir;
   private final Test<CentralServer> serverTester;
   private final Consumer<PullSource> onSourceCallback;
   private CentralServer server;
 
-  Central(Http http, Test<CentralServer> serverTester, Consumer<PullSource> onSourceCallback) {
+  Central(Http http, Path briefcaseDir, Test<CentralServer> serverTester, Consumer<PullSource> onSourceCallback) {
     this.http = http;
+    this.briefcaseDir = briefcaseDir;
     this.serverTester = serverTester;
     this.onSourceCallback = onSourceCallback;
   }
@@ -59,8 +62,11 @@ public class Central implements PullSource<CentralServer> {
         .orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
 
     return http.execute(server.getFormsListRequest(token))
-        .map(formDefs -> formDefs.stream().map(FormStatus::new).collect(toList()))
-        .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"));
+        .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"))
+        .stream()
+        .map(formMetadata -> formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir)))
+        .map(FormStatus::new)
+        .collect(toList());
   }
 
   @Override

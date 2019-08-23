@@ -32,7 +32,6 @@ import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.FileSystemUtils;
-import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.briefcase.util.TransferFromODK;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,9 +57,6 @@ public class PullFromCollect {
 
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
-    FormCache formCache = FormCache.from(briefcaseDir);
-    formCache.update();
-
 
     TransferForms from = TransferForms.from(FileSystemUtils.getODKFormList(odkDir.toFile()).stream()
         .map(FormStatus::new)

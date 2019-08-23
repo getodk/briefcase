@@ -21,6 +21,7 @@ import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePassw
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
+import java.nio.file.Path;
 import java.util.Optional;
 import javax.swing.JPanel;
 import org.bushe.swing.event.EventBus;
@@ -105,10 +106,10 @@ public class PullPanel {
     });
   }
 
-  public static PullPanel from(Http http, BriefcasePreferences appPreferences, BriefcasePreferences pullPanelPreferences, Analytics analytics, FormMetadataPort formMetadataPort) {
+  public static PullPanel from(Http http, BriefcasePreferences appPreferences, BriefcasePreferences pullPanelPreferences, Analytics analytics, FormMetadataPort formMetadataPort, Path briefcaseDir) {
     TransferForms forms = TransferForms.empty();
     return new PullPanel(
-        TransferPanelForm.pull(http, forms),
+        TransferPanelForm.pull(http, briefcaseDir, forms),
         forms,
         pullPanelPreferences,
         appPreferences,

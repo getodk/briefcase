@@ -1,5 +1,8 @@
 package org.opendatakit.briefcase.model.form;
 
+import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
+
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -69,5 +72,9 @@ public class FormKey {
         ", id='" + id + '\'' +
         ", version=" + version +
         '}';
+  }
+
+  public Path buildFormFile(Path briefcaseDir) {
+    return briefcaseDir.resolve("forms").resolve(stripIllegalChars(name)).resolve(stripIllegalChars(name) + ".xml");
   }
 }

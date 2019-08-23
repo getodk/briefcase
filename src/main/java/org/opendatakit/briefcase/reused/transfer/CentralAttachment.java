@@ -16,18 +16,13 @@
 
 package org.opendatakit.briefcase.reused.transfer;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class CentralAttachment {
   private final String name;
   private final boolean exists;
 
-  @JsonCreator
-  public CentralAttachment(@JsonProperty("name") String name, @JsonProperty("exists") boolean exists) {
+  public CentralAttachment(String name, boolean exists) {
     this.name = name;
     this.exists = exists;
   }

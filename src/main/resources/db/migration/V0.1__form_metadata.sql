@@ -12,5 +12,7 @@ CREATE TABLE form_metadata (
     url_manifest                  VARCHAR(255),
     url_download                  VARCHAR(255),
     last_exported_submission_date TIMESTAMP WITH TIME ZONE,
-    CHECK ((form_name IS NOT NULL) OR (form_id IS NOT NULL))
+    CHECK ((form_name IS NOT NULL) OR (form_id IS NOT NULL)),
+    UNIQUE (form_name, form_id, form_version) -- NULL form_version won't trigger this constraint
 );
+

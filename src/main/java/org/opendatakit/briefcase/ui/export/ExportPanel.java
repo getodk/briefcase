@@ -16,6 +16,7 @@
 package org.opendatakit.briefcase.ui.export;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
+import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.load;
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
@@ -40,16 +41,15 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.ui.reused.Analytics;
-import org.opendatakit.briefcase.util.FormCache;
 
 public class ExportPanel {
   public static final String TAB_NAME = "Export";
@@ -60,18 +60,16 @@ public class ExportPanel {
   private final BriefcasePreferences exportPreferences;
   private final BriefcasePreferences pullPanelPrefs;
   private final Analytics analytics;
-  private final FormCache formCache;
   private final Http http;
   private final FormMetadataPort formMetadataPort;
 
-  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences exportPreferences, BriefcasePreferences pullPanelPrefs, Analytics analytics, FormCache formCache, Http http, FormMetadataPort formMetadataPort) {
+  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences exportPreferences, BriefcasePreferences pullPanelPrefs, Analytics analytics, Http http, FormMetadataPort formMetadataPort) {
     this.forms = forms;
     this.form = form;
     this.appPreferences = appPreferences;
     this.exportPreferences = exportPreferences;
     this.pullPanelPrefs = pullPanelPrefs;
     this.analytics = analytics;
-    this.formCache = formCache;
     this.http = http;
     this.formMetadataPort = formMetadataPort;
     AnnotationProcessor.process(this);// if not using AOP
@@ -152,9 +150,9 @@ public class ExportPanel {
     }
   }
 
-  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics, FormCache formCache, Http http, FormMetadataPort formMetadataPort) {
+  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics, Http http, FormMetadataPort formMetadataPort) {
     ExportConfiguration initialDefaultConf = load(exportPreferences);
-    ExportForms forms = ExportForms.load(initialDefaultConf, formCache.getForms(), exportPreferences);
+    ExportForms forms = ExportForms.load(initialDefaultConf, formMetadataPort.fetchAll().map(FormStatus::new).collect(toList()), exportPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, pullPrefs, initialDefaultConf);
     return new ExportPanel(
         forms,
@@ -163,14 +161,13 @@ public class ExportPanel {
         exportPreferences,
         pullPrefs,
         analytics,
-        formCache,
         http,
         formMetadataPort
     );
   }
 
   void updateForms() {
-    forms.merge(formCache.getForms());
+    forms.merge(formMetadataPort.fetchAll().map(FormStatus::new).collect(toList()));
     form.refresh();
   }
 
@@ -215,8 +212,8 @@ public class ExportPanel {
     JobsRunner.launchAsync(allJobs).onComplete(form::unsetExporting).waitForCompletion();
   }
 
-  @EventSubscriber(eventClass = CacheUpdateEvent.class)
-  public void onCacheUpdateEvent(CacheUpdateEvent event) {
+  @EventSubscriber(eventClass = PullEvent.Success.class)
+  public void onFormPulledSuccessfully(PullEvent.Success event) {
     updateForms();
   }
 

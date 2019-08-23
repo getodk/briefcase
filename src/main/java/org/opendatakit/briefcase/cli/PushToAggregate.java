@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.cli;
 
+import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.cli.Common.CREDENTIALS_PASSWORD;
 import static org.opendatakit.briefcase.cli.Common.CREDENTIALS_USERNAME;
 import static org.opendatakit.briefcase.cli.Common.FORM_ID;
@@ -28,7 +29,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
@@ -45,7 +45,6 @@ import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,8 +73,6 @@ public class PushToAggregate {
 
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
-    FormCache formCache = FormCache.from(briefcaseDir);
-    formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
 
     int maxHttpConnections = Optionals.race(
@@ -103,16 +100,16 @@ public class PushToAggregate {
     List<FormStatus> statuses;
     if (formid.isPresent()) {
       String requestedFormId = formid.get();
-      Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
-          .filter(form -> form.getFormId().equals(requestedFormId))
+      Optional<FormStatus> maybeFormStatus = formMetadataPort.fetchAll()
+          .filter(formMetadata -> formMetadata.getKey().getId().equals(requestedFormId))
+          .map(FormStatus::new)
           .findFirst();
 
       FormStatus status = maybeFormStatus
           .orElseThrow(() -> new BriefcaseException("Form " + requestedFormId + " not found"));
       statuses = Arrays.asList(status);
     } else {
-      statuses = formCache.getForms().stream()
-          .collect(Collectors.toList());
+      statuses = formMetadataPort.fetchAll().map(FormStatus::new).collect(toList());
     }
 
     TransferForms forms = TransferForms.of(statuses);

@@ -50,7 +50,6 @@ import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,8 +82,6 @@ public class PullFromAggregate {
 
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
-    FormCache formCache = FormCache.from(briefcaseDir);
-    formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     appPreferences.setStorageDir(briefcaseDir);
 
@@ -113,6 +110,7 @@ public class PullFromAggregate {
     List<FormStatus> filteredForms = response.orElseThrow(BriefcaseException::new)
         .stream()
         .filter(f -> formId.map(id -> f.getKey().getId().equals(id)).orElse(true))
+        .map(formMetadata -> formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir)))
         .map(FormStatus::new)
         .collect(toList());
 

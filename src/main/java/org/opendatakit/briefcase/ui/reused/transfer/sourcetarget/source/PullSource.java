@@ -30,12 +30,12 @@ import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.SourceOrTarget;
 
 public interface PullSource<T> extends SourceOrTarget<T> {
-  static PullSource<AggregateServer> aggregate(Http http, Consumer<PullSource> consumer) {
-    return new Aggregate(http, server -> http.execute(server.getFormListRequest()), "Must have Data Collector permissions at least", consumer);
+  static PullSource<AggregateServer> aggregate(Http http, Path briefcaseDir, Consumer<PullSource> consumer) {
+    return new Aggregate(http, briefcaseDir, server -> http.execute(server.getFormListRequest()), "Must have Data Collector permissions at least", consumer);
   }
 
-  static PullSource<CentralServer> central(Http http, Consumer<PullSource> consumer) {
-    return new Central(http, server -> http.execute(server.getCredentialsTestRequest()), consumer);
+  static PullSource<CentralServer> central(Http http, Path briefcaseDir, Consumer<PullSource> consumer) {
+    return new Central(http, briefcaseDir, server -> http.execute(server.getCredentialsTestRequest()), consumer);
   }
 
   static PullSource<Path> customDir(Consumer<PullSource> consumer) {

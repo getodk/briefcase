@@ -91,7 +91,7 @@ public class FormMetadata {
     return new FormMetadata(key, Optional.of(formFile), cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedSubmissionDate);
   }
 
-  FormMetadata withCursor(Cursor cursor) {
+  public FormMetadata withCursor(Cursor cursor) {
     return new FormMetadata(key, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedSubmissionDate);
   }
 
@@ -99,7 +99,7 @@ public class FormMetadata {
     return new FormMetadata(key, formFile, Cursor.empty(), isEncrypted, manifestUrl, downloadUrl, lastExportedSubmissionDate);
   }
 
-  FormMetadata withLastExportedSubmissionDate(OffsetDateTime submissionDate) {
+  public FormMetadata withLastExportedSubmissionDate(OffsetDateTime submissionDate) {
     return new FormMetadata(key, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, Optional.of(submissionDate));
   }
 

@@ -18,12 +18,13 @@ public class FormMetadataQueriesTest {
     Path formFilename = Paths.get("Some form.xml");
     Path formFile = formDir.resolve(formFilename);
     FormMetadataPort formMetadataPort = new InMemoryFormMetadataAdapter();
-    formMetadataPort.execute(upsert(key, formFile));
+    FormMetadata formMetadata = FormMetadata.empty(key).withFormFile(formFile);
+    formMetadataPort.execute(upsert(formMetadata));
 
     assertThat(formMetadataPort.query(lastCursorOf(key)), isPresentAndIs(Cursor.empty()));
 
     Cursor cursor = Cursor.from("some cursor");
-    formMetadataPort.execute(upsert(key, formFile, cursor));
+    formMetadataPort.execute(upsert(formMetadata.withCursor(cursor)));
 
     assertThat(formMetadataPort.query(lastCursorOf(key)), isPresentAndIs(cursor));
   }

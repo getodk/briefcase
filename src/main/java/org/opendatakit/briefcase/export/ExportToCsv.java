@@ -25,7 +25,6 @@ import static org.opendatakit.briefcase.export.ExportOutcome.ALL_EXPORTED;
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
 import static org.opendatakit.briefcase.export.SubmissionParser.getListOfSubmissionFiles;
-import static org.opendatakit.briefcase.model.form.FormMetadataCommands.updateLastExportedSubmission;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
@@ -40,6 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormMetadata;
+import org.opendatakit.briefcase.model.form.FormMetadataCommands;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.slf4j.Logger;
@@ -124,9 +124,9 @@ public class ExportToCsv {
     Optional.ofNullable(csvLinesPerModel.get(formDef.getModel().fqn()))
         .orElse(CsvLines.empty())
         .getLastLine()
-        .ifPresent(line -> {
-          formMetadataPort.execute(updateLastExportedSubmission(formMetadata, line.getSubmissionDate()));
-        });
+        .map(line -> formMetadata.withLastExportedSubmissionDate(line.getSubmissionDate()))
+        .map(FormMetadataCommands::upsert)
+        .ifPresent(formMetadataPort::execute);
 
     ExportOutcome exportOutcome = exportTracker.computeOutcome();
     if (exportOutcome == ALL_EXPORTED)

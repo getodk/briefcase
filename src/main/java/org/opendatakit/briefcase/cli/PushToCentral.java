@@ -43,7 +43,6 @@ import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,8 +62,6 @@ public class PushToCentral {
   private static void pushToCentral(FormMetadataPort formMetadataPort, Args args) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(args.get(STORAGE_DIR));
-    FormCache formCache = FormCache.from(briefcaseDir);
-    formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
 
     int maxHttpConnections = Optionals.race(
@@ -81,8 +78,9 @@ public class PushToCentral {
         .orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
 
     String formId = args.get(FORM_ID);
-    Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
-        .filter(form -> form.getFormId().equals(formId))
+    Optional<FormStatus> maybeFormStatus = formMetadataPort.fetchAll()
+        .filter(formMetadata -> formMetadata.getKey().getId().equals(formId))
+        .map(FormStatus::new)
         .findFirst();
 
     FormStatus form = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + formId + " not found"));

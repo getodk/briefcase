@@ -40,7 +40,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -53,6 +52,7 @@ import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.StorageLocationEvent;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -95,12 +95,8 @@ public class MainBriefcaseWindow extends WindowAdapter {
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     BriefcasePreferences pullPreferences = BriefcasePreferences.forClass(PullPanel.class);
     BriefcasePreferences exportPreferences = BriefcasePreferences.forClass(ExportPanel.class);
-    Optional<Path> briefcaseDir = appPreferences.getBriefcaseDir().filter(Files::exists);
-    if (!briefcaseDir.isPresent())
-      appPreferences.unsetStorageDir();
-    FormCache formCache = briefcaseDir
-        .map(FormCache::from)
-        .orElse(FormCache.empty());
+    Path briefcaseDir = appPreferences.getBriefcaseDir().filter(Files::exists).orElseThrow(BriefcaseException::new);
+    FormCache formCache = new FormCache();
 
     int maxHttpConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
@@ -121,9 +117,9 @@ public class MainBriefcaseWindow extends WindowAdapter {
     getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
     // Add panes to the tabbedPane
-    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics, formMetadataPort).getContainer());
-    addPane(PushPanel.TAB_NAME, PushPanel.from(http, appPreferences, formCache, analytics).getContainer());
-    addPane(ExportPanel.TAB_NAME, ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, formCache, http, formMetadataPort).getForm().getContainer());
+    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics, formMetadataPort, briefcaseDir).getContainer());
+    addPane(PushPanel.TAB_NAME, PushPanel.from(http, appPreferences, formCache, analytics, formMetadataPort).getContainer());
+    addPane(ExportPanel.TAB_NAME, ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, http, formMetadataPort).getForm().getContainer());
     addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(appPreferences, analytics, formCache, http, versionManager, formMetadataPort).getContainer());
 
     // Set up the frame and put the UI components in it

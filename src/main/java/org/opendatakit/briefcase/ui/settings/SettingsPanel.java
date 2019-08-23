@@ -17,11 +17,11 @@
 package org.opendatakit.briefcase.ui.settings;
 
 import static org.opendatakit.briefcase.model.form.FormMetadataCommands.cleanAllCursors;
+import static org.opendatakit.briefcase.model.form.FormMetadataCommands.syncWithFilesAt;
 import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
 import javax.swing.JPanel;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.form.FormMetadataCommands;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.reused.Analytics;
@@ -62,8 +62,7 @@ public class SettingsPanel {
       appPreferences.unsetHttpProxy();
     });
     form.onReloadCache(() -> {
-      formCache.update();
-      formMetadataPort.execute(FormMetadataCommands.syncWithFilesAt(appPreferences.getBriefcaseDir().orElseThrow()));
+      formMetadataPort.execute(syncWithFilesAt(appPreferences.getBriefcaseDir().orElseThrow()));
       infoMessage("Forms successfully reloaded from storage location.");
     });
     form.onCleanAllPullResumePoints(() -> {

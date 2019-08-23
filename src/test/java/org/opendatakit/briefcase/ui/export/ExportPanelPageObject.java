@@ -25,7 +25,6 @@ import org.opendatakit.briefcase.model.InMemoryPreferences;
 import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
 import org.opendatakit.briefcase.ui.reused.NoOpAnalytics;
-import org.opendatakit.briefcase.util.FormCache;
 
 // TODO Adapt to new UI behavior
 class ExportPanelPageObject {
@@ -40,14 +39,14 @@ class ExportPanelPageObject {
   static ExportPanelPageObject setUp(Robot robot) {
     ExportPanel exportPanel = GuiActionRunner.execute(() -> {
       BriefcasePreferences inMemoryPrefs = new BriefcasePreferences(InMemoryPreferences.empty());
+      InMemoryFormMetadataAdapter formMetadataPort = new InMemoryFormMetadataAdapter();
       ExportPanel ep = ExportPanel.from(
           inMemoryPrefs,
           inMemoryPrefs,
           inMemoryPrefs,
           new NoOpAnalytics(),
-          FormCache.empty(),
           new FakeHttp(),
-          new InMemoryFormMetadataAdapter()
+          formMetadataPort
       );
       ep.updateForms();
       return ep;

@@ -52,7 +52,6 @@ import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.ui.export.ExportPanel;
-import org.opendatakit.briefcase.util.FormCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,8 +99,6 @@ public class Export {
 
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
-    FormCache formCache = FormCache.from(briefcaseDir);
-    formCache.update();
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     BriefcasePreferences exportPrefs = BriefcasePreferences.forClass(ExportPanel.class);
     BriefcasePreferences pullPrefs = BriefcasePreferences.forClass(ExportPanel.class);
@@ -111,8 +108,9 @@ public class Export {
         .map(host -> CommonsHttp.of(maxHttpConnections, host))
         .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
 
-    Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
-        .filter(form -> form.getFormId().equals(formId))
+    Optional<FormStatus> maybeFormStatus = formMetadataPort.fetchAll()
+        .filter(formMetadata -> formMetadata.getKey().getId().equals(formId))
+        .map(FormStatus::new)
         .findFirst();
 
     createDirectories(exportDir);
