@@ -64,7 +64,7 @@ public class PullFromCollect {
 
     TransferForms from = TransferForms.from(FileSystemUtils.getODKFormList(odkDir.toFile()).stream()
         .map(FormStatus::new)
-        .filter(form -> formId.map(id -> form.getFormDefinition().getFormId().equals(id)).orElse(true))
+        .filter(form -> formId.map(id -> form.getFormId().equals(id)).orElse(true))
         .collect(toList()));
     from.selectAll();
 

@@ -59,13 +59,13 @@ public class TransferForms implements Iterable<FormStatus> {
   }
 
   private static String getFormId(FormStatus form) {
-    return form.getFormDefinition().getFormId();
+    return form.getFormId();
   }
 
   public static TransferForms of(List<FormStatus> forms) {
     return new TransferForms(new ArrayList<>(forms));
   }
-  
+
   public static TransferForms of(FormStatus... forms) {
     return of(Arrays.asList(forms));
   }

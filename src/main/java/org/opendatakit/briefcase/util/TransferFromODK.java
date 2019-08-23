@@ -24,11 +24,9 @@ import java.sql.SQLException;
 import java.util.Optional;
 import org.apache.commons.io.FileUtils;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.FileSystemException;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.model.ServerConnectionInfo;
 import org.opendatakit.briefcase.model.TerminationFuture;
@@ -53,59 +51,6 @@ public class TransferFromODK implements ITransferFromSourceAction {
     this.odkOriginDir = odkOriginDir;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
-  }
-
-  /**
-   * Given the OdkCollectFormDefinition within the FormStatus argument, try to match it up
-   * with an existing Briefcase storage form definition, or create a new Briefcase storage
-   * form definition for it.
-   *
-   * @param fs the form transfer status object for an ODK Collect form definition.
-   * @return the Briefcase storage form definition.
-   */
-  private BriefcaseFormDefinition doResolveOdkCollectFormDefinition(FormStatus fs) {
-    fs.setStatusString("resolving against briefcase form definitions");
-    EventBus.publish(new FormStatusEvent(fs));
-
-    OdkCollectFormDefinition formDef = (OdkCollectFormDefinition) fs.getFormDefinition();
-    File odkFormDefFile = formDef.getFormDefinitionFile();
-
-    BriefcaseFormDefinition briefcaseLfd;
-
-    // copy form definition files from ODK to briefcase (scratch area)
-    try {
-      briefcaseLfd = BriefcaseFormDefinition.resolveAgainstBriefcaseDefn(odkFormDefFile, true, briefcaseDir.toFile());
-      if (briefcaseLfd.needsMediaUpdate()) {
-        File destinationFormMediaDir;
-        try {
-          destinationFormMediaDir = FileSystemUtils.getMediaDirectory(briefcaseLfd.getFormDirectory());
-        } catch (FileSystemException e) {
-          String msg = "unable to create media folder";
-          log.error(msg, e);
-          fs.setStatusString(msg + ": " + e.getMessage());
-          EventBus.publish(new FormStatusEvent(fs));
-          return null;
-        }
-        // compose the ODK media directory...
-        final String odkFormName = odkFormDefFile.getName().substring(0,
-            odkFormDefFile.getName().lastIndexOf("."));
-        String odkMediaName = odkFormName + "-media";
-        File odkFormMediaDir = new File(odkFormDefFile.getParentFile(), odkMediaName);
-
-        if (odkFormMediaDir.exists()) {
-          FileUtils.copyDirectory(odkFormMediaDir, destinationFormMediaDir);
-        }
-        briefcaseLfd.clearMediaUpdate();
-      }
-    } catch (Exception e) {
-      String msg = "unable to copy form definition and/or media folder";
-      log.error(msg, e);
-      fs.setStatusString(msg + ": " + e.getMessage());
-      EventBus.publish(new FormStatusEvent(fs));
-      return null;
-    }
-
-    return briefcaseLfd;
   }
 
   public static void pull(Path briefcaseDir, Path odk, TransferForms forms) {
@@ -134,26 +79,18 @@ public class TransferFromODK implements ITransferFromSourceAction {
           return false;
         }
 
-        BriefcaseFormDefinition briefcaseLfd = doResolveOdkCollectFormDefinition(fs);
-
-        if (briefcaseLfd == null) {
-          allSuccessful = isSuccessful = false;
-          continue;
-        }
-
-        OdkCollectFormDefinition odkFormDef = (OdkCollectFormDefinition) fs.getFormDefinition();
-        File odkFormDefFile = odkFormDef.getFormDefinitionFile();
+        File odkFormDefFile = fs.getFormFile().toFile();
 
         final String odkFormName = odkFormDefFile.getName().substring(0,
             odkFormDefFile.getName().lastIndexOf("."));
 
         DatabaseUtils formDatabase = null;
         try {
-          formDatabase = DatabaseUtils.newInstance(briefcaseLfd.getFormDirectory());
+          formDatabase = DatabaseUtils.newInstance(fs.getFormDir().toFile());
 
           File destinationFormInstancesDir;
           try {
-            destinationFormInstancesDir = FileSystemUtils.getFormInstancesDirectory(briefcaseLfd.getFormDirectory());
+            destinationFormInstancesDir = FileSystemUtils.getFormInstancesDirectory(fs.getFormDir().toFile());
           } catch (FileSystemException e) {
             allSuccessful = isSuccessful = false;
             String msg = "unable to create instances folder";

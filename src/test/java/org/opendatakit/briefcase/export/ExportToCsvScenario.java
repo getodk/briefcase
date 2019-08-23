@@ -47,10 +47,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
-import org.opendatakit.briefcase.pull.aggregate.Cursor;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,8 +66,10 @@ class ExportToCsvScenario {
   private final Optional<String> instanceID;
   private final Locale localeBackup;
   private final TimeZone zoneBackup;
+  private final FormMetadataPort formMetadataPort;
+  private final FormMetadata formMetadata;
 
-  ExportToCsvScenario(Path briefcaseDir, Path formDir, Path outputDir, FormDefinition formDef, FormStatus formStatus, Optional<String> instanceID, Locale localeBackup, TimeZone zoneBackup) {
+  ExportToCsvScenario(Path briefcaseDir, Path formDir, Path outputDir, FormDefinition formDef, FormStatus formStatus, Optional<String> instanceID, Locale localeBackup, TimeZone zoneBackup, FormMetadataPort formMetadataPort, FormMetadata formMetadata) {
     this.briefcaseDir = briefcaseDir;
     this.formDir = formDir;
     this.outputDir = outputDir;
@@ -76,19 +78,23 @@ class ExportToCsvScenario {
     this.instanceID = instanceID;
     this.localeBackup = localeBackup;
     this.zoneBackup = zoneBackup;
+    this.formMetadataPort = formMetadataPort;
+    this.formMetadata = formMetadata;
   }
 
   static ExportToCsvScenario setUp(String formName) {
     Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-    Path briefcaseDir = createTempDirectory("briefcase");
 
     Path sourceFormFile = getPath(formName + ".xml");
-    FormStatus formStatus = new FormStatus(FormMetadata.from(sourceFormFile));
+    FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormFile);
 
-    Path formDir = formStatus.getFormDir(briefcaseDir);
-    createDirectories(formDir);
-    log.debug("Form dir: {}", formDir);
-    Path formFile = installForm(formDir, formName);
+    Path briefcaseDir = createTempDirectory("briefcase");
+    FormMetadata formMetadata = installForm(sourceFormMetadata, briefcaseDir);
+
+    FormStatus formStatus = new FormStatus(formMetadata);
+
+    log.debug("Form dir: {}", formStatus.getFormDir());
+
 
     Path outputDir = createTempDirectory("briefcase_export_test_output_");
     log.debug("Output dir: {}", outputDir);
@@ -102,15 +108,20 @@ class ExportToCsvScenario {
     TimeZone zoneBackup = TimeZone.getDefault();
     TimeZone.setDefault(TimeZone.getTimeZone(ZoneOffset.UTC));
 
+    InMemoryFormMetadataAdapter formMetadataPort = new InMemoryFormMetadataAdapter();
+    formMetadataPort.persist(formMetadata);
+
     return new ExportToCsvScenario(
         briefcaseDir,
-        formDir,
+        formStatus.getFormDir(),
         outputDir,
-        FormDefinition.from(formFile),
+        FormDefinition.from(formStatus.getFormFile()),
         formStatus,
         readInstanceId(formName),
         localeBackup,
-        zoneBackup
+        zoneBackup,
+        formMetadataPort,
+        formMetadata
     );
   }
 
@@ -160,17 +171,8 @@ class ExportToCsvScenario {
         .setExportMedia(exportMedia)
         .setSplitSelectMultiples(splitSelectMultiples)
         .build();
-    FormKey formKey = FormKey.of(formDef.getFormName(), formDef.getFormId());
-    FormMetadata formMetadata = new FormMetadata(
-        formKey,
-        Optional.of(formDef.getFormDir().resolve(stripIllegalChars(formDef.getFormName()) + ".xml")),
-        Cursor.empty(),
-        pemFile != null,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty()
-    );
-    ExportToCsv.export(new InMemoryFormMetadataAdapter(), formMetadata, formStatus, formDef, briefcaseDir, configuration);
+
+    ExportToCsv.export(formMetadataPort, formMetadata, formStatus, formDef, briefcaseDir, configuration);
   }
 
   void assertSameContent() {
@@ -272,6 +274,46 @@ class ExportToCsvScenario {
 
   private static String readInstanceId(Path path) {
     return readFirstLine(path).split("instanceID=\"")[1].split("\"")[0];
+  }
+
+  private static FormMetadata installForm(FormMetadata formMetadata, Path briefcaseDir) {
+    Path sourceFormFile = formMetadata.getFormFile().orElseThrow(BriefcaseException::new);
+    String baseSourceFilename = sourceFormFile.getFileName().toString().substring(0, sourceFormFile.getFileName().toString().length() - 4);
+    Path formDir = briefcaseDir.resolve("forms").resolve(stripIllegalChars(formMetadata.getKey().getName()));
+    Path formFile = formDir.resolve(stripIllegalChars(formMetadata.getKey().getName()) + ".xml");
+    createDirectories(formDir);
+    copy(sourceFormFile, formFile);
+
+    // Prepare the instances directory
+    Path instancesDir = formDir.resolve("instances");
+    createDirectories(instancesDir);
+
+    // Copy a submission and possibly other files
+    maybeGetPath(baseSourceFilename + "-submission.xml")
+        .filter(Files::exists)
+        .ifPresent(path -> {
+          // Read the submission's instance ID
+          String instanceId = readInstanceId(path);
+
+          // Create a dir for this submission
+          Path submissionDir = instancesDir.resolve(instanceId.replace(":", ""));
+          createDirectories(submissionDir);
+
+          // We will copy every file we find that is prefixed with the
+          // name of the form we're installing, ignoring PEM files and templates
+          walk(path.getParent())
+              .filter(isRelatedToForm(baseSourceFilename))
+              .filter(isPemFile().negate())
+              .filter(isTemplateFile().negate())
+              .filter(isExpectedContentsFile().negate())
+              .forEach(file -> {
+                Path target = submissionDir.resolve(file.getFileName().toString().substring(baseSourceFilename.length() + 1));
+                log.debug("Install " + submissionDir.getFileName() + "/" + target.getFileName());
+                copy(file, target);
+              });
+        });
+
+    return FormMetadata.from(formFile);
   }
 
   private static Path installForm(Path formDir, final String formName) {

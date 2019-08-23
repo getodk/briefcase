@@ -36,7 +36,6 @@ import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.IFormDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +44,7 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
   private static final Logger LOG = LoggerFactory.getLogger(ScrollingStatusListDialog.class.getName());
 
   private final JEditorPane editorArea;
-  private final IFormDefinition form;
+  private String formId;
 
   /**
    * Set up and show the dialog. The first Component argument determines which
@@ -55,14 +54,14 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
    * otherwise, it should be the component on top of which the dialog should
    * appear.
    */
-  public static void showDialog(Frame frame, IFormDefinition form, String statusHtml) {
-    ScrollingStatusListDialog dialog = new ScrollingStatusListDialog(frame, "Detailed Status for ", form, statusHtml);
+  public static void showDialog(Frame frame, String statusHtml, String formName, String formId) {
+    ScrollingStatusListDialog dialog = new ScrollingStatusListDialog(frame, "Detailed Status for ", statusHtml, formName, formId);
     dialog.setVisible(true);
   }
 
-  private ScrollingStatusListDialog(Frame frame, String title, IFormDefinition form, String statusHtml) {
-    super(frame, title + form.getFormName(), true);
-    this.form = form;
+  private ScrollingStatusListDialog(Frame frame, String title, String statusHtml, String formName, String formId) {
+    super(frame, title + formName, true);
+    this.formId = formId;
     AnnotationProcessor.process(this);
     // Create and initialize the buttons.
     JButton cancelButton = new JButton("Close");
@@ -123,7 +122,7 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
   public void onFormStatusEvent(FormStatusEvent event) {
     // Since there can be multiple FormStatusEvent's published concurrently,
     // we have to check if the event is meant for this dialog instance.
-    if (isShowing() && event.getStatus().getFormDefinition().equals(form)) {
+    if (isShowing() && event.getStatus().getFormId().equals(formId)) {
       try {
         Document doc = editorArea.getDocument();
         String latestStatus = "\n" + event.getStatusString();

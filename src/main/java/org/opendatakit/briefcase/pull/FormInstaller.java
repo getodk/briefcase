@@ -28,7 +28,6 @@ import java.nio.file.Path;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 
 /**
  * This class has UI/CLI independent methods to install forms into
@@ -53,6 +52,7 @@ public class FormInstaller {
 
   private static void installForm(Path briefcaseDir, FormStatus form) {
     // Get the source form definition file
+    // TODO review this!
     Path sourceFormFile = getSourceFormFile(form);
 
     // Get and prepare target form directory inside our Storage Directory
@@ -89,6 +89,6 @@ public class FormInstaller {
   }
 
   private static Path getSourceFormFile(FormStatus form) {
-    return ((OdkCollectFormDefinition) form.getFormDefinition()).getFormDefinitionFile().toPath();
+    return form.getFormFile();
   }
 }

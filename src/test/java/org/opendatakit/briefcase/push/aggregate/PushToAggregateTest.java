@@ -31,7 +31,6 @@ import static org.opendatakit.briefcase.reused.http.RequestSpyMatchers.hasPart;
 import static org.opendatakit.briefcase.reused.http.RequestSpyMatchers.isMultipart;
 import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.ok;
 import static org.opendatakit.briefcase.reused.job.JobsRunner.launchSync;
-import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildFormStatus;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.listOfFormsResponseFromAggregate;
 
 import java.io.IOException;
@@ -46,6 +45,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
 import org.opendatakit.briefcase.reused.http.RequestSpy;
 import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
@@ -54,7 +55,7 @@ import org.opendatakit.briefcase.reused.transfer.TransferTestHelpers;
 
 public class PushToAggregateTest {
   private AggregateServer server = AggregateServer.normal(url("http://foo.bar"));
-  private FormStatus formStatus = buildFormStatus("push-form-test", server.getBaseUrl().toString());
+  private FormStatus formStatus;
   private FakeHttp http;
   private Path briefcaseDir;
   private List<String> events;
@@ -72,9 +73,11 @@ public class PushToAggregateTest {
     briefcaseDir = createTempDirectory("briefcase-test-");
     events = new ArrayList<>();
     runnerStatus = new TestRunnerStatus(false);
+    formStatus = new FormStatus(FormMetadata.empty(FormKey.of("Push form test", "push-form-test"))
+        .withFormFile(briefcaseDir.resolve("forms/Push form test/Push form test.xml")));
     tracker = new PushToAggregateTracker(formStatus, this::onEvent);
-    form = TransferTestHelpers.installForm(formStatus, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/push/aggregate/push-form-test.xml"), briefcaseDir);
-    formAttachment = TransferTestHelpers.installFormAttachment(formStatus, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/push/aggregate/sparrow.png"), briefcaseDir);
+    form = TransferTestHelpers.installForm(formStatus, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/push/aggregate/push-form-test.xml"));
+    formAttachment = TransferTestHelpers.installFormAttachment(formStatus, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/push/aggregate/sparrow.png"));
     submission = TransferTestHelpers.installSubmission(formStatus, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/push/aggregate/submission.xml"), briefcaseDir);
     submissionAttachment = TransferTestHelpers.installSubmissionAttachment(formStatus, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/push/aggregate/1556532531101.jpg"), briefcaseDir, instanceId);
   }
@@ -129,7 +132,7 @@ public class PushToAggregateTest {
     assertThat(requestSpy, allOf(
         hasBeenCalled(),
         isMultipart(),
-        hasPart("form_def_file", "application/xml", "push_form_test.xml"),
+        hasPart("form_def_file", "application/xml", "Push form test.xml"),
         hasPart("sparrow.png", "application/octet-stream", "sparrow.png")
     ));
   }
@@ -144,7 +147,7 @@ public class PushToAggregateTest {
         ok("<root/>")
     );
 
-    pushOp.pushSubmissionAndAttachments(formStatus.getSubmissionFile(briefcaseDir, instanceId), singletonList(submissionAttachment), runnerStatus, tracker, 1, 1, 1, 1);
+    pushOp.pushSubmissionAndAttachments(formStatus.getSubmissionFile(instanceId), singletonList(submissionAttachment), runnerStatus, tracker, 1, 1, 1, 1);
 
     assertThat(requestSpy, allOf(
         hasBeenCalled(),
@@ -227,7 +230,7 @@ public class PushToAggregateTest {
         createTempFileOfSize(300), // Will go into group 4
         createTempFileOfSize(600)  // Will go into group 4
     );
-    List<List<Path>> groupsOfMaxSize = PushToAggregate.createGroupsOfMaxSize(formStatus.getFormFile(briefcaseDir), attachments, 1);
+    List<List<Path>> groupsOfMaxSize = PushToAggregate.createGroupsOfMaxSize(formStatus.getFormFile(), attachments, 1);
     assertThat(groupsOfMaxSize.get(0), hasSize(1));
     assertThat(groupsOfMaxSize.get(1), hasSize(1));
     assertThat(groupsOfMaxSize.get(2), hasSize(1));

@@ -72,7 +72,7 @@ public class UI {
     button.setForeground(form.getStatusHistory().isEmpty() ? LIGHT_GRAY : DARK_GRAY);
     button.addActionListener(__ -> {
       if (!form.getStatusHistory().isEmpty())
-        showDialog(getFrameForComponent(button), form.getFormDefinition(), form.getStatusHistory());
+        showDialog(getFrameForComponent(button), form.getStatusHistory(), form.getFormName(), form.getFormId());
     });
     return button;
   }

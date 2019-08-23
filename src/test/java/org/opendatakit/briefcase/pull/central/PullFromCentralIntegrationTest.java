@@ -33,7 +33,6 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.readAllBytes;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.toURI;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 import static org.opendatakit.briefcase.reused.job.JobsRunner.launchSync;
-import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildFormStatus;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildMediaFileXml;
 
 import com.github.dreamhead.moco.HttpServer;
@@ -51,6 +50,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
@@ -62,7 +62,7 @@ public class PullFromCentralIntegrationTest {
   private static final int serverPort = 12306;
   private static final URL BASE_URL = url("http://localhost:" + serverPort);
   private static final CentralServer centralServer = CentralServer.of(BASE_URL, 1, Credentials.from("username", "password"));
-  private static final FormStatus form = buildFormStatus("some-form", BASE_URL + "/manifest");
+  private FormStatus form;
   private final Path briefcaseDir = createTempDirectory("briefcase-test-");
   private HttpServer server;
   private PullFromCentral pullOp;
@@ -79,6 +79,8 @@ public class PullFromCentralIntegrationTest {
     server = httpServer(serverPort);
     formMetadataPort = new InMemoryFormMetadataAdapter();
     pullOp = new PullFromCentral(CommonsHttp.of(1), centralServer, briefcaseDir, token, e -> { }, formMetadataPort);
+    form = new FormStatus(FormMetadata.empty(FormKey.of("Some form", "some-form"))
+        .withFormFile(briefcaseDir.resolve("forms/Some form/Some form.xml")));
   }
 
   @After

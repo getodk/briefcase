@@ -83,7 +83,7 @@ public class PullFromCentral {
               );
             })
         ))
-        .thenAccept((runnerStatus, pair) -> withDb(form.getFormDir(briefcaseDir), db -> {
+        .thenAccept((runnerStatus, pair) -> withDb(form.getFormDir(), db -> {
           List<String> submissions = pair.getLeft();
           int totalSubmissions = submissions.size();
           AtomicInteger submissionNumber = new AtomicInteger(1);
@@ -108,11 +108,11 @@ public class PullFromCentral {
                 attachments.forEach(attachment ->
                     downloadSubmissionAttachment(form, instanceId, attachment, token, runnerStatus, tracker, currentSubmissionNumber, totalSubmissions, attachmentNumber.getAndIncrement(), totalAttachments)
                 );
-                db.putRecordedInstanceDirectory(instanceId, form.getSubmissionDir(briefcaseDir, instanceId).toFile());
+                db.putRecordedInstanceDirectory(instanceId, form.getSubmissionDir(instanceId).toFile());
               });
           tracker.trackEnd();
 
-          formMetadataPort.execute(FormMetadataCommands.upsert(key, form.getFormFile(briefcaseDir)));
+          formMetadataPort.execute(FormMetadataCommands.upsert(key, form.getFormFile()));
           EventBus.publish(PullEvent.Success.of(form, server));
         }));
   }
@@ -123,7 +123,7 @@ public class PullFromCentral {
       return;
     }
 
-    Path formFile = form.getFormFile(briefcaseDir);
+    Path formFile = form.getFormFile();
     createDirectories(formFile.getParent());
 
     tracker.trackStartDownloadingForm();
@@ -160,7 +160,7 @@ public class PullFromCentral {
       return;
     }
 
-    Path targetFile = form.getFormMediaFile(briefcaseDir, attachment.getName());
+    Path targetFile = form.getFormMediaFile(attachment.getName());
     createDirectories(targetFile.getParent());
 
     tracker.trackStartDownloadingFormAttachment(attachmentNumber, totalAttachments);
@@ -195,10 +195,10 @@ public class PullFromCentral {
       return;
     }
 
-    createDirectories(form.getSubmissionDir(briefcaseDir, instanceId));
+    createDirectories(form.getSubmissionDir(instanceId));
 
     tracker.trackStartDownloadingSubmission(submissionNumber, totalSubmissions);
-    Response response = http.execute(server.getDownloadSubmissionRequest(form.getFormId(), instanceId, form.getSubmissionFile(briefcaseDir, instanceId), token));
+    Response response = http.execute(server.getDownloadSubmissionRequest(form.getFormId(), instanceId, form.getSubmissionFile(instanceId), token));
     if (response.isSuccess())
       tracker.trackEndDownloadingSubmission(submissionNumber, totalSubmissions);
     else
@@ -229,7 +229,7 @@ public class PullFromCentral {
       return;
     }
 
-    Path targetFile = form.getSubmissionMediaFile(briefcaseDir, instanceId, attachment.getName());
+    Path targetFile = form.getSubmissionMediaFile(instanceId, attachment.getName());
     createDirectories(targetFile.getParent());
 
     tracker.trackStartDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);

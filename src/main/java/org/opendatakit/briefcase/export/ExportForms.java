@@ -72,7 +72,7 @@ public class ExportForms {
   }
 
   private static String getFormId(FormStatus form) {
-    return form.getFormDefinition().getFormId();
+    return form.getFormId();
   }
 
   public static String buildExportDateTimePrefix(String formId) {

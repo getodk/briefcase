@@ -35,7 +35,6 @@ import java.util.Objects;
 import java.util.Optional;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
@@ -310,10 +309,9 @@ public class AggregateServer implements RemoteServer {
   }
 
   @Override
-  public void storeInPrefs(BriefcasePreferences prefs, FormStatus form, boolean storePasswords) {
-    clearStoredPrefs(prefs, form);
+  public void storeInPrefs(BriefcasePreferences prefs, boolean storePasswords, String formId) {
+    clearStoredPrefs(prefs, formId);
     if (storePasswords) {
-      String formId = form.getFormDefinition().getFormId();
       prefs.put(buildUrlKey(formId), this.baseUrl.toString());
       prefs.put(buildUsernameKey(formId), credentials.map(Credentials::getUsername).orElse(""));
       prefs.put(buildPasswordKey(formId), credentials.map(Credentials::getPassword).orElse(""));
@@ -329,8 +327,7 @@ public class AggregateServer implements RemoteServer {
     prefs.remove(buildLegacyPasswordKey());
   }
 
-  void clearStoredPrefs(BriefcasePreferences prefs, FormStatus form) {
-    String formId = form.getFormDefinition().getFormId();
+  void clearStoredPrefs(BriefcasePreferences prefs, String formId) {
     prefs.remove(buildUrlKey(formId));
     prefs.remove(buildUsernameKey(formId));
     prefs.remove(buildPasswordKey(formId));
@@ -346,8 +343,7 @@ public class AggregateServer implements RemoteServer {
     );
   }
 
-  public static Optional<AggregateServer> readFromPrefs(BriefcasePreferences prefs, BriefcasePreferences pullPanelPrefs, FormStatus form) {
-    String formId = form.getFormDefinition().getFormId();
+  public static Optional<AggregateServer> readFromPrefs(BriefcasePreferences prefs, BriefcasePreferences pullPanelPrefs, String formId) {
     Optional<AggregateServer> maybeServer = Optionals.race(
         readFromPrefs(prefs, buildUrlKey(formId), buildUsernameKey(formId), buildPasswordKey(formId)),
         readFromPrefs(pullPanelPrefs, buildUrlKey(formId), buildUsernameKey(formId), buildPasswordKey(formId)),
@@ -356,12 +352,12 @@ public class AggregateServer implements RemoteServer {
     );
     maybeServer.ifPresent(server -> {
       // Move prefs from legacy storage to new storage
-      server.clearStoredPrefs(pullPanelPrefs, form);
+      server.clearStoredPrefs(pullPanelPrefs, formId);
       // We assume storePasswords=true because if server has
       // credentials, then storePasswords must be true, and
       // if it doesn't have credentials, then storePasswords'
       // value is irrelevant
-      server.storeInPrefs(prefs, form, true);
+      server.storeInPrefs(prefs, true, formId);
     });
     return maybeServer;
   }

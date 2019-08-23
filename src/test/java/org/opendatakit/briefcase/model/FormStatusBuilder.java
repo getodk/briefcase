@@ -17,14 +17,27 @@ package org.opendatakit.briefcase.model;
 
 import static java.util.stream.Collectors.toList;
 
+import java.nio.file.Files;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
+import org.opendatakit.briefcase.pull.aggregate.Cursor;
 
 public class FormStatusBuilder {
 
   public static FormStatus buildFormStatus(int id) {
     try {
-      return new FormStatus(new TestBriefcaseFormDefinition(id));
+      return new FormStatus(new FormMetadata(
+          FormKey.of("Form " + id, "form-" + id),
+          Optional.ofNullable(Files.createTempFile("briefcase-form-" + id, ".xml")),
+          Cursor.empty(),
+          false,
+          Optional.empty(),
+          Optional.empty(),
+          Optional.empty()
+      ));
     } catch (Throwable t) {
       throw new RuntimeException(t);
     }

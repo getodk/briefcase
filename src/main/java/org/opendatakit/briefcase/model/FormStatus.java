@@ -18,34 +18,32 @@ package org.opendatakit.briefcase.model;
 
 import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 
+import java.io.Serializable;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.Optional;
+import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 
-public class FormStatus {
+public class FormStatus implements Serializable {
   private static final int STATUS_HISTORY_MAX_BYTES = 1024 * 1024;
 
   private final FormMetadata formMetadata;
   private boolean isSelected = false;
-  private IFormDefinition form = null;
   private String statusString = "";
   private final StringBuilder statusHistory = new StringBuilder();
+  private FormDefinition formDef;
 
   public FormStatus(IFormDefinition form) {
-    this.form = form;
     FormMetadata formMetadata = FormMetadata.empty(FormKey.of(
         form.getFormName(),
         form.getFormId(),
         Optional.ofNullable(form.getVersionString())
     ));
-    if (form instanceof BriefcaseFormDefinition) {
-      BriefcaseFormDefinition localFormDef = (BriefcaseFormDefinition) form;
-      formMetadata = formMetadata
-          .withFormFile(localFormDef.getFormDefinitionFile().toPath())
-          .withIsEncrypted(localFormDef.isFileEncryptedForm());
-    } else if (form instanceof OdkCollectFormDefinition) {
+    if (form instanceof OdkCollectFormDefinition) {
       OdkCollectFormDefinition collectFormDef = (OdkCollectFormDefinition) form;
       formMetadata = formMetadata.withFormFile(collectFormDef.getFormDefinitionFile().toPath());
     }
@@ -98,10 +96,6 @@ public class FormStatus {
     return formMetadata.getKey().getName();
   }
 
-  public synchronized IFormDefinition getFormDefinition() {
-    return form;
-  }
-
   public Optional<URL> getManifestUrl() {
     return formMetadata.getManifestUrl();
   }
@@ -115,46 +109,69 @@ public class FormStatus {
   }
 
   public String getFormId() {
-    return form.getFormId();
+    return formMetadata.getKey().getId();
   }
 
-  public Path getFormDir(Path briefcaseDir) {
-    return briefcaseDir.resolve("forms").resolve(stripIllegalChars(form.getFormName()));
+  public Path getFormDir() {
+    return formMetadata.getFormFile().map(Path::getParent).orElseThrow(BriefcaseException::new);
   }
 
-  public Path getFormFile(Path briefcaseDir) {
-    return getFormDir(briefcaseDir).resolve(stripIllegalChars(form.getFormName()) + ".xml");
+  public Path getFormFile() {
+    return formMetadata.getFormFile().orElseThrow(BriefcaseException::new);
   }
 
-  public Path getFormMediaDir(Path briefcaseDir) {
-    return getFormDir(briefcaseDir).resolve(stripIllegalChars(form.getFormName()) + "-media");
+  public Path getFormMediaDir() {
+    return getFormDir().resolve(stripIllegalChars(formMetadata.getKey().getName()) + "-media");
   }
 
-  public Path getFormMediaFile(Path briefcaseDir, String name) {
-    return getFormMediaDir(briefcaseDir).resolve(name);
+  public Path getFormMediaFile(String name) {
+    return getFormMediaDir().resolve(name);
   }
 
-  public Path getSubmissionsDir(Path briefcaseDir) {
-    return getFormDir(briefcaseDir).resolve("instances");
+  public Path getSubmissionsDir() {
+    return getFormDir().resolve("instances");
   }
 
-  public Path getSubmissionDir(Path briefcaseDir, String instanceId) {
-    return getSubmissionsDir(briefcaseDir).resolve(instanceId.replace(":", ""));
+  public Path getSubmissionDir(String instanceId) {
+    return getSubmissionsDir().resolve(instanceId.replace(":", ""));
   }
 
-  public Path getSubmissionFile(Path briefcaseDir, String instanceId) {
-    return getSubmissionDir(briefcaseDir, instanceId).resolve("submission.xml");
+  public Path getSubmissionFile(String instanceId) {
+    return getSubmissionDir(instanceId).resolve("submission.xml");
   }
 
-  public Path getSubmissionMediaDir(Path briefcaseDir, String instanceId) {
-    return getSubmissionDir(briefcaseDir, instanceId);
+  public Path getSubmissionMediaDir(String instanceId) {
+    return getSubmissionDir(instanceId);
   }
 
-  public Path getSubmissionMediaFile(Path briefcaseDir, String instanceId, String filename) {
-    return getSubmissionDir(briefcaseDir, instanceId).resolve(filename);
+  public Path getSubmissionMediaFile(String instanceId, String filename) {
+    return getSubmissionDir(instanceId).resolve(filename);
   }
 
   public Optional<String> getVersion() {
-    return Optional.ofNullable(form.getVersionString()).filter(s -> !s.trim().isEmpty());
+    return formMetadata.getKey().getVersion();
+  }
+
+  public synchronized FormDefinition getFormDef() {
+    if (formDef == null)
+      formDef = FormDefinition.from(formMetadata.getFormFile().orElseThrow(BriefcaseException::new));
+    return formDef;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    FormStatus that = (FormStatus) o;
+    return isSelected == that.isSelected &&
+        Objects.equals(formMetadata, that.formMetadata) &&
+        Objects.equals(statusString, that.statusString) &&
+        Objects.equals(statusHistory, that.statusHistory) &&
+        Objects.equals(formDef, that.formDef);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(formMetadata, isSelected, statusString, statusHistory, formDef);
   }
 }

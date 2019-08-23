@@ -18,8 +18,9 @@ package org.opendatakit.briefcase.export;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isEmpty;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -32,11 +33,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
@@ -78,12 +79,15 @@ public class ExportFormsTest {
     forms.putConfiguration(firstForm, VALID_CONFIGURATION);
 
     assertThat(forms.hasConfiguration(firstForm), is(true));
-    assertThat(forms.getConfiguration(firstForm.getFormDefinition().getFormId()), is(VALID_CONFIGURATION));
-    assertThat(forms.getConfiguration(firstForm.getFormDefinition().getFormId()), is(VALID_CONFIGURATION));
+    assertThat(forms.getConfiguration(firstForm.getFormId()), is(VALID_CONFIGURATION));
+    assertThat(forms.getConfiguration(firstForm.getFormId()), is(VALID_CONFIGURATION));
 
     forms.putConfiguration(secondForm, INVALID_CONFIGURATION);
     assertThat(forms.getCustomConfigurations().values(), hasSize(2));
-    assertThat(forms.getCustomConfigurations().values(), contains(VALID_CONFIGURATION, INVALID_CONFIGURATION));
+    assertThat(forms.getCustomConfigurations().values(), allOf(
+        hasItem(VALID_CONFIGURATION),
+        hasItem(INVALID_CONFIGURATION)
+    ));
 
     forms.removeConfiguration(firstForm);
 
@@ -134,7 +138,7 @@ public class ExportFormsTest {
   public void appends_status_history_on_forms() {
     ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
-    ExportEvent event = ExportEvent.progress(FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition()), 0.33D);
+    ExportEvent event = ExportEvent.progress(getFormDef(form), 0.33D);
     forms.appendStatus(event);
     assertThat(form.getStatusHistory(), containsString("Exported 33% of the submissions"));
     assertThat(form.getStatusHistory().split("\n").length, is(2)); // There is a leading \n
@@ -147,10 +151,21 @@ public class ExportFormsTest {
 
     assertThat(forms.getLastExportDateTime(form), isEmpty());
 
-    ExportEvent event = ExportEvent.successForm(FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition()), 10);
+    ExportEvent event = ExportEvent.successForm(getFormDef(form), 10);
     forms.appendStatus(event);
 
     assertThat(forms.getLastExportDateTime(form), isPresent());
+  }
+
+  private static FormDefinition getFormDef(FormStatus form) {
+    return new FormDefinition(
+        form.getFormId(),
+        form.getFormFile(),
+        form.getFormName(),
+        form.isEncrypted(),
+        null,
+        Collections.emptyList()
+    );
   }
 
   @Test
@@ -159,11 +174,11 @@ public class ExportFormsTest {
     ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
     forms.onSuccessfulExport((formId, exportDateTime) -> {
-      if (formId.equals(form.getFormDefinition().getFormId()))
+      if (formId.equals(form.getFormId()))
         count.incrementAndGet();
     });
 
-    ExportEvent event = ExportEvent.successForm(FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition()), 10);
+    ExportEvent event = ExportEvent.successForm(getFormDef(form), 10);
     forms.appendStatus(event);
 
     assertThat(count.get(), is(1));
@@ -174,7 +189,7 @@ public class ExportFormsTest {
     LocalDateTime exportDateTime = LocalDateTime.now();
     List<FormStatus> formsList = buildFormStatusList(10);
     FormStatus form = formsList.get(0);
-    String formId = form.getFormDefinition().getFormId();
+    String formId = form.getFormId();
     BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
     exportPreferences.putAll(VALID_CONFIGURATION.asMap(buildCustomConfPrefix(formId)));
     exportPreferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME));

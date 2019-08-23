@@ -36,7 +36,6 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.readAllBytes;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.toURI;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 import static org.opendatakit.briefcase.reused.job.JobsRunner.launchSync;
-import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildFormStatus;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildManifestXml;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildMediaFiles;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.generatePages;
@@ -58,11 +57,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.InMemoryPreferences;
 import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
+import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.job.RunnerStatus;
 import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
@@ -72,10 +72,9 @@ public class PullFromAggregateIntegrationTest {
   private static final int serverPort = 12306;
   private static final URL BASE_URL = url("http://localhost:" + serverPort);
   private static final AggregateServer aggregateServer = AggregateServer.normal(BASE_URL);
-  private static final FormStatus form = buildFormStatus("some-form", BASE_URL + "/manifest");
+  private FormStatus form;
   private Path tmpDir = createTempDirectory("briefcase-test-");
   private Path briefcaseDir = tmpDir.resolve(BriefcasePreferences.BRIEFCASE_DIR);
-  private BriefcasePreferences prefs;
   private HttpServer server;
   private PullFromAggregate pullOp;
   private RunnerStatus runnerStatus;
@@ -91,14 +90,14 @@ public class PullFromAggregateIntegrationTest {
   @Before
   public void setUp() throws IOException {
     Files.createDirectories(briefcaseDir);
-    prefs = new BriefcasePreferences(InMemoryPreferences.empty());
-    prefs.setStorageDir(tmpDir);
     server = httpServer(serverPort);
-    tracker = new PullFromAggregateTracker(form, e -> { });
     formMetadataPort = new InMemoryFormMetadataAdapter();
     pullOp = new PullFromAggregate(CommonsHttp.of(1), aggregateServer, briefcaseDir, true, e -> { }, formMetadataPort);
     runnerStatus = new TestRunnerStatus(false);
-
+    form = new FormStatus(FormMetadata.empty(FormKey.of("Simple form", "simple-form"))
+        .withFormFile(briefcaseDir.resolve("forms/Simple form/Simple form.xml"))
+        .withUrls(Optional.of(RequestBuilder.url(BASE_URL + "/manifest")), Optional.empty()));
+    tracker = new PullFromAggregateTracker(form, e -> { });
   }
 
   @After

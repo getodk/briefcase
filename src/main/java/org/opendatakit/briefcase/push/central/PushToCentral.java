@@ -73,7 +73,7 @@ public class PushToCentral {
     Job<Void> startTrackingJob = Job.run(runnerStatus -> tracker.trackStart());
 
     // Verify that the form is not encrypted
-    Path formFile = form.getFormFile(briefcaseDir);
+    Path formFile = form.getFormFile();
     try {
       if (FormDefinition.from(formFile).isFileEncryptedForm())
         return startTrackingJob.thenRun(rs -> {
@@ -243,7 +243,7 @@ public class PushToCentral {
   }
 
   private List<Path> getSubmissions(FormStatus form) {
-    Path submissionsDir = form.getSubmissionsDir(briefcaseDir);
+    Path submissionsDir = form.getSubmissionsDir();
     if (!exists(submissionsDir))
       return emptyList();
     return list(submissionsDir)
@@ -253,7 +253,7 @@ public class PushToCentral {
   }
 
   private List<Path> getFormAttachments(FormStatus form) {
-    Path formMediaDir = form.getFormMediaDir(briefcaseDir);
+    Path formMediaDir = form.getFormMediaDir();
     return Files.exists(formMediaDir)
         ? list(formMediaDir).filter(Files::isRegularFile).collect(toList())
         : Collections.emptyList();

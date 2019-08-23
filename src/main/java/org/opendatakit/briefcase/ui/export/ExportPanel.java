@@ -35,7 +35,6 @@ import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.export.ExportToCsv;
 import org.opendatakit.briefcase.export.ExportToGeoJson;
 import org.opendatakit.briefcase.export.FormDefinition;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormKey;
@@ -125,10 +124,9 @@ public class ExportPanel {
       errors.add("- Some forms are missing their export directory. Please, ensure that there's a default export directory or that you have set one in all custom configurations.");
 
     for (FormStatus formStatus : forms.getSelectedForms()) {
-      ExportConfiguration conf = forms.getConfiguration(formStatus.getFormDefinition().getFormId());
-      boolean needsPemFile = ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFileEncryptedForm() || ((BriefcaseFormDefinition) formStatus.getFormDefinition()).isFieldEncryptedForm();
+      ExportConfiguration conf = forms.getConfiguration(formStatus.getFormId());
 
-      if (needsPemFile && !conf.isPemFilePresent())
+      if (formStatus.isEncrypted() && !conf.isPemFilePresent())
         errors.add("- The form " + formStatus.getFormName() + " is encrypted. Please, configure a PEM file.");
     }
     return errors;
@@ -185,9 +183,9 @@ public class ExportPanel {
       FormKey key = FormKey.from(form);
       FormMetadata formMetadata = formMetadataPort.fetch(key).orElseThrow(BriefcaseException::new);
       form.setStatusString("Starting to export form");
-      String formId = form.getFormDefinition().getFormId();
+      String formId = form.getFormId();
       ExportConfiguration configuration = forms.getConfiguration(formId);
-      FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());
+      FormDefinition formDef = FormDefinition.from(formMetadata.getFormFile().orElseThrow(BriefcaseException::new));
       // TODO Abstract away the subtype of RemoteServer. This should say Optional<RemoteServer>
       Optional<AggregateServer> savedPullSource = RemoteServer.readFromPrefs(appPreferences, pullPanelPrefs, form);
 

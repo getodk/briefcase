@@ -162,7 +162,7 @@ public class CsvTest {
         Paths.get("/some/random/path/doesnt/matter/"),
         formName,
         false,
-        group
+        group, group.getRepeatableFields()
     );
   }
 }

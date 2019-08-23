@@ -235,7 +235,7 @@ public class TransferTestHelpers {
                     "\t</xform>",
                 formDef.getFormName(),
                 formDef.getFormId(),
-                formDef.getFormDefinition().getVersionString(),
+                formDef.getVersion().orElse(""),
                 "http://foo.bar",
                 "http://foo.bar"
             ))
@@ -255,34 +255,34 @@ public class TransferTestHelpers {
                     "\t}",
                 form.getFormId(),
                 form.getFormName(),
-                form.getFormDefinition().getVersionString() == null ? "null" : "\"" + form.getFormDefinition().getVersionString() + "\""
+                form.getVersion().map(v -> "\"" + v + "\"").orElse("null")
             ))
             .collect(joining(",\n"))
         + "\n]";
   }
 
-  public static Path installForm(FormStatus form, Path source, Path briefcaseDir) throws IOException {
-    createDirectories(form.getFormDir(briefcaseDir));
-    return copy(source, form.getFormFile(briefcaseDir));
+  public static Path installForm(FormStatus form, Path source) throws IOException {
+    createDirectories(form.getFormDir());
+    return copy(source, form.getFormFile());
   }
 
-  public static Path installFormAttachment(FormStatus form, Path source, Path briefcaseDir) throws IOException {
-    createDirectories(form.getFormMediaDir(briefcaseDir));
-    return copy(source, form.getFormMediaFile(briefcaseDir, source.getFileName().toString()));
+  public static Path installFormAttachment(FormStatus form, Path source) throws IOException {
+    createDirectories(form.getFormMediaDir());
+    return copy(source, form.getFormMediaFile(source.getFileName().toString()));
   }
 
   public static Path installSubmission(FormStatus form, Path source, Path briefcaseDir) throws IOException {
     String instanceId = new SubmissionMetaData(XmlElement.from(new String(readAllBytes(source))))
         .getInstanceId()
         .orElseThrow(RuntimeException::new);
-    Path submissionDir = form.getSubmissionDir(briefcaseDir, instanceId);
+    Path submissionDir = form.getSubmissionDir(instanceId);
     createDirectories(submissionDir);
-    return copy(source, form.getSubmissionFile(briefcaseDir, instanceId));
+    return copy(source, form.getSubmissionFile(instanceId));
   }
 
   public static Path installSubmissionAttachment(FormStatus form, Path source, Path briefcaseDir, String instanceId) throws IOException {
-    createDirectories(form.getSubmissionMediaDir(briefcaseDir, instanceId));
-    return copy(source, form.getSubmissionMediaFile(briefcaseDir, instanceId, source.getFileName().toString()));
+    createDirectories(form.getSubmissionMediaDir(instanceId));
+    return copy(source, form.getSubmissionMediaFile(instanceId, source.getFileName().toString()));
   }
 
   public static Path getResourcePath(String filename) {

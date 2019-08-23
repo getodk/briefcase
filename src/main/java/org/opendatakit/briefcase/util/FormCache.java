@@ -1,17 +1,8 @@
 package org.opendatakit.briefcase.util;
 
 import static org.opendatakit.briefcase.reused.Predicates.negate;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.createFile;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.delete;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InvalidClassException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,21 +25,20 @@ import org.slf4j.LoggerFactory;
 public class FormCache {
   private static final Logger log = LoggerFactory.getLogger(FormCache.class);
   private static final String CACHE_FILE_NAME = "cache.ser";
-  private Optional<Path> cacheFile;
   private Optional<Path> briefcaseDir;
   private Map<String, String> hashByPath;
   private Map<String, FormStatus> formDefByPath;
 
-  private FormCache(Optional<Path> cacheFile, Map<String, String> hashByPath, Map<String, FormStatus> formDefByPath) {
-    this.cacheFile = cacheFile;
-    this.briefcaseDir = cacheFile.map(Path::getParent);
+  private FormCache(Map<String, String> hashByPath, Map<String, FormStatus> formDefByPath, Optional<Path> briefcaseDir) {
+    this.briefcaseDir = briefcaseDir;
     this.hashByPath = hashByPath;
     this.formDefByPath = formDefByPath;
+    update();
     AnnotationProcessor.process(this);
   }
 
   public static FormCache empty() {
-    return new FormCache(Optional.empty(), new HashMap<>(), new HashMap<>());
+    return new FormCache(new HashMap<>(), new HashMap<>(), Optional.empty());
   }
 
   public static FormCache from(Path briefcaseDir) {
@@ -57,52 +47,14 @@ public class FormCache {
     return formCache;
   }
 
-  @SuppressWarnings("unchecked")
   public void setLocation(Path newBriefcaseDir) {
     briefcaseDir = Optional.of(newBriefcaseDir);
-    Path cacheFilePath = newBriefcaseDir.resolve(CACHE_FILE_NAME);
-    cacheFile = Optional.of(cacheFilePath);
-    if (Files.exists(cacheFilePath))
-      try (InputStream in = Files.newInputStream(cacheFilePath);
-           ObjectInputStream ois = new ObjectInputStream(in)) {
-        hashByPath = (Map<String, String>) ois.readObject();
-        formDefByPath = (Map<String, FormStatus>) ois.readObject();
-      } catch (InvalidClassException e) {
-        log.warn("The serialized forms cache is incompatible due to an update on Briefcase");
-        delete(cacheFilePath);
-      } catch (IOException | ClassNotFoundException e) {
-        // We can't read the forms cache file for some reason. Log it, delete it,
-        // and let the next block create it new.
-        log.warn("Can't read forms cache file", e);
-        delete(cacheFilePath);
-      }
-
-    // Check again since it could be deleted in the previous block
-    if (!Files.exists(cacheFilePath)) {
-      createFile(cacheFilePath);
-      hashByPath = new HashMap<>();
-      formDefByPath = new HashMap<>();
-      update();
-    }
   }
 
   public void unsetLocation() {
     briefcaseDir = Optional.empty();
-    cacheFile = Optional.empty();
     hashByPath = new HashMap<>();
     formDefByPath = new HashMap<>();
-  }
-
-  private void save() {
-    cacheFile.ifPresent(path -> {
-      try (OutputStream out = Files.newOutputStream(path);
-           ObjectOutputStream oos = new ObjectOutputStream(out)) {
-        oos.writeObject(hashByPath);
-        oos.writeObject(formDefByPath);
-      } catch (IOException e) {
-        log.error("Can't serialize form cache", e);
-      }
-    });
   }
 
   public List<FormStatus> getForms() {
@@ -127,7 +79,6 @@ public class FormCache {
       hashByPath.keySet().removeIf(negate(scannedFiles::contains));
       formDefByPath.keySet().removeIf(negate(scannedFiles::contains));
       EventBus.publish(new CacheUpdateEvent());
-      save();
     });
   }
 

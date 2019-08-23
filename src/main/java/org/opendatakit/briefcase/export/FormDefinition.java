@@ -45,7 +45,6 @@ import org.javarosa.core.model.instance.InstanceInitializationFactory;
 import org.javarosa.core.model.instance.TreeElement;
 import org.javarosa.core.model.instance.TreeReference;
 import org.javarosa.xform.parse.XFormParser;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
@@ -86,13 +85,13 @@ public class FormDefinition {
   private final Model model;
   private final List<Model> repeatFields;
 
-  FormDefinition(String id, Path formFile, String name, boolean isEncrypted, Model model) {
+  public FormDefinition(String id, Path formFile, String name, boolean isEncrypted, Model model, List<Model> repeatableFields) {
     this.id = id;
     this.name = name;
     this.formFile = formFile;
     this.isEncrypted = isEncrypted;
     this.model = model;
-    this.repeatFields = model.getRepeatableFields();
+    this.repeatFields = repeatableFields;
   }
 
   /**
@@ -116,31 +115,17 @@ public class FormDefinition {
           .flatMap(sp -> Optional.ofNullable(sp.getAttribute("base64RsaPublicKey")))
           .filter(s -> !s.isEmpty())
           .isPresent();
+      final Model model1 = new Model(formDef.getMainInstance().getRoot(), getFormControls(formDef));
       return new FormDefinition(
           parseFormId(formDef.getMainInstance().getRoot()),
           formFile,
           formDef.getName(),
           isEncrypted,
-          new Model(formDef.getMainInstance().getRoot(), getFormControls(formDef))
+          model1, model1.getRepeatableFields()
       );
     } catch (IOException e) {
       throw new ParsingException(e);
     }
-  }
-
-  /**
-   * Factory that reads all necessary info from a {@link BriefcaseFormDefinition} to create
-   * a new {@link FormDefinition} instance.
-   */
-  public static FormDefinition from(BriefcaseFormDefinition briefcaseFormDefinition) {
-    return new FormDefinition(
-        briefcaseFormDefinition.getFormId(),
-        briefcaseFormDefinition.getFormDefinitionFile().toPath(),
-        briefcaseFormDefinition.getFormName(),
-        briefcaseFormDefinition.isFileEncryptedForm(),
-        // TODO Improve getting the FormDef out of the BriefcaseFormDefinition
-        new Model(briefcaseFormDefinition.getSubmissionElement(), getFormControls(briefcaseFormDefinition.formDefn.rootJavaRosaFormDef))
-    );
   }
 
   private static Map<String, QuestionDef> getFormControls(FormDef formDef) {

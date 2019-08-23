@@ -29,13 +29,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.export.FormDefinition;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusBuilder;
@@ -93,7 +93,7 @@ public class ExportPanelUnitTest {
     );
 
     FormStatus form = formsList.get(0);
-    String formId = form.getFormDefinition().getFormId();
+    String formId = form.getFormId();
 
     ExportConfiguration conf = empty()
         .setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()))
@@ -125,14 +125,24 @@ public class ExportPanelUnitTest {
     );
 
     FormStatus form = formsList.get(0);
-    String formId = form.getFormDefinition().getFormId();
+    String formId = form.getFormId();
 
     assertThat(inMemoryPrefs.nullSafeGet(buildExportDateTimePrefix(formId)), isEmpty());
 
-    FormDefinition formDef = FormDefinition.from((BriefcaseFormDefinition) form.getFormDefinition());
-    ExportEvent event = ExportEvent.successForm(formDef, 10);
+    ExportEvent event = ExportEvent.successForm(getFormDef(form), 10);
     forms.appendStatus(event);
 
     assertThat(inMemoryPrefs.nullSafeGet(buildExportDateTimePrefix(formId)), isPresent());
+  }
+
+  private static FormDefinition getFormDef(FormStatus form) {
+    return new FormDefinition(
+        form.getFormId(),
+        form.getFormFile(),
+        form.getFormName(),
+        form.isEncrypted(),
+        null,
+        Collections.emptyList()
+    );
   }
 }

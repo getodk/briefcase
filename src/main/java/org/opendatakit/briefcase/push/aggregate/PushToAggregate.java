@@ -73,7 +73,7 @@ public class PushToAggregate {
         .thenSupply(runnerStatus -> !forceSendForm && checkFormExists(form.getFormId(), runnerStatus, tracker))
         .thenAccept(((runnerStatus, formExists) -> {
           if (!formExists) {
-            Path formFile = form.getFormFile(briefcaseDir);
+            Path formFile = form.getFormFile();
             List<Path> allAttachments = getFormAttachments(form);
             if (allAttachments.isEmpty()) {
               pushFormAndAttachments(form, emptyList(), runnerStatus, tracker);
@@ -164,7 +164,7 @@ public class PushToAggregate {
     }
 
     tracker.trackStartSendingFormAndAttachments(part, parts);
-    Response response = http.execute(server.getPushFormRequest(form.getFormFile(briefcaseDir), attachments));
+    Response response = http.execute(server.getPushFormRequest(form.getFormFile(), attachments));
     if (response.isSuccess())
       tracker.trackEndSendingFormAndAttachments(part, parts);
     else
@@ -193,7 +193,7 @@ public class PushToAggregate {
   }
 
   private List<Path> getSubmissions(FormStatus form) {
-    Path submissionsDir = form.getSubmissionsDir(briefcaseDir);
+    Path submissionsDir = form.getSubmissionsDir();
     if (!UncheckedFiles.exists(submissionsDir))
       return emptyList();
     return UncheckedFiles.list(submissionsDir)
@@ -203,7 +203,7 @@ public class PushToAggregate {
   }
 
   private List<Path> getFormAttachments(FormStatus form) {
-    Path formMediaDir = form.getFormMediaDir(briefcaseDir);
+    Path formMediaDir = form.getFormMediaDir();
     return Files.exists(formMediaDir)
         ? list(formMediaDir).filter(Files::isRegularFile).collect(toList())
         : emptyList();

@@ -82,20 +82,6 @@ public class FormCacheTest {
   }
 
   @Test
-  public void can_serialize_and_deserialize_itself() throws IOException {
-    installForm("simple-form");
-    installForm("nested-repeats");
-
-    FormCache cache = FormCache.empty();
-    cache.setLocation(briefcaseDir);
-    cache.update();
-
-    FormCache deserializedCache = FormCache.from(briefcaseDir);
-
-    assertThat(cache.getForms(), is(deserializedCache.getForms()));
-  }
-
-  @Test
   public void can_empty_itself_when_unsetting_the_location() throws IOException {
     installForm("simple-form");
     installForm("nested-repeats");

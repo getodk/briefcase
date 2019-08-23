@@ -31,7 +31,6 @@ import static org.opendatakit.briefcase.reused.http.RequestSpyMatchers.hasBeenCa
 import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.ok;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildAggregateSubmissionDownloadXml;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildBlankFormXml;
-import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildFormStatus;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildManifestXml;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildMediaFiles;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.generatePages;
@@ -42,6 +41,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.After;
 import org.junit.Before;
@@ -50,21 +50,23 @@ import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.matchers.PathMatchers;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.InMemoryPreferences;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
+import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.http.RequestSpy;
 import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 
 public class PullFromAggregateTest {
+  public static final String BASE_URL = "http://foo.bar";
   private Path tmpDir = createTempDirectory("briefcase-test-");
   private Path briefcaseDir = tmpDir.resolve(BriefcasePreferences.BRIEFCASE_DIR);
-  private BriefcasePreferences prefs;
   private FakeHttp http;
-  private AggregateServer server = AggregateServer.normal(url("http://foo.bar"));
-  private FormStatus form = buildFormStatus("some-form", server.getBaseUrl().toString());
+  private AggregateServer server = AggregateServer.normal(url(BASE_URL));
+  private FormStatus form;
   private PullFromAggregate pullOp;
   private TestRunnerStatus runnerStatus;
   private PullFromAggregateTracker tracker;
@@ -74,13 +76,14 @@ public class PullFromAggregateTest {
   @Before
   public void init() throws IOException {
     Files.createDirectories(briefcaseDir);
-    prefs = new BriefcasePreferences(InMemoryPreferences.empty());
-    prefs.setStorageDir(tmpDir);
     http = new FakeHttp();
     events = new ArrayList<>();
-    tracker = new PullFromAggregateTracker(form, e -> events.add(e.getStatusString()));
     pullOp = new PullFromAggregate(http, server, briefcaseDir, includeIncomplete, e -> { }, new InMemoryFormMetadataAdapter());
     runnerStatus = new TestRunnerStatus(false);
+    form = new FormStatus(FormMetadata.empty(FormKey.of("Simple form", "simple-form"))
+        .withFormFile(briefcaseDir.resolve("forms/some-form/some-form.xml"))
+        .withUrls(Optional.of(RequestBuilder.url(BASE_URL + "/manifest")), Optional.empty()));
+    tracker = new PullFromAggregateTracker(form, e -> events.add(e.getStatusString()));
   }
 
   @After
@@ -98,7 +101,7 @@ public class PullFromAggregateTest {
 
     pullOp.downloadForm(form, runnerStatus, tracker);
 
-    Path actualFormFile = form.getFormFile(briefcaseDir);
+    Path actualFormFile = form.getFormFile();
     assertThat(actualFormFile, PathMatchers.exists());
 
     String actualXml = new String(readAllBytes(actualFormFile));
@@ -114,7 +117,7 @@ public class PullFromAggregateTest {
     List<AggregateAttachment> expectedAttachments = buildMediaFiles(server.getBaseUrl().toString(), 3);
 
     // Stub the manifest request
-    http.stub(get(server.getBaseUrl()).build(), ok(buildManifestXml(expectedAttachments)));
+    http.stub(get(server.getBaseUrl()).withPath("/manifest").build(), ok(buildManifestXml(expectedAttachments)));
 
     List<AggregateAttachment> actualAttachments = pullOp.getFormAttachments(form, runnerStatus, tracker);
 
@@ -137,7 +140,7 @@ public class PullFromAggregateTest {
     AtomicInteger seq = new AtomicInteger(1);
     attachments.forEach(attachment -> pullOp.downloadFormAttachment(form, attachment, runnerStatus, tracker, seq.getAndIncrement(), 3));
 
-    attachments.forEach(attachment -> assertThat(form.getFormMediaFile(briefcaseDir, attachment.getFilename()), PathMatchers.exists()));
+    attachments.forEach(attachment -> assertThat(form.getFormMediaFile(attachment.getFilename()), PathMatchers.exists()));
 
     assertThat(events, contains(
         "Start downloading form attachment 1 of 3",
@@ -159,7 +162,7 @@ public class PullFromAggregateTest {
 
     DownloadedSubmission actualSubmission = pullOp.downloadSubmission(form, instanceId, subKeyGen, runnerStatus, tracker, 1, 1);
 
-    assertThat(form.getSubmissionFile(briefcaseDir, actualSubmission.getInstanceId()), PathMatchers.exists());
+    assertThat(form.getSubmissionFile(actualSubmission.getInstanceId()), PathMatchers.exists());
     // There's no easy way to assert the submission's contents because the document we stub
     // is not the submission, but an XML document that has the submission and other information.
     // Briefcase has to parse the XML, extract the submission part, and then serialize it back to XML.
@@ -190,7 +193,7 @@ public class PullFromAggregateTest {
     AtomicInteger seq = new AtomicInteger(1);
     attachments.forEach(attachment -> pullOp.downloadSubmissionAttachment(form, submission, attachment, runnerStatus, tracker, 1, 1, seq.getAndIncrement(), 3));
 
-    attachments.forEach(attachment -> assertThat(form.getSubmissionMediaFile(briefcaseDir, instanceId, attachment.getFilename()), PathMatchers.exists()));
+    attachments.forEach(attachment -> assertThat(form.getSubmissionMediaFile(instanceId, attachment.getFilename()), PathMatchers.exists()));
 
     assertThat(events, contains(
         "Start downloading attachment 1 of 3 of submission 1 of 1",

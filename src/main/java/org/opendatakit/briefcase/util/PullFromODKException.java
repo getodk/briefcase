@@ -17,11 +17,12 @@ package org.opendatakit.briefcase.util;
 
 import static java.util.stream.Collectors.joining;
 
+import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.transfer.TransferForms;
 
 class PullFromODKException extends BriefcaseException {
   PullFromODKException(TransferForms forms) {
-    super("Failure pulling forms from ODK. FormIds: " + forms.map(f -> f.getFormDefinition().getFormId()).collect(joining(", ")));
+    super("Failure pulling forms from ODK. FormIds: " + forms.map(FormStatus::getFormId).collect(joining(", ")));
   }
 }

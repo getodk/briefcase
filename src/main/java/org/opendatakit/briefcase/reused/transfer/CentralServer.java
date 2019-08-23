@@ -208,10 +208,11 @@ public class CentralServer implements RemoteServer {
         .withPath("/v1/projects/" + projectId + "/forms")
         .withHeader("Authorization", "Bearer " + token)
         .withResponseMapper(list -> list.stream()
+            // TODO Migrate this to mapper.readTree
             .map(json -> FormMetadata.empty(FormKey.of(
                 (String) json.get("name"),
                 (String) json.get("xmlFormId"),
-                (String) json.get("version")
+                Optional.ofNullable((String) json.get("version"))
             ))).collect(toList()))
         .build();
   }
@@ -252,7 +253,7 @@ public class CentralServer implements RemoteServer {
   }
 
   @Override
-  public void storeInPrefs(BriefcasePreferences prefs, FormStatus form, boolean storePasswords) {
+  public void storeInPrefs(BriefcasePreferences prefs, boolean storePasswords, String formId) {
     // Do nothing for now
   }
 

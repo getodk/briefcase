@@ -118,7 +118,7 @@ public class Export {
     createDirectories(exportDir);
 
     FormStatus formStatus = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + formId + " not found"));
-    FormDefinition formDef = FormDefinition.from((Path) formStatus.getFormDefinition());
+    FormDefinition formDef = formStatus.getFormDef();
 
     System.out.println("Exporting form " + formStatus.getFormName() + " (" + formStatus.getFormId() + ") to: " + exportDir);
     DateRange dateRange = new DateRange(startDate, endDate);
@@ -141,7 +141,7 @@ public class Export {
 
     Job<Void> pullJob = Job.noOpSupplier();
     if (configuration.resolvePullBefore()) {
-      Optional<AggregateServer> server = AggregateServer.readFromPrefs(appPreferences, pullPrefs, formStatus);
+      Optional<AggregateServer> server = AggregateServer.readFromPrefs(appPreferences, pullPrefs, formStatus.getFormId());
       if (server.isPresent()) {
         Optional<Cursor> lastCursor = appPreferences.resolveStartFromLast()
             ? formMetadataPort.query(lastCursorOf(key))

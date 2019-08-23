@@ -120,7 +120,7 @@ public class PullFromAggregate {
           if (ids.isEmpty())
             tracker.trackNoSubmissions();
 
-          withDb(form.getFormDir(briefcaseDir), db -> {
+          withDb(form.getFormDir(), db -> {
             // We need to collect to be able to create a parallel stream again
             ids.parallelStream()
                 .map(instanceId -> Triple.of(submissionNumber.getAndIncrement(), instanceId, db.hasRecordedInstance(instanceId) == null))
@@ -143,14 +143,14 @@ public class PullFromAggregate {
                   submissionAttachments.parallelStream().forEach(attachment ->
                       downloadSubmissionAttachment(form, submission, attachment, rs, tracker, currentSubmissionNumber, totalSubmissions, submissionAttachmentNumber.getAndIncrement(), totalSubmissionAttachments)
                   );
-                  db.putRecordedInstanceDirectory(submission.getInstanceId(), form.getSubmissionDir(briefcaseDir, submission.getInstanceId()).toFile());
+                  db.putRecordedInstanceDirectory(submission.getInstanceId(), form.getSubmissionDir(submission.getInstanceId()).toFile());
                 });
           });
 
           tracker.trackEnd();
           Cursor newCursor = getLastCursor(instanceIdBatches).orElse(Cursor.empty());
 
-          formMetadataPort.execute(FormMetadataCommands.upsert(key, form.getFormFile(briefcaseDir), newCursor));
+          formMetadataPort.execute(FormMetadataCommands.upsert(key, form.getFormFile(), newCursor));
 
           EventBus.publish(PullEvent.Success.of(form, server));
         });
@@ -170,7 +170,7 @@ public class PullFromAggregate {
       return null;
     }
 
-    Path formFile = form.getFormFile(briefcaseDir);
+    Path formFile = form.getFormFile();
     createDirectories(formFile.getParent());
 
     String formXml = response.get();
@@ -208,7 +208,7 @@ public class PullFromAggregate {
 
     List<AggregateAttachment> attachments = response.get();
     List<AggregateAttachment> attachmentsToDownload = attachments.stream()
-        .filter(mediaFile -> mediaFile.needsUpdate(form.getFormMediaDir(briefcaseDir)))
+        .filter(mediaFile -> mediaFile.needsUpdate(form.getFormMediaDir()))
         .collect(toList());
     tracker.trackEndGettingFormManifest();
     tracker.trackIgnoredFormAttachments(attachmentsToDownload.size(), attachments.size());
@@ -230,7 +230,7 @@ public class PullFromAggregate {
       return;
     }
 
-    Path target = form.getFormMediaFile(briefcaseDir, attachment.getFilename());
+    Path target = form.getFormMediaFile(attachment.getFilename());
     createDirectories(target.getParent());
 
     tracker.trackStartDownloadingFormAttachment(attachmentNumber, totalAttachments);
@@ -257,7 +257,7 @@ public class PullFromAggregate {
     }
     DownloadedSubmission submission = response.get();
 
-    Path submissionFile = form.getSubmissionFile(briefcaseDir, submission.getInstanceId());
+    Path submissionFile = form.getSubmissionFile(submission.getInstanceId());
     createDirectories(submissionFile.getParent());
     write(submissionFile, submission.getXml(), CREATE, TRUNCATE_EXISTING);
     tracker.trackEndDownloadingSubmission(submissionNumber, totalSubmissions);
@@ -270,7 +270,7 @@ public class PullFromAggregate {
       return;
     }
 
-    Path target = form.getSubmissionMediaFile(briefcaseDir, submission.getInstanceId(), attachment.getFilename());
+    Path target = form.getSubmissionMediaFile(submission.getInstanceId(), attachment.getFilename());
     createDirectories(target.getParent());
 
     tracker.trackStartDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);

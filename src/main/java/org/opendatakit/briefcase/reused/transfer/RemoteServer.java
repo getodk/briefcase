@@ -41,7 +41,7 @@ public interface RemoteServer {
   /**
    * Stores in the given prefs object this RemoteServer's information used to pull the given form.
    */
-  void storeInPrefs(BriefcasePreferences prefs, FormStatus form, boolean storePasswords);
+  void storeInPrefs(BriefcasePreferences prefs, boolean storePasswords, String formId);
 
   static void clearStoredPrefs(BriefcasePreferences prefs) {
     AggregateServer.clearStoredPrefs(prefs);
@@ -76,7 +76,7 @@ public interface RemoteServer {
     // Hacky way to get the correct subtype. Basically, try to de-serialize saved prefs
     // until one of the de-serializers successfully manages to get an instance
     return Optionals.race(
-        AggregateServer.readFromPrefs(prefs, pullPanelPrefs, form).map(o -> (T) o),
+        AggregateServer.readFromPrefs(prefs, pullPanelPrefs, form.getFormId()).map(o -> (T) o),
         CentralServer.readFromPrefs(prefs, form).map(o -> (T) o)
     );
   }

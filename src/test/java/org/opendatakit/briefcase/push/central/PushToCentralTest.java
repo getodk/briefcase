@@ -30,7 +30,6 @@ import static org.opendatakit.briefcase.reused.http.RequestSpyMatchers.hasBody;
 import static org.opendatakit.briefcase.reused.http.RequestSpyMatchers.isMultipart;
 import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.ok;
 import static org.opendatakit.briefcase.reused.job.JobsRunner.launchSync;
-import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildFormStatus;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.getResourcePath;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.installForm;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.installFormAttachment;
@@ -47,6 +46,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
 import org.opendatakit.briefcase.reused.http.RequestSpy;
@@ -55,7 +56,7 @@ import org.opendatakit.briefcase.reused.transfer.CentralServer;
 
 public class PushToCentralTest {
   private CentralServer server = CentralServer.of(url("http://foo.bar"), 1, Credentials.from("some user", "some password"));
-  private FormStatus formStatus = buildFormStatus("push-form-test", server.getBaseUrl().toString());
+  private FormStatus formStatus;
   private String token = "some token";
   private FakeHttp http;
   private Path briefcaseDir;
@@ -76,9 +77,11 @@ public class PushToCentralTest {
     pushOp = new PushToCentral(http, server, briefcaseDir, token, this::onEvent);
     events = new ArrayList<>();
     runnerStatus = new TestRunnerStatus(false);
+    formStatus = new FormStatus(FormMetadata.empty(FormKey.of("Push form test", "push-form-test"))
+        .withFormFile(briefcaseDir.resolve("forms/Push form test/Push form test.xml")));
     tracker = new PushToCentralTracker(formStatus, this::onEvent);
-    form = installForm(formStatus, getResourcePath("/org/opendatakit/briefcase/push/aggregate/push-form-test.xml"), briefcaseDir);
-    formAttachment = installFormAttachment(formStatus, getResourcePath("/org/opendatakit/briefcase/push/aggregate/sparrow.png"), briefcaseDir);
+    form = installForm(formStatus, getResourcePath("/org/opendatakit/briefcase/push/aggregate/push-form-test.xml"));
+    formAttachment = installFormAttachment(formStatus, getResourcePath("/org/opendatakit/briefcase/push/aggregate/sparrow.png"));
     submission = installSubmission(formStatus, getResourcePath("/org/opendatakit/briefcase/push/aggregate/submission.xml"), briefcaseDir);
     submissionAttachment = installSubmissionAttachment(formStatus, getResourcePath("/org/opendatakit/briefcase/push/aggregate/1556532531101.jpg"), briefcaseDir, instanceId);
   }
