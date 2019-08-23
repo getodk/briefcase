@@ -16,11 +16,8 @@
 
 package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.target;
 
-import static java.awt.Cursor.HAND_CURSOR;
-import static java.awt.Cursor.getPredefinedCursor;
-import static javax.swing.SwingUtilities.invokeLater;
-import static org.opendatakit.briefcase.ui.reused.SwingUtils.uncheckedBrowse;
-import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
+import static org.opendatakit.briefcase.ui.reused.UI.makeClickable;
+import static org.opendatakit.briefcase.ui.reused.UI.uncheckedBrowse;
 
 import java.awt.Container;
 import java.nio.file.Path;
@@ -37,7 +34,6 @@ import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer.Test;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.CentralServerDialog;
 
 /**
@@ -87,12 +83,12 @@ public class Central implements PushTarget<CentralServer> {
 
   @Override
   public void decorate(JLabel label) {
-    label.setText("<html>URL: <a href=\"" + server.getBaseUrl().toString() + "\">" + getDescription() + "</a><br/>Project ID: " + server.getProjectId() + "</html>");
-    label.setCursor(getPredefinedCursor(HAND_CURSOR));
-    removeAllMouseListeners(label);
-    label.addMouseListener(new MouseAdapterBuilder()
-        .onClick(__ -> invokeLater(() -> uncheckedBrowse(server.getBaseUrl())))
-        .build());
+    label.setText("" +
+        "<html>" +
+        "URL: <a href=\"" + server.getBaseUrl().toString() + "\">" + getDescription() + "</a><br/>" +
+        "Project ID: " + server.getProjectId() + "" +
+        "</html>");
+    makeClickable(label, () -> uncheckedBrowse(server.getBaseUrl()));
   }
 
   @Override

@@ -16,13 +16,25 @@
 
 package org.opendatakit.briefcase.ui;
 
+import static java.awt.GridBagConstraints.CENTER;
+import static java.awt.GridBagConstraints.WEST;
+import static java.lang.Runtime.getRuntime;
+import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
+import static org.opendatakit.briefcase.reused.job.Job.run;
+import static org.opendatakit.briefcase.reused.job.JobsRunner.launchAsync;
 import static org.opendatakit.briefcase.ui.BriefcaseCLI.launchLegacyCLI;
 import static org.opendatakit.briefcase.ui.MessageStrings.BRIEFCASE_WELCOME;
 import static org.opendatakit.briefcase.ui.MessageStrings.TRACKING_WARNING;
 import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
+import static org.opendatakit.briefcase.ui.reused.UI.makeClickable;
+import static org.opendatakit.briefcase.ui.reused.UI.uncheckedBrowse;
+import static org.opendatakit.briefcase.util.BriefcaseVersionManager.getLatestUrl;
 
 import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.nio.file.Files;
@@ -32,6 +44,7 @@ import java.util.Map;
 import java.util.Optional;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -48,6 +61,7 @@ import org.opendatakit.briefcase.ui.pull.PullPanel;
 import org.opendatakit.briefcase.ui.push.PushPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.settings.SettingsPanel;
+import org.opendatakit.briefcase.util.BriefcaseVersionManager;
 import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.briefcase.util.Host;
 import org.slf4j.Logger;
@@ -56,10 +70,10 @@ import org.slf4j.LoggerFactory;
 public class MainBriefcaseWindow extends WindowAdapter {
   private static final Logger log = LoggerFactory.getLogger(MainBriefcaseWindow.class.getName());
   public static final String APP_NAME = "ODK Briefcase";
-  private static final String BRIEFCASE_VERSION = APP_NAME + " - " + BuildConfig.VERSION;
 
-  private final JFrame frame;
-  private final JTabbedPane tabbedPane;
+  private final JFrame frame = new JFrame();
+  private final JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+  private final JLabel versionLabel = new JLabel("Checking for updates...");
   private final Map<String, Integer> tabTitleIndexes = new HashMap<>();
 
   public static void main(String[] args) {
@@ -84,6 +98,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
   }
 
   private MainBriefcaseWindow() {
+    // Create all dependencies
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     BriefcasePreferences pullPreferences = BriefcasePreferences.forClass(PullPanel.class);
     BriefcasePreferences exportPreferences = BriefcasePreferences.forClass(ExportPanel.class);
@@ -94,49 +109,64 @@ public class MainBriefcaseWindow extends WindowAdapter {
         .map(FormCache::from)
         .orElse(FormCache.empty());
 
-    frame = new JFrame();
+    int maxHttpConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
+    Http http = appPreferences.getHttpProxy()
+        .map(host -> CommonsHttp.of(maxHttpConnections, host))
+        .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
+
+    BriefcaseVersionManager versionManager = new BriefcaseVersionManager(http, VERSION);
 
     Analytics analytics = Analytics.from(
         BuildConfig.GOOGLE_TRACKING_ID,
-        BuildConfig.VERSION,
+        VERSION,
         BriefcasePreferences.getUniqueUserID(),
         Toolkit.getDefaultToolkit().getScreenSize(),
         frame::getSize
     );
     analytics.enableTracking(BriefcasePreferences.getBriefcaseTrackingConsentProperty());
     analytics.enter("Briefcase");
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
+    getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
-    int maxHttpConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
-    Http http = appPreferences.getHttpProxy()
-        .map(host -> CommonsHttp.of(maxHttpConnections, host))
-        .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
-
-    frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
-    tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-    frame.setContentPane(tabbedPane);
-
+    // Add panes to the tabbedPane
     addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics).getContainer());
+    addPane(PushPanel.TAB_NAME, PushPanel.from(http, appPreferences, formCache, analytics).getContainer());
+    addPane(ExportPanel.TAB_NAME, ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, formCache, http).getForm().getContainer());
+    addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(appPreferences, analytics, formCache, http, versionManager).getContainer());
 
-    PushPanel pushPanel = PushPanel.from(http, appPreferences, formCache, analytics);
-    addPane(PushPanel.TAB_NAME, pushPanel.getContainer());
-
-    ExportPanel exportPanel = ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, formCache, http);
-    addPane(ExportPanel.TAB_NAME, exportPanel.getForm().getContainer());
-
-    Component settingsPanel = SettingsPanel.from(appPreferences, analytics, formCache, http).getContainer();
-    addPane(SettingsPanel.TAB_NAME, settingsPanel);
-
+    // Set up the frame and put the UI components in it
     frame.addWindowListener(this);
-    frame.setTitle(BRIEFCASE_VERSION);
-    ImageIcon imageIcon = new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png"));
-    frame.setIconImage(imageIcon.getImage());
-    frame.pack();
+    frame.setLayout(new GridBagLayout());
+    frame.setTitle(APP_NAME);
+    frame.setIconImage(new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png")).getImage());
     frame.setLocationRelativeTo(null);
     frame.setVisible(true);
+    frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    GridBagConstraints tabbedPaneConstraint;
+    tabbedPaneConstraint = new GridBagConstraints();
+    tabbedPaneConstraint.gridx = 0;
+    tabbedPaneConstraint.gridy = 0;
+    tabbedPaneConstraint.weightx = 1.0;
+    tabbedPaneConstraint.weighty = 1.0;
+    tabbedPaneConstraint.anchor = WEST;
+    frame.add(tabbedPane, tabbedPaneConstraint);
+    GridBagConstraints versionLabelConstraints;
+    versionLabelConstraints = new GridBagConstraints();
+    versionLabelConstraints.gridx = 0;
+    versionLabelConstraints.gridy = 1;
+    versionLabelConstraints.anchor = CENTER;
+    versionLabelConstraints.insets = new Insets(5, 10, 5, 10);
+    frame.add(versionLabel, versionLabelConstraints);
+    frame.pack();
 
-    // Subscribe to events once the UI is ready to react (lock/unlock)
+    launchAsync(run(rs -> {
+      if (versionManager.isUpToDate()) {
+        this.removeVersionLabel();
+      } else {
+        versionLabel.setText("Update available");
+        makeClickable(versionLabel, () -> uncheckedBrowse(getLatestUrl()));
+      }
+    }));
+
     AnnotationProcessor.process(this);
 
     if (isFirstLaunch(appPreferences)) {
@@ -151,6 +181,12 @@ public class MainBriefcaseWindow extends WindowAdapter {
       showTrackingWarning();
       appPreferences.setTrackingWarningShowed();
     }
+  }
+
+  private void removeVersionLabel() {
+    versionLabel.setVisible(false);
+    frame.remove(versionLabel);
+    frame.pack();
   }
 
   private void lockUI() {

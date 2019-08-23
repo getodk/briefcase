@@ -26,6 +26,7 @@ import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.reused.Analytics;
+import org.opendatakit.briefcase.util.BriefcaseVersionManager;
 import org.opendatakit.briefcase.util.FormCache;
 
 public class SettingsPanel {
@@ -34,7 +35,7 @@ public class SettingsPanel {
   private final SettingsPanelForm form;
 
   @SuppressWarnings("checkstyle:Indentation")
-  private SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http) {
+  private SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http, BriefcaseVersionManager versionManager) {
     this.form = form;
 
     appPreferences.getBriefcaseDir().ifPresent(path -> form.setStorageLocation(path.getParent()));
@@ -78,11 +79,13 @@ public class SettingsPanel {
       infoMessage("Forms successfully reloaded from storage location.");
     });
     form.onCleanAllPullResumePoints(() -> EventBus.publish(new PullEvent.CleanAllResumePoints()));
+
+    form.setVersion(versionManager.getCurrent());
   }
 
-  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http) {
+  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http, BriefcaseVersionManager versionManager) {
     SettingsPanelForm settingsPanelForm = new SettingsPanelForm();
-    return new SettingsPanel(settingsPanelForm, appPreferences, analytics, formCache, http);
+    return new SettingsPanel(settingsPanelForm, appPreferences, analytics, formCache, http, versionManager);
   }
 
   public JPanel getContainer() {

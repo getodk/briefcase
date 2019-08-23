@@ -16,12 +16,9 @@
 
 package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source;
 
-import static java.awt.Cursor.HAND_CURSOR;
-import static java.awt.Cursor.getPredefinedCursor;
 import static java.util.stream.Collectors.toList;
-import static javax.swing.SwingUtilities.invokeLater;
-import static org.opendatakit.briefcase.ui.reused.SwingUtils.uncheckedBrowse;
-import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
+import static org.opendatakit.briefcase.ui.reused.UI.makeClickable;
+import static org.opendatakit.briefcase.ui.reused.UI.uncheckedBrowse;
 
 import java.awt.Container;
 import java.util.List;
@@ -41,7 +38,6 @@ import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer.Test;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.AggregateServerDialog;
 
 /**
@@ -125,12 +121,8 @@ public class Aggregate implements PullSource<AggregateServer> {
 
   @Override
   public void decorate(JLabel label) {
-    label.setText("<html>URL: <a href=\"" + server.getBaseUrl().toString() + "\">" + getDescription() + "</a></html>");
-    label.setCursor(getPredefinedCursor(HAND_CURSOR));
-    removeAllMouseListeners(label);
-    label.addMouseListener(new MouseAdapterBuilder()
-        .onClick(__ -> invokeLater(() -> uncheckedBrowse(server.getBaseUrl())))
-        .build());
+    label.setText("<html>URL: <a href=\"\">" + getDescription() + "</a></html>");
+    makeClickable(label, () -> uncheckedBrowse(server.getBaseUrl()));
   }
 
   @Override
