@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.ui.reused;
 
+import static java.awt.Color.DARK_GRAY;
 import static java.awt.Color.GRAY;
 import static java.awt.Color.LIGHT_GRAY;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
@@ -60,7 +61,7 @@ public class UI {
     button.setToolTipText("View this form's status history");
     button.setMargin(new Insets(0, 0, 0, 0));
 
-    button.setForeground(LIGHT_GRAY);
+    button.setForeground(form.getStatusHistory().isEmpty() ? LIGHT_GRAY : DARK_GRAY);
     button.addActionListener(__ -> {
       if (!form.getStatusHistory().isEmpty())
         showDialog(getFrameForComponent(button), form.getFormDefinition(), form.getStatusHistory());
