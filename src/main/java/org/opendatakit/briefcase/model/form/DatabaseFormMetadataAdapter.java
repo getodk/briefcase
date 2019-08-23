@@ -24,6 +24,7 @@ import org.opendatakit.briefcase.jooq.Sequences;
 import org.opendatakit.briefcase.jooq.tables.records.FormMetadataRecord;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.http.RequestBuilder;
 
 public class DatabaseFormMetadataAdapter implements FormMetadataPort {
   private final Supplier<DSLContext> dslContextSupplier;
@@ -68,6 +69,9 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         .set(FORM_METADATA.FORM_FILE, formMetadata.getFormFile().map(Objects::toString).orElseThrow(BriefcaseException::new))
         .set(FORM_METADATA.CURSOR_TYPE, formMetadata.getCursor().getType().getName())
         .set(FORM_METADATA.CURSOR_VALUE, formMetadata.getCursor().getValue())
+        .set(FORM_METADATA.IS_ENCRYPTED, formMetadata.isEncrypted())
+        .set(FORM_METADATA.URL_MANIFEST, formMetadata.getManifestUrl().map(Objects::toString).orElse(null))
+        .set(FORM_METADATA.URL_DOWNLOAD, formMetadata.getDownloadUrl().map(Objects::toString).orElse(null))
         .set(FORM_METADATA.LAST_EXPORTED_SUBMISSION_DATE, formMetadata.getLastExportedSubmissionDate().orElse(null))
         .whenNotMatchedThenInsert(
             FORM_METADATA.ID,
@@ -77,6 +81,9 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
             FORM_METADATA.FORM_FILE,
             FORM_METADATA.CURSOR_TYPE,
             FORM_METADATA.CURSOR_VALUE,
+            FORM_METADATA.IS_ENCRYPTED,
+            FORM_METADATA.URL_MANIFEST,
+            FORM_METADATA.URL_DOWNLOAD,
             FORM_METADATA.LAST_EXPORTED_SUBMISSION_DATE
         )
         .values(
@@ -87,6 +94,9 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
             value(formMetadata.getFormFile().map(Objects::toString).orElseThrow(BriefcaseException::new)),
             value(formMetadata.getCursor().getType().getName()),
             value(formMetadata.getCursor().getValue()),
+            value(formMetadata.isEncrypted()),
+            value(formMetadata.getManifestUrl().map(Objects::toString).orElse(null)),
+            value(formMetadata.getDownloadUrl().map(Objects::toString).orElse(null)),
             value(formMetadata.getLastExportedSubmissionDate().orElse(null))
         )
     );
@@ -123,6 +133,9 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         ),
         Optional.ofNullable(record.getFormFile()).map(Paths::get),
         Cursor.Type.from(record.getCursorType()).create(record.getCursorValue()),
+        record.getIsEncrypted(),
+        Optional.ofNullable(record.getUrlManifest()).map(RequestBuilder::url),
+        Optional.ofNullable(record.getUrlDownload()).map(RequestBuilder::url),
         Optional.ofNullable(record.getLastExportedSubmissionDate())
     );
   }

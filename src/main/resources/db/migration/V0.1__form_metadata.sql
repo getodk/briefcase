@@ -8,6 +8,9 @@ CREATE TABLE form_metadata (
     form_file                     VARCHAR(255),
     cursor_type                   VARCHAR(20),
     cursor_value                  CLOB,
+    is_encrypted                  BOOLEAN,
+    url_manifest                  VARCHAR(255),
+    url_download                  VARCHAR(255),
     last_exported_submission_date TIMESTAMP WITH TIME ZONE,
     CHECK ((form_name IS NOT NULL) OR (form_id IS NOT NULL))
 );

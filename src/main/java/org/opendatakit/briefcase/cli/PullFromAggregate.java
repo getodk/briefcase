@@ -34,8 +34,8 @@ import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -98,7 +98,7 @@ public class PullFromAggregate {
 
     AggregateServer aggregateServer = AggregateServer.authenticated(server, new Credentials(username, password));
 
-    Response<List<RemoteFormDefinition>> response = http.execute(aggregateServer.getFormListRequest());
+    Response<List<FormMetadata>> response = http.execute(aggregateServer.getFormListRequest());
     if (!response.isSuccess()) {
       System.err.println(response.isRedirection()
           ? "Error connecting to Aggregate: Redirection detected"
@@ -112,7 +112,7 @@ public class PullFromAggregate {
 
     List<FormStatus> filteredForms = response.orElseThrow(BriefcaseException::new)
         .stream()
-        .filter(f -> formId.map(id -> f.getFormId().equals(id)).orElse(true))
+        .filter(f -> formId.map(id -> f.getKey().getId().equals(id)).orElse(true))
         .map(FormStatus::new)
         .collect(toList());
 

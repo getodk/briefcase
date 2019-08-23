@@ -27,7 +27,8 @@ import java.util.Objects;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Request;
@@ -157,7 +158,7 @@ public class CentralServer implements RemoteServer {
 
   public Request<Boolean> getFormExistsRequest(String formId, String token) {
     return getFormsListRequest(token).builder()
-        .withResponseMapper(forms -> forms.stream().anyMatch(form -> form.getFormId().equals(formId)))
+        .withResponseMapper(forms -> forms.stream().anyMatch(form -> form.getKey().getId().equals(formId)))
         .build();
   }
 
@@ -201,20 +202,17 @@ public class CentralServer implements RemoteServer {
         .build();
   }
 
-  public Request<List<RemoteFormDefinition>> getFormsListRequest(String token) {
+  public Request<List<FormMetadata>> getFormsListRequest(String token) {
     return RequestBuilder.get(baseUrl)
         .asJsonList()
         .withPath("/v1/projects/" + projectId + "/forms")
         .withHeader("Authorization", "Bearer " + token)
         .withResponseMapper(list -> list.stream()
-            .map(json -> new RemoteFormDefinition(
+            .map(json -> FormMetadata.empty(FormKey.of(
                 (String) json.get("name"),
                 (String) json.get("xmlFormId"),
-                (String) json.get("version"),
-                String.format("%s/v1/projects/%d/forms/%s/manifest", baseUrl.toString(), projectId, (String) json.get("xmlFormId")),
-                null
-            ))
-            .collect(toList()))
+                (String) json.get("version")
+            ))).collect(toList()))
         .build();
   }
 

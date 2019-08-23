@@ -39,7 +39,6 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadataCommands;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
@@ -49,7 +48,6 @@ import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.Triple;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.Request;
-import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.RunnerStatus;
@@ -166,7 +164,7 @@ public class PullFromAggregate {
     }
 
     tracker.trackStartDownloadingForm();
-    Response<String> response = http.execute(getDownloadFormRequest(form, tracker));
+    Response<String> response = http.execute(getDownloadFormRequest(form));
     if (!response.isSuccess()) {
       tracker.trackErrorDownloadingForm(response);
       return null;
@@ -181,30 +179,10 @@ public class PullFromAggregate {
     return formXml;
   }
 
-  private Request<String> getDownloadFormRequest(FormStatus form, PullFromAggregateTracker tracker) {
-    Optional<RemoteFormDefinition> maybeRemoteForm;
-    if (form.getFormDefinition() instanceof RemoteFormDefinition) {
-      maybeRemoteForm = Optional.of((RemoteFormDefinition) form.getFormDefinition());
-    } else {
-      // This is a pull before export operation. We need to get the manifest
-      // to get the download URL of this blank form.
-      Response<List<RemoteFormDefinition>> remoteFormsResponse = http.execute(server.getFormListRequest());
-      if (remoteFormsResponse.isSuccess())
-        maybeRemoteForm = remoteFormsResponse.get().stream()
-            .filter(remoteForm -> remoteForm.getFormId().equals(form.getFormId()))
-            .findFirst();
-      else {
-        tracker.trackErrorGettingFormManifest(remoteFormsResponse);
-        maybeRemoteForm = Optional.empty();
-      }
-    }
-
-    // In case the downloadUrl is empty, we return an Aggregate
-    // compatible url and wish for the best.
-    return maybeRemoteForm
-        .flatMap(RemoteFormDefinition::getDownloadUrl)
+  private Request<String> getDownloadFormRequest(FormStatus form) {
+    return form.getDownloadUrl()
         .map(server::getDownloadFormRequest)
-        .orElse(server.getDownloadFormRequest(form.getFormId()));
+        .orElseGet(() -> server.getDownloadFormRequest(form.getFormId()));
   }
 
   List<AggregateAttachment> getFormAttachments(FormStatus form, RunnerStatus runnerStatus, PullFromAggregateTracker tracker) {
@@ -213,11 +191,11 @@ public class PullFromAggregate {
       return emptyList();
     }
 
-    if (!form.getManifestUrl().filter(RequestBuilder::isUri).isPresent())
+    if (form.getManifestUrl().isEmpty())
       return emptyList();
 
     tracker.trackStartGettingFormManifest();
-    URL manifestUrl = form.getManifestUrl().map(RequestBuilder::url).get();
+    URL manifestUrl = form.getManifestUrl().get();
     Request<List<AggregateAttachment>> request = get(manifestUrl)
         .asXmlElement()
         .withResponseMapper(PullFromAggregate::parseMediaFiles)

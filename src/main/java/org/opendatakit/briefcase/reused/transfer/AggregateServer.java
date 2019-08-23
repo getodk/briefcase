@@ -36,7 +36,8 @@ import java.util.Optional;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.DownloadedSubmission;
 import org.opendatakit.briefcase.reused.OptionalProduct;
@@ -104,7 +105,7 @@ public class AggregateServer implements RemoteServer {
         .build();
   }
 
-  public Request<List<RemoteFormDefinition>> getFormListRequest() {
+  public Request<List<FormMetadata>> getFormListRequest() {
     return get(baseUrl)
         .asXmlElement()
         .withPath("/formList")
@@ -113,18 +114,19 @@ public class AggregateServer implements RemoteServer {
             .stream()
             .filter(e -> e.findElement("name").flatMap(XmlElement::maybeValue).isPresent() &&
                 e.findElement("formID").flatMap(XmlElement::maybeValue).isPresent())
-            .map(e -> new RemoteFormDefinition(
+            .map(e -> FormMetadata.empty(FormKey.of(
                 e.findElement("name").flatMap(XmlElement::maybeValue).get(),
                 e.findElement("formID").flatMap(XmlElement::maybeValue).get(),
-                e.findElement("version").flatMap(XmlElement::maybeValue).orElse(null),
-                e.findElement("manifestUrl").flatMap(XmlElement::maybeValue).orElse(null),
-                e.findElement("downloadUrl").flatMap(XmlElement::maybeValue).orElse(null)
+                e.findElement("version").flatMap(XmlElement::maybeValue)
+            )).withUrls(
+                e.findElement("manifestUrl").flatMap(XmlElement::maybeValue).map(RequestBuilder::url),
+                e.findElement("downloadUrl").flatMap(XmlElement::maybeValue).map(RequestBuilder::url)
             )).collect(toList())).build();
   }
 
   public Request<Boolean> getFormExistsRequest(String formId) {
     return getFormListRequest().builder()
-        .withResponseMapper(formDefs -> formDefs.stream().anyMatch(formDef -> formDef.getFormId().equals(formId)))
+        .withResponseMapper(formMeatadataList -> formMeatadataList.stream().anyMatch(formMetadata -> formMetadata.getKey().getId().equals(formId)))
         .build();
   }
 

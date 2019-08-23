@@ -30,7 +30,7 @@ import org.opendatakit.briefcase.jooq.tables.records.FormMetadataRecord;
 @SuppressWarnings({"all", "unchecked", "rawtypes"})
 public class FormMetadata extends TableImpl<FormMetadataRecord> {
 
-  private static final long serialVersionUID = 1290697445;
+  private static final long serialVersionUID = 362510443;
 
   /**
    * The reference instance of <code>PUBLIC.FORM_METADATA</code>
@@ -79,6 +79,21 @@ public class FormMetadata extends TableImpl<FormMetadataRecord> {
    * The column <code>PUBLIC.FORM_METADATA.CURSOR_VALUE</code>.
    */
   public final TableField<FormMetadataRecord, String> CURSOR_VALUE = createField("CURSOR_VALUE", org.jooq.impl.SQLDataType.CLOB, this, "");
+
+  /**
+   * The column <code>PUBLIC.FORM_METADATA.IS_ENCRYPTED</code>.
+   */
+  public final TableField<FormMetadataRecord, Boolean> IS_ENCRYPTED = createField("IS_ENCRYPTED", org.jooq.impl.SQLDataType.BOOLEAN, this, "");
+
+  /**
+   * The column <code>PUBLIC.FORM_METADATA.URL_MANIFEST</code>.
+   */
+  public final TableField<FormMetadataRecord, String> URL_MANIFEST = createField("URL_MANIFEST", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
+
+  /**
+   * The column <code>PUBLIC.FORM_METADATA.URL_DOWNLOAD</code>.
+   */
+  public final TableField<FormMetadataRecord, String> URL_DOWNLOAD = createField("URL_DOWNLOAD", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
 
   /**
    * The column <code>PUBLIC.FORM_METADATA.LAST_EXPORTED_SUBMISSION_DATE</code>.

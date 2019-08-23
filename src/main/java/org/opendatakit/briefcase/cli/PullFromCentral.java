@@ -32,7 +32,7 @@ import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Optionals;
@@ -84,7 +84,7 @@ public class PullFromCentral {
     String token = http.execute(server.getSessionTokenRequest())
         .orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
 
-    Response<List<RemoteFormDefinition>> response = http.execute(server.getFormsListRequest(token));
+    Response<List<FormMetadata>> response = http.execute(server.getFormsListRequest(token));
     if (!response.isSuccess()) {
       System.err.println(response.isRedirection()
           ? "Error connecting to Central: Redirection detected"
@@ -100,7 +100,7 @@ public class PullFromCentral {
 
     List<FormStatus> filteredForms = response.orElseThrow(BriefcaseException::new)
         .stream()
-        .filter(f -> formId.map(id -> f.getFormId().equals(id)).orElse(true))
+        .filter(f -> formId.map(id -> f.getKey().getId().equals(id)).orElse(true))
         .map(FormStatus::new)
         .collect(toList());
 

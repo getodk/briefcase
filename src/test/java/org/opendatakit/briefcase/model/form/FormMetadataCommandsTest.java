@@ -27,7 +27,7 @@ public class FormMetadataCommandsTest {
   @Before
   public void setUp() {
     key = FormKey.of("Some form", "some-form");
-    FormMetadata formMetadata = new FormMetadata(key, Optional.of(formFile), Cursor.empty(), Optional.empty());
+    FormMetadata formMetadata = new FormMetadata(key, Optional.of(formFile), Cursor.empty(), false, Optional.empty(), Optional.empty(), Optional.empty());
     formMetadataPort = new InMemoryFormMetadataAdapter();
     formMetadataPort.persist(formMetadata);
   }
@@ -72,6 +72,6 @@ public class FormMetadataCommandsTest {
   private FormMetadata buildFormMetadata(int number) {
     Path formFile = Paths.get("/some/path/forms/Form " + number + "/Form " + number + ".xml");
     FormKey key = FormKey.of("Form " + number, "form-" + number);
-    return new FormMetadata(key, Optional.of(formFile), Cursor.from("some cursor data"), Optional.empty());
+    return new FormMetadata(key, Optional.of(formFile), Cursor.from("some cursor data"), false, Optional.empty(), Optional.empty(), Optional.empty());
   }
 }

@@ -18,20 +18,49 @@ package org.opendatakit.briefcase.model;
 
 import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.Optional;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
+import org.opendatakit.briefcase.reused.http.RequestBuilder;
 
 public class FormStatus {
-
   private static final int STATUS_HISTORY_MAX_BYTES = 1024 * 1024;
 
+  private final FormMetadata formMetadata;
   private boolean isSelected = false;
-  private IFormDefinition form;
+  private IFormDefinition form = null;
   private String statusString = "";
   private final StringBuilder statusHistory = new StringBuilder();
 
   public FormStatus(IFormDefinition form) {
     this.form = form;
+    FormMetadata formMetadata = FormMetadata.empty(FormKey.of(
+        form.getFormName(),
+        form.getFormId(),
+        Optional.ofNullable(form.getVersionString())
+    ));
+    if (form instanceof RemoteFormDefinition) {
+      RemoteFormDefinition remoteFormDef = (RemoteFormDefinition) form;
+      formMetadata = formMetadata.withUrls(
+          Optional.ofNullable(remoteFormDef.getManifestUrl()).map(RequestBuilder::url),
+          remoteFormDef.getDownloadUrl()
+      );
+    } else if (form instanceof BriefcaseFormDefinition) {
+      BriefcaseFormDefinition localFormDef = (BriefcaseFormDefinition) form;
+      formMetadata = formMetadata
+          .withFormFile(localFormDef.getFormDefinitionFile().toPath())
+          .withIsEncrypted(localFormDef.isFileEncryptedForm());
+    } else if (form instanceof OdkCollectFormDefinition) {
+      OdkCollectFormDefinition collectFormDef = (OdkCollectFormDefinition) form;
+      formMetadata = formMetadata.withFormFile(collectFormDef.getFormDefinitionFile().toPath());
+    }
+    this.formMetadata = formMetadata;
+  }
+
+  public FormStatus(FormMetadata formMetadata) {
+    this.formMetadata = formMetadata;
   }
 
   public synchronized boolean isSelected() {
@@ -73,21 +102,23 @@ public class FormStatus {
   }
 
   public synchronized String getFormName() {
-    return form.getFormName();
+    return formMetadata.getKey().getName();
   }
 
   public synchronized IFormDefinition getFormDefinition() {
     return form;
   }
 
-  public Optional<String> getManifestUrl() {
-    if (!(form instanceof RemoteFormDefinition))
-      return Optional.empty();
-    return Optional.ofNullable(((RemoteFormDefinition) form).getManifestUrl());
+  public Optional<URL> getManifestUrl() {
+    return formMetadata.getManifestUrl();
+  }
+
+  public Optional<URL> getDownloadUrl() {
+    return formMetadata.getDownloadUrl();
   }
 
   public boolean isEncrypted() {
-    return ((BriefcaseFormDefinition) form).isFileEncryptedForm();
+    return formMetadata.isEncrypted();
   }
 
   public String getFormId() {
