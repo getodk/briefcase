@@ -34,7 +34,6 @@ import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportToCsv;
 import org.opendatakit.briefcase.export.ExportToGeoJson;
 import org.opendatakit.briefcase.export.FormDefinition;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
@@ -112,16 +111,16 @@ public class Export {
         .map(host -> CommonsHttp.of(maxHttpConnections, host))
         .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
 
-    Optional<BriefcaseFormDefinition> maybeFormDefinition = formCache.getForms().stream()
+    Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
         .filter(form -> form.getFormId().equals(formId))
         .findFirst();
 
     createDirectories(exportDir);
 
-    BriefcaseFormDefinition formDefinition = maybeFormDefinition.orElseThrow(() -> new BriefcaseException("Form " + formId + " not found"));
-    FormDefinition formDef = FormDefinition.from(formDefinition);
+    FormStatus formStatus = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + formId + " not found"));
+    FormDefinition formDef = FormDefinition.from((Path) formStatus.getFormDefinition());
 
-    System.out.println("Exporting form " + formDefinition.getFormName() + " (" + formDefinition.getFormId() + ") to: " + exportDir);
+    System.out.println("Exporting form " + formStatus.getFormName() + " (" + formStatus.getFormId() + ") to: " + exportDir);
     DateRange dateRange = new DateRange(startDate, endDate);
     ExportConfiguration configuration = ExportConfiguration.Builder.empty()
         .setExportFilename(baseFilename)
@@ -137,7 +136,6 @@ public class Export {
         .setSmartAppend(smartAppend)
         .build();
 
-    FormStatus formStatus = new FormStatus(formDefinition);
     FormKey key = FormKey.from(formStatus);
     FormMetadata formMetadata = formMetadataPort.fetch(key).orElseThrow(BriefcaseException::new);
 
@@ -164,7 +162,7 @@ public class Export {
         .thenRun(exportJob)
         .thenRun(exportGeoJsonJob)
         .thenRun(__ -> exportPrefs.put(
-            buildExportDateTimePrefix(formDefinition.getFormId()),
+            buildExportDateTimePrefix(formStatus.getFormId()),
             LocalDateTime.now().format(ISO_DATE_TIME)
         ));
 

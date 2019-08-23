@@ -83,7 +83,6 @@ public class PushToCentral {
     String formId = args.get(FORM_ID);
     Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
         .filter(form -> form.getFormId().equals(formId))
-        .map(FormStatus::new)
         .findFirst();
 
     FormStatus form = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + formId + " not found"));

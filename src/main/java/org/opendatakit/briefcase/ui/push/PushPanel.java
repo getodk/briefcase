@@ -23,13 +23,11 @@ import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
-import java.util.List;
 import java.util.Optional;
 import javax.swing.JPanel;
 import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
@@ -114,7 +112,7 @@ public class PushPanel {
   }
 
   public static PushPanel from(Http http, BriefcasePreferences appPreferences, FormCache formCache, Analytics analytics) {
-    TransferForms forms = TransferForms.from(toFormStatuses(formCache.getForms()));
+    TransferForms forms = TransferForms.from(formCache.getForms());
     return new PushPanel(
         TransferPanelForm.push(http, forms),
         forms,
@@ -123,12 +121,6 @@ public class PushPanel {
         formCache,
         analytics
     );
-  }
-
-  private static List<FormStatus> toFormStatuses(List<BriefcaseFormDefinition> formDefs) {
-    return formDefs.stream()
-        .map(FormStatus::new)
-        .collect(toList());
   }
 
   public JPanel getContainer() {
@@ -151,7 +143,7 @@ public class PushPanel {
   }
 
   private void updateForms() {
-    forms.merge(toFormStatuses(formCache.getForms()));
+    forms.merge(formCache.getForms());
     view.refresh();
   }
 

@@ -24,6 +24,7 @@ import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
+import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
@@ -36,9 +37,9 @@ public class FormCache {
   private Optional<Path> cacheFile;
   private Optional<Path> briefcaseDir;
   private Map<String, String> hashByPath;
-  private Map<String, BriefcaseFormDefinition> formDefByPath;
+  private Map<String, FormStatus> formDefByPath;
 
-  private FormCache(Optional<Path> cacheFile, Map<String, String> hashByPath, Map<String, BriefcaseFormDefinition> formDefByPath) {
+  private FormCache(Optional<Path> cacheFile, Map<String, String> hashByPath, Map<String, FormStatus> formDefByPath) {
     this.cacheFile = cacheFile;
     this.briefcaseDir = cacheFile.map(Path::getParent);
     this.hashByPath = hashByPath;
@@ -65,7 +66,7 @@ public class FormCache {
       try (InputStream in = Files.newInputStream(cacheFilePath);
            ObjectInputStream ois = new ObjectInputStream(in)) {
         hashByPath = (Map<String, String>) ois.readObject();
-        formDefByPath = (Map<String, BriefcaseFormDefinition>) ois.readObject();
+        formDefByPath = (Map<String, FormStatus>) ois.readObject();
       } catch (InvalidClassException e) {
         log.warn("The serialized forms cache is incompatible due to an update on Briefcase");
         delete(cacheFilePath);
@@ -104,7 +105,7 @@ public class FormCache {
     });
   }
 
-  public List<BriefcaseFormDefinition> getForms() {
+  public List<FormStatus> getForms() {
     return new ArrayList<>(formDefByPath.values());
   }
 
@@ -119,7 +120,7 @@ public class FormCache {
             String hash = FileSystemUtils.getMd5Hash(form.toFile());
             if (isFormNewOrChanged(form, hash)) {
               try {
-                formDefByPath.put(form.toString(), new BriefcaseFormDefinition(form.getParent().toFile(), form.toFile()));
+                formDefByPath.put(form.toString(), new FormStatus(new BriefcaseFormDefinition(form.getParent().toFile(), form.toFile())));
                 hashByPath.put(form.toString(), hash);
               } catch (BadFormDefinition e) {
                 log.warn("Can't parse form file", e);

@@ -103,15 +103,15 @@ public class PushToAggregate {
     List<FormStatus> statuses;
     if (formid.isPresent()) {
       String requestedFormId = formid.get();
-      FormStatus status = formCache.getForms().stream()
+      Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
           .filter(form -> form.getFormId().equals(requestedFormId))
-          .map(FormStatus::new)
-          .findFirst()
+          .findFirst();
+
+      FormStatus status = maybeFormStatus
           .orElseThrow(() -> new BriefcaseException("Form " + requestedFormId + " not found"));
       statuses = Arrays.asList(status);
     } else {
       statuses = formCache.getForms().stream()
-          .map(FormStatus::new)
           .collect(Collectors.toList());
     }
 

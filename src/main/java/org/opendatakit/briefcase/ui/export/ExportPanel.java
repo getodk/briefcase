@@ -16,7 +16,6 @@
 package org.opendatakit.briefcase.ui.export;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
-import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.load;
 import static org.opendatakit.briefcase.export.ExportForms.buildCustomConfPrefix;
@@ -157,7 +156,7 @@ public class ExportPanel {
 
   public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics, FormCache formCache, Http http, FormMetadataPort formMetadataPort) {
     ExportConfiguration initialDefaultConf = load(exportPreferences);
-    ExportForms forms = ExportForms.load(initialDefaultConf, toFormStatuses(formCache.getForms()), exportPreferences);
+    ExportForms forms = ExportForms.load(initialDefaultConf, formCache.getForms(), exportPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, pullPrefs, initialDefaultConf);
     return new ExportPanel(
         forms,
@@ -173,14 +172,8 @@ public class ExportPanel {
   }
 
   void updateForms() {
-    forms.merge(toFormStatuses(formCache.getForms()));
+    forms.merge(formCache.getForms());
     form.refresh();
-  }
-
-  private static List<FormStatus> toFormStatuses(List<BriefcaseFormDefinition> formDefs) {
-    return formDefs.stream()
-        .map(FormStatus::new)
-        .collect(toList());
   }
 
   public ExportPanelForm getForm() {
