@@ -25,7 +25,9 @@ import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTION
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
@@ -55,18 +57,18 @@ public class PushFormToAggregate {
       PUSH_AGGREGATE,
       args -> pushFormToAggregate(
           args.get(STORAGE_DIR),
-          args.get(FORM_ID),
+          args.getOptional(FORM_ID),
           args.get(ODK_USERNAME),
           args.get(ODK_PASSWORD),
           args.get(AGGREGATE_SERVER),
           args.has(FORCE_SEND_BLANK),
           args.getOptional(MAX_HTTP_CONNECTIONS)
       ),
-      Arrays.asList(STORAGE_DIR, FORM_ID, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER),
-      Arrays.asList(FORCE_SEND_BLANK, MAX_HTTP_CONNECTIONS)
+      Arrays.asList(STORAGE_DIR, ODK_USERNAME, ODK_PASSWORD, AGGREGATE_SERVER),
+      Arrays.asList(FORCE_SEND_BLANK, MAX_HTTP_CONNECTIONS, FORM_ID)
   );
 
-  private static void pushFormToAggregate(String storageDir, String formid, String username, String password, String server, boolean forceSendBlank, Optional<Integer> maybeMaxConnections) {
+  private static void pushFormToAggregate(String storageDir, Optional<String> formid, String username, String password, String server, boolean forceSendBlank, Optional<Integer> maybeMaxConnections) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -94,13 +96,23 @@ public class PushFormToAggregate {
           : "Error connecting to Aggregate");
       return;
     }
-    Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
-        .filter(form -> form.getFormId().equals(formid))
-        .map(FormStatus::new)
-        .findFirst();
 
-    FormStatus form = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + formid + " not found"));
-    TransferForms forms = TransferForms.of(form);
+    List<FormStatus> statuses;
+    if (formid.isPresent()) {
+      String requestedFormId = formid.get();
+      FormStatus status = formCache.getForms().stream()
+          .filter(form -> form.getFormId().equals(requestedFormId))
+          .map(FormStatus::new)
+          .findFirst()
+          .orElseThrow(() -> new BriefcaseException("Form " + requestedFormId + " not found"));
+      statuses = Arrays.asList(status);
+    } else {
+      statuses = formCache.getForms().stream()
+          .map(FormStatus::new)
+          .collect(Collectors.toList());
+    }
+
+    TransferForms forms = TransferForms.of(statuses);
     forms.selectAll();
 
     PushToAggregate pushOp = new PushToAggregate(http, aggregateServer, briefcaseDir, forceSendBlank, PushFormToAggregate::onEvent);
