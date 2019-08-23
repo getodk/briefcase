@@ -37,10 +37,12 @@ import java.util.stream.Stream;
 import org.opendatakit.briefcase.export.SubmissionMetaData;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.pull.aggregate.AggregateAttachment;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.Pair;
+import org.opendatakit.briefcase.reused.http.RequestBuilder;
 
 public class TransferTestHelpers {
   public static String buildSubmissionXml(String instanceId) {
@@ -129,12 +131,14 @@ public class TransferTestHelpers {
   }
 
   public static FormStatus buildFormStatus(String formName, String manifestUrl) {
-    return new FormStatus(new RemoteFormDefinition(
-        formName,
-        formName,
-        null,
-        manifestUrl,
-        null
+    return new FormStatus(new FormMetadata(
+        FormKey.of(formName, formName),
+        Optional.empty(),
+        Cursor.empty(),
+        false,
+        Optional.ofNullable(manifestUrl).map(RequestBuilder::url),
+        Optional.empty(),
+        Optional.empty()
     ));
   }
 

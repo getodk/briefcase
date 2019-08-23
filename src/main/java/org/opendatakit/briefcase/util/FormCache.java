@@ -23,8 +23,8 @@ import java.util.Set;
 import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
-import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
@@ -119,12 +119,8 @@ public class FormCache {
             scannedFiles.add(form.toString());
             String hash = FileSystemUtils.getMd5Hash(form.toFile());
             if (isFormNewOrChanged(form, hash)) {
-              try {
-                formDefByPath.put(form.toString(), new FormStatus(new BriefcaseFormDefinition(form.getParent().toFile(), form.toFile())));
-                hashByPath.put(form.toString(), hash);
-              } catch (BadFormDefinition e) {
-                log.warn("Can't parse form file", e);
-              }
+              formDefByPath.put(form.toString(), new FormStatus(FormMetadata.from(form)));
+              hashByPath.put(form.toString(), hash);
             }
           });
       // Warning: Remove map entries by mutating the key set works because the key set is a view on the map

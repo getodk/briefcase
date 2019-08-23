@@ -21,7 +21,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.model.BriefcaseFormDefinition.resolveAgainstBriefcaseDefn;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createTempDirectory;
@@ -53,7 +52,6 @@ import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
-import org.opendatakit.briefcase.util.BadFormDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,43 +79,39 @@ class ExportToCsvScenario {
   }
 
   static ExportToCsvScenario setUp(String formName) {
-    try {
-      Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-      Path briefcaseDir = createTempDirectory("briefcase");
+    Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+    Path briefcaseDir = createTempDirectory("briefcase");
 
-      Path sourceFormFile = getPath(formName + ".xml");
-      FormStatus formStatus = new FormStatus(resolveAgainstBriefcaseDefn(sourceFormFile.toFile(), true, briefcaseDir.toFile()));
+    Path sourceFormFile = getPath(formName + ".xml");
+    FormStatus formStatus = new FormStatus(FormMetadata.from(sourceFormFile));
 
-      Path formDir = formStatus.getFormDir(briefcaseDir);
-      createDirectories(formDir);
-      log.debug("Form dir: {}", formDir);
-      Path formFile = installForm(formDir, formName);
+    Path formDir = formStatus.getFormDir(briefcaseDir);
+    createDirectories(formDir);
+    log.debug("Form dir: {}", formDir);
+    Path formFile = installForm(formDir, formName);
 
-      Path outputDir = createTempDirectory("briefcase_export_test_output_");
-      log.debug("Output dir: {}", outputDir);
-      createDirectories(outputDir.resolve("old"));
-      createDirectories(outputDir.resolve("new"));
+    Path outputDir = createTempDirectory("briefcase_export_test_output_");
+    log.debug("Output dir: {}", outputDir);
+    createDirectories(outputDir.resolve("old"));
+    createDirectories(outputDir.resolve("new"));
 
-      Locale localeBackup = Locale.getDefault();
-      Locale.setDefault(Locale.forLanguageTag("en_US")); // This Locale will force us to escape dates
+    Locale localeBackup = Locale.getDefault();
+    Locale.setDefault(Locale.forLanguageTag("en_US")); // This Locale will force us to escape dates
 
-      // We will run tests on UTC
-      TimeZone zoneBackup = TimeZone.getDefault();
-      TimeZone.setDefault(TimeZone.getTimeZone(ZoneOffset.UTC));
+    // We will run tests on UTC
+    TimeZone zoneBackup = TimeZone.getDefault();
+    TimeZone.setDefault(TimeZone.getTimeZone(ZoneOffset.UTC));
 
-      return new ExportToCsvScenario(
-          briefcaseDir,
-          formDir,
-          outputDir,
-          FormDefinition.from(formFile),
-          formStatus,
-          readInstanceId(formName),
-          localeBackup,
-          zoneBackup
-      );
-    } catch (BadFormDefinition badFormDefinition) {
-      throw new RuntimeException(badFormDefinition);
-    }
+    return new ExportToCsvScenario(
+        briefcaseDir,
+        formDir,
+        outputDir,
+        FormDefinition.from(formFile),
+        formStatus,
+        readInstanceId(formName),
+        localeBackup,
+        zoneBackup
+    );
   }
 
   static Path getPath(String fileName) {

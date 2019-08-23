@@ -23,7 +23,6 @@ import java.nio.file.Path;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.http.RequestBuilder;
 
 public class FormStatus {
   private static final int STATUS_HISTORY_MAX_BYTES = 1024 * 1024;
@@ -41,13 +40,7 @@ public class FormStatus {
         form.getFormId(),
         Optional.ofNullable(form.getVersionString())
     ));
-    if (form instanceof RemoteFormDefinition) {
-      RemoteFormDefinition remoteFormDef = (RemoteFormDefinition) form;
-      formMetadata = formMetadata.withUrls(
-          Optional.ofNullable(remoteFormDef.getManifestUrl()).map(RequestBuilder::url),
-          remoteFormDef.getDownloadUrl()
-      );
-    } else if (form instanceof BriefcaseFormDefinition) {
+    if (form instanceof BriefcaseFormDefinition) {
       BriefcaseFormDefinition localFormDef = (BriefcaseFormDefinition) form;
       formMetadata = formMetadata
           .withFormFile(localFormDef.getFormDefinitionFile().toPath())
