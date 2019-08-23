@@ -139,7 +139,7 @@ public class AggregateServerDialogTest extends AssertJSwingJUnitTestCase {
 
   @Test
   public void shows_error_dialog_when_an_http_exception_is_catched() {
-    String expectedError = "Unknown host";
+    String expectedError = "Briefcase wasn't able to interact with the provided server";
     AggregateServerDialogPageObject page = AggregateServerDialogPageObject.setUp(robot(), server -> {
       throw new HttpException(expectedError);
     });

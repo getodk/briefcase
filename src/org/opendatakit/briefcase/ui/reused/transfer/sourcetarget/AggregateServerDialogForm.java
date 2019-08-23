@@ -19,17 +19,21 @@ package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget;
 import static java.awt.event.KeyEvent.VK_ESCAPE;
 import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 import static javax.swing.KeyStroke.getKeyStroke;
+import static org.opendatakit.briefcase.ui.reused.UI.credentialsFromFields;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.EMAIL;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.REQUIRED;
+import static org.opendatakit.briefcase.ui.reused.UiFieldValidator.URI;
 
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -39,14 +43,14 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.OptionalProduct;
-import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
+import org.opendatakit.briefcase.ui.reused.FocusAdapterBuilder;
+import org.opendatakit.briefcase.ui.reused.UiFieldValidator;
+import org.opendatakit.briefcase.ui.reused.UiLinkedFieldValidator;
 import org.opendatakit.briefcase.ui.reused.WindowAdapterBuilder;
 
-@SuppressWarnings("checkstyle:MethodName")
+@SuppressWarnings({"checkstyle:MethodName", "checkstyle:WhitespaceAround", "checkstyle:OneStatementPerLine", "checkstyle:RightCurlyAlone"})
 public class AggregateServerDialogForm extends JDialog {
   private JPanel dialog;
   private JPanel actions;
@@ -56,12 +60,19 @@ public class AggregateServerDialogForm extends JDialog {
   JTextField usernameField;
   JPasswordField passwordField;
   JProgressBar progressBar;
-  private JTextPane accountTipTextPane;
+  private JLabel urlFieldLabel;
+  private JLabel usernameFieldLabel;
+  private JLabel passwordFieldLabel;
+  private JLabel usernameHelpLabel;
+  private UiFieldValidator urlValidator;
+  private UiFieldValidator usernameValidator;
+  private UiFieldValidator passwordValidator;
+  private UiLinkedFieldValidator usernameAndPasswordValidator;
   private final List<Consumer<AggregateServer>> onConnectCallbacks = new ArrayList<>();
 
-  AggregateServerDialogForm(String requiredPermission) {
+  AggregateServerDialogForm(String usernameHelp) {
     $$$setupUI$$$();
-    accountTipTextPane.setText("Username cannot be a Google login; it must be an ODK Aggregate username with \"" + requiredPermission + "\" permissions");
+    usernameHelpLabel.setText(usernameHelp);
     setContentPane(dialog);
     setPreferredSize(new Dimension(500, 240));
     setModal(true);
@@ -77,21 +88,31 @@ public class AggregateServerDialogForm extends JDialog {
 
     connectButton.addActionListener(__ -> triggerConnect());
 
-    getRootPane().setDefaultButton(connectButton);
+    urlField.addFocusListener(new FocusAdapterBuilder()
+        .onFocusLost(e -> urlField.setText(AggregateServer.cleanUrl(urlField.getText())))
+        .build());
 
+    urlValidator = UiFieldValidator.of(urlField, urlFieldLabel, REQUIRED, URI).onChange(this::updateConnectButton);
+    usernameValidator = UiFieldValidator.of(usernameField, usernameFieldLabel, EMAIL.negate()).onChange(this::updateConnectButton);
+    passwordValidator = UiFieldValidator.of(passwordField, passwordFieldLabel).onChange(this::updateConnectButton);
+    usernameAndPasswordValidator = UiLinkedFieldValidator.of(usernameValidator, passwordValidator).onChange(this::updateConnectButton);
+
+    getRootPane().setDefaultButton(connectButton);
+  }
+
+  private void updateConnectButton() {
+    connectButton.setEnabled(urlValidator.isValid() &&
+        usernameValidator.isValid() &&
+        passwordValidator.isValid() &&
+        usernameAndPasswordValidator.isValid());
   }
 
   private void triggerConnect() {
     setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     try {
-      Optional<Credentials> credentials = OptionalProduct.all(
-          Optional.ofNullable(usernameField.getText()).map(String::trim).filter(s -> !s.isEmpty()),
-          Optional.of(new String(passwordField.getPassword())).filter(s -> !s.isEmpty())
-      ).map(Credentials::new);
-
       URL baseUrl = new URL(urlField.getText());
 
-      AggregateServer server = credentials
+      AggregateServer server = credentialsFromFields(usernameField, passwordField)
           .map(c -> AggregateServer.authenticated(baseUrl, c))
           .orElse(AggregateServer.normal(baseUrl));
 
@@ -152,7 +173,7 @@ public class AggregateServerDialogForm extends JDialog {
     GridBagConstraints gbc;
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 4;
+    gbc.gridy = 2;
     gbc.gridwidth = 3;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
@@ -176,6 +197,7 @@ public class AggregateServerDialogForm extends JDialog {
     gbc.anchor = GridBagConstraints.WEST;
     actions.add(cancelButton, gbc);
     connectButton = new JButton();
+    connectButton.setEnabled(false);
     connectButton.setHideActionText(false);
     connectButton.setText("Connect");
     gbc = new GridBagConstraints();
@@ -202,20 +224,20 @@ public class AggregateServerDialogForm extends JDialog {
     final JPanel spacer2 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 5;
+    gbc.gridy = 3;
     gbc.gridwidth = 3;
     gbc.fill = GridBagConstraints.VERTICAL;
     dialog.add(spacer2, gbc);
     final JPanel spacer3 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 4;
-    gbc.gridy = 3;
+    gbc.gridy = 1;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     dialog.add(spacer3, gbc);
     final JPanel spacer4 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 3;
+    gbc.gridy = 1;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     dialog.add(spacer4, gbc);
     final JPanel panel2 = new JPanel();
@@ -236,52 +258,52 @@ public class AggregateServerDialogForm extends JDialog {
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(urlField, gbc);
-    final JLabel label1 = new JLabel();
-    label1.setText("URL");
+    urlFieldLabel = new JLabel();
+    urlFieldLabel.setText("URL");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 1;
     gbc.anchor = GridBagConstraints.EAST;
-    panel2.add(label1, gbc);
+    panel2.add(urlFieldLabel, gbc);
     final JPanel spacer5 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 1;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(spacer5, gbc);
-    final JLabel label2 = new JLabel();
-    label2.setText("Username");
+    usernameFieldLabel = new JLabel();
+    usernameFieldLabel.setText("Username");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 2;
+    gbc.gridy = 4;
     gbc.anchor = GridBagConstraints.EAST;
-    panel2.add(label2, gbc);
+    panel2.add(usernameFieldLabel, gbc);
     final JPanel spacer6 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 2;
+    gbc.gridy = 4;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(spacer6, gbc);
     usernameField = new JTextField();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 2;
+    gbc.gridy = 4;
     gbc.gridwidth = 2;
     gbc.weightx = 1.0;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(usernameField, gbc);
-    final JLabel label3 = new JLabel();
-    label3.setText("Password");
+    passwordFieldLabel = new JLabel();
+    passwordFieldLabel.setText("Password");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
-    gbc.gridy = 3;
+    gbc.gridy = 7;
     gbc.anchor = GridBagConstraints.EAST;
-    panel2.add(label3, gbc);
+    panel2.add(passwordFieldLabel, gbc);
     final JPanel spacer7 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
-    gbc.gridy = 3;
+    gbc.gridy = 7;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(spacer7, gbc);
     final JPanel spacer8 = new JPanel();
@@ -294,39 +316,67 @@ public class AggregateServerDialogForm extends JDialog {
     passwordField = new JPasswordField();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
-    gbc.gridy = 3;
+    gbc.gridy = 7;
     gbc.gridwidth = 2;
     gbc.weightx = 1.0;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel2.add(passwordField, gbc);
+    final JLabel label1 = new JLabel();
+    Font label1Font = this.$$$getFont$$$(null, Font.PLAIN, -1, label1.getFont());
+    if (label1Font != null) label1.setFont(label1Font);
+    label1.setText("You can copy and paste the URL from your web browser");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 2;
+    gbc.gridwidth = 2;
+    gbc.anchor = GridBagConstraints.WEST;
+    panel2.add(label1, gbc);
+    usernameHelpLabel = new JLabel();
+    Font usernameHelpLabelFont = this.$$$getFont$$$(null, Font.PLAIN, -1, usernameHelpLabel.getFont());
+    if (usernameHelpLabelFont != null) usernameHelpLabel.setFont(usernameHelpLabelFont);
+    usernameHelpLabel.setText("[Help text placeholder]");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 5;
+    gbc.gridwidth = 2;
+    gbc.anchor = GridBagConstraints.WEST;
+    panel2.add(usernameHelpLabel, gbc);
     final JPanel spacer9 = new JPanel();
     gbc = new GridBagConstraints();
-    gbc.gridx = 1;
+    gbc.gridx = 3;
     gbc.gridy = 3;
-    gbc.gridwidth = 3;
-    gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.VERTICAL;
-    dialog.add(spacer9, gbc);
+    panel2.add(spacer9, gbc);
     final JPanel spacer10 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 3;
+    gbc.gridy = 6;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    panel2.add(spacer10, gbc);
+    final JPanel spacer11 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 1;
     gbc.gridwidth = 3;
+    gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.VERTICAL;
-    dialog.add(spacer10, gbc);
-    accountTipTextPane = new JTextPane();
-    accountTipTextPane.setEditable(false);
-    accountTipTextPane.setMinimumSize(new Dimension(600, 60));
-    accountTipTextPane.setOpaque(false);
-    accountTipTextPane.setPreferredSize(new Dimension(600, 60));
-    accountTipTextPane.setText("Username cannot be a Google login; it must be an ODK Aggregate username with \"Form Manager\" permissions");
-    gbc = new GridBagConstraints();
-    gbc.gridx = 1;
-    gbc.gridy = 2;
-    gbc.gridwidth = 3;
-    gbc.fill = GridBagConstraints.BOTH;
-    dialog.add(accountTipTextPane, gbc);
+    dialog.add(spacer11, gbc);
+    label1.setLabelFor(urlField);
+    usernameHelpLabel.setLabelFor(usernameField);
+  }
+
+  /**
+   * @noinspection ALL
+   */
+  private Font $$$getFont$$$(String fontName, int style, int size, Font currentFont) {
+    if (currentFont == null) return null;
+    String resultName;
+    if (fontName == null) {resultName = currentFont.getName();} else {
+      Font testFont = new Font(fontName, Font.PLAIN, 10);
+      if (testFont.canDisplay('a') && testFont.canDisplay('1')) {resultName = fontName;} else {resultName = currentFont.getName();}
+    }
+    return new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
   }
 
   /**
@@ -335,4 +385,5 @@ public class AggregateServerDialogForm extends JDialog {
   public JComponent $$$getRootComponent$$$() {
     return dialog;
   }
+
 }

@@ -32,17 +32,22 @@ import java.awt.Insets;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
+import java.util.Optional;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.reused.OptionalProduct;
+import org.opendatakit.briefcase.reused.http.Credentials;
 
 public class UI {
   private static final Font ic_receipt = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
@@ -171,5 +176,12 @@ public class UI {
   public static void removeAllMouseListeners(JComponent component) {
     for (MouseListener listener : component.getMouseListeners())
       component.removeMouseListener(listener);
+  }
+
+  public static Optional<Credentials> credentialsFromFields(JTextField username, JPasswordField password) {
+    return OptionalProduct.all(
+        Optional.ofNullable(username.getText()).map(String::trim).filter(s -> !s.isEmpty()),
+        Optional.of(new String(password.getPassword())).filter(s -> !s.isEmpty())
+    ).map(Credentials::new);
   }
 }

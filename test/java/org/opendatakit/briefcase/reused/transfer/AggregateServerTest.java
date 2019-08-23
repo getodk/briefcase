@@ -25,6 +25,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
+import static org.opendatakit.briefcase.reused.transfer.AggregateServer.cleanUrl;
 import static org.opendatakit.briefcase.reused.transfer.AggregateServer.clearStoredPrefs;
 import static org.opendatakit.briefcase.reused.transfer.AggregateServer.isPrefKey;
 import static org.opendatakit.briefcase.reused.transfer.AggregateServer.normal;
@@ -305,5 +306,17 @@ public class AggregateServerTest {
     assertThat(isPrefKey("some_form_pull_source_aggregate_url"), is(true));
     assertThat(isPrefKey("some_form_pull_source_aggregate_username"), is(true));
     assertThat(isPrefKey("some_form_pull_source_aggregate_password"), is(true));
+  }
+
+  @Test
+  public void knows_how_to_clean_copied_and_pasted_Aggregate_URLs_from_a_browser() {
+    assertThat(
+        cleanUrl("https://sandbox.aggregate.opendatakit.org/Aggregate.html#submissions/filter///"),
+        is("https://sandbox.aggregate.opendatakit.org")
+    );
+    assertThat(
+        cleanUrl("https://someserver.com/nonRootWebapp/Aggregate.html#submissions/filter///"),
+        is("https://someserver.com/nonRootWebapp")
+    );
   }
 }

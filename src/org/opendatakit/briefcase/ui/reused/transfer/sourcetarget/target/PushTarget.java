@@ -33,7 +33,7 @@ public interface PushTarget<T> extends SourceOrTarget<T> {
   }
 
   static PushTarget<AggregateServer> aggregate(Http http, Consumer<PushTarget> consumer) {
-    return new Aggregate(http, server -> http.execute(server.getPushFormPreflightRequest()), "Form Manager", consumer);
+    return new Aggregate(http, server -> http.execute(server.getPushFormPreflightRequest()), "Must have Form Manager permissions", consumer);
   }
 
   static PushTarget<CentralServer> central(Http http, Consumer<PushTarget> consumer) {
