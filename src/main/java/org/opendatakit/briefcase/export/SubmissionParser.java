@@ -90,7 +90,7 @@ public class SubmissionParser {
             paths.add(Pair.of(submissionFile, submissionDate.orElse(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC))));
           } catch (Throwable t) {
             log.error("Can't read submission date", t);
-            EventBus.publish(ExportEvent.failureSubmission(formDef, instanceDir.getFileName().toString(), t));
+            EventBus.publish(ExportEvent.failureSubmission(formDef, instanceDir.getFileName().toString(), t, formDef.getFormId()));
           }
         });
     return paths.parallelStream()

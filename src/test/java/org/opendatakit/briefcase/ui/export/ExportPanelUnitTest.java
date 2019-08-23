@@ -128,7 +128,7 @@ public class ExportPanelUnitTest {
 
     assertThat(inMemoryPrefs.nullSafeGet(buildExportDateTimePrefix(formId)), isEmpty());
 
-    ExportEvent event = ExportEvent.successForm(getFormDef(form), 10);
+    ExportEvent event = ExportEvent.successForm(10, getFormDef(form).getFormId());
     forms.appendStatus(event);
 
     assertThat(inMemoryPrefs.nullSafeGet(buildExportDateTimePrefix(formId)), isPresent());

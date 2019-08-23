@@ -27,38 +27,38 @@ public class ExportEvent {
     this.success = success;
   }
 
-  public static ExportEvent progress(FormDefinition form, double percentage) {
+  public static ExportEvent progress(double percentage, String formId) {
     int base100Percentage = Double.valueOf(percentage * 100).intValue();
     String statusLine = String.format("Exported %s%% of the submissions", base100Percentage);
-    return new ExportEvent(form.getFormId(), statusLine, false);
+    return new ExportEvent(formId, statusLine, false);
   }
 
-  public static ExportEvent start(FormDefinition form) {
-    return new ExportEvent(form.getFormId(), "Export has started", false);
+  public static ExportEvent start(String formId) {
+    return new ExportEvent(formId, "Export has started", false);
   }
 
-  public static ExportEvent end(FormDefinition form, long exported) {
-    return new ExportEvent(form.getFormId(), "Export has ended", false);
+  public static ExportEvent end(long exported, String formId) {
+    return new ExportEvent(formId, "Export has ended", false);
   }
 
-  public static ExportEvent failure(FormDefinition form, String cause) {
-    return new ExportEvent.Failure(form.getFormId(), String.format("Failure: %s", cause), false);
+  public static ExportEvent failure(String cause, String formId) {
+    return new ExportEvent.Failure(formId, String.format("Failure: %s", cause), false);
   }
 
-  public static ExportEvent failureSubmission(FormDefinition form, String instanceId, Throwable cause) {
+  public static ExportEvent failureSubmission(FormDefinition form, String instanceId, Throwable cause, String formId) {
     return new ExportEvent(
-        form.getFormId(),
-        String.format("Can't export submission %s of form ID %s. Cause: %s", instanceId, form.getFormId(), cause.getMessage()),
+        formId,
+        String.format("Can't export submission %s of form ID %s. Cause: %s", instanceId, formId, cause.getMessage()),
         false
     );
   }
 
-  public static ExportEvent successForm(FormDefinition formDef, int total) {
-    return new ExportEvent.Success(formDef.getFormId(), String.format("Exported %d submission%s", total, sUnlessOne(total)), true);
+  public static ExportEvent successForm(int total, String formId) {
+    return new ExportEvent.Success(formId, String.format("Exported %d submission%s", total, sUnlessOne(total)), true);
   }
 
-  public static ExportEvent partialSuccessForm(FormDefinition formDef, int exported, int total) {
-    return new ExportEvent.Success(formDef.getFormId(), String.format("Exported %d from %d submission%s", exported, total, sUnlessOne(total)), true);
+  public static ExportEvent partialSuccessForm(int exported, int total, String formId) {
+    return new ExportEvent.Success(formId, String.format("Exported %d from %d submission%s", exported, total, sUnlessOne(total)), true);
   }
 
   public String getFormId() {

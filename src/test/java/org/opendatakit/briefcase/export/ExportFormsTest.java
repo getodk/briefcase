@@ -138,7 +138,7 @@ public class ExportFormsTest {
   public void appends_status_history_on_forms() {
     ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>());
     FormStatus form = forms.get(0);
-    ExportEvent event = ExportEvent.progress(getFormDef(form), 0.33D);
+    ExportEvent event = ExportEvent.progress(0.33D, getFormDef(form).getFormId());
     forms.appendStatus(event);
     assertThat(form.getStatusHistory(), containsString("Exported 33% of the submissions"));
     assertThat(form.getStatusHistory().split("\n").length, is(2)); // There is a leading \n
@@ -151,7 +151,7 @@ public class ExportFormsTest {
 
     assertThat(forms.getLastExportDateTime(form), isEmpty());
 
-    ExportEvent event = ExportEvent.successForm(getFormDef(form), 10);
+    ExportEvent event = ExportEvent.successForm(10, getFormDef(form).getFormId());
     forms.appendStatus(event);
 
     assertThat(forms.getLastExportDateTime(form), isPresent());
@@ -178,7 +178,7 @@ public class ExportFormsTest {
         count.incrementAndGet();
     });
 
-    ExportEvent event = ExportEvent.successForm(getFormDef(form), 10);
+    ExportEvent event = ExportEvent.successForm(10, getFormDef(form).getFormId());
     forms.appendStatus(event);
 
     assertThat(count.get(), is(1));

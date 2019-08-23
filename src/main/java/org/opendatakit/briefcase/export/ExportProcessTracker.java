@@ -29,21 +29,21 @@ import org.slf4j.LoggerFactory;
 public class ExportProcessTracker {
   private static final Logger log = LoggerFactory.getLogger(ExportProcessTracker.class);
 
-  private final FormDefinition form;
+  private final String formId;
   private long start = System.nanoTime();
   long total = 0;
   long exported;
   private int lastReportedPercentage = 0;
 
-  ExportProcessTracker(FormDefinition form) {
-    this.form = form;
+  ExportProcessTracker(String formId) {
+    this.formId = formId;
   }
 
   synchronized void incAndReport() {
     exported++;
     int percentage = (int) (exported * 100 / total);
     if (percentage > lastReportedPercentage) {
-      EventBus.publish(ExportEvent.progress(form, percentage / 100D));
+      EventBus.publish(ExportEvent.progress(percentage / 100D, formId));
       lastReportedPercentage = percentage;
     }
   }
@@ -59,14 +59,14 @@ public class ExportProcessTracker {
   public void start() {
     exported = 0;
     start = System.nanoTime();
-    EventBus.publish(ExportEvent.start(form));
+    EventBus.publish(ExportEvent.start(formId));
   }
 
   public void end() {
     long end = System.nanoTime();
     LocalTime duration = LocalTime.ofNanoOfDay(end - start);
     log.info("Exported in {}", duration.format(DateTimeFormatter.ISO_TIME));
-    EventBus.publish(ExportEvent.end(form, exported));
+    EventBus.publish(ExportEvent.end(exported, formId));
   }
 
   void trackTotal(int total) {

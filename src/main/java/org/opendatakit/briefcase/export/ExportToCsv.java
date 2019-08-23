@@ -74,7 +74,7 @@ public class ExportToCsv {
    */
   private static ExportOutcome export(FormMetadataPort formMetadataPort, FormMetadata formMetadata, FormStatus formStatus, FormDefinition formDef, Path briefcaseDir, ExportConfiguration configuration, Optional<Analytics> analytics) {
     // Create an export tracker object with the total number of submissions we have to export
-    ExportProcessTracker exportTracker = new ExportProcessTracker(formDef);
+    ExportProcessTracker exportTracker = new ExportProcessTracker(formDef.getFormId());
     exportTracker.start();
 
     SubmissionExportErrorCallback onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
@@ -130,13 +130,13 @@ public class ExportToCsv {
 
     ExportOutcome exportOutcome = exportTracker.computeOutcome();
     if (exportOutcome == ALL_EXPORTED)
-      EventBus.publish(ExportEvent.successForm(formDef, (int) exportTracker.total));
+      EventBus.publish(ExportEvent.successForm((int) exportTracker.total, formDef.getFormId()));
 
     if (exportOutcome == SOME_SKIPPED)
-      EventBus.publish(ExportEvent.partialSuccessForm(formDef, (int) exportTracker.exported, (int) exportTracker.total));
+      EventBus.publish(ExportEvent.partialSuccessForm((int) exportTracker.exported, (int) exportTracker.total, formDef.getFormId()));
 
     if (exportOutcome == ALL_SKIPPED)
-      EventBus.publish(ExportEvent.failure(formDef, "All submissions have been skipped"));
+      EventBus.publish(ExportEvent.failure("All submissions have been skipped", formDef.getFormId()));
 
     return exportOutcome;
   }
