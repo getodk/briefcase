@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.FormCache;
@@ -60,6 +61,9 @@ public class ImportFromODK {
         .filter(form -> formId.map(id -> form.getFormDefinition().getFormId().equals(id)).orElse(true))
         .collect(toList()));
     from.selectAll();
+
+    if (formId.isPresent() && from.isEmpty())
+      throw new BriefcaseException("Form " + formId.get() + " not found");
 
     TransferFromODK.pull(briefcaseDir, odkDir, from);
   }
