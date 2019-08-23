@@ -208,7 +208,7 @@
             </constraints>
             <properties>
               <font style="0"/>
-              <text value="Enter the Project's ID number"/>
+              <text value="Project ID is the last number in the URL of the Project Overview"/>
             </properties>
           </component>
           <vspacer id="95c0b">
