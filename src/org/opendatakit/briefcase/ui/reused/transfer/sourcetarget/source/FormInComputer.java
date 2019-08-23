@@ -36,6 +36,7 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
@@ -98,7 +99,7 @@ public class FormInComputer implements PullSource<FormStatus> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, BriefcasePreferences localPreferences) {
+  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
     return JobsRunner.launchAsync(run(jobStatus ->
         install(appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), form)
     )).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));

@@ -65,6 +65,7 @@ final class CsvSubmissionMappers {
         cols.add(submission.getValidationStatus().asCsvValue());
       return CsvLines.of(
           formDefinition.getModel().fqn(),
+          submission.getInstanceId(formDefinition.hasRepeatableFields()),
           submission.getSubmissionDate().orElse(MIN_SUBMISSION_DATE),
           cols.stream().collect(joining(","))
       );
@@ -78,6 +79,7 @@ final class CsvSubmissionMappers {
   static CsvSubmissionMapper repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration) {
     return submission -> CsvLines.of(
         groupModel.fqn(),
+        submission.getInstanceId(),
         submission.getSubmissionDate().orElse(MIN_SUBMISSION_DATE),
         submission.getElements(groupModel.fqn()).stream().map(element -> {
           List<String> cols = new ArrayList<>();

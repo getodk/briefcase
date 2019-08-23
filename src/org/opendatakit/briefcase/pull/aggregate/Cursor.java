@@ -16,16 +16,17 @@
 
 package org.opendatakit.briefcase.pull.aggregate;
 
+import static org.opendatakit.briefcase.model.form.AsJson.getJson;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
+import java.util.stream.Stream;
+import org.opendatakit.briefcase.model.form.AsJson;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class stores information about a cursor to a list of remote submission
@@ -35,34 +36,30 @@ import org.slf4j.LoggerFactory;
  * and "start from date" features, we need to try to parse it and even create artificial
  * cursors.
  */
-public interface Cursor<T extends Cursor> extends Comparable<T> {
-  Logger log = LoggerFactory.getLogger(Cursor.class);
-  String LAST_CURSOR_PREFERENCE_KEY_SUFFIX = "-last-cursor";
-  String LAST_CURSOR_TYPE_PREFERENCE_KEY_SUFFIX = "-last-cursor-type";
-
-  static Optional<Cursor> readPrefs(FormStatus form, BriefcasePreferences prefs) {
-    Type type = prefs.nullSafeGet(form.getFormId() + LAST_CURSOR_TYPE_PREFERENCE_KEY_SUFFIX)
-        .map(Type::from)
-        .orElse(Type.AGGREGATE);
-    return prefs.nullSafeGet(form.getFormId() + LAST_CURSOR_PREFERENCE_KEY_SUFFIX)
-        .map(type::create);
-  }
-
-  static void cleanAllPrefs(BriefcasePreferences prefs) {
-    prefs.keys().stream()
-        .filter(key -> key.endsWith(LAST_CURSOR_PREFERENCE_KEY_SUFFIX) || key.endsWith(LAST_CURSOR_TYPE_PREFERENCE_KEY_SUFFIX))
-        .forEach(prefs::remove);
-  }
+public interface Cursor extends Comparable<Cursor>, AsJson {
 
   static Cursor empty() {
     return new EmptyCursor();
   }
 
+  static Cursor from(JsonNode root) {
+    Type type = getJson(root, "type").map(JsonNode::asText).map(Type::from).orElseThrow(BriefcaseException::new);
+    String value = getJson(root, "value").map(JsonNode::asText).orElse("");
+    return type.create(value);
+  }
+
+
+  static Cursor from(String value) {
+    return firstNonFailing(
+        () -> AggregateCursor.from(value),
+        () -> OnaCursor.from(value),
+        () -> OpaqueCursor.from(value)
+    ).orElseThrow(() -> new BriefcaseException("Unknown cursor format"));
+  }
+
   String getValue();
 
   boolean isEmpty();
-
-  void storePrefs(FormStatus form, BriefcasePreferences prefs);
 
   /**
    * Create a cursor that would start pulling from the provided date in Aggregate servers.
@@ -76,14 +73,6 @@ public interface Cursor<T extends Cursor> extends Comparable<T> {
    */
   static Cursor of(OffsetDateTime lastUpdateDateTime, String uid) {
     return AggregateCursor.of(lastUpdateDateTime, uid);
-  }
-
-  static Cursor from(String value) {
-    return firstNonFailing(
-        () -> AggregateCursor.from(value),
-        () -> OnaCursor.from(value),
-        () -> OpaqueCursor.from(value)
-    ).orElseThrow(() -> new BriefcaseException("Unknown cursor format"));
   }
 
   @SafeVarargs
@@ -100,7 +89,7 @@ public interface Cursor<T extends Cursor> extends Comparable<T> {
 
 
   enum Type {
-
+    EMPTY("empty", s -> new EmptyCursor()),
     AGGREGATE("aggregate", AggregateCursor::from),
     ONA("ona", OnaCursor::from),
     OPAQUE("opaque", OpaqueCursor::from);
@@ -113,12 +102,11 @@ public interface Cursor<T extends Cursor> extends Comparable<T> {
       this.factory = factory;
     }
 
-    static Type from(String type) {
-      if (type.equals("aggregate"))
-        return AGGREGATE;
-      if (type.equals("ona"))
-        return ONA;
-      return OPAQUE;
+    public static Type from(String type) {
+      return Stream.of(values())
+          .filter(t -> t.getName().equals(type))
+          .findFirst()
+          .orElse(OPAQUE);
     }
 
     public Cursor create(String rawValue) {

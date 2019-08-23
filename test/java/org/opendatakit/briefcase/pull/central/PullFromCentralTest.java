@@ -43,6 +43,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
 import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
@@ -65,7 +66,7 @@ public class PullFromCentralTest {
     http = new FakeHttp();
     events = new ArrayList<>();
     tracker = new PullFromCentralTracker(form, e -> events.add(e.getStatusString()));
-    pullOp = new PullFromCentral(http, server, briefcaseDir, token, e -> { });
+    pullOp = new PullFromCentral(http, server, briefcaseDir, token, e -> { }, new InMemoryFormMetadataAdapter());
     runnerStatus = new TestRunnerStatus(false);
   }
 

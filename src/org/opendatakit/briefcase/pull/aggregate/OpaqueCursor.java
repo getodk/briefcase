@@ -1,11 +1,11 @@
 package org.opendatakit.briefcase.pull.aggregate;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Objects;
 import java.util.Optional;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 
-public class OpaqueCursor implements Cursor<OpaqueCursor> {
-
+public class OpaqueCursor implements Cursor {
   private final String value;
 
   private OpaqueCursor(String value) {
@@ -23,18 +23,39 @@ public class OpaqueCursor implements Cursor<OpaqueCursor> {
 
   @Override
   public boolean isEmpty() {
-    return !Optional.ofNullable(value).isPresent();
+    return Optional.ofNullable(value).isEmpty();
   }
 
   @Override
-  public void storePrefs(FormStatus form, BriefcasePreferences prefs) {
-    prefs.put(form.getFormId() + LAST_CURSOR_PREFERENCE_KEY_SUFFIX, getValue());
-    prefs.put(form.getFormId() + LAST_CURSOR_TYPE_PREFERENCE_KEY_SUFFIX, Type.OPAQUE.getName());
+  public ObjectNode asJson(ObjectMapper mapper) {
+    ObjectNode root = mapper.createObjectNode();
+    root.put("type", Type.OPAQUE.getName());
+    root.put("value", value);
+    return root;
   }
 
   @Override
-  public int compareTo(OpaqueCursor o) {
-    return Optional.ofNullable(value).orElse("")
-        .compareTo(Optional.ofNullable(o.value).orElse(""));
+  public int compareTo(Cursor o) {
+    return value.compareTo(((OpaqueCursor) o).value);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    OpaqueCursor that = (OpaqueCursor) o;
+    return Objects.equals(value, that.value);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(value);
+  }
+
+  @Override
+  public String toString() {
+    return "OpaqueCursor{" +
+        "value='" + value + '\'' +
+        '}';
   }
 }

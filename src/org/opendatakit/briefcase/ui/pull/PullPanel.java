@@ -20,7 +20,6 @@ import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
-import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
 import java.util.Optional;
 import javax.swing.JPanel;
@@ -32,8 +31,8 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
-import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer;
@@ -55,7 +54,7 @@ public class PullPanel {
   private JobsRunner pullJobRunner;
   private Optional<PullSource> source;
 
-  private PullPanel(TransferPanelForm<PullSource> view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, Analytics analytics) {
+  private PullPanel(TransferPanelForm<PullSource> view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, Analytics analytics, FormMetadataPort formMetadataPort) {
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
@@ -89,7 +88,7 @@ public class PullPanel {
       view.setWorking();
       forms.forEach(FormStatus::clearStatusHistory);
       new Thread(() -> source.ifPresent(s -> {
-        pullJobRunner = s.pull(forms.getSelectedForms(), appPreferences, tabPreferences);
+        pullJobRunner = s.pull(forms.getSelectedForms(), appPreferences, formMetadataPort);
         pullJobRunner.waitForCompletion();
       })).start();
     });
@@ -106,14 +105,15 @@ public class PullPanel {
     });
   }
 
-  public static PullPanel from(Http http, BriefcasePreferences appPreferences, BriefcasePreferences pullPanelPreferences, Analytics analytics) {
+  public static PullPanel from(Http http, BriefcasePreferences appPreferences, BriefcasePreferences pullPanelPreferences, Analytics analytics, FormMetadataPort formMetadataPort) {
     TransferForms forms = TransferForms.empty();
     return new PullPanel(
         TransferPanelForm.pull(http, forms),
         forms,
         pullPanelPreferences,
         appPreferences,
-        analytics
+        analytics,
+        formMetadataPort
     );
   }
 
@@ -172,7 +172,6 @@ public class PullPanel {
     event.ifRemoteServer((form, server) ->
         server.storeInPrefs(appPreferences, form, getStorePasswordsConsentProperty())
     );
-    event.lastCursor.ifPresent(cursor -> cursor.storePrefs(event.form, appPreferences));
   }
 
   @EventSubscriber(eventClass = PullEvent.PullComplete.class)
@@ -180,11 +179,5 @@ public class PullPanel {
     view.unsetWorking();
     updateActionButtons();
     analytics.event("Pull", "Transfer", "Success", null);
-  }
-
-  @EventSubscriber(eventClass = PullEvent.CleanAllResumePoints.class)
-  public void onCleanAllResumePoints(PullEvent.CleanAllResumePoints e) {
-    Cursor.cleanAllPrefs(appPreferences);
-    infoMessage("Pull history cleared.");
   }
 }

@@ -21,6 +21,7 @@ import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.util.Collections.emptyList;
 import static java.util.function.BinaryOperator.maxBy;
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.model.form.FormMetadataCommands.updateAsPulled;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.get;
@@ -37,10 +38,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.export.XmlElement;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.Pair;
@@ -56,18 +58,18 @@ import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 public class PullFromAggregate {
   private final Http http;
   private final AggregateServer server;
-  private final BriefcasePreferences prefs;
   private final Path briefcaseDir;
   private final boolean includeIncomplete;
   private final Consumer<FormStatusEvent> onEventCallback;
+  private final FormMetadataPort formMetadataPort;
 
-  public PullFromAggregate(Http http, AggregateServer server, Path briefcaseDir, BriefcasePreferences prefs, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback) {
+  public PullFromAggregate(Http http, AggregateServer server, Path briefcaseDir, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback, FormMetadataPort formMetadataPort) {
     this.http = http;
     this.server = server;
-    this.prefs = prefs;
     this.briefcaseDir = briefcaseDir;
     this.includeIncomplete = includeIncomplete;
     this.onEventCallback = onEventCallback;
+    this.formMetadataPort = formMetadataPort;
   }
 
   static Optional<Cursor> getLastCursor(List<InstanceIdBatch> batches) {
@@ -87,6 +89,8 @@ public class PullFromAggregate {
    * Returns a Job that will produce a pull operation result.
    */
   public Job<Void> pull(FormStatus form, Optional<Cursor> lastCursor) {
+    FormKey key = FormKey.from(form);
+
     PullFromAggregateTracker tracker = new PullFromAggregateTracker(form, onEventCallback);
 
     // Download the form and attachments, and get the submissions list
@@ -146,10 +150,11 @@ public class PullFromAggregate {
           });
 
           tracker.trackEnd();
-          // Return the pull result with the last cursor
-          Cursor newLastCursor = getLastCursor(instanceIdBatches).orElse(Cursor.empty());
-          newLastCursor.storePrefs(form, prefs);
-          EventBus.publish(PullEvent.Success.of(form, server, newLastCursor));
+          Cursor newCursor = getLastCursor(instanceIdBatches).orElse(Cursor.empty());
+
+          formMetadataPort.execute(updateAsPulled(key, newCursor, form.getFormDir(briefcaseDir)));
+
+          EventBus.publish(PullEvent.Success.of(form, server));
         });
 
   }
@@ -281,8 +286,7 @@ public class PullFromAggregate {
     return submission;
   }
 
-  void downloadSubmissionAttachment(FormStatus form, DownloadedSubmission submission, AggregateAttachment attachment, RunnerStatus runnerStatus, PullFromAggregateTracker tracker,
-                                    int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
+  void downloadSubmissionAttachment(FormStatus form, DownloadedSubmission submission, AggregateAttachment attachment, RunnerStatus runnerStatus, PullFromAggregateTracker tracker, int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Download attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions);
       return;

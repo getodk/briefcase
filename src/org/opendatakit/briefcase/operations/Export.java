@@ -17,6 +17,7 @@ package org.opendatakit.briefcase.operations;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static org.opendatakit.briefcase.export.ExportForms.buildExportDateTimePrefix;
+import static org.opendatakit.briefcase.model.form.FormMetadataQueries.lastCursorOf;
 import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
@@ -37,6 +38,10 @@ import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.form.FileSystemFormMetadataAdapter;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -67,6 +72,7 @@ public class Export {
   private static final Param<Void> SPLIT_SELECT_MULTIPLES = Param.flag("ssm", "split_select_multiples", "Split select multiple fields");
   private static final Param<Void> INCLUDE_GEOJSON_EXPORT = Param.flag("ig", "include_geojson", "Include a GeoJSON file with spatial data");
   private static final Param<Void> REMOVE_GROUP_NAMES = Param.flag("rgn", "remove_group_names", "Remove group names from column names");
+  private static final Param<Void> SMART_APPEND = Param.flag("sa", "smart_append", "Include only new submissions since last export");
 
   public static Operation EXPORT_FORM = Operation.of(
       EXPORT,
@@ -83,13 +89,14 @@ public class Export {
           args.getOptional(PEM_FILE),
           args.has(SPLIT_SELECT_MULTIPLES),
           args.has(INCLUDE_GEOJSON_EXPORT),
-          args.has(REMOVE_GROUP_NAMES)
+          args.has(REMOVE_GROUP_NAMES),
+          args.has(SMART_APPEND)
       ),
       Arrays.asList(STORAGE_DIR, FORM_ID, FILE, EXPORT_DIR),
-      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE, SPLIT_SELECT_MULTIPLES, INCLUDE_GEOJSON_EXPORT, REMOVE_GROUP_NAMES)
+      Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE, SPLIT_SELECT_MULTIPLES, INCLUDE_GEOJSON_EXPORT, REMOVE_GROUP_NAMES, SMART_APPEND)
   );
 
-  public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, boolean pullBefore, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile, boolean splitSelectMultiples, boolean includeGeoJsonExport, boolean removeGroupNames) {
+  public static void export(String storageDir, String formid, Path exportDir, String baseFilename, boolean exportMedia, boolean overwriteFiles, boolean pullBefore, Optional<LocalDate> startDate, Optional<LocalDate> endDate, Optional<Path> maybePemFile, boolean splitSelectMultiples, boolean includeGeoJsonExport, boolean removeGroupNames, boolean smartAppend) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
@@ -97,6 +104,7 @@ public class Export {
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     BriefcasePreferences exportPrefs = BriefcasePreferences.forClass(ExportPanel.class);
     BriefcasePreferences pullPrefs = BriefcasePreferences.forClass(ExportPanel.class);
+    FormMetadataPort formMetadataPort = FileSystemFormMetadataAdapter.at(briefcaseDir);
 
     int maxHttpConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
@@ -125,32 +133,30 @@ public class Export {
         .setSplitSelectMultiples(splitSelectMultiples)
         .setIncludeGeoJsonExport(includeGeoJsonExport)
         .setRemoveGroupNames(removeGroupNames)
+        .setSmartAppend(smartAppend)
         .build();
+
+    FormStatus formStatus = new FormStatus(formDefinition);
+    FormKey key = FormKey.from(formStatus);
+    FormMetadata formMetadata = formMetadataPort.fetch(key).orElseThrow(BriefcaseException::new);
 
     Job<Void> pullJob = Job.noOpSupplier();
     if (configuration.resolvePullBefore()) {
-      FormStatus formStatus = new FormStatus(formDefinition);
       Optional<AggregateServer> server = AggregateServer.readFromPrefs(appPreferences, pullPrefs, formStatus);
-      if (server.isPresent())
-        pullJob = new PullFromAggregate(
-            http,
-            server.get(),
-            briefcaseDir,
-            appPreferences,
-            false,
-            Export::onEvent
-        ).pull(
-            formStatus,
-            appPreferences.getResumeLastPull().orElse(false)
-                ? Cursor.readPrefs(formStatus, appPreferences)
-                : Optional.empty()
-        );
+      if (server.isPresent()) {
+        Optional<Cursor> lastCursor = appPreferences.resolveStartFromLast()
+            ? formMetadataPort.query(lastCursorOf(key))
+            : Optional.empty();
+
+        pullJob = new PullFromAggregate(http, server.get(), briefcaseDir, false, Export::onEvent, formMetadataPort)
+            .pull(formStatus, lastCursor);
+      }
     }
 
-    Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration));
+    Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadataPort, formMetadata, formStatus, formDef, briefcaseDir, configuration));
 
     Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
-        ? Job.run(runnerStatus -> ExportToGeoJson.export(formDef, configuration))
+        ? Job.run(runnerStatus -> ExportToGeoJson.export(formMetadata, formDef, configuration))
         : Job.noOp;
 
     Job<Void> job = pullJob

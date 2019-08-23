@@ -29,6 +29,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.model.form.FormMetadataQueries.lastCursorOf;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createTempDirectory;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.readAllBytes;
@@ -58,6 +59,8 @@ import org.junit.Test;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.job.RunnerStatus;
@@ -77,6 +80,7 @@ public class PullFromAggregateIntegrationTest {
   private PullFromAggregate pullOp;
   private RunnerStatus runnerStatus;
   private PullFromAggregateTracker tracker;
+  private InMemoryFormMetadataAdapter formMetadataPort;
 
   private static Path getPath(String fileName) {
     return Optional.ofNullable(PullFromAggregateIntegrationTest.class.getClassLoader().getResource("org/opendatakit/briefcase/pull/aggregate/" + fileName))
@@ -91,7 +95,8 @@ public class PullFromAggregateIntegrationTest {
     prefs.setStorageDir(tmpDir);
     server = httpServer(serverPort);
     tracker = new PullFromAggregateTracker(form, e -> { });
-    pullOp = new PullFromAggregate(CommonsHttp.of(1), aggregateServer, briefcaseDir, prefs, true, e -> { });
+    formMetadataPort = new InMemoryFormMetadataAdapter();
+    pullOp = new PullFromAggregate(CommonsHttp.of(1), aggregateServer, briefcaseDir, true, e -> { }, formMetadataPort);
     runnerStatus = new TestRunnerStatus(false);
 
   }
@@ -144,6 +149,7 @@ public class PullFromAggregateIntegrationTest {
     // Run the pull operation and just check that some key events are published
     running(server, () -> launchSync(pullOp.pull(form, Optional.empty())));
 
+    // Assert that pulling the form works indirectly by going through the status changes of the form
     assertThat(form.getStatusHistory(), containsString("Form downloaded"));
     assertThat(form.getStatusHistory(), containsString("Start downloading form attachment 1 of 2"));
     assertThat(form.getStatusHistory(), containsString("Start downloading form attachment 2 of 2"));
@@ -158,6 +164,13 @@ public class PullFromAggregateIntegrationTest {
     assertThat(form.getStatusHistory(), containsString("Attachment 1 of 2 of submission 250 of 250 downloaded"));
     assertThat(form.getStatusHistory(), containsString("Attachment 2 of 2 of submission 250 of 250 downloaded"));
     assertThat(form.getStatusHistory(), containsString("Success"));
+
+    // Assert that the last pull cursor gets saved
+
+    Cursor actualLastCursor = formMetadataPort
+        .query(lastCursorOf(FormKey.from(form)))
+        .orElseThrow(RuntimeException::new);
+    assertThat(actualLastCursor, is(submissionPages.get(3).getRight()));
   }
 
   @Test

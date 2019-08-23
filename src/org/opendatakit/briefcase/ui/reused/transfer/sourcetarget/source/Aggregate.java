@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source;
 
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.model.form.FormMetadataQueries.lastCursorOf;
 import static org.opendatakit.briefcase.ui.reused.UI.makeClickable;
 import static org.opendatakit.briefcase.ui.reused.UI.uncheckedBrowse;
 
@@ -28,11 +29,11 @@ import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
-import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
@@ -88,25 +89,28 @@ public class Aggregate implements PullSource<AggregateServer> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, BriefcasePreferences localPreferences) {
+  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
+    boolean resumeLastPull = appPreferences.resolveStartFromLast();
     PullFromAggregate pullOp = new PullFromAggregate(
         http,
         server,
         appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
-        appPreferences,
         false,
-        EventBus::publish
+        EventBus::publish,
+        formMetadataPort
     );
 
     return JobsRunner.launchAsync(
-        forms.map(form -> pullOp.pull(form, getCursor(appPreferences, localPreferences, form)))
+        forms.map(form -> {
+          FormKey key = FormKey.from(form);
+          return pullOp.pull(
+              form,
+              resumeLastPull
+                  ? formMetadataPort.query(lastCursorOf(key))
+                  : Optional.empty()
+          );
+        })
     ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
-  }
-
-  private Optional<Cursor> getCursor(BriefcasePreferences appPreferences, BriefcasePreferences localPreferences, FormStatus form) {
-    return appPreferences.getResumeLastPull().orElse(false)
-        ? Optionals.race(Cursor.readPrefs(form, appPreferences), Cursor.readPrefs(form, localPreferences))
-        : Optional.empty();
   }
 
   @Override

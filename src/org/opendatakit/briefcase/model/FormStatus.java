@@ -129,4 +129,8 @@ public class FormStatus {
   public Path getSubmissionMediaFile(Path briefcaseDir, String instanceId, String filename) {
     return getSubmissionDir(briefcaseDir, instanceId).resolve(filename);
   }
+
+  public Optional<String> getVersion() {
+    return Optional.ofNullable(form.getVersionString()).filter(s -> !s.trim().isEmpty());
+  }
 }

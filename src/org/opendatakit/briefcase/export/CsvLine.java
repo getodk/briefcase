@@ -12,12 +12,18 @@ import java.util.Objects;
  * - Value equlity rules
  */
 class CsvLine {
+  private final String instanceId;
   private final OffsetDateTime submissionDate;
   private final String line;
 
-  CsvLine(OffsetDateTime submissionDate, String line) {
+  CsvLine(String instanceId, OffsetDateTime submissionDate, String line) {
+    this.instanceId = instanceId;
     this.submissionDate = submissionDate;
     this.line = line;
+  }
+
+  public String getInstanceId() {
+    return instanceId;
   }
 
   public OffsetDateTime getSubmissionDate() {
@@ -30,7 +36,7 @@ class CsvLine {
 
   @Override
   public String toString() {
-    return "csv[" + submissionDate + "] " + line + "]";
+    return "csv[" + instanceId + " - " + submissionDate + "] " + line + "]";
   }
 
   @Override

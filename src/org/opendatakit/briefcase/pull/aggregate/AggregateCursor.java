@@ -17,15 +17,16 @@
 package org.opendatakit.briefcase.pull.aggregate;
 
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+import static org.opendatakit.briefcase.pull.aggregate.Cursor.Type.AGGREGATE;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Objects;
 import java.util.Optional;
 import org.opendatakit.briefcase.export.XmlElement;
-import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.Iso8601Helpers;
 
 /**
@@ -46,7 +47,7 @@ import org.opendatakit.briefcase.reused.Iso8601Helpers;
  * to further filter the contents of a submission instanceID page when the existing
  * submissions from the provided date don't fit in the same page.
  */
-public class AggregateCursor implements Cursor<AggregateCursor> {
+public class AggregateCursor implements Cursor {
   /**
    * This date is used only to compare Cursors that might have an empty value in lastUpdate
    */
@@ -89,6 +90,14 @@ public class AggregateCursor implements Cursor<AggregateCursor> {
     return new AggregateCursor(cursorXml, lastUpdate, lastReturnedValue);
   }
 
+  @Override
+  public ObjectNode asJson(ObjectMapper mapper) {
+    ObjectNode root = mapper.createObjectNode();
+    root.put("type", AGGREGATE.getName());
+    root.put("value", value);
+    return root;
+  }
+
   /**
    * Returns a synthetic Cursor instance with the provided values.
    */
@@ -113,7 +122,7 @@ public class AggregateCursor implements Cursor<AggregateCursor> {
     return of(date.atStartOfDay().atOffset(ZoneOffset.UTC), lastReturnedValue);
   }
 
-  private static String buildCursorXml(OffsetDateTime lastUpdate, Optional<String> lastUri) {
+  public static String buildCursorXml(OffsetDateTime lastUpdate, Optional<String> lastUri) {
     return String.format("<cursor xmlns=\"http://www.opendatakit.org/cursor\">" +
             "<attributeName>_LAST_UPDATE_DATE</attributeName>" +
             "<attributeValue>%s</attributeValue>" +
@@ -143,29 +152,33 @@ public class AggregateCursor implements Cursor<AggregateCursor> {
   }
 
   @Override
-  public int compareTo(AggregateCursor other) {
+  public int compareTo(Cursor other) {
     // Hacky way to adapt to values that might have empty lastUpdate
     // members that provides valid comparison results for our purposes
-    return lastUpdate.orElse(SOME_OLD_DATE).compareTo(other.lastUpdate.orElse(SOME_OLD_DATE));
+    return lastUpdate.orElse(SOME_OLD_DATE).compareTo(((AggregateCursor) other).lastUpdate.orElse(SOME_OLD_DATE));
   }
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    AggregateCursor cursor = (AggregateCursor) o;
-    return lastUpdate.equals(cursor.lastUpdate) &&
-        lastReturnedValue.equals(cursor.lastReturnedValue);
+    AggregateCursor that = (AggregateCursor) o;
+    return Objects.equals(value, that.value) &&
+        Objects.equals(lastUpdate, that.lastUpdate) &&
+        Objects.equals(lastReturnedValue, that.lastReturnedValue);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(lastUpdate, lastReturnedValue);
+    return Objects.hash(value, lastUpdate, lastReturnedValue);
   }
 
   @Override
-  public void storePrefs(FormStatus form, BriefcasePreferences prefs) {
-    prefs.put(form.getFormId() + LAST_CURSOR_PREFERENCE_KEY_SUFFIX, getValue());
-    prefs.put(form.getFormId() + LAST_CURSOR_TYPE_PREFERENCE_KEY_SUFFIX, Type.AGGREGATE.getName());
+  public String toString() {
+    return "AggregateCursor{" +
+        "value='" + value + '\'' +
+        ", lastUpdate=" + lastUpdate +
+        ", lastReturnedValue=" + lastReturnedValue +
+        '}';
   }
 }

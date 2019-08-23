@@ -51,6 +51,7 @@ import org.opendatakit.briefcase.matchers.PathMatchers;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
+import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
 import org.opendatakit.briefcase.reused.http.RequestSpy;
@@ -78,7 +79,7 @@ public class PullFromAggregateTest {
     http = new FakeHttp();
     events = new ArrayList<>();
     tracker = new PullFromAggregateTracker(form, e -> events.add(e.getStatusString()));
-    pullOp = new PullFromAggregate(http, server, briefcaseDir, prefs, includeIncomplete, e -> { });
+    pullOp = new PullFromAggregate(http, server, briefcaseDir, includeIncomplete, e -> { }, new InMemoryFormMetadataAdapter());
     runnerStatus = new TestRunnerStatus(false);
   }
 

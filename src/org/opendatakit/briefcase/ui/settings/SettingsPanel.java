@@ -16,13 +16,14 @@
 
 package org.opendatakit.briefcase.ui.settings;
 
+import static org.opendatakit.briefcase.model.form.FormMetadataCommands.cleanAllCursors;
 import static org.opendatakit.briefcase.ui.reused.UI.infoMessage;
 
 import java.nio.file.Path;
 import javax.swing.JPanel;
-import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.reused.Analytics;
@@ -35,12 +36,12 @@ public class SettingsPanel {
   private final SettingsPanelForm form;
 
   @SuppressWarnings("checkstyle:Indentation")
-  private SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http, BriefcaseVersionManager versionManager) {
+  private SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http, BriefcaseVersionManager versionManager, FormMetadataPort formMetadataPort) {
     this.form = form;
 
     appPreferences.getBriefcaseDir().ifPresent(path -> form.setStorageLocation(path.getParent()));
     appPreferences.getMaxHttpConnections().ifPresent(form::setMaxHttpConnections);
-    appPreferences.getResumeLastPull().ifPresent(form::setResumeLastPull);
+    appPreferences.getStartFromLast().ifPresent(form::setResumeLastPull);
     appPreferences.getRememberPasswords().ifPresent(form::setRememberPasswords);
     appPreferences.getSendUsageData().ifPresent(form::setSendUsageData);
     appPreferences.getHttpProxy().ifPresent(httpProxy -> {
@@ -55,13 +56,15 @@ public class SettingsPanel {
       formCache.setLocation(briefcaseDir);
       formCache.update();
       appPreferences.setStorageDir(path);
+      formMetadataPort.syncWithFilesAt(briefcaseDir);
     }, () -> {
       formCache.unsetLocation();
       formCache.update();
       appPreferences.unsetStorageDir();
+      formMetadataPort.flush();
     });
     form.onMaxHttpConnectionsChange(appPreferences::setMaxHttpConnections);
-    form.onResumeLastPullChange(appPreferences::setResumeLastPull);
+    form.onResumeLastPullChange(appPreferences::setStartFromLast);
     form.onRememberPasswordsChange(appPreferences::setRememberPasswords);
     form.onSendUsageDataChange(enabled -> {
       appPreferences.setSendUsage(enabled);
@@ -76,16 +79,20 @@ public class SettingsPanel {
     });
     form.onReloadCache(() -> {
       formCache.update();
+      formMetadataPort.syncWithFilesAt(appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new));
       infoMessage("Forms successfully reloaded from storage location.");
     });
-    form.onCleanAllPullResumePoints(() -> EventBus.publish(new PullEvent.CleanAllResumePoints()));
+    form.onCleanAllPullResumePoints(() -> {
+      formMetadataPort.execute(cleanAllCursors());
+      infoMessage("Pull history cleared.");
+    });
 
     form.setVersion(versionManager.getCurrent());
   }
 
-  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http, BriefcaseVersionManager versionManager) {
+  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http, BriefcaseVersionManager versionManager, FormMetadataPort formMetadataPort) {
     SettingsPanelForm settingsPanelForm = new SettingsPanelForm();
-    return new SettingsPanel(settingsPanelForm, appPreferences, analytics, formCache, http, versionManager);
+    return new SettingsPanel(settingsPanelForm, appPreferences, analytics, formCache, http, versionManager, formMetadataPort);
   }
 
   public JPanel getContainer() {

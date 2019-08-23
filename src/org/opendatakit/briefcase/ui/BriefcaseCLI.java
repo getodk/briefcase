@@ -324,6 +324,7 @@ public class BriefcaseCLI {
             Optional.ofNullable(pemKeyFile).map(Paths::get),
             false,
             false,
+            false,
             false
         );
     } catch (BriefcaseException e) {

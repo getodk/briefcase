@@ -39,7 +39,9 @@ import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.pull.aggregate.Cursor;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.CacheUpdateEvent;
@@ -62,8 +64,9 @@ public class ExportPanel {
   private final Analytics analytics;
   private final FormCache formCache;
   private final Http http;
+  private final FormMetadataPort formMetadataPort;
 
-  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences exportPreferences, BriefcasePreferences pullPanelPrefs, Analytics analytics, FormCache formCache, Http http) {
+  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences exportPreferences, BriefcasePreferences pullPanelPrefs, Analytics analytics, FormCache formCache, Http http, FormMetadataPort formMetadataPort) {
     this.forms = forms;
     this.form = form;
     this.appPreferences = appPreferences;
@@ -72,6 +75,7 @@ public class ExportPanel {
     this.analytics = analytics;
     this.formCache = formCache;
     this.http = http;
+    this.formMetadataPort = formMetadataPort;
     AnnotationProcessor.process(this);// if not using AOP
     analytics.register(form.getContainer());
 
@@ -151,7 +155,7 @@ public class ExportPanel {
     }
   }
 
-  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics, FormCache formCache, Http http) {
+  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics, FormCache formCache, Http http, FormMetadataPort formMetadataPort) {
     ExportConfiguration initialDefaultConf = load(exportPreferences);
     ExportForms forms = ExportForms.load(initialDefaultConf, toFormStatuses(formCache.getForms()), exportPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, pullPrefs, initialDefaultConf);
@@ -163,7 +167,8 @@ public class ExportPanel {
         pullPrefs,
         analytics,
         formCache,
-        http
+        http,
+        formMetadataPort
     );
   }
 
@@ -184,6 +189,8 @@ public class ExportPanel {
 
   private void export() {
     Stream<Job<?>> allJobs = forms.getSelectedForms().stream().map(form -> {
+      FormKey key = FormKey.from(form);
+      FormMetadata formMetadata = formMetadataPort.fetch(key).orElseThrow(BriefcaseException::new);
       form.setStatusString("Starting to export form");
       String formId = form.getFormDefinition().getFormId();
       ExportConfiguration configuration = forms.getConfiguration(formId);
@@ -192,19 +199,19 @@ public class ExportPanel {
       Optional<AggregateServer> savedPullSource = RemoteServer.readFromPrefs(appPreferences, pullPanelPrefs, form);
 
       Job<Void> pullJob = configuration.resolvePullBefore() && savedPullSource.isPresent()
-          ? new PullFromAggregate(http, savedPullSource.get(), appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), appPreferences, false, EventBus::publish)
+          ? new PullFromAggregate(http, savedPullSource.get(), appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), false, EventBus::publish, formMetadataPort)
           .pull(
               form,
-              appPreferences.getResumeLastPull().orElse(false)
-                  ? Cursor.readPrefs(form, appPreferences)
+              appPreferences.resolveStartFromLast()
+                  ? Optional.of(formMetadata.getCursor())
                   : Optional.empty()
           )
           : Job.noOpSupplier();
 
-      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formDef, configuration, analytics));
+      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadataPort, formMetadata, form, formDef, appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), configuration, analytics));
 
       Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
-          ? Job.run(runnerStatus -> ExportToGeoJson.export(formDef, configuration, analytics))
+          ? Job.run(runnerStatus -> ExportToGeoJson.export(formMetadata, formDef, configuration, analytics))
           : Job.noOp;
 
       return Job

@@ -104,7 +104,7 @@ public class Job<T> {
    * Creates a new Job that will feed this job's result into the provided function
    * and return null once completed.
    */
-  public <U> Job<U> thenRun(Consumer<RunnerStatus> runnerAwareConsumer) {
+  public Job<Void> thenRun(Consumer<RunnerStatus> runnerAwareConsumer) {
     return new Job<>(runnerStatus -> {
       runnerAwareSupplier.apply(runnerStatus);
       runnerAwareConsumer.accept(runnerStatus);

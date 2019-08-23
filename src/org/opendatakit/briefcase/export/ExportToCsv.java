@@ -25,6 +25,7 @@ import static org.opendatakit.briefcase.export.ExportOutcome.ALL_EXPORTED;
 import static org.opendatakit.briefcase.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
 import static org.opendatakit.briefcase.export.SubmissionParser.getListOfSubmissionFiles;
+import static org.opendatakit.briefcase.model.form.FormMetadataCommands.updateLastExportedSubmission;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
@@ -32,11 +33,15 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 
 import java.nio.file.Path;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.bushe.swing.event.EventBus;
+import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FormMetadata;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,15 +52,15 @@ public class ExportToCsv {
   /**
    * @see #export(FormDefinition, ExportConfiguration, Optional)
    */
-  public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration) {
-    return export(formDef, configuration, Optional.empty());
+  public static ExportOutcome export(FormMetadataPort formMetadataPort, FormMetadata formMetadata, FormStatus formStatus, FormDefinition formDef, Path briefcaseDir, ExportConfiguration configuration) {
+    return export(formMetadataPort, formMetadata, formStatus, formDef, briefcaseDir, configuration, Optional.empty());
   }
 
   /**
    * @see #export(FormDefinition, ExportConfiguration, Optional)
    */
-  public static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration, Analytics analytics) {
-    return export(formDef, configuration, Optional.of(analytics));
+  public static ExportOutcome export(FormMetadataPort formMetadataPort, FormMetadata formMetadata, FormStatus formStatus, FormDefinition formDef, Path briefcaseDir, ExportConfiguration configuration, Analytics analytics) {
+    return export(formMetadataPort, formMetadata, formStatus, formDef, briefcaseDir, configuration, Optional.of(analytics));
   }
 
   /**
@@ -68,7 +73,7 @@ public class ExportToCsv {
    * @return an {@link ExportOutcome} with the export operation's outcome
    * @see ExportConfiguration
    */
-  private static ExportOutcome export(FormDefinition formDef, ExportConfiguration configuration, Optional<Analytics> analytics) {
+  private static ExportOutcome export(FormMetadataPort formMetadataPort, FormMetadata formMetadata, FormStatus formStatus, FormDefinition formDef, Path briefcaseDir, ExportConfiguration configuration, Optional<Analytics> analytics) {
     // Create an export tracker object with the total number of submissions we have to export
     ExportProcessTracker exportTracker = new ExportProcessTracker(formDef);
     exportTracker.start();
@@ -79,7 +84,7 @@ public class ExportToCsv {
             analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null))
         );
 
-    List<Path> submissionFiles = getListOfSubmissionFiles(formDef, configuration.getDateRange(), onParsingError);
+    List<Path> submissionFiles = getListOfSubmissionFiles(formMetadata, formDef, configuration.getDateRange(), configuration.resolveSmartAppend(), onParsingError);
     exportTracker.trackTotal(submissionFiles.size());
 
     createDirectories(configuration.getExportDir());
@@ -116,6 +121,13 @@ public class ExportToCsv {
     ));
 
     exportTracker.end();
+
+    Optional.ofNullable(csvLinesPerModel.get(formDef.getModel().fqn()))
+        .orElse(CsvLines.empty())
+        .getLastLine()
+        .ifPresent(line -> {
+          formMetadataPort.execute(updateLastExportedSubmission(formMetadata.getKey(), line.getInstanceId(), line.getSubmissionDate(), OffsetDateTime.now(), formStatus.getFormDir(briefcaseDir)));
+        });
 
     ExportOutcome exportOutcome = exportTracker.computeOutcome();
     if (exportOutcome == ALL_EXPORTED)
