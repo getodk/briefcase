@@ -18,7 +18,6 @@ package org.opendatakit.briefcase.pull.central;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.model.form.FormMetadataCommands.updateAsPulled;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.job.Job.allOf;
 import static org.opendatakit.briefcase.reused.job.Job.run;
@@ -33,6 +32,7 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadataCommands;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.Triple;
@@ -112,7 +112,7 @@ public class PullFromCentral {
               });
           tracker.trackEnd();
 
-          formMetadataPort.execute(updateAsPulled(key, form.getFormDir(briefcaseDir), form.getFormFile(briefcaseDir)));
+          formMetadataPort.execute(FormMetadataCommands.upsert(key, form.getFormFile(briefcaseDir)));
           EventBus.publish(PullEvent.Success.of(form, server));
         }));
   }

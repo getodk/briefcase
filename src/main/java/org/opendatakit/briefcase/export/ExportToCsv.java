@@ -33,7 +33,6 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 
 import java.nio.file.Path;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -126,7 +125,7 @@ public class ExportToCsv {
         .orElse(CsvLines.empty())
         .getLastLine()
         .ifPresent(line -> {
-          formMetadataPort.execute(updateLastExportedSubmission(formMetadata.getKey(), line.getInstanceId(), line.getSubmissionDate(), OffsetDateTime.now(), formStatus.getFormDir(briefcaseDir), formStatus.getFormFile(briefcaseDir)));
+          formMetadataPort.execute(updateLastExportedSubmission(formMetadata, line.getSubmissionDate()));
         });
 
     ExportOutcome exportOutcome = exportTracker.computeOutcome();

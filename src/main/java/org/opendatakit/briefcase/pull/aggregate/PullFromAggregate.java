@@ -21,7 +21,6 @@ import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.util.Collections.emptyList;
 import static java.util.function.BinaryOperator.maxBy;
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.model.form.FormMetadataCommands.updateAsPulled;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.get;
@@ -42,6 +41,7 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadataCommands;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.OptionalProduct;
@@ -152,7 +152,7 @@ public class PullFromAggregate {
           tracker.trackEnd();
           Cursor newCursor = getLastCursor(instanceIdBatches).orElse(Cursor.empty());
 
-          formMetadataPort.execute(updateAsPulled(key, newCursor, form.getFormDir(briefcaseDir), form.getFormFile(briefcaseDir)));
+          formMetadataPort.execute(FormMetadataCommands.upsert(key, form.getFormFile(briefcaseDir), newCursor));
 
           EventBus.publish(PullEvent.Success.of(form, server));
         });

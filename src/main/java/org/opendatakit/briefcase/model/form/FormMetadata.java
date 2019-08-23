@@ -10,26 +10,15 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class FormMetadata {
   private final FormKey key;
-  private final Path formDir;
-  private final Path formFilename;
-  private final boolean hasBeenPulled;
+  private final Optional<Path> formFile;
   private final Cursor cursor;
   private final Optional<OffsetDateTime> lastExportedSubmissionDate;
 
-  public FormMetadata(FormKey key, Path formDir, Path formFilename, boolean hasBeenPulled, Cursor cursor, Optional<OffsetDateTime> lastExportedSubmissionDate) {
+  public FormMetadata(FormKey key, Optional<Path> formFile, Cursor cursor, Optional<OffsetDateTime> lastExportedSubmissionDate) {
     this.key = key;
-    this.formDir = formDir;
-    this.formFilename = formFilename;
-    this.hasBeenPulled = hasBeenPulled;
+    this.formFile = formFile;
     this.cursor = cursor;
     this.lastExportedSubmissionDate = lastExportedSubmissionDate;
-  }
-
-  public static FormMetadata of(FormKey key, Path storageDirectory, Path formFilename) {
-    // Hardcoded storage directory because we want this class to decide where a
-    // form is/should be stored. Now it's based on the Briefcase storage directory,
-    // but it will change in the future to be based on a hash of the form key.
-    return new FormMetadata(key, storageDirectory, formFilename, false, Cursor.empty(), Optional.empty());
   }
 
   public static FormMetadata from(Path formFile) {
@@ -45,7 +34,7 @@ public class FormMetadata {
     String id = mainInstance.childrenOf().get(0).getAttributeValue("id").orElseThrow(BriefcaseException::new);
     Optional<String> version = mainInstance.childrenOf().get(0).getAttributeValue("version");
     FormKey key = FormKey.of(name, id, version);
-    return new FormMetadata(key, formFile.getParent(), formFile.getFileName(), true, Cursor.empty(), Optional.empty());
+    return new FormMetadata(key, Optional.of(formFile), Cursor.empty(), Optional.empty());
   }
 
   private static boolean isTheMainInstance(XmlElement e) {
@@ -54,20 +43,16 @@ public class FormMetadata {
         && e.childrenOf().get(0).hasAttribute("id"); // The only child has an id (sanity check: we can't handle forms without form id)
   }
 
+  public static FormMetadata empty(FormKey key) {
+    return new FormMetadata(key, Optional.empty(), Cursor.empty(), Optional.empty());
+  }
+
   public FormKey getKey() {
     return key;
   }
 
-  public Path getFormDir() {
-    return formDir;
-  }
-
-  public Path getFormFilename() {
-    return formFilename;
-  }
-
-  public boolean hasBeenPulled() {
-    return hasBeenPulled;
+  public Optional<Path> getFormFile() {
+    return formFile;
   }
 
   public Cursor getCursor() {
@@ -78,20 +63,20 @@ public class FormMetadata {
     return lastExportedSubmissionDate;
   }
 
+  public FormMetadata withFormFile(Path formFile) {
+    return new FormMetadata(key, Optional.of(formFile), cursor, lastExportedSubmissionDate);
+  }
+
   FormMetadata withCursor(Cursor cursor) {
-    return new FormMetadata(key, formDir, formFilename, hasBeenPulled, cursor, lastExportedSubmissionDate);
+    return new FormMetadata(key, formFile, cursor, lastExportedSubmissionDate);
   }
 
   public FormMetadata withoutCursor() {
-    return new FormMetadata(key, formDir, formFilename, hasBeenPulled, Cursor.empty(), lastExportedSubmissionDate);
-  }
-
-  FormMetadata withHasBeenPulled(boolean hasBeenPulled) {
-    return new FormMetadata(key, formDir, formFilename, hasBeenPulled, cursor, lastExportedSubmissionDate);
+    return new FormMetadata(key, formFile, Cursor.empty(), lastExportedSubmissionDate);
   }
 
   FormMetadata withLastExportedSubmissionDate(OffsetDateTime submissionDate) {
-    return new FormMetadata(key, formDir, formFilename, hasBeenPulled, cursor, Optional.of(submissionDate));
+    return new FormMetadata(key, formFile, cursor, Optional.of(submissionDate));
   }
 
   @Override
@@ -99,26 +84,22 @@ public class FormMetadata {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     FormMetadata that = (FormMetadata) o;
-    return hasBeenPulled == that.hasBeenPulled &&
-        Objects.equals(key, that.key) &&
-        Objects.equals(formDir, that.formDir) &&
-        Objects.equals(formFilename, that.formFilename) &&
+    return Objects.equals(key, that.key) &&
+        Objects.equals(formFile, that.formFile) &&
         Objects.equals(cursor, that.cursor) &&
         Objects.equals(lastExportedSubmissionDate, that.lastExportedSubmissionDate);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(key, formDir, formFilename, hasBeenPulled, cursor, lastExportedSubmissionDate);
+    return Objects.hash(key, formFile, cursor, lastExportedSubmissionDate);
   }
 
   @Override
   public String toString() {
     return "FormMetadata{" +
         "key=" + key +
-        ", formDir=" + formDir +
-        ", formFilename=" + formFilename +
-        ", hasBeenPulled=" + hasBeenPulled +
+        ", formDir=" + formFile +
         ", cursor=" + cursor +
         ", lastExportedSubmissionDate=" + lastExportedSubmissionDate +
         '}';

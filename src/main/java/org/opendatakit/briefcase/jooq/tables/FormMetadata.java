@@ -30,7 +30,7 @@ import org.opendatakit.briefcase.jooq.tables.records.FormMetadataRecord;
 @SuppressWarnings({"all", "unchecked", "rawtypes"})
 public class FormMetadata extends TableImpl<FormMetadataRecord> {
 
-  private static final long serialVersionUID = -2003636961;
+  private static final long serialVersionUID = 1290697445;
 
   /**
    * The reference instance of <code>PUBLIC.FORM_METADATA</code>
@@ -66,14 +66,9 @@ public class FormMetadata extends TableImpl<FormMetadataRecord> {
   public final TableField<FormMetadataRecord, String> FORM_VERSION = createField("FORM_VERSION", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
 
   /**
-   * The column <code>PUBLIC.FORM_METADATA.FORM_DIR</code>.
+   * The column <code>PUBLIC.FORM_METADATA.FORM_FILE</code>.
    */
-  public final TableField<FormMetadataRecord, String> FORM_DIR = createField("FORM_DIR", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
-
-  /**
-   * The column <code>PUBLIC.FORM_METADATA.FORM_FILENAME</code>.
-   */
-  public final TableField<FormMetadataRecord, String> FORM_FILENAME = createField("FORM_FILENAME", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
+  public final TableField<FormMetadataRecord, String> FORM_FILE = createField("FORM_FILE", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
 
   /**
    * The column <code>PUBLIC.FORM_METADATA.CURSOR_TYPE</code>.

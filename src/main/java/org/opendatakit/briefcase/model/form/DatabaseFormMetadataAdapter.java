@@ -23,6 +23,7 @@ import org.jooq.DSLContext;
 import org.opendatakit.briefcase.jooq.Sequences;
 import org.opendatakit.briefcase.jooq.tables.records.FormMetadataRecord;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class DatabaseFormMetadataAdapter implements FormMetadataPort {
   private final Supplier<DSLContext> dslContextSupplier;
@@ -64,8 +65,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
             FORM_METADATA.FORM_VERSION.eq(formMetadata.getKey().getVersion().orElse(null))
         ).reduce(trueCondition(), Condition::and))
         .whenMatchedThenUpdate()
-        .set(FORM_METADATA.FORM_DIR, formMetadata.getFormDir().toString())
-        .set(FORM_METADATA.FORM_FILENAME, formMetadata.getFormFilename().toString())
+        .set(FORM_METADATA.FORM_FILE, formMetadata.getFormFile().map(Objects::toString).orElseThrow(BriefcaseException::new))
         .set(FORM_METADATA.CURSOR_TYPE, formMetadata.getCursor().getType().getName())
         .set(FORM_METADATA.CURSOR_VALUE, formMetadata.getCursor().getValue())
         .set(FORM_METADATA.LAST_EXPORTED_SUBMISSION_DATE, formMetadata.getLastExportedSubmissionDate().orElse(null))
@@ -74,8 +74,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
             FORM_METADATA.FORM_NAME,
             FORM_METADATA.FORM_ID,
             FORM_METADATA.FORM_VERSION,
-            FORM_METADATA.FORM_DIR,
-            FORM_METADATA.FORM_FILENAME,
+            FORM_METADATA.FORM_FILE,
             FORM_METADATA.CURSOR_TYPE,
             FORM_METADATA.CURSOR_VALUE,
             FORM_METADATA.LAST_EXPORTED_SUBMISSION_DATE
@@ -85,8 +84,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
             value(formMetadata.getKey().getName()),
             value(formMetadata.getKey().getId()),
             value(formMetadata.getKey().getVersion().orElse(null)),
-            value(formMetadata.getFormDir().toString()),
-            value(formMetadata.getFormFilename().toString()),
+            value(formMetadata.getFormFile().map(Objects::toString).orElseThrow(BriefcaseException::new)),
             value(formMetadata.getCursor().getType().getName()),
             value(formMetadata.getCursor().getValue()),
             value(formMetadata.getLastExportedSubmissionDate().orElse(null))
@@ -123,9 +121,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
             record.getFormId(),
             Optional.ofNullable(record.getFormVersion())
         ),
-        Paths.get(record.getFormDir()),
-        Paths.get(record.getFormFilename()),
-        true,
+        Optional.ofNullable(record.getFormFile()).map(Paths::get),
         Cursor.Type.from(record.getCursorType()).create(record.getCursorValue()),
         Optional.ofNullable(record.getLastExportedSubmissionDate())
     );

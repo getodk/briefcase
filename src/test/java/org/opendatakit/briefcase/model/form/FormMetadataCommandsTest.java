@@ -4,8 +4,8 @@ import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAndIs;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.model.form.FormMetadataCommands.cleanAllCursors;
-import static org.opendatakit.briefcase.model.form.FormMetadataCommands.updateAsPulled;
 import static org.opendatakit.briefcase.model.form.FormMetadataCommands.updateLastExportedSubmission;
+import static org.opendatakit.briefcase.model.form.FormMetadataCommands.upsert;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,42 +20,37 @@ import org.opendatakit.briefcase.pull.aggregate.Cursor;
 
 public class FormMetadataCommandsTest {
 
-  private static final Path formDir = Paths.get("/some/path/");
-  private static final Path formFilename = Paths.get("Some form.xml");
+  private static final Path formFile = Paths.get("/some/path/Some form.xml");
   private FormKey key;
   private FormMetadataPort formMetadataPort;
 
   @Before
   public void setUp() {
     key = FormKey.of("Some form", "some-form");
-    FormMetadata formMetadata = new FormMetadata(key, formDir, formFilename, false, Cursor.empty(), Optional.empty());
+    FormMetadata formMetadata = new FormMetadata(key, Optional.of(formFile), Cursor.empty(), Optional.empty());
     formMetadataPort = new InMemoryFormMetadataAdapter();
     formMetadataPort.persist(formMetadata);
   }
 
   @Test
-  public void updates_a_form_as_having_been_pulled() {
-    formMetadataPort.execute(updateAsPulled(key, formDir, formFilename));
-    assertThat(formMetadataPort.fetch(key).get().hasBeenPulled(), is(true));
-  }
+  public void upserts_a_form_providing_the_form_file_path_and_the_cursor() {
+    formMetadataPort.execute(upsert(key, formFile));
+    assertThat(formMetadataPort.fetch(key).orElseThrow().getFormFile(), isPresentAndIs(formFile));
 
-  @Test
-  public void updates_a_form_as_having_been_pulled_adding_the_last_cursor_used_to_pull_it() {
     Cursor cursor = Cursor.from("some cursor data");
-    formMetadataPort.execute(updateAsPulled(key, cursor, formDir, formFilename));
-    FormMetadata formMetadata = formMetadataPort.fetch(key).get();
-    assertThat(formMetadata.hasBeenPulled(), is(true));
-    assertThat(formMetadata.getCursor(), is(cursor));
+    formMetadataPort.execute(upsert(key, formFile, cursor));
+    assertThat(formMetadataPort.fetch(key).orElseThrow().getCursor(), is(cursor));
   }
 
   @Test
   public void updates_a_forms_last_exported_submission_metadata() {
     OffsetDateTime expectedSubmissionDate = OffsetDateTime.parse("2019-01-01T00:00:00.000Z");
-    String expectedInstanceId = "some uuid";
-    OffsetDateTime expectedExportDate = OffsetDateTime.parse("2019-02-01T00:00:00.000Z");
-    formMetadataPort.execute(updateLastExportedSubmission(key, expectedInstanceId, expectedSubmissionDate, expectedExportDate, formDir, formFilename));
+
+    formMetadataPort.execute(upsert(key, formFile));
     FormMetadata formMetadata = formMetadataPort.fetch(key).orElseThrow();
-    assertThat(formMetadata.getLastExportedSubmissionDate(), isPresentAndIs(expectedSubmissionDate));
+
+    formMetadataPort.execute(updateLastExportedSubmission(formMetadata, expectedSubmissionDate));
+    assertThat(formMetadataPort.fetch(key).orElseThrow().getLastExportedSubmissionDate(), isPresentAndIs(expectedSubmissionDate));
   }
 
   @Test
@@ -75,9 +70,8 @@ public class FormMetadataCommandsTest {
   }
 
   private FormMetadata buildFormMetadata(int number) {
-    Path formDir = Paths.get("/some/path/forms/Form " + number);
-    Path formFilename = Paths.get("Some form " + number + ".xml");
+    Path formFile = Paths.get("/some/path/forms/Form " + number + "/Form " + number + ".xml");
     FormKey key = FormKey.of("Form " + number, "form-" + number);
-    return new FormMetadata(key, formDir, formFilename, true, Cursor.from("some cursor data"), Optional.empty());
+    return new FormMetadata(key, Optional.of(formFile), Cursor.from("some cursor data"), Optional.empty());
   }
 }

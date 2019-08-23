@@ -4,37 +4,31 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.walk;
 
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
-import java.util.Optional;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.LegacyPrefs;
 
 public class FormMetadataCommands {
-  public static Consumer<FormMetadataPort> updateAsPulled(FormKey key, Cursor cursor, Path formDir, Path formFilename) {
-    return port -> {
-      Optional<FormMetadata> fetch = port
-          .fetch(key);
-      FormMetadata formMetadata = fetch
-          .orElseGet(() -> FormMetadata.of(key, formDir, formFilename));
-      FormMetadata formMetadata1 = formMetadata
-          .withHasBeenPulled(true)
-          .withCursor(cursor);
-      port.persist(formMetadata1);
-    };
+  public static Consumer<FormMetadataPort> upsert(FormKey key, Path formFile) {
+    return port -> port.persist(port.fetch(key)
+        .orElseGet(() -> FormMetadata.empty(key))
+        .withFormFile(formFile));
+
   }
 
-  public static Consumer<FormMetadataPort> updateAsPulled(FormKey key, Path formDir, Path formfilename) {
-    return port -> port.persist(port
-        .fetch(key)
-        .orElseGet(() -> FormMetadata.of(key, formDir, formfilename))
-        .withHasBeenPulled(true));
+  public static Consumer<FormMetadataPort> upsert(FormKey key, Path formFile, Cursor cursor) {
+    return port -> port.persist(port.fetch(key)
+        .orElseGet(() -> FormMetadata.empty(key))
+        .withFormFile(formFile)
+        .withCursor(cursor));
   }
 
-  public static Consumer<FormMetadataPort> updateLastExportedSubmission(FormKey key, String instanceId, OffsetDateTime submissionDate, OffsetDateTime exportDateTime, Path formDir, Path formFilename) {
+  public static Consumer<FormMetadataPort> updateLastExportedSubmission(FormMetadata formMetadata, OffsetDateTime submissionDate) {
     return port -> port.persist(port
-        .fetch(key)
-        .orElseGet(() -> FormMetadata.of(key, formDir, formFilename))
+        .fetch(formMetadata.getKey())
+        .orElseThrow(BriefcaseException::new)
         .withLastExportedSubmissionDate(submissionDate));
   }
 
