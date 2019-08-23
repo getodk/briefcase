@@ -5,11 +5,13 @@ import static org.jooq.impl.DSL.selectFrom;
 import static org.jooq.impl.DSL.selectOne;
 import static org.jooq.impl.DSL.trueCondition;
 import static org.jooq.impl.DSL.truncate;
+import static org.jooq.impl.DSL.using;
 import static org.jooq.impl.DSL.value;
 import static org.opendatakit.briefcase.jooq.Tables.FORM_METADATA;
 
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -41,7 +43,9 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
 
   @Override
   public void execute(Consumer<FormMetadataPort> command) {
-    command.accept(this);
+    getDslContext().transaction(conf ->
+        command.accept(new DatabaseFormMetadataAdapter(() -> using(conf)))
+    );
   }
 
   @Override
@@ -93,7 +97,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
   @Override
   public void persist(Stream<FormMetadata> formMetadata) {
     // TODO Somehow migrate this into a bulk upsert SQL
-    formMetadata.forEach(this::persist);
+    execute(port -> formMetadata.forEach(port::persist));
   }
 
   @Override
