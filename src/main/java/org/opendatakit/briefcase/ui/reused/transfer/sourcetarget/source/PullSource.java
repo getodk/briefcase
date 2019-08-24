@@ -42,8 +42,8 @@ public interface PullSource<T> extends SourceOrTarget<T> {
     return new CollectDir(consumer);
   }
 
-  static PullSource<FormMetadata> formInComputer(Consumer<PullSource> consumer) {
-    return new FormInComputer(consumer);
+  static PullSource<FormMetadata> formInComputer(Path briefcaseDir, Consumer<PullSource> consumer) {
+    return new FormInComputer(briefcaseDir, consumer);
   }
 
   List<FormMetadata> getFormList();
