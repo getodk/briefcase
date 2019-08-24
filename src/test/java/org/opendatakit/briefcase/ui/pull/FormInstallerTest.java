@@ -21,7 +21,6 @@ import static java.nio.file.Files.walk;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import static org.opendatakit.briefcase.matchers.IterableMatchers.containsAtLeast;
 
 import java.io.IOException;
@@ -31,12 +30,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.pull.FormInstaller;
-import org.opendatakit.briefcase.util.BadFormDefinition;
 
 public class FormInstallerTest {
 
@@ -51,10 +47,11 @@ public class FormInstallerTest {
   }
 
   @Test
-  public void installs_the_form_definition_file() throws IOException, URISyntaxException, BadFormDefinition {
+  public void installs_the_form_definition_file() throws IOException, URISyntaxException {
     Path sourceFormPath = getPath("basic.xml");
 
-    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath).getFormMetadata());
+    FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormPath);
+    FormInstaller.install(sourceFormMetadata, sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)));
 
     assertThat(walk(formsDir).collect(toList()), containsAtLeast(
         formsDir.resolve("basic"),
@@ -63,11 +60,12 @@ public class FormInstallerTest {
   }
 
   @Test
-  public void overwrites_the_form_definition_file_if_needed() throws URISyntaxException, BadFormDefinition, IOException {
+  public void overwrites_the_form_definition_file_if_needed() throws URISyntaxException, IOException {
     Path sourceFormPath = getPath("basic.xml");
 
-    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath).getFormMetadata());
-    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath).getFormMetadata());
+    FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormPath);
+    FormInstaller.install(sourceFormMetadata, sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)));
+    FormInstaller.install(sourceFormMetadata, sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)));
 
     assertThat(walk(formsDir).collect(toList()), containsAtLeast(
         formsDir.resolve("basic"),
@@ -76,38 +74,11 @@ public class FormInstallerTest {
   }
 
   @Test
-  @Ignore
-  // TODO Complete this test when we replace the EventBus
-  public void sends_a_pull_success_event_if_everything_goes_well() {
-    fail("Incomplete test");
-  }
-
-  @Test
-  @Ignore
-  // TODO Complete this test when we replace the EventBus
-  public void sends_a_pull_failure_event_if_everything_something_goes_wrong() {
-    fail("Incomplete test");
-  }
-
-  @Test
-  @Ignore
-  // TODO Complete this test when we replace the EventBus
-  public void sends_a_form_status_event_after_installing_the_form_definition_file() {
-    fail("Incomplete test");
-  }
-
-  @Test
-  @Ignore
-  // TODO Complete this test when we replace the EventBus
-  public void sends_a_form_status_event_after_finishing_the_install_process() {
-    fail("Incomplete test");
-  }
-
-  @Test
-  public void normalizes_the_filename_of_the_form_definition_file_using_the_form_name() throws URISyntaxException, BadFormDefinition, IOException {
+  public void normalizes_the_filename_of_the_form_definition_file_using_the_form_name() throws URISyntaxException, IOException {
     Path sourceFormPath = getPath("basic-form.xml");
 
-    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath).getFormMetadata());
+    FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormPath);
+    FormInstaller.install(sourceFormMetadata, sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)));
 
     List<Path> installedPaths = walk(formsDir).collect(toList());
     assertThat(installedPaths, containsAtLeast(
@@ -118,10 +89,11 @@ public class FormInstallerTest {
   }
 
   @Test
-  public void installs_any_media_file_if_media_folder_is_found_next_to_the_form_definition_file() throws URISyntaxException, BadFormDefinition, IOException {
+  public void installs_any_media_file_if_media_folder_is_found_next_to_the_form_definition_file() throws URISyntaxException, IOException {
     Path sourceFormPath = getPath("Birds.xml");
 
-    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath).getFormMetadata());
+    FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormPath);
+    FormInstaller.install(sourceFormMetadata, sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)));
 
     Path expectedFormDir = formsDir.resolve("Birds");
     Path expectedMediaDir = expectedFormDir.resolve("Birds-media");
@@ -160,11 +132,12 @@ public class FormInstallerTest {
   }
 
   @Test
-  public void overwrites_any_media_file_if_needed() throws URISyntaxException, BadFormDefinition, IOException {
+  public void overwrites_any_media_file_if_needed() throws URISyntaxException, IOException {
     Path sourceFormPath = getPath("Birds.xml");
 
-    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath).getFormMetadata());
-    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath).getFormMetadata());
+    FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormPath);
+    FormInstaller.install(sourceFormMetadata, sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)));
+    FormInstaller.install(sourceFormMetadata, sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)));
 
     Path expectedFormDir = formsDir.resolve("Birds");
     Path expectedMediaDir = expectedFormDir.resolve("Birds-media");
@@ -200,10 +173,6 @@ public class FormInstallerTest {
         expectedMediaDir.resolve("woodpecker.png"),
         expectedMediaDir.resolve("wren.png")
     ));
-  }
-
-  private static FormStatus buildForm(Path formPath) throws BadFormDefinition {
-    return new FormStatus(new OdkCollectFormDefinition(formPath.toFile()));
   }
 
   private static Path getPath(String fileName) throws URISyntaxException {

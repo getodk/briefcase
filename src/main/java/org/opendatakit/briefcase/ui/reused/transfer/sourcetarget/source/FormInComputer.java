@@ -93,8 +93,9 @@ public class FormInComputer implements PullSource<FormMetadata> {
 
   @Override
   public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
+    Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
     return JobsRunner.launchAsync(run(jobStatus ->
-        install(appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), formMetadata)
+        install(formMetadata, formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir)))
     )).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
