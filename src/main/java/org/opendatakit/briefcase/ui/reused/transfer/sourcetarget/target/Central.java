@@ -62,10 +62,10 @@ public class Central implements PushTarget<CentralServer> {
         .forEach(form -> form.setStatusString("Skipping. Encrypted forms can't be pushed to ODK Central yet"));
 
     String token = http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
-    PushToCentral pushOp = new PushToCentral(http, server, briefcaseDir, token, EventBus::publish);
+    PushToCentral pushOp = new PushToCentral(http, server, token, EventBus::publish);
 
     return JobsRunner
-        .launchAsync(forms.filter(f -> !f.isEncrypted()).map(pushOp::push))
+        .launchAsync(forms.filter(f -> !f.isEncrypted()).map(form -> pushOp.push(form.getFormMetadata())))
         .onComplete(() -> EventBus.publish(new PushEvent.Complete()));
   }
 

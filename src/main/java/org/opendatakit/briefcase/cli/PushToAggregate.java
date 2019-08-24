@@ -115,8 +115,8 @@ public class PushToAggregate {
     TransferForms forms = TransferForms.of(statuses);
     forms.selectAll();
 
-    org.opendatakit.briefcase.push.aggregate.PushToAggregate pushOp = new org.opendatakit.briefcase.push.aggregate.PushToAggregate(http, aggregateServer, briefcaseDir, forceSendBlank, PushToAggregate::onEvent);
-    JobsRunner.launchAsync(forms.map(pushOp::push), PushToAggregate::onError).waitForCompletion();
+    org.opendatakit.briefcase.push.aggregate.PushToAggregate pushOp = new org.opendatakit.briefcase.push.aggregate.PushToAggregate(http, aggregateServer, forceSendBlank, PushToAggregate::onEvent);
+    JobsRunner.launchAsync(forms.map(form -> pushOp.push(form.getFormMetadata())), PushToAggregate::onError).waitForCompletion();
     System.out.println();
     System.out.println("All operations completed");
     System.out.println();

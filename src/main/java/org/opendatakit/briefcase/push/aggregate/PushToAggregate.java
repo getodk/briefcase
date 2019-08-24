@@ -29,8 +29,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.export.XmlElement;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -43,14 +43,12 @@ public class PushToAggregate {
   private static final int BYTES_IN_ONE_MEGABYTE = 1_048_576;
   private final Http http;
   private final AggregateServer server;
-  private final Path briefcaseDir;
   private final boolean forceSendForm;
   private final Consumer<FormStatusEvent> onEventCallback;
 
-  public PushToAggregate(Http http, AggregateServer server, Path briefcaseDir, boolean forceSendForm, Consumer<FormStatusEvent> onEventCallback) {
+  public PushToAggregate(Http http, AggregateServer server, boolean forceSendForm, Consumer<FormStatusEvent> onEventCallback) {
     this.http = http;
     this.server = server;
-    this.briefcaseDir = briefcaseDir;
     this.forceSendForm = forceSendForm;
     this.onEventCallback = onEventCallback;
   }
@@ -63,30 +61,30 @@ public class PushToAggregate {
    * present in the server, which can be overriden with the {@link #forceSendForm}
    * field.
    */
-  public Job<Void> push(FormStatus form) {
-    PushToAggregateTracker tracker = new PushToAggregateTracker(form, onEventCallback);
+  public Job<Void> push(FormMetadata formMetadata) {
+    PushToAggregateTracker tracker = new PushToAggregateTracker(onEventCallback, formMetadata);
     return Job
         .run(runnerStatus -> {
           tracker.trackStart();
           tracker.trackForceSendForm(forceSendForm);
         })
-        .thenSupply(runnerStatus -> !forceSendForm && checkFormExists(form.getFormId(), runnerStatus, tracker))
+        .thenSupply(runnerStatus -> !forceSendForm && checkFormExists(formMetadata, runnerStatus, tracker))
         .thenAccept(((runnerStatus, formExists) -> {
           if (!formExists) {
-            Path formFile = form.getFormFile();
-            List<Path> allAttachments = getFormAttachments(form);
+            Path formFile = formMetadata.getFormFile();
+            List<Path> allAttachments = getFormAttachments(formMetadata);
             if (allAttachments.isEmpty()) {
-              pushFormAndAttachments(form, emptyList(), runnerStatus, tracker);
+              pushFormAndAttachments(formMetadata, emptyList(), runnerStatus, tracker);
             } else {
               AtomicInteger partsSeq = new AtomicInteger(1);
               List<List<Path>> attachmentGroups = createGroupsOfMaxSize(formFile, allAttachments, 10);
               attachmentGroups.forEach(attachments ->
-                  pushFormAndAttachments(form, attachments, runnerStatus, tracker, partsSeq.getAndIncrement(), attachmentGroups.size())
+                  pushFormAndAttachments(formMetadata, attachments, runnerStatus, tracker, partsSeq.getAndIncrement(), attachmentGroups.size())
               );
             }
           }
         }))
-        .thenSupply(__ -> getSubmissions(form))
+        .thenSupply(__ -> getSubmissions(formMetadata))
         .thenAccept((runnerStatus, submissions) -> {
           AtomicInteger submissionsSeq = new AtomicInteger(1);
           int totalSubmissions = submissions.size();
@@ -106,11 +104,11 @@ public class PushToAggregate {
           });
           tracker.trackEnd();
         })
-        .thenRun(rs -> EventBus.publish(new PushEvent.Success(form)));
+        .thenRun(rs -> EventBus.publish(new PushEvent.Success()));
   }
 
-  private List<Path> getSubmissionAttachments(Path formFile) {
-    Path submissionDir = formFile.getParent();
+  private List<Path> getSubmissionAttachments(Path submissionFile) {
+    Path submissionDir = submissionFile.getParent();
     return UncheckedFiles.list(submissionDir)
         .filter(p -> !p.getFileName().toString().equals("submission.xml"))
         .collect(toList());
@@ -136,13 +134,13 @@ public class PushToAggregate {
     return groupsOfAttachments;
   }
 
-  boolean checkFormExists(String formId, RunnerStatus runnerStatus, PushToAggregateTracker tracker) {
+  boolean checkFormExists(FormMetadata formMetadata, RunnerStatus runnerStatus, PushToAggregateTracker tracker) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Check if form exists in Aggregate");
       return false;
     }
 
-    Response<Boolean> response = http.execute(server.getFormExistsRequest(formId));
+    Response<Boolean> response = http.execute(server.getFormExistsRequest(formMetadata.getKey().getId()));
     if (!response.isSuccess()) {
       tracker.trackErrorCheckingForm(response);
       return false;
@@ -153,18 +151,18 @@ public class PushToAggregate {
     return exists;
   }
 
-  void pushFormAndAttachments(FormStatus form, List<Path> attachments, RunnerStatus runnerStatus, PushToAggregateTracker tracker) {
-    pushFormAndAttachments(form, attachments, runnerStatus, tracker, 1, 1);
+  void pushFormAndAttachments(FormMetadata formMetadata, List<Path> attachments, RunnerStatus runnerStatus, PushToAggregateTracker tracker) {
+    pushFormAndAttachments(formMetadata, attachments, runnerStatus, tracker, 1, 1);
   }
 
-  void pushFormAndAttachments(FormStatus form, List<Path> attachments, RunnerStatus runnerStatus, PushToAggregateTracker tracker, int part, int parts) {
+  void pushFormAndAttachments(FormMetadata formMetadata, List<Path> attachments, RunnerStatus runnerStatus, PushToAggregateTracker tracker, int part, int parts) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Push form");
       return;
     }
 
     tracker.trackStartSendingFormAndAttachments(part, parts);
-    Response response = http.execute(server.getPushFormRequest(form.getFormFile(), attachments));
+    Response response = http.execute(server.getPushFormRequest(formMetadata.getFormFile(), attachments));
     if (response.isSuccess())
       tracker.trackEndSendingFormAndAttachments(part, parts);
     else
@@ -192,8 +190,8 @@ public class PushToAggregate {
       tracker.trackErrorSendingSubmissionAndAttachments(submissionNumber, totalSubmissions, part, parts, response);
   }
 
-  private List<Path> getSubmissions(FormStatus form) {
-    Path submissionsDir = form.getSubmissionsDir();
+  private List<Path> getSubmissions(FormMetadata formMetadata) {
+    Path submissionsDir = formMetadata.getSubmissionsDir();
     if (!UncheckedFiles.exists(submissionsDir))
       return emptyList();
     return UncheckedFiles.list(submissionsDir)
@@ -202,8 +200,8 @@ public class PushToAggregate {
         .collect(toList());
   }
 
-  private List<Path> getFormAttachments(FormStatus form) {
-    Path formMediaDir = form.getFormMediaDir();
+  private List<Path> getFormAttachments(FormMetadata formMetadata) {
+    Path formMediaDir = formMetadata.getFormMediaDir();
     return Files.exists(formMediaDir)
         ? list(formMediaDir).filter(Files::isRegularFile).collect(toList())
         : emptyList();

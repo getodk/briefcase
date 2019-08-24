@@ -17,120 +17,107 @@
 package org.opendatakit.briefcase.push.aggregate;
 
 import java.util.function.Consumer;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class PushToAggregateTracker {
   private static final Logger log = LoggerFactory.getLogger(PushToAggregateTracker.class);
-  private final FormStatus form;
   private final Consumer<FormStatusEvent> onEventCallback;
+  private final FormMetadata formMetadata;
   private boolean errored = false;
 
-  PushToAggregateTracker(FormStatus form, Consumer<FormStatusEvent> onEventCallback) {
-    this.form = form;
+  PushToAggregateTracker(Consumer<FormStatusEvent> onEventCallback, FormMetadata formMetadata) {
+    this.formMetadata = formMetadata;
     this.onEventCallback = onEventCallback;
   }
 
-  private void notifyTrackingEvent() {
-    onEventCallback.accept(new FormStatusEvent(form.getFormMetadata().getKey(), form.getStatusString()));
+  private void notifyTrackingEvent(String message) {
+    onEventCallback.accept(new FormStatusEvent(formMetadata.getKey(), message));
   }
 
   void trackStart() {
     String message = "Start pushing form and submissions";
-    form.setStatusString(message);
-    log.info("Push {} - {}", form.getFormName(), message);
-    notifyTrackingEvent();
+    log.info("Push {} - {}", formMetadata.getKey().getName(), message);
+    notifyTrackingEvent(message);
   }
 
   void trackEnd() {
     String message = errored ? "Success with errors" : "Success";
-    form.setStatusString(message);
-    log.info("Push {} - {}", form.getFormName(), message);
-    notifyTrackingEvent();
+    log.info("Push {} - {}", formMetadata.getKey().getName(), message);
+    notifyTrackingEvent(message);
   }
 
   void trackErrorCheckingForm(Response response) {
     errored = true;
     String message = "Error checking if form exists in Aggregate";
-    form.setStatusString(message + ": " + response.getStatusPhrase());
-    log.error("Push {} - {}: HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
-    notifyTrackingEvent();
+    log.error("Push {} - {}: HTTP {} {}", formMetadata.getKey().getName(), message, response.getStatusCode(), response.getStatusPhrase());
+    notifyTrackingEvent(message + ": " + response.getStatusPhrase());
   }
 
   void trackCancellation(String job) {
     String message = "Operation cancelled - " + job;
-    form.setStatusString(message);
-    log.warn("Push {} - {}", form.getFormName(), message);
-    notifyTrackingEvent();
+    log.warn("Push {} - {}", formMetadata.getKey().getName(), message);
+    notifyTrackingEvent(message);
   }
 
   void trackFormAlreadyExists(boolean exists) {
     String message = exists ? "Form already exists in Aggregate" : "Form doesn't exist in Aggregate";
-    form.setStatusString(message);
-    log.info("Push {} - {}", form.getFormName(), message);
-    notifyTrackingEvent();
+    log.info("Push {} - {}", formMetadata.getKey().getName(), message);
+    notifyTrackingEvent(message);
   }
 
   void trackForceSendForm(boolean forceSendForm) {
     if (forceSendForm) {
       String message = "Forcing push of form";
-      form.setStatusString(message);
-      log.info("Push {} - {}", form.getFormName(), message);
-      notifyTrackingEvent();
+      log.info("Push {} - {}", formMetadata.getKey().getName(), message);
+      notifyTrackingEvent(message);
     }
   }
 
   void trackStartSendingFormAndAttachments(int part, int parts) {
     String message = "Sending form" + (parts == 1 ? "" : " (" + part + "/" + parts + ")");
-    form.setStatusString(message);
-    log.info("Push {} - {}", form.getFormName(), message);
-    notifyTrackingEvent();
+    log.info("Push {} - {}", formMetadata.getKey().getName(), message);
+    notifyTrackingEvent(message);
   }
 
   void trackEndSendingFormAndAttachments(int part, int parts) {
     String message = "Form sent" + (parts == 1 ? "" : " (" + part + "/" + parts + ")");
-    form.setStatusString(message);
-    log.info("Push {} - {}", form.getFormName(), message);
-    notifyTrackingEvent();
+    log.info("Push {} - {}", formMetadata.getKey().getName(), message);
+    notifyTrackingEvent(message);
   }
 
   void trackErrorSendingFormAndAttachments(int part, int parts, Response response) {
     errored = true;
     String message = "Error sending form" + (parts == 1 ? "" : " (" + part + "/" + parts + ")");
-    form.setStatusString(message + ": " + response.getStatusPhrase());
-    log.error("Push {} - {} HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
-    notifyTrackingEvent();
+    log.error("Push {} - {} HTTP {} {}", formMetadata.getKey().getName(), message, response.getStatusCode(), response.getStatusPhrase());
+    notifyTrackingEvent(message + ": " + response.getStatusPhrase());
   }
 
   void trackStartSendingSubmissionAndAttachments(int submissionNumber, int totalSubmissions, int part, int parts) {
     String message = "Sending submission " + submissionNumber + " of " + totalSubmissions + (parts == 1 ? "" : " (" + part + "/" + parts + ")");
-    form.setStatusString(message);
-    log.info("Push {} - {}", form.getFormName(), message);
-    notifyTrackingEvent();
+    log.info("Push {} - {}", formMetadata.getKey().getName(), message);
+    notifyTrackingEvent(message);
   }
 
   void trackEndSendingSubmissionAndAttachments(int submissionNumber, int totalSubmissions, int part, int parts) {
     String message = "Submission " + submissionNumber + " of " + totalSubmissions + " sent" + (parts == 1 ? "" : " (" + part + "/" + parts + ")");
-    form.setStatusString(message);
-    log.info("Push {} - {}", form.getFormName(), message);
-    notifyTrackingEvent();
+    log.info("Push {} - {}", formMetadata.getKey().getName(), message);
+    notifyTrackingEvent(message);
   }
 
   void trackErrorSendingSubmissionAndAttachments(int submissionNumber, int totalSubmissions, int part, int parts, Response response) {
     errored = true;
     String message = "Error sending submission " + submissionNumber + " of " + totalSubmissions + (parts == 1 ? "" : " (" + part + "/" + parts + ")");
-    form.setStatusString(message + ": " + response.getStatusPhrase());
-    log.error("Push {} - {} HTTP {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase());
-    notifyTrackingEvent();
+    log.error("Push {} - {} HTTP {} {}", formMetadata.getKey().getName(), message, response.getStatusCode(), response.getStatusPhrase());
+    notifyTrackingEvent(message + ": " + response.getStatusPhrase());
   }
 
   void trackNoSubmissions() {
     String message = "There are no submissions to send";
-    form.setStatusString(message);
-    log.info("Push {} - {}", form.getFormName(), message);
-    notifyTrackingEvent();
+    log.info("Push {} - {}", formMetadata.getKey().getName(), message);
+    notifyTrackingEvent(message);
   }
 }

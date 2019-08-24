@@ -16,22 +16,12 @@
 
 package org.opendatakit.briefcase.push;
 
-import org.opendatakit.briefcase.model.FormStatus;
-
 public class PushEvent {
 
   public static class Failure extends PushEvent {
-    public Failure() {
-    }
   }
 
   public static class Success extends PushEvent {
-
-    private final FormStatus form;
-
-    public Success(FormStatus form) {
-      this.form = form;
-    }
   }
 
   public static class Complete extends PushEvent {

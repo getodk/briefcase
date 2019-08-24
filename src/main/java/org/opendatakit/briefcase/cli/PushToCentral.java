@@ -87,8 +87,8 @@ public class PushToCentral {
     TransferForms forms = TransferForms.of(form);
     forms.selectAll();
 
-    org.opendatakit.briefcase.push.central.PushToCentral pushOp = new org.opendatakit.briefcase.push.central.PushToCentral(http, server, briefcaseDir, token, PushToCentral::onEvent);
-    JobsRunner.launchAsync(forms.map(pushOp::push), PushToCentral::onError).waitForCompletion();
+    org.opendatakit.briefcase.push.central.PushToCentral pushOp = new org.opendatakit.briefcase.push.central.PushToCentral(http, server, token, PushToCentral::onEvent);
+    JobsRunner.launchAsync(forms.map(form1 -> pushOp.push(form1.getFormMetadata())), PushToCentral::onError).waitForCompletion();
     System.out.println();
     System.out.println("All operations completed");
     System.out.println();

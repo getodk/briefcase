@@ -31,8 +31,8 @@ import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.export.SubmissionMetaData;
 import org.opendatakit.briefcase.export.XmlElement;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.reused.Triple;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
@@ -46,14 +46,12 @@ public class PushToCentral {
 
   private final Http http;
   private final CentralServer server;
-  private final Path briefcaseDir;
   private final String token;
   private final Consumer<FormStatusEvent> onEventCallback;
 
-  public PushToCentral(Http http, CentralServer server, Path briefcaseDir, String token, Consumer<FormStatusEvent> onEventCallback) {
+  public PushToCentral(Http http, CentralServer server, String token, Consumer<FormStatusEvent> onEventCallback) {
     this.http = http;
     this.server = server;
-    this.briefcaseDir = briefcaseDir;
     this.token = token;
     this.onEventCallback = onEventCallback;
   }
@@ -66,33 +64,33 @@ public class PushToCentral {
    * present in the server.
    */
   @SuppressWarnings("checkstyle:Indentation")
-  public Job<Void> push(FormStatus form) {
-    PushToCentralTracker tracker = new PushToCentralTracker(form, onEventCallback);
+  public Job<Void> push(FormMetadata formMetadata) {
+    PushToCentralTracker tracker = new PushToCentralTracker(onEventCallback, formMetadata);
 
     Job<Void> startTrackingJob = Job.run(runnerStatus -> tracker.trackStart());
 
-    if (form.getFormMetadata().isEncrypted())
+    if (formMetadata.isEncrypted())
       return startTrackingJob.thenRun(rs -> {
         tracker.trackEncryptedForm();
         tracker.trackEnd();
       });
 
     return startTrackingJob
-        .thenSupply(rs -> checkFormExists(form.getFormId(), rs, tracker))
+        .thenSupply(rs -> checkFormExists(formMetadata, rs, tracker))
         .thenAccept(((rs, formExists) -> {
           if (!formExists) {
-            boolean formSent = pushForm(form.getFormMetadata().getFormFile(), rs, tracker);
+            boolean formSent = pushForm(formMetadata, rs, tracker);
             if (formSent) {
-              List<Path> formAttachments = getFormAttachments(form);
+              List<Path> formAttachments = getFormAttachments(formMetadata);
               AtomicInteger attachmentSeq = new AtomicInteger(1);
               int totalAttachments = formAttachments.size();
               formAttachments.forEach(attachment ->
-                  pushFormAttachment(form.getFormId(), attachment, rs, tracker, attachmentSeq.getAndIncrement(), totalAttachments)
+                  pushFormAttachment(formMetadata, attachment, rs, tracker, attachmentSeq.getAndIncrement(), totalAttachments)
               );
             }
           }
         }))
-        .thenSupply(__ -> getSubmissions(form))
+        .thenSupply(__ -> getSubmissions(formMetadata))
         .thenAccept((rs, submissions) -> {
           AtomicInteger submissionNumber = new AtomicInteger(1);
           int totalSubmissions = submissions.size();
@@ -106,7 +104,7 @@ public class PushToCentral {
                 return Triple.of(submission, submissionNumber.getAndIncrement(), metaData.getInstanceId());
               })
               .peek(triple -> {
-                if (!triple.get3().isPresent())
+                if (triple.get3().isEmpty())
                   tracker.trackNoInstanceId(triple.get2(), totalSubmissions);
               })
               .filter(triple -> triple.get3().isPresent())
@@ -114,19 +112,19 @@ public class PushToCentral {
                 Path submission = triple.get1();
                 int currentSubmissionNumber = triple.get2();
                 String instanceId = triple.get3().get();
-                boolean submissionSent = pushSubmission(form.getFormId(), submission, rs, tracker, currentSubmissionNumber, totalSubmissions);
+                boolean submissionSent = pushSubmission(formMetadata, submission, rs, tracker, currentSubmissionNumber, totalSubmissions);
                 if (submissionSent) {
                   List<Path> submissionAttachments = getSubmissionAttachments(submission);
                   AtomicInteger attachmentSeq = new AtomicInteger(1);
                   int totalAttachments = submissionAttachments.size();
                   submissionAttachments.parallelStream().forEach(attachment ->
-                      pushSubmissionAttachment(form.getFormId(), instanceId, attachment, rs, tracker, currentSubmissionNumber, totalSubmissions, attachmentSeq.getAndIncrement(), totalAttachments)
+                      pushSubmissionAttachment(formMetadata, instanceId, attachment, rs, tracker, currentSubmissionNumber, totalSubmissions, attachmentSeq.getAndIncrement(), totalAttachments)
                   );
                 }
               });
           tracker.trackEnd();
         })
-        .thenRun(rs -> EventBus.publish(new PushEvent.Success(form)));
+        .thenRun(rs -> EventBus.publish(new PushEvent.Success()));
   }
 
   private List<Path> getSubmissionAttachments(Path formFile) {
@@ -136,13 +134,13 @@ public class PushToCentral {
         .collect(toList());
   }
 
-  boolean checkFormExists(String formId, RunnerStatus runnerStatus, PushToCentralTracker tracker) {
+  boolean checkFormExists(FormMetadata formMetadata, RunnerStatus runnerStatus, PushToCentralTracker tracker) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Check if form exists in Central");
       return false;
     }
 
-    Response<Boolean> response = http.execute(server.getFormExistsRequest(formId, token));
+    Response<Boolean> response = http.execute(server.getFormExistsRequest(formMetadata.getKey().getId(), token));
     if (!response.isSuccess()) {
       tracker.trackErrorCheckingForm(response);
       return false;
@@ -154,14 +152,14 @@ public class PushToCentral {
     return exists;
   }
 
-  boolean pushForm(Path formFile, RunnerStatus runnerStatus, PushToCentralTracker tracker) {
+  boolean pushForm(FormMetadata formMetadata, RunnerStatus runnerStatus, PushToCentralTracker tracker) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Push form");
       return false;
     }
 
     tracker.trackStartSendingForm();
-    var response = http.execute(server.getPushFormRequest(formFile, token));
+    var response = http.execute(server.getPushFormRequest(formMetadata.getFormFile(), token));
 
     if (response.isSuccess()) {
       tracker.trackEndSendingForm();
@@ -177,14 +175,14 @@ public class PushToCentral {
     return false;
   }
 
-  void pushFormAttachment(String formId, Path attachment, RunnerStatus runnerStatus, PushToCentralTracker tracker, int attachmentNumber, int totalAttachments) {
+  void pushFormAttachment(FormMetadata formMetadata, Path attachment, RunnerStatus runnerStatus, PushToCentralTracker tracker, int attachmentNumber, int totalAttachments) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Push form attachment " + attachment.getFileName());
       return;
     }
 
     tracker.trackStartSendingFormAttachment(attachmentNumber, totalAttachments);
-    var response = http.execute(server.getPushFormAttachmentRequest(formId, attachment, token));
+    var response = http.execute(server.getPushFormAttachmentRequest(formMetadata.getKey().getId(), attachment, token));
     if (response.isSuccess())
       tracker.trackEndSendingFormAttachment(attachmentNumber, totalAttachments);
     else if (response.getStatusCode() == 409)
@@ -193,14 +191,14 @@ public class PushToCentral {
       tracker.trackErrorSendingFormAttachment(attachmentNumber, totalAttachments, response);
   }
 
-  boolean pushSubmission(String formId, Path submissionFile, RunnerStatus runnerStatus, PushToCentralTracker tracker, int submissionNumber, int totalSubmissions) {
+  boolean pushSubmission(FormMetadata formMetadata, Path submissionFile, RunnerStatus runnerStatus, PushToCentralTracker tracker, int submissionNumber, int totalSubmissions) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Sending submissions " + submissionNumber + " of " + totalSubmissions);
       return false;
     }
 
     tracker.trackStartSendingSubmission(submissionNumber, totalSubmissions);
-    var response = http.execute(server.getPushSubmissionRequest(token, formId, submissionFile));
+    var response = http.execute(server.getPushSubmissionRequest(token, formMetadata.getKey().getId(), submissionFile));
 
     if (response.isSuccess()) {
       tracker.trackEndSendingSubmission(submissionNumber, totalSubmissions);
@@ -216,14 +214,14 @@ public class PushToCentral {
     return false;
   }
 
-  void pushSubmissionAttachment(String formId, String instanceId, Path attachment, RunnerStatus runnerStatus, PushToCentralTracker tracker, int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
+  void pushSubmissionAttachment(FormMetadata formMetadata, String instanceId, Path attachment, RunnerStatus runnerStatus, PushToCentralTracker tracker, int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Sending submission attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions);
       return;
     }
 
     tracker.trackStartSendingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
-    var response = http.execute(server.getPushSubmissionAttachmentRequest(token, formId, instanceId, attachment));
+    var response = http.execute(server.getPushSubmissionAttachmentRequest(token, formMetadata.getKey().getId(), instanceId, attachment));
     if (response.isSuccess())
       tracker.trackEndSendingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
     else if (response.getStatusCode() == 409)
@@ -232,8 +230,8 @@ public class PushToCentral {
       tracker.trackErrorSendingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments, response);
   }
 
-  private List<Path> getSubmissions(FormStatus form) {
-    Path submissionsDir = form.getSubmissionsDir();
+  private List<Path> getSubmissions(FormMetadata formMetadata) {
+    Path submissionsDir = formMetadata.getSubmissionsDir();
     if (!exists(submissionsDir))
       return emptyList();
     return list(submissionsDir)
@@ -242,8 +240,8 @@ public class PushToCentral {
         .collect(toList());
   }
 
-  private List<Path> getFormAttachments(FormStatus form) {
-    Path formMediaDir = form.getFormMediaDir();
+  private List<Path> getFormAttachments(FormMetadata formMetadata) {
+    Path formMediaDir = formMetadata.getFormMediaDir();
     return Files.exists(formMediaDir)
         ? list(formMediaDir).filter(Files::isRegularFile).collect(toList())
         : Collections.emptyList();

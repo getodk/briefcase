@@ -76,10 +76,10 @@ public class Aggregate implements PushTarget<AggregateServer> {
 
   @Override
   public JobsRunner push(TransferForms forms, Path briefcaseDir) {
-    PushToAggregate pushOp = new PushToAggregate(http, server, briefcaseDir, false, EventBus::publish);
+    PushToAggregate pushOp = new PushToAggregate(http, server, false, EventBus::publish);
 
     return JobsRunner
-        .launchAsync(forms.map(pushOp::push))
+        .launchAsync(forms.map(form -> pushOp.push(form.getFormMetadata())))
         .onComplete(() -> EventBus.publish(new PushEvent.Complete()));
   }
 

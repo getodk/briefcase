@@ -29,6 +29,7 @@ import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -36,7 +37,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.opendatakit.briefcase.export.SubmissionMetaData;
 import org.opendatakit.briefcase.export.XmlElement;
-import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.pull.aggregate.AggregateAttachment;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.Pair;
@@ -206,11 +207,11 @@ public class TransferTestHelpers {
     return "some sequential uuid " + seq;
   }
 
-  public static String listOfFormsResponseFromAggregate(FormStatus... forms) {
+  public static String listOfFormsResponseFromAggregate(FormMetadata... formMetadataList) {
     return "" +
         "<xforms>" +
-        Stream.of(forms)
-            .map(formDef -> String.format("" +
+        Stream.of(formMetadataList)
+            .map(formMetadata -> String.format("" +
                     "\t<xform>" +
                     "\t\t<name>%s</name>" +
                     "\t\t<formID>%s</formID>" +
@@ -218,56 +219,56 @@ public class TransferTestHelpers {
                     "\t\t<downloadUrl>%s</downloadUrl>" +
                     "\t\t<manifestUrl>%s</manifestUrl>" +
                     "\t</xform>",
-                formDef.getFormName(),
-                formDef.getFormId(),
-                formDef.getVersion().orElse(""),
-                "http://foo.bar",
-                "http://foo.bar"
+                formMetadata.getKey().getName(),
+                formMetadata.getKey().getId(),
+                formMetadata.getKey().getVersion().orElse(""),
+                formMetadata.getManifestUrl().map(Objects::toString).orElse("http://foo.bar"),
+                formMetadata.getDownloadUrl().map(Objects::toString).orElse("http://foo.bar")
             ))
             .collect(joining("\n")) +
         "</xforms>" +
         "";
   }
 
-  public static String listOfFormsResponseFromCentral(FormStatus... forms) {
+  public static String listOfFormsResponseFromCentral(FormMetadata... formMetadataList) {
     return "[\n" +
-        Stream.of(forms)
-            .map(form -> String.format("" +
+        Stream.of(formMetadataList)
+            .map(formMetadata -> String.format("" +
                     "\t{\n" +
                     "\t  \"xmlFormId\": \"%s\",\n" +
                     "\t  \"name\": \"%s\",\n" +
                     "\t  \"version\": %s\n" +
                     "\t}",
-                form.getFormId(),
-                form.getFormName(),
-                form.getVersion().map(v -> "\"" + v + "\"").orElse("null")
+                formMetadata.getKey().getId(),
+                formMetadata.getKey().getName(),
+                formMetadata.getKey().getVersion().map(v -> "\"" + v + "\"").orElse("null")
             ))
             .collect(joining(",\n"))
         + "\n]";
   }
 
-  public static Path installForm(FormStatus form, Path source) throws IOException {
-    createDirectories(form.getFormDir());
-    return copy(source, form.getFormFile());
+  public static Path installForm(FormMetadata formMetadata, Path source) throws IOException {
+    createDirectories(formMetadata.getFormDir());
+    return copy(source, formMetadata.getFormFile());
   }
 
-  public static Path installFormAttachment(FormStatus form, Path source) throws IOException {
-    createDirectories(form.getFormMediaDir());
-    return copy(source, form.getFormMediaFile(source.getFileName().toString()));
+  public static Path installFormAttachment(FormMetadata formMetadata, Path source) throws IOException {
+    createDirectories(formMetadata.getFormMediaDir());
+    return copy(source, formMetadata.getFormMediaFile(source.getFileName().toString()));
   }
 
-  public static Path installSubmission(FormStatus form, Path source, Path briefcaseDir) throws IOException {
+  public static Path installSubmission(FormMetadata formMetadata, Path source) throws IOException {
     String instanceId = new SubmissionMetaData(XmlElement.from(new String(readAllBytes(source))))
         .getInstanceId()
         .orElseThrow(RuntimeException::new);
-    Path submissionDir = form.getSubmissionDir(instanceId);
+    Path submissionDir = formMetadata.getSubmissionDir(instanceId);
     createDirectories(submissionDir);
-    return copy(source, form.getSubmissionFile(instanceId));
+    return copy(source, formMetadata.getSubmissionFile(instanceId));
   }
 
-  public static Path installSubmissionAttachment(FormStatus form, Path source, Path briefcaseDir, String instanceId) throws IOException {
-    createDirectories(form.getSubmissionMediaDir(instanceId));
-    return copy(source, form.getSubmissionMediaFile(instanceId, source.getFileName().toString()));
+  public static Path installSubmissionAttachment(FormMetadata formMetadata, Path source, String instanceId) throws IOException {
+    createDirectories(formMetadata.getSubmissionMediaDir(instanceId));
+    return copy(source, formMetadata.getSubmissionMediaFile(instanceId, source.getFileName().toString()));
   }
 
   public static Path getResourcePath(String filename) {
