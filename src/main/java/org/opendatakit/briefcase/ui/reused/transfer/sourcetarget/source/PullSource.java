@@ -39,7 +39,7 @@ public interface PullSource<T> extends SourceOrTarget<T> {
   }
 
   static PullSource<Path> customDir(Consumer<PullSource> consumer) {
-    return new CustomDir(consumer);
+    return new CollectDir(consumer);
   }
 
   static PullSource<FormMetadata> formInComputer(Consumer<PullSource> consumer) {
