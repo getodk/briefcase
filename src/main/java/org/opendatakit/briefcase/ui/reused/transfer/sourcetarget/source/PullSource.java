@@ -20,7 +20,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
@@ -42,11 +42,11 @@ public interface PullSource<T> extends SourceOrTarget<T> {
     return new CustomDir(consumer);
   }
 
-  static PullSource<FormStatus> formInComputer(Consumer<PullSource> consumer) {
+  static PullSource<FormMetadata> formInComputer(Consumer<PullSource> consumer) {
     return new FormInComputer(consumer);
   }
 
-  List<FormStatus> getFormList();
+  List<FormMetadata> getFormList();
 
   void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords);
 

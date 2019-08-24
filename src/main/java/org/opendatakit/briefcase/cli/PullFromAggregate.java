@@ -121,9 +121,9 @@ public class PullFromAggregate {
     forms.load(filteredForms);
     forms.selectAll();
 
-    org.opendatakit.briefcase.pull.aggregate.PullFromAggregate pullOp = new org.opendatakit.briefcase.pull.aggregate.PullFromAggregate(http, aggregateServer, briefcaseDir, includeIncomplete, PullFromAggregate::onEvent, formMetadataPort);
+    org.opendatakit.briefcase.pull.aggregate.PullFromAggregate pullOp = new org.opendatakit.briefcase.pull.aggregate.PullFromAggregate(http, aggregateServer, includeIncomplete, PullFromAggregate::onEvent, formMetadataPort);
     JobsRunner.launchAsync(
-        forms.map(form -> pullOp.pull(form, resolveCursor(
+        forms.map(form -> pullOp.pull(form.getFormMetadata(), resolveCursor(
             resumeLastPull,
             startFromDate,
             form,
@@ -147,7 +147,7 @@ public class PullFromAggregate {
   }
 
   private static void onEvent(FormStatusEvent event) {
-    System.out.println(event.getStatus().getFormName() + " - " + event.getStatusString());
+    System.out.println(event.getFormKey().getName() + " - " + event.getMessage());
     // The PullFromAggregateTracker already logs normal events
   }
 

@@ -56,7 +56,7 @@ public class TransferAction {
     public void run() {
       try {
         if (src.doAction())
-          formsToTransfer.forEach(form -> EventBus.publish(PullEvent.Success.of(form)));
+          formsToTransfer.forEach(form -> EventBus.publish(PullEvent.Success.of(form.getFormMetadata().getKey())));
         else
           throw new BriefcaseException("Failed to pull form (legacy)");
       } catch (Exception e) {

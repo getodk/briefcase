@@ -26,8 +26,8 @@ import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 
 import java.nio.file.Path;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 
 /**
  * This class has UI/CLI independent methods to install forms into
@@ -38,57 +38,41 @@ import org.opendatakit.briefcase.model.FormStatusEvent;
  */
 public class FormInstaller {
   /**
-   * Takes a {@link FormStatus} and installs the form definition file and any
+   * Takes a form's metadata and installs the form definition file and any
    * related media files into Briefcase's Storage Directory.
    * <p>
    * After installing the form, it updates the form cache.
    * <p>
    * This method won't install any submission.
    */
-  public static void install(Path briefcaseDir, FormStatus fs) {
-    installForm(briefcaseDir, fs);
-    EventBus.publish(PullEvent.Success.of(fs));
+  public static void install(Path briefcaseDir, FormMetadata formMetadata) {
+    installForm(briefcaseDir, formMetadata);
+    EventBus.publish(PullEvent.Success.of(formMetadata.getKey()));
   }
 
-  private static void installForm(Path briefcaseDir, FormStatus form) {
-    // Get the source form definition file
-    // TODO review this!
-    Path sourceFormFile = getSourceFormFile(form);
-
+  private static void installForm(Path briefcaseDir, FormMetadata sourceFormMetadata) {
     // Get and prepare target form directory inside our Storage Directory
-    Path targetFormDir = getTargetFormDir(briefcaseDir, form);
+    Path targetFormDir = briefcaseDir.resolve("forms").resolve(stripIllegalChars(sourceFormMetadata.getKey().getName()));
     if (!exists(targetFormDir))
       createDirectories(targetFormDir);
 
     // Install the form definition file, changing the filename on the process
-    Path targetFormFile = targetFormDir.resolve(form.getFormName() + ".xml");
-    copy(sourceFormFile, targetFormFile, REPLACE_EXISTING);
-    form.setStatusString("Installed form definition file");
-    EventBus.publish(new FormStatusEvent(form));
+    Path targetFormFile = targetFormDir.resolve(sourceFormMetadata.getKey().getName() + ".xml");
+    copy(sourceFormMetadata.getFormFile(), targetFormFile, REPLACE_EXISTING);
+    EventBus.publish(new FormStatusEvent(sourceFormMetadata.getKey(), "Installed form definition file"));
 
     // Check if there is a media directory to install as well
-    Path sourceMediaDir = sourceFormFile.resolveSibling(form.getFormName() + "-media");
-    Path targetMediaDir = targetFormDir.resolve(form.getFormName() + "-media");
+    Path sourceMediaDir = sourceFormMetadata.getFormFile().resolveSibling(sourceFormMetadata.getKey().getName() + "-media");
+    Path targetMediaDir = targetFormDir.resolve(sourceFormMetadata.getKey().getName() + "-media");
     if (exists(targetMediaDir))
       deleteRecursive(targetMediaDir);
     if (exists(sourceMediaDir))
       walk(sourceMediaDir)
           .forEach(sourcePath -> {
             copy(sourcePath, targetMediaDir.resolve(sourceMediaDir.relativize(sourcePath)));
-            form.setStatusString("Installed " + sourcePath.getFileName() + " media file");
-            form.setStatusString("Installed " + sourcePath.getFileName() + " media file");
-            EventBus.publish(new FormStatusEvent(form));
+            EventBus.publish(new FormStatusEvent(sourceFormMetadata.getKey(), "Installed " + sourcePath.getFileName() + " media file"));
           });
 
-    form.setStatusString("Success");
-    EventBus.publish(new FormStatusEvent(form));
-  }
-
-  private static Path getTargetFormDir(Path briefcaseDir, FormStatus form) {
-    return briefcaseDir.resolve("forms").resolve(stripIllegalChars(form.getFormName()));
-  }
-
-  private static Path getSourceFormFile(FormStatus form) {
-    return form.getFormFile();
+    EventBus.publish(new FormStatusEvent(sourceFormMetadata.getKey(), "Success"));
   }
 }

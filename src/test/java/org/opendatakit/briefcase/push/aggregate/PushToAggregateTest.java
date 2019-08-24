@@ -88,7 +88,7 @@ public class PushToAggregateTest {
   }
 
   private void onEvent(FormStatusEvent e) {
-    events.add(e.getStatusString());
+    events.add(e.getMessage());
   }
 
   @Test

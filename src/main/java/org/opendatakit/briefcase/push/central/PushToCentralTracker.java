@@ -39,7 +39,7 @@ class PushToCentralTracker {
   }
 
   private void notifyTrackingEvent() {
-    onEventCallback.accept(new FormStatusEvent(form));
+    onEventCallback.accept(new FormStatusEvent(form.getFormMetadata().getKey(), form.getStatusString()));
   }
 
   // TODO v2.0 Move this factory to the CentralErrorMessage class

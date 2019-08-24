@@ -23,7 +23,6 @@ import org.jooq.DSLContext;
 import org.opendatakit.briefcase.jooq.Sequences;
 import org.opendatakit.briefcase.jooq.tables.records.FormMetadataRecord;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
 
 public class DatabaseFormMetadataAdapter implements FormMetadataPort {
@@ -69,7 +68,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
                 .orElse(FORM_METADATA.FORM_VERSION.isNull())
         ).reduce(trueCondition(), Condition::and))
         .whenMatchedThenUpdate()
-        .set(FORM_METADATA.FORM_FILE, formMetadata.getFormFile().map(Objects::toString).orElseThrow(BriefcaseException::new))
+        .set(FORM_METADATA.FORM_FILE, formMetadata.getFormFile().toString())
         .set(FORM_METADATA.CURSOR_TYPE, formMetadata.getCursor().getType().getName())
         .set(FORM_METADATA.CURSOR_VALUE, formMetadata.getCursor().getValue())
         .set(FORM_METADATA.IS_ENCRYPTED, formMetadata.isEncrypted())
@@ -94,7 +93,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
             value(formMetadata.getKey().getName()),
             value(formMetadata.getKey().getId()),
             value(formMetadata.getKey().getVersion().orElse(null)),
-            value(formMetadata.getFormFile().map(Objects::toString).orElseThrow(BriefcaseException::new)),
+            value(formMetadata.getFormFile().toString()),
             value(formMetadata.getCursor().getType().getName()),
             value(formMetadata.getCursor().getValue()),
             value(formMetadata.isEncrypted()),

@@ -50,8 +50,8 @@ class CliEventsCompanion {
     });
 
     on(FormStatusEvent.class, fse -> {
-      log.info(fse.getStatusString());
-      System.out.println(fse.getStatusString());
+      log.info(fse.getMessage());
+      System.out.println(fse.getMessage());
     });
   }
 

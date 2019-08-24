@@ -78,12 +78,12 @@ public class PullFromAggregateTest {
     Files.createDirectories(briefcaseDir);
     http = new FakeHttp();
     events = new ArrayList<>();
-    pullOp = new PullFromAggregate(http, server, briefcaseDir, includeIncomplete, e -> { }, new InMemoryFormMetadataAdapter());
+    pullOp = new PullFromAggregate(http, server, includeIncomplete, e -> { }, new InMemoryFormMetadataAdapter());
     runnerStatus = new TestRunnerStatus(false);
     form = new FormStatus(FormMetadata.empty(FormKey.of("Simple form", "simple-form"))
         .withFormFile(briefcaseDir.resolve("forms/some-form/some-form.xml"))
         .withUrls(Optional.of(RequestBuilder.url(BASE_URL + "/manifest")), Optional.empty()));
-    tracker = new PullFromAggregateTracker(form, e -> events.add(e.getStatusString()));
+    tracker = new PullFromAggregateTracker(form.getFormMetadata().getKey(), e -> events.add(e.getMessage()));
   }
 
   @After
@@ -99,7 +99,7 @@ public class PullFromAggregateTest {
         ok(expectedContent)
     );
 
-    pullOp.downloadForm(form, runnerStatus, tracker);
+    pullOp.downloadForm(form.getFormMetadata(), runnerStatus, tracker);
 
     Path actualFormFile = form.getFormFile();
     assertThat(actualFormFile, PathMatchers.exists());
@@ -119,7 +119,7 @@ public class PullFromAggregateTest {
     // Stub the manifest request
     http.stub(get(server.getBaseUrl()).withPath("/manifest").build(), ok(buildManifestXml(expectedAttachments)));
 
-    List<AggregateAttachment> actualAttachments = pullOp.getFormAttachments(form, runnerStatus, tracker);
+    List<AggregateAttachment> actualAttachments = pullOp.getFormAttachments(form.getFormMetadata(), runnerStatus, tracker);
 
     assertThat(actualAttachments, hasSize(actualAttachments.size()));
     for (AggregateAttachment attachment : expectedAttachments)
@@ -138,7 +138,7 @@ public class PullFromAggregateTest {
     attachments.forEach(attachment -> http.stub(get(attachment.getDownloadUrl()).build(), ok("some body")));
 
     AtomicInteger seq = new AtomicInteger(1);
-    attachments.forEach(attachment -> pullOp.downloadFormAttachment(form, attachment, runnerStatus, tracker, seq.getAndIncrement(), 3));
+    attachments.forEach(attachment -> pullOp.downloadFormAttachment(form.getFormMetadata(), attachment, runnerStatus, tracker, seq.getAndIncrement(), 3));
 
     attachments.forEach(attachment -> assertThat(form.getFormMediaFile(attachment.getFilename()), PathMatchers.exists()));
 
@@ -160,7 +160,7 @@ public class PullFromAggregateTest {
     String key = subKeyGen.buildKey(instanceId);
     http.stub(server.getDownloadSubmissionRequest(key), ok(expectedContent));
 
-    DownloadedSubmission actualSubmission = pullOp.downloadSubmission(form, instanceId, subKeyGen, runnerStatus, tracker, 1, 1);
+    DownloadedSubmission actualSubmission = pullOp.downloadSubmission(form.getFormMetadata(), instanceId, subKeyGen, runnerStatus, tracker, 1, 1);
 
     assertThat(form.getSubmissionFile(actualSubmission.getInstanceId()), PathMatchers.exists());
     // There's no easy way to assert the submission's contents because the document we stub
@@ -191,7 +191,7 @@ public class PullFromAggregateTest {
     attachments.forEach(attachment -> http.stub(get(attachment.getDownloadUrl()).build(), ok("some body")));
 
     AtomicInteger seq = new AtomicInteger(1);
-    attachments.forEach(attachment -> pullOp.downloadSubmissionAttachment(form, submission, attachment, runnerStatus, tracker, 1, 1, seq.getAndIncrement(), 3));
+    attachments.forEach(attachment -> pullOp.downloadSubmissionAttachment(form.getFormMetadata(), submission, attachment, runnerStatus, tracker, 1, 1, seq.getAndIncrement(), 3));
 
     attachments.forEach(attachment -> assertThat(form.getSubmissionMediaFile(instanceId, attachment.getFilename()), PathMatchers.exists()));
 
@@ -228,7 +228,7 @@ public class PullFromAggregateTest {
         ok(pages.get(1).getLeft())
     );
 
-    pullOp.getSubmissionIds(form, cursor, runnerStatus, tracker);
+    pullOp.getSubmissionIds(form.getFormMetadata(), cursor, runnerStatus, tracker);
     assertThat(request1Spy, not(hasBeenCalled()));
     assertThat(request2Spy, hasBeenCalled());
   }

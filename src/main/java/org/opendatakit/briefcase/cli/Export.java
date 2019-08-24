@@ -116,7 +116,7 @@ public class Export {
     createDirectories(exportDir);
 
     FormStatus formStatus = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + formId + " not found"));
-    FormDefinition formDef = formStatus.getFormDef();
+
 
     System.out.println("Exporting form " + formStatus.getFormName() + " (" + formStatus.getFormId() + ") to: " + exportDir);
     DateRange dateRange = new DateRange(startDate, endDate);
@@ -137,6 +137,7 @@ public class Export {
     FormKey key = FormKey.from(formStatus);
     FormMetadata formMetadata = formMetadataPort.fetch(key).orElseThrow(BriefcaseException::new);
 
+
     Job<Void> pullJob = Job.noOpSupplier();
     if (configuration.resolvePullBefore()) {
       Optional<AggregateServer> server = AggregateServer.readFromPrefs(appPreferences, pullPrefs, formStatus.getFormId());
@@ -145,12 +146,14 @@ public class Export {
             ? formMetadataPort.query(lastCursorOf(key))
             : Optional.empty();
 
-        pullJob = new PullFromAggregate(http, server.get(), briefcaseDir, false, Export::onEvent, formMetadataPort)
-            .pull(formStatus, lastCursor);
+        pullJob = new PullFromAggregate(http, server.get(), false, Export::onEvent, formMetadataPort)
+            .pull(formMetadata, lastCursor);
       }
     }
 
-    Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadataPort, formMetadata, formStatus, formDef, briefcaseDir, configuration));
+    FormDefinition formDef = FormDefinition.from(formMetadata);
+
+    Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadataPort, formMetadata, formDef, configuration));
 
     Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
         ? Job.run(runnerStatus -> ExportToGeoJson.export(formMetadata, formDef, configuration))
@@ -171,7 +174,7 @@ public class Export {
   }
 
   private static void onEvent(FormStatusEvent event) {
-    System.out.println(event.getStatus().getFormName() + " - " + event.getStatusString());
+    System.out.println(event.getFormKey().getName() + " - " + event.getMessage());
   }
 
   private static void onError(Throwable e) {

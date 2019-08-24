@@ -109,9 +109,9 @@ public class PullFromCentral {
     forms.load(filteredForms);
     forms.selectAll();
 
-    org.opendatakit.briefcase.pull.central.PullFromCentral pullOp = new org.opendatakit.briefcase.pull.central.PullFromCentral(http, server, briefcaseDir, token, PullFromCentral::onEvent, formMetadataPort);
+    org.opendatakit.briefcase.pull.central.PullFromCentral pullOp = new org.opendatakit.briefcase.pull.central.PullFromCentral(http, server, token, PullFromCentral::onEvent, formMetadataPort);
     JobsRunner.launchAsync(
-        forms.map(pullOp::pull),
+        forms.map(form -> pullOp.pull(form.getFormMetadata())),
         PullFromCentral::onError
     ).waitForCompletion();
     System.out.println();
@@ -120,7 +120,7 @@ public class PullFromCentral {
   }
 
   private static void onEvent(FormStatusEvent event) {
-    System.out.println(event.getStatus().getFormName() + " - " + event.getStatusString());
+    System.out.println(event.getFormKey().getName() + " - " + event.getMessage());
     // The tracker already logs normal events
   }
 

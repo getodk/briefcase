@@ -98,7 +98,7 @@ public class PullPanel {
       pullJobRunner.cancel();
       forms.getSelectedForms().forEach(form -> {
         form.setStatusString("Cancelled by user");
-        EventBus.publish(new FormStatusEvent(form));
+        EventBus.publish(new FormStatusEvent(form.getFormMetadata().getKey(), form.getStatusString()));
       });
       view.unsetWorking();
       view.refresh();
@@ -125,7 +125,7 @@ public class PullPanel {
   private void onSource(TransferPanelForm view, TransferForms forms, PullSource<?> source) {
     JobsRunner.launchAsync(
         run(__ -> {
-          forms.load(source.getFormList());
+          forms.load(source.getFormList().stream().map(FormStatus::new).collect(toList()));
           view.refresh();
           updateActionButtons();
         }),
@@ -170,8 +170,8 @@ public class PullPanel {
 
   @EventSubscriber(eventClass = PullEvent.Success.class)
   public void onPullSuccess(PullEvent.Success event) {
-    event.ifRemoteServer((form, server) ->
-        server.storeInPrefs(appPreferences, getStorePasswordsConsentProperty(), form.getFormId())
+    event.ifRemoteServer((formKey, server) ->
+        server.storeInPrefs(appPreferences, getStorePasswordsConsentProperty(), formKey.getId())
     );
   }
 

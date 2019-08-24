@@ -27,7 +27,7 @@ import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.central.PullFromCentral;
@@ -57,7 +57,7 @@ public class Central implements PullSource<CentralServer> {
   }
 
   @Override
-  public List<FormStatus> getFormList() {
+  public List<FormMetadata> getFormList() {
     String token = http.execute(server.getSessionTokenRequest())
         .orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
 
@@ -65,7 +65,6 @@ public class Central implements PullSource<CentralServer> {
         .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"))
         .stream()
         .map(formMetadata -> formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir)))
-        .map(FormStatus::new)
         .collect(toList());
   }
 
@@ -123,14 +122,13 @@ public class Central implements PullSource<CentralServer> {
     PullFromCentral pullOp = new PullFromCentral(
         http,
         server,
-        appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
         token,
         EventBus::publish,
         formMetadataPort
     );
 
     return JobsRunner
-        .launchAsync(forms.map(pullOp::pull))
+        .launchAsync(forms.map(form -> pullOp.pull(form.getFormMetadata())))
         .onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 

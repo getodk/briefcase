@@ -23,10 +23,8 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
-import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class FormStatus implements Serializable {
   private static final int STATUS_HISTORY_MAX_BYTES = 1024 * 1024;
@@ -35,7 +33,6 @@ public class FormStatus implements Serializable {
   private boolean isSelected = false;
   private String statusString = "";
   private final StringBuilder statusHistory = new StringBuilder();
-  private FormDefinition formDef;
 
   public FormStatus(IFormDefinition form) {
     FormMetadata formMetadata = FormMetadata.empty(FormKey.of(
@@ -113,11 +110,11 @@ public class FormStatus implements Serializable {
   }
 
   public Path getFormDir() {
-    return formMetadata.getFormFile().map(Path::getParent).orElseThrow(BriefcaseException::new);
+    return formMetadata.getFormFile().getParent();
   }
 
   public Path getFormFile() {
-    return formMetadata.getFormFile().orElseThrow(BriefcaseException::new);
+    return formMetadata.getFormFile();
   }
 
   public Path getFormMediaDir() {
@@ -152,12 +149,6 @@ public class FormStatus implements Serializable {
     return formMetadata.getKey().getVersion();
   }
 
-  public synchronized FormDefinition getFormDef() {
-    if (formDef == null)
-      formDef = FormDefinition.from(formMetadata.getFormFile().orElseThrow(BriefcaseException::new));
-    return formDef;
-  }
-
   public FormMetadata getFormMetadata() {
     return formMetadata;
   }
@@ -170,12 +161,11 @@ public class FormStatus implements Serializable {
     return isSelected == that.isSelected &&
         Objects.equals(formMetadata, that.formMetadata) &&
         Objects.equals(statusString, that.statusString) &&
-        Objects.equals(statusHistory, that.statusHistory) &&
-        Objects.equals(formDef, that.formDef);
+        Objects.equals(statusHistory, that.statusHistory);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(formMetadata, isSelected, statusString, statusHistory, formDef);
+    return Objects.hash(formMetadata, isSelected, statusString, statusHistory);
   }
 }

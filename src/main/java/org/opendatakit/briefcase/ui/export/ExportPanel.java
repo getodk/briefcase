@@ -182,21 +182,20 @@ public class ExportPanel {
       form.setStatusString("Starting to export form");
       String formId = form.getFormId();
       ExportConfiguration configuration = forms.getConfiguration(formId);
-      FormDefinition formDef = FormDefinition.from(formMetadata.getFormFile().orElseThrow(BriefcaseException::new));
+      FormDefinition formDef = FormDefinition.from(formMetadata);
       // TODO Abstract away the subtype of RemoteServer. This should say Optional<RemoteServer>
       Optional<AggregateServer> savedPullSource = RemoteServer.readFromPrefs(appPreferences, pullPanelPrefs, form);
 
       Job<Void> pullJob = configuration.resolvePullBefore() && savedPullSource.isPresent()
-          ? new PullFromAggregate(http, savedPullSource.get(), appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), false, EventBus::publish, formMetadataPort)
+          ? new PullFromAggregate(http, savedPullSource.get(), false, EventBus::publish, formMetadataPort)
           .pull(
-              form,
-              appPreferences.resolveStartFromLast()
+              formMetadata, appPreferences.resolveStartFromLast()
                   ? Optional.of(formMetadata.getCursor())
                   : Optional.empty()
           )
           : Job.noOpSupplier();
 
-      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadataPort, formMetadata, form, formDef, appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), configuration, analytics));
+      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadataPort, formMetadata, formDef, configuration, analytics));
 
       Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
           ? Job.run(runnerStatus -> ExportToGeoJson.export(formMetadata, formDef, configuration, analytics))

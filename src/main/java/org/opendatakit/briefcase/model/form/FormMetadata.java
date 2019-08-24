@@ -1,5 +1,7 @@
 package org.opendatakit.briefcase.model.form;
 
+import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
+
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
@@ -61,10 +63,6 @@ public class FormMetadata {
 
   public FormKey getKey() {
     return key;
-  }
-
-  public Optional<Path> getFormFile() {
-    return formFile;
   }
 
   public Cursor getCursor() {
@@ -141,5 +139,41 @@ public class FormMetadata {
         ", downloadUrl=" + downloadUrl +
         ", lastExportedSubmissionDate=" + lastExportedSubmissionDate +
         '}';
+  }
+
+  public Path getFormFile() {
+    return formFile.orElseThrow(BriefcaseException::new);
+  }
+
+  public Path getFormDir() {
+    return getFormFile().getParent();
+  }
+
+  public Path getFormMediaDir() {
+    return getFormDir().resolve(stripIllegalChars(key.getName()) + "-media");
+  }
+
+  public Path getFormMediaFile(String name) {
+    return getFormMediaDir().resolve(name);
+  }
+
+  public Path getSubmissionsDir() {
+    return getFormDir().resolve("instances");
+  }
+
+  public Path getSubmissionDir(String instanceId) {
+    return getSubmissionsDir().resolve(instanceId.replace(":", ""));
+  }
+
+  public Path getSubmissionFile(String instanceId) {
+    return getSubmissionDir(instanceId).resolve("submission.xml");
+  }
+
+  public Path getSubmissionMediaDir(String instanceId) {
+    return getSubmissionDir(instanceId);
+  }
+
+  public Path getSubmissionMediaFile(String instanceId, String filename) {
+    return getSubmissionDir(instanceId).resolve(filename);
   }
 }

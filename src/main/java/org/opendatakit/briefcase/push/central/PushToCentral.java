@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.export.SubmissionMetaData;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -72,26 +71,17 @@ public class PushToCentral {
 
     Job<Void> startTrackingJob = Job.run(runnerStatus -> tracker.trackStart());
 
-    // Verify that the form is not encrypted
-    Path formFile = form.getFormFile();
-    try {
-      if (FormDefinition.from(formFile).isFileEncryptedForm())
-        return startTrackingJob.thenRun(rs -> {
-          tracker.trackEncryptedForm();
-          tracker.trackEnd();
-        });
-    } catch (RuntimeException e) {
+    if (form.getFormMetadata().isEncrypted())
       return startTrackingJob.thenRun(rs -> {
-        tracker.trackCannotDetermineEncryption(e);
+        tracker.trackEncryptedForm();
         tracker.trackEnd();
       });
-    }
 
     return startTrackingJob
         .thenSupply(rs -> checkFormExists(form.getFormId(), rs, tracker))
         .thenAccept(((rs, formExists) -> {
           if (!formExists) {
-            boolean formSent = pushForm(formFile, rs, tracker);
+            boolean formSent = pushForm(form.getFormMetadata().getFormFile(), rs, tracker);
             if (formSent) {
               List<Path> formAttachments = getFormAttachments(form);
               AtomicInteger attachmentSeq = new AtomicInteger(1);

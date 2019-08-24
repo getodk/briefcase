@@ -50,7 +50,6 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -172,7 +171,7 @@ class ExportToCsvScenario {
         .setSplitSelectMultiples(splitSelectMultiples)
         .build();
 
-    ExportToCsv.export(formMetadataPort, formMetadata, formStatus, formDef, briefcaseDir, configuration);
+    ExportToCsv.export(formMetadataPort, formMetadata, formDef, configuration);
   }
 
   void assertSameContent() {
@@ -277,7 +276,7 @@ class ExportToCsvScenario {
   }
 
   private static FormMetadata installForm(FormMetadata formMetadata, Path briefcaseDir) {
-    Path sourceFormFile = formMetadata.getFormFile().orElseThrow(BriefcaseException::new);
+    Path sourceFormFile = formMetadata.getFormFile();
     String baseSourceFilename = sourceFormFile.getFileName().toString().substring(0, sourceFormFile.getFileName().toString().length() - 4);
     Path formDir = briefcaseDir.resolve("forms").resolve(stripIllegalChars(formMetadata.getKey().getName()));
     Path formFile = formDir.resolve(stripIllegalChars(formMetadata.getKey().getName()) + ".xml");

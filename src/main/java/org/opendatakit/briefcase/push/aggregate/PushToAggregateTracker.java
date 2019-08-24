@@ -35,7 +35,7 @@ class PushToAggregateTracker {
   }
 
   private void notifyTrackingEvent() {
-    onEventCallback.accept(new FormStatusEvent(form));
+    onEventCallback.accept(new FormStatusEvent(form.getFormMetadata().getKey(), form.getStatusString()));
   }
 
   void trackStart() {

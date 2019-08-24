@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataCommands;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
@@ -48,18 +47,12 @@ import org.slf4j.LoggerFactory;
 public class ExportToCsv {
   private static final Logger log = LoggerFactory.getLogger(ExportToCsv.class);
 
-  /**
-   * @see #export(FormDefinition, ExportConfiguration, Optional)
-   */
-  public static ExportOutcome export(FormMetadataPort formMetadataPort, FormMetadata formMetadata, FormStatus formStatus, FormDefinition formDef, Path briefcaseDir, ExportConfiguration configuration) {
-    return export(formMetadataPort, formMetadata, formStatus, formDef, briefcaseDir, configuration, Optional.empty());
+  public static ExportOutcome export(FormMetadataPort formMetadataPort, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration) {
+    return export(formMetadataPort, formMetadata, formDef, configuration, Optional.empty());
   }
 
-  /**
-   * @see #export(FormDefinition, ExportConfiguration, Optional)
-   */
-  public static ExportOutcome export(FormMetadataPort formMetadataPort, FormMetadata formMetadata, FormStatus formStatus, FormDefinition formDef, Path briefcaseDir, ExportConfiguration configuration, Analytics analytics) {
-    return export(formMetadataPort, formMetadata, formStatus, formDef, briefcaseDir, configuration, Optional.of(analytics));
+  public static ExportOutcome export(FormMetadataPort formMetadataPort, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Analytics analytics) {
+    return export(formMetadataPort, formMetadata, formDef, configuration, Optional.of(analytics));
   }
 
   /**
@@ -72,7 +65,7 @@ public class ExportToCsv {
    * @return an {@link ExportOutcome} with the export operation's outcome
    * @see ExportConfiguration
    */
-  private static ExportOutcome export(FormMetadataPort formMetadataPort, FormMetadata formMetadata, FormStatus formStatus, FormDefinition formDef, Path briefcaseDir, ExportConfiguration configuration, Optional<Analytics> analytics) {
+  private static ExportOutcome export(FormMetadataPort formMetadataPort, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Optional<Analytics> analytics) {
     // Create an export tracker object with the total number of submissions we have to export
     ExportProcessTracker exportTracker = new ExportProcessTracker(formDef.getFormId());
     exportTracker.start();

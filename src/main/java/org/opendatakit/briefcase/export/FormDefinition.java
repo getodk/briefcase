@@ -46,6 +46,7 @@ import org.javarosa.core.model.instance.TreeElement;
 import org.javarosa.core.model.instance.TreeReference;
 import org.javarosa.xform.parse.XFormParser;
 import org.opendatakit.briefcase.model.ParsingException;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
 /**
@@ -92,6 +93,28 @@ public class FormDefinition {
     this.isEncrypted = isEncrypted;
     this.model = model;
     this.repeatFields = repeatableFields;
+  }
+
+  public static FormDefinition from(FormMetadata formMetadata) {
+    if (!Files.exists(formMetadata.getFormFile()))
+      throw new BriefcaseException("No form file found");
+
+    try (InputStream in = Files.newInputStream(formMetadata.getFormFile());
+         InputStreamReader isr = new InputStreamReader(in, UTF_8);
+         BufferedReader br = new BufferedReader(isr)) {
+      FormDef formDef = new XFormParser(XFormParser.getXMLDocument(br)).parse();
+      Model model = new Model(formDef.getMainInstance().getRoot(), getFormControls(formDef));
+      return new FormDefinition(
+          formMetadata.getKey().getId(),
+          formMetadata.getFormFile(),
+          formMetadata.getKey().getName(),
+          formMetadata.isEncrypted(),
+          model,
+          model.getRepeatableFields()
+      );
+    } catch (IOException e) {
+      throw new ParsingException(e);
+    }
   }
 
   /**

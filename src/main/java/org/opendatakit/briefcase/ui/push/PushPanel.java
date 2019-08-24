@@ -106,7 +106,7 @@ public class PushPanel {
       pushJobRunner.cancel();
       forms.getSelectedForms().forEach(form -> {
         form.setStatusString("Cancelled by user");
-        EventBus.publish(new FormStatusEvent(form));
+        EventBus.publish(new FormStatusEvent(form.getFormMetadata().getKey(), form.getStatusString()));
       });
       view.unsetWorking();
       view.refresh();

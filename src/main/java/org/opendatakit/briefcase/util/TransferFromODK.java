@@ -75,7 +75,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
       try {
         if (terminationFuture.isCancelled()) {
           fs.setStatusString("Aborted. Skipping fetch of form and submissions...");
-          EventBus.publish(new FormStatusEvent(fs));
+          EventBus.publish(new FormStatusEvent(fs.getFormMetadata().getKey(), fs.getStatusString()));
           return false;
         }
 
@@ -96,13 +96,13 @@ public class TransferFromODK implements ITransferFromSourceAction {
             String msg = "unable to create instances folder";
             log.error(msg, e);
             fs.setStatusString(msg + ": " + e.getMessage());
-            EventBus.publish(new FormStatusEvent(fs));
+            EventBus.publish(new FormStatusEvent(fs.getFormMetadata().getKey(), fs.getStatusString()));
             continue;
           }
           // we have the needed directory structure created...
 
           fs.setStatusString("preparing to retrieve instance data");
-          EventBus.publish(new FormStatusEvent(fs));
+          EventBus.publish(new FormStatusEvent(fs.getFormMetadata().getKey(), fs.getStatusString()));
 
           // construct up the list of folders that might have ODK form data.
           File odkFormInstancesDir = new File(odkFormDefFile.getParentFile().getParentFile(),
@@ -126,7 +126,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
             for (File dir : odkFormInstanceDirs) {
               if (terminationFuture.isCancelled()) {
                 fs.setStatusString("aborting retrieving submissions...");
-                EventBus.publish(new FormStatusEvent(fs));
+                EventBus.publish(new FormStatusEvent(fs.getFormMetadata().getKey(), fs.getStatusString()));
                 return false;
               }
 
@@ -155,7 +155,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                     String msg = "unable to rename form instance xml";
                     log.error(msg, e);
                     fs.setStatusString(msg + ": " + e.getMessage());
-                    EventBus.publish(new FormStatusEvent(fs));
+                    EventBus.publish(new FormStatusEvent(fs.getFormMetadata().getKey(), fs.getStatusString()));
                     continue;
                   }
                 }
@@ -211,7 +211,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
 
                 if (same) {
                   fs.setStatusString("already present - skipping: " + xml.getName());
-                  EventBus.publish(new FormStatusEvent(fs));
+                  EventBus.publish(new FormStatusEvent(fs.getFormMetadata().getKey(), fs.getStatusString()));
                   continue;
                 }
 
@@ -222,7 +222,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                   String msg = "unable to copy saved instance";
                   log.error(msg, e);
                   fs.setStatusString(msg + ": " + e.getMessage());
-                  EventBus.publish(new FormStatusEvent(fs));
+                  EventBus.publish(new FormStatusEvent(fs.getFormMetadata().getKey(), fs.getStatusString()));
                   continue;
                 }
 
@@ -238,7 +238,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                     String msg = "unable to rename submission file to submission.xml";
                     log.error(msg, e);
                     fs.setStatusString(msg + ": " + e.getMessage());
-                    EventBus.publish(new FormStatusEvent(fs));
+                    EventBus.publish(new FormStatusEvent(fs.getFormMetadata().getKey(), fs.getStatusString()));
                     continue;
                   }
                 } else {
@@ -249,7 +249,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
                 }
 
                 fs.setStatusString(String.format("retrieving (%1$d)", instanceCount));
-                EventBus.publish(new FormStatusEvent(fs));
+                EventBus.publish(new FormStatusEvent(fs.getFormMetadata().getKey(), fs.getStatusString()));
                 ++instanceCount;
               }
             }
@@ -260,7 +260,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
           String msg = "unable to open form database";
           log.error(msg, e);
           fs.setStatusString(msg + ": " + e.getMessage());
-          EventBus.publish(new FormStatusEvent(fs));
+          EventBus.publish(new FormStatusEvent(fs.getFormMetadata().getKey(), fs.getStatusString()));
           continue;
         } finally {
           if (formDatabase != null) {
@@ -271,7 +271,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
               String msg = "unable to close form database";
               log.error(msg, e);
               fs.setStatusString(msg + ": " + e.getMessage());
-              EventBus.publish(new FormStatusEvent(fs));
+              EventBus.publish(new FormStatusEvent(fs.getFormMetadata().getKey(), fs.getStatusString()));
               continue;
             }
           }
@@ -279,10 +279,10 @@ public class TransferFromODK implements ITransferFromSourceAction {
       } finally {
         if (isSuccessful) {
           fs.setStatusString("Success.");
-          EventBus.publish(new FormStatusEvent(fs));
+          EventBus.publish(new FormStatusEvent(fs.getFormMetadata().getKey(), fs.getStatusString()));
         } else {
           fs.setStatusString("Failed.");
-          EventBus.publish(new FormStatusEvent(fs));
+          EventBus.publish(new FormStatusEvent(fs.getFormMetadata().getKey(), fs.getStatusString()));
         }
       }
     }

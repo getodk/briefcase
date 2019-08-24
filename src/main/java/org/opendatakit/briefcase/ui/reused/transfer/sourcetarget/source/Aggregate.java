@@ -29,8 +29,8 @@ import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
@@ -80,12 +80,11 @@ public class Aggregate implements PullSource<AggregateServer> {
   }
 
   @Override
-  public List<FormStatus> getFormList() {
+  public List<FormMetadata> getFormList() {
     return http.execute(server.getFormListRequest())
         .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"))
         .stream()
         .map(formMetadata -> formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir)))
-        .map(FormStatus::new)
         .collect(toList());
   }
 
@@ -100,7 +99,6 @@ public class Aggregate implements PullSource<AggregateServer> {
     PullFromAggregate pullOp = new PullFromAggregate(
         http,
         server,
-        appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
         false,
         EventBus::publish,
         formMetadataPort
@@ -110,10 +108,8 @@ public class Aggregate implements PullSource<AggregateServer> {
         forms.map(form -> {
           FormKey key = FormKey.from(form);
           return pullOp.pull(
-              form,
-              resumeLastPull
-                  ? formMetadataPort.query(lastCursorOf(key))
-                  : Optional.empty()
+              form.getFormMetadata(),
+              resumeLastPull ? formMetadataPort.query(lastCursorOf(key)) : Optional.empty()
           );
         })
     ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));

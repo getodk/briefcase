@@ -1,6 +1,5 @@
 package org.opendatakit.briefcase.model.form;
 
-import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAndIs;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.model.form.FormMetadataCommands.cleanAllCursors;
@@ -35,7 +34,7 @@ public class FormMetadataCommandsTest {
     FormMetadata formMetadata = FormMetadata.empty(key).withFormFile(formFile);
 
     formMetadataPort.execute(upsert(formMetadata));
-    assertThat(formMetadataPort.fetch(key).orElseThrow().getFormFile(), isPresentAndIs(formFile));
+    assertThat(formMetadataPort.fetch(key).orElseThrow().getFormFile(), is(formFile));
 
     Cursor cursor = Cursor.from("some cursor data");
     formMetadataPort.execute(upsert(formMetadata.withCursor(cursor)));

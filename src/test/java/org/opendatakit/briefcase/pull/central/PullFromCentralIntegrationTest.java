@@ -22,7 +22,8 @@ import static com.github.dreamhead.moco.Moco.uri;
 import static com.github.dreamhead.moco.Runner.running;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
 import static java.util.stream.Collectors.joining;
-import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.pull.central.PullFromCentralTest.buildAttachments;
 import static org.opendatakit.briefcase.pull.central.PullFromCentralTest.jsonOfAttachments;
@@ -41,6 +42,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -67,6 +69,7 @@ public class PullFromCentralIntegrationTest {
   private HttpServer server;
   private PullFromCentral pullOp;
   private InMemoryFormMetadataAdapter formMetadataPort;
+  private ArrayList<Object> events;
 
   private static Path getPath(String fileName) {
     return Optional.ofNullable(PullFromCentralIntegrationTest.class.getClassLoader().getResource("org/opendatakit/briefcase/pull/aggregate/" + fileName))
@@ -78,7 +81,8 @@ public class PullFromCentralIntegrationTest {
   public void setUp() {
     server = httpServer(serverPort);
     formMetadataPort = new InMemoryFormMetadataAdapter();
-    pullOp = new PullFromCentral(CommonsHttp.of(1), centralServer, briefcaseDir, token, e -> { }, formMetadataPort);
+    events = new ArrayList<>();
+    pullOp = new PullFromCentral(CommonsHttp.of(1), centralServer, token, e -> events.add(e.getMessage()), formMetadataPort);
     form = new FormStatus(FormMetadata.empty(FormKey.of("Some form", "some-form"))
         .withFormFile(briefcaseDir.resolve("forms/Some form/Some form.xml")));
   }
@@ -149,30 +153,32 @@ public class PullFromCentralIntegrationTest {
     });
 
     // Run the pull operation and just check that some key events are published
-    running(server, () -> launchSync(pullOp.pull(form)));
+    running(server, () -> launchSync(pullOp.pull(form.getFormMetadata())));
 
-    assertThat(form.getStatusHistory(), containsString("Start pulling form and submissions"));
-    assertThat(form.getStatusHistory(), containsString("Start getting submission IDs"));
-    assertThat(form.getStatusHistory(), containsString("Got all the submission IDs"));
-    assertThat(form.getStatusHistory(), containsString("Start downloading form"));
-    assertThat(form.getStatusHistory(), containsString("Form downloaded"));
-    assertThat(form.getStatusHistory(), containsString("Start getting form attachments"));
-    assertThat(form.getStatusHistory(), containsString("Start downloading form attachment 2 of 2"));
-    assertThat(form.getStatusHistory(), containsString("Start downloading form attachment 1 of 2"));
-    assertThat(form.getStatusHistory(), containsString("Form attachment 1 of 2 downloaded"));
-    assertThat(form.getStatusHistory(), containsString("Form attachment 2 of 2 downloaded"));
-    assertThat(form.getStatusHistory(), containsString("Start downloading submission 1 of 250"));
-    assertThat(form.getStatusHistory(), containsString("Submission 1 of 250 downloaded"));
-    assertThat(form.getStatusHistory(), containsString("Start getting attachments of submission 1 of 250"));
-    assertThat(form.getStatusHistory(), containsString("Got all the attachments of submission 1 of 250"));
-    assertThat(form.getStatusHistory(), containsString("Start downloading submission 250 of 250"));
-    assertThat(form.getStatusHistory(), containsString("Submission 250 of 250 downloaded"));
-    assertThat(form.getStatusHistory(), containsString("Start getting attachments of submission 250 of 250"));
-    assertThat(form.getStatusHistory(), containsString("Got all the attachments of submission 250 of 250"));
-    assertThat(form.getStatusHistory(), containsString("Start downloading attachment 1 of 2 of submission 250 of 250"));
-    assertThat(form.getStatusHistory(), containsString("Attachment 1 of 2 of submission 250 of 250 downloaded"));
-    assertThat(form.getStatusHistory(), containsString("Start downloading attachment 2 of 2 of submission 250 of 250"));
-    assertThat(form.getStatusHistory(), containsString("Attachment 2 of 2 of submission 250 of 250 downloaded"));
+    assertThat(events, allOf(
+        hasItem("Start pulling form and submissions"),
+        hasItem("Start getting submission IDs"),
+        hasItem("Got all the submission IDs"),
+        hasItem("Start downloading form"),
+        hasItem("Form downloaded"),
+        hasItem("Start getting form attachments"),
+        hasItem("Start downloading form attachment 2 of 2"),
+        hasItem("Start downloading form attachment 1 of 2"),
+        hasItem("Form attachment 1 of 2 downloaded"),
+        hasItem("Form attachment 2 of 2 downloaded"),
+        hasItem("Start downloading submission 1 of 250"),
+        hasItem("Submission 1 of 250 downloaded"),
+        hasItem("Start getting attachments of submission 1 of 250"),
+        hasItem("Got all the attachments of submission 1 of 250"),
+        hasItem("Start downloading submission 250 of 250"),
+        hasItem("Submission 250 of 250 downloaded"),
+        hasItem("Start getting attachments of submission 250 of 250"),
+        hasItem("Got all the attachments of submission 250 of 250"),
+        hasItem("Start downloading attachment 1 of 2 of submission 250 of 250"),
+        hasItem("Attachment 1 of 2 of submission 250 of 250 downloaded"),
+        hasItem("Start downloading attachment 2 of 2 of submission 250 of 250"),
+        hasItem("Attachment 2 of 2 of submission 250 of 250 downloaded")
+    ));
 
     // Assert that saves form metadata
     assertThat(formMetadataPort.fetch(FormKey.from(form)), isPresent());

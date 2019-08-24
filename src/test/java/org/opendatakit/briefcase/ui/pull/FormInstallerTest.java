@@ -54,7 +54,7 @@ public class FormInstallerTest {
   public void installs_the_form_definition_file() throws IOException, URISyntaxException, BadFormDefinition {
     Path sourceFormPath = getPath("basic.xml");
 
-    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath));
+    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath).getFormMetadata());
 
     assertThat(walk(formsDir).collect(toList()), containsAtLeast(
         formsDir.resolve("basic"),
@@ -66,8 +66,8 @@ public class FormInstallerTest {
   public void overwrites_the_form_definition_file_if_needed() throws URISyntaxException, BadFormDefinition, IOException {
     Path sourceFormPath = getPath("basic.xml");
 
-    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath));
-    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath));
+    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath).getFormMetadata());
+    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath).getFormMetadata());
 
     assertThat(walk(formsDir).collect(toList()), containsAtLeast(
         formsDir.resolve("basic"),
@@ -107,7 +107,7 @@ public class FormInstallerTest {
   public void normalizes_the_filename_of_the_form_definition_file_using_the_form_name() throws URISyntaxException, BadFormDefinition, IOException {
     Path sourceFormPath = getPath("basic-form.xml");
 
-    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath));
+    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath).getFormMetadata());
 
     List<Path> installedPaths = walk(formsDir).collect(toList());
     assertThat(installedPaths, containsAtLeast(
@@ -121,7 +121,7 @@ public class FormInstallerTest {
   public void installs_any_media_file_if_media_folder_is_found_next_to_the_form_definition_file() throws URISyntaxException, BadFormDefinition, IOException {
     Path sourceFormPath = getPath("Birds.xml");
 
-    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath));
+    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath).getFormMetadata());
 
     Path expectedFormDir = formsDir.resolve("Birds");
     Path expectedMediaDir = expectedFormDir.resolve("Birds-media");
@@ -163,8 +163,8 @@ public class FormInstallerTest {
   public void overwrites_any_media_file_if_needed() throws URISyntaxException, BadFormDefinition, IOException {
     Path sourceFormPath = getPath("Birds.xml");
 
-    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath));
-    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath));
+    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath).getFormMetadata());
+    FormInstaller.install(briefcaseDir, buildForm(sourceFormPath).getFormMetadata());
 
     Path expectedFormDir = formsDir.resolve("Birds");
     Path expectedMediaDir = expectedFormDir.resolve("Birds-media");

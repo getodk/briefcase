@@ -18,37 +18,37 @@ package org.opendatakit.briefcase.pull;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;
-import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 
 public class PullEvent {
 
   public static class Success extends PullEvent {
-    public final FormStatus form;
+    public final FormKey formKey;
     public final Optional<RemoteServer> remoteServer;
     public final Optional<Cursor> lastCursor;
 
-    private Success(FormStatus form, Optional<RemoteServer> remoteServer, Optional<Cursor> lastCursor) {
-      this.form = form;
+    private Success(FormKey formKey, Optional<RemoteServer> remoteServer, Optional<Cursor> lastCursor) {
+      this.formKey = formKey;
       this.remoteServer = remoteServer;
       this.lastCursor = lastCursor;
     }
 
-    public static Success of(FormStatus form) {
-      return new Success(form, Optional.empty(), Optional.empty());
+    public static Success of(FormKey formKey) {
+      return new Success(formKey, Optional.empty(), Optional.empty());
     }
 
-    public static Success of(FormStatus form, RemoteServer remoteServer) {
-      return new Success(form, Optional.of(remoteServer), Optional.empty());
+    public static Success of(FormKey formKey, RemoteServer remoteServer) {
+      return new Success(formKey, Optional.of(remoteServer), Optional.empty());
     }
 
-    public static Success of(FormStatus form, RemoteServer remoteServer, Cursor lastCursor) {
-      return new Success(form, Optional.of(remoteServer), Optional.of(lastCursor));
+    public static Success of(FormKey formKey, RemoteServer remoteServer, Cursor lastCursor) {
+      return new Success(formKey, Optional.of(remoteServer), Optional.of(lastCursor));
     }
 
-    public void ifRemoteServer(BiConsumer<FormStatus, RemoteServer> consumer) {
-      remoteServer.ifPresent(server -> consumer.accept(form, server));
+    public void ifRemoteServer(BiConsumer<FormKey, RemoteServer> consumer) {
+      remoteServer.ifPresent(server -> consumer.accept(formKey, server));
     }
   }
 

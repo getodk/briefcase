@@ -19,7 +19,6 @@ package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source;
 import static java.awt.Cursor.getPredefinedCursor;
 import static org.opendatakit.briefcase.pull.FormInstaller.install;
 import static org.opendatakit.briefcase.reused.job.Job.run;
-import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
 
 import java.awt.Container;
@@ -34,23 +33,21 @@ import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
-import org.opendatakit.briefcase.util.BadFormDefinition;
 
 /**
  * Represents a filesystem location pointing to a form file as a source of forms for the Pull UI Panel.
  */
-public class FormInComputer implements PullSource<FormStatus> {
+public class FormInComputer implements PullSource<FormMetadata> {
   private final Consumer<PullSource> consumer;
   private Path path;
-  private FormStatus form;
+  private FormMetadata formMetadata;
 
   FormInComputer(Consumer<PullSource> consumer) {
     this.consumer = consumer;
@@ -66,20 +63,16 @@ public class FormInComputer implements PullSource<FormStatus> {
         .map(File::toPath);
 
     // Shortcircuit if the user has cancelled
-    if (!selectedFile.isPresent())
+    if (selectedFile.isEmpty())
       return;
 
-    try {
-      path = selectedFile.get();
-      set(new FormStatus(new OdkCollectFormDefinition(path.toFile())));
-    } catch (BadFormDefinition e) {
-      errorMessage("Wrong file", "Bad form definition file. Please select another file.");
-    }
+    path = selectedFile.get();
+    set(FormMetadata.from(path));
   }
 
   @Override
-  public void set(FormStatus form) {
-    this.form = form;
+  public void set(FormMetadata form) {
+    this.formMetadata = form;
     consumer.accept(this);
   }
 
@@ -89,8 +82,8 @@ public class FormInComputer implements PullSource<FormStatus> {
   }
 
   @Override
-  public List<FormStatus> getFormList() {
-    return Collections.singletonList(form);
+  public List<FormMetadata> getFormList() {
+    return Collections.singletonList(formMetadata);
   }
 
   @Override
@@ -101,7 +94,7 @@ public class FormInComputer implements PullSource<FormStatus> {
   @Override
   public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
     return JobsRunner.launchAsync(run(jobStatus ->
-        install(appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), form)
+        install(appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), formMetadata)
     )).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
@@ -112,7 +105,7 @@ public class FormInComputer implements PullSource<FormStatus> {
 
   @Override
   public String getDescription() {
-    return String.format("%s at %s", form.getFormName(), path.toString());
+    return String.format("%s at %s", formMetadata.getKey().getName(), path.toString());
   }
 
   @Override

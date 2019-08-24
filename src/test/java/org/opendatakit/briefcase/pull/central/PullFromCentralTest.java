@@ -41,7 +41,6 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
@@ -53,7 +52,6 @@ import org.opendatakit.briefcase.reused.transfer.CentralServer;
 
 public class PullFromCentralTest {
   private static final CentralServer server = CentralServer.of(url("http://foo.bar"), 1, Credentials.from("username", "password"));
-  private FormStatus form;
   private static final String token = "some token";
   private final Path briefcaseDir = createTempDirectory("briefcase-test-");
   private FakeHttp http = new FakeHttp();
@@ -61,16 +59,17 @@ public class PullFromCentralTest {
   private PullFromCentralTracker tracker;
   private PullFromCentral pullOp;
   private TestRunnerStatus runnerStatus;
+  private FormMetadata formMetadata;
 
   @Before
   public void init() {
     http = new FakeHttp();
     events = new ArrayList<>();
-    pullOp = new PullFromCentral(http, server, briefcaseDir, token, e -> { }, new InMemoryFormMetadataAdapter());
+    pullOp = new PullFromCentral(http, server, token, e -> { }, new InMemoryFormMetadataAdapter());
     runnerStatus = new TestRunnerStatus(false);
-    form = new FormStatus(FormMetadata.empty(FormKey.of("Some form", "some-form"))
-        .withFormFile(briefcaseDir.resolve("forms/Some form/Some form.xml")));
-    tracker = new PullFromCentralTracker(form, e -> events.add(e.getStatusString()));
+    formMetadata = FormMetadata.empty(FormKey.of("Some form", "some-form"))
+        .withFormFile(briefcaseDir.resolve("forms/Some form/Some form.xml"));
+    tracker = new PullFromCentralTracker(e -> events.add(e.getMessage()), formMetadata);
   }
 
   @After
@@ -112,13 +111,13 @@ public class PullFromCentralTest {
   public void knows_how_to_download_a_form() throws IOException {
     String expectedContent = "form content - won't be parsed";
     http.stub(
-        server.getDownloadFormRequest(form.getFormId(), form.getFormFile(), token),
+        server.getDownloadFormRequest(formMetadata.getKey().getId(), formMetadata.getFormFile(), token),
         ok(expectedContent)
     );
 
-    pullOp.downloadForm(form, token, runnerStatus, tracker);
+    pullOp.downloadForm(formMetadata, token, runnerStatus, tracker);
 
-    Path actualFormFile = form.getFormFile();
+    Path actualFormFile = formMetadata.getFormFile();
     assertThat(actualFormFile, exists());
 
     String actualXml = new String(readAllBytes(actualFormFile));
@@ -133,10 +132,10 @@ public class PullFromCentralTest {
   public void knows_how_to_download_a_submission() {
     String instanceId = "uuid:515a13cf-d7a5-4606-a18f-84940b0944b2";
     String expectedSubmissionXml = buildSubmissionXml(instanceId);
-    Path submissionFile = form.getSubmissionFile(instanceId);
-    http.stub(server.getDownloadSubmissionRequest(form.getFormId(), instanceId, submissionFile, token), ok(expectedSubmissionXml));
+    Path submissionFile = formMetadata.getSubmissionFile(instanceId);
+    http.stub(server.getDownloadSubmissionRequest(formMetadata.getKey().getId(), instanceId, submissionFile, token), ok(expectedSubmissionXml));
 
-    pullOp.downloadSubmission(form, instanceId, token, runnerStatus, tracker, 1, 1);
+    pullOp.downloadSubmission(formMetadata, instanceId, token, runnerStatus, tracker, 1, 1);
 
     String actualSubmissionXml = new String(readAllBytes(submissionFile));
     assertThat(submissionFile, exists());
@@ -154,9 +153,9 @@ public class PullFromCentralTest {
     List<CentralAttachment> expectedAttachments = buildAttachments(3);
 
     // Stub the request to get the list of attachments
-    http.stub(server.getFormAttachmentListRequest(form.getFormId(), token), ok(jsonOfAttachments(expectedAttachments)));
+    http.stub(server.getFormAttachmentListRequest(formMetadata.getKey().getId(), token), ok(jsonOfAttachments(expectedAttachments)));
 
-    List<CentralAttachment> actualAttachments = pullOp.getFormAttachments(form, token, runnerStatus, tracker);
+    List<CentralAttachment> actualAttachments = pullOp.getFormAttachments(formMetadata, token, runnerStatus, tracker);
 
     assertThat(actualAttachments, hasSize(actualAttachments.size()));
     for (CentralAttachment attachment : expectedAttachments)
@@ -173,14 +172,14 @@ public class PullFromCentralTest {
     List<CentralAttachment> attachments = buildAttachments(3);
 
     attachments.forEach(attachment -> http.stub(
-        server.getDownloadFormAttachmentRequest(form.getFormId(), attachment, form.getFormMediaFile(attachment.getName()), token),
+        server.getDownloadFormAttachmentRequest(formMetadata.getKey().getId(), attachment, formMetadata.getFormMediaFile(attachment.getName()), token),
         ok("some body")
     ));
 
     AtomicInteger seq = new AtomicInteger(1);
-    attachments.forEach(attachment -> pullOp.downloadFormAttachment(form, attachment, token, runnerStatus, tracker, seq.getAndIncrement(), 3));
+    attachments.forEach(attachment -> pullOp.downloadFormAttachment(formMetadata, attachment, token, runnerStatus, tracker, seq.getAndIncrement(), 3));
 
-    attachments.forEach(attachment -> assertThat(form.getFormMediaFile(attachment.getName()), exists()));
+    attachments.forEach(attachment -> assertThat(formMetadata.getFormMediaFile(attachment.getName()), exists()));
 
     assertThat(events, contains(
         "Start downloading form attachment 1 of 3",
@@ -198,10 +197,10 @@ public class PullFromCentralTest {
         .mapToObj(i -> "submission instanceID " + i)
         .collect(Collectors.toList());
     http.stub(
-        server.getInstanceIdListRequest(form.getFormId(), token),
+        server.getInstanceIdListRequest(formMetadata.getKey().getId(), token),
         ok(jsonOfSubmissions(expectedInstanceIds))
     );
-    List<String> actualInstanceIds = pullOp.getSubmissionIds(form, token, runnerStatus, tracker);
+    List<String> actualInstanceIds = pullOp.getSubmissionIds(formMetadata, token, runnerStatus, tracker);
     assertThat(actualInstanceIds, hasSize(expectedInstanceIds.size()));
     for (String instanceId : actualInstanceIds)
       assertThat(expectedInstanceIds, hasItem(instanceId));
@@ -217,11 +216,11 @@ public class PullFromCentralTest {
     String instanceId = "uuid:515a13cf-d7a5-4606-a18f-84940b0944b2";
     List<CentralAttachment> expectedAttachments = buildAttachments(3);
     http.stub(
-        server.getSubmissionAttachmentListRequest(form.getFormId(), instanceId, token),
+        server.getSubmissionAttachmentListRequest(formMetadata.getKey().getId(), instanceId, token),
         ok(jsonOfAttachments(expectedAttachments))
     );
 
-    List<CentralAttachment> actualAttachments = pullOp.getSubmissionAttachments(form, instanceId, token, runnerStatus, tracker, 1, 1);
+    List<CentralAttachment> actualAttachments = pullOp.getSubmissionAttachments(formMetadata, instanceId, token, runnerStatus, tracker, 1, 1);
     assertThat(actualAttachments, hasSize(expectedAttachments.size()));
     for (CentralAttachment attachment : actualAttachments)
       assertThat(expectedAttachments, hasItem(attachment));
@@ -237,12 +236,12 @@ public class PullFromCentralTest {
     String instanceId = "some instance id";
     List<CentralAttachment> expectedAttachments = buildAttachments(3);
 
-    expectedAttachments.forEach(attachment -> http.stub(server.getDownloadSubmissionAttachmentRequest(form.getFormId(), instanceId, attachment, form.getSubmissionMediaFile(instanceId, attachment.getName()), token), ok("some body")));
+    expectedAttachments.forEach(attachment -> http.stub(server.getDownloadSubmissionAttachmentRequest(formMetadata.getKey().getId(), instanceId, attachment, formMetadata.getSubmissionMediaFile(instanceId, attachment.getName()), token), ok("some body")));
 
     AtomicInteger seq = new AtomicInteger(1);
-    expectedAttachments.forEach(attachment -> pullOp.downloadSubmissionAttachment(form, instanceId, attachment, token, runnerStatus, tracker, 1, 1, seq.getAndIncrement(), 3));
+    expectedAttachments.forEach(attachment -> pullOp.downloadSubmissionAttachment(formMetadata, instanceId, attachment, token, runnerStatus, tracker, 1, 1, seq.getAndIncrement(), 3));
 
-    expectedAttachments.forEach(attachment -> assertThat(form.getSubmissionMediaFile(instanceId, attachment.getName()), exists()));
+    expectedAttachments.forEach(attachment -> assertThat(formMetadata.getSubmissionMediaFile(instanceId, attachment.getName()), exists()));
 
     assertThat(events, contains(
         "Start downloading attachment 1 of 3 of submission 1 of 1",
