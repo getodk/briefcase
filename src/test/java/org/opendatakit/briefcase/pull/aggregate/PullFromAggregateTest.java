@@ -49,7 +49,6 @@ import org.junit.Test;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.matchers.PathMatchers;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
@@ -66,12 +65,12 @@ public class PullFromAggregateTest {
   private Path briefcaseDir = tmpDir.resolve(BriefcasePreferences.BRIEFCASE_DIR);
   private FakeHttp http;
   private AggregateServer server = AggregateServer.normal(url(BASE_URL));
-  private FormStatus form;
   private PullFromAggregate pullOp;
   private TestRunnerStatus runnerStatus;
   private PullFromAggregateTracker tracker;
   private List<String> events;
   private boolean includeIncomplete = true;
+  private FormMetadata formMetadata;
 
   @Before
   public void init() throws IOException {
@@ -80,10 +79,10 @@ public class PullFromAggregateTest {
     events = new ArrayList<>();
     pullOp = new PullFromAggregate(http, new InMemoryFormMetadataAdapter(), server, includeIncomplete, e -> { });
     runnerStatus = new TestRunnerStatus(false);
-    form = new FormStatus(FormMetadata.empty(FormKey.of("Simple form", "simple-form"))
+    formMetadata = FormMetadata.empty(FormKey.of("Simple form", "simple-form"))
         .withFormFile(briefcaseDir.resolve("forms/some-form/some-form.xml"))
-        .withUrls(Optional.of(RequestBuilder.url(BASE_URL + "/manifest")), Optional.empty()));
-    tracker = new PullFromAggregateTracker(form.getFormMetadata().getKey(), e -> events.add(e.getMessage()));
+        .withUrls(Optional.of(RequestBuilder.url(BASE_URL + "/manifest")), Optional.empty());
+    tracker = new PullFromAggregateTracker(formMetadata.getKey(), e -> events.add(e.getMessage()));
   }
 
   @After
@@ -95,13 +94,13 @@ public class PullFromAggregateTest {
   public void knows_how_to_download_a_form() throws IOException {
     String expectedContent = "form content - won't be parsed";
     http.stub(
-        server.getDownloadFormRequest(form.getFormId()),
+        server.getDownloadFormRequest(formMetadata.getKey().getId()),
         ok(expectedContent)
     );
 
-    pullOp.downloadForm(form.getFormMetadata(), runnerStatus, tracker);
+    pullOp.downloadForm(formMetadata, runnerStatus, tracker);
 
-    Path actualFormFile = form.getFormFile();
+    Path actualFormFile = formMetadata.getFormFile();
     assertThat(actualFormFile, PathMatchers.exists());
 
     String actualXml = new String(readAllBytes(actualFormFile));
@@ -119,7 +118,7 @@ public class PullFromAggregateTest {
     // Stub the manifest request
     http.stub(get(server.getBaseUrl()).withPath("/manifest").build(), ok(buildManifestXml(expectedAttachments)));
 
-    List<AggregateAttachment> actualAttachments = pullOp.getFormAttachments(form.getFormMetadata(), runnerStatus, tracker);
+    List<AggregateAttachment> actualAttachments = pullOp.getFormAttachments(formMetadata, runnerStatus, tracker);
 
     assertThat(actualAttachments, hasSize(actualAttachments.size()));
     for (AggregateAttachment attachment : expectedAttachments)
@@ -138,9 +137,9 @@ public class PullFromAggregateTest {
     attachments.forEach(attachment -> http.stub(get(attachment.getDownloadUrl()).build(), ok("some body")));
 
     AtomicInteger seq = new AtomicInteger(1);
-    attachments.forEach(attachment -> pullOp.downloadFormAttachment(form.getFormMetadata(), attachment, runnerStatus, tracker, seq.getAndIncrement(), 3));
+    attachments.forEach(attachment -> pullOp.downloadFormAttachment(formMetadata, attachment, runnerStatus, tracker, seq.getAndIncrement(), 3));
 
-    attachments.forEach(attachment -> assertThat(form.getFormMediaFile(attachment.getFilename()), PathMatchers.exists()));
+    attachments.forEach(attachment -> assertThat(formMetadata.getFormMediaFile(attachment.getFilename()), PathMatchers.exists()));
 
     assertThat(events, contains(
         "Start downloading form attachment 1 of 3",
@@ -160,9 +159,9 @@ public class PullFromAggregateTest {
     String key = subKeyGen.buildKey(instanceId);
     http.stub(server.getDownloadSubmissionRequest(key), ok(expectedContent));
 
-    DownloadedSubmission actualSubmission = pullOp.downloadSubmission(form.getFormMetadata(), instanceId, subKeyGen, runnerStatus, tracker, 1, 1);
+    DownloadedSubmission actualSubmission = pullOp.downloadSubmission(formMetadata, instanceId, subKeyGen, runnerStatus, tracker, 1, 1);
 
-    assertThat(form.getSubmissionFile(actualSubmission.getInstanceId()), PathMatchers.exists());
+    assertThat(formMetadata.getSubmissionFile(actualSubmission.getInstanceId()), PathMatchers.exists());
     // There's no easy way to assert the submission's contents because the document we stub
     // is not the submission, but an XML document that has the submission and other information.
     // Briefcase has to parse the XML, extract the submission part, and then serialize it back to XML.
@@ -191,9 +190,9 @@ public class PullFromAggregateTest {
     attachments.forEach(attachment -> http.stub(get(attachment.getDownloadUrl()).build(), ok("some body")));
 
     AtomicInteger seq = new AtomicInteger(1);
-    attachments.forEach(attachment -> pullOp.downloadSubmissionAttachment(form.getFormMetadata(), submission, attachment, runnerStatus, tracker, 1, 1, seq.getAndIncrement(), 3));
+    attachments.forEach(attachment -> pullOp.downloadSubmissionAttachment(formMetadata, submission, attachment, runnerStatus, tracker, 1, 1, seq.getAndIncrement(), 3));
 
-    attachments.forEach(attachment -> assertThat(form.getSubmissionMediaFile(instanceId, attachment.getFilename()), PathMatchers.exists()));
+    attachments.forEach(attachment -> assertThat(formMetadata.getSubmissionMediaFile(instanceId, attachment.getFilename()), PathMatchers.exists()));
 
     assertThat(events, contains(
         "Start downloading attachment 1 of 3 of submission 1 of 1",
@@ -211,24 +210,24 @@ public class PullFromAggregateTest {
 
     // This is the request (without cursor) we shouldn't see cause we're providing one
     RequestSpy<XmlElement> request1Spy = http.spyOn(
-        server.getInstanceIdBatchRequest(form.getFormId(), 100, Cursor.empty(), includeIncomplete),
+        server.getInstanceIdBatchRequest(formMetadata.getKey().getId(), 100, Cursor.empty(), includeIncomplete),
         ok(pages.get(0).getLeft())
     );
 
     // This is the one we should see
     Cursor cursor = Cursor.of(LocalDate.of(2010, 1, 5));
     RequestSpy<XmlElement> request2Spy = http.spyOn(
-        server.getInstanceIdBatchRequest(form.getFormId(), 100, cursor, includeIncomplete),
+        server.getInstanceIdBatchRequest(formMetadata.getKey().getId(), 100, cursor, includeIncomplete),
         ok(pages.get(0).getLeft())
     );
 
     // This is the last request that ends the process of getting batch instanceIds.
     http.stub(
-        server.getInstanceIdBatchRequest(form.getFormId(), 100, pages.get(0).getRight(), includeIncomplete),
+        server.getInstanceIdBatchRequest(formMetadata.getKey().getId(), 100, pages.get(0).getRight(), includeIncomplete),
         ok(pages.get(1).getLeft())
     );
 
-    pullOp.getSubmissionIds(form.getFormMetadata(), cursor, runnerStatus, tracker);
+    pullOp.getSubmissionIds(formMetadata, cursor, runnerStatus, tracker);
     assertThat(request1Spy, not(hasBeenCalled()));
     assertThat(request2Spy, hasBeenCalled());
   }

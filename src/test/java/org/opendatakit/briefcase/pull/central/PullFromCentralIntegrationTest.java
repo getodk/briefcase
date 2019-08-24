@@ -50,7 +50,6 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
@@ -64,12 +63,12 @@ public class PullFromCentralIntegrationTest {
   private static final int serverPort = 12306;
   private static final URL BASE_URL = url("http://localhost:" + serverPort);
   private static final CentralServer centralServer = CentralServer.of(BASE_URL, 1, Credentials.from("username", "password"));
-  private FormStatus form;
   private final Path briefcaseDir = createTempDirectory("briefcase-test-");
   private HttpServer server;
   private PullFromCentral pullOp;
   private InMemoryFormMetadataAdapter formMetadataPort;
   private ArrayList<Object> events;
+  private FormMetadata formMetadata;
 
   private static Path getPath(String fileName) {
     return Optional.ofNullable(PullFromCentralIntegrationTest.class.getClassLoader().getResource("org/opendatakit/briefcase/pull/aggregate/" + fileName))
@@ -83,8 +82,8 @@ public class PullFromCentralIntegrationTest {
     formMetadataPort = new InMemoryFormMetadataAdapter();
     events = new ArrayList<>();
     pullOp = new PullFromCentral(CommonsHttp.of(1), formMetadataPort, centralServer, token, e -> events.add(e.getMessage()));
-    form = new FormStatus(FormMetadata.empty(FormKey.of("Some form", "some-form"))
-        .withFormFile(briefcaseDir.resolve("forms/Some form/Some form.xml")));
+    formMetadata = FormMetadata.empty(FormKey.of("Some form", "some-form"))
+        .withFormFile(briefcaseDir.resolve("forms/Some form/Some form.xml"));
   }
 
   @After
@@ -153,7 +152,7 @@ public class PullFromCentralIntegrationTest {
     });
 
     // Run the pull operation and just check that some key events are published
-    running(server, () -> launchSync(pullOp.pull(form.getFormMetadata())));
+    running(server, () -> launchSync(pullOp.pull(formMetadata)));
 
     assertThat(events, allOf(
         hasItem("Start pulling form and submissions"),
@@ -181,6 +180,6 @@ public class PullFromCentralIntegrationTest {
     ));
 
     // Assert that saves form metadata
-    assertThat(formMetadataPort.fetch(FormKey.from(form)), isPresent());
+    assertThat(formMetadataPort.fetch(formMetadata.getKey()), isPresent());
   }
 }

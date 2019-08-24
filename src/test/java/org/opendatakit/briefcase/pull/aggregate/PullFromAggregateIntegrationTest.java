@@ -58,7 +58,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
@@ -74,7 +73,6 @@ public class PullFromAggregateIntegrationTest {
   private static final int serverPort = 12306;
   private static final URL BASE_URL = url("http://localhost:" + serverPort);
   private static final AggregateServer aggregateServer = AggregateServer.normal(BASE_URL);
-  private FormStatus form;
   private Path tmpDir = createTempDirectory("briefcase-test-");
   private Path briefcaseDir = tmpDir.resolve(BriefcasePreferences.BRIEFCASE_DIR);
   private HttpServer server;
@@ -83,6 +81,7 @@ public class PullFromAggregateIntegrationTest {
   private PullFromAggregateTracker tracker;
   private InMemoryFormMetadataAdapter formMetadataPort;
   private List<String> events;
+  private FormMetadata formMetadata;
 
   private static Path getPath(String fileName) {
     return Optional.ofNullable(PullFromAggregateIntegrationTest.class.getClassLoader().getResource("org/opendatakit/briefcase/pull/aggregate/" + fileName))
@@ -98,10 +97,10 @@ public class PullFromAggregateIntegrationTest {
     events = new ArrayList<>();
     pullOp = new PullFromAggregate(CommonsHttp.of(1), formMetadataPort, aggregateServer, true, e -> events.add(e.getMessage()));
     runnerStatus = new TestRunnerStatus(false);
-    form = new FormStatus(FormMetadata.empty(FormKey.of("Simple form", "simple-form"))
+    formMetadata = FormMetadata.empty(FormKey.of("Simple form", "simple-form"))
         .withFormFile(briefcaseDir.resolve("forms/Simple form/Simple form.xml"))
-        .withUrls(Optional.of(RequestBuilder.url(BASE_URL + "/manifest")), Optional.empty()));
-    tracker = new PullFromAggregateTracker(form.getFormMetadata().getKey(), e -> { });
+        .withUrls(Optional.of(RequestBuilder.url(BASE_URL + "/manifest")), Optional.empty());
+    tracker = new PullFromAggregateTracker(formMetadata.getKey(), e -> { });
   }
 
   @After
@@ -150,7 +149,7 @@ public class PullFromAggregateIntegrationTest {
     ));
 
     // Run the pull operation and just check that some key events are published
-    running(server, () -> launchSync(pullOp.pull(form.getFormMetadata(), Optional.empty())));
+    running(server, () -> launchSync(pullOp.pull(formMetadata, Optional.empty())));
 
     // Assert that pulling the form works indirectly by going through the status changes of the form
     assertThat(events, allOf(
@@ -173,7 +172,7 @@ public class PullFromAggregateIntegrationTest {
     // Assert that the last pull cursor gets saved
 
     Cursor actualLastCursor = formMetadataPort
-        .query(lastCursorOf(FormKey.from(form)))
+        .query(lastCursorOf(formMetadata.getKey()))
         .orElseThrow(RuntimeException::new);
     assertThat(actualLastCursor, is(submissionPages.get(3).getRight()));
   }
@@ -190,7 +189,7 @@ public class PullFromAggregateIntegrationTest {
         ));
 
     running(server, () -> {
-      List<InstanceIdBatch> submissionBatches = pullOp.getSubmissionIds(form.getFormMetadata(), Cursor.empty(), runnerStatus, tracker);
+      List<InstanceIdBatch> submissionBatches = pullOp.getSubmissionIds(formMetadata, Cursor.empty(), runnerStatus, tracker);
       int total = submissionBatches.stream().map(InstanceIdBatch::count).reduce(0, Integer::sum);
       assertThat(submissionBatches, hasSize(4));
       assertThat(total, is(250));
@@ -209,7 +208,7 @@ public class PullFromAggregateIntegrationTest {
         ));
 
     running(server, () -> {
-      List<InstanceIdBatch> submissions = pullOp.getSubmissionIds(form.getFormMetadata(), Cursor.empty(), runnerStatus, tracker);
+      List<InstanceIdBatch> submissions = pullOp.getSubmissionIds(formMetadata, Cursor.empty(), runnerStatus, tracker);
       Cursor lastCursor = PullFromAggregate.getLastCursor(submissions).orElse(Cursor.empty());
       assertThat(lastCursor, is(pages.get(3).getRight()));
     });

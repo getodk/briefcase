@@ -46,7 +46,6 @@ import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
@@ -61,19 +60,17 @@ class ExportToCsvScenario {
   private final Path formDir;
   private final Path outputDir;
   private final FormDefinition formDef;
-  private final FormStatus formStatus;
   private final Optional<String> instanceID;
   private final Locale localeBackup;
   private final TimeZone zoneBackup;
   private final FormMetadataPort formMetadataPort;
   private final FormMetadata formMetadata;
 
-  ExportToCsvScenario(Path briefcaseDir, Path formDir, Path outputDir, FormDefinition formDef, FormStatus formStatus, Optional<String> instanceID, Locale localeBackup, TimeZone zoneBackup, FormMetadataPort formMetadataPort, FormMetadata formMetadata) {
+  private ExportToCsvScenario(Path briefcaseDir, Path formDir, Path outputDir, FormDefinition formDef, Optional<String> instanceID, Locale localeBackup, TimeZone zoneBackup, FormMetadataPort formMetadataPort, FormMetadata formMetadata) {
     this.briefcaseDir = briefcaseDir;
     this.formDir = formDir;
     this.outputDir = outputDir;
     this.formDef = formDef;
-    this.formStatus = formStatus;
     this.instanceID = instanceID;
     this.localeBackup = localeBackup;
     this.zoneBackup = zoneBackup;
@@ -90,9 +87,7 @@ class ExportToCsvScenario {
     Path briefcaseDir = createTempDirectory("briefcase");
     FormMetadata formMetadata = installForm(sourceFormMetadata, briefcaseDir);
 
-    FormStatus formStatus = new FormStatus(formMetadata);
-
-    log.debug("Form dir: {}", formStatus.getFormDir());
+    log.debug("Form dir: {}", formMetadata.getFormDir());
 
 
     Path outputDir = createTempDirectory("briefcase_export_test_output_");
@@ -112,10 +107,9 @@ class ExportToCsvScenario {
 
     return new ExportToCsvScenario(
         briefcaseDir,
-        formStatus.getFormDir(),
+        formMetadata.getFormDir(),
         outputDir,
-        FormDefinition.from(formStatus.getFormFile()),
-        formStatus,
+        FormDefinition.from(formMetadata.getFormFile()),
         readInstanceId(formName),
         localeBackup,
         zoneBackup,

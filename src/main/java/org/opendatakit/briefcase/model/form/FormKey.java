@@ -5,7 +5,6 @@ import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
-import org.opendatakit.briefcase.model.FormStatus;
 
 public class FormKey {
   private final String name;
@@ -16,14 +15,6 @@ public class FormKey {
     this.name = name;
     this.id = id;
     this.version = version;
-  }
-
-  public static FormKey from(FormStatus formStatus) {
-    return new FormKey(
-        formStatus.getFormName(),
-        formStatus.getFormId(),
-        formStatus.getVersion()
-    );
   }
 
   public static FormKey of(String name, String id) {
