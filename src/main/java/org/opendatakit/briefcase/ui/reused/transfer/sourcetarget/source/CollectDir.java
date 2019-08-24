@@ -19,11 +19,9 @@ package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source;
 import static java.awt.Cursor.getPredefinedCursor;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.walk;
-import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
-import static org.opendatakit.briefcase.util.TransferAction.transferODKToBriefcase;
 
 import java.awt.Container;
 import java.awt.Cursor;
@@ -36,11 +34,10 @@ import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.TerminationFuture;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
-import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.pull.filesystem.PullFromCollectDir;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
@@ -49,10 +46,12 @@ import org.opendatakit.briefcase.ui.reused.FileChooser;
  * Represents a filesystem location pointing to Collect's form directory as a source of forms for the Pull UI Panel.
  */
 public class CollectDir implements PullSource<Path> {
+  private final Path briefcaseDir;
   private final Consumer<PullSource> consumer;
-  private Path path;
+  private Path sourceFormDir;
 
-  CollectDir(Consumer<PullSource> consumer) {
+  CollectDir(Path briefcaseDir, Consumer<PullSource> consumer) {
+    this.briefcaseDir = briefcaseDir;
     this.consumer = consumer;
   }
 
@@ -79,8 +78,8 @@ public class CollectDir implements PullSource<Path> {
   }
 
   @Override
-  public void set(Path path) {
-    this.path = path;
+  public void set(Path sourceFormDir) {
+    this.sourceFormDir = sourceFormDir;
     consumer.accept(this);
   }
 
@@ -91,7 +90,7 @@ public class CollectDir implements PullSource<Path> {
 
   @Override
   public List<FormMetadata> getFormList() {
-    return walk(path)
+    return walk(sourceFormDir)
         .filter(path -> !path.getFileName().toString().equals("submission.xml")
             && path.getFileName().toString().endsWith(".xml"))
         .filter(path -> isAForm(XmlElement.from(path)))
@@ -113,12 +112,10 @@ public class CollectDir implements PullSource<Path> {
 
   @Override
   public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
-    return JobsRunner.launchAsync(forms.map(form -> run(jobStatus -> transferODKToBriefcase(
-        appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
-        path.toFile(),
-        new TerminationFuture(),
-        TransferForms.of(form)
-    )))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+    return JobsRunner.launchAsync(forms.map(form -> new PullFromCollectDir(formMetadataPort, EventBus::publish).pull(
+        form.getFormMetadata(),
+        form.getFormMetadata().withFormFile(form.getFormMetadata().getKey().buildFormFile(briefcaseDir))
+    ))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
   @Override
@@ -128,7 +125,7 @@ public class CollectDir implements PullSource<Path> {
 
   @Override
   public String getDescription() {
-    return path.toString();
+    return sourceFormDir.toString();
   }
 
   @Override

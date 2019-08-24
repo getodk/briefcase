@@ -63,8 +63,8 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
     );
     panel.addOption(PullSource.aggregate(http, briefcaseDir, panel::triggerOnSelect));
     panel.addOption(PullSource.central(http, briefcaseDir, panel::triggerOnSelect));
-    panel.addOption(PullSource.customDir(panel::triggerOnSelect));
-    panel.addOption(PullSource.formInComputer(panel::triggerOnSelect));
+    panel.addOption(PullSource.collectDir(briefcaseDir, panel::triggerOnSelect));
+    panel.addOption(PullSource.formInComputer(briefcaseDir, panel::triggerOnSelect));
     return panel;
   }
 

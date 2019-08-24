@@ -210,6 +210,10 @@ public class UncheckedFiles {
 
   }
 
+  public static String stripFileExtension(Path file) {
+    return stripFileExtension(file.getFileName().toString());
+  }
+
   public static String stripFileExtension(String fileName) {
     return fileName.contains(".")
         ? fileName.substring(0, fileName.lastIndexOf("."))

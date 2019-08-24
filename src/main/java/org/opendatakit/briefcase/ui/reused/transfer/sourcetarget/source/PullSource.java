@@ -38,8 +38,8 @@ public interface PullSource<T> extends SourceOrTarget<T> {
     return new Central(http, briefcaseDir, server -> http.execute(server.getCredentialsTestRequest()), consumer);
   }
 
-  static PullSource<Path> customDir(Consumer<PullSource> consumer) {
-    return new CollectDir(consumer);
+  static PullSource<Path> collectDir(Path briefcaseDir, Consumer<PullSource> consumer) {
+    return new CollectDir(briefcaseDir, consumer);
   }
 
   static PullSource<FormMetadata> formInComputer(Path briefcaseDir, Consumer<PullSource> consumer) {

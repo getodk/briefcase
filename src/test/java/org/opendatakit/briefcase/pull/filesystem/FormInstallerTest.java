@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.ui.pull;
+package org.opendatakit.briefcase.pull.filesystem;
 
 import static java.nio.file.Files.createTempDirectory;
 import static java.nio.file.Files.walk;
@@ -32,7 +32,6 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.form.FormMetadata;
-import org.opendatakit.briefcase.pull.FormInstaller;
 
 public class FormInstallerTest {
 
@@ -44,6 +43,7 @@ public class FormInstallerTest {
     briefcaseDir = createTempDirectory("briefcase_test_");
     formsDir = briefcaseDir.resolve("forms");
     Files.createDirectories(formsDir);
+
   }
 
   @Test
@@ -51,7 +51,12 @@ public class FormInstallerTest {
     Path sourceFormPath = getPath("basic.xml");
 
     FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormPath);
-    FormInstaller.install(sourceFormMetadata, sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)));
+    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata, e -> {});
+    FormInstaller.installForm(
+        sourceFormMetadata,
+        sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
+        tracker
+    );
 
     assertThat(walk(formsDir).collect(toList()), containsAtLeast(
         formsDir.resolve("basic"),
@@ -64,8 +69,17 @@ public class FormInstallerTest {
     Path sourceFormPath = getPath("basic.xml");
 
     FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormPath);
-    FormInstaller.install(sourceFormMetadata, sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)));
-    FormInstaller.install(sourceFormMetadata, sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)));
+    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata, e -> {});
+    FormInstaller.installForm(
+        sourceFormMetadata,
+        sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
+        tracker
+    );
+    FormInstaller.installForm(
+        sourceFormMetadata,
+        sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
+        tracker
+    );
 
     assertThat(walk(formsDir).collect(toList()), containsAtLeast(
         formsDir.resolve("basic"),
@@ -78,7 +92,12 @@ public class FormInstallerTest {
     Path sourceFormPath = getPath("basic-form.xml");
 
     FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormPath);
-    FormInstaller.install(sourceFormMetadata, sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)));
+    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata, e -> {});
+    FormInstaller.installForm(
+        sourceFormMetadata,
+        sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
+        tracker
+    );
 
     List<Path> installedPaths = walk(formsDir).collect(toList());
     assertThat(installedPaths, containsAtLeast(
@@ -93,7 +112,12 @@ public class FormInstallerTest {
     Path sourceFormPath = getPath("Birds.xml");
 
     FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormPath);
-    FormInstaller.install(sourceFormMetadata, sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)));
+    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata, e -> {});
+    FormInstaller.installForm(
+        sourceFormMetadata,
+        sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
+        tracker
+    );
 
     Path expectedFormDir = formsDir.resolve("Birds");
     Path expectedMediaDir = expectedFormDir.resolve("Birds-media");
@@ -136,8 +160,18 @@ public class FormInstallerTest {
     Path sourceFormPath = getPath("Birds.xml");
 
     FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormPath);
-    FormInstaller.install(sourceFormMetadata, sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)));
-    FormInstaller.install(sourceFormMetadata, sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)));
+    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata, e -> {});
+    FormInstaller.installForm(
+        sourceFormMetadata,
+        sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
+        tracker
+    );
+    FormInstaller.installForm(
+        sourceFormMetadata,
+        sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
+        tracker
+    );
+
 
     Path expectedFormDir = formsDir.resolve("Birds");
     Path expectedMediaDir = expectedFormDir.resolve("Birds-media");
@@ -178,6 +212,4 @@ public class FormInstallerTest {
   private static Path getPath(String fileName) throws URISyntaxException {
     return Paths.get(FormInstallerTest.class.getClassLoader().getResource(fileName).toURI());
   }
-
-
 }
