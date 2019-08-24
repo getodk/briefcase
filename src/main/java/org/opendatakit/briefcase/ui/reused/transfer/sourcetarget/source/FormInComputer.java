@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source;
 
 import static java.awt.Cursor.getPredefinedCursor;
+import static org.opendatakit.briefcase.model.form.FormMetadataCommands.upsert;
 import static org.opendatakit.briefcase.pull.FormInstaller.install;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
@@ -36,7 +37,6 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
@@ -45,11 +45,14 @@ import org.opendatakit.briefcase.ui.reused.FileChooser;
  * Represents a filesystem location pointing to a form file as a source of forms for the Pull UI Panel.
  */
 public class FormInComputer implements PullSource<FormMetadata> {
+  private final Path briefcaseDir;
   private final Consumer<PullSource> consumer;
   private Path path;
-  private FormMetadata formMetadata;
+  private FormMetadata sourceFormMetadata;
+  private FormMetadata targetFormMetadata;
 
-  FormInComputer(Consumer<PullSource> consumer) {
+  FormInComputer(Path briefcaseDir, Consumer<PullSource> consumer) {
+    this.briefcaseDir = briefcaseDir;
     this.consumer = consumer;
   }
 
@@ -71,8 +74,9 @@ public class FormInComputer implements PullSource<FormMetadata> {
   }
 
   @Override
-  public void set(FormMetadata form) {
-    this.formMetadata = form;
+  public void set(FormMetadata sourceFormMetadata) {
+    this.sourceFormMetadata = sourceFormMetadata;
+    targetFormMetadata = sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir));
     consumer.accept(this);
   }
 
@@ -83,7 +87,7 @@ public class FormInComputer implements PullSource<FormMetadata> {
 
   @Override
   public List<FormMetadata> getFormList() {
-    return Collections.singletonList(formMetadata);
+    return Collections.singletonList(sourceFormMetadata);
   }
 
   @Override
@@ -93,10 +97,12 @@ public class FormInComputer implements PullSource<FormMetadata> {
 
   @Override
   public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
-    Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
-    return JobsRunner.launchAsync(run(jobStatus ->
-        install(formMetadata, formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir)))
-    )).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+    return JobsRunner
+        .launchAsync(run(jobStatus -> install(sourceFormMetadata, targetFormMetadata)))
+        .onComplete(() -> {
+          formMetadataPort.execute(upsert(targetFormMetadata));
+          EventBus.publish(new PullEvent.PullComplete());
+        });
   }
 
   @Override
@@ -106,7 +112,7 @@ public class FormInComputer implements PullSource<FormMetadata> {
 
   @Override
   public String getDescription() {
-    return String.format("%s at %s", formMetadata.getKey().getName(), path.toString());
+    return String.format("%s at %s", sourceFormMetadata.getKey().getName(), path.toString());
   }
 
   @Override
