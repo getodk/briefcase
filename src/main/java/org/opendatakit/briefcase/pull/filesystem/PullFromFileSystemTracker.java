@@ -16,60 +16,61 @@
 
 package org.opendatakit.briefcase.pull.filesystem;
 
+import static org.opendatakit.briefcase.reused.Operation.PULL;
+
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.form.FormMetadata;
+import org.opendatakit.briefcase.model.form.FormKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class PullFromFileSystemTracker {
   private static final Logger log = LoggerFactory.getLogger(PullFromFileSystemTracker.class);
+  private final FormKey formKey;
   private final Consumer<FormStatusEvent> onEventCallback;
-  private final FormMetadata formMetadata;
-  private boolean errored = false;
 
-  PullFromFileSystemTracker(FormMetadata formMetadata, Consumer<FormStatusEvent> onEventCallback) {
-    this.formMetadata = formMetadata;
+  PullFromFileSystemTracker(FormKey formKey, Consumer<FormStatusEvent> onEventCallback) {
+    this.formKey = formKey;
     this.onEventCallback = onEventCallback;
   }
 
   private void notifyTrackingEvent(String message) {
-    onEventCallback.accept(new FormStatusEvent(formMetadata.getKey(), message));
+    onEventCallback.accept(new FormStatusEvent(PULL, formKey, message));
   }
 
   void trackStart() {
     String message = "Start pulling form and submissions";
-    log.info("Pull {} - {}", formMetadata.getKey().getName(), message);
+    log.info("Pull {} - {}", formKey.getName(), message);
     notifyTrackingEvent(message);
   }
 
   void trackEnd() {
-    String message = errored ? "Success with errors" : "Success";
-    log.info("Pull {} - {}", formMetadata.getKey().getName(), message);
+    String message = "Success";
+    log.info("Pull {} - {}", formKey.getName(), message);
     notifyTrackingEvent(message);
   }
 
   void trackFormInstalled() {
     String message = "Form installer";
-    log.info("Pull {} - {}", formMetadata.getKey().getName(), message);
+    log.info("Pull {} - {}", formKey.getName(), message);
     notifyTrackingEvent(message);
   }
 
   void trackFormAttachmentInstaller(int attachmentNumber, int totalAttachments) {
     String message = "Form attachment " + attachmentNumber + " of " + totalAttachments + " installed";
-    log.info("Pull {} - {}", formMetadata.getKey().getName(), message);
+    log.info("Pull {} - {}", formKey.getName(), message);
     notifyTrackingEvent(message);
   }
 
   void trackSubmissionInstalled(int submissionNumber, int totalSubmissions) {
     String message = "Submission " + submissionNumber + " of " + totalSubmissions + " installed";
-    log.info("Pull {} - {}", formMetadata.getKey().getName(), message);
+    log.info("Pull {} - {}", formKey.getName(), message);
     notifyTrackingEvent(message);
   }
 
-  public void trackSubmissionAttachmentInstalled(int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
+  void trackSubmissionAttachmentInstalled(int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
     String message = "Attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions + " installed";
-    log.info("Pull {} - {}", formMetadata.getKey().getName(), message);
+    log.info("Pull {} - {}", formKey.getName(), message);
     notifyTrackingEvent(message);
   }
 }

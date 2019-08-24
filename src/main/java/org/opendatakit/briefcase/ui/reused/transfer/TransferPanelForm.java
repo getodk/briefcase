@@ -16,6 +16,9 @@
 
 package org.opendatakit.briefcase.ui.reused.transfer;
 
+import static org.opendatakit.briefcase.reused.Operation.PULL;
+import static org.opendatakit.briefcase.reused.Operation.PUSH;
+
 import java.awt.CardLayout;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -32,6 +35,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
+import org.opendatakit.briefcase.reused.Operation;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
@@ -62,30 +66,25 @@ public class TransferPanelForm<T extends SourceOrTarget> {
   private boolean alreadyShownOnce = false;
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
-  private TransferPanelForm(SourceOrTargetPanel<T> sourceOrTargetPanel, TransferFormsTable formsTable, String actionName) {
+  private TransferPanelForm(SourceOrTargetPanel<T> sourceOrTargetPanel, TransferFormsTable formsTable, Operation operation) {
     this.sourceOrTargetPanel = sourceOrTargetPanel;
     this.sourceOrTargetPanelForm = sourceOrTargetPanel.getContainer();
     this.formsTable = formsTable;
     this.formsTableView = formsTable.getView();
     $$$setupUI$$$();
-    actionButton.setText(actionName);
+    actionButton.setText(operation.getName());
 
     formsTable.onChange(this::triggerOnChange);
     selectAllButton.addActionListener(__ -> formsTable.selectAll());
     clearAllButton.addActionListener(__ -> formsTable.clearAll());
   }
 
-  public static TransferPanelForm<PullSource> from(TransferForms forms, SourceOrTargetPanel<PullSource> sourceOrTargetPanel, String actionName) {
-    TransferFormsTable formsTable = TransferFormsTable.from(forms, actionName);
-    return new TransferPanelForm<>(sourceOrTargetPanel, formsTable, actionName);
-  }
-
   public static TransferPanelForm<PullSource> pull(Http http, Path briefcaseDir, TransferForms forms) {
-    return new TransferPanelForm<>(SourceOrTargetPanel.pull(http, briefcaseDir), TransferFormsTable.from(forms, "Pull"), "Pull");
+    return new TransferPanelForm<>(SourceOrTargetPanel.pull(http, briefcaseDir), TransferFormsTable.from(forms, PULL), PULL);
   }
 
   public static TransferPanelForm<PushTarget> push(Http http, TransferForms forms) {
-    return new TransferPanelForm<>(SourceOrTargetPanel.push(http), TransferFormsTable.from(forms, "Push"), "Push");
+    return new TransferPanelForm<>(SourceOrTargetPanel.push(http), TransferFormsTable.from(forms, PUSH), PUSH);
   }
 
   public void onSelect(Consumer<T> callback) {
@@ -183,6 +182,10 @@ public class TransferPanelForm<T extends SourceOrTarget> {
 
   private void createUIComponents() {
 
+  }
+
+  public void clearAllStatusLines() {
+    formsTableView.clearAllStatusLines();
   }
 
   /**
@@ -309,4 +312,6 @@ public class TransferPanelForm<T extends SourceOrTarget> {
   public JComponent $$$getRootComponent$$$() {
     return container;
   }
+
+
 }

@@ -23,27 +23,28 @@ import static org.opendatakit.briefcase.export.ExportOutcome.SOME_SKIPPED;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import org.bushe.swing.event.EventBus;
+import org.opendatakit.briefcase.model.form.FormKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ExportProcessTracker {
   private static final Logger log = LoggerFactory.getLogger(ExportProcessTracker.class);
 
-  private final String formId;
+  private final FormKey formKey;
   private long start = System.nanoTime();
   long total = 0;
   long exported;
   private int lastReportedPercentage = 0;
 
-  ExportProcessTracker(String formId) {
-    this.formId = formId;
+  ExportProcessTracker(FormKey formKey) {
+    this.formKey = formKey;
   }
 
   synchronized void incAndReport() {
     exported++;
     int percentage = (int) (exported * 100 / total);
     if (percentage > lastReportedPercentage) {
-      EventBus.publish(ExportEvent.progress(percentage / 100D, formId));
+      EventBus.publish(ExportEvent.progress(percentage / 100D, formKey));
       lastReportedPercentage = percentage;
     }
   }
@@ -59,14 +60,14 @@ public class ExportProcessTracker {
   public void start() {
     exported = 0;
     start = System.nanoTime();
-    EventBus.publish(ExportEvent.start(formId));
+    EventBus.publish(ExportEvent.start(formKey));
   }
 
   public void end() {
     long end = System.nanoTime();
     LocalTime duration = LocalTime.ofNanoOfDay(end - start);
     log.info("Exported in {}", duration.format(DateTimeFormatter.ISO_TIME));
-    EventBus.publish(ExportEvent.end(exported, formId));
+    EventBus.publish(ExportEvent.end(formKey));
   }
 
   void trackTotal(int total) {

@@ -32,9 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
@@ -107,11 +105,10 @@ public class PullFromAggregate {
       return;
     }
 
-    List<FormStatus> filteredForms = response.orElseThrow(BriefcaseException::new)
+    List<FormMetadata> filteredForms = response.orElseThrow(BriefcaseException::new)
         .stream()
         .filter(f -> formId.map(id -> f.getKey().getId().equals(id)).orElse(true))
         .map(formMetadata -> formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir)))
-        .map(FormStatus::new)
         .collect(toList());
 
     if (formId.isPresent() && filteredForms.isEmpty())
@@ -121,12 +118,12 @@ public class PullFromAggregate {
     forms.load(filteredForms);
     forms.selectAll();
 
-    org.opendatakit.briefcase.pull.aggregate.PullFromAggregate pullOp = new org.opendatakit.briefcase.pull.aggregate.PullFromAggregate(http, aggregateServer, includeIncomplete, PullFromAggregate::onEvent, formMetadataPort);
+    org.opendatakit.briefcase.pull.aggregate.PullFromAggregate pullOp = new org.opendatakit.briefcase.pull.aggregate.PullFromAggregate(http, formMetadataPort, aggregateServer, includeIncomplete, PullFromAggregate::onEvent);
     JobsRunner.launchAsync(
-        forms.map(form -> pullOp.pull(form.getFormMetadata(), resolveCursor(
+        forms.map(formMetadata -> pullOp.pull(formMetadata, resolveCursor(
             resumeLastPull,
             startFromDate,
-            form,
+            formMetadata,
             formMetadataPort
         ))),
         PullFromAggregate::onError
@@ -136,12 +133,11 @@ public class PullFromAggregate {
     System.out.println();
   }
 
-  private static Optional<Cursor> resolveCursor(boolean resumeLastPull, Optional<LocalDate> startFromDate, FormStatus form, FormMetadataPort formMetadataPort) {
-    FormKey key = FormKey.from(form);
+  private static Optional<Cursor> resolveCursor(boolean resumeLastPull, Optional<LocalDate> startFromDate, FormMetadata formMetadata, FormMetadataPort formMetadataPort) {
     return Optionals.race(
         startFromDate.map(Cursor::of),
         resumeLastPull
-            ? formMetadataPort.query(lastCursorOf(key))
+            ? formMetadataPort.query(lastCursorOf(formMetadata.getKey()))
             : Optional.empty()
     );
   }

@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import org.junit.Test;
 import org.opendatakit.briefcase.export.ExportConfiguration;
@@ -37,9 +36,9 @@ import org.opendatakit.briefcase.export.ExportEvent;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusBuilder;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.http.FakeHttp;
 import org.opendatakit.briefcase.ui.reused.NoOpAnalytics;
@@ -50,7 +49,7 @@ public class ExportPanelUnitTest {
 
   @Test
   public void saves_to_user_preferences_changes_on_the_default_configuration() throws IOException {
-    List<FormStatus> formsList = new ArrayList<>();
+    List<FormMetadata> formsList = new ArrayList<>();
     BriefcasePreferences inMemoryPrefs = new BriefcasePreferences(InMemoryPreferences.empty());
     initialDefaultConf = empty().build();
     ExportForms forms = load(initialDefaultConf, formsList, inMemoryPrefs);
@@ -74,7 +73,7 @@ public class ExportPanelUnitTest {
 
   @Test
   public void saves_to_user_preferences_changes_on_a_custom_configuration() throws IOException {
-    List<FormStatus> formsList = FormStatusBuilder.buildFormStatusList(10);
+    List<FormMetadata> formsList = FormStatusBuilder.buildFormStatusList(10);
     BriefcasePreferences inMemoryPrefs = new BriefcasePreferences(InMemoryPreferences.empty());
     initialDefaultConf = empty().build();
     ExportForms forms = load(initialDefaultConf, formsList, inMemoryPrefs);
@@ -91,14 +90,14 @@ public class ExportPanelUnitTest {
         formMetadataPort
     );
 
-    FormStatus form = formsList.get(0);
-    String formId = form.getFormId();
+    FormMetadata form = formsList.get(0);
+    String formId = form.getKey().getId();
 
     ExportConfiguration conf = empty()
         .setExportDir(Paths.get(Files.createTempDirectory("briefcase_test").toUri()))
         .build();
 
-    forms.putConfiguration(form, conf);
+    forms.putConfiguration(form.getKey(), conf);
     exportPanelForm.getFormsTable().getViewModel().triggerChange();
 
     assertThat(load(inMemoryPrefs, buildCustomConfPrefix(formId)).getExportDir(), notNullValue());
@@ -106,7 +105,7 @@ public class ExportPanelUnitTest {
 
   @Test
   public void saves_to_user_preferences_the_last_successful_export_date_for_a_form() {
-    List<FormStatus> formsList = FormStatusBuilder.buildFormStatusList(10);
+    List<FormMetadata> formsList = FormStatusBuilder.buildFormStatusList(10);
     BriefcasePreferences inMemoryPrefs = new BriefcasePreferences(InMemoryPreferences.empty());
     initialDefaultConf = empty().build();
     ExportForms forms = load(initialDefaultConf, formsList, inMemoryPrefs);
@@ -123,25 +122,18 @@ public class ExportPanelUnitTest {
         formMetadataPort
     );
 
-    FormStatus form = formsList.get(0);
-    String formId = form.getFormId();
+    FormMetadata form = formsList.get(0);
+    String formId = form.getKey().getId();
 
     assertThat(inMemoryPrefs.nullSafeGet(buildExportDateTimePrefix(formId)), isEmpty());
 
-    ExportEvent event = ExportEvent.successForm(10, getFormDef(form).getFormId());
+    ExportEvent event = ExportEvent.successForm(10, form.getKey());
     forms.appendStatus(event);
 
     assertThat(inMemoryPrefs.nullSafeGet(buildExportDateTimePrefix(formId)), isPresent());
   }
 
-  private static FormDefinition getFormDef(FormStatus form) {
-    return new FormDefinition(
-        form.getFormId(),
-        form.getFormFile(),
-        form.getFormName(),
-        form.isEncrypted(),
-        null,
-        Collections.emptyList()
-    );
+  private static FormDefinition getFormDef(FormMetadata form) {
+    return FormDefinition.from(form);
   }
 }

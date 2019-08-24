@@ -62,7 +62,6 @@ import org.opendatakit.briefcase.ui.push.PushPanel;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.settings.SettingsPanel;
 import org.opendatakit.briefcase.util.BriefcaseVersionManager;
-import org.opendatakit.briefcase.util.FormCache;
 import org.opendatakit.briefcase.util.Host;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,7 +95,6 @@ public class MainBriefcaseWindow extends WindowAdapter {
     BriefcasePreferences pullPreferences = BriefcasePreferences.forClass(PullPanel.class);
     BriefcasePreferences exportPreferences = BriefcasePreferences.forClass(ExportPanel.class);
     Path briefcaseDir = appPreferences.getBriefcaseDir().filter(Files::exists).orElseThrow(BriefcaseException::new);
-    FormCache formCache = new FormCache();
 
     int maxHttpConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
@@ -118,9 +116,9 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
     // Add panes to the tabbedPane
     addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics, formMetadataPort, briefcaseDir).getContainer());
-    addPane(PushPanel.TAB_NAME, PushPanel.from(http, appPreferences, formCache, analytics, formMetadataPort).getContainer());
+    addPane(PushPanel.TAB_NAME, PushPanel.from(http, appPreferences, analytics, formMetadataPort).getContainer());
     addPane(ExportPanel.TAB_NAME, ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, http, formMetadataPort).getForm().getContainer());
-    addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(appPreferences, analytics, formCache, http, versionManager, formMetadataPort).getContainer());
+    addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(appPreferences, analytics, http, versionManager, formMetadataPort).getContainer());
 
     // Set up the frame and put the UI components in it
     frame.addWindowListener(this);

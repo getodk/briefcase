@@ -26,7 +26,6 @@ import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.util.BriefcaseVersionManager;
-import org.opendatakit.briefcase.util.FormCache;
 
 public class SettingsPanel {
 
@@ -34,7 +33,7 @@ public class SettingsPanel {
   private final SettingsPanelForm form;
 
   @SuppressWarnings("checkstyle:Indentation")
-  private SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http, BriefcaseVersionManager versionManager, FormMetadataPort formMetadataPort) {
+  private SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, Http http, BriefcaseVersionManager versionManager, FormMetadataPort formMetadataPort) {
     this.form = form;
 
     appPreferences.getMaxHttpConnections().ifPresent(form::setMaxHttpConnections);
@@ -73,9 +72,9 @@ public class SettingsPanel {
     form.setVersion(versionManager.getCurrent());
   }
 
-  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, FormCache formCache, Http http, BriefcaseVersionManager versionManager, FormMetadataPort formMetadataPort) {
+  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, Http http, BriefcaseVersionManager versionManager, FormMetadataPort formMetadataPort) {
     SettingsPanelForm settingsPanelForm = new SettingsPanelForm();
-    return new SettingsPanel(settingsPanelForm, appPreferences, analytics, formCache, http, versionManager, formMetadataPort);
+    return new SettingsPanel(settingsPanelForm, appPreferences, analytics, http, versionManager, formMetadataPort);
   }
 
   public JPanel getContainer() {

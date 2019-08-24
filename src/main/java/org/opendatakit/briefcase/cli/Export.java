@@ -35,9 +35,7 @@ import org.opendatakit.briefcase.export.ExportToCsv;
 import org.opendatakit.briefcase.export.ExportToGeoJson;
 import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
@@ -98,7 +96,6 @@ public class Export {
     boolean smartAppend = args.has(SMART_APPEND);
 
     CliEventsCompanion.attach(log);
-    Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     BriefcasePreferences exportPrefs = BriefcasePreferences.forClass(ExportPanel.class);
     BriefcasePreferences pullPrefs = BriefcasePreferences.forClass(ExportPanel.class);
@@ -108,17 +105,15 @@ public class Export {
         .map(host -> CommonsHttp.of(maxHttpConnections, host))
         .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
 
-    Optional<FormStatus> maybeFormStatus = formMetadataPort.fetchAll()
+    Optional<FormMetadata> maybeFormStatus = formMetadataPort.fetchAll()
         .filter(formMetadata -> formMetadata.getKey().getId().equals(formId))
-        .map(FormStatus::new)
         .findFirst();
 
     createDirectories(exportDir);
 
-    FormStatus formStatus = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + formId + " not found"));
+    FormMetadata formMetadata = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + formId + " not found"));
 
-
-    System.out.println("Exporting form " + formStatus.getFormName() + " (" + formStatus.getFormId() + ") to: " + exportDir);
+    System.out.println("Exporting form " + formMetadata.getKey().getName() + " (" + formMetadata.getKey().getId() + ") to: " + exportDir);
     DateRange dateRange = new DateRange(startDate, endDate);
     ExportConfiguration configuration = ExportConfiguration.Builder.empty()
         .setExportFilename(baseFilename)
@@ -134,19 +129,15 @@ public class Export {
         .setSmartAppend(smartAppend)
         .build();
 
-    FormKey key = FormKey.from(formStatus);
-    FormMetadata formMetadata = formMetadataPort.fetch(key).orElseThrow(BriefcaseException::new);
-
-
     Job<Void> pullJob = Job.noOpSupplier();
     if (configuration.resolvePullBefore()) {
-      Optional<AggregateServer> server = AggregateServer.readFromPrefs(appPreferences, pullPrefs, formStatus.getFormId());
+      Optional<AggregateServer> server = AggregateServer.readFromPrefs(appPreferences, pullPrefs, formMetadata.getKey());
       if (server.isPresent()) {
         Optional<Cursor> lastCursor = appPreferences.resolveStartFromLast()
-            ? formMetadataPort.query(lastCursorOf(key))
+            ? formMetadataPort.query(lastCursorOf(formMetadata.getKey()))
             : Optional.empty();
 
-        pullJob = new PullFromAggregate(http, server.get(), false, Export::onEvent, formMetadataPort)
+        pullJob = new PullFromAggregate(http, formMetadataPort, server.get(), false, Export::onEvent)
             .pull(formMetadata, lastCursor);
       }
     }
@@ -163,7 +154,7 @@ public class Export {
         .thenRun(exportJob)
         .thenRun(exportGeoJsonJob)
         .thenRun(__ -> exportPrefs.put(
-            buildExportDateTimePrefix(formStatus.getFormId()),
+            buildExportDateTimePrefix(formMetadata.getKey().getId()),
             LocalDateTime.now().format(ISO_DATE_TIME)
         ));
 

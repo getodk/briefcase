@@ -26,11 +26,7 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import org.opendatakit.briefcase.model.FileSystemException;
-import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,44 +63,6 @@ public class FileSystemUtils {
       parent = parent.getParentFile();
     }
     return false;
-  }
-
-  public static List<OdkCollectFormDefinition> getODKFormList(File odk) {
-    List<OdkCollectFormDefinition> formsList = new ArrayList<>();
-    File forms = new File(odk, "forms");
-    if (forms.exists()) {
-      File[] formDirs = forms.listFiles();
-      for (File f : Objects.requireNonNull(formDirs)) {
-        if (f.isFile() && f.getName().endsWith(".xml")) {
-          try {
-            formsList.add(new OdkCollectFormDefinition(f));
-          } catch (BadFormDefinition e) {
-            log.debug("bad form definition", e);
-          }
-        }
-      }
-    }
-    return formsList;
-  }
-
-  private static File getFormsFolder(File briefcaseFolder) {
-    return new File(briefcaseFolder, FORMS_DIR);
-  }
-
-  // TODO Ensure this is OK, as opposed to using stripIllegalChars()
-  private static String asFilesystemSafeName(String formName) {
-    return formName.replaceAll("[/\\\\:]", "").trim();
-  }
-
-  public static File getFormDirectory(String formName, File briefcaseFolder)
-      throws FileSystemException {
-    // clean up friendly form name...
-    String rootName = asFilesystemSafeName(formName);
-    File formPath = new File(getFormsFolder(briefcaseFolder), rootName);
-    if (!formPath.exists() && !formPath.mkdirs()) {
-      throw new FileSystemException("unable to create directory: " + formPath.getAbsolutePath());
-    }
-    return formPath;
   }
 
   static String getFormDatabaseUrl(File formDirectory) throws FileSystemException {
@@ -160,28 +118,6 @@ public class FileSystemUtils {
     return HSQLDB_DB.equals(dbFile.getName()) && parentFile != null && HSQLDB_DIR.equals(parentFile.getName());
   }
 
-  public static File getFormDefinitionFile(File formDirectory) throws FileSystemException {
-    return new File(formDirectory, formDirectory.getName() + ".xml");
-  }
-
-  static File getMediaDirectory(File formDirectory)
-      throws FileSystemException {
-    File mediaDir = new File(formDirectory, formDirectory.getName() + "-media");
-    if (!mediaDir.exists() && !mediaDir.mkdirs()) {
-      throw new FileSystemException("unable to create directory: " + mediaDir.getAbsolutePath());
-    }
-
-    return mediaDir;
-  }
-
-  static File getFormInstancesDirectory(File formDirectory) throws FileSystemException {
-    File instancesDir = new File(formDirectory, INSTANCE_DIR);
-    if (!instancesDir.exists() && !instancesDir.mkdirs()) {
-      throw new FileSystemException("unable to create directory: " + instancesDir.getAbsolutePath());
-    }
-    return instancesDir;
-  }
-
   static boolean isFormRelativeInstancePath(String path) {
     return path.startsWith(INSTANCE_DIR);
   }
@@ -190,16 +126,6 @@ public class FileSystemUtils {
     Path parentPath = parent.toPath();
     Path childPath = child.toPath();
     return parentPath.relativize(childPath);
-  }
-
-  static File getFormSubmissionDirectory(File formInstancesDir, String instanceID) {
-    // construct the instance directory File...
-    String instanceDirName = asFilesystemSafeName(instanceID);
-    File instanceDir = new File(formInstancesDir, instanceDirName);
-    if (!instanceDir.exists() || instanceDir.isDirectory()) {
-      return instanceDir;
-    }
-    return null;
   }
 
   public static String getMd5Hash(File file) {

@@ -78,7 +78,7 @@ public class PullFromAggregateTest {
     Files.createDirectories(briefcaseDir);
     http = new FakeHttp();
     events = new ArrayList<>();
-    pullOp = new PullFromAggregate(http, server, includeIncomplete, e -> { }, new InMemoryFormMetadataAdapter());
+    pullOp = new PullFromAggregate(http, new InMemoryFormMetadataAdapter(), server, includeIncomplete, e -> { });
     runnerStatus = new TestRunnerStatus(false);
     form = new FormStatus(FormMetadata.empty(FormKey.of("Simple form", "simple-form"))
         .withFormFile(briefcaseDir.resolve("forms/some-form/some-form.xml"))

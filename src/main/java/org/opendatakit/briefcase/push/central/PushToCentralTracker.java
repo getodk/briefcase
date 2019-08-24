@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.push.central;
 
+import static org.opendatakit.briefcase.reused.Operation.PUSH;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -39,7 +41,7 @@ class PushToCentralTracker {
   }
 
   private void notifyTrackingEvent(String message) {
-    onEventCallback.accept(new FormStatusEvent(formMetadata.getKey(), message));
+    onEventCallback.accept(new FormStatusEvent(PUSH, formMetadata.getKey(), message));
   }
 
   // TODO v2.0 Move this factory to the CentralErrorMessage class

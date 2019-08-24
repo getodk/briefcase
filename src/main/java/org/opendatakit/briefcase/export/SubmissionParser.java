@@ -75,8 +75,8 @@ public class SubmissionParser {
    * Each file gets briefly parsed to obtain their submission date and use it as
    * the sorting criteria and for filtering.
    */
-  public static List<Path> getListOfSubmissionFiles(FormMetadata formMetadata, FormDefinition formDef, DateRange dateRange, boolean smartAppend, SubmissionExportErrorCallback onParsingError) {
-    Path instancesDir = formDef.getFormDir().resolve("instances");
+  public static List<Path> getListOfSubmissionFiles(FormMetadata formMetadata, DateRange dateRange, boolean smartAppend, SubmissionExportErrorCallback onParsingError) {
+    Path instancesDir = formMetadata.getSubmissionsDir();
     if (!Files.exists(instancesDir) || !Files.isReadable(instancesDir))
       return Collections.emptyList();
     // TODO Migrate this code to Try<Pair<Path, Option<OffsetDate>>> to be able to filter failed parsing attempts
@@ -90,7 +90,7 @@ public class SubmissionParser {
             paths.add(Pair.of(submissionFile, submissionDate.orElse(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC))));
           } catch (Throwable t) {
             log.error("Can't read submission date", t);
-            EventBus.publish(ExportEvent.failureSubmission(formDef, instanceDir.getFileName().toString(), t, formDef.getFormId()));
+            EventBus.publish(ExportEvent.failureSubmission(instanceDir.getFileName().toString(), t, formMetadata.getKey()));
           }
         });
     return paths.parallelStream()

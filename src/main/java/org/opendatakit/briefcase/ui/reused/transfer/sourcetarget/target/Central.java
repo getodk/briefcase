@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.target;
 
+import static org.opendatakit.briefcase.reused.Operation.PUSH;
 import static org.opendatakit.briefcase.ui.reused.UI.makeClickable;
 import static org.opendatakit.briefcase.ui.reused.UI.uncheckedBrowse;
 
@@ -25,7 +26,8 @@ import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.push.central.PushToCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -58,14 +60,16 @@ public class Central implements PushTarget<CentralServer> {
 
   @Override
   public JobsRunner push(TransferForms forms, Path briefcaseDir) {
-    forms.filter(FormStatus::isEncrypted)
-        .forEach(form -> form.setStatusString("Skipping. Encrypted forms can't be pushed to ODK Central yet"));
+    forms.filter(FormMetadata::isEncrypted)
+        .forEach(formMetadata ->
+            EventBus.publish(new FormStatusEvent(PUSH, formMetadata.getKey(), "Skipping. Encrypted forms can't be pushed to ODK Central yet"))
+        );
 
     String token = http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
     PushToCentral pushOp = new PushToCentral(http, server, token, EventBus::publish);
 
     return JobsRunner
-        .launchAsync(forms.filter(f -> !f.isEncrypted()).map(form -> pushOp.push(form.getFormMetadata())))
+        .launchAsync(forms.filter(f -> !f.isEncrypted()).map(pushOp::push))
         .onComplete(() -> EventBus.publish(new PushEvent.Complete()));
   }
 

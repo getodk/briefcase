@@ -40,9 +40,9 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusBuilder;
 import org.opendatakit.briefcase.model.InMemoryPreferences;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.http.Credentials;
 
@@ -74,16 +74,16 @@ public class AggregateServerTest {
     BriefcasePreferences pullPanelPrefs = new BriefcasePreferences(InMemoryPreferences.empty()); // Legacy storage
 
     AggregateServer noCredsServer = new AggregateServer(url("http://foo.bar"), Optional.empty());
-    FormStatus aForm = FormStatusBuilder.buildFormStatus(1);
-    noCredsServer.storeInPrefs(prefs, true, aForm.getFormId());
+    FormMetadata aForm = FormStatusBuilder.buildFormMetadata(1);
+    noCredsServer.storeInPrefs(prefs, true, aForm.getKey().getId());
 
     AggregateServer credsServer = new AggregateServer(url("http://fizz.baz"), Optional.of(TEST_CREDENTIALS));
-    FormStatus anotherForm = FormStatusBuilder.buildFormStatus(2);
-    credsServer.storeInPrefs(prefs, true, anotherForm.getFormId());
+    FormMetadata anotherForm = FormStatusBuilder.buildFormMetadata(2);
+    credsServer.storeInPrefs(prefs, true, anotherForm.getKey().getId());
 
     assertThat(prefs.keys(), hasSize(6));
-    assertThat(readFromPrefs(prefs, pullPanelPrefs, aForm.getFormId()), isPresentAndIs(noCredsServer));
-    assertThat(readFromPrefs(prefs, pullPanelPrefs, anotherForm.getFormId()), isPresentAndIs(credsServer));
+    assertThat(readFromPrefs(prefs, pullPanelPrefs, aForm.getKey()), isPresentAndIs(noCredsServer));
+    assertThat(readFromPrefs(prefs, pullPanelPrefs, anotherForm.getKey()), isPresentAndIs(credsServer));
   }
 
   @Test
@@ -92,19 +92,19 @@ public class AggregateServerTest {
     BriefcasePreferences pullPanelPrefs = new BriefcasePreferences(InMemoryPreferences.empty()); // Legacy storage
 
     AggregateServer noCredsServer = new AggregateServer(url("http://foo.bar"), Optional.empty());
-    FormStatus aForm = FormStatusBuilder.buildFormStatus(1);
+    FormMetadata aForm = FormStatusBuilder.buildFormMetadata(1);
     pullPanelPrefs.put("form-1_pull_settings_url", noCredsServer.getBaseUrl().toString());
     pullPanelPrefs.put("form-1_pull_settings_username", "");
     pullPanelPrefs.put("form-1_pull_settings_password", "");
 
     AggregateServer credsServer = new AggregateServer(url("http://fizz.baz"), Optional.of(TEST_CREDENTIALS));
-    FormStatus anotherForm = FormStatusBuilder.buildFormStatus(2);
+    FormMetadata anotherForm = FormStatusBuilder.buildFormMetadata(2);
     pullPanelPrefs.put("form-2_pull_settings_url", credsServer.getBaseUrl().toString());
     pullPanelPrefs.put("form-2_pull_settings_username", TEST_CREDENTIALS.getUsername());
     pullPanelPrefs.put("form-2_pull_settings_password", TEST_CREDENTIALS.getPassword());
 
-    assertThat(readFromPrefs(prefs, pullPanelPrefs, aForm.getFormId()), isPresentAndIs(noCredsServer));
-    assertThat(readFromPrefs(prefs, pullPanelPrefs, anotherForm.getFormId()), isPresentAndIs(credsServer));
+    assertThat(readFromPrefs(prefs, pullPanelPrefs, aForm.getKey()), isPresentAndIs(noCredsServer));
+    assertThat(readFromPrefs(prefs, pullPanelPrefs, anotherForm.getKey()), isPresentAndIs(credsServer));
   }
 
   @Test
@@ -114,15 +114,15 @@ public class AggregateServerTest {
     prefs.put("dummy key", "dummy value");
 
     AggregateServer noCredsServer = new AggregateServer(url("http://foo.bar"), Optional.empty());
-    FormStatus aForm = FormStatusBuilder.buildFormStatus(1);
-    noCredsServer.storeInPrefs(prefs, true, aForm.getFormId());
+    FormMetadata aForm = FormStatusBuilder.buildFormMetadata(1);
+    noCredsServer.storeInPrefs(prefs, true, aForm.getKey().getId());
 
     AggregateServer credsServer = new AggregateServer(url("http://fizz.baz"), Optional.of(TEST_CREDENTIALS));
-    FormStatus anotherForm = FormStatusBuilder.buildFormStatus(2);
-    credsServer.storeInPrefs(prefs, true, anotherForm.getFormId());
+    FormMetadata anotherForm = FormStatusBuilder.buildFormMetadata(2);
+    credsServer.storeInPrefs(prefs, true, anotherForm.getKey().getId());
 
-    noCredsServer.clearStoredPrefs(prefs, aForm.getFormId());
-    credsServer.clearStoredPrefs(prefs, anotherForm.getFormId());
+    noCredsServer.clearStoredPrefs(prefs, aForm.getKey().getId());
+    credsServer.clearStoredPrefs(prefs, anotherForm.getKey().getId());
 
     assertThat(prefs.keys(), Matchers.contains("dummy key"));
   }
@@ -133,21 +133,21 @@ public class AggregateServerTest {
     BriefcasePreferences pullPanelPrefs = new BriefcasePreferences(InMemoryPreferences.empty()); // Legacy storage
 
     AggregateServer noCredsServer = new AggregateServer(url("http://foo.bar"), Optional.empty());
-    FormStatus aForm = FormStatusBuilder.buildFormStatus(1);
-    noCredsServer.storeInPrefs(prefs, true, aForm.getFormId());
+    FormMetadata aForm = FormStatusBuilder.buildFormMetadata(1);
+    noCredsServer.storeInPrefs(prefs, true, aForm.getKey().getId());
     pullPanelPrefs.put("1_pull_settings_url", noCredsServer.getBaseUrl().toString() + "?old"); // Inject a difference into the old storage
     pullPanelPrefs.put("1_pull_settings_username", "");
     pullPanelPrefs.put("1_pull_settings_password", "");
 
     AggregateServer credsServer = new AggregateServer(url("http://fizz.baz"), Optional.of(TEST_CREDENTIALS));
-    FormStatus anotherForm = FormStatusBuilder.buildFormStatus(2);
-    credsServer.storeInPrefs(prefs, true, anotherForm.getFormId());
+    FormMetadata anotherForm = FormStatusBuilder.buildFormMetadata(2);
+    credsServer.storeInPrefs(prefs, true, anotherForm.getKey().getId());
     pullPanelPrefs.put("2_pull_settings_url", credsServer.getBaseUrl().toString() + "?old"); // Inject a difference into the old storage
     pullPanelPrefs.put("2_pull_settings_username", TEST_CREDENTIALS.getUsername());
     pullPanelPrefs.put("2_pull_settings_password", TEST_CREDENTIALS.getPassword());
 
-    assertThat(readFromPrefs(prefs, pullPanelPrefs, aForm.getFormId()), isPresentAndIs(noCredsServer));
-    assertThat(readFromPrefs(prefs, pullPanelPrefs, anotherForm.getFormId()), isPresentAndIs(credsServer));
+    assertThat(readFromPrefs(prefs, pullPanelPrefs, aForm.getKey()), isPresentAndIs(noCredsServer));
+    assertThat(readFromPrefs(prefs, pullPanelPrefs, anotherForm.getKey()), isPresentAndIs(credsServer));
   }
 
   @Test
@@ -156,13 +156,13 @@ public class AggregateServerTest {
     BriefcasePreferences pullPanelPrefs = new BriefcasePreferences(InMemoryPreferences.empty()); // Legacy storage
 
     AggregateServer noCredsServer = new AggregateServer(url("http://foo.bar"), Optional.empty());
-    FormStatus aForm = FormStatusBuilder.buildFormStatus(1);
+    FormMetadata aForm = FormStatusBuilder.buildFormMetadata(1);
     pullPanelPrefs.put("form-1_pull_settings_url", noCredsServer.getBaseUrl().toString() + "?old"); // Inject a difference into the old storage
     pullPanelPrefs.put("form-1_pull_settings_username", "");
     pullPanelPrefs.put("form-1_pull_settings_password", "");
 
     AggregateServer credsServer = new AggregateServer(url("http://fizz.baz"), Optional.of(TEST_CREDENTIALS));
-    FormStatus anotherForm = FormStatusBuilder.buildFormStatus(2);
+    FormMetadata anotherForm = FormStatusBuilder.buildFormMetadata(2);
     pullPanelPrefs.put("form-2_pull_settings_url", credsServer.getBaseUrl().toString() + "?old"); // Inject a difference into the old storage
     pullPanelPrefs.put("form-2_pull_settings_username", TEST_CREDENTIALS.getUsername());
     pullPanelPrefs.put("form-2_pull_settings_password", TEST_CREDENTIALS.getPassword());
@@ -172,8 +172,8 @@ public class AggregateServerTest {
     assert pullPanelPrefs.keys().size() == 6;
 
     // Read the servers. Other tests ensure that they're correctly read
-    readFromPrefs(prefs, pullPanelPrefs, aForm.getFormId());
-    readFromPrefs(prefs, pullPanelPrefs, anotherForm.getFormId());
+    readFromPrefs(prefs, pullPanelPrefs, aForm.getKey());
+    readFromPrefs(prefs, pullPanelPrefs, anotherForm.getKey());
 
     assertThat(prefs.keys(), hasSize(6));
     assertThat(pullPanelPrefs.keys(), is(empty()));

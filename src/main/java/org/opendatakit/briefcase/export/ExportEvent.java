@@ -16,56 +16,60 @@
 
 package org.opendatakit.briefcase.export;
 
+import org.opendatakit.briefcase.model.form.FormKey;
+
 public class ExportEvent {
+  private final FormKey formKey;
   private final String formId;
   private final String statusLine;
   private final boolean success;
 
-  private ExportEvent(String formId, String statusLine, boolean success) {
-    this.formId = formId;
+  private ExportEvent(FormKey formKey, String statusLine, boolean success) {
+    this.formKey = formKey;
+    this.formId = formKey.getId();
     this.statusLine = statusLine;
     this.success = success;
   }
 
-  public static ExportEvent progress(double percentage, String formId) {
+  public static ExportEvent progress(double percentage, FormKey formKey) {
     int base100Percentage = Double.valueOf(percentage * 100).intValue();
     String statusLine = String.format("Exported %s%% of the submissions", base100Percentage);
-    return new ExportEvent(formId, statusLine, false);
+    return new ExportEvent(formKey, statusLine, false);
   }
 
-  public static ExportEvent start(String formId) {
-    return new ExportEvent(formId, "Export has started", false);
+  public static ExportEvent start(FormKey formKey) {
+    return new ExportEvent(formKey, "Export has started", false);
   }
 
-  public static ExportEvent end(long exported, String formId) {
-    return new ExportEvent(formId, "Export has ended", false);
+  public static ExportEvent end(FormKey formKey) {
+    return new ExportEvent(formKey, "Export has ended", false);
   }
 
-  public static ExportEvent failure(String cause, String formId) {
-    return new ExportEvent.Failure(formId, String.format("Failure: %s", cause), false);
+  public static ExportEvent failure(String cause, FormKey formKey) {
+    return new ExportEvent.Failure(String.format("Failure: %s", cause), false, formKey);
   }
 
-  public static ExportEvent failureSubmission(FormDefinition form, String instanceId, Throwable cause, String formId) {
+  public static ExportEvent failureSubmission(String instanceId, Throwable cause, FormKey formKey) {
     return new ExportEvent(
-        formId,
-        String.format("Can't export submission %s of form ID %s. Cause: %s", instanceId, formId, cause.getMessage()),
+        formKey,
+        String.format("Can't export submission %s of form ID %s. Cause: %s", instanceId, formKey.getId(), cause.getMessage()),
         false
     );
   }
 
-  public static ExportEvent successForm(int total, String formId) {
-    return new ExportEvent.Success(formId, String.format("Exported %d submission%s", total, sUnlessOne(total)), true);
+  public static ExportEvent successForm(int total, FormKey formKey) {
+    return new ExportEvent.Success(String.format("Exported %d submission%s", total, sUnlessOne(total)), true, formKey);
   }
 
-  public static ExportEvent partialSuccessForm(int exported, int total, String formId) {
-    return new ExportEvent.Success(formId, String.format("Exported %d from %d submission%s", exported, total, sUnlessOne(total)), true);
+  public static ExportEvent partialSuccessForm(int exported, int total, FormKey formKey) {
+    return new ExportEvent.Success(String.format("Exported %d from %d submission%s", exported, total, sUnlessOne(total)), true, formKey);
   }
 
   public String getFormId() {
     return formId;
   }
 
-  public String getStatusLine() {
+  public String getMessage() {
     return statusLine;
   }
 
@@ -78,15 +82,19 @@ public class ExportEvent {
     return num == 1 ? "" : "s";
   }
 
+  public FormKey getFormKey() {
+    return formKey;
+  }
+
   public static class Failure extends ExportEvent {
-    private Failure(String formId, String statusLine, boolean success) {
-      super(formId, statusLine, success);
+    private Failure(String statusLine, boolean success, FormKey formKey) {
+      super(formKey, statusLine, success);
     }
   }
 
   public static class Success extends ExportEvent {
-    private Success(String formId, String statusLine, boolean success) {
-      super(formId, statusLine, success);
+    private Success(String statusLine, boolean success, FormKey formKey) {
+      super(formKey, statusLine, success);
     }
   }
 }

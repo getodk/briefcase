@@ -18,7 +18,7 @@ package org.opendatakit.briefcase.reused.transfer;
 
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.reused.Optionals;
 import org.opendatakit.briefcase.reused.http.response.Response;
 
@@ -72,12 +72,12 @@ public interface RemoteServer {
    * older versions that store prefs using different keys
    */
   @SuppressWarnings("unchecked")
-  static <T extends RemoteServer> Optional<T> readFromPrefs(BriefcasePreferences prefs, BriefcasePreferences pullPanelPrefs, FormStatus form) {
+  static <T extends RemoteServer> Optional<T> readFromPrefs(BriefcasePreferences prefs, BriefcasePreferences pullPanelPrefs, FormKey formKey) {
     // Hacky way to get the correct subtype. Basically, try to de-serialize saved prefs
     // until one of the de-serializers successfully manages to get an instance
     return Optionals.race(
-        AggregateServer.readFromPrefs(prefs, pullPanelPrefs, form.getFormId()).map(o -> (T) o),
-        CentralServer.readFromPrefs(prefs, form).map(o -> (T) o)
+        AggregateServer.readFromPrefs(prefs, pullPanelPrefs, formKey).map(o -> (T) o),
+        CentralServer.readFromPrefs(prefs, formKey).map(o -> (T) o)
     );
   }
 

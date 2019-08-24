@@ -40,16 +40,10 @@ import org.slf4j.LoggerFactory;
 public class ExportToGeoJson {
   private static final Logger log = LoggerFactory.getLogger(ExportToGeoJson.class);
 
-  /**
-   * @see #export(FormDefinition, ExportConfiguration, Optional)
-   */
   public static ExportOutcome export(FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration) {
     return export(formMetadata, formDef, configuration, Optional.empty());
   }
 
-  /**
-   * @see #export(FormDefinition, ExportConfiguration, Optional)
-   */
   public static ExportOutcome export(FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Analytics analytics) {
     return export(formMetadata, formDef, configuration, Optional.of(analytics));
   }
@@ -64,7 +58,7 @@ public class ExportToGeoJson {
    */
   private static ExportOutcome export(FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Optional<Analytics> analytics) {
     // Create an export tracker object with the total number of submissions we have to export
-    ExportProcessTracker exportTracker = new ExportProcessTracker(formDef.getFormId());
+    ExportProcessTracker exportTracker = new ExportProcessTracker(formMetadata.getKey());
     exportTracker.start();
 
     SubmissionExportErrorCallback onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
@@ -73,13 +67,13 @@ public class ExportToGeoJson {
             analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null))
         );
 
-    List<Path> submissionFiles = getListOfSubmissionFiles(formMetadata, formDef, configuration.getDateRange(), configuration.resolveSmartAppend(), onParsingError);
+    List<Path> submissionFiles = getListOfSubmissionFiles(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend(), onParsingError);
     exportTracker.trackTotal(submissionFiles.size());
 
     createDirectories(configuration.getExportDir());
 
     // Generate csv lines grouped by the fqdn of the model they belong to
-    Stream<Submission> validSubmissions = ExportTools.getValidSubmissions(formDef, configuration, submissionFiles, onParsingError, onInvalidSubmission);
+    Stream<Submission> validSubmissions = ExportTools.getValidSubmissions(formMetadata, formDef, configuration, submissionFiles, onParsingError, onInvalidSubmission);
 
     Stream<Feature> features = validSubmissions.peek(s -> exportTracker.incAndReport())
         .flatMap(submission -> GeoJson.toFeatures(formDef.getModel(), submission));
@@ -92,13 +86,13 @@ public class ExportToGeoJson {
 
     ExportOutcome exportOutcome = exportTracker.computeOutcome();
     if (exportOutcome == ALL_EXPORTED)
-      EventBus.publish(ExportEvent.successForm((int) exportTracker.total, formDef.getFormId()));
+      EventBus.publish(ExportEvent.successForm((int) exportTracker.total, formMetadata.getKey()));
 
     if (exportOutcome == SOME_SKIPPED)
-      EventBus.publish(ExportEvent.partialSuccessForm((int) exportTracker.exported, (int) exportTracker.total, formDef.getFormId()));
+      EventBus.publish(ExportEvent.partialSuccessForm((int) exportTracker.exported, (int) exportTracker.total, formMetadata.getKey()));
 
     if (exportOutcome == ALL_SKIPPED)
-      EventBus.publish(ExportEvent.failure("All submissions have been skipped", formDef.getFormId()));
+      EventBus.publish(ExportEvent.failure("All submissions have been skipped", formMetadata.getKey()));
 
     return exportOutcome;
   }

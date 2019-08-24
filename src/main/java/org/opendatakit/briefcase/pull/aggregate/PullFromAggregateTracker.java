@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.pull.aggregate;
 
+import static org.opendatakit.briefcase.reused.Operation.PULL;
+
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.form.FormKey;
@@ -35,7 +37,7 @@ class PullFromAggregateTracker {
   }
 
   private void notifyTrackingEvent(String statusString) {
-    onEventCallback.accept(new FormStatusEvent(key, statusString));
+    onEventCallback.accept(new FormStatusEvent(PULL, key, statusString));
   }
 
   void trackStart() {

@@ -15,6 +15,7 @@
  */
 package org.opendatakit.briefcase.cli;
 
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.cli.Common.CREDENTIALS_PASSWORD;
 import static org.opendatakit.briefcase.cli.Common.CREDENTIALS_USERNAME;
@@ -25,13 +26,12 @@ import static org.opendatakit.briefcase.cli.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
 import java.net.URL;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Optionals;
@@ -63,7 +63,6 @@ public class PushToAggregate {
   }
 
   private static void pushFormToAggregate(FormMetadataPort formMetadataPort, Args args) {
-    String storageDir = args.get(STORAGE_DIR);
     Optional<String> formid = args.getOptional(FORM_ID);
     String username = args.get(CREDENTIALS_USERNAME);
     String password = args.get(CREDENTIALS_PASSWORD);
@@ -72,7 +71,6 @@ public class PushToAggregate {
     Optional<Integer> maybeMaxConnections = args.getOptional(MAX_HTTP_CONNECTIONS);
 
     CliEventsCompanion.attach(log);
-    Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
 
     int maxHttpConnections = Optionals.race(
@@ -97,26 +95,23 @@ public class PushToAggregate {
       return;
     }
 
-    List<FormStatus> statuses;
+    List<FormMetadata> formMetadataList;
     if (formid.isPresent()) {
       String requestedFormId = formid.get();
-      Optional<FormStatus> maybeFormStatus = formMetadataPort.fetchAll()
+      Optional<FormMetadata> maybeFormStatus = formMetadataPort.fetchAll()
           .filter(formMetadata -> formMetadata.getKey().getId().equals(requestedFormId))
-          .map(FormStatus::new)
           .findFirst();
-
-      FormStatus status = maybeFormStatus
-          .orElseThrow(() -> new BriefcaseException("Form " + requestedFormId + " not found"));
-      statuses = Arrays.asList(status);
+      FormMetadata formMetadata = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + requestedFormId + " not found"));
+      formMetadataList = singletonList(formMetadata);
     } else {
-      statuses = formMetadataPort.fetchAll().map(FormStatus::new).collect(toList());
+      formMetadataList = formMetadataPort.fetchAll().collect(toList());
     }
 
-    TransferForms forms = TransferForms.of(statuses);
+    TransferForms forms = TransferForms.of(formMetadataList);
     forms.selectAll();
 
     org.opendatakit.briefcase.push.aggregate.PushToAggregate pushOp = new org.opendatakit.briefcase.push.aggregate.PushToAggregate(http, aggregateServer, forceSendBlank, PushToAggregate::onEvent);
-    JobsRunner.launchAsync(forms.map(form -> pushOp.push(form.getFormMetadata())), PushToAggregate::onError).waitForCompletion();
+    JobsRunner.launchAsync(forms.map(pushOp::push), PushToAggregate::onError).waitForCompletion();
     System.out.println();
     System.out.println("All operations completed");
     System.out.println();

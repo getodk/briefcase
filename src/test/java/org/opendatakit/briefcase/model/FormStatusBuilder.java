@@ -27,9 +27,9 @@ import org.opendatakit.briefcase.pull.aggregate.Cursor;
 
 public class FormStatusBuilder {
 
-  public static FormStatus buildFormStatus(int id) {
+  public static FormMetadata buildFormMetadata(int id) {
     try {
-      return new FormStatus(new FormMetadata(
+      return new FormMetadata(
           FormKey.of("Form " + id, "form-" + id),
           Optional.ofNullable(Files.createTempFile("briefcase-form-" + id, ".xml")),
           Cursor.empty(),
@@ -37,13 +37,13 @@ public class FormStatusBuilder {
           Optional.empty(),
           Optional.empty(),
           Optional.empty()
-      ));
+      );
     } catch (Throwable t) {
       throw new RuntimeException(t);
     }
   }
 
-  public static List<FormStatus> buildFormStatusList(int amount) {
-    return IntStream.range(0, amount).boxed().map(FormStatusBuilder::buildFormStatus).collect(toList());
+  public static List<FormMetadata> buildFormStatusList(int amount) {
+    return IntStream.range(0, amount).boxed().map(FormStatusBuilder::buildFormMetadata).collect(toList());
   }
 }

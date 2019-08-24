@@ -343,21 +343,21 @@ public class AggregateServer implements RemoteServer {
     );
   }
 
-  public static Optional<AggregateServer> readFromPrefs(BriefcasePreferences prefs, BriefcasePreferences pullPanelPrefs, String formId) {
+  public static Optional<AggregateServer> readFromPrefs(BriefcasePreferences prefs, BriefcasePreferences pullPanelPrefs, FormKey formKey) {
     Optional<AggregateServer> maybeServer = Optionals.race(
-        readFromPrefs(prefs, buildUrlKey(formId), buildUsernameKey(formId), buildPasswordKey(formId)),
-        readFromPrefs(pullPanelPrefs, buildUrlKey(formId), buildUsernameKey(formId), buildPasswordKey(formId)),
-        readFromPrefs(prefs, buildLegacyUrlKey(formId), buildLegacyUsernameKey(formId), buildLegacyPasswordKey(formId)),
-        readFromPrefs(pullPanelPrefs, buildLegacyUrlKey(formId), buildLegacyUsernameKey(formId), buildLegacyPasswordKey(formId))
+        readFromPrefs(prefs, buildUrlKey(formKey.getId()), buildUsernameKey(formKey.getId()), buildPasswordKey(formKey.getId())),
+        readFromPrefs(pullPanelPrefs, buildUrlKey(formKey.getId()), buildUsernameKey(formKey.getId()), buildPasswordKey(formKey.getId())),
+        readFromPrefs(prefs, buildLegacyUrlKey(formKey.getId()), buildLegacyUsernameKey(formKey.getId()), buildLegacyPasswordKey(formKey.getId())),
+        readFromPrefs(pullPanelPrefs, buildLegacyUrlKey(formKey.getId()), buildLegacyUsernameKey(formKey.getId()), buildLegacyPasswordKey(formKey.getId()))
     );
     maybeServer.ifPresent(server -> {
       // Move prefs from legacy storage to new storage
-      server.clearStoredPrefs(pullPanelPrefs, formId);
+      server.clearStoredPrefs(pullPanelPrefs, formKey.getId());
       // We assume storePasswords=true because if server has
       // credentials, then storePasswords must be true, and
       // if it doesn't have credentials, then storePasswords'
       // value is irrelevant
-      server.storeInPrefs(prefs, true, formId);
+      server.storeInPrefs(prefs, true, formKey.getId());
     });
     return maybeServer;
   }

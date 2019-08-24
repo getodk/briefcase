@@ -54,12 +54,12 @@ import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 
 public class PullFromAggregate {
   private final Http http;
+  private final FormMetadataPort formMetadataPort;
   private final AggregateServer server;
   private final boolean includeIncomplete;
   private final Consumer<FormStatusEvent> onEventCallback;
-  private final FormMetadataPort formMetadataPort;
 
-  public PullFromAggregate(Http http, AggregateServer server, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback, FormMetadataPort formMetadataPort) {
+  public PullFromAggregate(Http http, FormMetadataPort formMetadataPort, AggregateServer server, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback) {
     this.http = http;
     this.server = server;
     this.includeIncomplete = includeIncomplete;

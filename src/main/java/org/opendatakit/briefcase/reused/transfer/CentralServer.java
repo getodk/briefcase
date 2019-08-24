@@ -28,7 +28,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.OptionalProduct;
@@ -284,7 +283,7 @@ public class CentralServer implements RemoteServer {
     ).map(CentralServer::from);
   }
 
-  static Optional<RemoteServer> readFromPrefs(BriefcasePreferences prefs, FormStatus form) {
+  static Optional<RemoteServer> readFromPrefs(BriefcasePreferences prefs, FormKey formKey) {
     // Do nothing for now
     return Optional.empty();
   }

@@ -21,7 +21,7 @@ import static org.opendatakit.briefcase.model.BriefcasePreferences.AGGREGATE_1_0
 import static org.opendatakit.briefcase.model.BriefcasePreferences.PASSWORD;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
-import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
+import static org.opendatakit.briefcase.reused.Operation.PUSH;
 
 import java.util.Optional;
 import javax.swing.JPanel;
@@ -29,9 +29,7 @@ import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
@@ -44,7 +42,6 @@ import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.Analytics;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.target.PushTarget;
-import org.opendatakit.briefcase.util.FormCache;
 
 public class PushPanel {
   public static final String TAB_NAME = "Push";
@@ -52,20 +49,18 @@ public class PushPanel {
   private final TransferForms forms;
   private final BriefcasePreferences pushPreferences;
   private final BriefcasePreferences appPreferences;
-  private final FormCache formCache;
   private final Analytics analytics;
   private final FormMetadataPort formMetadataPort;
   private JobsRunner pushJobRunner;
   private Optional<PushTarget> target;
 
-  private PushPanel(TransferPanelForm<PushTarget> view, TransferForms forms, BriefcasePreferences pushPreferences, BriefcasePreferences appPreferences, FormCache formCache, Analytics analytics, FormMetadataPort formMetadataPort) {
+  private PushPanel(TransferPanelForm<PushTarget> view, TransferForms forms, BriefcasePreferences pushPreferences, BriefcasePreferences appPreferences, Analytics analytics, FormMetadataPort formMetadataPort) {
     this.formMetadataPort = formMetadataPort;
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
     this.pushPreferences = pushPreferences;
     this.appPreferences = appPreferences;
-    this.formCache = formCache;
     this.analytics = analytics;
     getContainer().addComponentListener(analytics.buildComponentListener("Push"));
 
@@ -92,7 +87,7 @@ public class PushPanel {
 
     view.onAction(() -> {
       view.setWorking();
-      forms.forEach(FormStatus::clearStatusHistory);
+      view.clearAllStatusLines();
       new Thread(() -> target.ifPresent(s -> {
         pushJobRunner = s.push(
             forms.getSelectedForms(),
@@ -104,24 +99,20 @@ public class PushPanel {
 
     view.onCancel(() -> {
       pushJobRunner.cancel();
-      forms.getSelectedForms().forEach(form -> {
-        form.setStatusString("Cancelled by user");
-        EventBus.publish(new FormStatusEvent(form.getFormMetadata().getKey(), form.getStatusString()));
-      });
+      forms.getSelectedForms().forEach(form -> EventBus.publish(new FormStatusEvent(PUSH, form.getKey(), "Cancelled by user")));
       view.unsetWorking();
       view.refresh();
       updateActionButtons();
     });
   }
 
-  public static PushPanel from(Http http, BriefcasePreferences appPreferences, FormCache formCache, Analytics analytics, FormMetadataPort formMetadataPort) {
-    TransferForms forms = TransferForms.from(formMetadataPort.fetchAll().map(FormStatus::new).collect(toList()));
+  public static PushPanel from(Http http, BriefcasePreferences appPreferences, Analytics analytics, FormMetadataPort formMetadataPort) {
+    TransferForms forms = TransferForms.from(formMetadataPort.fetchAll().collect(toList()));
     return new PushPanel(
         TransferPanelForm.push(http, forms),
         forms,
         BriefcasePreferences.forClass(PushPanel.class),
         appPreferences,
-        formCache,
         analytics,
         formMetadataPort
     );
@@ -147,7 +138,7 @@ public class PushPanel {
   }
 
   private void updateForms() {
-    forms.merge(formMetadataPort.fetchAll().map(FormStatus::new).collect(toList()));
+    forms.merge(formMetadataPort.fetchAll().collect(toList()));
     view.refresh();
   }
 
@@ -155,11 +146,6 @@ public class PushPanel {
   public void onFormPulledSuccessfully(PullEvent.Success event) {
     updateForms();
     view.refresh();
-  }
-
-  @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
-  public void onRetrieveAvailableFormsFailedEvent(RetrieveAvailableFormsFailedEvent event) {
-    errorMessage("Accessing Server Failed", "Accessing the server failed with error: " + event.getReason());
   }
 
   @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)

@@ -22,12 +22,13 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 
 class ExportTools {
-  static Stream<Submission> getValidSubmissions(FormDefinition formDef, ExportConfiguration configuration, List<Path> submissionFiles, SubmissionExportErrorCallback onParsingError, SubmissionExportErrorCallback onInvalidSubmission) {
+  static Stream<Submission> getValidSubmissions(FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, List<Path> submissionFiles, SubmissionExportErrorCallback onParsingError, SubmissionExportErrorCallback onInvalidSubmission) {
     return submissionFiles.parallelStream()
         // Parse the submission and leave only those OK to be exported
-        .map(path -> parseSubmission(path, formDef.isFileEncryptedForm(), configuration.getPrivateKey(), onParsingError))
+        .map(path -> parseSubmission(path, formMetadata.isEncrypted(), configuration.getPrivateKey(), onParsingError))
         .filter(Optional::isPresent)
         .map(Optional::get)
         .filter(submission -> {

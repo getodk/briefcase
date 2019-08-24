@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
@@ -95,11 +94,10 @@ public class PullFromCentral {
 
     Optional<String> formId = args.getOptional(FORM_ID);
 
-    List<FormStatus> filteredForms = response.orElseThrow(BriefcaseException::new)
+    List<FormMetadata> filteredForms = response.orElseThrow(BriefcaseException::new)
         .stream()
         .filter(f -> formId.map(id -> f.getKey().getId().equals(id)).orElse(true))
         .map(formMetadata -> formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir)))
-        .map(FormStatus::new)
         .collect(toList());
 
     if (formId.isPresent() && filteredForms.isEmpty())
@@ -109,9 +107,9 @@ public class PullFromCentral {
     forms.load(filteredForms);
     forms.selectAll();
 
-    org.opendatakit.briefcase.pull.central.PullFromCentral pullOp = new org.opendatakit.briefcase.pull.central.PullFromCentral(http, server, token, PullFromCentral::onEvent, formMetadataPort);
+    org.opendatakit.briefcase.pull.central.PullFromCentral pullOp = new org.opendatakit.briefcase.pull.central.PullFromCentral(http, formMetadataPort, server, token, PullFromCentral::onEvent);
     JobsRunner.launchAsync(
-        forms.map(form -> pullOp.pull(form.getFormMetadata())),
+        forms.map(pullOp::pull),
         PullFromCentral::onError
     ).waitForCompletion();
     System.out.println();

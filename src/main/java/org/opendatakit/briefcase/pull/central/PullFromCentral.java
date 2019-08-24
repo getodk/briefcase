@@ -44,12 +44,12 @@ import org.opendatakit.briefcase.reused.transfer.CentralServer;
 
 public class PullFromCentral {
   private final Http http;
+  private final FormMetadataPort formMetadataPort;
   private final CentralServer server;
   private final String token;
   private final Consumer<FormStatusEvent> onEventCallback;
-  private final FormMetadataPort formMetadataPort;
 
-  public PullFromCentral(Http http, CentralServer server, String token, Consumer<FormStatusEvent> onEventCallback, FormMetadataPort formMetadataPort) {
+  public PullFromCentral(Http http, FormMetadataPort formMetadataPort, CentralServer server, String token, Consumer<FormStatusEvent> onEventCallback) {
     this.http = http;
     this.server = server;
     this.token = token;
@@ -63,7 +63,7 @@ public class PullFromCentral {
    * under the Briefcase Storage directory.
    */
   public Job<Void> pull(FormMetadata formMetadata) {
-    PullFromCentralTracker tracker = new PullFromCentralTracker(onEventCallback, formMetadata);
+    PullFromCentralTracker tracker = new PullFromCentralTracker(formMetadata.getKey(), onEventCallback);
 
     return run(rs -> tracker.trackStart())
         .thenRun(allOf(

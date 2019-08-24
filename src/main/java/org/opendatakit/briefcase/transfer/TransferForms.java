@@ -16,166 +16,101 @@
 package org.opendatakit.briefcase.transfer;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 
-/**
- * This class represents a set of forms to be pulled/pushed. It manages the
- * selection of those forms, as well as merging changes in the forms cache.
- */
-public class TransferForms implements Iterable<FormStatus> {
-  private List<FormStatus> forms;
-  private Map<String, FormStatus> formsIndex = new HashMap<>();
+public class TransferForms implements Iterable<FormMetadata> {
+  private List<FormMetadata> formMetadata;
+  private Set<FormKey> selectedForms = new HashSet<>();
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
 
-  private TransferForms(List<FormStatus> forms) {
-    this.forms = forms;
-    rebuildIndex();
+  private TransferForms(List<FormMetadata> formMetadata) {
+    this.formMetadata = formMetadata;
   }
 
-  /**
-   * Factory of empty {@link TransferForms} instances
-   */
   public static TransferForms empty() {
     return new TransferForms(new ArrayList<>());
   }
 
-  /**
-   * Factory of {@link TransferForms} instances that begin with the given
-   * list of {@link FormStatus} instances
-   */
-  public static TransferForms from(List<FormStatus> forms) {
+  public static TransferForms from(List<FormMetadata> forms) {
     return new TransferForms(forms);
   }
 
-  private static String getFormId(FormStatus form) {
-    return form.getFormId();
-  }
-
-  public static TransferForms of(List<FormStatus> forms) {
+  public static TransferForms of(List<FormMetadata> forms) {
     return new TransferForms(new ArrayList<>(forms));
   }
 
-  public static TransferForms of(FormStatus... forms) {
+  public static TransferForms of(FormMetadata... forms) {
     return of(Arrays.asList(forms));
   }
 
-  /**
-   * Replaces the current list of {@link FormStatus} instances with
-   * the incoming list
-   */
-  public void load(List<FormStatus> forms) {
-    this.forms = forms;
+  public void load(List<FormMetadata> forms) {
+    this.formMetadata = new ArrayList<>(forms);
     triggerOnChange();
   }
 
-  /**
-   * Merges the current list of {@link FormStatus} instances with
-   * the incoming list.
-   * <p>
-   * The merge process only adds new incoming elements and removes
-   * those not present in the incoming list.
-   * <p>
-   * This is done so that any mutation on the current {@link FormStatus}
-   * instances isn't lost.
-   */
-  public void merge(List<FormStatus> incomingForms) {
-    List<String> incomingFormIds = incomingForms.stream().map(TransferForms::getFormId).collect(toList());
-    List<FormStatus> formsToAdd = incomingForms.stream().filter(form -> !formsIndex.containsKey(getFormId(form))).collect(toList());
-    List<FormStatus> formsToRemove = formsIndex.values().stream().filter(form -> !incomingFormIds.contains(getFormId(form))).collect(toList());
-    forms.addAll(formsToAdd);
-    forms.removeAll(formsToRemove);
-    rebuildIndex();
+  public void merge(List<FormMetadata> incomingForms) {
+    formMetadata = new ArrayList<>(incomingForms);
     triggerOnChange();
   }
 
-  /**
-   * Returns the number of {@link FormStatus} instances present.
-   */
   public int size() {
-    return forms.size();
+    return formMetadata.size();
   }
 
-  /**
-   * Returns the {@link FormStatus} instance corresponding to the given
-   * {@link Integer} index.
-   */
-  public FormStatus get(int rowIndex) {
-    return forms.get(rowIndex);
+  public FormMetadata get(int rowIndex) {
+    return formMetadata.get(rowIndex);
   }
 
-  /**
-   * Marks all present {@link FormStatus} instances as being selected.
-   */
-  // TODO extract the selection status to this class instead of mutating the FormStatus instances
   public void selectAll() {
-    forms.forEach(form -> form.setSelected(true));
+    selectedForms.clear();
+    selectedForms.addAll(formMetadata.stream().map(FormMetadata::getKey).collect(toList()));
     triggerOnChange();
   }
 
-  /**
-   * Unmarks any {@link FormStatus} instance selection.
-   */
   public void clearAll() {
-    forms.forEach(form -> form.setSelected(false));
+    selectedForms.clear();
     triggerOnChange();
   }
 
-  /**
-   * Returns a list of selected {@link FormStatus} instances.
-   */
+  public boolean isSelected(FormKey formKey) {
+    return selectedForms.contains(formKey);
+  }
+
+  public void setSelected(FormKey formKey, boolean selected) {
+    if (selected)
+      selectedForms.add(formKey);
+    else
+      selectedForms.remove(formKey);
+  }
+
   public TransferForms getSelectedForms() {
-    return new TransferForms(forms.stream().filter(FormStatus::isSelected).collect(toList()));
+    return new TransferForms(formMetadata.stream().filter(formMetadata -> selectedForms.contains(formMetadata.getKey())).collect(toList()));
   }
 
-  /**
-   * Returns true if at least one {@link FormStatus} instance has been
-   * marked as selected, false otherwise.
-   */
   public boolean someSelected() {
-    return !forms.isEmpty() && !getSelectedForms().isEmpty();
+    return !formMetadata.isEmpty() && !getSelectedForms().isEmpty();
   }
 
-  /**
-   * Returns true if all {@link FormStatus} instances has been
-   * marked as selected, false otherwise.
-   */
   public boolean allSelected() {
-    return !forms.isEmpty() && forms.stream().allMatch(FormStatus::isSelected);
+    return !formMetadata.isEmpty() && formMetadata.size() == selectedForms.size();
   }
 
-  /**
-   * Empties the {@link FormStatus} list.
-   */
   public void clear() {
-    forms.clear();
+    formMetadata.clear();
     triggerOnChange();
   }
 
-  private void rebuildIndex() {
-    formsIndex = forms.stream().collect(toMap(TransferForms::getFormId, form -> form));
-  }
-
-  /**
-   * Let's calling sites react to changes on the {@link FormStatus} list.
-   * <p>
-   * A change can be due to:
-   * <ul>
-   * <li>New elements added</li>
-   * <li>Elements removed</li>
-   * <li>Selection of an element changed</li>
-   * </ul>
-   */
   public void onChange(Runnable callback) {
     onChangeCallbacks.add(callback);
   }
@@ -184,23 +119,20 @@ public class TransferForms implements Iterable<FormStatus> {
     onChangeCallbacks.forEach(Runnable::run);
   }
 
-  /**
-   * Returns true if the list of {@link FormStatus} is empty, false otherwise
-   */
   public boolean isEmpty() {
-    return forms.isEmpty();
+    return formMetadata.isEmpty();
   }
 
-  public <T> Stream<T> map(Function<FormStatus, T> mapper) {
-    return forms.stream().map(mapper);
+  public <T> Stream<T> map(Function<FormMetadata, T> mapper) {
+    return formMetadata.stream().map(mapper);
   }
 
-  public TransferForms filter(Predicate<FormStatus> predicate) {
-    return new TransferForms(forms.stream().filter(predicate).collect(toList()));
+  public TransferForms filter(Predicate<FormMetadata> predicate) {
+    return new TransferForms(formMetadata.stream().filter(predicate).collect(toList()));
   }
 
   @Override
-  public Iterator<FormStatus> iterator() {
-    return forms.iterator();
+  public Iterator<FormMetadata> iterator() {
+    return formMetadata.iterator();
   }
 }

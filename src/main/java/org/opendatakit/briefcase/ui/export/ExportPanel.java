@@ -37,13 +37,11 @@ import org.opendatakit.briefcase.export.ExportToCsv;
 import org.opendatakit.briefcase.export.ExportToGeoJson;
 import org.opendatakit.briefcase.export.FormDefinition;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.aggregate.PullFromAggregate;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
@@ -86,8 +84,8 @@ public class ExportPanel {
       exportPreferences.removeAll(ExportConfiguration.keys());
     });
 
-    forms.onSuccessfulExport((String formId, LocalDateTime exportDateTime) ->
-        exportPreferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME))
+    forms.onSuccessfulExport((FormKey formKey, LocalDateTime exportDateTime) ->
+        exportPreferences.put(ExportForms.buildExportDateTimePrefix(formKey.getId()), exportDateTime.format(ISO_DATE_TIME))
     );
 
     form.onChange(() -> {
@@ -121,24 +119,24 @@ public class ExportPanel {
     if (!forms.allSelectedFormsHaveConfiguration())
       errors.add("- Some forms are missing their export directory. Please, ensure that there's a default export directory or that you have set one in all custom configurations.");
 
-    for (FormStatus formStatus : forms.getSelectedForms()) {
-      ExportConfiguration conf = forms.getConfiguration(formStatus.getFormId());
+    for (FormMetadata formMetadata : forms.getSelectedForms()) {
+      ExportConfiguration conf = forms.getConfiguration(formMetadata);
 
-      if (formStatus.isEncrypted() && !conf.isPemFilePresent())
-        errors.add("- The form " + formStatus.getFormName() + " is encrypted. Please, configure a PEM file.");
+      if (formMetadata.isEncrypted() && !conf.isPemFilePresent())
+        errors.add("- The form " + formMetadata.getKey().getName() + " is encrypted. Please, configure a PEM file.");
     }
     return errors;
   }
 
   private void updateCustomConfPreferences() {
     // Clean all custom conf keys
-    forms.forEach(formId ->
-        exportPreferences.removeAll(ExportConfiguration.keys(buildCustomConfPrefix(formId)))
+    forms.forEach(formMetadata ->
+        exportPreferences.removeAll(ExportConfiguration.keys(buildCustomConfPrefix(formMetadata.getKey().getId())))
     );
 
     // Put custom confs
-    forms.getCustomConfigurations().forEach((formId, configuration) ->
-        exportPreferences.putAll(configuration.asMap(buildCustomConfPrefix(formId)))
+    forms.getCustomConfigurations().forEach((formKey, configuration) ->
+        exportPreferences.putAll(configuration.asMap(buildCustomConfPrefix(formKey.getId())))
     );
   }
 
@@ -152,7 +150,7 @@ public class ExportPanel {
 
   public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics, Http http, FormMetadataPort formMetadataPort) {
     ExportConfiguration initialDefaultConf = load(exportPreferences);
-    ExportForms forms = ExportForms.load(initialDefaultConf, formMetadataPort.fetchAll().map(FormStatus::new).collect(toList()), exportPreferences);
+    ExportForms forms = ExportForms.load(initialDefaultConf, formMetadataPort.fetchAll().collect(toList()), exportPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, pullPrefs, initialDefaultConf);
     return new ExportPanel(
         forms,
@@ -167,7 +165,7 @@ public class ExportPanel {
   }
 
   void updateForms() {
-    forms.merge(formMetadataPort.fetchAll().map(FormStatus::new).collect(toList()));
+    forms.merge(formMetadataPort.fetchAll().collect(toList()));
     form.refresh();
   }
 
@@ -176,18 +174,14 @@ public class ExportPanel {
   }
 
   private void export() {
-    Stream<Job<?>> allJobs = forms.getSelectedForms().stream().map(form -> {
-      FormKey key = FormKey.from(form);
-      FormMetadata formMetadata = formMetadataPort.fetch(key).orElseThrow(BriefcaseException::new);
-      form.setStatusString("Starting to export form");
-      String formId = form.getFormId();
-      ExportConfiguration configuration = forms.getConfiguration(formId);
+    Stream<Job<?>> allJobs = forms.getSelectedForms().stream().map(formMetadata -> {
+      ExportConfiguration configuration = forms.getConfiguration(formMetadata);
       FormDefinition formDef = FormDefinition.from(formMetadata);
       // TODO Abstract away the subtype of RemoteServer. This should say Optional<RemoteServer>
-      Optional<AggregateServer> savedPullSource = RemoteServer.readFromPrefs(appPreferences, pullPanelPrefs, form);
+      Optional<AggregateServer> savedPullSource = RemoteServer.readFromPrefs(appPreferences, pullPanelPrefs, formMetadata.getKey());
 
       Job<Void> pullJob = configuration.resolvePullBefore() && savedPullSource.isPresent()
-          ? new PullFromAggregate(http, savedPullSource.get(), false, EventBus::publish, formMetadataPort)
+          ? new PullFromAggregate(http, formMetadataPort, savedPullSource.get(), false, EventBus::publish)
           .pull(
               formMetadata, appPreferences.resolveStartFromLast()
                   ? Optional.of(formMetadata.getCursor())
@@ -201,13 +195,12 @@ public class ExportPanel {
           ? Job.run(runnerStatus -> ExportToGeoJson.export(formMetadata, formDef, configuration, analytics))
           : Job.noOp;
 
-      return Job
-          .run(runnerStatus -> form.clearStatusHistory())
-          .thenRun(pullJob)
+      return pullJob
           .thenRun(exportJob)
           .thenRun(exportGeoJsonJob);
     });
 
+    form.cleanAllStatusLines();
     JobsRunner.launchAsync(allJobs).onComplete(form::unsetExporting).waitForCompletion();
   }
 

@@ -16,23 +16,25 @@
 package org.opendatakit.briefcase.cli;
 
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.cli.Common.FORM_ID;
 import static org.opendatakit.briefcase.cli.Common.STORAGE_DIR;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
-import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
+import org.opendatakit.briefcase.pull.filesystem.FormInstaller;
+import org.opendatakit.briefcase.pull.filesystem.PullFromCollectDir;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.Param;
+import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
-import org.opendatakit.briefcase.util.FileSystemUtils;
-import org.opendatakit.briefcase.util.TransferFromODK;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +43,7 @@ public class PullFromCollect {
   private static final Param<Void> IMPORT = Param.flag("pc", "pull_collect", "Pull from Collect");
   private static final Param<Path> ODK_DIR = Param.arg("od", "odk_directory", "ODK directory", Paths::get);
 
-  public static final Operation create(FormMetadataPort formMetadataPort) {
+  public static Operation create(FormMetadataPort formMetadataPort) {
     return Operation.of(
         IMPORT,
         args -> importODK(formMetadataPort, args),
@@ -50,7 +52,7 @@ public class PullFromCollect {
     );
   }
 
-  public static void importODK(FormMetadataPort formMetadataPort, Args args) {
+  private static void importODK(FormMetadataPort formMetadataPort, Args args) {
     String storageDir = args.get(STORAGE_DIR);
     Path odkDir = args.get(ODK_DIR);
     Optional<String> formId = args.getOptional(FORM_ID);
@@ -58,15 +60,34 @@ public class PullFromCollect {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
 
-    TransferForms from = TransferForms.from(FileSystemUtils.getODKFormList(odkDir.toFile()).stream()
-        .map(FormStatus::new)
-        .filter(form -> formId.map(id -> form.getFormId().equals(id)).orElse(true))
-        .collect(toList()));
-    from.selectAll();
+    List<FormMetadata> formMetadataList = FormInstaller.scanCollectFormsAt(odkDir);
 
-    if (formId.isPresent() && from.isEmpty())
+    TransferForms forms = TransferForms.from(formMetadataList)
+        .filter(formMetadata -> formId.map(id -> formMetadata.getKey().getId().equals(id)).orElse(true));
+
+    forms.selectAll();
+
+    if (formId.isPresent() && forms.isEmpty())
       throw new BriefcaseException("Form " + formId.get() + " not found");
 
-    TransferFromODK.pull(briefcaseDir, odkDir, from);
+    PullFromCollectDir pullOp = new PullFromCollectDir(formMetadataPort, PullFromCollect::onEvent);
+    JobsRunner.launchAsync(
+        forms.map(formMetadata -> pullOp.pull(
+            formMetadata,
+            formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir))
+        )),
+        PullFromCollect::onError
+    ).waitForCompletion();
+
+  }
+
+  private static void onEvent(FormStatusEvent event) {
+    System.out.println(event.getFormKey().getName() + " - " + event.getMessage());
+    // The tracker already logs normal events
+  }
+
+  private static void onError(Throwable e) {
+    System.err.println("Error pulling a form: " + e.getMessage() + " (see the logs for more info)");
+    log.error("Error pulling a form", e);
   }
 }

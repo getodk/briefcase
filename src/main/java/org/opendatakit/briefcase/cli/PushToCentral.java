@@ -15,6 +15,8 @@
  */
 package org.opendatakit.briefcase.cli;
 
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.cli.Common.CREDENTIALS_EMAIL;
 import static org.opendatakit.briefcase.cli.Common.CREDENTIALS_PASSWORD;
 import static org.opendatakit.briefcase.cli.Common.FORM_ID;
@@ -26,11 +28,11 @@ import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTION
 
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Optionals;
@@ -54,8 +56,8 @@ public class PushToCentral {
     return Operation.of(
         PUSH_TO_CENTRAL,
         args -> pushToCentral(formMetadataPort, args),
-        Arrays.asList(STORAGE_DIR, FORM_ID, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD, SERVER_URL),
-        Collections.singletonList(MAX_HTTP_CONNECTIONS)
+        Arrays.asList(STORAGE_DIR, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD, SERVER_URL),
+        Arrays.asList(MAX_HTTP_CONNECTIONS, FORM_ID)
     );
   }
 
@@ -77,18 +79,23 @@ public class PushToCentral {
     String token = http.execute(server.getSessionTokenRequest())
         .orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
 
-    String formId = args.get(FORM_ID);
-    Optional<FormStatus> maybeFormStatus = formMetadataPort.fetchAll()
-        .filter(formMetadata -> formMetadata.getKey().getId().equals(formId))
-        .map(FormStatus::new)
-        .findFirst();
+    List<FormMetadata> formMetadataList;
+    if (args.getOptional(FORM_ID).isPresent()) {
+      String requestedFormId = args.getOptional(FORM_ID).get();
+      Optional<FormMetadata> maybeFormStatus = formMetadataPort.fetchAll()
+          .filter(formMetadata -> formMetadata.getKey().getId().equals(requestedFormId))
+          .findFirst();
+      FormMetadata formMetadata = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + requestedFormId + " not found"));
+      formMetadataList = singletonList(formMetadata);
+    } else {
+      formMetadataList = formMetadataPort.fetchAll().collect(toList());
+    }
 
-    FormStatus form = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + formId + " not found"));
-    TransferForms forms = TransferForms.of(form);
+    TransferForms forms = TransferForms.of(formMetadataList);
     forms.selectAll();
 
     org.opendatakit.briefcase.push.central.PushToCentral pushOp = new org.opendatakit.briefcase.push.central.PushToCentral(http, server, token, PushToCentral::onEvent);
-    JobsRunner.launchAsync(forms.map(form1 -> pushOp.push(form1.getFormMetadata())), PushToCentral::onError).waitForCompletion();
+    JobsRunner.launchAsync(forms.map(pushOp::push), PushToCentral::onError).waitForCompletion();
     System.out.println();
     System.out.println("All operations completed");
     System.out.println();

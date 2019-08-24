@@ -106,4 +106,8 @@ public class ExportFormsTableView extends JTable {
     sorter.setSortKeys(Collections.singletonList(new RowSorter.SortKey(col, order)));
     return sorter;
   }
+
+  public void cleanAllStatusLines() {
+    ((ExportFormsTableViewModel) dataModel).cleanAllStatusLines();
+  }
 }

@@ -67,16 +67,16 @@ public class ExportToCsv {
    */
   private static ExportOutcome export(FormMetadataPort formMetadataPort, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Optional<Analytics> analytics) {
     // Create an export tracker object with the total number of submissions we have to export
-    ExportProcessTracker exportTracker = new ExportProcessTracker(formDef.getFormId());
+    ExportProcessTracker exportTracker = new ExportProcessTracker(formMetadata.getKey());
     exportTracker.start();
 
-    SubmissionExportErrorCallback onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
-    SubmissionExportErrorCallback onInvalidSubmission = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()))
+    SubmissionExportErrorCallback onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getKey().getName()));
+    SubmissionExportErrorCallback onInvalidSubmission = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getKey().getName()))
         .andThen((path, message) ->
             analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null))
         );
 
-    List<Path> submissionFiles = getListOfSubmissionFiles(formMetadata, formDef, configuration.getDateRange(), configuration.resolveSmartAppend(), onParsingError);
+    List<Path> submissionFiles = getListOfSubmissionFiles(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend(), onParsingError);
     exportTracker.trackTotal(submissionFiles.size());
 
     createDirectories(configuration.getExportDir());
@@ -86,13 +86,13 @@ public class ExportToCsv {
     csvs.forEach(Csv::prepareOutputFiles);
 
     if (formDef.getModel().hasAuditField()) {
-      Path audit = configuration.getAuditPath(formDef.getFormName());
+      Path audit = configuration.getAuditPath(formMetadata.getKey().getName());
       if (!exists(audit) || configuration.resolveOverwriteExistingFiles())
         write(audit, "instance ID, event, node, start, end\n", CREATE, WRITE, TRUNCATE_EXISTING);
     }
 
     // Generate csv lines grouped by the fqdn of the model they belong to
-    Map<String, CsvLines> csvLinesPerModel = ExportTools.getValidSubmissions(formDef, configuration, submissionFiles, onParsingError, onInvalidSubmission)
+    Map<String, CsvLines> csvLinesPerModel = ExportTools.getValidSubmissions(formMetadata, formDef, configuration, submissionFiles, onParsingError, onInvalidSubmission)
         // Track the submission
         .peek(s -> exportTracker.incAndReport())
         // Use the mapper of each Csv instance to map the submission into their respective outputs
@@ -123,13 +123,13 @@ public class ExportToCsv {
 
     ExportOutcome exportOutcome = exportTracker.computeOutcome();
     if (exportOutcome == ALL_EXPORTED)
-      EventBus.publish(ExportEvent.successForm((int) exportTracker.total, formDef.getFormId()));
+      EventBus.publish(ExportEvent.successForm((int) exportTracker.total, formMetadata.getKey()));
 
     if (exportOutcome == SOME_SKIPPED)
-      EventBus.publish(ExportEvent.partialSuccessForm((int) exportTracker.exported, (int) exportTracker.total, formDef.getFormId()));
+      EventBus.publish(ExportEvent.partialSuccessForm((int) exportTracker.exported, (int) exportTracker.total, formMetadata.getKey()));
 
     if (exportOutcome == ALL_SKIPPED)
-      EventBus.publish(ExportEvent.failure("All submissions have been skipped", formDef.getFormId()));
+      EventBus.publish(ExportEvent.failure("All submissions have been skipped", formMetadata.getKey()));
 
     return exportOutcome;
   }

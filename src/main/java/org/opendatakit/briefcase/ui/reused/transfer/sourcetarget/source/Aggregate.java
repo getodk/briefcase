@@ -29,7 +29,6 @@ import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
@@ -98,21 +97,15 @@ public class Aggregate implements PullSource<AggregateServer> {
     boolean resumeLastPull = appPreferences.resolveStartFromLast();
     PullFromAggregate pullOp = new PullFromAggregate(
         http,
-        server,
+        formMetadataPort, server,
         false,
-        EventBus::publish,
-        formMetadataPort
+        EventBus::publish
     );
 
-    return JobsRunner.launchAsync(
-        forms.map(form -> {
-          FormKey key = FormKey.from(form);
-          return pullOp.pull(
-              form.getFormMetadata(),
-              resumeLastPull ? formMetadataPort.query(lastCursorOf(key)) : Optional.empty()
-          );
-        })
-    ).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+    return JobsRunner.launchAsync(forms.map(form -> pullOp.pull(
+        form,
+        resumeLastPull ? formMetadataPort.query(lastCursorOf(form.getKey())) : Optional.empty()
+    ))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
   @Override

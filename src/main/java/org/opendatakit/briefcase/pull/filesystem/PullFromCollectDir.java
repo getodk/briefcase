@@ -48,7 +48,7 @@ public class PullFromCollectDir {
   }
 
   public Job<Void> pull(FormMetadata sourceFormMetadata, FormMetadata targetFormMetadata) {
-    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(targetFormMetadata, onEventCallback);
+    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(targetFormMetadata.getKey(), onEventCallback);
 
     return run(rs -> tracker.trackStart())
         .thenRun(rs -> installForm(sourceFormMetadata, targetFormMetadata, tracker))

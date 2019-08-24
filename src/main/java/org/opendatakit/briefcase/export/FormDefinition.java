@@ -17,7 +17,6 @@
 package org.opendatakit.briefcase.export;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
 import java.io.BufferedReader;
@@ -81,15 +80,13 @@ public class FormDefinition {
   };
   private final String id;
   private final String name;
-  private final Path formFile;
   private final boolean isEncrypted;
   private final Model model;
   private final List<Model> repeatFields;
 
-  public FormDefinition(String id, Path formFile, String name, boolean isEncrypted, Model model, List<Model> repeatableFields) {
+  public FormDefinition(String id, String name, boolean isEncrypted, Model model, List<Model> repeatableFields) {
     this.id = id;
     this.name = name;
-    this.formFile = formFile;
     this.isEncrypted = isEncrypted;
     this.model = model;
     this.repeatFields = repeatableFields;
@@ -106,7 +103,6 @@ public class FormDefinition {
       Model model = new Model(formDef.getMainInstance().getRoot(), getFormControls(formDef));
       return new FormDefinition(
           formMetadata.getKey().getId(),
-          formMetadata.getFormFile(),
           formMetadata.getKey().getName(),
           formMetadata.isEncrypted(),
           model,
@@ -141,7 +137,6 @@ public class FormDefinition {
       final Model model1 = new Model(formDef.getMainInstance().getRoot(), getFormControls(formDef));
       return new FormDefinition(
           parseFormId(formDef.getMainInstance().getRoot()),
-          formFile,
           formDef.getName(),
           isEncrypted,
           model1, model1.getRepeatableFields()
@@ -189,10 +184,7 @@ public class FormDefinition {
     for (int i = 0; i < reference.size(); i++) {
       names.add(reference.getName(i));
     }
-    return names
-        .subList(1, names.size())
-        .stream()
-        .collect(joining("-"));
+    return String.join("-", names.subList(1, names.size()));
   }
 
   private static Stream<IFormElement> flatten(IFormElement e) {
@@ -217,14 +209,6 @@ public class FormDefinition {
   }
 
   /**
-   * Returns the {@link Path} to the directory where the form's definition XMl
-   * file is located.
-   */
-  Path getFormDir() {
-    return formFile.getParent();
-  }
-
-  /**
    * Returns the form's name
    */
   String getFormName() {
@@ -234,7 +218,7 @@ public class FormDefinition {
   /**
    * Returns true if the form is encrypted, false otherwise.
    */
-  public boolean isFileEncryptedForm() {
+  boolean isFileEncryptedForm() {
     return isEncrypted;
   }
 

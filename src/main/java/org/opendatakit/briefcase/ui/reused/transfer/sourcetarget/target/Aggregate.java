@@ -79,7 +79,7 @@ public class Aggregate implements PushTarget<AggregateServer> {
     PushToAggregate pushOp = new PushToAggregate(http, server, false, EventBus::publish);
 
     return JobsRunner
-        .launchAsync(forms.map(form -> pushOp.push(form.getFormMetadata())))
+        .launchAsync(forms.map(pushOp::push))
         .onComplete(() -> EventBus.publish(new PushEvent.Complete()));
   }
 

@@ -315,4 +315,8 @@ public class ExportPanelForm {
   public JComponent $$$getRootComponent$$$() {
     return container;
   }
+
+  void cleanAllStatusLines() {
+    formsTableForm.cleanAllStatusLines();
+  }
 }

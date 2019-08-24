@@ -17,13 +17,12 @@
 package org.opendatakit.briefcase.reused.job;
 
 import java.util.function.Supplier;
-import org.opendatakit.briefcase.model.TerminationFuture;
 
 /**
  * This class serves as a probe that can be checked to
  * know if a runner has been stopped.
  */
-public class RunnerStatus extends TerminationFuture {
+public class RunnerStatus {
   private final Supplier<Boolean> stoppedProbe;
 
   RunnerStatus(Supplier<Boolean> stoppedProbe) {
@@ -34,8 +33,7 @@ public class RunnerStatus extends TerminationFuture {
     return !stoppedProbe.get();
   }
 
-  @Override
   public boolean isCancelled() {
-    return stoppedProbe.get();
+    return !isStillRunning();
   }
 }

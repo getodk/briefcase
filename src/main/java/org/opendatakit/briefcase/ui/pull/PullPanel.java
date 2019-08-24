@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.ui.pull;
 
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
+import static org.opendatakit.briefcase.reused.Operation.PULL;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
@@ -28,9 +29,7 @@ import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
-import org.opendatakit.briefcase.model.RetrieveAvailableFormsFailedEvent;
 import org.opendatakit.briefcase.model.SavePasswordsConsentRevoked;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
@@ -87,7 +86,7 @@ public class PullPanel {
 
     view.onAction(() -> {
       view.setWorking();
-      forms.forEach(FormStatus::clearStatusHistory);
+      view.clearAllStatusLines();
       new Thread(() -> source.ifPresent(s -> {
         pullJobRunner = s.pull(forms.getSelectedForms(), appPreferences, formMetadataPort);
         pullJobRunner.waitForCompletion();
@@ -96,10 +95,7 @@ public class PullPanel {
 
     view.onCancel(() -> {
       pullJobRunner.cancel();
-      forms.getSelectedForms().forEach(form -> {
-        form.setStatusString("Cancelled by user");
-        EventBus.publish(new FormStatusEvent(form.getFormMetadata().getKey(), form.getStatusString()));
-      });
+      forms.getSelectedForms().forEach(formMetadata -> EventBus.publish(new FormStatusEvent(PULL, formMetadata.getKey(), "Cancelled by user")));
       view.unsetWorking();
       view.refresh();
       updateActionButtons();
@@ -125,7 +121,7 @@ public class PullPanel {
   private void onSource(TransferPanelForm view, TransferForms forms, PullSource<?> source) {
     JobsRunner.launchAsync(
         run(__ -> {
-          forms.load(source.getFormList().stream().map(FormStatus::new).collect(toList()));
+          forms.load(source.getFormList());
           view.refresh();
           updateActionButtons();
         }),
@@ -154,11 +150,6 @@ public class PullPanel {
   @EventSubscriber(eventClass = FormStatusEvent.class)
   public void onFormStatusEvent(FormStatusEvent event) {
     view.refresh();
-  }
-
-  @EventSubscriber(eventClass = RetrieveAvailableFormsFailedEvent.class)
-  public void onRetrieveAvailableFormsFailedEvent(RetrieveAvailableFormsFailedEvent event) {
-    errorMessage("Accessing Server Failed", "Accessing the server failed with error: " + event.getReason());
   }
 
   @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)

@@ -24,7 +24,7 @@ package org.opendatakit.briefcase.util;
 public class StringUtils {
 
   public static boolean nullOrEmpty(String text) {
-    return text == null || text.trim().length() == 0;
+    return text == null || text.isBlank();
   }
 
   public static String stripIllegalChars(String text) {

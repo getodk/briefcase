@@ -17,12 +17,15 @@
 package org.opendatakit.briefcase.model;
 
 import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.reused.Operation;
 
 public class FormStatusEvent {
+  private final Operation operation;
   private final FormKey formKey;
   private final String message;
 
-  public FormStatusEvent(FormKey formKey, String message) {
+  public FormStatusEvent(Operation operation, FormKey formKey, String message) {
+    this.operation = operation;
     this.formKey = formKey;
     this.message = message;
   }
@@ -33,5 +36,9 @@ public class FormStatusEvent {
 
   public String getMessage() {
     return message;
+  }
+
+  public Operation getOperation() {
+    return operation;
   }
 }

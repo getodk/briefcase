@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Optional;
+import java.util.function.Supplier;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -53,7 +54,7 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Credentials;
@@ -62,17 +63,19 @@ public class UI {
   private static final Font ic_receipt = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
 
   @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
-  public static JButton buildDetailButton(FormStatus form) {
+  public static JButton buildDetailButton(FormKey formKey, Supplier<String> statusLinesSupplier) {
     // Use custom fonts instead of png for easier scaling
     JButton button = new JButton("\uE900");
     button.setFont(ic_receipt); // custom font that overrides  with a receipt icon
     button.setToolTipText("View this form's status history");
     button.setMargin(new Insets(0, 0, 0, 0));
 
-    button.setForeground(form.getStatusHistory().isEmpty() ? LIGHT_GRAY : DARK_GRAY);
+    button.setForeground(statusLinesSupplier.get().isBlank() ? LIGHT_GRAY : DARK_GRAY);
     button.addActionListener(__ -> {
-      if (!form.getStatusHistory().isEmpty())
-        showDialog(getFrameForComponent(button), form.getStatusHistory(), form.getFormMetadata().getKey());
+      String statusLines = statusLinesSupplier.get();
+      if (!statusLines.isBlank()) {
+        showDialog(getFrameForComponent(button), statusLines, formKey);
+      }
     });
     return button;
   }

@@ -16,63 +16,59 @@
 package org.opendatakit.briefcase.export;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.export.ExportConfiguration.Builder;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
-import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadata;
 
 public class ExportForms {
   private static final String EXPORT_DATE_PREFIX = "export_date_";
   private static final String CUSTOM_CONF_PREFIX = "custom_";
-  private final List<FormStatus> forms;
+  private List<FormMetadata> forms;
   private ExportConfiguration defaultConfiguration;
-  private final Map<String, ExportConfiguration> customConfigurations;
-  private final Map<String, LocalDateTime> lastExportDateTimes;
-  private final List<BiConsumer<String, LocalDateTime>> onSuccessfulExportCallbacks = new ArrayList<>();
-  private Map<String, FormStatus> formsIndex = new HashMap<>();
+  private final Map<FormKey, ExportConfiguration> customConfigurations;
+  private final Map<FormKey, LocalDateTime> lastExportDateTimes;
+  private final List<BiConsumer<FormKey, LocalDateTime>> onSuccessfulExportCallbacks = new ArrayList<>();
+  private final Set<FormKey> selectedForms = new HashSet<>();
 
-  public ExportForms(List<FormStatus> forms, ExportConfiguration defaultConfiguration, Map<String, ExportConfiguration> configurations, Map<String, LocalDateTime> lastExportDateTimes) {
+  public ExportForms(List<FormMetadata> forms, ExportConfiguration defaultConfiguration, Map<FormKey, ExportConfiguration> configurations, Map<FormKey, LocalDateTime> lastExportDateTimes) {
     this.forms = forms;
     this.defaultConfiguration = defaultConfiguration;
     this.customConfigurations = configurations;
     this.lastExportDateTimes = lastExportDateTimes;
-    rebuildIndex();
   }
 
-  public static ExportForms load(ExportConfiguration defaultConfiguration, List<FormStatus> forms, BriefcasePreferences exportPreferences) {
+  public static ExportForms load(ExportConfiguration defaultConfiguration, List<FormMetadata> formMetadataList, BriefcasePreferences exportPreferences) {
     // This should be a simple Map filtering block but we'll have to wait for Vavr.io
 
-    Map<String, ExportConfiguration> configurations = new HashMap<>();
-    Map<String, LocalDateTime> lastExportDateTimes = new HashMap<>();
-    forms.forEach(form -> {
-      String formId = getFormId(form);
-      ExportConfiguration load = Builder.load(exportPreferences, buildCustomConfPrefix(formId));
+    Map<FormKey, ExportConfiguration> configurations = new HashMap<>();
+    Map<FormKey, LocalDateTime> lastExportDateTimes = new HashMap<>();
+    formMetadataList.forEach(formMetadata -> {
+      ExportConfiguration load = Builder.load(exportPreferences, buildCustomConfPrefix(formMetadata.getKey().getId()));
       if (!load.isEmpty())
-        configurations.put(formId, load);
-      exportPreferences.nullSafeGet(buildExportDateTimePrefix(formId))
+        configurations.put(formMetadata.getKey(), load);
+      exportPreferences.nullSafeGet(buildExportDateTimePrefix(formMetadata.getKey().getId()))
           .map(LocalDateTime::parse)
-          .ifPresent(dateTime -> lastExportDateTimes.put(formId, dateTime));
+          .ifPresent(dateTime -> lastExportDateTimes.put(formMetadata.getKey(), dateTime));
     });
     return new ExportForms(
-        forms,
+        formMetadataList,
         defaultConfiguration,
         configurations,
         lastExportDateTimes
     );
-  }
-
-  private static String getFormId(FormStatus form) {
-    return form.getFormId();
   }
 
   public static String buildExportDateTimePrefix(String formId) {
@@ -83,36 +79,31 @@ public class ExportForms {
     return CUSTOM_CONF_PREFIX + formId + "_";
   }
 
-  public void merge(List<FormStatus> incomingForms) {
-    List<String> incomingFormIds = incomingForms.stream().map(ExportForms::getFormId).collect(toList());
-    List<FormStatus> formsToAdd = incomingForms.stream().filter(form -> !formsIndex.containsKey(getFormId(form))).collect(toList());
-    List<FormStatus> formsToRemove = formsIndex.values().stream().filter(form -> !incomingFormIds.contains(getFormId(form))).collect(toList());
-    forms.addAll(formsToAdd);
-    forms.removeAll(formsToRemove);
-    rebuildIndex();
+  public void merge(List<FormMetadata> incomingForms) {
+    forms = new ArrayList<>(incomingForms);
   }
 
   public int size() {
     return forms.size();
   }
 
-  public FormStatus get(int rowIndex) {
+  public FormMetadata get(int rowIndex) {
     return forms.get(rowIndex);
   }
 
-  public void forEach(Consumer<String> callback) {
-    forms.stream().map(ExportForms::getFormId).forEach(callback);
+  public void forEach(Consumer<FormMetadata> callback) {
+    forms.forEach(callback);
   }
 
-  public boolean hasConfiguration(FormStatus form) {
-    return customConfigurations.containsKey(getFormId(form));
+  public boolean hasConfiguration(FormKey formKey) {
+    return customConfigurations.containsKey(formKey);
   }
 
-  public Optional<ExportConfiguration> getCustomConfiguration(FormStatus form) {
-    return Optional.ofNullable(customConfigurations.get(getFormId(form)));
+  public Optional<ExportConfiguration> getCustomConfiguration(FormKey formKey) {
+    return Optional.ofNullable(customConfigurations.get(formKey));
   }
 
-  public Map<String, ExportConfiguration> getCustomConfigurations() {
+  public Map<FormKey, ExportConfiguration> getCustomConfigurations() {
     return customConfigurations;
   }
 
@@ -120,37 +111,48 @@ public class ExportForms {
     defaultConfiguration = configuration;
   }
 
-  public ExportConfiguration getConfiguration(String formId) {
-    return Optional.ofNullable(customConfigurations.get(formId))
+  public ExportConfiguration getConfiguration(FormMetadata formMetadata) {
+    return Optional.ofNullable(customConfigurations.get(formMetadata.getKey()))
         .orElse(empty().build())
         .fallingBackTo(defaultConfiguration);
   }
 
-  public void removeConfiguration(FormStatus form) {
-    customConfigurations.remove(getFormId(form));
+  public void removeConfiguration(FormKey formKey) {
+    customConfigurations.remove(formKey);
   }
 
-  public void putConfiguration(FormStatus form, ExportConfiguration configuration) {
-    customConfigurations.put(getFormId(form), configuration);
+  public void putConfiguration(FormKey formKey, ExportConfiguration configuration) {
+    customConfigurations.put(formKey, configuration);
   }
 
   public boolean allSelectedFormsHaveConfiguration() {
     return getSelectedForms().stream()
-        .map(ExportForms::getFormId)
         .map(this::getConfiguration)
         .allMatch(ExportConfiguration::isValid);
   }
 
+  public void setSelected(FormKey formKey, boolean selected) {
+    if (selected)
+      selectedForms.add(formKey);
+    else
+      selectedForms.remove(formKey);
+  }
+
+  public boolean isSelected(FormKey formKey) {
+    return selectedForms.contains(formKey);
+  }
+
   public void selectAll() {
-    forms.forEach(form -> form.setSelected(true));
+    selectedForms.clear();
+    selectedForms.addAll(forms.stream().map(FormMetadata::getKey).collect(toList()));
   }
 
   public void clearAll() {
-    forms.forEach(form -> form.setSelected(false));
+    selectedForms.clear();
   }
 
-  public List<FormStatus> getSelectedForms() {
-    return forms.stream().filter(FormStatus::isSelected).collect(toList());
+  public List<FormMetadata> getSelectedForms() {
+    return forms.stream().filter(formStatus -> selectedForms.contains(formStatus.getKey())).collect(toList());
   }
 
   public boolean someSelected() {
@@ -158,36 +160,26 @@ public class ExportForms {
   }
 
   public boolean allSelected() {
-    return forms.stream().allMatch(FormStatus::isSelected);
+    return !forms.isEmpty() && forms.size() == selectedForms.size();
   }
 
   public boolean noneSelected() {
-    return forms.stream().noneMatch(FormStatus::isSelected);
+    return !forms.isEmpty() && selectedForms.isEmpty();
   }
 
   public void appendStatus(ExportEvent event) {
-    getForm(event.getFormId()).setStatusString(event.getStatusLine());
     if (event.isSuccess()) {
       LocalDateTime exportDate = LocalDateTime.now();
-      lastExportDateTimes.put(event.getFormId(), exportDate);
-      onSuccessfulExportCallbacks.forEach(callback -> callback.accept(event.getFormId(), exportDate));
+      lastExportDateTimes.put(event.getFormKey(), exportDate);
+      onSuccessfulExportCallbacks.forEach(callback -> callback.accept(event.getFormKey(), exportDate));
     }
   }
 
-  public Optional<LocalDateTime> getLastExportDateTime(FormStatus form) {
-    return Optional.ofNullable(lastExportDateTimes.get(getFormId(form)));
+  public Optional<LocalDateTime> getLastExportDateTime(FormKey formKey) {
+    return Optional.ofNullable(lastExportDateTimes.get(formKey));
   }
 
-  public void onSuccessfulExport(BiConsumer<String, LocalDateTime> callback) {
+  public void onSuccessfulExport(BiConsumer<FormKey, LocalDateTime> callback) {
     onSuccessfulExportCallbacks.add(callback);
-  }
-
-  private FormStatus getForm(String formId) {
-    return Optional.ofNullable(formsIndex.get(formId))
-        .orElseThrow(() -> new RuntimeException("Form with form ID " + formId + " not found"));
-  }
-
-  private void rebuildIndex() {
-    formsIndex = forms.stream().collect(toMap(ExportForms::getFormId, form -> form));
   }
 }

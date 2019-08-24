@@ -16,6 +16,7 @@
 package org.opendatakit.briefcase.ui.reused.transfer;
 
 import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.opendatakit.briefcase.reused.Operation;
 import org.opendatakit.briefcase.transfer.TransferForms;
 
 public class TransferFormsTable {
@@ -30,9 +31,9 @@ public class TransferFormsTable {
     AnnotationProcessor.process(this);
   }
 
-  public static TransferFormsTable from(TransferForms forms, String actionName) {
-    String[] headers = TransferFormsTableView.buildHeaders(actionName);
-    TransferFormsTableViewModel viewModel = new TransferFormsTableViewModel(forms, headers);
+  public static TransferFormsTable from(TransferForms forms, Operation operation) {
+    String[] headers = TransferFormsTableView.buildHeaders(operation);
+    TransferFormsTableViewModel viewModel = new TransferFormsTableViewModel(forms, headers, operation);
     return new TransferFormsTable(forms, new TransferFormsTableView(viewModel, headers), viewModel);
   }
 

@@ -51,7 +51,7 @@ public class FormInstallerTest {
     Path sourceFormPath = getPath("basic.xml");
 
     FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormPath);
-    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata, e -> {});
+    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata.getKey(), e -> {});
     FormInstaller.installForm(
         sourceFormMetadata,
         sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
@@ -69,7 +69,7 @@ public class FormInstallerTest {
     Path sourceFormPath = getPath("basic.xml");
 
     FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormPath);
-    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata, e -> {});
+    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata.getKey(), e -> {});
     FormInstaller.installForm(
         sourceFormMetadata,
         sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
@@ -92,7 +92,7 @@ public class FormInstallerTest {
     Path sourceFormPath = getPath("basic-form.xml");
 
     FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormPath);
-    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata, e -> {});
+    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata.getKey(), e -> {});
     FormInstaller.installForm(
         sourceFormMetadata,
         sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
@@ -112,7 +112,7 @@ public class FormInstallerTest {
     Path sourceFormPath = getPath("Birds.xml");
 
     FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormPath);
-    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata, e -> {});
+    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata.getKey(), e -> {});
     FormInstaller.installForm(
         sourceFormMetadata,
         sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
@@ -160,7 +160,7 @@ public class FormInstallerTest {
     Path sourceFormPath = getPath("Birds.xml");
 
     FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormPath);
-    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata, e -> {});
+    PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata.getKey(), e -> {});
     FormInstaller.installForm(
         sourceFormMetadata,
         sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),

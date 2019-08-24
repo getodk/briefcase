@@ -27,7 +27,6 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -159,7 +158,6 @@ public class CsvTest {
   private static FormDefinition buildFormDef(String formName, Model group) {
     return new FormDefinition(
         "some_form",
-        Paths.get("/some/random/path/doesnt/matter/"),
         formName,
         false,
         group, group.getRepeatableFields()

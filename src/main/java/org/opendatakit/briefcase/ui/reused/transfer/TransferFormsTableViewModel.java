@@ -24,20 +24,30 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
-import org.opendatakit.briefcase.model.FormStatus;
+import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.reused.Operation;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.export.components.ExportFormsTableView;
 import org.opendatakit.briefcase.ui.reused.UI;
 
 public class TransferFormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
-  private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
+  private final Map<FormKey, JButton> detailButtons = new HashMap<>();
   private final TransferForms forms;
   private final String[] headers;
+  private final Map<FormKey, String> statusLines = new ConcurrentHashMap<>();
+  private final Map<FormKey, String> lastStatusLine = new ConcurrentHashMap<>();
+  private final Operation operation;
 
-  TransferFormsTableViewModel(TransferForms forms, String[] headers) {
+  TransferFormsTableViewModel(TransferForms forms, String[] headers, Operation operation) {
+    AnnotationProcessor.process(this);
+    this.operation = operation;
     this.forms = forms;
     this.headers = headers;
   }
@@ -56,8 +66,8 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
     onChangeCallbacks.forEach(Runnable::run);
   }
 
-  private void updateDetailButton(FormStatus form, JButton button) {
-    button.setForeground(form.getStatusHistory().isEmpty() ? LIGHT_GRAY : DARK_GRAY);
+  private void updateDetailButton(FormKey formKey, JButton button) {
+    button.setForeground(statusLines.getOrDefault(formKey, "").isBlank() ? LIGHT_GRAY : DARK_GRAY);
   }
 
   @Override
@@ -72,16 +82,16 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
 
   @Override
   public Object getValueAt(int rowIndex, int columnIndex) {
-    FormStatus form = forms.get(rowIndex);
+    FormKey formKey = forms.get(rowIndex).getKey();
     switch (columnIndex) {
       case TransferFormsTableView.SELECTED_CHECKBOX_COL:
-        return form.isSelected();
+        return forms.isSelected(formKey);
       case TransferFormsTableView.FORM_NAME_COL:
-        return form.getFormName();
+        return formKey.getName();
       case TransferFormsTableView.STATUS_COL:
-        return form.getStatusString();
+        return lastStatusLine.getOrDefault(formKey, "");
       case TransferFormsTableView.DETAIL_BUTTON_COL:
-        return detailButtons.computeIfAbsent(form, UI::buildDetailButton);
+        return detailButtons.computeIfAbsent(formKey, __ -> UI.buildDetailButton(formKey, () -> statusLines.getOrDefault(formKey, "")));
       default:
         throw new IllegalStateException("unexpected column choice");
     }
@@ -91,15 +101,15 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
   // Suppressing next ParameterName checkstyle error becasue 'aValue' param triggers it by mistake
   @SuppressWarnings("checkstyle:ParameterName")
   public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-    FormStatus form = forms.get(rowIndex);
+    FormKey formKey = forms.get(rowIndex).getKey();
     switch (columnIndex) {
       case ExportFormsTableView.SELECTED_CHECKBOX_COL:
-        Boolean isSelected = (Boolean) aValue;
-        form.setSelected(isSelected);
+        forms.setSelected(formKey, (Boolean) aValue);
         triggerChange();
         break;
       case TransferFormsTableView.STATUS_COL:
-        form.setStatusString((String) aValue);
+        // TODO WHAT IS THIS?
+        System.out.println("WTF!");
         break;
       default:
         throw new IllegalStateException("unexpected column choice");
@@ -122,4 +132,19 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
     return EDITABLE_COLS[columnIndex];
   }
 
+  @EventSubscriber(eventClass = FormStatusEvent.class)
+  public void onFormStatusEvent(FormStatusEvent event) {
+    if (event.getOperation() == operation) {
+      String currentStatus = statusLines.computeIfAbsent(event.getFormKey(), key -> "");
+      statusLines.put(event.getFormKey(), currentStatus + "\n" + event.getMessage());
+      lastStatusLine.put(event.getFormKey(), event.getMessage());
+      refresh();
+    }
+  }
+
+  void clearAllStatusLines() {
+    statusLines.clear();
+    lastStatusLine.clear();
+    refresh();
+  }
 }

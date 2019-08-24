@@ -17,8 +17,7 @@
 package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source;
 
 import static java.awt.Cursor.getPredefinedCursor;
-import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.walk;
+import static org.opendatakit.briefcase.pull.filesystem.FormInstaller.scanCollectFormsAt;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
@@ -32,7 +31,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
@@ -48,7 +46,7 @@ import org.opendatakit.briefcase.ui.reused.FileChooser;
 public class CollectDir implements PullSource<Path> {
   private final Path briefcaseDir;
   private final Consumer<PullSource> consumer;
-  private Path sourceFormDir;
+  private Path path;
 
   CollectDir(Path briefcaseDir, Consumer<PullSource> consumer) {
     this.briefcaseDir = briefcaseDir;
@@ -78,8 +76,8 @@ public class CollectDir implements PullSource<Path> {
   }
 
   @Override
-  public void set(Path sourceFormDir) {
-    this.sourceFormDir = sourceFormDir;
+  public void set(Path path) {
+    this.path = path;
     consumer.accept(this);
   }
 
@@ -90,19 +88,7 @@ public class CollectDir implements PullSource<Path> {
 
   @Override
   public List<FormMetadata> getFormList() {
-    return walk(sourceFormDir)
-        .filter(path -> !path.getFileName().toString().equals("submission.xml")
-            && path.getFileName().toString().endsWith(".xml"))
-        .filter(path -> isAForm(XmlElement.from(path)))
-        .map(FormMetadata::from)
-        .collect(toList());
-  }
-
-  private static boolean isAForm(XmlElement root) {
-    return root.getName().equals("html")
-        && root.findElements("head", "title").size() == 1
-        && root.findElements("head", "model", "instance").size() >= 1
-        && root.findElements("body").size() == 1;
+    return scanCollectFormsAt(path);
   }
 
   @Override
@@ -112,9 +98,10 @@ public class CollectDir implements PullSource<Path> {
 
   @Override
   public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
-    return JobsRunner.launchAsync(forms.map(form -> new PullFromCollectDir(formMetadataPort, EventBus::publish).pull(
-        form.getFormMetadata(),
-        form.getFormMetadata().withFormFile(form.getFormMetadata().getKey().buildFormFile(briefcaseDir))
+    PullFromCollectDir pullJob = new PullFromCollectDir(formMetadataPort, EventBus::publish);
+    return JobsRunner.launchAsync(forms.map(formMetadata -> pullJob.pull(
+        formMetadata,
+        formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir))
     ))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
@@ -125,7 +112,7 @@ public class CollectDir implements PullSource<Path> {
 
   @Override
   public String getDescription() {
-    return sourceFormDir.toString();
+    return path.toString();
   }
 
   @Override

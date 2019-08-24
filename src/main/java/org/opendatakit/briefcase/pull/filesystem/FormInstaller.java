@@ -30,10 +30,11 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.opendatakit.briefcase.export.SubmissionMetaData;
+import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.Pair;
 
-class FormInstaller {
+public class FormInstaller {
   static void installForm(FormMetadata sourceFormMetadata, FormMetadata targetFormMetadata, PullFromFileSystemTracker tracker) {
     if (!exists(targetFormMetadata.getFormDir()))
       createDirectories(targetFormMetadata.getFormDir());
@@ -85,5 +86,22 @@ class FormInstaller {
         tracker.trackSubmissionAttachmentInstalled(submissionNumber, totalSubmissions, attachmentSeq.getAndIncrement(), totalAttachments);
       });
     });
+  }
+
+  public static List<FormMetadata> scanCollectFormsAt(Path path) {
+    return walk(path)
+        .filter(file -> Files.isRegularFile(file)
+            && !file.getFileName().toString().equals("submission.xml")
+            && file.getFileName().toString().endsWith(".xml"))
+        .filter(file -> isAForm(XmlElement.from(file)))
+        .map(FormMetadata::from)
+        .collect(toList());
+  }
+
+  public static boolean isAForm(XmlElement root) {
+    return root.getName().equals("html")
+        && root.findElements("head", "title").size() == 1
+        && root.findElements("head", "model", "instance").size() >= 1
+        && root.findElements("body").size() == 1;
   }
 }

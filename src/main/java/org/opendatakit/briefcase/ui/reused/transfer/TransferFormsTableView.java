@@ -30,6 +30,7 @@ import javax.swing.SortOrder;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import org.opendatakit.briefcase.reused.Operation;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.UI;
 
@@ -76,8 +77,8 @@ public class TransferFormsTableView extends JTable {
     sorter.sort();
   }
 
-  static String[] buildHeaders(String actionName) {
-    return new String[]{"", "Form Name", actionName + " Status", ""};
+  static String[] buildHeaders(Operation operation) {
+    return new String[]{"", "Form Name", operation.getName() + " Status", ""};
   }
 
   private void relayClickToButton(MouseEvent event) {
@@ -105,5 +106,9 @@ public class TransferFormsTableView extends JTable {
 
   private String getHeader(int column) {
     return headers[column];
+  }
+
+  void clearAllStatusLines() {
+    ((TransferFormsTableViewModel) dataModel).clearAllStatusLines();
   }
 }

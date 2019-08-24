@@ -16,6 +16,8 @@
 
 package org.opendatakit.briefcase.push.aggregate;
 
+import static org.opendatakit.briefcase.reused.Operation.PUSH;
+
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.form.FormMetadata;
@@ -35,7 +37,7 @@ class PushToAggregateTracker {
   }
 
   private void notifyTrackingEvent(String message) {
-    onEventCallback.accept(new FormStatusEvent(formMetadata.getKey(), message));
+    onEventCallback.accept(new FormStatusEvent(PUSH, formMetadata.getKey(), message));
   }
 
   void trackStart() {

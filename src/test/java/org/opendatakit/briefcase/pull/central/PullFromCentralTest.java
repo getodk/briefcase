@@ -65,11 +65,11 @@ public class PullFromCentralTest {
   public void init() {
     http = new FakeHttp();
     events = new ArrayList<>();
-    pullOp = new PullFromCentral(http, server, token, e -> { }, new InMemoryFormMetadataAdapter());
+    pullOp = new PullFromCentral(http, new InMemoryFormMetadataAdapter(), server, token, e -> { });
     runnerStatus = new TestRunnerStatus(false);
     formMetadata = FormMetadata.empty(FormKey.of("Some form", "some-form"))
         .withFormFile(briefcaseDir.resolve("forms/Some form/Some form.xml"));
-    tracker = new PullFromCentralTracker(e -> events.add(e.getMessage()), formMetadata);
+    tracker = new PullFromCentralTracker(formMetadata.getKey(), e -> events.add(e.getMessage()));
   }
 
   @After

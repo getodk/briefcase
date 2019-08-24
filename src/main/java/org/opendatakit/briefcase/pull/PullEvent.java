@@ -60,9 +60,6 @@ public class PullEvent {
     }
   }
 
-  public static class CleanAllResumePoints extends PullEvent {
-  }
-
   public static class PullComplete extends PullEvent {
 
   }

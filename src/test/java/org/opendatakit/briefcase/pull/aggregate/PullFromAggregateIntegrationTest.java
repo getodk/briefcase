@@ -96,7 +96,7 @@ public class PullFromAggregateIntegrationTest {
     server = httpServer(serverPort);
     formMetadataPort = new InMemoryFormMetadataAdapter();
     events = new ArrayList<>();
-    pullOp = new PullFromAggregate(CommonsHttp.of(1), aggregateServer, true, e -> events.add(e.getMessage()), formMetadataPort);
+    pullOp = new PullFromAggregate(CommonsHttp.of(1), formMetadataPort, aggregateServer, true, e -> events.add(e.getMessage()));
     runnerStatus = new TestRunnerStatus(false);
     form = new FormStatus(FormMetadata.empty(FormKey.of("Simple form", "simple-form"))
         .withFormFile(briefcaseDir.resolve("forms/Simple form/Simple form.xml"))

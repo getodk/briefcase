@@ -121,14 +121,13 @@ public class Central implements PullSource<CentralServer> {
     String token = http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
     PullFromCentral pullOp = new PullFromCentral(
         http,
-        server,
+        formMetadataPort, server,
         token,
-        EventBus::publish,
-        formMetadataPort
+        EventBus::publish
     );
 
     return JobsRunner
-        .launchAsync(forms.map(form -> pullOp.pull(form.getFormMetadata())))
+        .launchAsync(forms.map(pullOp::pull))
         .onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 

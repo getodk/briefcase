@@ -30,12 +30,12 @@ import org.slf4j.Logger;
 class CliEventsCompanion {
   static void attach(Logger log) {
     on(ExportEvent.class, event -> {
-      if (event.getStatusLine().contains("Failure:")) {
-        log.warn(event.getStatusLine());
-        System.err.println(event.getStatusLine());
+      if (event.getMessage().contains("Failure:")) {
+        log.warn(event.getMessage());
+        System.err.println(event.getMessage());
       } else {
-        log.info(event.getStatusLine());
-        System.out.println(event.getStatusLine());
+        log.info(event.getMessage());
+        System.out.println(event.getMessage());
       }
     });
 
