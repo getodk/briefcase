@@ -25,7 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.Pair;
+import org.opendatakit.briefcase.reused.api.Pair;
 
 public class RequestBuilderTest {
 

@@ -77,7 +77,7 @@ public class Utils {
                 .withExcludes("flyway_schema_history")
                 .withSchemata(new Schema().withInputSchema("PUBLIC")))
             .withTarget(new Target()
-                .withPackageName("org.opendatakit.briefcase.jooq")
+                .withPackageName("org.opendatakit.briefcase.reused.db.jooq")
                 .withDirectory(projectDir.toPath().resolve(mainJavaDir.toPath()).toAbsolutePath().toString()))
             .withGenerate(new Generate()
                 .withGeneratedAnnotation(false))

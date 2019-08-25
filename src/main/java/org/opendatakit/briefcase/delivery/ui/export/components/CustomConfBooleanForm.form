@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="org.opendatakit.briefcase.delivery.ui.export.components.CustomConfBooleanForm">
+  <grid id="27dc6" binding="container" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="0">
+    <constraints>
+      <xy x="20" y="20" width="500" height="400"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <component id="77297" class="javax.swing.JRadioButton" binding="inherit">
+        <constraints/>
+        <properties>
+          <text value="Inherit"/>
+        </properties>
+      </component>
+      <component id="e9eb6" class="javax.swing.JRadioButton" binding="yes">
+        <constraints/>
+        <properties>
+          <text value="Yes"/>
+        </properties>
+      </component>
+      <component id="53b58" class="javax.swing.JRadioButton" binding="no">
+        <constraints/>
+        <properties>
+          <text value="No"/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+</form>

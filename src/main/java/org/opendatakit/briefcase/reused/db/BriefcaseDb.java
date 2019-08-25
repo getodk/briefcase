@@ -3,7 +3,7 @@ package org.opendatakit.briefcase.reused.db;
 import static org.jooq.SQLDialect.HSQLDB;
 import static org.jooq.impl.DSL.sql;
 import static org.jooq.impl.DSL.using;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
+import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
 
 import java.io.IOException;
 import java.nio.file.Path;

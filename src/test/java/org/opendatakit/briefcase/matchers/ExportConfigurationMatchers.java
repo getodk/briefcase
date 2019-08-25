@@ -18,7 +18,7 @@ package org.opendatakit.briefcase.matchers;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import org.opendatakit.briefcase.export.ExportConfiguration;
+import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 
 public class ExportConfigurationMatchers {
 

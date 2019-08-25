@@ -21,7 +21,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.util.Collections.emptyList;
 import static java.util.Optional.empty;
 import static java.util.stream.Collectors.joining;
-import static org.opendatakit.briefcase.reused.UncheckedFiles.copy;
+import static org.opendatakit.briefcase.reused.api.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.GET;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.HEAD;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.POST;
@@ -51,9 +51,9 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
-import org.opendatakit.briefcase.export.XmlElement;
+import org.opendatakit.briefcase.operations.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.Pair;
+import org.opendatakit.briefcase.reused.api.Pair;
 import org.xmlpull.v1.XmlPullParserException;
 
 /**

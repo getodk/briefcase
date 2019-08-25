@@ -20,8 +20,8 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import org.opendatakit.briefcase.reused.Pair;
-import org.opendatakit.briefcase.reused.Triple;
+import org.opendatakit.briefcase.reused.api.Pair;
+import org.opendatakit.briefcase.reused.api.Triple;
 
 /**
  * A job models some computation that might return a value. Jobs
