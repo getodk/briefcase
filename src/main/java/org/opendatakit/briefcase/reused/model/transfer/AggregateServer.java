@@ -113,14 +113,16 @@ public class AggregateServer implements RemoteServer {
             .stream()
             .filter(e -> e.findElement("name").flatMap(XmlElement::maybeValue).isPresent() &&
                 e.findElement("formID").flatMap(XmlElement::maybeValue).isPresent())
-            .map(e -> FormMetadata.empty(FormKey.of(
-                e.findElement("name").flatMap(XmlElement::maybeValue).get(),
-                e.findElement("formID").flatMap(XmlElement::maybeValue).get(),
-                e.findElement("version").flatMap(XmlElement::maybeValue)
-            )).withUrls(
-                e.findElement("manifestUrl").flatMap(XmlElement::maybeValue).map(RequestBuilder::url),
-                e.findElement("downloadUrl").flatMap(XmlElement::maybeValue).map(RequestBuilder::url)
-            )).collect(toList())).build();
+            .map(e -> FormMetadata.empty(FormKey
+                .of(
+                    e.findElement("formID").flatMap(XmlElement::maybeValue).get(),
+                    e.findElement("version").flatMap(XmlElement::maybeValue)
+                ))
+                .withFormName(e.findElement("name").flatMap(XmlElement::maybeValue).get())
+                .withUrls(
+                    e.findElement("manifestUrl").flatMap(XmlElement::maybeValue).map(RequestBuilder::url),
+                    e.findElement("downloadUrl").flatMap(XmlElement::maybeValue).map(RequestBuilder::url)
+                )).collect(toList())).build();
   }
 
   public Request<Boolean> getFormExistsRequest(String formId) {

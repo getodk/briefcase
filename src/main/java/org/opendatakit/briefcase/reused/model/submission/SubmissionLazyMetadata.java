@@ -17,6 +17,8 @@ package org.opendatakit.briefcase.reused.model.submission;
 
 import static java.util.stream.Collectors.toList;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +34,7 @@ import org.opendatakit.briefcase.reused.model.XmlElement;
  * <p>
  * All its members are lazily evaluated to avoid unnecessary parsing.
  */
-public class SubmissionMetaData {
+public class SubmissionLazyMetadata {
   private final XmlElement root;
   // All these members are not final because they're lazily evaluated
   private String formId;
@@ -46,11 +48,11 @@ public class SubmissionMetaData {
   private List<String> mediaNames;
 
   /**
-   * Main constructor for {@link SubmissionMetaData} class. It takes
+   * Main constructor for {@link SubmissionLazyMetadata} class. It takes
    * an {@link XmlElement} to act as the root element which will be
    * queries for the different values this class can offer.
    */
-  public SubmissionMetaData(XmlElement root) {
+  public SubmissionLazyMetadata(XmlElement root) {
     this.root = root;
   }
 
@@ -145,5 +147,22 @@ public class SubmissionMetaData {
     if (encryptedSignature == null)
       encryptedSignature = root.findElement("base64EncryptedElementSignature").flatMap(XmlElement::maybeValue);
     return encryptedSignature;
+  }
+
+  public SubmissionMetadata freeze(Path submissionFile) {
+    SubmissionKey submissionKey = new SubmissionKey(
+        getFormId(),
+        getVersion(),
+        getInstanceId().orElseThrow(BriefcaseException::new)
+    );
+    return new SubmissionMetadata(
+        submissionKey,
+        Optional.of(submissionFile),
+        getSubmissionDate(),
+        getEncryptedXmlFile().map(Paths::get),
+        getBase64EncryptedKey(),
+        getEncryptedSignature(),
+        getMediaNames().stream().map(Paths::get).collect(toList())
+    );
   }
 }

@@ -30,7 +30,6 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -50,7 +49,7 @@ import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormModel;
 import org.opendatakit.briefcase.reused.model.form.ModelBuilder;
 import org.opendatakit.briefcase.reused.model.submission.Submission;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetaData;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
 import org.xmlpull.v1.XmlPullParserException;
 
 public class GeoJsonTest {
@@ -163,13 +162,11 @@ public class GeoJsonTest {
     xml.append("</data>");
 
     XmlElement root = ModelBuilder.parseXmlElement(xml.toString());
-    Submission submission = Submission.notValidated(
+    Submission submission = Submission.plain(
         Paths.get("/some/path"),
         Paths.get("/some/path"),
         root,
-        new SubmissionMetaData(root),
-        Optional.empty(),
-        Optional.empty()
+        new SubmissionLazyMetadata(root)
     );
     return GeoJson.toFeatures(model, submission).collect(Collectors.toList());
   }

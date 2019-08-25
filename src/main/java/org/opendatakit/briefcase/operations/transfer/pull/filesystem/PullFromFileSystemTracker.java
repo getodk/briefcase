@@ -40,37 +40,37 @@ class PullFromFileSystemTracker {
 
   void trackStart() {
     String message = "Start pulling form and submissions";
-    log.info("Pull {} - {}", formKey.getName(), message);
+    log.info("Pull {} - {}", formKey.getId(), message);
     notifyTrackingEvent(message);
   }
 
   void trackEnd() {
     String message = "Success";
-    log.info("Pull {} - {}", formKey.getName(), message);
+    log.info("Pull {} - {}", formKey.getId(), message);
     notifyTrackingEvent(message);
   }
 
   void trackFormInstalled() {
     String message = "Form installer";
-    log.info("Pull {} - {}", formKey.getName(), message);
+    log.info("Pull {} - {}", formKey.getId(), message);
     notifyTrackingEvent(message);
   }
 
   void trackFormAttachmentInstaller(int attachmentNumber, int totalAttachments) {
     String message = "Form attachment " + attachmentNumber + " of " + totalAttachments + " installed";
-    log.info("Pull {} - {}", formKey.getName(), message);
+    log.info("Pull {} - {}", formKey.getId(), message);
     notifyTrackingEvent(message);
   }
 
   void trackSubmissionInstalled(int submissionNumber, int totalSubmissions) {
     String message = "Submission " + submissionNumber + " of " + totalSubmissions + " installed";
-    log.info("Pull {} - {}", formKey.getName(), message);
+    log.info("Pull {} - {}", formKey.getId(), message);
     notifyTrackingEvent(message);
   }
 
   void trackSubmissionAttachmentInstalled(int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
     String message = "Attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions + " installed";
-    log.info("Pull {} - {}", formKey.getName(), message);
+    log.info("Pull {} - {}", formKey.getId(), message);
     notifyTrackingEvent(message);
   }
 }

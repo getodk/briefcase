@@ -36,7 +36,7 @@ import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetaData;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
 
 public class PullFromCollectDir {
   private final Consumer<FormStatusEvent> onEventCallback;
@@ -53,11 +53,11 @@ public class PullFromCollectDir {
     return run(rs -> tracker.trackStart())
         .thenRun(rs -> installForm(sourceFormMetadata, targetFormMetadata, tracker))
         .thenRun(rs -> {
-          List<Pair<Path, SubmissionMetaData>> submissions = walk(sourceFormMetadata.getFormDir().getParent().resolve("instances"))
+          List<Pair<Path, SubmissionLazyMetadata>> submissions = walk(sourceFormMetadata.getFormDir().getParent().resolve("instances"))
               .filter(p -> Files.isRegularFile(p)
                   && p.getFileName().toString().startsWith(stripFileExtension(sourceFormMetadata.getFormFile()))
                   && p.getFileName().toString().endsWith(".xml"))
-              .map(submissionFile -> Pair.of(submissionFile, new SubmissionMetaData(XmlElement.from(submissionFile))))
+              .map(submissionFile -> Pair.of(submissionFile, new SubmissionLazyMetadata(XmlElement.from(submissionFile))))
               .filter(pair -> pair.getRight().getInstanceId().isPresent())
               .collect(toList());
 

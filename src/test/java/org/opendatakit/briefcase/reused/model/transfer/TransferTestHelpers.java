@@ -40,7 +40,7 @@ import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetaData;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
 
 public class TransferTestHelpers {
   public static String buildSubmissionXml(String instanceId) {
@@ -219,7 +219,7 @@ public class TransferTestHelpers {
                     "\t\t<downloadUrl>%s</downloadUrl>" +
                     "\t\t<manifestUrl>%s</manifestUrl>" +
                     "\t</xform>",
-                formMetadata.getKey().getName(),
+                formMetadata.getFormName(),
                 formMetadata.getKey().getId(),
                 formMetadata.getKey().getVersion().orElse(""),
                 formMetadata.getManifestUrl().map(Objects::toString).orElse("http://foo.bar"),
@@ -240,7 +240,7 @@ public class TransferTestHelpers {
                     "\t  \"version\": %s\n" +
                     "\t}",
                 formMetadata.getKey().getId(),
-                formMetadata.getKey().getName(),
+                formMetadata.getFormName(),
                 formMetadata.getKey().getVersion().map(v -> "\"" + v + "\"").orElse("null")
             ))
             .collect(joining(",\n"))
@@ -258,7 +258,7 @@ public class TransferTestHelpers {
   }
 
   public static Path installSubmission(FormMetadata formMetadata, Path source) throws IOException {
-    String instanceId = new SubmissionMetaData(XmlElement.from(new String(readAllBytes(source))))
+    String instanceId = new SubmissionLazyMetadata(XmlElement.from(new String(readAllBytes(source))))
         .getInstanceId()
         .orElseThrow(RuntimeException::new);
     Path submissionDir = formMetadata.getSubmissionDir(instanceId);

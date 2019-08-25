@@ -30,7 +30,7 @@ import org.opendatakit.briefcase.reused.db.jooq.tables.records.SubmissionMetadat
 @SuppressWarnings({"all", "unchecked", "rawtypes"})
 public class SubmissionMetadata extends TableImpl<SubmissionMetadataRecord> {
 
-  private static final long serialVersionUID = -1403004702;
+  private static final long serialVersionUID = 1301254514;
 
   /**
    * The reference instance of <code>PUBLIC.SUBMISSION_METADATA</code>
@@ -46,9 +46,14 @@ public class SubmissionMetadata extends TableImpl<SubmissionMetadataRecord> {
   }
 
   /**
-   * The column <code>PUBLIC.SUBMISSION_METADATA.FORM_METADATA_ID</code>.
+   * The column <code>PUBLIC.SUBMISSION_METADATA.FORM_ID</code>.
    */
-  public final TableField<SubmissionMetadataRecord, Integer> FORM_METADATA_ID = createField("FORM_METADATA_ID", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
+  public final TableField<SubmissionMetadataRecord, String> FORM_ID = createField("FORM_ID", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false), this, "");
+
+  /**
+   * The column <code>PUBLIC.SUBMISSION_METADATA.FORM_VERSION</code>.
+   */
+  public final TableField<SubmissionMetadataRecord, String> FORM_VERSION = createField("FORM_VERSION", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false), this, "");
 
   /**
    * The column <code>PUBLIC.SUBMISSION_METADATA.INSTANCE_ID</code>.
@@ -56,19 +61,19 @@ public class SubmissionMetadata extends TableImpl<SubmissionMetadataRecord> {
   public final TableField<SubmissionMetadataRecord, String> INSTANCE_ID = createField("INSTANCE_ID", org.jooq.impl.SQLDataType.VARCHAR(100).nullable(false), this, "");
 
   /**
-   * The column <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_FILE</code>.
+   * The column <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_FILENAME</code>.
    */
-  public final TableField<SubmissionMetadataRecord, String> SUBMISSION_FILE = createField("SUBMISSION_FILE", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
+  public final TableField<SubmissionMetadataRecord, String> SUBMISSION_FILENAME = createField("SUBMISSION_FILENAME", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
 
   /**
-   * The column <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_DATE</code>.
+   * The column <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_DATE_TIME</code>.
    */
-  public final TableField<SubmissionMetadataRecord, OffsetDateTime> SUBMISSION_DATE = createField("SUBMISSION_DATE", org.jooq.impl.SQLDataType.TIMESTAMPWITHTIMEZONE, this, "");
+  public final TableField<SubmissionMetadataRecord, OffsetDateTime> SUBMISSION_DATE_TIME = createField("SUBMISSION_DATE_TIME", org.jooq.impl.SQLDataType.TIMESTAMPWITHTIMEZONE, this, "");
 
   /**
-   * The column <code>PUBLIC.SUBMISSION_METADATA.ENCRYPTED_XML_FILE</code>.
+   * The column <code>PUBLIC.SUBMISSION_METADATA.ENCRYPTED_XML_FILENAME</code>.
    */
-  public final TableField<SubmissionMetadataRecord, String> ENCRYPTED_XML_FILE = createField("ENCRYPTED_XML_FILE", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
+  public final TableField<SubmissionMetadataRecord, String> ENCRYPTED_XML_FILENAME = createField("ENCRYPTED_XML_FILENAME", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
 
   /**
    * The column <code>PUBLIC.SUBMISSION_METADATA.BASE_64_ENCRYPTED_KEY</code>.
@@ -132,7 +137,7 @@ public class SubmissionMetadata extends TableImpl<SubmissionMetadataRecord> {
    */
   @Override
   public List<Index> getIndexes() {
-    return Arrays.<Index>asList(Indexes.SYS_IDX_SYS_PK_10145_10146);
+    return Arrays.<Index>asList(Indexes.SYS_IDX_SYS_PK_10146_10147);
   }
 
   /**
@@ -140,7 +145,7 @@ public class SubmissionMetadata extends TableImpl<SubmissionMetadataRecord> {
    */
   @Override
   public UniqueKey<SubmissionMetadataRecord> getPrimaryKey() {
-    return Keys.SYS_PK_10145;
+    return Keys.SYS_PK_10146;
   }
 
   /**
@@ -148,7 +153,7 @@ public class SubmissionMetadata extends TableImpl<SubmissionMetadataRecord> {
    */
   @Override
   public List<UniqueKey<SubmissionMetadataRecord>> getKeys() {
-    return Arrays.<UniqueKey<SubmissionMetadataRecord>>asList(Keys.SYS_PK_10145);
+    return Arrays.<UniqueKey<SubmissionMetadataRecord>>asList(Keys.SYS_PK_10146);
   }
 
   /**

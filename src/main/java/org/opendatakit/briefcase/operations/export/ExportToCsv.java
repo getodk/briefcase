@@ -72,8 +72,8 @@ public class ExportToCsv {
     ExportProcessTracker exportTracker = new ExportProcessTracker(formMetadata.getKey());
     exportTracker.start();
 
-    var onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getKey().getName()));
-    var onInvalidSubmission = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getKey().getName()))
+    var onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getFormName().orElse(formMetadata.getKey().getId())));
+    var onInvalidSubmission = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getFormName().orElse(formMetadata.getKey().getId())))
         .andThen((path, message) -> analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null)));
 
     List<Path> submissionFiles = getListOfSubmissionFiles(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend(), onParsingError);
@@ -86,7 +86,7 @@ public class ExportToCsv {
     csvs.forEach(Csv::prepareOutputFiles);
 
     if (formDef.getModel().hasAuditField()) {
-      Path audit = configuration.getAuditPath(formMetadata.getKey().getName());
+      Path audit = configuration.getAuditPath(formMetadata.getFormName().orElse(formMetadata.getKey().getId()));
       if (!exists(audit) || configuration.resolveOverwriteExistingFiles())
         write(audit, "instance ID, event, node, start, end\n", CREATE, WRITE, TRUNCATE_EXISTING);
     }

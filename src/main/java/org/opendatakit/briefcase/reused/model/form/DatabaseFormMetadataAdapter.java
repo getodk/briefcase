@@ -20,7 +20,6 @@ import java.util.stream.Stream;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
-import org.opendatakit.briefcase.reused.db.jooq.Sequences;
 import org.opendatakit.briefcase.reused.db.jooq.tables.records.FormMetadataRecord;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
 
@@ -53,14 +52,9 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
     // TODO Use generated records and let jOOQ do the work instead of explicitly using all the fields in the table, because this will break each time we change the table structure
     getDslContext().execute(mergeInto(FORM_METADATA)
         .using(selectOne())
-        .on(Stream.of(
-            FORM_METADATA.FORM_NAME.eq(formMetadata.getKey().getName()),
-            FORM_METADATA.FORM_ID.eq(formMetadata.getKey().getId()),
-            formMetadata.getKey().getVersion()
-                .map(FORM_METADATA.FORM_VERSION::eq)
-                .orElse(FORM_METADATA.FORM_VERSION.isNull())
-        ).reduce(trueCondition(), Condition::and))
+        .on(getMatchingCriteria(formMetadata.getKey()))
         .whenMatchedThenUpdate()
+        .set(FORM_METADATA.FORM_NAME, formMetadata.getFormName().orElse(null))
         .set(FORM_METADATA.FORM_FILE, formMetadata.getFormFile().toString())
         .set(FORM_METADATA.CURSOR_TYPE, formMetadata.getCursor().getType().getName())
         .set(FORM_METADATA.CURSOR_VALUE, formMetadata.getCursor().getValue())
@@ -69,10 +63,9 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         .set(FORM_METADATA.URL_DOWNLOAD, formMetadata.getDownloadUrl().map(Objects::toString).orElse(null))
         .set(FORM_METADATA.LAST_EXPORTED_SUBMISSION_DATE, formMetadata.getLastExportedSubmissionDate().orElse(null))
         .whenNotMatchedThenInsert(
-            FORM_METADATA.ID,
-            FORM_METADATA.FORM_NAME,
             FORM_METADATA.FORM_ID,
             FORM_METADATA.FORM_VERSION,
+            FORM_METADATA.FORM_NAME,
             FORM_METADATA.FORM_FILE,
             FORM_METADATA.CURSOR_TYPE,
             FORM_METADATA.CURSOR_VALUE,
@@ -82,10 +75,9 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
             FORM_METADATA.LAST_EXPORTED_SUBMISSION_DATE
         )
         .values(
-            Sequences.FORM_METADATA_ID_SEQ.nextval(),
-            value(formMetadata.getKey().getName()),
             value(formMetadata.getKey().getId()),
-            value(formMetadata.getKey().getVersion().orElse(null)),
+            value(formMetadata.getKey().getVersion().orElse("")),
+            value(formMetadata.getFormName().orElse(null)),
             value(formMetadata.getFormFile().toString()),
             value(formMetadata.getCursor().getType().getName()),
             value(formMetadata.getCursor().getValue()),
@@ -105,15 +97,9 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
 
   @Override
   public Optional<FormMetadata> fetch(FormKey key) {
-    return getDslContext().fetchOptional(selectFrom(FORM_METADATA)
-        .where(Stream.of(
-            FORM_METADATA.FORM_NAME.eq(key.getName()),
-            FORM_METADATA.FORM_ID.eq(key.getId()),
-            key.getVersion()
-                .map(FORM_METADATA.FORM_VERSION::eq)
-                .orElse(FORM_METADATA.FORM_VERSION.isNull())
-        ).reduce(trueCondition(), Condition::and))
-    ).map(DatabaseFormMetadataAdapter::mapToDomain);
+    return getDslContext()
+        .fetchOptional(selectFrom(FORM_METADATA).where(getMatchingCriteria(key)))
+        .map(DatabaseFormMetadataAdapter::mapToDomain);
   }
 
   @Override
@@ -124,10 +110,10 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
   private static FormMetadata mapToDomain(FormMetadataRecord record) {
     return new FormMetadata(
         FormKey.of(
-            record.getFormName(),
             record.getFormId(),
             Optional.ofNullable(record.getFormVersion())
         ),
+        Optional.ofNullable(record.getFormName()),
         Optional.ofNullable(record.getFormFile()).map(Paths::get),
         Cursor.Type.from(record.getCursorType()).create(record.getCursorValue()),
         record.getIsEncrypted(),
@@ -135,5 +121,11 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         Optional.ofNullable(record.getUrlDownload()).map(RequestBuilder::url),
         Optional.ofNullable(record.getLastExportedSubmissionDate())
     );
+  }
+
+  private static Condition getMatchingCriteria(FormKey key) {
+    return trueCondition()
+        .and(FORM_METADATA.FORM_ID.eq(key.getId()))
+        .and(FORM_METADATA.FORM_VERSION.eq(key.getVersion().orElse("")));
   }
 }

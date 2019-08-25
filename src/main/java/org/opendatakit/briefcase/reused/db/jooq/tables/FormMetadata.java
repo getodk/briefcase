@@ -30,7 +30,7 @@ import org.opendatakit.briefcase.reused.db.jooq.tables.records.FormMetadataRecor
 @SuppressWarnings({"all", "unchecked", "rawtypes"})
 public class FormMetadata extends TableImpl<FormMetadataRecord> {
 
-  private static final long serialVersionUID = -301457439;
+  private static final long serialVersionUID = 1960665135;
 
   /**
    * The reference instance of <code>PUBLIC.FORM_METADATA</code>
@@ -46,24 +46,19 @@ public class FormMetadata extends TableImpl<FormMetadataRecord> {
   }
 
   /**
-   * The column <code>PUBLIC.FORM_METADATA.ID</code>.
+   * The column <code>PUBLIC.FORM_METADATA.FORM_ID</code>.
    */
-  public final TableField<FormMetadataRecord, Integer> ID = createField("ID", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
+  public final TableField<FormMetadataRecord, String> FORM_ID = createField("FORM_ID", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false), this, "");
+
+  /**
+   * The column <code>PUBLIC.FORM_METADATA.FORM_VERSION</code>.
+   */
+  public final TableField<FormMetadataRecord, String> FORM_VERSION = createField("FORM_VERSION", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false), this, "");
 
   /**
    * The column <code>PUBLIC.FORM_METADATA.FORM_NAME</code>.
    */
   public final TableField<FormMetadataRecord, String> FORM_NAME = createField("FORM_NAME", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
-
-  /**
-   * The column <code>PUBLIC.FORM_METADATA.FORM_ID</code>.
-   */
-  public final TableField<FormMetadataRecord, String> FORM_ID = createField("FORM_ID", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
-
-  /**
-   * The column <code>PUBLIC.FORM_METADATA.FORM_VERSION</code>.
-   */
-  public final TableField<FormMetadataRecord, String> FORM_VERSION = createField("FORM_VERSION", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
 
   /**
    * The column <code>PUBLIC.FORM_METADATA.FORM_FILE</code>.
@@ -146,7 +141,7 @@ public class FormMetadata extends TableImpl<FormMetadataRecord> {
    */
   @Override
   public List<Index> getIndexes() {
-    return Arrays.<Index>asList(Indexes.SYS_IDX_SYS_CT_10133_10137, Indexes.SYS_IDX_SYS_PK_10131_10134);
+    return Arrays.<Index>asList(Indexes.SYS_IDX_SYS_PK_10132_10134);
   }
 
   /**
@@ -154,7 +149,7 @@ public class FormMetadata extends TableImpl<FormMetadataRecord> {
    */
   @Override
   public UniqueKey<FormMetadataRecord> getPrimaryKey() {
-    return Keys.SYS_PK_10131;
+    return Keys.SYS_PK_10132;
   }
 
   /**
@@ -162,7 +157,7 @@ public class FormMetadata extends TableImpl<FormMetadataRecord> {
    */
   @Override
   public List<UniqueKey<FormMetadataRecord>> getKeys() {
-    return Arrays.<UniqueKey<FormMetadataRecord>>asList(Keys.SYS_PK_10131, Keys.SYS_CT_10133);
+    return Arrays.<UniqueKey<FormMetadataRecord>>asList(Keys.SYS_PK_10132);
   }
 
   /**

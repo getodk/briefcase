@@ -54,7 +54,7 @@ public class FormInstallerTest {
     PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata.getKey(), e -> {});
     FormInstaller.installForm(
         sourceFormMetadata,
-        sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
+        sourceFormMetadata.withFormFile(sourceFormMetadata.buildFormFile(briefcaseDir)),
         tracker
     );
 
@@ -72,12 +72,12 @@ public class FormInstallerTest {
     PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata.getKey(), e -> {});
     FormInstaller.installForm(
         sourceFormMetadata,
-        sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
+        sourceFormMetadata.withFormFile(sourceFormMetadata.buildFormFile(briefcaseDir)),
         tracker
     );
     FormInstaller.installForm(
         sourceFormMetadata,
-        sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
+        sourceFormMetadata.withFormFile(sourceFormMetadata.buildFormFile(briefcaseDir)),
         tracker
     );
 
@@ -95,7 +95,7 @@ public class FormInstallerTest {
     PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata.getKey(), e -> {});
     FormInstaller.installForm(
         sourceFormMetadata,
-        sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
+        sourceFormMetadata.withFormFile(sourceFormMetadata.buildFormFile(briefcaseDir)),
         tracker
     );
 
@@ -115,7 +115,7 @@ public class FormInstallerTest {
     PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata.getKey(), e -> {});
     FormInstaller.installForm(
         sourceFormMetadata,
-        sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
+        sourceFormMetadata.withFormFile(sourceFormMetadata.buildFormFile(briefcaseDir)),
         tracker
     );
 
@@ -163,12 +163,12 @@ public class FormInstallerTest {
     PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(sourceFormMetadata.getKey(), e -> {});
     FormInstaller.installForm(
         sourceFormMetadata,
-        sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
+        sourceFormMetadata.withFormFile(sourceFormMetadata.buildFormFile(briefcaseDir)),
         tracker
     );
     FormInstaller.installForm(
         sourceFormMetadata,
-        sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir)),
+        sourceFormMetadata.withFormFile(sourceFormMetadata.buildFormFile(briefcaseDir)),
         tracker
     );
 

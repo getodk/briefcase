@@ -57,6 +57,7 @@ import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.model.submission.InMemorySubmissionMetadataAdapter;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 
 public class PullFromAggregateTest {
@@ -77,9 +78,9 @@ public class PullFromAggregateTest {
     Files.createDirectories(briefcaseDir);
     http = new FakeHttp();
     events = new ArrayList<>();
-    pullOp = new PullFromAggregate(http, new InMemoryFormMetadataAdapter(), server, includeIncomplete, e -> { });
+    pullOp = new PullFromAggregate(http, new InMemoryFormMetadataAdapter(), new InMemorySubmissionMetadataAdapter(), server, includeIncomplete, e -> { });
     runnerStatus = new TestRunnerStatus(false);
-    formMetadata = FormMetadata.empty(FormKey.of("Simple form", "simple-form"))
+    formMetadata = FormMetadata.empty(FormKey.of("simple-form"))
         .withFormFile(briefcaseDir.resolve("forms/some-form/some-form.xml"))
         .withUrls(Optional.of(RequestBuilder.url(BASE_URL + "/manifest")), Optional.empty());
     tracker = new PullFromAggregateTracker(formMetadata.getKey(), e -> events.add(e.getMessage()));
@@ -185,7 +186,7 @@ public class PullFromAggregateTest {
   public void knows_how_to_download_a_submission_attachment() {
     String instanceId = "some instance id";
     List<AggregateAttachment> attachments = buildMediaFiles(server.getBaseUrl().toString(), 3);
-    DownloadedSubmission submission = new DownloadedSubmission("some xml", instanceId, attachments);
+    DownloadedSubmission submission = new DownloadedSubmission("some xml", instanceId, attachments, Optional.empty());
 
     attachments.forEach(attachment -> http.stub(get(attachment.getDownloadUrl()).build(), ok("some body")));
 

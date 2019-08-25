@@ -58,13 +58,13 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
    * otherwise, it should be the component on top of which the dialog should
    * appear.
    */
-  public static void showDialog(Frame frame, String statusHtml, FormKey formKey) {
-    ScrollingStatusListDialog dialog = new ScrollingStatusListDialog(frame, "Detailed Status for ", statusHtml, formKey);
+  public static void showDialog(Frame frame, String statusHtml, FormKey formKey, String formName) {
+    ScrollingStatusListDialog dialog = new ScrollingStatusListDialog(frame, "Detailed Status for ", statusHtml, formKey, formName);
     dialog.setVisible(true);
   }
 
-  private ScrollingStatusListDialog(Frame frame, String title, String statusHtml, FormKey formKey) {
-    super(frame, title + formKey.getName(), true);
+  private ScrollingStatusListDialog(Frame frame, String title, String statusHtml, FormKey formKey, String formName) {
+    super(frame, title + formName, true);
     this.formKey = formKey;
     AnnotationProcessor.process(this);
     // Create and initialize the buttons.

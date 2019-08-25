@@ -82,7 +82,7 @@ public class PullFromCentralIntegrationTest {
     formMetadataPort = new InMemoryFormMetadataAdapter();
     events = new ArrayList<>();
     pullOp = new PullFromCentral(CommonsHttp.of(1), formMetadataPort, centralServer, token, e -> events.add(e.getMessage()));
-    formMetadata = FormMetadata.empty(FormKey.of("Some form", "some-form"))
+    formMetadata = FormMetadata.empty(FormKey.of("some-form"))
         .withFormFile(briefcaseDir.resolve("forms/Some form/Some form.xml"));
   }
 

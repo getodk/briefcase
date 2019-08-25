@@ -21,10 +21,10 @@ import static org.junit.Assert.assertThat;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 
 @SuppressWarnings({"OptionalGetWithoutIsPresent", "checkstyle:ParameterName"})
 public class SubmissionTest {
@@ -36,7 +36,8 @@ public class SubmissionTest {
   public void it_is_valid_if_it_has_instance_id() throws IOException {
     Path path = Files.createTempFile("submission_", ".xml");
     Files.write(path, "<data id=\"simple-form\" instanceID=\"123456789\" xmlns=\"http://opendatakit.org/submissions\"><field>value</field></data>".getBytes());
-    Submission sub = SubmissionParser.parseSubmission(path, false, Optional.empty(), NO_OP).get();
+    FormMetadata formMetadata = FormMetadata.from(path);
+    Submission sub = SubmissionParser.parsePlainSubmission(path, NO_OP).get();
     assertThat(sub.isValid(false), Matchers.is(true));
   }
 
@@ -44,7 +45,8 @@ public class SubmissionTest {
   public void it_is_valid_if_it_does_not_have_instance_id_and_it_does_not_have_repeat_groups() throws IOException {
     Path path = Files.createTempFile("submission_", ".xml");
     Files.write(path, "<data id=\"simple-form\" xmlns=\"http://opendatakit.org/submissions\"><field>value</field></data>".getBytes());
-    Submission sub = SubmissionParser.parseSubmission(path, false, Optional.empty(), NO_OP).get();
+    FormMetadata formMetadata = FormMetadata.from(path);
+    Submission sub = SubmissionParser.parsePlainSubmission(path, NO_OP).get();
     assertThat(sub.isValid(false), Matchers.is(true));
   }
 
@@ -52,7 +54,8 @@ public class SubmissionTest {
   public void it_is_not_valid_if_it_does_not_have_instance_id_and_it_has_repeat_groups() throws IOException {
     Path path = Files.createTempFile("submission_", ".xml");
     Files.write(path, "<data id=\"simple-form\" xmlns=\"http://opendatakit.org/submissions\"><field>value</field></data>".getBytes());
-    Submission sub = SubmissionParser.parseSubmission(path, false, Optional.empty(), NO_OP).get();
+    FormMetadata formMetadata = FormMetadata.from(path);
+    Submission sub = SubmissionParser.parsePlainSubmission(path, NO_OP).get();
     assertThat(sub.isValid(true), Matchers.is(false));
   }
 }

@@ -1,40 +1,31 @@
 package org.opendatakit.briefcase.reused.model.form;
 
-import static org.opendatakit.briefcase.reused.api.StringUtils.stripIllegalChars;
-
-import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 
 public class FormKey {
-  private final String name;
   private final String id;
   private final Optional<String> version;
 
-  private FormKey(String name, String id, Optional<String> version) {
-    this.name = name;
+  private FormKey(String id, Optional<String> version) {
     this.id = id;
     this.version = version;
   }
 
-  public static FormKey of(String name, String id) {
-    return new FormKey(name, id, Optional.empty());
+  public static FormKey of(String id) {
+    return new FormKey(id, Optional.empty());
   }
 
-  public static FormKey of(String name, String id, String version) {
-    return new FormKey(name, id, Optional.of(version));
+  public static FormKey of(String id, String version) {
+    return new FormKey(id, Optional.of(version));
   }
 
-  public static FormKey of(String name, String id, Optional<String> version) {
-    return new FormKey(name, id, version);
+  public static FormKey of(String id, Optional<String> version) {
+    return new FormKey(id, version);
   }
 
   public String getId() {
     return id;
-  }
-
-  public String getName() {
-    return name;
   }
 
   public Optional<String> getVersion() {
@@ -46,26 +37,22 @@ public class FormKey {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     FormKey formKey = (FormKey) o;
-    return Objects.equals(name, formKey.name) &&
-        Objects.equals(id, formKey.id) &&
+    return Objects.equals(id, formKey.id) &&
         Objects.equals(version, formKey.version);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, id, version);
+    return Objects.hash(id, version);
   }
 
   @Override
   public String toString() {
     return "FormKey{" +
-        "name='" + name + '\'' +
         ", id='" + id + '\'' +
         ", version=" + version +
         '}';
   }
 
-  public Path buildFormFile(Path briefcaseDir) {
-    return briefcaseDir.resolve("forms").resolve(stripIllegalChars(name)).resolve(stripIllegalChars(name) + ".xml");
-  }
+
 }

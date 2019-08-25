@@ -39,6 +39,7 @@ import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.preferences.SavePasswordsConsentRevoked;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,7 @@ public class PullPanel {
   private JobsRunner pullJobRunner;
   private Optional<PullSource> source;
 
-  private PullPanel(TransferPanelForm<PullSource> view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, Analytics analytics, FormMetadataPort formMetadataPort) {
+  private PullPanel(TransferPanelForm<PullSource> view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, Analytics analytics, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
@@ -76,6 +77,7 @@ public class PullPanel {
 
     view.onReset(() -> {
       forms.clear();
+      view.clearAllStatusLines();
       view.refresh();
       source = Optional.empty();
       RemoteServer.clearStoredPrefs(tabPreferences);
@@ -88,7 +90,7 @@ public class PullPanel {
       view.setWorking();
       view.clearAllStatusLines();
       new Thread(() -> source.ifPresent(s -> {
-        pullJobRunner = s.pull(forms.getSelectedForms(), appPreferences, formMetadataPort);
+        pullJobRunner = s.pull(forms.getSelectedForms(), appPreferences, formMetadataPort, submissionMetadataPort);
         pullJobRunner.waitForCompletion();
       })).start();
     });
@@ -102,7 +104,7 @@ public class PullPanel {
     });
   }
 
-  public static PullPanel from(Http http, BriefcasePreferences appPreferences, BriefcasePreferences pullPanelPreferences, Analytics analytics, FormMetadataPort formMetadataPort, Path briefcaseDir) {
+  public static PullPanel from(Http http, BriefcasePreferences appPreferences, BriefcasePreferences pullPanelPreferences, Analytics analytics, FormMetadataPort formMetadataPort, Path briefcaseDir, SubmissionMetadataPort submissionMetadataPort) {
     TransferForms forms = TransferForms.empty();
     return new PullPanel(
         TransferPanelForm.pull(http, briefcaseDir, forms),
@@ -110,7 +112,8 @@ public class PullPanel {
         pullPanelPreferences,
         appPreferences,
         analytics,
-        formMetadataPort
+        formMetadataPort,
+        submissionMetadataPort
     );
   }
 

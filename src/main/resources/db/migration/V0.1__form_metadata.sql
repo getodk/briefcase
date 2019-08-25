@@ -1,10 +1,7 @@
-CREATE SEQUENCE form_metadata_id_seq;
-
 CREATE TABLE form_metadata (
-    id                            INTEGER NOT NULL PRIMARY KEY,
+    form_id                       VARCHAR(255) NOT NULL,
+    form_version                  VARCHAR(255) NOT NULL, -- Using '' for non-present versions to avoid problems with NULL values and unique constraints
     form_name                     VARCHAR(255),
-    form_id                       VARCHAR(255),
-    form_version                  VARCHAR(255),
     form_file                     VARCHAR(255),
     cursor_type                   VARCHAR(20),
     cursor_value                  CLOB,
@@ -12,7 +9,7 @@ CREATE TABLE form_metadata (
     url_manifest                  VARCHAR(255),
     url_download                  VARCHAR(255),
     last_exported_submission_date TIMESTAMP WITH TIME ZONE,
-    CHECK ((form_name IS NOT NULL) OR (form_id IS NOT NULL)),
-    UNIQUE (form_name, form_id, form_version) -- NULL form_version won't trigger this constraint
+    PRIMARY KEY (form_id, form_version),
+    CHECK (form_id != '')
 );
 

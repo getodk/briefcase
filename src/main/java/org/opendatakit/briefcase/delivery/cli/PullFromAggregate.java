@@ -47,6 +47,7 @@ import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,16 +59,16 @@ public class PullFromAggregate {
   private static final Param<LocalDate> START_FROM_DATE = Param.arg("sfd", "start_from_date", "Start pull from date", LocalDate::parse);
   private static final Param<Void> INCLUDE_INCOMPLETE = Param.flag("ii", "include_incomplete", "Include incomplete submissions");
 
-  public static Operation create(FormMetadataPort formMetadataPort) {
+  public static Operation create(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     return Operation.of(
         PULL_AGGREGATE,
-        args -> pullFormFromAggregate(formMetadataPort, args),
+        args -> pullFormFromAggregate(formMetadataPort, submissionMetadataPort, args),
         Arrays.asList(STORAGE_DIR, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL),
         Arrays.asList(RESUME_LAST_PULL, INCLUDE_INCOMPLETE, FORM_ID, START_FROM_DATE, MAX_HTTP_CONNECTIONS)
     );
   }
 
-  private static void pullFormFromAggregate(FormMetadataPort formMetadataPort, Args args) {
+  private static void pullFormFromAggregate(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
     String storageDir = args.get(STORAGE_DIR);
     Optional<String> formId = args.getOptional(FORM_ID);
     String username = args.get(CREDENTIALS_USERNAME);
@@ -108,7 +109,7 @@ public class PullFromAggregate {
     List<FormMetadata> filteredForms = response.orElseThrow(BriefcaseException::new)
         .stream()
         .filter(f -> formId.map(id -> f.getKey().getId().equals(id)).orElse(true))
-        .map(formMetadata -> formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir)))
+        .map(formMetadata -> formMetadata.withFormFile(formMetadata.buildFormFile(briefcaseDir)))
         .collect(toList());
 
     if (formId.isPresent() && filteredForms.isEmpty())
@@ -118,7 +119,7 @@ public class PullFromAggregate {
     forms.load(filteredForms);
     forms.selectAll();
 
-    org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate pullOp = new org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate(http, formMetadataPort, aggregateServer, includeIncomplete, PullFromAggregate::onEvent);
+    org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate pullOp = new org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate(http, formMetadataPort, submissionMetadataPort, aggregateServer, includeIncomplete, PullFromAggregate::onEvent);
     JobsRunner.launchAsync(
         forms.map(formMetadata -> pullOp.pull(formMetadata, resolveCursor(
             resumeLastPull,
@@ -143,7 +144,7 @@ public class PullFromAggregate {
   }
 
   private static void onEvent(FormStatusEvent event) {
-    System.out.println(event.getFormKey().getName() + " - " + event.getMessage());
+    System.out.println(event.getFormKey().getId() + " - " + event.getMessage());
     // The PullFromAggregateTracker already logs normal events
   }
 

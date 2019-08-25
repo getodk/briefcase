@@ -58,6 +58,7 @@ import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.model.Host;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,13 +86,13 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private final JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
   private final JLabel versionLabel = new JLabel("Checking for updates...");
 
-  public static void launchGUI(FormMetadataPort formMetadataPort) {
+  public static void launchGUI(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     try {
       if (Host.isLinux())
         UIManager.setLookAndFeel(new MetalLookAndFeel());
       else
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-      new MainBriefcaseWindow(formMetadataPort);
+      new MainBriefcaseWindow(formMetadataPort, submissionMetadataPort);
     } catch (Exception e) {
       log.error("Failed to launch GUI", e);
       System.err.println("Failed to launch Briefcase GUI");
@@ -99,7 +100,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     }
   }
 
-  private MainBriefcaseWindow(FormMetadataPort formMetadataPort) {
+  private MainBriefcaseWindow(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     // Create all dependencies
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     BriefcasePreferences pullPreferences = BriefcasePreferences.forClass(PullPanel.class);
@@ -125,9 +126,9 @@ public class MainBriefcaseWindow extends WindowAdapter {
     getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
     // Add panes to the tabbedPane
-    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics, formMetadataPort, briefcaseDir).getContainer());
+    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics, formMetadataPort, briefcaseDir, submissionMetadataPort).getContainer());
     addPane(PushPanel.TAB_NAME, PushPanel.from(http, appPreferences, analytics, formMetadataPort).getContainer());
-    addPane(ExportPanel.TAB_NAME, ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, http, formMetadataPort).getForm().getContainer());
+    addPane(ExportPanel.TAB_NAME, ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, http, formMetadataPort, submissionMetadataPort).getForm().getContainer());
     addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(appPreferences, analytics, http, versionManager, formMetadataPort).getContainer());
 
     // Set up the frame and put the UI components in it

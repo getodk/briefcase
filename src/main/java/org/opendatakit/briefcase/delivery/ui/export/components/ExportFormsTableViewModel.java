@@ -42,6 +42,7 @@ import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 import org.opendatakit.briefcase.operations.export.ExportEvent;
 import org.opendatakit.briefcase.operations.export.ExportForms;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
+import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 
@@ -81,7 +82,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
   }
 
   @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
-  private JButton buildOverrideConfButton(FormKey formKey) {
+  private JButton buildOverrideConfButton(FormKey formKey, String formName) {
     // Use custom fonts instead of png for easier scaling
     JButton button = new JButton("\uE900");
     button.setFont(ic_settings); // custom font that overrides  with a gear icon
@@ -93,7 +94,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
       if (enabled) {
         ConfigurationDialog dialog = ConfigurationDialog.overridePanel(
             forms.getCustomConfiguration(formKey).orElse(empty().build()),
-            formKey.getName(),
+            formName,
             RemoteServer.readFromPrefs(appPreferences, pullPrefs, formKey).isPresent(),
             BriefcasePreferences.getStorePasswordsConsentProperty()
         );
@@ -142,14 +143,16 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
 
   @Override
   public Object getValueAt(int rowIndex, int columnIndex) {
-    FormKey formKey = forms.get(rowIndex).getKey();
+    FormMetadata formMetadata = forms.get(rowIndex);
+    FormKey formKey = formMetadata.getKey();
+    String formName = formMetadata.getFormName().orElse(formKey.getId());
     switch (columnIndex) {
       case ExportFormsTableView.SELECTED_CHECKBOX_COL:
         return forms.isSelected(formKey);
       case ExportFormsTableView.OVERRIDE_CONF_COL:
-        return confButtons.computeIfAbsent(formKey, this::buildOverrideConfButton);
+        return confButtons.computeIfAbsent(formKey, __ -> this.buildOverrideConfButton(formKey, formName));
       case ExportFormsTableView.FORM_NAME_COL:
-        return formKey.getName();
+        return formName;
       case ExportFormsTableView.EXPORT_STATUS_COL:
         return lastStatusLine.getOrDefault(formKey, "");
       case ExportFormsTableView.LAST_EXPORT_COL:
@@ -157,7 +160,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
             .map(dateTime -> dateTime.format(ofLocalizedDateTime(SHORT, SHORT)))
             .orElse("Not exported yet");
       case ExportFormsTableView.DETAIL_BUTTON_COL:
-        return detailButtons.computeIfAbsent(formKey, __ -> UI.buildDetailButton(formKey, () -> statusLines.getOrDefault(formKey, "")));
+        return detailButtons.computeIfAbsent(formKey, __ -> UI.buildDetailButton(formKey, formName, () -> statusLines.getOrDefault(formKey, "")));
       default:
         throw new IllegalStateException("unexpected column choice");
     }

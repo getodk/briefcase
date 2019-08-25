@@ -46,6 +46,7 @@ import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 
@@ -60,8 +61,9 @@ public class ExportPanel {
   private final Analytics analytics;
   private final Http http;
   private final FormMetadataPort formMetadataPort;
+  private final SubmissionMetadataPort submissionMetadataPort;
 
-  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences exportPreferences, BriefcasePreferences pullPanelPrefs, Analytics analytics, Http http, FormMetadataPort formMetadataPort) {
+  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences exportPreferences, BriefcasePreferences pullPanelPrefs, Analytics analytics, Http http, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     this.forms = forms;
     this.form = form;
     this.appPreferences = appPreferences;
@@ -70,6 +72,7 @@ public class ExportPanel {
     this.analytics = analytics;
     this.http = http;
     this.formMetadataPort = formMetadataPort;
+    this.submissionMetadataPort = submissionMetadataPort;
     AnnotationProcessor.process(this);// if not using AOP
     analytics.register(form.getContainer());
 
@@ -123,7 +126,7 @@ public class ExportPanel {
       ExportConfiguration conf = forms.getConfiguration(formMetadata);
 
       if (formMetadata.isEncrypted() && !conf.isPemFilePresent())
-        errors.add("- The form " + formMetadata.getKey().getName() + " is encrypted. Please, configure a PEM file.");
+        errors.add("- The form " + formMetadata.getFormName() + " is encrypted. Please, configure a PEM file.");
     }
     return errors;
   }
@@ -148,7 +151,7 @@ public class ExportPanel {
     }
   }
 
-  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics, Http http, FormMetadataPort formMetadataPort) {
+  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics, Http http, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     ExportConfiguration initialDefaultConf = load(exportPreferences);
     ExportForms forms = ExportForms.load(initialDefaultConf, formMetadataPort.fetchAll().collect(toList()), exportPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, pullPrefs, initialDefaultConf);
@@ -160,7 +163,8 @@ public class ExportPanel {
         pullPrefs,
         analytics,
         http,
-        formMetadataPort
+        formMetadataPort,
+        submissionMetadataPort
     );
   }
 
@@ -181,7 +185,7 @@ public class ExportPanel {
       Optional<AggregateServer> savedPullSource = RemoteServer.readFromPrefs(appPreferences, pullPanelPrefs, formMetadata.getKey());
 
       Job<Void> pullJob = configuration.resolvePullBefore() && savedPullSource.isPresent()
-          ? new PullFromAggregate(http, formMetadataPort, savedPullSource.get(), false, EventBus::publish)
+          ? new PullFromAggregate(http, formMetadataPort, submissionMetadataPort, savedPullSource.get(), false, EventBus::publish)
           .pull(
               formMetadata, appPreferences.resolveStartFromLast()
                   ? Optional.of(formMetadata.getCursor())

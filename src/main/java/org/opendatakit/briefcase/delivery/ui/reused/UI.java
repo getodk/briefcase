@@ -64,7 +64,7 @@ public class UI {
   private static final Font ic_receipt = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
 
   @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
-  public static JButton buildDetailButton(FormKey formKey, Supplier<String> statusLinesSupplier) {
+  public static JButton buildDetailButton(FormKey formKey, String formName, Supplier<String> statusLinesSupplier) {
     // Use custom fonts instead of png for easier scaling
     JButton button = new JButton("\uE900");
     button.setFont(ic_receipt); // custom font that overrides  with a receipt icon
@@ -75,7 +75,7 @@ public class UI {
     button.addActionListener(__ -> {
       String statusLines = statusLinesSupplier.get();
       if (!statusLines.isBlank()) {
-        showDialog(getFrameForComponent(button), statusLines, formKey);
+        showDialog(getFrameForComponent(button), statusLines, formKey, formName);
       }
     });
     return button;

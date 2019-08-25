@@ -72,7 +72,7 @@ public class PushToAggregateTest {
     briefcaseDir = createTempDirectory("briefcase-test-");
     events = new ArrayList<>();
     runnerStatus = new TestRunnerStatus(false);
-    formMetadata = FormMetadata.empty(FormKey.of("Push form test", "push-form-test"))
+    formMetadata = FormMetadata.empty(FormKey.of("push-form-test"))
         .withFormFile(briefcaseDir.resolve("forms/Push form test/Push form test.xml"));
     tracker = new PushToAggregateTracker(this::onEvent, formMetadata);
     form = TransferTestHelpers.installForm(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/push-form-test.xml"));

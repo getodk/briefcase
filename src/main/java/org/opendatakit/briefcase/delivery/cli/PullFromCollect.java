@@ -74,7 +74,7 @@ public class PullFromCollect {
     JobsRunner.launchAsync(
         forms.map(formMetadata -> pullOp.pull(
             formMetadata,
-            formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir))
+            formMetadata.withFormFile(formMetadata.buildFormFile(briefcaseDir))
         )),
         PullFromCollect::onError
     ).waitForCompletion();
@@ -82,7 +82,7 @@ public class PullFromCollect {
   }
 
   private static void onEvent(FormStatusEvent event) {
-    System.out.println(event.getFormKey().getName() + " - " + event.getMessage());
+    System.out.println(event.getFormKey().getId() + " - " + event.getMessage());
     // The tracker already logs normal events
   }
 

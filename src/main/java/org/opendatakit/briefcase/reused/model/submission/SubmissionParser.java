@@ -35,7 +35,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,12 +47,10 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import org.bushe.swing.event.EventBus;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
-import org.opendatakit.briefcase.operations.export.ExportEvent;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.api.Iso8601Helpers;
-import org.opendatakit.briefcase.reused.api.OptionalProduct;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.api.UncheckedFiles;
 import org.opendatakit.briefcase.reused.model.DateRange;
@@ -64,19 +61,15 @@ import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-/**
- * This class holds the main submission parsing code.
- */
 public class SubmissionParser {
   private static final Logger log = LoggerFactory.getLogger(SubmissionParser.class);
   private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+  private static final OffsetDateTime SOME_OLD_DATE_FOR_SUBMISSIONS_WITHOUT_SUBMISSION_DATE = OffsetDateTime.parse("1970-01-01T00:00:00.000Z");
 
   /**
-   * Returns an sorted {@link List} of {@link Path} instances pointing to all the
-   * submissions of a form that belong to the given {@link DateRange}.
-   * <p>
-   * Each file gets briefly parsed to obtain their submission date and use it as
-   * the sorting criteria and for filtering.
+   * Returns a list of paths pointing to all the submissions of a form in
+   * the provided date range, starting from the last exported submission (if
+   * the smartAppend argument is true), sorted by their submission dates.
    */
   public static List<Path> getListOfSubmissionFiles(FormMetadata formMetadata, DateRange dateRange, boolean smartAppend, BiConsumer<Path, String> onParsingError) {
     Path instancesDir = formMetadata.getSubmissionsDir();
@@ -88,14 +81,8 @@ public class SubmissionParser {
         .filter(UncheckedFiles::isInstanceDir)
         .forEach(instanceDir -> {
           Path submissionFile = instanceDir.resolve("submission.xml");
-          try {
-            Optional<OffsetDateTime> submissionDate = readSubmissionDate(submissionFile, onParsingError);
-            paths.add(Pair.of(submissionFile, submissionDate.orElse(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC))));
-          } catch (Throwable t) {
-            log.error("Can't read submission date", t);
-            // TODO Remove coupling to export package here
-            EventBus.publish(ExportEvent.failureSubmission(instanceDir.getFileName().toString(), t, formMetadata.getKey()));
-          }
+          Optional<OffsetDateTime> submissionDate = readSubmissionDate(submissionFile, onParsingError);
+          paths.add(Pair.of(submissionFile, submissionDate.orElse(SOME_OLD_DATE_FOR_SUBMISSIONS_WITHOUT_SUBMISSION_DATE)));
         });
     return paths.parallelStream()
         // Filter out submissions outside the given date range and
@@ -111,39 +98,43 @@ public class SubmissionParser {
   }
 
   /**
-   * Returns a parsed {@link Submission}, wrapped inside an {@link Optional} instance if
-   * it meets some criteria:
+   * Returns a parsed submission. The result will be a non-empty Optional when:
    * <ul>
-   * <li>The given {@link Path} points to a parseable submission file</li>
+   * <li>The file at the given path can be parsed</li>
    * <li>If the form is encrypted, the submission can be decrypted</li>
    * </ul>
-   * Returns an {@link Optional#empty()} otherwise.
+   * <p>
+   * Otherwise, it returns an empty Optional without throwing any exception.
    */
-  public static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, BiConsumer<Path, String> onError) {
-    Path workingDir = isEncrypted ? createTempDirectory("briefcase") : path.getParent();
-    return parse(path, onError).flatMap(document -> {
+  public static Optional<Submission> parsePlainSubmission(Path submissionFile, BiConsumer<Path, String> onError) {
+    Path workingDir = submissionFile.getParent();
+    return parse(submissionFile, onError).flatMap(document -> {
       XmlElement root = XmlElement.of(document);
-      SubmissionMetaData metaData = new SubmissionMetaData(root);
+      SubmissionLazyMetadata metaData = new SubmissionLazyMetadata(root);
+      return Optional.of(Submission.plain(submissionFile, workingDir, root, metaData));
+    });
+  }
 
-      // If all the needed parts are present, prepare the CipherFactory instance
-      Optional<CipherFactory> cipherFactory = OptionalProduct.all(
-          metaData.getInstanceId(),
-          metaData.getBase64EncryptedKey(),
+  public static Optional<Submission> parseEncryptedSubmission(Path submissionFile, PrivateKey privateKey, BiConsumer<Path, String> onError) {
+    Path workingDir = createTempDirectory("briefcase");
+    return parse(submissionFile, onError).flatMap(document -> {
+      XmlElement root = XmlElement.of(document);
+      SubmissionLazyMetadata metaData = new SubmissionLazyMetadata(root);
+
+      CipherFactory cipherFactory = CipherFactory.from(
+          metaData.getInstanceId().orElseThrow(BriefcaseException::new),
+          metaData.getBase64EncryptedKey().orElseThrow(BriefcaseException::new),
           privateKey
-      ).map(CipherFactory::from);
+      );
 
       // If all the needed parts are present, decrypt the signature
-      Optional<byte[]> signature = OptionalProduct.all(
-          privateKey,
-          metaData.getEncryptedSignature()
-      ).map((pk, es) -> decrypt(signatureDecrypter(pk), decodeBase64(es)));
+      byte[] signature = decrypt(
+          signatureDecrypter(privateKey),
+          decodeBase64(metaData.getEncryptedSignature().orElseThrow(BriefcaseException::new))
+      );
 
-      Submission submission = Submission.notValidated(path, workingDir, root, metaData, cipherFactory, signature);
-      return isEncrypted
-          // If it's encrypted, validate the parsed contents with the attached signature
-          ? decrypt(submission, onError).map(s -> s.copy(ValidationStatus.of(isValid(submission, s))))
-          // Return the original submission otherwise
-          : Optional.of(submission);
+      Submission submission = Submission.unencrypted(submissionFile, workingDir, root, metaData, cipherFactory, signature);
+      return decrypt(submission, onError).map(s -> s.copy(ValidationStatus.of(isValid(submission, s))));
     });
   }
 

@@ -34,6 +34,7 @@ import org.opendatakit.briefcase.delivery.ui.reused.UI;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.reused.model.Operation;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
+import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 
 public class TransferFormsTableViewModel extends AbstractTableModel {
@@ -82,16 +83,18 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
 
   @Override
   public Object getValueAt(int rowIndex, int columnIndex) {
-    FormKey formKey = forms.get(rowIndex).getKey();
+    FormMetadata formMetadata = forms.get(rowIndex);
+    FormKey formKey = formMetadata.getKey();
+    String formName = formMetadata.getFormName().orElse(formKey.getId());
     switch (columnIndex) {
       case TransferFormsTableView.SELECTED_CHECKBOX_COL:
         return forms.isSelected(formKey);
       case TransferFormsTableView.FORM_NAME_COL:
-        return formKey.getName();
+        return formName;
       case TransferFormsTableView.STATUS_COL:
         return lastStatusLine.getOrDefault(formKey, "");
       case TransferFormsTableView.DETAIL_BUTTON_COL:
-        return detailButtons.computeIfAbsent(formKey, __ -> UI.buildDetailButton(formKey, () -> statusLines.getOrDefault(formKey, "")));
+        return detailButtons.computeIfAbsent(formKey, __ -> UI.buildDetailButton(formKey, formName, () -> statusLines.getOrDefault(formKey, "")));
       default:
         throw new IllegalStateException("unexpected column choice");
     }

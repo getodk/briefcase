@@ -13,6 +13,7 @@ import org.opendatakit.briefcase.reused.model.XmlElement;
 
 public class FormMetadata {
   private final FormKey key;
+  private final Optional<String> formName;
   private final Optional<Path> formFile;
   private final Cursor cursor;
   private final Boolean isEncrypted;
@@ -20,8 +21,9 @@ public class FormMetadata {
   private final Optional<URL> downloadUrl;
   private final Optional<OffsetDateTime> lastExportedSubmissionDate;
 
-  public FormMetadata(FormKey key, Optional<Path> formFile, Cursor cursor, boolean isEncrypted, Optional<URL> manifestUrl, Optional<URL> downloadUrl, Optional<OffsetDateTime> lastExportedSubmissionDate) {
+  public FormMetadata(FormKey key, Optional<String> formName, Optional<Path> formFile, Cursor cursor, boolean isEncrypted, Optional<URL> manifestUrl, Optional<URL> downloadUrl, Optional<OffsetDateTime> lastExportedSubmissionDate) {
     this.key = key;
+    this.formName = formName;
     this.formFile = formFile;
     this.cursor = cursor;
     this.isEncrypted = isEncrypted;
@@ -33,22 +35,21 @@ public class FormMetadata {
   public static FormMetadata from(Path formFile) {
     XmlElement root = XmlElement.from(formFile);
     assert root.getName().equals("html");
-    String name = root.findElements("head", "title").get(0)
-        .maybeValue()
-        .orElseThrow(BriefcaseException::new);
+    Optional<String> formName = root.findElements("head", "title").get(0)
+        .maybeValue();
     XmlElement mainInstance = root.findElements("head", "model", "instance").stream()
         .filter(FormMetadata::isTheMainInstance)
         .findFirst()
         .orElseThrow(BriefcaseException::new);
     String id = mainInstance.childrenOf().get(0).getAttributeValue("id").orElseThrow(BriefcaseException::new);
     Optional<String> version = mainInstance.childrenOf().get(0).getAttributeValue("version");
-    FormKey key = FormKey.of(name, id, version);
+    FormKey key = FormKey.of(id, version);
 
     boolean isEncrypted = root.findElements("head", "model", "submission").stream()
         .findFirst()
         .map(e -> e.hasAttribute("base64RsaPublicKey"))
         .orElse(false);
-    return new FormMetadata(key, Optional.of(formFile), Cursor.empty(), isEncrypted, Optional.empty(), Optional.empty(), Optional.empty());
+    return new FormMetadata(key, formName, Optional.of(formFile), Cursor.empty(), isEncrypted, Optional.empty(), Optional.empty(), Optional.empty());
   }
 
   private static boolean isTheMainInstance(XmlElement e) {
@@ -58,7 +59,7 @@ public class FormMetadata {
   }
 
   public static FormMetadata empty(FormKey key) {
-    return new FormMetadata(key, Optional.empty(), Cursor.empty(), false, Optional.empty(), Optional.empty(), Optional.empty());
+    return new FormMetadata(key, Optional.empty(), Optional.empty(), Cursor.empty(), false, Optional.empty(), Optional.empty(), Optional.empty());
   }
 
   public FormKey getKey() {
@@ -85,29 +86,83 @@ public class FormMetadata {
     return downloadUrl;
   }
 
+  public FormMetadata withFormName(String formName) {
+    return new FormMetadata(key, Optional.of(formName), formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedSubmissionDate);
+  }
+
   public FormMetadata withFormFile(Path formFile) {
-    return new FormMetadata(key, Optional.of(formFile), cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedSubmissionDate);
+    return new FormMetadata(key, formName, Optional.of(formFile), cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedSubmissionDate);
   }
 
   public FormMetadata withCursor(Cursor cursor) {
-    return new FormMetadata(key, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedSubmissionDate);
+    return new FormMetadata(key, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedSubmissionDate);
   }
 
   public FormMetadata withoutCursor() {
-    return new FormMetadata(key, formFile, Cursor.empty(), isEncrypted, manifestUrl, downloadUrl, lastExportedSubmissionDate);
+    return new FormMetadata(key, formName, formFile, Cursor.empty(), isEncrypted, manifestUrl, downloadUrl, lastExportedSubmissionDate);
   }
 
   public FormMetadata withLastExportedSubmissionDate(OffsetDateTime submissionDate) {
-    return new FormMetadata(key, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, Optional.of(submissionDate));
+    return new FormMetadata(key, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, Optional.of(submissionDate));
   }
 
   public FormMetadata withIsEncrypted(boolean isEncrypted) {
-    return new FormMetadata(key, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedSubmissionDate);
+    return new FormMetadata(key, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedSubmissionDate);
   }
 
   public FormMetadata withUrls(Optional<URL> manifestUrl, Optional<URL> downloadUrl) {
-    return new FormMetadata(key, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedSubmissionDate);
+    return new FormMetadata(key, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedSubmissionDate);
   }
+
+  public Optional<String> getFormName() {
+    return formName;
+  }
+
+  public Path getFormFile() {
+    return formFile.orElseThrow(BriefcaseException::new);
+  }
+
+  public Path getFormDir() {
+    return getFormFile().getParent();
+  }
+
+  public Path getFormMediaDir() {
+    return getFormDir().resolve(getFilesystemCompatibleBaseName() + "-media");
+  }
+
+  public Path getFormMediaFile(String name) {
+    return getFormMediaDir().resolve(name);
+  }
+
+  public Path getSubmissionsDir() {
+    return getFormDir().resolve("instances");
+  }
+
+  public Path getSubmissionDir(String instanceId) {
+    return getSubmissionsDir().resolve(instanceId.replace(":", ""));
+  }
+
+  public Path getSubmissionFile(String instanceId) {
+    return getSubmissionDir(instanceId).resolve("submission.xml");
+  }
+
+  public Path getSubmissionMediaDir(String instanceId) {
+    return getSubmissionDir(instanceId);
+  }
+
+  public Path getSubmissionMediaFile(String instanceId, String filename) {
+    return getSubmissionDir(instanceId).resolve(filename);
+  }
+
+  public Path buildFormFile(Path briefcaseDir) {
+    String baseName = getFilesystemCompatibleBaseName();
+    return briefcaseDir.resolve("forms").resolve(baseName).resolve(baseName + ".xml");
+  }
+
+  private String getFilesystemCompatibleBaseName() {
+    return stripIllegalChars(formName.orElse(key.getId()));
+  }
+
 
   @Override
   public boolean equals(Object o) {
@@ -139,41 +194,5 @@ public class FormMetadata {
         ", downloadUrl=" + downloadUrl +
         ", lastExportedSubmissionDate=" + lastExportedSubmissionDate +
         '}';
-  }
-
-  public Path getFormFile() {
-    return formFile.orElseThrow(BriefcaseException::new);
-  }
-
-  public Path getFormDir() {
-    return getFormFile().getParent();
-  }
-
-  public Path getFormMediaDir() {
-    return getFormDir().resolve(stripIllegalChars(key.getName()) + "-media");
-  }
-
-  public Path getFormMediaFile(String name) {
-    return getFormMediaDir().resolve(name);
-  }
-
-  public Path getSubmissionsDir() {
-    return getFormDir().resolve("instances");
-  }
-
-  public Path getSubmissionDir(String instanceId) {
-    return getSubmissionsDir().resolve(instanceId.replace(":", ""));
-  }
-
-  public Path getSubmissionFile(String instanceId) {
-    return getSubmissionDir(instanceId).resolve("submission.xml");
-  }
-
-  public Path getSubmissionMediaDir(String instanceId) {
-    return getSubmissionDir(instanceId);
-  }
-
-  public Path getSubmissionMediaFile(String instanceId, String filename) {
-    return getSubmissionDir(instanceId).resolve(filename);
   }
 }

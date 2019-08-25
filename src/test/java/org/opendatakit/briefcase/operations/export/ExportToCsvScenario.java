@@ -86,7 +86,7 @@ class ExportToCsvScenario {
     FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormFile);
 
     Path briefcaseDir = createTempDirectory("briefcase");
-    FormMetadata formMetadata = installForm(sourceFormMetadata, briefcaseDir);
+    FormMetadata formMetadata = installForm(sourceFormMetadata.withFormFile(sourceFormMetadata.buildFormFile(briefcaseDir)));
 
     log.debug("Form dir: {}", formMetadata.getFormDir());
 
@@ -270,16 +270,15 @@ class ExportToCsvScenario {
     return readFirstLine(path).split("instanceID=\"")[1].split("\"")[0];
   }
 
-  private static FormMetadata installForm(FormMetadata formMetadata, Path briefcaseDir) {
+  private static FormMetadata installForm(FormMetadata formMetadata) {
     Path sourceFormFile = formMetadata.getFormFile();
     String baseSourceFilename = sourceFormFile.getFileName().toString().substring(0, sourceFormFile.getFileName().toString().length() - 4);
-    Path formDir = briefcaseDir.resolve("forms").resolve(stripIllegalChars(formMetadata.getKey().getName()));
-    Path formFile = formDir.resolve(stripIllegalChars(formMetadata.getKey().getName()) + ".xml");
-    createDirectories(formDir);
-    copy(sourceFormFile, formFile);
+
+    createDirectories(formMetadata.getFormDir());
+    copy(sourceFormFile, formMetadata.getFormFile());
 
     // Prepare the instances directory
-    Path instancesDir = formDir.resolve("instances");
+    Path instancesDir = formMetadata.getFormDir().resolve("instances");
     createDirectories(instancesDir);
 
     // Copy a submission and possibly other files
@@ -307,7 +306,7 @@ class ExportToCsvScenario {
               });
         });
 
-    return FormMetadata.from(formFile);
+    return FormMetadata.from(formMetadata.getFormFile());
   }
 
   private static Path installForm(Path formDir, final String formName) {

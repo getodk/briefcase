@@ -28,9 +28,8 @@ public class Keys {
   // UNIQUE and PRIMARY KEY definitions
   // -------------------------------------------------------------------------
 
-  public static final UniqueKey<FormMetadataRecord> SYS_PK_10131 = UniqueKeys0.SYS_PK_10131;
-  public static final UniqueKey<FormMetadataRecord> SYS_CT_10133 = UniqueKeys0.SYS_CT_10133;
-  public static final UniqueKey<SubmissionMetadataRecord> SYS_PK_10145 = UniqueKeys0.SYS_PK_10145;
+  public static final UniqueKey<FormMetadataRecord> SYS_PK_10132 = UniqueKeys0.SYS_PK_10132;
+  public static final UniqueKey<SubmissionMetadataRecord> SYS_PK_10146 = UniqueKeys0.SYS_PK_10146;
 
   // -------------------------------------------------------------------------
   // FOREIGN KEY definitions
@@ -42,8 +41,7 @@ public class Keys {
   // -------------------------------------------------------------------------
 
   private static class UniqueKeys0 {
-    public static final UniqueKey<FormMetadataRecord> SYS_PK_10131 = Internal.createUniqueKey(FormMetadata.FORM_METADATA, "SYS_PK_10131", FormMetadata.FORM_METADATA.ID);
-    public static final UniqueKey<FormMetadataRecord> SYS_CT_10133 = Internal.createUniqueKey(FormMetadata.FORM_METADATA, "SYS_CT_10133", FormMetadata.FORM_METADATA.FORM_NAME, FormMetadata.FORM_METADATA.FORM_ID, FormMetadata.FORM_METADATA.FORM_VERSION);
-    public static final UniqueKey<SubmissionMetadataRecord> SYS_PK_10145 = Internal.createUniqueKey(SubmissionMetadata.SUBMISSION_METADATA, "SYS_PK_10145", SubmissionMetadata.SUBMISSION_METADATA.FORM_METADATA_ID, SubmissionMetadata.SUBMISSION_METADATA.INSTANCE_ID);
+    public static final UniqueKey<FormMetadataRecord> SYS_PK_10132 = Internal.createUniqueKey(FormMetadata.FORM_METADATA, "SYS_PK_10132", FormMetadata.FORM_METADATA.FORM_ID, FormMetadata.FORM_METADATA.FORM_VERSION);
+    public static final UniqueKey<SubmissionMetadataRecord> SYS_PK_10146 = Internal.createUniqueKey(SubmissionMetadata.SUBMISSION_METADATA, "SYS_PK_10146", SubmissionMetadata.SUBMISSION_METADATA.FORM_ID, SubmissionMetadata.SUBMISSION_METADATA.FORM_VERSION, SubmissionMetadata.SUBMISSION_METADATA.INSTANCE_ID);
   }
 }

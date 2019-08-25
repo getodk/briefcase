@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetaData;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
 
 public class FormInstaller {
   static void installForm(FormMetadata sourceFormMetadata, FormMetadata targetFormMetadata, PullFromFileSystemTracker tracker) {
@@ -62,7 +62,7 @@ public class FormInstaller {
     }
   }
 
-  static void installSubmissions(FormMetadata formMetadata, List<Pair<Path, SubmissionMetaData>> submissions, PullFromFileSystemTracker tracker) {
+  static void installSubmissions(FormMetadata formMetadata, List<Pair<Path, SubmissionLazyMetadata>> submissions, PullFromFileSystemTracker tracker) {
     int totalSubmissions = submissions.size();
     AtomicInteger submissionSeq = new AtomicInteger(1);
 

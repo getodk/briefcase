@@ -20,16 +20,19 @@ import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.util.Collections.emptyList;
 import static java.util.function.BinaryOperator.maxBy;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.write;
-import static org.opendatakit.briefcase.reused.db.DatabaseUtils.withDb;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.get;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.upsert;
+import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataCommands.insert;
+import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataQueries.hasBeenAlreadyPulled;
 
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,6 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.api.OptionalProduct;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.api.Triple;
@@ -50,17 +54,22 @@ import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 
 public class PullFromAggregate {
   private final Http http;
   private final FormMetadataPort formMetadataPort;
+  private final SubmissionMetadataPort submissionMetadataPort;
   private final AggregateServer server;
   private final boolean includeIncomplete;
   private final Consumer<FormStatusEvent> onEventCallback;
 
-  public PullFromAggregate(Http http, FormMetadataPort formMetadataPort, AggregateServer server, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback) {
+  public PullFromAggregate(Http http, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, AggregateServer server, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback) {
     this.http = http;
+    this.submissionMetadataPort = submissionMetadataPort;
     this.server = server;
     this.includeIncomplete = includeIncomplete;
     this.onEventCallback = onEventCallback;
@@ -115,32 +124,37 @@ public class PullFromAggregate {
           if (ids.isEmpty())
             tracker.trackNoSubmissions();
 
-          withDb(formMetadata.getFormDir(), db -> {
-            // We need to collect to be able to create a parallel stream again
-            ids.parallelStream()
-                .map(instanceId -> Triple.of(submissionNumber.getAndIncrement(), instanceId, db.hasRecordedInstance(instanceId) == null))
-                .peek(triple -> {
-                  if (!triple.get3())
-                    tracker.trackSubmissionAlreadyDownloaded(triple.get1(), totalSubmissions);
-                })
-                .filter(Triple::get3)
-                .map(triple -> Pair.of(
-                    triple.get1(),
-                    downloadSubmission(formMetadata, triple.get2(), subKeyGen, rs, tracker, triple.get1(), totalSubmissions)
-                ))
-                .filter(p -> p.getRight() != null)
-                .forEach(pair -> {
-                  int currentSubmissionNumber = pair.getLeft();
-                  DownloadedSubmission submission = pair.getRight();
-                  List<AggregateAttachment> submissionAttachments = submission.getAttachments();
-                  AtomicInteger submissionAttachmentNumber = new AtomicInteger(1);
-                  int totalSubmissionAttachments = submissionAttachments.size();
-                  submissionAttachments.parallelStream().forEach(attachment ->
-                      downloadSubmissionAttachment(formMetadata, submission, attachment, rs, tracker, currentSubmissionNumber, totalSubmissions, submissionAttachmentNumber.getAndIncrement(), totalSubmissionAttachments)
-                  );
-                  db.putRecordedInstanceDirectory(submission.getInstanceId(), formMetadata.getSubmissionDir(submission.getInstanceId()).toFile());
-                });
-          });
+          // We need to collect to be able to create a parallel stream again
+          ids.parallelStream()
+              .map(instanceId -> Triple.of(
+                  submissionNumber.getAndIncrement(),
+                  instanceId,
+                  submissionMetadataPort.query(hasBeenAlreadyPulled(formMetadata.getKey().getId(), instanceId))
+              ))
+              .peek(triple -> {
+                if (triple.get3())
+                  tracker.trackSubmissionAlreadyDownloaded(triple.get1(), totalSubmissions);
+              })
+              .filter(not(Triple::get3))
+              .map(triple -> Pair.of(
+                  triple.get1(),
+                  downloadSubmission(formMetadata, triple.get2(), subKeyGen, rs, tracker, triple.get1(), totalSubmissions)
+              ))
+              .filter(p -> p.getRight() != null)
+              .forEach(pair -> {
+                int currentSubmissionNumber = pair.getLeft();
+                DownloadedSubmission submission = pair.getRight();
+                SubmissionMetadata submissionMetadata = new SubmissionLazyMetadata(XmlElement.from(submission.getXml()))
+                    .freeze(submission.getSubmissionFile().orElseThrow(BriefcaseException::new))
+                    .withAttachmentFilenames(submission.getAttachments().stream().map(AggregateAttachment::getFilename).map(Paths::get).collect(toList()));
+                List<AggregateAttachment> submissionAttachments = submission.getAttachments();
+                AtomicInteger submissionAttachmentNumber = new AtomicInteger(1);
+                int totalSubmissionAttachments = submissionAttachments.size();
+                submissionAttachments.parallelStream().forEach(attachment ->
+                    downloadSubmissionAttachment(formMetadata, submission, attachment, rs, tracker, currentSubmissionNumber, totalSubmissions, submissionAttachmentNumber.getAndIncrement(), totalSubmissionAttachments)
+                );
+                submissionMetadataPort.execute(insert(submissionMetadata));
+              });
 
           tracker.trackEnd();
           Cursor newCursor = getLastCursor(instanceIdBatches).orElse(Cursor.empty());
@@ -255,7 +269,7 @@ public class PullFromAggregate {
     createDirectories(submissionFile.getParent());
     write(submissionFile, submission.getXml(), CREATE, TRUNCATE_EXISTING);
     tracker.trackEndDownloadingSubmission(submissionNumber, totalSubmissions);
-    return submission;
+    return submission.withSubmissionFile(submissionFile);
   }
 
   void downloadSubmissionAttachment(FormMetadata formMetadata, DownloadedSubmission submission, AggregateAttachment attachment, RunnerStatus runnerStatus, PullFromAggregateTracker tracker, int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {

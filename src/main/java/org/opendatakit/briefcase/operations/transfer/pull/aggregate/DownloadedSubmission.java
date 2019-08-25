@@ -18,10 +18,12 @@ package org.opendatakit.briefcase.operations.transfer.pull.aggregate;
 
 import static org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate.asMediaFileList;
 
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.model.XmlElement;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetaData;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
 
 /**
  * Stores a form submission's contents and a list to its attachments.
@@ -30,11 +32,13 @@ public class DownloadedSubmission {
   private final String xml;
   private final String instanceId;
   private final List<AggregateAttachment> attachments;
+  private final Optional<Path> submissionFile;
 
-  DownloadedSubmission(String xml, String instanceId, List<AggregateAttachment> attachments) {
+  DownloadedSubmission(String xml, String instanceId, List<AggregateAttachment> attachments, Optional<Path> submissionFile) {
     this.xml = xml;
     this.instanceId = instanceId;
     this.attachments = attachments;
+    this.submissionFile = submissionFile;
   }
 
   /**
@@ -49,8 +53,9 @@ public class DownloadedSubmission {
     XmlElement instance = submission.findElement("data").orElseThrow(BriefcaseException::new).childrenOf().get(0);
     return new DownloadedSubmission(
         instance.serialize(),
-        new SubmissionMetaData(instance).getInstanceId().orElseThrow(BriefcaseException::new),
-        asMediaFileList(submission.findElements("mediaFile"))
+        new SubmissionLazyMetadata(instance).getInstanceId().orElseThrow(BriefcaseException::new),
+        asMediaFileList(submission.findElements("mediaFile")),
+        Optional.empty()
     );
   }
 
@@ -64,5 +69,13 @@ public class DownloadedSubmission {
 
   List<AggregateAttachment> getAttachments() {
     return attachments;
+  }
+
+  public DownloadedSubmission withSubmissionFile(Path submissionFile) {
+    return new DownloadedSubmission(xml, instanceId, attachments, Optional.of(submissionFile));
+  }
+
+  public Optional<Path> getSubmissionFile() {
+    return submissionFile;
   }
 }

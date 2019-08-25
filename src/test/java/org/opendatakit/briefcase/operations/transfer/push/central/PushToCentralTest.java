@@ -76,7 +76,7 @@ public class PushToCentralTest {
     pushOp = new PushToCentral(http, server, token, this::onEvent);
     events = new ArrayList<>();
     runnerStatus = new TestRunnerStatus(false);
-    formMetadata = FormMetadata.empty(FormKey.of("Push form test", "push-form-test"))
+    formMetadata = FormMetadata.empty(FormKey.of("push-form-test"))
         .withFormFile(briefcaseDir.resolve("forms/Push form test/Push form test.xml"));
     tracker = new PushToCentralTracker(this::onEvent, formMetadata);
     form = installForm(formMetadata, getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/push-form-test.xml"));

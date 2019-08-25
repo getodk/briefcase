@@ -27,22 +27,23 @@ import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 
 
 public class LaunchGui {
   private static final Param<Void> LAUNCH_GUI_FLAG = Param.flag("gui", "gui", "Launch GUI");
 
-  public static Operation create(FormMetadataPort formMetadataPort) {
+  public static Operation create(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     return
         Operation.of(
             LAUNCH_GUI_FLAG,
-            args -> launchGui(formMetadataPort, args),
+            args -> launchGui(formMetadataPort, submissionMetadataPort, args),
             emptyList(),
             singletonList(WORKSPACE_LOCATION)
         );
   }
 
-  private static void launchGui(FormMetadataPort formMetadataPort, Args args) {
+  private static void launchGui(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
     Path workspaceLocation = args.getOptional(WORKSPACE_LOCATION)
         .orElseThrow(() -> new BriefcaseException("" +
             "Choosing a workspace location with the GUI " +
@@ -52,6 +53,6 @@ public class LaunchGui {
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     appPreferences.setStorageDir(workspaceLocation);
 
-    MainBriefcaseWindow.launchGUI(formMetadataPort);
+    MainBriefcaseWindow.launchGUI(formMetadataPort, submissionMetadataPort);
   }
 }

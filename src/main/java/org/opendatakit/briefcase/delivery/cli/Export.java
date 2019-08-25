@@ -49,6 +49,7 @@ import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,16 +71,16 @@ public class Export {
   private static final Param<Void> REMOVE_GROUP_NAMES = Param.flag("rgn", "remove_group_names", "Remove group names from column names");
   private static final Param<Void> SMART_APPEND = Param.flag("sa", "smart_append", "Include only new submissions since last export");
 
-  public static Operation create(FormMetadataPort formMetadataPort) {
+  public static Operation create(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     return Operation.of(
         EXPORT,
-        args -> export(formMetadataPort, args),
+        args -> export(formMetadataPort, submissionMetadataPort, args),
         Arrays.asList(STORAGE_DIR, FORM_ID, FILE, EXPORT_DIR),
         Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE, SPLIT_SELECT_MULTIPLES, INCLUDE_GEOJSON_EXPORT, REMOVE_GROUP_NAMES, SMART_APPEND)
     );
   }
 
-  private static void export(FormMetadataPort formMetadataPort, Args args) {
+  private static void export(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
     String formId = args.get(FORM_ID);
     Path exportDir = args.get(EXPORT_DIR);
     String baseFilename = args.get(FILE);
@@ -112,7 +113,7 @@ public class Export {
 
     FormMetadata formMetadata = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + formId + " not found"));
 
-    System.out.println("Exporting form " + formMetadata.getKey().getName() + " (" + formMetadata.getKey().getId() + ") to: " + exportDir);
+    System.out.println("Exporting form " + formMetadata.getFormName() + " (" + formMetadata.getKey().getId() + ") to: " + exportDir);
     DateRange dateRange = new DateRange(startDate, endDate);
     ExportConfiguration configuration = ExportConfiguration.Builder.empty()
         .setExportFilename(baseFilename)
@@ -136,7 +137,7 @@ public class Export {
             ? formMetadataPort.query(lastCursorOf(formMetadata.getKey()))
             : Optional.empty();
 
-        pullJob = new PullFromAggregate(http, formMetadataPort, server.get(), false, Export::onEvent)
+        pullJob = new PullFromAggregate(http, formMetadataPort, submissionMetadataPort, server.get(), false, Export::onEvent)
             .pull(formMetadata, lastCursor);
       }
     }
@@ -164,7 +165,7 @@ public class Export {
   }
 
   private static void onEvent(FormStatusEvent event) {
-    System.out.println(event.getFormKey().getName() + " - " + event.getMessage());
+    System.out.println(event.getFormKey().getId() + " - " + event.getMessage());
   }
 
   private static void onError(Throwable e) {

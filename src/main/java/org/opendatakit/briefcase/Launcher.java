@@ -43,6 +43,8 @@ import org.opendatakit.briefcase.reused.db.BriefcaseDb;
 import org.opendatakit.briefcase.reused.model.form.DatabaseFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.model.submission.DatabaseSubmissionMetadataAdapter;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,16 +66,17 @@ public class Launcher {
 
     BriefcaseDb db = BriefcaseDb.create();
     FormMetadataPort formMetadataPort = new DatabaseFormMetadataAdapter(db::getDslContext);
+    SubmissionMetadataPort submissionMetadataPort = new DatabaseSubmissionMetadataAdapter(db::getDslContext);
 
     new Cli()
-        .register(PullFromAggregate.create(formMetadataPort))
+        .register(PullFromAggregate.create(formMetadataPort, submissionMetadataPort))
         .register(PullFromCentral.create(formMetadataPort))
         .register(PushToAggregate.create(formMetadataPort))
         .register(PushToCentral.create(formMetadataPort))
         .register(PullFromCollect.create(formMetadataPort))
-        .register(Export.create(formMetadataPort))
+        .register(Export.create(formMetadataPort, submissionMetadataPort))
         .register(ClearPreferences.create(formMetadataPort))
-        .registerDefault(LaunchGui.create(formMetadataPort))
+        .registerDefault(LaunchGui.create(formMetadataPort, submissionMetadataPort))
         .before(args -> {
           Path storageLocation = args.get(WORKSPACE_LOCATION);
           prepareStorageLocation(storageLocation);

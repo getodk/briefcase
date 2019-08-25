@@ -38,6 +38,7 @@ import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
 
@@ -83,7 +84,7 @@ public class Aggregate implements PullSource<AggregateServer> {
     return http.execute(server.getFormListRequest())
         .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"))
         .stream()
-        .map(formMetadata -> formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir)))
+        .map(formMetadata -> formMetadata.withFormFile(formMetadata.buildFormFile(briefcaseDir)))
         .collect(toList());
   }
 
@@ -93,11 +94,13 @@ public class Aggregate implements PullSource<AggregateServer> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
+  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     boolean resumeLastPull = appPreferences.resolveStartFromLast();
     PullFromAggregate pullOp = new PullFromAggregate(
         http,
-        formMetadataPort, server,
+        formMetadataPort,
+        submissionMetadataPort,
+        server,
         false,
         EventBus::publish
     );

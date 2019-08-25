@@ -16,13 +16,15 @@
 
 package org.opendatakit.briefcase.operations.export;
 
-import static org.opendatakit.briefcase.reused.model.submission.SubmissionParser.parseSubmission;
+import static org.opendatakit.briefcase.reused.model.submission.SubmissionParser.parseEncryptedSubmission;
+import static org.opendatakit.briefcase.reused.model.submission.SubmissionParser.parsePlainSubmission;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.submission.Submission;
@@ -31,7 +33,10 @@ class ExportTools {
   static Stream<Submission> getValidSubmissions(FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, List<Path> submissionFiles, BiConsumer<Path, String> onParsingError, BiConsumer<Path, String> onInvalidSubmission) {
     return submissionFiles.parallelStream()
         // Parse the submission and leave only those OK to be exported
-        .map(path -> parseSubmission(path, formMetadata.isEncrypted(), configuration.getPrivateKey(), onParsingError))
+        .map(path -> formMetadata.isEncrypted()
+            ? parseEncryptedSubmission(path, configuration.getPrivateKey().orElseThrow(BriefcaseException::new), onParsingError)
+            : parsePlainSubmission(path, onParsingError)
+        )
         .filter(Optional::isPresent)
         .map(Optional::get)
         .filter(submission -> {

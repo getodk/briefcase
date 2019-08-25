@@ -78,7 +78,7 @@ public class TransferForms implements Iterable<FormMetadata> {
     triggerOnChange();
   }
 
-  public void clearAll() {
+  public void unselectAll() {
     selectedForms.clear();
     triggerOnChange();
   }
@@ -108,6 +108,7 @@ public class TransferForms implements Iterable<FormMetadata> {
 
   public void clear() {
     formMetadata.clear();
+    selectedForms.clear();
     triggerOnChange();
   }
 

@@ -44,7 +44,7 @@ public class Submission {
   private final Path path;
   private final Path workingDir;
   private final XmlElement root;
-  private final SubmissionMetaData metaData;
+  private final SubmissionLazyMetadata metaData;
   private final ValidationStatus validationStatus;
   private final Optional<CipherFactory> cipherFactory;
   private final Optional<byte[]> signature;
@@ -55,7 +55,7 @@ public class Submission {
    */
   private Map<String, List<XmlElement>> elementsByFqn;
 
-  private Submission(Path path, Path workingDir, XmlElement root, SubmissionMetaData metaData, ValidationStatus validationStatus, Optional<CipherFactory> cipherFactory, Optional<byte[]> signature) {
+  private Submission(Path path, Path workingDir, XmlElement root, SubmissionLazyMetadata metaData, ValidationStatus validationStatus, Optional<CipherFactory> cipherFactory, Optional<byte[]> signature) {
     this.path = path;
     this.workingDir = workingDir;
     this.root = root;
@@ -65,22 +65,12 @@ public class Submission {
     this.signature = signature;
   }
 
-  /**
-   * All {@link Submission} instances have a {@link ValidationStatus#NOT_VALIDATED} validation status,
-   * which is only OK if the form is not encrypted.
-   *
-   * @param path          the {@link Path} to this form's definition XML file
-   * @param workingDir    the {@link Path} to the working directory where all filesystem operations should happen, if any
-   * @param root          the root {@link XmlElement} of this submission
-   * @param metaData      the {@link SubmissionMetaData} instance to read metadata from it
-   * @param cipherFactory the {@link CipherFactory} instance, wrapped inside an {@link Optional}, or {@link Optional#empty()}
-   *                      if the form requires no decryption
-   * @param signature     the decoded cryptographic signature of the submission, wrapped inside an {@link Optional}, or {@link Optional#empty()}
-   *                      if the form requires no decryption
-   * @return a new {@link Submission} instance
-   */
-  public static Submission notValidated(Path path, Path workingDir, XmlElement root, SubmissionMetaData metaData, Optional<CipherFactory> cipherFactory, Optional<byte[]> signature) {
-    return new Submission(path, workingDir, root, metaData, NOT_VALIDATED, cipherFactory, signature);
+  public static Submission plain(Path path, Path workingDir, XmlElement root, SubmissionLazyMetadata metaData) {
+    return new Submission(path, workingDir, root, metaData, NOT_VALIDATED, Optional.empty(), Optional.empty());
+  }
+
+  public static Submission unencrypted(Path path, Path workingDir, XmlElement root, SubmissionLazyMetadata metaData, CipherFactory cipherFactory, byte[] signature) {
+    return new Submission(path, workingDir, root, metaData, NOT_VALIDATED, Optional.of(cipherFactory), Optional.of(signature));
   }
 
   public Path getPath() {

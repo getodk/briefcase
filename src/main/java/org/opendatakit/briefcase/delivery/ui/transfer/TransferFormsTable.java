@@ -47,7 +47,7 @@ public class TransferFormsTable {
   }
 
   void clearAll() {
-    forms.clearAll();
+    forms.unselectAll();
     viewModel.refresh();
   }
 

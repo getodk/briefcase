@@ -79,6 +79,7 @@ public class PushPanel {
 
     view.onReset(() -> {
       target = Optional.empty();
+      view.clearAllStatusLines();
       PushTarget.clearSourcePrefs(pushPreferences);
       updateActionButtons();
     });

@@ -100,7 +100,7 @@ public class PushToCentral {
   }
 
   private static void onEvent(FormStatusEvent event) {
-    System.out.println(event.getFormKey().getName() + " - " + event.getMessage());
+    System.out.println(event.getFormKey().getId() + " - " + event.getMessage());
     // The PullTracker already logs normal events
   }
 

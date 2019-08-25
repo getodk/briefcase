@@ -36,6 +36,7 @@ import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
 
@@ -64,7 +65,7 @@ public class Central implements PullSource<CentralServer> {
     return http.execute(server.getFormsListRequest(token))
         .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"))
         .stream()
-        .map(formMetadata -> formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir)))
+        .map(formMetadata -> formMetadata.withFormFile(formMetadata.buildFormFile(briefcaseDir)))
         .collect(toList());
   }
 
@@ -117,7 +118,7 @@ public class Central implements PullSource<CentralServer> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
+  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     String token = http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
     PullFromCentral pullOp = new PullFromCentral(
         http,

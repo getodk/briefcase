@@ -21,17 +21,15 @@ public class Indexes {
   // INDEX definitions
   // -------------------------------------------------------------------------
 
-  public static final Index SYS_IDX_SYS_CT_10133_10137 = Indexes0.SYS_IDX_SYS_CT_10133_10137;
-  public static final Index SYS_IDX_SYS_PK_10131_10134 = Indexes0.SYS_IDX_SYS_PK_10131_10134;
-  public static final Index SYS_IDX_SYS_PK_10145_10146 = Indexes0.SYS_IDX_SYS_PK_10145_10146;
+  public static final Index SYS_IDX_SYS_PK_10132_10134 = Indexes0.SYS_IDX_SYS_PK_10132_10134;
+  public static final Index SYS_IDX_SYS_PK_10146_10147 = Indexes0.SYS_IDX_SYS_PK_10146_10147;
 
   // -------------------------------------------------------------------------
   // [#1459] distribute members to avoid static initialisers > 64kb
   // -------------------------------------------------------------------------
 
   private static class Indexes0 {
-    public static Index SYS_IDX_SYS_CT_10133_10137 = Internal.createIndex("SYS_IDX_SYS_CT_10133_10137", FormMetadata.FORM_METADATA, new OrderField[]{FormMetadata.FORM_METADATA.FORM_NAME, FormMetadata.FORM_METADATA.FORM_ID, FormMetadata.FORM_METADATA.FORM_VERSION}, true);
-    public static Index SYS_IDX_SYS_PK_10131_10134 = Internal.createIndex("SYS_IDX_SYS_PK_10131_10134", FormMetadata.FORM_METADATA, new OrderField[]{FormMetadata.FORM_METADATA.ID}, true);
-    public static Index SYS_IDX_SYS_PK_10145_10146 = Internal.createIndex("SYS_IDX_SYS_PK_10145_10146", SubmissionMetadata.SUBMISSION_METADATA, new OrderField[]{SubmissionMetadata.SUBMISSION_METADATA.FORM_METADATA_ID, SubmissionMetadata.SUBMISSION_METADATA.INSTANCE_ID}, true);
+    public static Index SYS_IDX_SYS_PK_10132_10134 = Internal.createIndex("SYS_IDX_SYS_PK_10132_10134", FormMetadata.FORM_METADATA, new OrderField[]{FormMetadata.FORM_METADATA.FORM_ID, FormMetadata.FORM_METADATA.FORM_VERSION}, true);
+    public static Index SYS_IDX_SYS_PK_10146_10147 = Internal.createIndex("SYS_IDX_SYS_PK_10146_10147", SubmissionMetadata.SUBMISSION_METADATA, new OrderField[]{SubmissionMetadata.SUBMISSION_METADATA.FORM_ID, SubmissionMetadata.SUBMISSION_METADATA.FORM_VERSION, SubmissionMetadata.SUBMISSION_METADATA.INSTANCE_ID}, true);
   }
 }

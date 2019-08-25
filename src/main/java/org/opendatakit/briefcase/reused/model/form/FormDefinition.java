@@ -101,7 +101,7 @@ public class FormDefinition {
       FormModel model = new FormModel(formDef.getMainInstance().getRoot(), getFormControls(formDef));
       return new FormDefinition(
           formMetadata.getKey().getId(),
-          formMetadata.getKey().getName(),
+          formMetadata.getFormName().orElse(formMetadata.getKey().getId()),
           formMetadata.isEncrypted(),
           model,
           model.getRepeatableFields()

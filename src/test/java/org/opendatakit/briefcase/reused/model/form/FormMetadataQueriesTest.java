@@ -13,7 +13,7 @@ import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
 public class FormMetadataQueriesTest {
   @Test
   public void queries_the_last_cursor_of_a_form() {
-    FormKey key = FormKey.of("Some form", "some-form");
+    FormKey key = FormKey.of("some-form");
     Path formDir = Paths.get("/some/path/to/the/form");
     Path formFilename = Paths.get("Some form.xml");
     Path formFile = formDir.resolve(formFilename);

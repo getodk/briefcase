@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.jooq.Catalog;
-import org.jooq.Sequence;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
 import org.opendatakit.briefcase.reused.db.jooq.tables.FormMetadata;
@@ -21,7 +20,7 @@ import org.opendatakit.briefcase.reused.db.jooq.tables.SubmissionMetadata;
 @SuppressWarnings({"all", "unchecked", "rawtypes"})
 public class Public extends SchemaImpl {
 
-  private static final long serialVersionUID = 1008287077;
+  private static final long serialVersionUID = -2013207752;
 
   /**
    * The reference instance of <code>PUBLIC</code>
@@ -52,18 +51,6 @@ public class Public extends SchemaImpl {
   @Override
   public Catalog getCatalog() {
     return DefaultCatalog.DEFAULT_CATALOG;
-  }
-
-  @Override
-  public final List<Sequence<?>> getSequences() {
-    List result = new ArrayList();
-    result.addAll(getSequences0());
-    return result;
-  }
-
-  private final List<Sequence<?>> getSequences0() {
-    return Arrays.<Sequence<?>>asList(
-        Sequences.FORM_METADATA_ID_SEQ);
   }
 
   @Override

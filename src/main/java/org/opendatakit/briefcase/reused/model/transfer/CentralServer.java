@@ -211,12 +211,11 @@ public class CentralServer implements RemoteServer {
         .withPath("/v1/projects/" + projectId + "/forms")
         .withHeader("Authorization", "Bearer " + token)
         .withResponseMapper(jsons -> jsons
-            // TODO Migrate this to mapper.readTree
             .map(json -> FormMetadata.empty(FormKey.of(
-                json.get("name").asText(),
                 json.get("xmlFormId").asText(),
                 Optional.ofNullable(json.path("version").asText()).filter(not(String::isBlank))
-            ))).collect(toList()))
+            )).withFormName(json.get("name").asText()))
+            .collect(toList()))
         .build();
   }
 

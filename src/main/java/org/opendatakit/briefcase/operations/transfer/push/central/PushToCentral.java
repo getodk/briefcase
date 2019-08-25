@@ -39,7 +39,7 @@ import org.opendatakit.briefcase.reused.job.RunnerStatus;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetaData;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 
 public class PushToCentral {
@@ -99,7 +99,7 @@ public class PushToCentral {
           submissions.parallelStream()
               .map(submission -> {
                 XmlElement root = XmlElement.from(new String(readAllBytes(submission)));
-                SubmissionMetaData metaData = new SubmissionMetaData(root);
+                SubmissionLazyMetadata metaData = new SubmissionLazyMetadata(root);
                 metaData.getInstanceId();
                 return Triple.of(submission, submissionNumber.getAndIncrement(), metaData.getInstanceId());
               })

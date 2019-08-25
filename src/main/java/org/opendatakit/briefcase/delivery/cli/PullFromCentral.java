@@ -97,7 +97,7 @@ public class PullFromCentral {
     List<FormMetadata> filteredForms = response.orElseThrow(BriefcaseException::new)
         .stream()
         .filter(f -> formId.map(id -> f.getKey().getId().equals(id)).orElse(true))
-        .map(formMetadata -> formMetadata.withFormFile(formMetadata.getKey().buildFormFile(briefcaseDir)))
+        .map(formMetadata -> formMetadata.withFormFile(formMetadata.buildFormFile(briefcaseDir)))
         .collect(toList());
 
     if (formId.isPresent() && filteredForms.isEmpty())
@@ -118,7 +118,7 @@ public class PullFromCentral {
   }
 
   private static void onEvent(FormStatusEvent event) {
-    System.out.println(event.getFormKey().getName() + " - " + event.getMessage());
+    System.out.println(event.getFormKey().getId() + " - " + event.getMessage());
     // The tracker already logs normal events
   }
 

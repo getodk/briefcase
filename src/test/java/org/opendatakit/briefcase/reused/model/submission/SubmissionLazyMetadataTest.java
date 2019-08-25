@@ -28,7 +28,7 @@ import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-public class SubmissionMetaDataTest {
+public class SubmissionLazyMetadataTest {
   @Test
   public void gets_media_names_with_many_files_in_a_media_node() throws IOException, XmlPullParserException {
     String xml = "" +
@@ -45,7 +45,7 @@ public class SubmissionMetaDataTest {
         "  <base64EncryptedElementSignature>5AeMxU8Gr5BGcmCiVec0xfYZ+MPLZoMrsgAZ0DPDNPi5J12L4eHyaRx2oQxNtTgIUePmVu87PTaYrLivM+CUyIQIL6HwQWCjtD+WnmQ5JYBwHZRl6YvRD49vW/UD3Qw1cYeQGpAXbDdia/AEQZvtUhL6FSnQ+F95H11JsBEm6hQqscX5mx60h/n2qhSzSJWbivPjrTfaNL3aYwjHvvIQ/JHTFp7VEV52bUTbtHwBPIZZZZU3Qam1E2wBFFqWchF3qVAMmKJ+wzZZcYqk4AIelRP04gim/rQuF2Y8kyjJMW8HKrXwwZjPgmeiaIiDbWoQhgfhw2n8Qt2OTwSSi8b6ew==</base64EncryptedElementSignature>\n" +
         "</data>" +
         "";
-    SubmissionMetaData smd = new SubmissionMetaData(XmlElement.of(parse(xml)));
+    SubmissionLazyMetadata smd = new SubmissionLazyMetadata(XmlElement.of(parse(xml)));
     assertThat(smd.getMediaNames(), contains("1538040007350.jpg.enc", "1538040019351.jpg.enc"));
   }
 
@@ -67,7 +67,7 @@ public class SubmissionMetaDataTest {
         "  <base64EncryptedElementSignature>5AeMxU8Gr5BGcmCiVec0xfYZ+MPLZoMrsgAZ0DPDNPi5J12L4eHyaRx2oQxNtTgIUePmVu87PTaYrLivM+CUyIQIL6HwQWCjtD+WnmQ5JYBwHZRl6YvRD49vW/UD3Qw1cYeQGpAXbDdia/AEQZvtUhL6FSnQ+F95H11JsBEm6hQqscX5mx60h/n2qhSzSJWbivPjrTfaNL3aYwjHvvIQ/JHTFp7VEV52bUTbtHwBPIZZZZU3Qam1E2wBFFqWchF3qVAMmKJ+wzZZcYqk4AIelRP04gim/rQuF2Y8kyjJMW8HKrXwwZjPgmeiaIiDbWoQhgfhw2n8Qt2OTwSSi8b6ew==</base64EncryptedElementSignature>\n" +
         "</data>" +
         "";
-    SubmissionMetaData smd = new SubmissionMetaData(XmlElement.of(parse(xml)));
+    SubmissionLazyMetadata smd = new SubmissionLazyMetadata(XmlElement.of(parse(xml)));
     assertThat(smd.getMediaNames(), contains("1538040007350.jpg.enc", "1538040019351.jpg.enc"));
   }
 

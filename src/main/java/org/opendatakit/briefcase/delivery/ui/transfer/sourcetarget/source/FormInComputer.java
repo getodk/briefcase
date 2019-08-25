@@ -39,6 +39,7 @@ import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 
 /**
  * Represents a filesystem location pointing to a form file as a source of forms for the Pull UI Panel.
@@ -93,10 +94,10 @@ public class FormInComputer implements PullSource<FormMetadata> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
+  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     return JobsRunner.launchAsync(run(rs -> new PullFormDefinition(formMetadataPort, EventBus::publish).pull(
         sourceFormMetadata,
-        sourceFormMetadata.withFormFile(sourceFormMetadata.getKey().buildFormFile(briefcaseDir))
+        sourceFormMetadata.withFormFile(sourceFormMetadata.buildFormFile(briefcaseDir))
     ))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
@@ -107,7 +108,7 @@ public class FormInComputer implements PullSource<FormMetadata> {
 
   @Override
   public String getDescription() {
-    return String.format("%s at %s", sourceFormMetadata.getKey().getName(), path.toString());
+    return String.format("%s at %s", sourceFormMetadata.getFormName(), path.toString());
   }
 
   @Override

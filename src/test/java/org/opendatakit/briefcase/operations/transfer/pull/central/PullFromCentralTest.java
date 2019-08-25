@@ -67,7 +67,7 @@ public class PullFromCentralTest {
     events = new ArrayList<>();
     pullOp = new PullFromCentral(http, new InMemoryFormMetadataAdapter(), server, token, e -> { });
     runnerStatus = new TestRunnerStatus(false);
-    formMetadata = FormMetadata.empty(FormKey.of("Some form", "some-form"))
+    formMetadata = FormMetadata.empty(FormKey.of("some-form"))
         .withFormFile(briefcaseDir.resolve("forms/Some form/Some form.xml"));
     tracker = new PullFromCentralTracker(formMetadata.getKey(), e -> events.add(e.getMessage()));
   }
