@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.javarosa.core.model.ControlType;
 import org.javarosa.core.model.DataType;
 import org.javarosa.core.model.QuestionDef;
 import org.javarosa.core.model.SelectChoice;
@@ -95,7 +96,7 @@ public class ModelBuilder {
 
   public static ModelBuilder selectMultiple(String name, SelectChoice... choices) {
     QuestionDef control = new QuestionDef();
-    control.setControlType(FormModel.ControlType.SELECT_MULTI.value);
+    control.setControlType(ControlType.SELECT_MULTI.value);
     for (SelectChoice choice : choices)
       control.addSelectChoice(choice);
     TreeElement element = new TreeElement(name, DEFAULT_MULTIPLICITY);

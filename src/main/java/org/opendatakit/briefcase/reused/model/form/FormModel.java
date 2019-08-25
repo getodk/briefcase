@@ -20,12 +20,12 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.concat;
 import static org.javarosa.core.model.Constants.DATATYPE_NULL;
+import static org.javarosa.core.model.ControlType.SELECT_MULTI;
 import static org.javarosa.core.model.DataType.GEOPOINT;
 import static org.javarosa.core.model.DataType.GEOSHAPE;
 import static org.javarosa.core.model.DataType.GEOTRACE;
 import static org.javarosa.core.model.DataType.MULTIPLE_ITEMS;
 import static org.javarosa.core.model.DataType.NULL;
-import static org.opendatakit.briefcase.reused.model.form.FormModel.ControlType.SELECT_MULTI;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import org.javarosa.core.model.ControlType;
 import org.javarosa.core.model.DataType;
 import org.javarosa.core.model.ItemsetBinding;
 import org.javarosa.core.model.QuestionDef;
@@ -296,45 +297,5 @@ public class FormModel {
 
   public List<FormModel> getSpatialFields() {
     return flatten().filter(FormModel::isSpatial).collect(toList());
-  }
-
-  // TODO This should be defined in JavaRosa, like the DataType enum
-  enum ControlType {
-    UNTYPED(-1),
-    INPUT(1),
-    SELECT_ONE(2),
-    SELECT_MULTI(3),
-    TEXTAREA(4),
-    SECRET(5),
-    RANGE(6),
-    UPLOAD(7),
-    SUBMIT(8),
-    TRIGGER(9),
-    IMAGE_CHOOSE(10),
-    LABEL(11),
-    AUDIO_CAPTURE(12),
-    VIDEO_CAPTURE(13),
-    OSM_CAPTURE(14),
-    FILE_CAPTURE(15);
-
-    int value;
-
-    ControlType(int value) {
-      this.value = value;
-    }
-
-    /**
-     * Returns a {@link ControlType} from its int value
-     *
-     * @param intControlType the int value of the requested DataType
-     * @return the related {@link ControlType} instance
-     */
-    public static ControlType from(int intControlType) {
-      for (ControlType ct : values()) {
-        if (ct.value == intControlType)
-          return ct;
-      }
-      throw new IllegalArgumentException("No ControlType with value " + intControlType);
-    }
   }
 }

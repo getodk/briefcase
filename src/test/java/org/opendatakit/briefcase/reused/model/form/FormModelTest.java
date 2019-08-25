@@ -52,6 +52,7 @@ import static org.opendatakit.briefcase.reused.model.form.ModelBuilder.text;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.javarosa.core.model.ControlType;
 import org.javarosa.core.model.DataType;
 import org.javarosa.core.model.QuestionDef;
 import org.javarosa.core.model.SelectChoice;
@@ -74,7 +75,7 @@ public class FormModelTest {
   @Test
   public void gets_choices_of_a_related_select_control_with_search_appearance() {
     QuestionDef control = new QuestionDef();
-    control.setControlType(FormModel.ControlType.SELECT_MULTI.value);
+    control.setControlType(ControlType.SELECT_MULTI.value);
     // This is the choice we will usually find in a select that uses appearance="search(...)"
     control.addSelectChoice(new SelectChoice("name", "name_key", false));
     control.setAppearanceAttr("search('some_external_instance')");
