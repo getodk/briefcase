@@ -18,9 +18,6 @@ package org.opendatakit.briefcase.push;
 
 public class PushEvent {
 
-  public static class Failure extends PushEvent {
-  }
-
   public static class Success extends PushEvent {
   }
 

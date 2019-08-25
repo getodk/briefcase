@@ -98,7 +98,7 @@ public class FormInstaller {
         .collect(toList());
   }
 
-  public static boolean isAForm(XmlElement root) {
+  private static boolean isAForm(XmlElement root) {
     return root.getName().equals("html")
         && root.findElements("head", "title").size() == 1
         && root.findElements("head", "model", "instance").size() >= 1

@@ -52,7 +52,7 @@ class GeoJson {
     return model.getSpatialFields().stream().map(field -> {
       // Get the value on the submission
       Optional<String> maybeValue = submission.findElement(field.getName()).flatMap(XmlElement::maybeValue);
-      if (!maybeValue.isPresent())
+      if (maybeValue.isEmpty())
         return emptyFeature(field, instanceId);
 
       // Transform the point string to a list of LngLatAlts

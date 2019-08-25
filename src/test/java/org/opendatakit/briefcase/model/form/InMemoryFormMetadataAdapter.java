@@ -33,11 +33,6 @@ public class InMemoryFormMetadataAdapter implements FormMetadataPort {
   }
 
   @Override
-  public void flush() {
-    store.clear();
-  }
-
-  @Override
   public <T> T query(Function<FormMetadataPort, T> query) {
     return query.apply(this);
   }

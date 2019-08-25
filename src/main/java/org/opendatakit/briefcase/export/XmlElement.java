@@ -252,11 +252,9 @@ public class XmlElement {
 
   /**
    * Returns whether this element holds a value or not.
-   *
-   * @return true if this element holds a value. False otherwise.
    */
-  boolean hasValue() {
-    return maybeValue().isPresent();
+  boolean isEmpty() {
+    return maybeValue().isEmpty();
   }
 
   private XmlElement getParent() {

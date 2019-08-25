@@ -112,7 +112,7 @@ public class AggregateCursor implements Cursor {
     return of(date.atStartOfDay().atOffset(ZoneOffset.UTC), lastReturnedValue);
   }
 
-  public static String buildCursorXml(OffsetDateTime lastUpdate, Optional<String> lastUri) {
+  private static String buildCursorXml(OffsetDateTime lastUpdate, Optional<String> lastUri) {
     return String.format("<cursor xmlns=\"http://www.opendatakit.org/cursor\">" +
             "<attributeName>_LAST_UPDATE_DATE</attributeName>" +
             "<attributeValue>%s</attributeValue>" +

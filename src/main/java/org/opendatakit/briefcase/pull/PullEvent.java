@@ -19,32 +19,25 @@ package org.opendatakit.briefcase.pull;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import org.opendatakit.briefcase.model.form.FormKey;
-import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 
 public class PullEvent {
 
   public static class Success extends PullEvent {
-    public final FormKey formKey;
-    public final Optional<RemoteServer> remoteServer;
-    public final Optional<Cursor> lastCursor;
+    private final FormKey formKey;
+    private final Optional<RemoteServer> remoteServer;
 
-    private Success(FormKey formKey, Optional<RemoteServer> remoteServer, Optional<Cursor> lastCursor) {
+    private Success(FormKey formKey, Optional<RemoteServer> remoteServer) {
       this.formKey = formKey;
       this.remoteServer = remoteServer;
-      this.lastCursor = lastCursor;
     }
 
     public static Success of(FormKey formKey) {
-      return new Success(formKey, Optional.empty(), Optional.empty());
+      return new Success(formKey, Optional.empty());
     }
 
     public static Success of(FormKey formKey, RemoteServer remoteServer) {
-      return new Success(formKey, Optional.of(remoteServer), Optional.empty());
-    }
-
-    public static Success of(FormKey formKey, RemoteServer remoteServer, Cursor lastCursor) {
-      return new Success(formKey, Optional.of(remoteServer), Optional.of(lastCursor));
+      return new Success(formKey, Optional.of(remoteServer));
     }
 
     public void ifRemoteServer(BiConsumer<FormKey, RemoteServer> consumer) {

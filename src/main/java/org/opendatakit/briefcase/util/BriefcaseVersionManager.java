@@ -19,7 +19,7 @@ public class BriefcaseVersionManager {
     return getCurrent().equals(getLatest());
   }
 
-  public String getLatest() {
+  String getLatest() {
     return http.execute(RequestBuilder.get("https://api.github.com/repos/opendatakit/briefcase/releases/latest")
         .asJsonMap()
         .withResponseMapper(json -> json.get("tag_name").asText())

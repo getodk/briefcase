@@ -28,8 +28,8 @@ public interface Http {
   int MIN_HTTP_CONNECTIONS = 1;
   int MAX_HTTP_CONNECTIONS = 32;
 
-  static boolean isValidHttpConnections(int value) {
-    return value >= MIN_HTTP_CONNECTIONS && value <= MAX_HTTP_CONNECTIONS;
+  static boolean isNotValidHttpConnectionsValue(int value) {
+    return value < MIN_HTTP_CONNECTIONS || value > MAX_HTTP_CONNECTIONS;
   }
 
   <T> Response<T> execute(Request<T> request);

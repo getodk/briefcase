@@ -26,7 +26,6 @@ import static org.opendatakit.briefcase.cli.Common.SERVER_URL;
 import static org.opendatakit.briefcase.cli.Common.STORAGE_DIR;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -63,7 +62,6 @@ public class PushToCentral {
 
   private static void pushToCentral(FormMetadataPort formMetadataPort, Args args) {
     CliEventsCompanion.attach(log);
-    Path briefcaseDir = Common.getOrCreateBriefcaseDir(args.get(STORAGE_DIR));
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
 
     int maxHttpConnections = Optionals.race(

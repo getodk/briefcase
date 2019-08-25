@@ -31,7 +31,7 @@ public class ExportEvent {
     this.success = success;
   }
 
-  public static ExportEvent progress(double percentage, FormKey formKey) {
+  static ExportEvent progress(double percentage, FormKey formKey) {
     int base100Percentage = Double.valueOf(percentage * 100).intValue();
     String statusLine = String.format("Exported %s%% of the submissions", base100Percentage);
     return new ExportEvent(formKey, statusLine, false);
@@ -45,11 +45,11 @@ public class ExportEvent {
     return new ExportEvent(formKey, "Export has ended", false);
   }
 
-  public static ExportEvent failure(String cause, FormKey formKey) {
+  static ExportEvent failure(String cause, FormKey formKey) {
     return new ExportEvent.Failure(String.format("Failure: %s", cause), false, formKey);
   }
 
-  public static ExportEvent failureSubmission(String instanceId, Throwable cause, FormKey formKey) {
+  static ExportEvent failureSubmission(String instanceId, Throwable cause, FormKey formKey) {
     return new ExportEvent(
         formKey,
         String.format("Can't export submission %s of form ID %s. Cause: %s", instanceId, formKey.getId(), cause.getMessage()),
@@ -61,7 +61,7 @@ public class ExportEvent {
     return new ExportEvent.Success(String.format("Exported %d submission%s", total, sUnlessOne(total)), true, formKey);
   }
 
-  public static ExportEvent partialSuccessForm(int exported, int total, FormKey formKey) {
+  static ExportEvent partialSuccessForm(int exported, int total, FormKey formKey) {
     return new ExportEvent.Success(String.format("Exported %d from %d submission%s", exported, total, sUnlessOne(total)), true, formKey);
   }
 

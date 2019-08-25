@@ -16,13 +16,6 @@
 
 package org.opendatakit.briefcase.util;
 
-import static org.opendatakit.briefcase.util.FileSystemUtils.HSQLDB_JDBC_PREFIX;
-import static org.opendatakit.briefcase.util.FileSystemUtils.INSTANCE_DIR;
-import static org.opendatakit.briefcase.util.FileSystemUtils.SMALLSQL_JDBC_PREFIX;
-import static org.opendatakit.briefcase.util.FileSystemUtils.getFormDatabaseUrl;
-import static org.opendatakit.briefcase.util.FileSystemUtils.isFormRelativeInstancePath;
-import static org.opendatakit.briefcase.util.FileSystemUtils.makeRelative;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -46,6 +39,8 @@ import org.slf4j.LoggerFactory;
  */
 public class DatabaseUtils implements AutoCloseable {
 
+  private static final String SMALLSQL_JDBC_PREFIX = "jdbc:smallsql:";
+  private static final String HSQLDB_JDBC_PREFIX = "jdbc:hsqldb:file:";
   private static final Logger log = LoggerFactory.getLogger(DatabaseUtils.class);
 
   private static final String CREATE_DDL = "CREATE TABLE recorded_instance (instanceId varchar(256) primary key, directory varchar(4096))";
@@ -53,7 +48,11 @@ public class DatabaseUtils implements AutoCloseable {
   private static final String SELECT_ALL_SQL = "SELECT instanceId, directory FROM recorded_instance";
   private static final String SELECT_DIR_SQL = "SELECT directory FROM recorded_instance WHERE instanceId = ?";
   private static final String INSERT_DML = "INSERT INTO recorded_instance (instanceId, directory) VALUES(?,?)";
+  private static final String INSTANCE_DIR = "instances";
   private static final String RELATIVE_DML = "UPDATE recorded_instance set directory = regexp_replace(directory,'.*(" + INSTANCE_DIR + ")','$1')";
+  private static final String HSQLDB_DIR = "info.hsqldb";
+  private static final String HSQLDB_DB = "info";
+  private static final String SMALLSQL_DIR = "info.db";
 
   final private File formDir;
   private Connection connection;
@@ -63,6 +62,69 @@ public class DatabaseUtils implements AutoCloseable {
   private DatabaseUtils(File formDir) throws FileSystemException, SQLException {
     this.formDir = formDir;
     connect();
+  }
+
+  private static String getFormDatabaseUrl(File formDirectory) throws FileSystemException {
+
+    File oldDbFile = new File(formDirectory, SMALLSQL_DIR);
+    File dbDir = new File(formDirectory, HSQLDB_DIR);
+    File dbFile = new File(dbDir, HSQLDB_DB);
+
+
+    if (!dbDir.exists()) {
+      log.info("Creating database directory {}", dbDir);
+      if (!dbDir.mkdirs()) {
+        log.warn("failed to create database directory");
+      } else if (oldDbFile.exists()) {
+        migrateDatabase(oldDbFile, dbFile);
+      }
+    }
+
+    return getJdbcUrl(dbFile);
+  }
+
+  private static void migrateDatabase(File oldDbFile, File dbFile) throws FileSystemException {
+    try {
+      migrateData(getJdbcUrl(oldDbFile), getJdbcUrl(dbFile));
+    } catch (SQLException e) {
+      throw new FileSystemException(String.format("failed to migrate database %s to %s", oldDbFile, dbFile), e);
+    }
+    if (!oldDbFile.renameTo(getBackupFile(oldDbFile))) {
+      throw new FileSystemException("failed to backup database after migration");
+    }
+  }
+
+  private static File getBackupFile(File file) {
+    return new File(file.getParent(), file.getName() + ".bak");
+  }
+
+  private static String getJdbcUrl(File dbFile) throws FileSystemException {
+    if (isHypersonicDatabase(dbFile)) {
+      return HSQLDB_JDBC_PREFIX + dbFile.getAbsolutePath();
+    } else if (isSmallSQLDatabase(dbFile)) {
+      return SMALLSQL_JDBC_PREFIX + dbFile.getAbsolutePath() + (dbFile.exists() ? "" : "?create=true");
+    } else {
+      throw new FileSystemException("unknown database type for file " + dbFile);
+    }
+  }
+
+  private static boolean isSmallSQLDatabase(File dbFile) {
+    return SMALLSQL_DIR.equals(dbFile.getName());
+  }
+
+  private static boolean isHypersonicDatabase(File dbFile) {
+    File parentFile = dbFile.getParentFile();
+    return HSQLDB_DB.equals(dbFile.getName()) && parentFile != null && HSQLDB_DIR.equals(parentFile.getName());
+  }
+
+  private static boolean isFormRelativeInstancePath(String path) {
+    return path.startsWith(INSTANCE_DIR);
+  }
+
+  private static Path makeRelative(File parent, File child) {
+    Path parentPath = parent.toPath();
+    Path childPath = child.toPath();
+    return parentPath.relativize(childPath);
   }
 
   private void connect() throws FileSystemException, SQLException {
@@ -181,7 +243,7 @@ public class DatabaseUtils implements AutoCloseable {
     }
   }
 
-  static void migrateData(String fromDbUrl, String toDbUrl) throws SQLException {
+  private static void migrateData(String fromDbUrl, String toDbUrl) throws SQLException {
     try (Connection fromConn = getConnection(fromDbUrl);
          Connection toConn = getConnection(toDbUrl)) {
       createRecordedInstanceTable(toConn);

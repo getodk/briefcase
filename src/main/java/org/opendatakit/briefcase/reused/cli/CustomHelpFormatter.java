@@ -66,14 +66,6 @@ class CustomHelpFormatter {
         .forEach(param -> System.out.println("  " + helpLinesPerShortcode.get(param.shortCode)));
   }
 
-  private static void printRequiredParams(Map<String, String> helpLinesPerShortcode, Set<Param> requiredParams) {
-    System.out.println("Required params:");
-    requiredParams.stream()
-        .sorted(Comparator.comparing(param -> param.shortCode))
-        .forEach(param -> System.out.println(helpLinesPerShortcode.get(param.shortCode)));
-    System.out.println();
-  }
-
   private static void printOptionalParams(Map<String, String> helpLinesPerShortcode, Operation operation) {
     System.out.println("Optional params for -" + operation.param.shortCode + " operation:");
     operation.optionalParams.stream()

@@ -107,7 +107,7 @@ public class SubmissionMetaData {
    * Return the base64 encoded encryption key from the &lt;base64EncryptedKey&gt;
    * element's value.
    */
-  public Optional<String> getBase64EncryptedKey() {
+  Optional<String> getBase64EncryptedKey() {
     if (base64EncryptedKey == null)
       base64EncryptedKey = root.findElement("base64EncryptedKey").flatMap(XmlElement::maybeValue);
     return base64EncryptedKey;
@@ -117,7 +117,7 @@ public class SubmissionMetaData {
    * Returns the list of media attachment file names, which are the values of
    * all the &lt;file&gt; children in the &lt;media&gt element
    */
-  public List<String> getMediaNames() {
+  List<String> getMediaNames() {
     if (mediaNames == null)
       mediaNames = root.findElements("media").stream()
           .flatMap(e -> e.findElements("file").stream())
@@ -132,7 +132,7 @@ public class SubmissionMetaData {
    * Return the file name of the encrypted submission file, taken from the
    * &lt;encryptedXmlFile&gt; element's value.
    */
-  public Optional<String> getEncryptedXmlFile() {
+  Optional<String> getEncryptedXmlFile() {
     if (encryptedXmlFile == null)
       encryptedXmlFile = root.findElement("encryptedXmlFile").flatMap(XmlElement::maybeValue);
     return encryptedXmlFile;
@@ -142,7 +142,7 @@ public class SubmissionMetaData {
    * Return the cryptographic signature of this submissions, taken from the
    * &lt;base64EncryptedElementSignature&gt; element's value.
    */
-  public Optional<String> getEncryptedSignature() {
+  Optional<String> getEncryptedSignature() {
     if (encryptedSignature == null)
       encryptedSignature = root.findElement("base64EncryptedElementSignature").flatMap(XmlElement::maybeValue);
     return encryptedSignature;

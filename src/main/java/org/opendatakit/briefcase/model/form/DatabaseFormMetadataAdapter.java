@@ -4,7 +4,6 @@ import static org.jooq.impl.DSL.mergeInto;
 import static org.jooq.impl.DSL.selectFrom;
 import static org.jooq.impl.DSL.selectOne;
 import static org.jooq.impl.DSL.trueCondition;
-import static org.jooq.impl.DSL.truncate;
 import static org.jooq.impl.DSL.using;
 import static org.jooq.impl.DSL.value;
 import static org.opendatakit.briefcase.jooq.Tables.FORM_METADATA;
@@ -50,14 +49,8 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
   }
 
   @Override
-  public void flush() {
-    getDslContext().execute(truncate(FORM_METADATA));
-  }
-
-  @Override
   public void persist(FormMetadata formMetadata) {
     // TODO Use generated records and let jOOQ do the work instead of explicitly using all the fields in the table, because this will break each time we change the table structure
-    String version = formMetadata.getKey().getVersion().orElse(null);
     getDslContext().execute(mergeInto(FORM_METADATA)
         .using(selectOne())
         .on(Stream.of(

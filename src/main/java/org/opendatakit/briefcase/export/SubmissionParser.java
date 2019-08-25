@@ -64,7 +64,7 @@ import org.xmlpull.v1.XmlPullParserException;
 /**
  * This class holds the main submission parsing code.
  */
-public class SubmissionParser {
+class SubmissionParser {
   private static final Logger log = LoggerFactory.getLogger(SubmissionParser.class);
   private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 
@@ -75,7 +75,7 @@ public class SubmissionParser {
    * Each file gets briefly parsed to obtain their submission date and use it as
    * the sorting criteria and for filtering.
    */
-  public static List<Path> getListOfSubmissionFiles(FormMetadata formMetadata, DateRange dateRange, boolean smartAppend, SubmissionExportErrorCallback onParsingError) {
+  static List<Path> getListOfSubmissionFiles(FormMetadata formMetadata, DateRange dateRange, boolean smartAppend, SubmissionExportErrorCallback onParsingError) {
     Path instancesDir = formMetadata.getSubmissionsDir();
     if (!Files.exists(instancesDir) || !Files.isReadable(instancesDir))
       return Collections.emptyList();
@@ -124,7 +124,7 @@ public class SubmissionParser {
    *     criteria, or {@link Optional#empty()} otherwise
    * @see #decrypt(Submission, SubmissionExportErrorCallback)
    */
-  public static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, SubmissionExportErrorCallback onError) {
+  static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, SubmissionExportErrorCallback onError) {
     Path workingDir = isEncrypted ? createTempDirectory("briefcase") : path.getParent();
     return parse(path, onError).flatMap(document -> {
       XmlElement root = XmlElement.of(document);

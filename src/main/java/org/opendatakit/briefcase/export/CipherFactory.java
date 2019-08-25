@@ -87,8 +87,6 @@ final class CipherFactory {
   /**
    * Factory that returns a {@link Cipher} suitable to decrypt cryptographic
    * signatures.
-   *
-   * @throws CryptoException
    */
   static Cipher signatureDecrypter(PrivateKey privateKey) {
     try {
@@ -103,8 +101,6 @@ final class CipherFactory {
   /**
    * Return the next {@link Cipher} instance. This method has side-effects and will
    * change the initialization vector, which will affect the next call to this method.
-   *
-   * @throws CryptoException
    */
   Cipher next() {
     try {

@@ -135,14 +135,6 @@ public class UncheckedFiles {
     }
   }
 
-  public static void createFile(Path path, FileAttribute<?>... attrs) {
-    try {
-      Files.createFile(path, attrs);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
   public static boolean exists(Path path, LinkOption... options) {
     return Files.exists(path, options);
   }
@@ -155,6 +147,7 @@ public class UncheckedFiles {
     }
   }
 
+  // TODO Replace this with some standard algorithm
   public static Optional<String> getMd5Hash(Path file) {
     try {
       // CTS (6/15/2010) : stream file through digest instead of handing
@@ -232,15 +225,6 @@ public class UncheckedFiles {
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
-  }
-
-  public static boolean isFormDir(Path dir) {
-    String dirName = dir.getFileName().toString();
-    return Files.isDirectory(dir)
-        // Ignore hidden mac/linux hidden folders
-        && !dirName.startsWith(".")
-        // Check for presence of the blank form
-        && Files.exists(dir.resolve(dirName + ".xml"));
   }
 
   public static boolean isInstanceDir(Path dir) {

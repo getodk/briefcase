@@ -19,9 +19,9 @@ import static org.opendatakit.briefcase.reused.TriStateBoolean.TRUE;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.directory;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.file;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
+import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderODKFolder;
 import static org.opendatakit.briefcase.ui.reused.UI.confirm;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
-import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
 import static org.opendatakit.briefcase.util.Host.isMac;
 import static org.opendatakit.briefcase.util.Host.isWindows;
 

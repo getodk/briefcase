@@ -84,7 +84,7 @@ class CsvLines {
     return modelFqn;
   }
 
-  public Optional<CsvLine> getLastLine() {
+  Optional<CsvLine> getLastLine() {
     return lastLine;
   }
 

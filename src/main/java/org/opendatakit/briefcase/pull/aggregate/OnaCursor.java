@@ -43,7 +43,7 @@ public class OnaCursor implements Cursor {
 
   @Override
   public boolean isEmpty() {
-    return !value.isPresent();
+    return value.isEmpty();
   }
 
   @Override

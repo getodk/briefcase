@@ -27,7 +27,6 @@ import static org.opendatakit.briefcase.reused.http.RequestMethod.HEAD;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.POST;
 import static org.xmlpull.v1.XmlPullParser.FEATURE_PROCESS_NAMESPACES;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
@@ -64,8 +63,7 @@ import org.xmlpull.v1.XmlPullParserException;
  * and {@link #head(URL)} factories to get an instance of this class.
  */
 public class RequestBuilder<T> {
-  private static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
-  private static final TypeReference<Map<String, Object>> JSON_MAP_TYPE_REF = new TypeReference<Map<String, Object>>() {};
+  private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
   private final RequestMethod method;
   private final URL baseUrl;
   private final Function<InputStream, T> responseMapper;
@@ -123,7 +121,7 @@ public class RequestBuilder<T> {
 
   private static JsonNode readJsonObject(InputStream in) {
     try (InputStream inHandle = in) {
-      return JSON_OBJECT_MAPPER.readTree(inHandle);
+      return JSON_MAPPER.readTree(inHandle);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -131,7 +129,7 @@ public class RequestBuilder<T> {
 
   private static Stream<JsonNode> readJsonArray(InputStream in) {
     try (InputStream inHandle = in) {
-      return StreamSupport.stream(JSON_OBJECT_MAPPER.readTree(inHandle).spliterator(), false);
+      return StreamSupport.stream(JSON_MAPPER.readTree(inHandle).spliterator(), false);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }

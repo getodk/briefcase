@@ -21,7 +21,7 @@ package org.opendatakit.briefcase.reused;
  * @param <I1> first arg's type
  * @param <I2> second arg's type
  * @param <I3> third arg's type
- * @param <I3> fourth arg's type
+ * @param <I4> fourth arg's type
  * @param <O>  output type
  */
 @FunctionalInterface

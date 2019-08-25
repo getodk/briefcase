@@ -19,7 +19,6 @@ import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.export.ValidationStatus.NOT_VALIDATED;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.checksumOf;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.stripFileExtension;
-import static org.opendatakit.briefcase.util.FileSystemUtils.getMd5Hash;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,6 +32,7 @@ import javax.crypto.Cipher;
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.model.ParsingException;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 /**
  * This class represents a form's submission XML document.
@@ -125,9 +125,9 @@ public class Submission {
     signatureParts.add(metaData.getInstanceId().orElseGet(() -> "crc32:" + checksumOf(originalSubmission.path)));
     for (String mediaName : metaData.getMediaNames()) {
       Path decryptedFile = workingDir.resolve(stripFileExtension(mediaName));
-      signatureParts.add(decryptedFile.getFileName() + "::" + getMd5Hash(decryptedFile.toFile()));
+      signatureParts.add(decryptedFile.getFileName() + "::" + UncheckedFiles.getMd5Hash(decryptedFile).orElseThrow(BriefcaseException::new));
     }
-    signatureParts.add(originalSubmission.path.getFileName().toString() + "::" + getMd5Hash(path.toFile()));
+    signatureParts.add(originalSubmission.path.getFileName().toString() + "::" + UncheckedFiles.getMd5Hash(path).orElseThrow(BriefcaseException::new));
     return String.join("\n", signatureParts) + "\n";
   }
 
@@ -135,10 +135,6 @@ public class Submission {
    * Copies this instance replacing the value of the given arguments.
    * <p>
    * It will extract a new {@link XmlElement} root from the given {@link Document} document
-   *
-   * @param path     new {@link Path} path value
-   * @param document a {@link Document} instance from which a new {@link XmlElement} root member will be taken
-   * @return a new {@link Submission} instance
    */
   Submission copy(Path path, Document document) {
     return new Submission(path, workingDir, XmlElement.of(document), metaData, validationStatus, cipherFactory, signature);
@@ -161,10 +157,6 @@ public class Submission {
    *
    * <b>Warning</b>: This method has side-effects on {@link Submission#cipherFactory}. Ciphers must
    * be retrieved in a certain order to produce valid results.
-   *
-   * @return a new {@link Cipher} instance
-   * @throws BriefcaseException if no CipherFactory is present
-   * @see SubmissionParser#decrypt(Submission, SubmissionExportErrorCallback)
    */
   Cipher getNextCipher() {
     return cipherFactory.map(CipherFactory::next).orElseThrow(() -> new BriefcaseException("No Cipher configured"));

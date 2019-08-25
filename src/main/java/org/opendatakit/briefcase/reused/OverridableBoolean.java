@@ -73,7 +73,7 @@ public class OverridableBoolean {
   }
 
   public boolean isEmpty() {
-    return !value.isPresent() && isUndetermined(overrideValue);
+    return value.isEmpty() && isUndetermined(overrideValue);
   }
 
   @Override

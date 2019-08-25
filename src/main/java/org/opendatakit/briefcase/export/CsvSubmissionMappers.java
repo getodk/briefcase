@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.export;
 
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.of;
@@ -67,7 +66,7 @@ final class CsvSubmissionMappers {
           formDefinition.getModel().fqn(),
           submission.getInstanceId(formDefinition.hasRepeatableFields()),
           submission.getSubmissionDate().orElse(MIN_SUBMISSION_DATE),
-          cols.stream().collect(joining(","))
+          String.join(",", cols)
       );
     };
   }
@@ -94,7 +93,7 @@ final class CsvSubmissionMappers {
           cols.add(encode(element.getParentLocalId(groupModel, submission.getInstanceId(true)), false));
           cols.add(encode(element.getCurrentLocalId(groupModel, submission.getInstanceId(true)), false));
           cols.add(encode(element.getGroupLocalId(groupModel, submission.getInstanceId(true)), false));
-          return cols.stream().collect(joining(","));
+          return String.join(",", cols);
         }).collect(toList())
     );
   }

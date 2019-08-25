@@ -78,7 +78,7 @@ public class DateRange {
   }
 
   public boolean isEmpty() {
-    return !start.isPresent() && !end.isPresent();
+    return start.isEmpty() && end.isEmpty();
   }
 
   public LocalDate getStart() {

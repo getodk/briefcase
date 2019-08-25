@@ -21,7 +21,7 @@ import static java.nio.file.Files.isRegularFile;
 import static java.nio.file.Files.newInputStream;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
-import static org.opendatakit.briefcase.util.FileSystemUtils.isUnderODKFolder;
+import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderODKFolder;
 import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
 
 import java.io.BufferedReader;
@@ -238,8 +238,8 @@ public class ExportConfiguration {
   }
 
   public boolean isEmpty() {
-    return !exportDir.isPresent()
-        && !pemFile.isPresent()
+    return exportDir.isEmpty()
+        && pemFile.isEmpty()
         && dateRange.isEmpty()
         && pullBefore.isEmpty()
         && overwriteFiles.isEmpty()
@@ -282,7 +282,7 @@ public class ExportConfiguration {
     return exportDir.map(dir -> dir.resolve("media")).orElseThrow(() -> new BriefcaseException("No export dir configured"));
   }
 
-  public String getFilenameBase(String formName) {
+  String getFilenameBase(String formName) {
     return exportFileName
         .map(UncheckedFiles::stripFileExtension)
         .map(StringUtils::stripIllegalChars)
@@ -338,7 +338,7 @@ public class ExportConfiguration {
   }
 
   public static class Builder {
-    public static final Consumer<String> NO_OP = __ -> { };
+    static final Consumer<String> NO_OP = __ -> { };
     private String exportFilename;
     private Path exportDir;
     private Path pemFile;
@@ -406,7 +406,7 @@ public class ExportConfiguration {
       return setExportFilename(Optional.ofNullable(fileName));
     }
 
-    public Builder setExportFilename(Optional<String> fileName) {
+    Builder setExportFilename(Optional<String> fileName) {
       exportFilename = fileName.orElse(null);
       return this;
     }
@@ -464,7 +464,7 @@ public class ExportConfiguration {
         return Optional.of("Given PEM file doesn't exist");
       if (!isRegularFile(path))
         return Optional.of("Given PEM file is not a file");
-      if (!readPemFile(path).isPresent())
+      if (readPemFile(path).isEmpty())
         return Optional.of("Given PEM file can't be parsed");
       return Optional.empty();
     }
@@ -474,7 +474,7 @@ public class ExportConfiguration {
       return this;
     }
 
-    public Builder setDateRange(Optional<LocalDate> start, Optional<LocalDate> end) {
+    Builder setDateRange(Optional<LocalDate> start, Optional<LocalDate> end) {
       this.dateRange = new DateRange(start, end);
       return this;
     }
@@ -549,7 +549,7 @@ public class ExportConfiguration {
       return this;
     }
 
-    public Builder setSmartAppend(OverridableBoolean smartAppend) {
+    Builder setSmartAppend(OverridableBoolean smartAppend) {
       this.smartAppend = smartAppend;
       return this;
     }
@@ -564,27 +564,27 @@ public class ExportConfiguration {
       return this;
     }
 
-    public Builder overrideOverwriteFiles(TriStateBoolean overrideValue) {
+    Builder overrideOverwriteFiles(TriStateBoolean overrideValue) {
       overwriteFiles = overwriteFiles.overrideWith(overrideValue);
       return this;
     }
 
-    public Builder overrideExportMedia(TriStateBoolean overrideValue) {
+    Builder overrideExportMedia(TriStateBoolean overrideValue) {
       exportMedia = exportMedia.overrideWith(overrideValue);
       return this;
     }
 
-    public Builder overrideSplitSelectMultiples(TriStateBoolean overrideValue) {
+    Builder overrideSplitSelectMultiples(TriStateBoolean overrideValue) {
       splitSelectMultiples = splitSelectMultiples.overrideWith(overrideValue);
       return this;
     }
 
-    public Builder overrideIncludeGeoJsonExport(TriStateBoolean overrideValue) {
+    Builder overrideIncludeGeoJsonExport(TriStateBoolean overrideValue) {
       includeGeoJsonExport = includeGeoJsonExport.overrideWith(overrideValue);
       return this;
     }
 
-    public Builder overrideRemoveGroupNames(TriStateBoolean overrideValue) {
+    Builder overrideRemoveGroupNames(TriStateBoolean overrideValue) {
       removeGroupNames = removeGroupNames.overrideWith(overrideValue);
       return this;
     }

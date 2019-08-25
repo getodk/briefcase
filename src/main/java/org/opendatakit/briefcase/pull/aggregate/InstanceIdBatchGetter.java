@@ -39,8 +39,7 @@ public class InstanceIdBatchGetter implements Iterator<InstanceIdBatch> {
   private Cursor nextCursor;
   private List<String> nextUids;
 
-  // TODO v2.0 Remove the public keyword if possible
-  public InstanceIdBatchGetter(AggregateServer server, Http http, String formId, boolean includeIncomplete, Cursor nextCursor) {
+  InstanceIdBatchGetter(AggregateServer server, Http http, String formId, boolean includeIncomplete, Cursor nextCursor) {
     this.server = server;
     this.http = http;
     this.formId = formId;

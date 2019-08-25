@@ -11,8 +11,6 @@ public interface FormMetadataPort {
 
   void execute(Consumer<FormMetadataPort> command);
 
-  void flush();
-
   void persist(FormMetadata formMetadata);
 
   void persist(Stream<FormMetadata> formMetadata);

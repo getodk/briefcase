@@ -63,7 +63,7 @@ public class Cli {
   /**
    * Prints the help message with all the registered operations and their paramsº
    */
-  public void printHelp() {
+  private void printHelp() {
     CustomHelpFormatter.printHelp(operations);
   }
 

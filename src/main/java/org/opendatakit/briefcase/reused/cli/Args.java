@@ -97,18 +97,6 @@ public class Args {
         .orElseThrow(() -> new IllegalArgumentException("No param -" + key.shortCode + " has been declared"));
   }
 
-  /**
-   * <p>Shortcut to <code>getOptional(key).orElse(null)</code> to avoid handling explicit
-   * null values
-   *
-   * @param key the {@link Param} key of the value to be retrieved
-   * @param <T> type of the value to be retrieved
-   * @return the value contained in the given <code>key</code> or <code>null</code> if the key is not contained
-   */
-  public <T> T getOrNull(Param<T> key) {
-    return getOptional(key).orElse(null);
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

@@ -116,26 +116,10 @@ final class CsvFieldMappers {
     return splitSelectMultiples ? SplitSelectMultiples.decorate(mapper) : mapper;
   }
 
-  /**
-   * @see CsvFieldMappers#empty(String, int)
-   */
   private static Stream<Pair<String, String>> empty(String fqn) {
     return empty(fqn, 1);
   }
 
-  /**
-   * Produces a {@link List} of {@link Pair} instances to represent that some CSV values will be empty.
-   * <p>
-   * The {@link Pair#left} is the FQN of the CSV column and the {@link Pair#right} contains its value.
-   * <p>
-   * The output size parameter lets caller sites to specify how much empty pairs they need. This is used
-   * with some data types, like the {@link DataType#GEOPOINT}, which need to be represented with
-   * 4 columns on a CSV file.
-   *
-   * @param fqn        the {@link String} FQN of the CSV column
-   * @param outputSize the wanted {@link Integer} output size
-   * @return a {@link List} of {@link Pair} instances to represent that some CSV values will be empty.
-   */
   private static Stream<Pair<String, String>> empty(String fqn, int outputSize) {
     return IntStream.range(0, outputSize).boxed().map(__ -> Pair.of(fqn, null));
   }
@@ -237,7 +221,7 @@ final class CsvFieldMappers {
   private static Stream<Pair<String, String>> binary(XmlElement element, Path workingDir, ExportConfiguration configuration) {
     // TODO We should separate the side effect of writing files to disk from the csv output generation
 
-    if (!element.hasValue())
+    if (element.isEmpty())
       return empty(element.fqn());
 
     String sourceFilename = element.getValue();
@@ -290,7 +274,7 @@ final class CsvFieldMappers {
   private static Stream<Pair<String, String>> individualAuditFile(String instanceId, Path workingDir, ExportConfiguration configuration, XmlElement element) {
     // TODO We should separate the side effect of writing files to disk from the csv output generation
 
-    if (!element.hasValue())
+    if (element.isEmpty())
       return empty(element.fqn());
 
     String sourceFilename = element.getValue();
@@ -312,7 +296,7 @@ final class CsvFieldMappers {
   }
 
   private static Stream<Pair<String, String>> aggregatedAuditFile(String formName, String localId, Path workingDir, ExportConfiguration configuration, XmlElement e) {
-    if (!e.hasValue())
+    if (e.isEmpty())
       return empty(e.fqn() + "-aggregated");
 
     Path sourceFile = workingDir.resolve(e.getValue());

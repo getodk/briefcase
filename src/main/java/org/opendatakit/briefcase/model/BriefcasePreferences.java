@@ -149,7 +149,7 @@ public class BriefcasePreferences {
    *
    * @param keys keys whose mappings are to be removed from the preference node.
    */
-  public void removeAll(String... keys) {
+  private void removeAll(String... keys) {
     removeAll(Arrays.asList(keys));
   }
 
@@ -174,11 +174,6 @@ public class BriefcasePreferences {
   public void setStorageDir(Path storageDir) {
     put(BRIEFCASE_DIR_PROPERTY, storageDir.toString());
     EventBus.publish(new StorageLocationEvent.LocationDefined());
-  }
-
-  public void unsetStorageDir() {
-    remove(BRIEFCASE_DIR_PROPERTY);
-    EventBus.publish(new StorageLocationEvent.LocationCleared());
   }
 
   public Optional<HttpHost> getHttpProxy() {
@@ -292,7 +287,7 @@ public class BriefcasePreferences {
   }
 
   private static boolean getBooleanProperty(String key) {
-    return Boolean.valueOf(Preference.APPLICATION_SCOPED.get(key, Boolean.FALSE.toString()));
+    return Boolean.parseBoolean(Preference.APPLICATION_SCOPED.get(key, Boolean.FALSE.toString()));
   }
 
   /**

@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.javarosa.core.model.DataType;
@@ -50,8 +49,8 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
  * It can hold the root level model or any of its fields.
  */
 class Model {
-  final TreeElement model;
-  private Map<String, QuestionDef> controls;
+  private final TreeElement model;
+  private final Map<String, QuestionDef> controls;
 
   /**
    * Main constructor for {@link Model} that takes a {@link TreeElement} as its root.
@@ -71,16 +70,6 @@ class Model {
    */
   <T> Stream<T> flatMap(Function<Model, Stream<T>> mapper) {
     return children().stream().flatMap(mapper);
-  }
-
-  /**
-   * Iterates over the children of this instance feeding each child to the given consumer
-   * function.
-   *
-   * @param consumer {@link Consumer} that takes a child model
-   */
-  void forEach(Consumer<Model> consumer) {
-    children().forEach(consumer);
   }
 
   /**
@@ -115,7 +104,7 @@ class Model {
    * Returns the Fully Qualified Name of a given {@link TreeElement} model, having
    * shifted a given number of names.
    */
-  static String fqn(TreeElement model, int shift) {
+  private static String fqn(TreeElement model, int shift) {
     List<String> names = new ArrayList<>();
     TreeElement current = model;
     while (current.getParent() != null && current.getParent().getName() != null) {
@@ -266,7 +255,7 @@ class Model {
   List<SelectChoice> getChoices() {
     Optional<QuestionDef> maybeControl = Optional.ofNullable(controls.get(fqn()));
 
-    if (!maybeControl.isPresent())
+    if (maybeControl.isEmpty())
       return emptyList();
 
     if (maybeControl.map(QuestionDef::getAppearanceAttr).map(s -> s.contains("search(")).orElse(false))
@@ -300,7 +289,7 @@ class Model {
         .orElseThrow(BriefcaseException::new);
   }
 
-  public boolean isSpatial() {
+  boolean isSpatial() {
     return Arrays.asList(GEOPOINT, GEOTRACE, GEOSHAPE).contains(getDataType());
   }
 

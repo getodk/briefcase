@@ -80,7 +80,6 @@ public class Export {
   }
 
   private static void export(FormMetadataPort formMetadataPort, Args args) {
-    String storageDir = args.get(STORAGE_DIR);
     String formId = args.get(FORM_ID);
     Path exportDir = args.get(EXPORT_DIR);
     String baseFilename = args.get(FILE);

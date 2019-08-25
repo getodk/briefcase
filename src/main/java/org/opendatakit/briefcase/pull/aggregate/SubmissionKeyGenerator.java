@@ -74,7 +74,7 @@ public class SubmissionKeyGenerator {
         .map(n -> n.findElements("instance"))
         .orElse(emptyList())
         .stream()
-        .filter(n -> !n.getAttributeValue("id").isPresent())
+        .filter(n -> n.getAttributeValue("id").isEmpty())
         .findFirst()
         .orElseThrow(BriefcaseException::new);
   }

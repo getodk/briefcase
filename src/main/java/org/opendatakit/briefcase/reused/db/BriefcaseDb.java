@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Optional;
 import org.hsqldb.Server;
 import org.hsqldb.persist.HsqlProperties;
 import org.hsqldb.server.ServerAcl;
@@ -19,7 +18,6 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class BriefcaseDb {
   private final Server server;
-  private Optional<Path> workspaceLocation;
 
   static {
     try {
@@ -29,13 +27,12 @@ public class BriefcaseDb {
     }
   }
 
-  private BriefcaseDb(Server server, Optional<Path> workspaceLocation) {
+  private BriefcaseDb(Server server) {
     this.server = server;
-    this.workspaceLocation = workspaceLocation;
   }
 
   public static BriefcaseDb create() {
-    return new BriefcaseDb(new Server(), Optional.empty());
+    return new BriefcaseDb(new Server());
   }
 
   public void startAt(Path workspaceLocation) {

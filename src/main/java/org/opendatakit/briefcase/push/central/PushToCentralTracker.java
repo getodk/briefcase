@@ -79,12 +79,6 @@ class PushToCentralTracker {
     notifyTrackingEvent(message);
   }
 
-  void trackCannotDetermineEncryption(Throwable t) {
-    String message = "Can't determine form encryption";
-    log.error(message, t);
-    notifyTrackingEvent(message + ":" + t.getMessage());
-  }
-
   void trackStart() {
     String message = "Start pushing form and submissions";
     log.info("Push {} - {}", formMetadata.getKey().getName(), message);

@@ -18,7 +18,6 @@ package org.opendatakit.briefcase.ui.reused;
 import static javax.swing.JFileChooser.DIRECTORIES_ONLY;
 import static javax.swing.JFileChooser.FILES_ONLY;
 import static javax.swing.JFileChooser.OPEN_DIALOG;
-import static org.opendatakit.briefcase.util.FileSystemUtils.FORMS_DIR;
 import static org.opendatakit.briefcase.util.Host.isLinux;
 import static org.opendatakit.briefcase.util.Host.isWindows;
 
@@ -62,8 +61,27 @@ public interface FileChooser {
     if (!folder.exists() || !folder.isDirectory()) {
       return false;
     }
-    File forms = new File(folder, FORMS_DIR);
+    File forms = new File(folder, "forms");
     return forms.exists() && forms.isDirectory();
+  }
+
+  static boolean isODKDevice(File pathname) {
+    File fo = new File(pathname, "odk");
+    File foi = new File(fo, "instances");
+    File fof = new File(fo, "forms");
+    return fo.exists() && foi.exists() && fof.exists();
+  }
+
+  static boolean isUnderODKFolder(File pathname) {
+    File parent = (pathname == null ? null : pathname.getParentFile());
+    File current = pathname;
+    while (parent != null) {
+      if (isODKDevice(parent) && current.getName().equals("odk"))
+        return true;
+      current = parent;
+      parent = parent.getParentFile();
+    }
+    return false;
   }
 
   Optional<File> choose();

@@ -47,7 +47,7 @@ public class CommonsHttp implements Http {
   }
 
   public static Http of(int maxConnections, HttpHost httpProxy) {
-    if (!Http.isValidHttpConnections(maxConnections))
+    if (Http.isNotValidHttpConnectionsValue(maxConnections))
       throw new BriefcaseException("Invalid maximum simultaneous HTTP connections " + maxConnections + ". Try a value between " + MIN_HTTP_CONNECTIONS + " and " + MAX_HTTP_CONNECTIONS);
     return new CommonsHttp(Executor.newInstance(
         getBaseBuilder(maxConnections).setProxy(httpProxy).build()
@@ -55,7 +55,7 @@ public class CommonsHttp implements Http {
   }
 
   public static Http of(int maxConnections) {
-    if (!Http.isValidHttpConnections(maxConnections))
+    if (Http.isNotValidHttpConnectionsValue(maxConnections))
       throw new BriefcaseException("Invalid maximum simultaneous HTTP connections " + maxConnections + ". Try a value between " + MIN_HTTP_CONNECTIONS + " and " + MAX_HTTP_CONNECTIONS);
     return new CommonsHttp(Executor.newInstance(
         getBaseBuilder(maxConnections).build()
