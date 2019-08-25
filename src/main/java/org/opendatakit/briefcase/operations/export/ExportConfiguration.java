@@ -46,6 +46,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.api.StringUtils;
 import org.opendatakit.briefcase.reused.api.TriStateBoolean;
 import org.opendatakit.briefcase.reused.api.UncheckedFiles;
+import org.opendatakit.briefcase.reused.model.DateRange;
 import org.opendatakit.briefcase.reused.model.OverridableBoolean;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.slf4j.Logger;

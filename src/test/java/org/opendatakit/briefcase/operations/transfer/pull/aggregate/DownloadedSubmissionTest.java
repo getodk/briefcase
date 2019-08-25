@@ -23,7 +23,7 @@ import static org.opendatakit.briefcase.reused.model.transfer.TransferTestHelper
 
 import java.util.UUID;
 import org.junit.Test;
-import org.opendatakit.briefcase.operations.export.XmlElement;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 
 public class DownloadedSubmissionTest {
 

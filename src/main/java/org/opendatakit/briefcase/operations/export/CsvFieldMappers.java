@@ -57,6 +57,8 @@ import java.util.stream.Stream;
 import org.javarosa.core.model.DataType;
 import org.opendatakit.briefcase.reused.api.OptionalProduct;
 import org.opendatakit.briefcase.reused.api.Pair;
+import org.opendatakit.briefcase.reused.model.XmlElement;
+import org.opendatakit.briefcase.reused.model.form.FormModel;
 
 /**
  * This class contains all the supported mappers from {@link DataType} to CSV compatible
@@ -108,7 +110,7 @@ final class CsvFieldMappers {
     });
   }
 
-  static CsvFieldMapper getMapper(Model field, boolean splitSelectMultiples) {
+  static CsvFieldMapper getMapper(FormModel field, boolean splitSelectMultiples) {
     // If no mapper is available for this field, default to a simple text mapper
     CsvFieldMapper mapper = field.isMetaAudit()
         ? AUDIT_MAPPER
@@ -317,14 +319,14 @@ final class CsvFieldMappers {
     return Stream.of(Pair.of(e.fqn() + "-aggregated", destinationFile.getFileName().toString()));
   }
 
-  private static Stream<Pair<String, String>> repeatableGroup(String localId, Model current, XmlElement element) {
+  private static Stream<Pair<String, String>> repeatableGroup(String localId, FormModel current, XmlElement element) {
     int shift = current.countAncestors() - 1;
     return element == null
         ? empty("SET-OF-" + current.fqn(shift))
         : Stream.of(Pair.of(current.fqn(), localId + "/" + current.fqn(shift)));
   }
 
-  private static Stream<Pair<String, String>> nonRepeatableGroup(String formName, String localId, Path workingDir, Model current, Optional<XmlElement> maybeElement, ExportConfiguration configuration) {
+  private static Stream<Pair<String, String>> nonRepeatableGroup(String formName, String localId, Path workingDir, FormModel current, Optional<XmlElement> maybeElement, ExportConfiguration configuration) {
     return current.flatMap(field -> getMapper(field, configuration.resolveSplitSelectMultiples()).apply(
         formName,
         localId,

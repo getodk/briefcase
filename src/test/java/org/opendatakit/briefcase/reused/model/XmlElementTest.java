@@ -14,26 +14,28 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.operations.export;
+package org.opendatakit.briefcase.reused.model;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.operations.export.ModelBuilder.group;
-import static org.opendatakit.briefcase.operations.export.ModelBuilder.repeat;
-import static org.opendatakit.briefcase.operations.export.ModelBuilder.text;
+import static org.opendatakit.briefcase.reused.model.form.ModelBuilder.group;
+import static org.opendatakit.briefcase.reused.model.form.ModelBuilder.repeat;
+import static org.opendatakit.briefcase.reused.model.form.ModelBuilder.text;
 
 import java.io.IOException;
 import java.io.StringReader;
 import org.junit.Test;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
+import org.opendatakit.briefcase.reused.model.form.FormModel;
+import org.opendatakit.briefcase.reused.model.form.ModelBuilder;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 public class XmlElementTest {
   @Test
   public void knows_how_to_generate_keys_of_a_repeat_nested_in_groups() throws IOException, XmlPullParserException {
-    Model field = ModelBuilder.instance(
+    FormModel field = ModelBuilder.instance(
         group("g1",
             group("g2",
                 group("g3",
@@ -53,7 +55,7 @@ public class XmlElementTest {
 
   @Test
   public void knows_how_to_generate_keys_of_nested_repeats() throws IOException, XmlPullParserException {
-    Model field = ModelBuilder.instance(
+    FormModel field = ModelBuilder.instance(
         group("g1",
             group("g2",
                 group("g3",
@@ -82,8 +84,8 @@ public class XmlElementTest {
     return tempDoc;
   }
 
-  private static XmlElement buildXmlElementFrom(Model field) throws IOException, XmlPullParserException {
-    Model current = field;
+  private static XmlElement buildXmlElementFrom(FormModel field) throws IOException, XmlPullParserException {
+    FormModel current = field;
     String xml = "<" + current.getName() + "/>";
     while (current.hasParent()) {
       current = current.getParent();

@@ -24,20 +24,22 @@ import static java.util.stream.Collectors.reducing;
 import static org.opendatakit.briefcase.operations.export.ExportOutcome.ALL_EXPORTED;
 import static org.opendatakit.briefcase.operations.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.operations.export.ExportOutcome.SOME_SKIPPED;
-import static org.opendatakit.briefcase.operations.export.SubmissionParser.getListOfSubmissionFiles;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.write;
+import static org.opendatakit.briefcase.reused.model.submission.SubmissionParser.getListOfSubmissionFiles;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.delivery.ui.reused.Analytics;
+import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataCommands;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
@@ -70,11 +72,9 @@ public class ExportToCsv {
     ExportProcessTracker exportTracker = new ExportProcessTracker(formMetadata.getKey());
     exportTracker.start();
 
-    SubmissionExportErrorCallback onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getKey().getName()));
-    SubmissionExportErrorCallback onInvalidSubmission = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getKey().getName()))
-        .andThen((path, message) ->
-            analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null))
-        );
+    var onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getKey().getName()));
+    var onInvalidSubmission = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getKey().getName()))
+        .andThen((path, message) -> analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null)));
 
     List<Path> submissionFiles = getListOfSubmissionFiles(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend(), onParsingError);
     exportTracker.trackTotal(submissionFiles.size());
@@ -134,7 +134,7 @@ public class ExportToCsv {
     return exportOutcome;
   }
 
-  private static SubmissionExportErrorCallback buildParsingErrorCallback(Path errorsDir) {
+  private static BiConsumer<Path, String> buildParsingErrorCallback(Path errorsDir) {
     AtomicInteger errorSeq = new AtomicInteger(1);
     // Remove errors from a previous export attempt
     if (exists(errorsDir))

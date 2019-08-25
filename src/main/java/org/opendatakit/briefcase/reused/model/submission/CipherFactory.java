@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.operations.export;
+package org.opendatakit.briefcase.reused.model.submission;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 

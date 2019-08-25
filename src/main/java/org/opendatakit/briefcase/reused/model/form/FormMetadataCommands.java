@@ -4,7 +4,7 @@ import static org.opendatakit.briefcase.reused.api.UncheckedFiles.walk;
 
 import java.nio.file.Path;
 import java.util.function.Consumer;
-import org.opendatakit.briefcase.operations.export.XmlElement;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.preferences.LegacyPrefs;
 
 public class FormMetadataCommands {

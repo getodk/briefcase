@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.opendatakit.briefcase.reused.api.Pair;
+import org.opendatakit.briefcase.reused.model.form.FormModel;
 
 @RunWith(value = Parameterized.class)
 public class CsvSubmissionMappersEncodeMainValueTest {
@@ -37,7 +38,7 @@ public class CsvSubmissionMappersEncodeMainValueTest {
   public String testCase;
 
   @Parameterized.Parameter(value = 1)
-  public Model field;
+  public FormModel field;
 
   @Parameterized.Parameter(value = 2)
   public String expectedOutput;

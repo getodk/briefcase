@@ -16,16 +16,19 @@
 
 package org.opendatakit.briefcase.operations.export;
 
-import static org.opendatakit.briefcase.operations.export.SubmissionParser.parseSubmission;
+import static org.opendatakit.briefcase.reused.model.submission.SubmissionParser.parseSubmission;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
+import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
+import org.opendatakit.briefcase.reused.model.submission.Submission;
 
 class ExportTools {
-  static Stream<Submission> getValidSubmissions(FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, List<Path> submissionFiles, SubmissionExportErrorCallback onParsingError, SubmissionExportErrorCallback onInvalidSubmission) {
+  static Stream<Submission> getValidSubmissions(FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, List<Path> submissionFiles, BiConsumer<Path, String> onParsingError, BiConsumer<Path, String> onInvalidSubmission) {
     return submissionFiles.parallelStream()
         // Parse the submission and leave only those OK to be exported
         .map(path -> parseSubmission(path, formMetadata.isEncrypted(), configuration.getPrivateKey(), onParsingError))

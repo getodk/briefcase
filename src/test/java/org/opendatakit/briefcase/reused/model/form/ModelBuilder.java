@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.operations.export;
+package org.opendatakit.briefcase.reused.model.form;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -33,10 +33,11 @@ import org.javarosa.core.model.SelectChoice;
 import org.javarosa.core.model.instance.TreeElement;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-class ModelBuilder {
+public class ModelBuilder {
   private final TreeElement current;
   private final Map<String, QuestionDef> controls;
 
@@ -94,7 +95,7 @@ class ModelBuilder {
 
   public static ModelBuilder selectMultiple(String name, SelectChoice... choices) {
     QuestionDef control = new QuestionDef();
-    control.setControlType(Model.ControlType.SELECT_MULTI.value);
+    control.setControlType(FormModel.ControlType.SELECT_MULTI.value);
     for (SelectChoice choice : choices)
       control.addSelectChoice(choice);
     TreeElement element = new TreeElement(name, DEFAULT_MULTIPLICITY);
@@ -132,12 +133,12 @@ class ModelBuilder {
     return tempDoc;
   }
 
-  static XmlElement parseXmlElement(String xml) throws XmlPullParserException, IOException {
+  public static XmlElement parseXmlElement(String xml) throws XmlPullParserException, IOException {
     return XmlElement.of(parse(xml));
   }
 
-  static XmlElement buildXmlElementFrom(Model field) throws IOException, XmlPullParserException {
-    Model current = field;
+  static XmlElement buildXmlElementFrom(FormModel field) throws IOException, XmlPullParserException {
+    FormModel current = field;
     String xml = "<" + current.getName() + "/>";
     while (current.hasParent() && current.getParent().getName() != null) {
       current = current.getParent();
@@ -174,8 +175,8 @@ class ModelBuilder {
     return newElement;
   }
 
-  Model build() {
-    return new Model(current, controls);
+  public FormModel build() {
+    return new FormModel(current, controls);
   }
 
   public String getName() {

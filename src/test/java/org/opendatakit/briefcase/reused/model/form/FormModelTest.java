@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.operations.export;
+package org.opendatakit.briefcase.reused.model.form;
 
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.contains;
@@ -40,14 +40,14 @@ import static org.javarosa.core.model.DataType.TIME;
 import static org.javarosa.core.model.DataType.UNSUPPORTED;
 import static org.javarosa.core.model.instance.TreeReference.DEFAULT_MULTIPLICITY;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.operations.export.ModelBuilder.field;
-import static org.opendatakit.briefcase.operations.export.ModelBuilder.geopoint;
-import static org.opendatakit.briefcase.operations.export.ModelBuilder.geoshape;
-import static org.opendatakit.briefcase.operations.export.ModelBuilder.geotrace;
-import static org.opendatakit.briefcase.operations.export.ModelBuilder.group;
-import static org.opendatakit.briefcase.operations.export.ModelBuilder.instance;
-import static org.opendatakit.briefcase.operations.export.ModelBuilder.selectMultiple;
-import static org.opendatakit.briefcase.operations.export.ModelBuilder.text;
+import static org.opendatakit.briefcase.reused.model.form.ModelBuilder.field;
+import static org.opendatakit.briefcase.reused.model.form.ModelBuilder.geopoint;
+import static org.opendatakit.briefcase.reused.model.form.ModelBuilder.geoshape;
+import static org.opendatakit.briefcase.reused.model.form.ModelBuilder.geotrace;
+import static org.opendatakit.briefcase.reused.model.form.ModelBuilder.group;
+import static org.opendatakit.briefcase.reused.model.form.ModelBuilder.instance;
+import static org.opendatakit.briefcase.reused.model.form.ModelBuilder.selectMultiple;
+import static org.opendatakit.briefcase.reused.model.form.ModelBuilder.text;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,13 +58,13 @@ import org.javarosa.core.model.SelectChoice;
 import org.javarosa.core.model.instance.TreeElement;
 import org.junit.Test;
 
-public class ModelTest {
+public class FormModelTest {
   @Test
   public void gets_choices_of_a_related_select_control() {
     SelectChoice choice1 = new SelectChoice("some label 1", "some value 1", false);
     SelectChoice choice2 = new SelectChoice("some label 2", "some value 2", false);
 
-    Model model = instance(selectMultiple("select", choice1, choice2))
+    FormModel model = instance(selectMultiple("select", choice1, choice2))
         .build()
         .getChildByName("select");
 
@@ -74,12 +74,12 @@ public class ModelTest {
   @Test
   public void gets_choices_of_a_related_select_control_with_search_appearance() {
     QuestionDef control = new QuestionDef();
-    control.setControlType(Model.ControlType.SELECT_MULTI.value);
+    control.setControlType(FormModel.ControlType.SELECT_MULTI.value);
     // This is the choice we will usually find in a select that uses appearance="search(...)"
     control.addSelectChoice(new SelectChoice("name", "name_key", false));
     control.setAppearanceAttr("search('some_external_instance')");
 
-    Model model = instance(field("select", TEXT, control))
+    FormModel model = instance(field("select", TEXT, control))
         .build()
         .getChildByName("select");
 
@@ -127,7 +127,7 @@ public class ModelTest {
 
   @Test
   public void knows_how_to_get_the_list_of_all_descendant_spatial_fields() {
-    Model model = instance(
+    FormModel model = instance(
         text("text"),
         geopoint("point"),
         group("group",
@@ -136,16 +136,16 @@ public class ModelTest {
         )
     ).build();
 
-    List<Model> spatialFields = model.getSpatialFields();
-    List<String> spatialFieldNames = spatialFields.stream().map(Model::getName).collect(Collectors.toList());
+    List<FormModel> spatialFields = model.getSpatialFields();
+    List<String> spatialFieldNames = spatialFields.stream().map(FormModel::getName).collect(Collectors.toList());
     assertThat(spatialFieldNames, containsInAnyOrder("point", "trace", "shape"));
   }
 
-  private static Model buildField(DataType type) {
+  private static FormModel buildField(DataType type) {
     return ModelBuilder.field("some_field", type).build();
   }
 
-  private static Model buildModel(String... names) {
+  private static FormModel buildModel(String... names) {
     List<TreeElement> elements = Stream.of(names)
         .map(name -> new TreeElement(name, DEFAULT_MULTIPLICITY))
         .collect(Collectors.toList());
@@ -156,7 +156,7 @@ public class ModelTest {
     for (int i = maxIndex; i > 0; i--)
       elements.get(i).setParent(elements.get(i - 1));
 
-    return new Model(elements.get(0), emptyMap());
+    return new FormModel(elements.get(0), emptyMap());
   }
 
 }

@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.operations.export;
+package org.opendatakit.briefcase.reused.model;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -49,7 +49,7 @@ public class DateRange {
    * @param end   the {@link LocalDate} end of the {@link DateRange}
    * @return a new {@link DateRange} instance
    */
-  static DateRange from(LocalDate start, LocalDate end) {
+  public static DateRange from(LocalDate start, LocalDate end) {
     return new DateRange(
         Optional.ofNullable(start),
         Optional.ofNullable(end)

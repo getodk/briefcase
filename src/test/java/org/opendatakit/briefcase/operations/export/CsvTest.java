@@ -18,11 +18,11 @@ package org.opendatakit.briefcase.operations.export;
 
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.matchers.PathMatchers.exists;
-import static org.opendatakit.briefcase.operations.export.ModelBuilder.group;
-import static org.opendatakit.briefcase.operations.export.ModelBuilder.instance;
-import static org.opendatakit.briefcase.operations.export.ModelBuilder.repeat;
-import static org.opendatakit.briefcase.operations.export.ModelBuilder.text;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.deleteRecursive;
+import static org.opendatakit.briefcase.reused.model.form.ModelBuilder.group;
+import static org.opendatakit.briefcase.reused.model.form.ModelBuilder.instance;
+import static org.opendatakit.briefcase.reused.model.form.ModelBuilder.repeat;
+import static org.opendatakit.briefcase.reused.model.form.ModelBuilder.text;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -30,6 +30,8 @@ import java.nio.file.Path;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.opendatakit.briefcase.reused.model.form.FormDefinition;
+import org.opendatakit.briefcase.reused.model.form.FormModel;
 
 public class CsvTest {
   private Path exportDir;
@@ -48,7 +50,7 @@ public class CsvTest {
 
   @Test
   public void includes_non_repeat_groups_in_repeat_filenames() {
-    Model model = instance(
+    FormModel model = instance(
         group("g1",
             group("g2",
                 group("g3",
@@ -69,7 +71,7 @@ public class CsvTest {
 
   @Test
   public void includes_non_repeat_groups_in_repeat_filenames2() {
-    Model model = instance(
+    FormModel model = instance(
         group("g1",
             repeat("r1",
                 group("g2",
@@ -94,7 +96,7 @@ public class CsvTest {
 
   @Test
   public void sanitizes_filenames() {
-    Model model = instance(
+    FormModel model = instance(
         group("some-group",
             repeat("re\tpeat",
                 text("field")
@@ -112,7 +114,7 @@ public class CsvTest {
 
   @Test
   public void dupe_nested_repeat_group_names_get_a_sequence_number_suffix() {
-    Model model = instance(
+    FormModel model = instance(
         repeat("outer-repeat",
             group("outer-group",
                 repeat("dupe-repeat",
@@ -137,7 +139,7 @@ public class CsvTest {
 
   @Test
   public void dupe_sibling_repeat_group_names_get_a_sequence_number_suffix() {
-    Model model = instance(
+    FormModel model = instance(
         group("group1", repeat("dupe-repeat", text("some-field"))),
         group("group2", repeat("dupe-repeat", text("some-field")))
     ).build();
@@ -155,7 +157,7 @@ public class CsvTest {
     return ExportConfiguration.Builder.empty().setExportDir(exportDir).build();
   }
 
-  private static FormDefinition buildFormDef(String formName, Model group) {
+  private static FormDefinition buildFormDef(String formName, FormModel group) {
     return new FormDefinition(
         "some_form",
         formName,

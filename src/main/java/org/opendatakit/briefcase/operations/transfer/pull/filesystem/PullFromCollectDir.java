@@ -29,14 +29,14 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.operations.export.SubmissionMetaData;
-import org.opendatakit.briefcase.operations.export.XmlElement;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.job.Job;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetaData;
 
 public class PullFromCollectDir {
   private final Consumer<FormStatusEvent> onEventCallback;

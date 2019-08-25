@@ -30,9 +30,11 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.javarosa.core.model.DataType;
 import org.opendatakit.briefcase.reused.api.Pair;
+import org.opendatakit.briefcase.reused.model.form.FormDefinition;
+import org.opendatakit.briefcase.reused.model.form.FormModel;
+import org.opendatakit.briefcase.reused.model.submission.Submission;
 
 final class CsvSubmissionMappers {
   private static final Set<DataType> EMPTY_COL_WHEN_NULL_DATATYPES = of(GEOPOINT, DATE, TIME, DATE_TIME).collect(toSet());
@@ -58,7 +60,7 @@ final class CsvSubmissionMappers {
           field,
           submission.findElement(field.getName()),
           configuration
-      ).map(value -> encodeMainValue(field, value))).collect(Collectors.toList()));
+      ).map(value -> encodeMainValue(field, value))).collect(toList()));
       cols.add(submission.getInstanceId(formDefinition.hasRepeatableFields()));
       if (formDefinition.isFileEncryptedForm())
         cols.add(submission.getValidationStatus().asCsvValue());
@@ -75,7 +77,7 @@ final class CsvSubmissionMappers {
    * Factory that will produce {@link CsvLines} corresponding to any repeat output file
    * of a form.
    */
-  static CsvSubmissionMapper repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration) {
+  static CsvSubmissionMapper repeat(FormDefinition formDefinition, FormModel groupModel, ExportConfiguration configuration) {
     return submission -> CsvLines.of(
         groupModel.fqn(),
         submission.getInstanceId(),
@@ -101,7 +103,7 @@ final class CsvSubmissionMappers {
   /**
    * Produce a CSV line with the main form's header column names.
    */
-  static String getMainHeader(Model model, boolean isEncrypted, boolean splitSelectMultiples, boolean removeGroupNames) {
+  static String getMainHeader(FormModel model, boolean isEncrypted, boolean splitSelectMultiples, boolean removeGroupNames) {
     List<String> headers = new ArrayList<>();
     headers.add("SubmissionDate");
     headers.addAll(model.getNames(0, splitSelectMultiples, removeGroupNames));
@@ -114,7 +116,7 @@ final class CsvSubmissionMappers {
   /**
    * Produce a CSV line with a repeat group's header column names.
    */
-  static String getRepeatHeader(Model groupModel, boolean splitSelectMultiples, boolean removeGroupNames) {
+  static String getRepeatHeader(FormModel groupModel, boolean splitSelectMultiples, boolean removeGroupNames) {
     int shift = groupModel.countAncestors();
     List<String> headers = new ArrayList<>();
     headers.addAll(groupModel.children().stream()
@@ -138,7 +140,7 @@ final class CsvSubmissionMappers {
     return iso8601DateTimeToExportCsvFormat(offsetDateTime);
   }
 
-  static String encodeMainValue(Model field, Pair<String, String> value) {
+  static String encodeMainValue(FormModel field, Pair<String, String> value) {
     return encode(
         value.getRight(),
         EMPTY_COL_WHEN_NULL_DATATYPES.contains(field.getDataType()) || value.getLeft().startsWith("meta")

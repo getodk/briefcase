@@ -39,6 +39,9 @@ import org.geojson.Polygon;
 import org.javarosa.core.model.DataType;
 import org.opendatakit.briefcase.reused.api.OptionalProduct;
 import org.opendatakit.briefcase.reused.api.UncheckedFiles;
+import org.opendatakit.briefcase.reused.model.XmlElement;
+import org.opendatakit.briefcase.reused.model.form.FormModel;
+import org.opendatakit.briefcase.reused.model.submission.Submission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +50,7 @@ class GeoJson {
   private static final String POINT_COMPONENT_SEPARATOR = " ";
   private static final String POINT_STRING_SEPARATOR = ";";
 
-  static Stream<Feature> toFeatures(Model model, Submission submission) {
+  static Stream<Feature> toFeatures(FormModel model, Submission submission) {
     String instanceId = submission.getInstanceId(false);
     return model.getSpatialFields().stream().map(field -> {
       // Get the value on the submission
@@ -82,19 +85,19 @@ class GeoJson {
     }
   }
 
-  private static Feature validFeature(Model field, String instanceId, GeoJsonObject geoJsonObject) {
+  private static Feature validFeature(FormModel field, String instanceId, GeoJsonObject geoJsonObject) {
     return feature(field, instanceId, Optional.of(geoJsonObject), false, true);
   }
 
-  private static Feature emptyFeature(Model field, String instanceId) {
+  private static Feature emptyFeature(FormModel field, String instanceId) {
     return feature(field, instanceId, Optional.empty(), true, true);
   }
 
-  private static Feature invalidFeature(Model field, String instanceId) {
+  private static Feature invalidFeature(FormModel field, String instanceId) {
     return feature(field, instanceId, Optional.empty(), false, false);
   }
 
-  private static Feature feature(Model field, String instanceId, Optional<GeoJsonObject> geoJsonObject, boolean empty, boolean valid) {
+  private static Feature feature(FormModel field, String instanceId, Optional<GeoJsonObject> geoJsonObject, boolean empty, boolean valid) {
     Feature feature = new Feature();
     feature.setGeometry(geoJsonObject.orElse(null));
     feature.setProperty("key", instanceId);
@@ -110,7 +113,7 @@ class GeoJson {
         .collect(toList());
   }
 
-  private static GeoJsonObject toGeoJsonObject(Model field, List<LngLatAlt> lngLatAlts) {
+  private static GeoJsonObject toGeoJsonObject(FormModel field, List<LngLatAlt> lngLatAlts) {
     if (field.getDataType() == DataType.GEOPOINT && lngLatAlts.size() == 1)
       return new Point(lngLatAlts.get(0));
 

@@ -51,9 +51,9 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
-import org.opendatakit.briefcase.operations.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.api.Pair;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.xmlpull.v1.XmlPullParserException;
 
 /**

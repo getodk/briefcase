@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.operations.export;
+package org.opendatakit.briefcase.reused.model.submission;
 
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
@@ -24,6 +24,7 @@ import java.io.StringReader;
 import org.junit.Test;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 

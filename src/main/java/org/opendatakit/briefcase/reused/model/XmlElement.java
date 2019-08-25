@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.operations.export;
+package org.opendatakit.briefcase.reused.model;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.groupingBy;
@@ -43,6 +43,7 @@ import org.kxml2.kdom.Element;
 import org.kxml2.kdom.Node;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.api.UncheckedFiles;
+import org.opendatakit.briefcase.reused.model.form.FormModel;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -99,7 +100,7 @@ public class XmlElement {
    * Builds and returns this {@link XmlElement} instance's parent's local ID.
    * This ID is used to cross-reference values in different exported files.
    */
-  String getParentLocalId(Model field, String instanceId) {
+  public String getParentLocalId(FormModel field, String instanceId) {
     return isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(field.getParent(), instanceId);
   }
 
@@ -107,7 +108,7 @@ public class XmlElement {
    * Builds and returns this {@link XmlElement} instance's current local ID.
    * This ID is used to cross-reference values in different exported files.
    */
-  String getCurrentLocalId(Model field, String instanceId) {
+  public String getCurrentLocalId(FormModel field, String instanceId) {
     String prefix = isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(field.getParent(), instanceId);
     return field.isRepeatable()
         ? prefix + "/" + getName() + "[" + getPlaceAmongSameTagSiblings() + "]"
@@ -118,7 +119,7 @@ public class XmlElement {
    * Builds and returns this {@link XmlElement} instance's group local ID.
    * This ID is used to cross-reference values in different exported files.
    */
-  String getGroupLocalId(Model field, String instanceId) {
+  public String getGroupLocalId(FormModel field, String instanceId) {
     String prefix = isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(field.getParent(), instanceId);
     return prefix + "/" + getName();
   }
@@ -130,7 +131,7 @@ public class XmlElement {
    * @return the {@link Map} index of all this {@link XmlElement} instance's descendants, grouped by FQN
    * @see XmlElement#fqn()
    */
-  Map<String, List<XmlElement>> getChildrenIndex() {
+  public Map<String, List<XmlElement>> getChildrenIndex() {
     return flatten().collect(groupingBy(XmlElement::fqn));
   }
 
@@ -221,7 +222,7 @@ public class XmlElement {
    * @return a @{link String} with the FQN of this {@link XmlElement}
    * @see XmlElement#fqn(String)
    */
-  String fqn() {
+  public String fqn() {
     return fqn("");
   }
 
@@ -253,7 +254,7 @@ public class XmlElement {
   /**
    * Returns whether this element holds a value or not.
    */
-  boolean isEmpty() {
+  public boolean isEmpty() {
     return maybeValue().isEmpty();
   }
 

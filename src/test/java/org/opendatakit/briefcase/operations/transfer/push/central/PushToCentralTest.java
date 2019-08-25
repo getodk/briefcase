@@ -79,10 +79,10 @@ public class PushToCentralTest {
     formMetadata = FormMetadata.empty(FormKey.of("Push form test", "push-form-test"))
         .withFormFile(briefcaseDir.resolve("forms/Push form test/Push form test.xml"));
     tracker = new PushToCentralTracker(this::onEvent, formMetadata);
-    form = installForm(formMetadata, getResourcePath("/org/opendatakit/briefcase/push/aggregate/push-form-test.xml"));
-    formAttachment = installFormAttachment(formMetadata, getResourcePath("/org/opendatakit/briefcase/push/aggregate/sparrow.png"));
-    submission = installSubmission(formMetadata, getResourcePath("/org/opendatakit/briefcase/push/aggregate/submission.xml"));
-    submissionAttachment = installSubmissionAttachment(formMetadata, getResourcePath("/org/opendatakit/briefcase/push/aggregate/1556532531101.jpg"), instanceId);
+    form = installForm(formMetadata, getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/push-form-test.xml"));
+    formAttachment = installFormAttachment(formMetadata, getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/sparrow.png"));
+    submission = installSubmission(formMetadata, getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/submission.xml"));
+    submissionAttachment = installSubmissionAttachment(formMetadata, getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/1556532531101.jpg"), instanceId);
   }
 
   @After

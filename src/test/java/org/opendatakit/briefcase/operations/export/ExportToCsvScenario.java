@@ -47,6 +47,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.opendatakit.briefcase.reused.api.UncheckedFiles;
+import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.InMemoryFormMetadataAdapter;
@@ -255,7 +256,7 @@ class ExportToCsvScenario {
   }
 
   private static Optional<Path> maybeGetPath(String fileName) {
-    return Optional.ofNullable(ExportToCsvTest.class.getClassLoader().getResource("org/opendatakit/briefcase/export/" + fileName))
+    return Optional.ofNullable(ExportToCsvTest.class.getClassLoader().getResource("org/opendatakit/briefcase/operations/export/" + fileName))
         .map(url -> Paths.get(toURI(url)));
   }
 

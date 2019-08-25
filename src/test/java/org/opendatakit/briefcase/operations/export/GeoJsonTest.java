@@ -46,6 +46,11 @@ import org.hamcrest.TypeSafeMatcher;
 import org.javarosa.core.model.DataType;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.api.Pair;
+import org.opendatakit.briefcase.reused.model.XmlElement;
+import org.opendatakit.briefcase.reused.model.form.FormModel;
+import org.opendatakit.briefcase.reused.model.form.ModelBuilder;
+import org.opendatakit.briefcase.reused.model.submission.Submission;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetaData;
 import org.xmlpull.v1.XmlPullParserException;
 
 public class GeoJsonTest {
@@ -148,7 +153,7 @@ public class GeoJsonTest {
       );
     }).collect(toList());
 
-    Model model = ModelBuilder.instance(fieldsAndContents.stream().map(Pair::getLeft).collect(toList())).build();
+    FormModel model = ModelBuilder.instance(fieldsAndContents.stream().map(Pair::getLeft).collect(toList())).build();
 
     StringBuilder xml = new StringBuilder("<data instanceID=\"uuid:39f3dd36-161e-45cb-a1a4-395831d253a7\">");
     fieldsAndContents.forEach(pair -> xml

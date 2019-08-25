@@ -24,8 +24,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Objects;
 import java.util.Optional;
-import org.opendatakit.briefcase.operations.export.XmlElement;
 import org.opendatakit.briefcase.reused.api.Iso8601Helpers;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 
 /**
  * This class stores information about a cursor to a list of remote submission

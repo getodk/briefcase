@@ -59,7 +59,7 @@ class ConfigurationPanelPageObject {
       TEST_FOLDER = Files.createTempDirectory("briefcase_test");
       VALID_PEM_FILE = TEST_FOLDER.resolve("pkey.pem");
       URI sourcePemFileUri = ExportConfigurationTest.class.getClassLoader()
-          .getResource("org/opendatakit/briefcase/export/encrypted-form-key.pem")
+          .getResource("org/opendatakit/briefcase/operations/export/encrypted-form-key.pem")
           .toURI();
       copy(Paths.get(sourcePemFileUri), VALID_PEM_FILE);
     } catch (IOException | URISyntaxException e) {

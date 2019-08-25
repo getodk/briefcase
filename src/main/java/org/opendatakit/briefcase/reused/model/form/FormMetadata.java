@@ -7,9 +7,9 @@ import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Optional;
-import org.opendatakit.briefcase.operations.export.XmlElement;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 
 public class FormMetadata {
   private final FormKey key;

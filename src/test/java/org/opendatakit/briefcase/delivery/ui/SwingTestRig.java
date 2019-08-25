@@ -15,18 +15,7 @@
  */
 package org.opendatakit.briefcase.delivery.ui;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 public class SwingTestRig {
-
-  public static Path classPath(String location) {
-    String absoluteLocation = location.startsWith("/") ? location : "/" + location;
-    return Paths.get(uncheckedURLtoURI(SwingTestRig.class.getResource(absoluteLocation)));
-  }
 
   public static void uncheckedSleep(int millis) {
     try {
@@ -36,11 +25,4 @@ public class SwingTestRig {
     }
   }
 
-  private static URI uncheckedURLtoURI(URL url) {
-    try {
-      return url.toURI();
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-  }
 }

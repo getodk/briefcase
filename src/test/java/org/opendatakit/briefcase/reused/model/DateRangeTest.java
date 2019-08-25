@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.operations.export;
+package org.opendatakit.briefcase.reused.model;
 
 import static java.lang.Math.abs;
 import static org.hamcrest.Matchers.is;

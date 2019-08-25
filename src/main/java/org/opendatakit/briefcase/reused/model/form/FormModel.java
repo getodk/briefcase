@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.operations.export;
+package org.opendatakit.briefcase.reused.model.form;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -25,7 +25,7 @@ import static org.javarosa.core.model.DataType.GEOSHAPE;
 import static org.javarosa.core.model.DataType.GEOTRACE;
 import static org.javarosa.core.model.DataType.MULTIPLE_ITEMS;
 import static org.javarosa.core.model.DataType.NULL;
-import static org.opendatakit.briefcase.operations.export.Model.ControlType.SELECT_MULTI;
+import static org.opendatakit.briefcase.reused.model.form.FormModel.ControlType.SELECT_MULTI;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,14 +48,15 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
  * This class represents a particular level in the model of a Form.
  * It can hold the root level model or any of its fields.
  */
-class Model {
+// TODO Break coupling to this class from XmlElement
+public class FormModel {
   private final TreeElement model;
   private final Map<String, QuestionDef> controls;
 
   /**
-   * Main constructor for {@link Model} that takes a {@link TreeElement} as its root.
+   * Main constructor for {@link FormModel} that takes a {@link TreeElement} as its root.
    */
-  Model(TreeElement model, Map<String, QuestionDef> controls) {
+  public FormModel(TreeElement model, Map<String, QuestionDef> controls) {
     this.model = model;
     this.controls = controls;
   }
@@ -68,35 +69,35 @@ class Model {
    * @param <T>    Type parameter of the output {@link Stream}
    * @return a {@link Stream} of type T
    */
-  <T> Stream<T> flatMap(Function<Model, Stream<T>> mapper) {
+  public <T> Stream<T> flatMap(Function<FormModel, Stream<T>> mapper) {
     return children().stream().flatMap(mapper);
   }
 
   /**
-   * Returns the name of this {@link Model} instance, which is the
+   * Returns the name of this {@link FormModel} instance, which is the
    * name of the XML tag that it represents on a Form's model.
    *
-   * @return a {@link String} with the name of this {@link Model}
+   * @return a {@link String} with the name of this {@link FormModel}
    */
-  String getName() {
+  public String getName() {
     return model.getName();
   }
 
   /**
-   * Returns the Fully Qualified Name of this {@link Model} instance, which
+   * Returns the Fully Qualified Name of this {@link FormModel} instance, which
    * is the concatenation of this instance's name and all its ancestors' names.
    *
-   * @return a @{link String} with the FQN of this {@link Model}
+   * @return a @{link String} with the FQN of this {@link FormModel}
    */
-  String fqn() {
+  public String fqn() {
     return fqn(0);
   }
 
   /**
-   * Returns the Fully Qualified Name of this {@link Model} instance, having
+   * Returns the Fully Qualified Name of this {@link FormModel} instance, having
    * shifted a given number of names.
    */
-  String fqn(int shift) {
+  public String fqn(int shift) {
     return fqn(model, shift);
   }
 
@@ -116,24 +117,24 @@ class Model {
   }
 
   /**
-   * Returns the {@link DataType} of this {@link Model} instance. This will
-   * be normally used when this {@link Model} instance represents a terminal
+   * Returns the {@link DataType} of this {@link FormModel} instance. This will
+   * be normally used when this {@link FormModel} instance represents a terminal
    * field of a form's model.
    *
-   * @return the {@link DataType} of this {@link Model} instance}
+   * @return the {@link DataType} of this {@link FormModel} instance}
    */
-  DataType getDataType() {
+  public DataType getDataType() {
     return DataType.from(model.getDataType());
   }
 
   /**
-   * Returns the {@link List} of {@link String} names that this {@link Model} instance can be
+   * Returns the {@link List} of {@link String} names that this {@link FormModel} instance can be
    * associated with, shifted a given number of names.
    *
    * @param shift an int with the number of names to shift from the FQN
-   * @return a {@link List} of shifted {@link String} names of this {@link Model} instance
+   * @return a {@link List} of shifted {@link String} names of this {@link FormModel} instance
    */
-  List<String> getNames(int shift, boolean splitSelectMultiples, boolean removeGroupNames) {
+  public List<String> getNames(int shift, boolean splitSelectMultiples, boolean removeGroupNames) {
     if (getDataType() == NULL && model.isRepeatable())
       return singletonList("SET-OF-" + fqn(shift));
     if (getDataType() == NULL && !model.isRepeatable() && size() > 0)
@@ -155,52 +156,52 @@ class Model {
   }
 
   /**
-   * Returns the {@link List} of repeatable group {@link Model} children of this {@link Model}
+   * Returns the {@link List} of repeatable group {@link FormModel} children of this {@link FormModel}
    * instance.
    *
-   * @return a {@link List} of repeatable group {@link Model} children of this {@link Model} instance
+   * @return a {@link List} of repeatable group {@link FormModel} children of this {@link FormModel} instance
    */
-  List<Model> getRepeatableFields() {
+  public List<FormModel> getRepeatableFields() {
     return flatten()
         .filter(field -> field.model.getDataType() == DATATYPE_NULL && field.model.isRepeatable())
         .collect(toList());
   }
 
   /**
-   * Returns whether this {@link Model} instance represents a repeatable group or not.
+   * Returns whether this {@link FormModel} instance represents a repeatable group or not.
    *
-   * @return true if this {@link Model} instance represents a repeatable group. False otherwise.
+   * @return true if this {@link FormModel} instance represents a repeatable group. False otherwise.
    */
-  boolean isRepeatable() {
+  public boolean isRepeatable() {
     return model.isRepeatable();
   }
 
   /**
-   * Returns whether this {@link Model} instance has children {@link Model} instances or not.
+   * Returns whether this {@link FormModel} instance has children {@link FormModel} instances or not.
    *
-   * @return true if this {@link Model} instance has children {@link Model} instances. False otherwise.
+   * @return true if this {@link FormModel} instance has children {@link FormModel} instances. False otherwise.
    */
-  boolean isEmpty() {
+  public boolean isEmpty() {
     return size() == 0;
   }
 
   /**
-   * Returns the {@link Model} parent of this {@link Model} instance.
+   * Returns the {@link FormModel} parent of this {@link FormModel} instance.
    *
-   * @return the {@link Model} parent of this {@link Model} instance
+   * @return the {@link FormModel} parent of this {@link FormModel} instance
    */
-  Model getParent() {
-    return new Model((TreeElement) model.getParent(), controls);
+  public FormModel getParent() {
+    return new FormModel((TreeElement) model.getParent(), controls);
   }
 
   /**
-   * Returns the number of ancestors of this {@link Model} instance.
+   * Returns the number of ancestors of this {@link FormModel} instance.
    *
-   * @return an integer with the number of ancestors of this {@link Model} instance
+   * @return an integer with the number of ancestors of this {@link FormModel} instance
    */
-  int countAncestors() {
+  public int countAncestors() {
     int count = 0;
-    Model ancestor = this;
+    FormModel ancestor = this;
     while (ancestor.hasParent()) {
       count++;
       ancestor = ancestor.getParent();
@@ -210,19 +211,19 @@ class Model {
   }
 
   /**
-   * Returns whether this {@link Model} is the top-most element on a form's model.
+   * Returns whether this {@link FormModel} is the top-most element on a form's model.
    *
-   * @return true if this {@link Model} is the top-most element on a form's model. False otherwise.
+   * @return true if this {@link FormModel} is the top-most element on a form's model. False otherwise.
    */
-  boolean isRoot() {
+  public boolean isRoot() {
     return countAncestors() == 0;
   }
 
-  boolean hasParent() {
+  public boolean hasParent() {
     return model.getParent() != null;
   }
 
-  private Stream<Model> flatten() {
+  private Stream<FormModel> flatten() {
     return children().stream()
         .flatMap(e -> e.size() == 0 ? Stream.of(e) : concat(Stream.of(e), e.flatten()));
   }
@@ -231,11 +232,11 @@ class Model {
     return model.getNumChildren();
   }
 
-  List<Model> children() {
+  public List<FormModel> children() {
     Set<String> fqns = new HashSet<>();
-    List<Model> children = new ArrayList<>(model.getNumChildren());
+    List<FormModel> children = new ArrayList<>(model.getNumChildren());
     for (int i = 0, max = model.getNumChildren(); i < max; i++) {
-      Model child = new Model(model.getChildAt(i), controls);
+      FormModel child = new FormModel(model.getChildAt(i), controls);
       String fqn = child.fqn();
       if (!fqns.contains(fqn)) {
         children.add(child);
@@ -245,14 +246,14 @@ class Model {
     return children;
   }
 
-  boolean isChoiceList() {
+  public boolean isChoiceList() {
     return Optional.ofNullable(controls.get(fqn()))
         .map(control -> getDataType() == MULTIPLE_ITEMS || ControlType.from(control.getControlType()) == SELECT_MULTI)
         .orElse(false);
   }
 
 
-  List<SelectChoice> getChoices() {
+  public List<SelectChoice> getChoices() {
     Optional<QuestionDef> maybeControl = Optional.ofNullable(controls.get(fqn()));
 
     if (maybeControl.isEmpty())
@@ -270,11 +271,11 @@ class Model {
         .orElseGet(() -> maybeControl.map(QuestionDef::getChoices).orElse(emptyList()));
   }
 
-  boolean isMetaAudit() {
+  public boolean isMetaAudit() {
     return model.getName().equals("audit") && model.getParent() != null && model.getParent().getName().equals("meta");
   }
 
-  boolean hasAuditField() {
+  public boolean hasAuditField() {
     return flatten()
         .filter(child -> child.getName().equals("audit"))
         .findFirst()
@@ -282,7 +283,7 @@ class Model {
         .orElse(false);
   }
 
-  Model getChildByName(String name) {
+  public FormModel getChildByName(String name) {
     return flatten()
         .filter(child -> child.getName().equals(name))
         .findFirst()
@@ -293,8 +294,8 @@ class Model {
     return Arrays.asList(GEOPOINT, GEOTRACE, GEOSHAPE).contains(getDataType());
   }
 
-  List<Model> getSpatialFields() {
-    return flatten().filter(Model::isSpatial).collect(toList());
+  public List<FormModel> getSpatialFields() {
+    return flatten().filter(FormModel::isSpatial).collect(toList());
   }
 
   // TODO This should be defined in JavaRosa, like the DataType enum

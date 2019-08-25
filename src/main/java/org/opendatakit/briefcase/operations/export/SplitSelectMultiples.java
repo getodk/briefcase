@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.opendatakit.briefcase.reused.api.Pair;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 
 class SplitSelectMultiples {
   static CsvFieldMapper decorate(CsvFieldMapper mapper) {

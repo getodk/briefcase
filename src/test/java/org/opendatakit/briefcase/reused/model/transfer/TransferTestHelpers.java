@@ -35,12 +35,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import org.opendatakit.briefcase.operations.export.SubmissionMetaData;
-import org.opendatakit.briefcase.operations.export.XmlElement;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.AggregateAttachment;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.api.Pair;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetaData;
 
 public class TransferTestHelpers {
   public static String buildSubmissionXml(String instanceId) {

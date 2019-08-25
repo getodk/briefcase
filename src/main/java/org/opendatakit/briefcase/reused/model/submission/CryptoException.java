@@ -14,17 +14,20 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.operations.export;
+package org.opendatakit.briefcase.reused.model.submission;
 
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
-public class ParsingException extends BriefcaseException {
-  public ParsingException(Throwable cause) {
+public class CryptoException extends BriefcaseException {
+  public CryptoException(Throwable cause) {
     super(cause);
   }
 
-  public ParsingException(String message) {
+  public CryptoException(String message) {
     super(message);
   }
 
+  public CryptoException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

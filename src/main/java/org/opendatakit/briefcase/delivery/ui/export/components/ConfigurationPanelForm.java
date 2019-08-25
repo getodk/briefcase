@@ -47,10 +47,10 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import org.opendatakit.briefcase.delivery.ui.reused.filsystem.FileChooser;
-import org.opendatakit.briefcase.operations.export.DateRange;
 import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 import org.opendatakit.briefcase.reused.api.StringUtils;
 import org.opendatakit.briefcase.reused.api.TriStateBoolean;
+import org.opendatakit.briefcase.reused.model.DateRange;
 import org.opendatakit.briefcase.reused.model.OverridableBoolean;
 
 @SuppressWarnings("checkstyle:MethodName")

@@ -19,9 +19,9 @@ package org.opendatakit.briefcase.operations.transfer.pull.aggregate;
 import static org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate.asMediaFileList;
 
 import java.util.List;
-import org.opendatakit.briefcase.operations.export.SubmissionMetaData;
-import org.opendatakit.briefcase.operations.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.model.XmlElement;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetaData;
 
 /**
  * Stores a form submission's contents and a list to its attachments.

@@ -13,15 +13,17 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.operations.export;
+package org.opendatakit.briefcase.reused.model.submission;
 
 import static java.util.stream.Collectors.toList;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.api.Iso8601Helpers;
 import org.opendatakit.briefcase.reused.api.Optionals;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 
 /**
  * This class holds a form's metadata. Instances of this class are
@@ -80,15 +82,13 @@ public class SubmissionMetaData {
   /**
    * Returns this submission's form ID, which is taken from the root node's "id" or
    * "xmlns" attribute.
-   *
-   * @throws ParsingException if neither attribute is found or they're empty
    */
   public String getFormId() {
     if (formId == null)
       formId = Optionals.race(
           root.getAttributeValue("id"),
           root.getAttributeValue("xmlns")
-      ).orElseThrow(() -> new ParsingException("Unable to extract form id"));
+      ).orElseThrow(() -> new BriefcaseException("Unable to extract form id"));
     return formId;
   }
 
@@ -116,7 +116,7 @@ public class SubmissionMetaData {
    * Returns the list of media attachment file names, which are the values of
    * all the &lt;file&gt; children in the &lt;media&gt element
    */
-  List<String> getMediaNames() {
+  public List<String> getMediaNames() {
     if (mediaNames == null)
       mediaNames = root.findElements("media").stream()
           .flatMap(e -> e.findElements("file").stream())

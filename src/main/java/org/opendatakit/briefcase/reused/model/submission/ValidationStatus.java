@@ -13,12 +13,12 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.operations.export;
+package org.opendatakit.briefcase.reused.model.submission;
 
 /**
  * This enum holds all the possible {@link Submission} validation statuses
  */
-enum ValidationStatus {
+public enum ValidationStatus {
   /**
    * Initially all the {@link Submission} instances have this status. This is
    * OK when the form is not encrypted.

@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
+import org.opendatakit.briefcase.reused.model.form.FormDefinition;
+import org.opendatakit.briefcase.reused.model.form.FormModel;
 
 /**
  * This class represents a CSV export output file. It knows how to write
@@ -45,7 +47,7 @@ class Csv {
     List<Csv> csvs = new ArrayList<>();
     csvs.add(main(formDef, configuration));
     List<Csv> repeatCsvs = formDef.getRepeatableFields().stream()
-        .collect(groupingBy(Model::getName))
+        .collect(groupingBy(FormModel::getName))
         .values().stream()
         .flatMap(models -> mapToRepeatCsv(formDef, configuration, models))
         .collect(toList());
@@ -69,7 +71,7 @@ class Csv {
     );
   }
 
-  private static Csv repeat(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration, Path output) {
+  private static Csv repeat(FormDefinition formDefinition, FormModel groupModel, ExportConfiguration configuration, Path output) {
     return new Csv(
         groupModel.fqn(),
         getRepeatHeader(
@@ -91,7 +93,7 @@ class Csv {
     ));
   }
 
-  private static Path buildRepeatOutputPath(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration) {
+  private static Path buildRepeatOutputPath(FormDefinition formDefinition, FormModel groupModel, ExportConfiguration configuration) {
     return configuration.getExportDir().resolve(String.format(
         "%s-%s.csv",
         configuration.getFilenameBase(formDefinition.getFormName()),
@@ -99,7 +101,7 @@ class Csv {
     ));
   }
 
-  private static Path buildRepeatOutputPath(FormDefinition formDefinition, Model groupModel, ExportConfiguration configuration, int sequenceNumber) {
+  private static Path buildRepeatOutputPath(FormDefinition formDefinition, FormModel groupModel, ExportConfiguration configuration, int sequenceNumber) {
     return configuration.getExportDir().resolve(String.format(
         "%s-%s~%d.csv",
         configuration.getFilenameBase(formDefinition.getFormName()),
@@ -108,7 +110,7 @@ class Csv {
     ));
   }
 
-  private static Stream<Csv> mapToRepeatCsv(FormDefinition formDef, ExportConfiguration configuration, List<Model> models) {
+  private static Stream<Csv> mapToRepeatCsv(FormDefinition formDef, ExportConfiguration configuration, List<FormModel> models) {
     if (models.size() == 1)
       return models.stream().map(group -> repeat(formDef, group, configuration, buildRepeatOutputPath(formDef, group, configuration)));
     AtomicInteger sequence = new AtomicInteger(1);

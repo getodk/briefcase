@@ -37,6 +37,8 @@ import org.kxml2.kdom.Document;
 import org.kxml2.kdom.Element;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.api.UncheckedFiles;
+import org.opendatakit.briefcase.reused.model.XmlElement;
+import org.opendatakit.briefcase.reused.model.form.FormModel;
 
 class Scenario {
   private static int instanceIdSeq = 1;
@@ -47,9 +49,9 @@ class Scenario {
   private String instanceId;
   private final String instanceName;
   private final String fieldName;
-  private final Model fieldModel;
+  private final FormModel fieldModel;
 
-  Scenario(String formName, String instanceId, String instanceName, String fieldName, Model fieldModel) {
+  Scenario(String formName, String instanceId, String instanceName, String fieldName, FormModel fieldModel) {
     this.formName = formName;
     this.instanceId = instanceId;
     this.instanceName = instanceName;
@@ -71,19 +73,19 @@ class Scenario {
   }
 
   static Scenario nonGroup(String formName, DataType dataType, String fieldName, String parentName) {
-    Model fieldModel = createField(dataType, fieldName, parentName);
+    FormModel fieldModel = createField(dataType, fieldName, parentName);
     return new Scenario(formName, "instance_" + instanceIdSeq++, "data", fieldName, fieldModel);
   }
 
-  static Model createField(DataType dataType) {
+  static FormModel createField(DataType dataType) {
     return createField(dataType, "field", null);
   }
 
-  static Model createField(DataType dataType, String fieldName) {
+  static FormModel createField(DataType dataType, String fieldName) {
     return createField(dataType, fieldName, null);
   }
 
-  static Model createField(DataType dataType, String fieldName, String parentName) {
+  static FormModel createField(DataType dataType, String fieldName, String parentName) {
     List<TreeElement> elements = new LinkedList<>();
     TreeElement fieldTreeElement = new TreeElement(fieldName, DEFAULT_MULTIPLICITY);
     fieldTreeElement.setDataType(dataType.value);
@@ -109,7 +111,7 @@ class Scenario {
     for (int i = maxIndex; i > 0; i--)
       elements.get(i).addChild(elements.get(i - 1));
 
-    return new Model(fieldTreeElement, Collections.emptyMap());
+    return new FormModel(fieldTreeElement, Collections.emptyMap());
   }
 
   private static Scenario group(String instanceId, DataType dataType, int fieldCount, boolean repeatable) {
@@ -137,7 +139,7 @@ class Scenario {
     groupTreeElement.setParent(instanceTreeElement);
     instanceTreeElement.setParent(rootTreeElement);
 
-    return new Scenario("some-form", instanceId, "data", "group", new Model(groupTreeElement, Collections.emptyMap()));
+    return new Scenario("some-form", instanceId, "data", "group", new FormModel(groupTreeElement, Collections.emptyMap()));
   }
 
   static Scenario repeatGroup(String instanceId, DataType dataType, int fieldCount) {

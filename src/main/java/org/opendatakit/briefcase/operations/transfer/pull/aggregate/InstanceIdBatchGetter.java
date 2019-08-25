@@ -21,10 +21,10 @@ import static java.util.stream.Collectors.toList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import org.opendatakit.briefcase.operations.export.XmlElement;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.response.Response;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 
 /**

@@ -13,12 +13,12 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.operations.export;
+package org.opendatakit.briefcase.reused.model.submission;
 
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.operations.export.ValidationStatus.NOT_VALIDATED;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.checksumOf;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.stripFileExtension;
+import static org.opendatakit.briefcase.reused.model.submission.ValidationStatus.NOT_VALIDATED;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,6 +32,7 @@ import javax.crypto.Cipher;
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.api.UncheckedFiles;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 
 /**
  * This class represents a form's submission XML document.
@@ -78,7 +79,7 @@ public class Submission {
    *                      if the form requires no decryption
    * @return a new {@link Submission} instance
    */
-  static Submission notValidated(Path path, Path workingDir, XmlElement root, SubmissionMetaData metaData, Optional<CipherFactory> cipherFactory, Optional<byte[]> signature) {
+  public static Submission notValidated(Path path, Path workingDir, XmlElement root, SubmissionMetaData metaData, Optional<CipherFactory> cipherFactory, Optional<byte[]> signature) {
     return new Submission(path, workingDir, root, metaData, NOT_VALIDATED, cipherFactory, signature);
   }
 
@@ -100,7 +101,7 @@ public class Submission {
    * @return a {@link String} with the submission's instance ID
    * @throws BriefcaseException if there is no instance ID and the form has repeatable fields
    */
-  String getInstanceId(boolean formHasRepeatableFields) {
+  public String getInstanceId(boolean formHasRepeatableFields) {
     Optional<String> maybeInstanceId = metaData.getInstanceId();
     return formHasRepeatableFields
         ? maybeInstanceId.orElseThrow(() -> new BriefcaseException("The form has repeat groups and this submission has no instance ID"))
@@ -120,7 +121,7 @@ public class Submission {
     List<String> signatureParts = new ArrayList<>();
     signatureParts.add(metaData.getFormId());
     metaData.getVersion().ifPresent(signatureParts::add);
-    signatureParts.add(metaData.getBase64EncryptedKey().orElseThrow(() -> new ParsingException("Missing base64EncryptedKey element in encrypted form")));
+    signatureParts.add(metaData.getBase64EncryptedKey().orElseThrow(() -> new BriefcaseException("Missing base64EncryptedKey element in encrypted form")));
     signatureParts.add(metaData.getInstanceId().orElseGet(() -> "crc32:" + checksumOf(originalSubmission.path)));
     for (String mediaName : metaData.getMediaNames()) {
       Path decryptedFile = workingDir.resolve(stripFileExtension(mediaName));
@@ -176,7 +177,7 @@ public class Submission {
    *
    * @return the {@link Path} to the working directory
    */
-  Path getWorkingDir() {
+  public Path getWorkingDir() {
     return workingDir;
   }
 
@@ -202,17 +203,11 @@ public class Submission {
     return metaData.getMediaNames().size();
   }
 
-  /**
-   * Returns the {@link Path} to the related submission encrypted file.
-   *
-   * @return the {@link Path} to the submission encrypted file
-   * @throws ParsingException if no encrypted file is found
-   */
   Path getEncryptedFilePath() {
     return metaData.getEncryptedXmlFile()
         .map(fileName -> path.getParent().resolve(fileName))
         .filter(path -> Files.exists(path))
-        .orElseThrow(() -> new ParsingException("Encrypted file not found"));
+        .orElseThrow(() -> new BriefcaseException("Encrypted file not found"));
   }
 
   /**
@@ -223,7 +218,7 @@ public class Submission {
    * @return the {@link XmlElement} with the given name, wrapped in an {@link Optional},
    *     or {@link Optional#empty()} if no element with that name is found
    */
-  Optional<XmlElement> findElement(String name) {
+  public Optional<XmlElement> findElement(String name) {
     return root.findElement(name);
   }
 
@@ -232,7 +227,7 @@ public class Submission {
    *
    * @return the {@link ValidationStatus} of this submission
    */
-  ValidationStatus getValidationStatus() {
+  public ValidationStatus getValidationStatus() {
     return validationStatus;
   }
 
@@ -243,7 +238,7 @@ public class Submission {
    * @param fqn the {@link String} fully qualified name to search for elements
    * @return a {@link List} of {@link XmlElement} elements with the same FQN
    */
-  List<XmlElement> getElements(String fqn) {
+  public List<XmlElement> getElements(String fqn) {
     if (elementsByFqn == null)
       elementsByFqn = root.getChildrenIndex();
     return Optional.ofNullable(elementsByFqn.get(fqn)).orElse(Collections.emptyList());

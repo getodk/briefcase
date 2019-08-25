@@ -84,7 +84,7 @@ public class PullFromAggregateIntegrationTest {
   private FormMetadata formMetadata;
 
   private static Path getPath(String fileName) {
-    return Optional.ofNullable(PullFromAggregateIntegrationTest.class.getClassLoader().getResource("org/opendatakit/briefcase/pull/aggregate/" + fileName))
+    return Optional.ofNullable(PullFromAggregateIntegrationTest.class.getClassLoader().getResource("org/opendatakit/briefcase/operations/transfer/pull/aggregate/" + fileName))
         .map(url -> Paths.get(toURI(url)))
         .orElseThrow(RuntimeException::new);
   }

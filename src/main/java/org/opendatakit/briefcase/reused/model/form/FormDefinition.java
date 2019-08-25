@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.opendatakit.briefcase.operations.export;
+package org.opendatakit.briefcase.reused.model.form;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toMap;
@@ -45,7 +45,6 @@ import org.javarosa.core.model.instance.TreeElement;
 import org.javarosa.core.model.instance.TreeReference;
 import org.javarosa.xform.parse.XFormParser;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 
 /**
  * This class holds all the relevant information about the form being exported.
@@ -80,10 +79,10 @@ public class FormDefinition {
   private final String id;
   private final String name;
   private final boolean isEncrypted;
-  private final Model model;
-  private final List<Model> repeatFields;
+  private final FormModel model;
+  private final List<FormModel> repeatFields;
 
-  public FormDefinition(String id, String name, boolean isEncrypted, Model model, List<Model> repeatableFields) {
+  public FormDefinition(String id, String name, boolean isEncrypted, FormModel model, List<FormModel> repeatableFields) {
     this.id = id;
     this.name = name;
     this.isEncrypted = isEncrypted;
@@ -99,7 +98,7 @@ public class FormDefinition {
          InputStreamReader isr = new InputStreamReader(in, UTF_8);
          BufferedReader br = new BufferedReader(isr)) {
       FormDef formDef = new XFormParser(XFormParser.getXMLDocument(br)).parse();
-      Model model = new Model(formDef.getMainInstance().getRoot(), getFormControls(formDef));
+      FormModel model = new FormModel(formDef.getMainInstance().getRoot(), getFormControls(formDef));
       return new FormDefinition(
           formMetadata.getKey().getId(),
           formMetadata.getKey().getName(),
@@ -108,16 +107,13 @@ public class FormDefinition {
           model.getRepeatableFields()
       );
     } catch (IOException e) {
-      throw new ParsingException(e);
+      throw new BriefcaseException(e);
     }
   }
 
   /**
    * Factory that takes the {@link Path} to a form's definition XML file, parses it, and
    * returns a new {@link FormDefinition}.
-   *
-   * @throws BriefcaseException if the given {@link Path} doesn't exist
-   * @throws ParsingException   if there is any problem while parsing the file
    */
   public static FormDefinition from(Path formFile) {
     if (!Files.exists(formFile))
@@ -133,7 +129,7 @@ public class FormDefinition {
           .flatMap(sp -> Optional.ofNullable(sp.getAttribute("base64RsaPublicKey")))
           .filter(s -> !s.isEmpty())
           .isPresent();
-      final Model model1 = new Model(formDef.getMainInstance().getRoot(), getFormControls(formDef));
+      final FormModel model1 = new FormModel(formDef.getMainInstance().getRoot(), getFormControls(formDef));
       return new FormDefinition(
           parseFormId(formDef.getMainInstance().getRoot()),
           formDef.getName(),
@@ -141,7 +137,7 @@ public class FormDefinition {
           model1, model1.getRepeatableFields()
       );
     } catch (IOException e) {
-      throw new ParsingException(e);
+      throw new BriefcaseException(e);
     }
   }
 
@@ -210,21 +206,21 @@ public class FormDefinition {
   /**
    * Returns the form's name
    */
-  String getFormName() {
+  public String getFormName() {
     return name;
   }
 
   /**
    * Returns true if the form is encrypted, false otherwise.
    */
-  boolean isFileEncryptedForm() {
+  public boolean isFileEncryptedForm() {
     return isEncrypted;
   }
 
   /**
    * Returns the form's model
    */
-  Model getModel() {
+  public FormModel getModel() {
     return model;
   }
 
@@ -238,14 +234,14 @@ public class FormDefinition {
   /**
    * Returns the list of repeat group fields
    */
-  List<Model> getRepeatableFields() {
+  public List<FormModel> getRepeatableFields() {
     return repeatFields;
   }
 
   /**
    * Returns true if the form definition includes repeat groups, false otherwise.
    */
-  boolean hasRepeatableFields() {
+  public boolean hasRepeatableFields() {
     return !repeatFields.isEmpty();
   }
 }

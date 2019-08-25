@@ -19,8 +19,8 @@ package org.opendatakit.briefcase.operations.transfer.pull.aggregate;
 import static java.util.Collections.emptyList;
 
 import java.util.Optional;
-import org.opendatakit.briefcase.operations.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 
 /**
  * This class generates the keys required by Aggregate to download a

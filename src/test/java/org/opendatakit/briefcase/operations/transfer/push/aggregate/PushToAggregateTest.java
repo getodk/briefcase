@@ -75,10 +75,10 @@ public class PushToAggregateTest {
     formMetadata = FormMetadata.empty(FormKey.of("Push form test", "push-form-test"))
         .withFormFile(briefcaseDir.resolve("forms/Push form test/Push form test.xml"));
     tracker = new PushToAggregateTracker(this::onEvent, formMetadata);
-    form = TransferTestHelpers.installForm(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/push/aggregate/push-form-test.xml"));
-    formAttachment = TransferTestHelpers.installFormAttachment(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/push/aggregate/sparrow.png"));
-    submission = TransferTestHelpers.installSubmission(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/push/aggregate/submission.xml"));
-    submissionAttachment = TransferTestHelpers.installSubmissionAttachment(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/push/aggregate/1556532531101.jpg"), instanceId);
+    form = TransferTestHelpers.installForm(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/push-form-test.xml"));
+    formAttachment = TransferTestHelpers.installFormAttachment(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/sparrow.png"));
+    submission = TransferTestHelpers.installSubmission(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/submission.xml"));
+    submissionAttachment = TransferTestHelpers.installSubmissionAttachment(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/1556532531101.jpg"), instanceId);
   }
 
   @After

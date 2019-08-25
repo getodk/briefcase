@@ -19,21 +19,24 @@ package org.opendatakit.briefcase.operations.export;
 import static org.opendatakit.briefcase.operations.export.ExportOutcome.ALL_EXPORTED;
 import static org.opendatakit.briefcase.operations.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.operations.export.ExportOutcome.SOME_SKIPPED;
-import static org.opendatakit.briefcase.operations.export.SubmissionParser.getListOfSubmissionFiles;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.exists;
+import static org.opendatakit.briefcase.reused.model.submission.SubmissionParser.getListOfSubmissionFiles;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 import org.bushe.swing.event.EventBus;
 import org.geojson.Feature;
 import org.opendatakit.briefcase.delivery.ui.reused.Analytics;
+import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
+import org.opendatakit.briefcase.reused.model.submission.Submission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,8 +64,8 @@ public class ExportToGeoJson {
     ExportProcessTracker exportTracker = new ExportProcessTracker(formMetadata.getKey());
     exportTracker.start();
 
-    SubmissionExportErrorCallback onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
-    SubmissionExportErrorCallback onInvalidSubmission = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()))
+    var onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
+    var onInvalidSubmission = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()))
         .andThen((path, message) ->
             analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null))
         );
@@ -97,7 +100,7 @@ public class ExportToGeoJson {
     return exportOutcome;
   }
 
-  private static SubmissionExportErrorCallback buildParsingErrorCallback(Path errorsDir) {
+  private static BiConsumer<Path, String> buildParsingErrorCallback(Path errorsDir) {
     AtomicInteger errorSeq = new AtomicInteger(1);
     // Remove errors from a previous export attempt
     if (exists(errorsDir))

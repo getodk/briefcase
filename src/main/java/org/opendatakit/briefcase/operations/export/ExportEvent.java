@@ -49,7 +49,7 @@ public class ExportEvent {
     return new ExportEvent.Failure(String.format("Failure: %s", cause), false, formKey);
   }
 
-  static ExportEvent failureSubmission(String instanceId, Throwable cause, FormKey formKey) {
+  public static ExportEvent failureSubmission(String instanceId, Throwable cause, FormKey formKey) {
     return new ExportEvent(
         formKey,
         String.format("Can't export submission %s of form ID %s. Cause: %s", instanceId, formKey.getId(), cause.getMessage()),

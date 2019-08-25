@@ -13,16 +13,16 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.operations.export;
+package org.opendatakit.briefcase.reused.model.submission;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
-import static org.opendatakit.briefcase.operations.export.CipherFactory.signatureDecrypter;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createTempDirectory;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.list;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.stripFileExtension;
+import static org.opendatakit.briefcase.reused.model.submission.CipherFactory.signatureDecrypter;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -50,10 +51,13 @@ import javax.xml.stream.XMLStreamReader;
 import org.bushe.swing.event.EventBus;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
+import org.opendatakit.briefcase.operations.export.ExportEvent;
 import org.opendatakit.briefcase.reused.api.Iso8601Helpers;
 import org.opendatakit.briefcase.reused.api.OptionalProduct;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.api.UncheckedFiles;
+import org.opendatakit.briefcase.reused.model.DateRange;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +67,7 @@ import org.xmlpull.v1.XmlPullParserException;
 /**
  * This class holds the main submission parsing code.
  */
-class SubmissionParser {
+public class SubmissionParser {
   private static final Logger log = LoggerFactory.getLogger(SubmissionParser.class);
   private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 
@@ -74,7 +78,7 @@ class SubmissionParser {
    * Each file gets briefly parsed to obtain their submission date and use it as
    * the sorting criteria and for filtering.
    */
-  static List<Path> getListOfSubmissionFiles(FormMetadata formMetadata, DateRange dateRange, boolean smartAppend, SubmissionExportErrorCallback onParsingError) {
+  public static List<Path> getListOfSubmissionFiles(FormMetadata formMetadata, DateRange dateRange, boolean smartAppend, BiConsumer<Path, String> onParsingError) {
     Path instancesDir = formMetadata.getSubmissionsDir();
     if (!Files.exists(instancesDir) || !Files.isReadable(instancesDir))
       return Collections.emptyList();
@@ -89,6 +93,7 @@ class SubmissionParser {
             paths.add(Pair.of(submissionFile, submissionDate.orElse(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC))));
           } catch (Throwable t) {
             log.error("Can't read submission date", t);
+            // TODO Remove coupling to export package here
             EventBus.publish(ExportEvent.failureSubmission(instanceDir.getFileName().toString(), t, formMetadata.getKey()));
           }
         });
@@ -113,17 +118,8 @@ class SubmissionParser {
    * <li>If the form is encrypted, the submission can be decrypted</li>
    * </ul>
    * Returns an {@link Optional#empty()} otherwise.
-   *
-   * @param path        the {@link Path} to the submission file
-   * @param isEncrypted a {@link Boolean} indicating whether the form is encrypted or not.
-   * @param privateKey  the {@link PrivateKey} to be used to decrypt the submissions,
-   *                    wrapped inside an {@link Optional} when the form is encrypted, or
-   *                    {@link Optional#empty()} otherwise
-   * @return the {@link Submission} wrapped inside an {@link Optional} when it meets all the
-   *     criteria, or {@link Optional#empty()} otherwise
-   * @see #decrypt(Submission, SubmissionExportErrorCallback)
    */
-  static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, SubmissionExportErrorCallback onError) {
+  public static Optional<Submission> parseSubmission(Path path, boolean isEncrypted, Optional<PrivateKey> privateKey, BiConsumer<Path, String> onError) {
     Path workingDir = isEncrypted ? createTempDirectory("briefcase") : path.getParent();
     return parse(path, onError).flatMap(document -> {
       XmlElement root = XmlElement.of(document);
@@ -151,7 +147,7 @@ class SubmissionParser {
     });
   }
 
-  private static Optional<OffsetDateTime> readSubmissionDate(Path path, SubmissionExportErrorCallback onParsingError) {
+  private static Optional<OffsetDateTime> readSubmissionDate(Path path, BiConsumer<Path, String> onParsingError) {
     try (InputStream is = Files.newInputStream(path);
          InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
       return parseAttribute(path, isr, "submissionDate", onParsingError)
@@ -161,7 +157,7 @@ class SubmissionParser {
     }
   }
 
-  private static Optional<String> parseAttribute(Path submission, Reader ioReader, String attributeName, SubmissionExportErrorCallback onParsingError) {
+  private static Optional<String> parseAttribute(Path submission, Reader ioReader, String attributeName, BiConsumer<Path, String> onParsingError) {
     try {
       XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(ioReader);
       while (reader.hasNext())
@@ -177,7 +173,7 @@ class SubmissionParser {
   }
 
 
-  private static Optional<Submission> decrypt(Submission submission, SubmissionExportErrorCallback onError) {
+  private static Optional<Submission> decrypt(Submission submission, BiConsumer<Path, String> onError) {
     List<Path> mediaPaths = submission.getMediaPaths();
 
     if (mediaPaths.size() != submission.countMedia())
@@ -213,7 +209,7 @@ class SubmissionParser {
     }
   }
 
-  private static Optional<Document> parse(Path submission, SubmissionExportErrorCallback onError) {
+  private static Optional<Document> parse(Path submission, BiConsumer<Path, String> onError) {
     try (InputStream is = Files.newInputStream(submission);
          InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
       Document tempDoc = new Document();
