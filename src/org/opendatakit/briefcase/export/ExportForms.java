@@ -158,7 +158,11 @@ public class ExportForms {
   }
 
   public boolean allSelected() {
-    return forms.stream().allMatch(FormStatus::isSelected);
+    return !forms.isEmpty() && forms.stream().allMatch(FormStatus::isSelected);
+  }
+
+  public boolean isEmpty() {
+    return forms.isEmpty();
   }
 
   public boolean noneSelected() {
