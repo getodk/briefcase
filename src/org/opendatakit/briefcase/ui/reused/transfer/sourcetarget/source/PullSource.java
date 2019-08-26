@@ -23,6 +23,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
@@ -35,7 +36,15 @@ public interface PullSource<T> extends SourceOrTarget<T> {
   }
 
   static PullSource<CentralServer> central(Http http, Consumer<PullSource> consumer) {
-    return new Central(http, server -> http.execute(server.getCredentialsTestRequest()), consumer);
+    return new Central(http,
+        server -> {
+          Response<String> response = http.execute(server.getSessionTokenRequest());
+          if (!response.isSuccess()) {
+            return response;
+          }
+
+          return http.execute(server.getProjectTestRequest(response.get()));
+        }, consumer);
   }
 
   static PullSource<Path> customDir(Consumer<PullSource> consumer) {

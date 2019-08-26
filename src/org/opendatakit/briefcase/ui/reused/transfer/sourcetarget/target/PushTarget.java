@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.transfer.CentralServer;
@@ -37,7 +38,14 @@ public interface PushTarget<T> extends SourceOrTarget<T> {
   }
 
   static PushTarget<CentralServer> central(Http http, Consumer<PushTarget> consumer) {
-    return new Central(http, server -> http.execute(server.getCredentialsTestRequest()), consumer);
+    return new Central(http, server -> {
+      Response<String> response = http.execute(server.getSessionTokenRequest());
+      if (!response.isSuccess()) {
+        return response;
+      }
+
+      return http.execute(server.getProjectTestRequest(response.get()));
+    }, consumer);
   }
 
   void storeTargetPrefs(BriefcasePreferences prefs, boolean storePasswords);

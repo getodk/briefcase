@@ -70,13 +70,12 @@ public class CentralServer implements RemoteServer {
     return index == -1 ? url : url.substring(0, index);
   }
 
-  public Request<Boolean> getCredentialsTestRequest() {
-    return RequestBuilder.post(baseUrl)
-        .asJsonMap()
-        .withPath("/v1/sessions")
-        .withHeader("Content-Type", "application/json")
-        .withBody(buildSessionPayload(credentials))
-        .withResponseMapper(json -> !((String) json.get("token")).isEmpty())
+  public Request<String> getProjectTestRequest(String token) {
+    return RequestBuilder.get(baseUrl)
+        .asText()
+        .withPath("/v1/projects/" + projectId)
+        .withHeader("Authorization", "Bearer " + token)
+        .withResponseMapper(json -> json)
         .build();
   }
 
