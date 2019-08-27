@@ -47,6 +47,7 @@ import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.InMemoryFormMetadataAdapter;
+import org.opendatakit.briefcase.reused.model.submission.InMemorySubmissionMetadataAdapter;
 import org.opendatakit.briefcase.reused.model.transfer.CentralAttachment;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 
@@ -65,7 +66,7 @@ public class PullFromCentralTest {
   public void init() {
     http = new FakeHttp();
     events = new ArrayList<>();
-    pullOp = new PullFromCentral(http, new InMemoryFormMetadataAdapter(), server, token, e -> { });
+    pullOp = new PullFromCentral(http, new InMemoryFormMetadataAdapter(), new InMemorySubmissionMetadataAdapter(), server, token, e -> { });
     runnerStatus = new TestRunnerStatus(false);
     formMetadata = FormMetadata.empty(FormKey.of("some-form"))
         .withFormFile(briefcaseDir.resolve("forms/Some form/Some form.xml"));

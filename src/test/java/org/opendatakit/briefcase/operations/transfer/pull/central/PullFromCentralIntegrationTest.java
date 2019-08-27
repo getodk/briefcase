@@ -54,7 +54,10 @@ import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
+import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.InMemoryFormMetadataAdapter;
+import org.opendatakit.briefcase.reused.model.submission.InMemorySubmissionMetadataAdapter;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.CentralAttachment;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 
@@ -66,9 +69,10 @@ public class PullFromCentralIntegrationTest {
   private final Path briefcaseDir = createTempDirectory("briefcase-test-");
   private HttpServer server;
   private PullFromCentral pullOp;
-  private InMemoryFormMetadataAdapter formMetadataPort;
+  private FormMetadataPort formMetadataPort;
   private ArrayList<Object> events;
   private FormMetadata formMetadata;
+  private SubmissionMetadataPort submissionMetadataPort;
 
   private static Path getPath(String fileName) {
     return Optional.ofNullable(PullFromCentralIntegrationTest.class.getClassLoader().getResource("org/opendatakit/briefcase/operations/transfer/pull/aggregate/" + fileName))
@@ -80,8 +84,9 @@ public class PullFromCentralIntegrationTest {
   public void setUp() {
     server = httpServer(serverPort);
     formMetadataPort = new InMemoryFormMetadataAdapter();
+    submissionMetadataPort = new InMemorySubmissionMetadataAdapter();
     events = new ArrayList<>();
-    pullOp = new PullFromCentral(CommonsHttp.of(1), formMetadataPort, centralServer, token, e -> events.add(e.getMessage()));
+    pullOp = new PullFromCentral(CommonsHttp.of(1), formMetadataPort, submissionMetadataPort, centralServer, token, e -> events.add(e.getMessage()));
     formMetadata = FormMetadata.empty(FormKey.of("some-form"))
         .withFormFile(briefcaseDir.resolve("forms/Some form/Some form.xml"));
   }

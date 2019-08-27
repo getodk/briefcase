@@ -17,15 +17,18 @@
 package org.opendatakit.briefcase.operations.transfer.pull.central;
 
 import static java.util.Collections.emptyList;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
-import static org.opendatakit.briefcase.reused.db.DatabaseUtils.withDb;
 import static org.opendatakit.briefcase.reused.job.Job.allOf;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.reused.job.Job.supply;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.upsert;
+import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataCommands.insert;
+import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataQueries.hasBeenAlreadyPulled;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -36,21 +39,27 @@ import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.RunnerStatus;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.CentralAttachment;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 
 public class PullFromCentral {
   private final Http http;
   private final FormMetadataPort formMetadataPort;
+  private final SubmissionMetadataPort submissionMetadataPort;
   private final CentralServer server;
   private final String token;
   private final Consumer<FormStatusEvent> onEventCallback;
 
-  public PullFromCentral(Http http, FormMetadataPort formMetadataPort, CentralServer server, String token, Consumer<FormStatusEvent> onEventCallback) {
+  public PullFromCentral(Http http, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, CentralServer server, String token, Consumer<FormStatusEvent> onEventCallback) {
     this.http = http;
+    this.submissionMetadataPort = submissionMetadataPort;
     this.server = server;
     this.token = token;
     this.onEventCallback = onEventCallback;
@@ -78,7 +87,7 @@ public class PullFromCentral {
               );
             })
         ))
-        .thenAccept((runnerStatus, pair) -> withDb(formMetadata.getFormDir(), db -> {
+        .thenAccept((runnerStatus, pair) -> {
           List<String> submissions = pair.getLeft();
           int totalSubmissions = submissions.size();
           AtomicInteger submissionNumber = new AtomicInteger(1);
@@ -87,12 +96,12 @@ public class PullFromCentral {
             tracker.trackNoSubmissions();
 
           submissions.stream()
-              .map(instanceId -> Triple.of(submissionNumber.getAndIncrement(), instanceId, db.hasRecordedInstance(instanceId) == null))
+              .map(instanceId -> Triple.of(submissionNumber.getAndIncrement(), instanceId, submissionMetadataPort.query(hasBeenAlreadyPulled(formMetadata.getKey().getId(), instanceId))))
               .peek(triple -> {
-                if (!triple.get3())
+                if (triple.get3())
                   tracker.trackSubmissionAlreadyDownloaded(triple.get1(), totalSubmissions);
               })
-              .filter(Triple::get3)
+              .filter(not(Triple::get3))
               .forEach(triple -> {
                 int currentSubmissionNumber = triple.get1();
                 String instanceId = triple.get2();
@@ -103,13 +112,17 @@ public class PullFromCentral {
                 attachments.forEach(attachment ->
                     downloadSubmissionAttachment(formMetadata, instanceId, attachment, token, runnerStatus, tracker, currentSubmissionNumber, totalSubmissions, attachmentNumber.getAndIncrement(), totalAttachments)
                 );
-                db.putRecordedInstanceDirectory(instanceId, formMetadata.getSubmissionDir(instanceId).toFile());
+                Path submissionFile = formMetadata.getSubmissionFile(instanceId);
+                SubmissionMetadata submissionMetadata = new SubmissionLazyMetadata(XmlElement.from(submissionFile))
+                    .freeze(instanceId, submissionFile)
+                    .withAttachmentFilenames(attachments.stream().map(CentralAttachment::getName).map(Paths::get).collect(toList()));
+                submissionMetadataPort.execute(insert(submissionMetadata));
               });
           tracker.trackEnd();
 
           formMetadataPort.execute(upsert(formMetadata));
           EventBus.publish(PullEvent.Success.of(formMetadata.getKey(), server));
-        }));
+        });
   }
 
   void downloadForm(FormMetadata formMetadata, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker) {

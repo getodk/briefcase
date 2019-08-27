@@ -122,7 +122,9 @@ public class Central implements PullSource<CentralServer> {
     String token = http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
     PullFromCentral pullOp = new PullFromCentral(
         http,
-        formMetadataPort, server,
+        formMetadataPort,
+        submissionMetadataPort,
+        server,
         token,
         EventBus::publish
     );

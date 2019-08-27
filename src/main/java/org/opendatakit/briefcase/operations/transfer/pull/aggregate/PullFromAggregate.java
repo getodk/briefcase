@@ -144,15 +144,16 @@ public class PullFromAggregate {
               .forEach(pair -> {
                 int currentSubmissionNumber = pair.getLeft();
                 DownloadedSubmission submission = pair.getRight();
-                SubmissionMetadata submissionMetadata = new SubmissionLazyMetadata(XmlElement.from(submission.getXml()))
-                    .freeze(submission.getSubmissionFile().orElseThrow(BriefcaseException::new))
-                    .withAttachmentFilenames(submission.getAttachments().stream().map(AggregateAttachment::getFilename).map(Paths::get).collect(toList()));
                 List<AggregateAttachment> submissionAttachments = submission.getAttachments();
                 AtomicInteger submissionAttachmentNumber = new AtomicInteger(1);
                 int totalSubmissionAttachments = submissionAttachments.size();
                 submissionAttachments.parallelStream().forEach(attachment ->
                     downloadSubmissionAttachment(formMetadata, submission, attachment, rs, tracker, currentSubmissionNumber, totalSubmissions, submissionAttachmentNumber.getAndIncrement(), totalSubmissionAttachments)
                 );
+
+                SubmissionMetadata submissionMetadata = new SubmissionLazyMetadata(XmlElement.from(submission.getXml()))
+                    .freeze(submission.getInstanceId(), submission.getSubmissionFile().orElseThrow(BriefcaseException::new))
+                    .withAttachmentFilenames(submission.getAttachments().stream().map(AggregateAttachment::getFilename).map(Paths::get).collect(toList()));
                 submissionMetadataPort.execute(insert(submissionMetadata));
               });
 

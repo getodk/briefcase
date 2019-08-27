@@ -149,11 +149,11 @@ public class SubmissionLazyMetadata {
     return encryptedSignature;
   }
 
-  public SubmissionMetadata freeze(Path submissionFile) {
+  public SubmissionMetadata freeze(String instanceId, Path submissionFile) {
     SubmissionKey submissionKey = new SubmissionKey(
         getFormId(),
         getVersion(),
-        getInstanceId().orElseThrow(BriefcaseException::new)
+        instanceId
     );
     return new SubmissionMetadata(
         submissionKey,

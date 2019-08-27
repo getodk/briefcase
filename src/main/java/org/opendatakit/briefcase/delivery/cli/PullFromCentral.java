@@ -44,6 +44,7 @@ import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,16 +53,16 @@ public class PullFromCentral {
   private static final Logger log = LoggerFactory.getLogger(PullFromCentral.class);
   private static final Param<Void> PULL_FROM_CENTRAL = Param.flag("pllc", "pull_central", "Pull form from a Central server");
 
-  public static Operation create(FormMetadataPort formMetadataPort) {
+  public static Operation create(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     return Operation.of(
         PULL_FROM_CENTRAL,
-        args -> pullFromCentral(formMetadataPort, args),
+        args -> pullFromCentral(formMetadataPort, submissionMetadataPort, args),
         Arrays.asList(STORAGE_DIR, SERVER_URL, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD),
         Arrays.asList(FORM_ID, MAX_HTTP_CONNECTIONS)
     );
   }
 
-  private static void pullFromCentral(FormMetadataPort formMetadataPort, Args args) {
+  private static void pullFromCentral(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(args.get(STORAGE_DIR));
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
@@ -107,7 +108,7 @@ public class PullFromCentral {
     forms.load(filteredForms);
     forms.selectAll();
 
-    org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral pullOp = new org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral(http, formMetadataPort, server, token, PullFromCentral::onEvent);
+    org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral pullOp = new org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral(http, formMetadataPort, submissionMetadataPort, server, token, PullFromCentral::onEvent);
     JobsRunner.launchAsync(
         forms.map(pullOp::pull),
         PullFromCentral::onError

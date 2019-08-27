@@ -70,7 +70,7 @@ public class Launcher {
 
     new Cli()
         .register(PullFromAggregate.create(formMetadataPort, submissionMetadataPort))
-        .register(PullFromCentral.create(formMetadataPort))
+        .register(PullFromCentral.create(formMetadataPort, submissionMetadataPort))
         .register(PushToAggregate.create(formMetadataPort))
         .register(PushToCentral.create(formMetadataPort))
         .register(PullFromCollect.create(formMetadataPort))
