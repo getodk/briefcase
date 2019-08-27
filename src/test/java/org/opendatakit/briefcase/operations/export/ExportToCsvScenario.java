@@ -51,6 +51,8 @@ import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.InMemoryFormMetadataAdapter;
+import org.opendatakit.briefcase.reused.model.submission.InMemorySubmissionMetadataAdapter;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,8 +68,9 @@ class ExportToCsvScenario {
   private final TimeZone zoneBackup;
   private final FormMetadataPort formMetadataPort;
   private final FormMetadata formMetadata;
+  private final SubmissionMetadataPort submissionMetadataPort;
 
-  private ExportToCsvScenario(Path briefcaseDir, Path formDir, Path outputDir, FormDefinition formDef, Optional<String> instanceID, Locale localeBackup, TimeZone zoneBackup, FormMetadataPort formMetadataPort, FormMetadata formMetadata) {
+  private ExportToCsvScenario(Path briefcaseDir, Path formDir, Path outputDir, FormDefinition formDef, Optional<String> instanceID, Locale localeBackup, TimeZone zoneBackup, FormMetadataPort formMetadataPort, FormMetadata formMetadata, SubmissionMetadataPort submissionMetadataPort) {
     this.briefcaseDir = briefcaseDir;
     this.formDir = formDir;
     this.outputDir = outputDir;
@@ -77,6 +80,7 @@ class ExportToCsvScenario {
     this.zoneBackup = zoneBackup;
     this.formMetadataPort = formMetadataPort;
     this.formMetadata = formMetadata;
+    this.submissionMetadataPort = submissionMetadataPort;
   }
 
   static ExportToCsvScenario setUp(String formName) {
@@ -115,7 +119,8 @@ class ExportToCsvScenario {
         localeBackup,
         zoneBackup,
         formMetadataPort,
-        formMetadata
+        formMetadata,
+        new InMemorySubmissionMetadataAdapter()
     );
   }
 
@@ -166,7 +171,7 @@ class ExportToCsvScenario {
         .setSplitSelectMultiples(splitSelectMultiples)
         .build();
 
-    ExportToCsv.export(formMetadataPort, formMetadata, formDef, configuration);
+    ExportToCsv.export(formMetadataPort, submissionMetadataPort, formMetadata, formDef, configuration);
   }
 
   void assertSameContent() {

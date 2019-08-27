@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import org.jooq.DSLContext;
 import org.jooq.Record1;
 import org.jooq.SelectFinalStep;
@@ -46,13 +47,13 @@ public class DatabaseSubmissionMetadataAdapter implements SubmissionMetadataPort
   }
 
   @Override
-  public Optional<SubmissionMetadata> fetch(SubmissionKey submissionKey) {
-    return Optional.empty();
+  public <T> Optional<T> fetch(SelectFinalStep<Record1<T>> query) {
+    return getDslContext().fetchOptional(query).map(Record1::component1);
   }
 
   @Override
-  public <T> Optional<T> fetch(SelectFinalStep<Record1<T>> where) {
-    return getDslContext().fetchOptional(where).map(Record1::component1);
+  public <T> Stream<T> fetchAll(SelectFinalStep<Record1<T>> query) {
+    return getDslContext().fetchStream(query).map(Record1::component1);
   }
 
   private static SubmissionMetadataRecord mapToDomain(SubmissionMetadata submissionMetadata) {

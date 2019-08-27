@@ -193,10 +193,10 @@ public class ExportPanel {
           )
           : Job.noOpSupplier();
 
-      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadataPort, formMetadata, formDef, configuration, analytics));
+      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadataPort, submissionMetadataPort, formMetadata, formDef, configuration, analytics));
 
       Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
-          ? Job.run(runnerStatus -> ExportToGeoJson.export(formMetadata, formDef, configuration, analytics))
+          ? Job.run(runnerStatus -> ExportToGeoJson.export(submissionMetadataPort, formMetadata, formDef, configuration, analytics))
           : Job.noOp;
 
       return pullJob

@@ -21,6 +21,7 @@ import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
 import static java.util.stream.Collectors.groupingByConcurrent;
 import static java.util.stream.Collectors.reducing;
+import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.operations.export.ExportOutcome.ALL_EXPORTED;
 import static org.opendatakit.briefcase.operations.export.ExportOutcome.ALL_SKIPPED;
 import static org.opendatakit.briefcase.operations.export.ExportOutcome.SOME_SKIPPED;
@@ -29,7 +30,7 @@ import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirector
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.write;
-import static org.opendatakit.briefcase.reused.model.submission.SubmissionParser.getListOfSubmissionFiles;
+import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataQueries.sortedListOfSubmissionFiles;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -43,18 +44,19 @@ import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataCommands;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ExportToCsv {
   private static final Logger log = LoggerFactory.getLogger(ExportToCsv.class);
 
-  public static ExportOutcome export(FormMetadataPort formMetadataPort, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration) {
-    return export(formMetadataPort, formMetadata, formDef, configuration, Optional.empty());
+  public static ExportOutcome export(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration) {
+    return export(formMetadataPort, submissionMetadataPort, formMetadata, formDef, configuration, Optional.empty());
   }
 
-  public static ExportOutcome export(FormMetadataPort formMetadataPort, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Analytics analytics) {
-    return export(formMetadataPort, formMetadata, formDef, configuration, Optional.of(analytics));
+  public static ExportOutcome export(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Analytics analytics) {
+    return export(formMetadataPort, submissionMetadataPort, formMetadata, formDef, configuration, Optional.of(analytics));
   }
 
   /**
@@ -67,7 +69,7 @@ public class ExportToCsv {
    * @return an {@link ExportOutcome} with the export operation's outcome
    * @see ExportConfiguration
    */
-  private static ExportOutcome export(FormMetadataPort formMetadataPort, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Optional<Analytics> analytics) {
+  private static ExportOutcome export(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Optional<Analytics> analytics) {
     // Create an export tracker object with the total number of submissions we have to export
     ExportProcessTracker exportTracker = new ExportProcessTracker(formMetadata.getKey());
     exportTracker.start();
@@ -76,7 +78,9 @@ public class ExportToCsv {
     var onInvalidSubmission = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getFormName().orElse(formMetadata.getKey().getId())))
         .andThen((path, message) -> analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null)));
 
-    List<Path> submissionFiles = getListOfSubmissionFiles(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend(), onParsingError);
+    List<Path> submissionFiles = submissionMetadataPort
+        .query(sortedListOfSubmissionFiles(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend()))
+        .collect(toList());
     exportTracker.trackTotal(submissionFiles.size());
 
     createDirectories(configuration.getExportDir());

@@ -16,11 +16,9 @@
 package org.opendatakit.briefcase.reused.model.submission;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.stream.Collectors.toList;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createTempDirectory;
-import static org.opendatakit.briefcase.reused.api.UncheckedFiles.list;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.stripFileExtension;
 import static org.opendatakit.briefcase.reused.model.submission.CipherFactory.signatureDecrypter;
 
@@ -35,8 +33,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -51,11 +47,7 @@ import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.api.Iso8601Helpers;
-import org.opendatakit.briefcase.reused.api.Pair;
-import org.opendatakit.briefcase.reused.api.UncheckedFiles;
-import org.opendatakit.briefcase.reused.model.DateRange;
 import org.opendatakit.briefcase.reused.model.XmlElement;
-import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParser;
@@ -64,38 +56,6 @@ import org.xmlpull.v1.XmlPullParserException;
 public class SubmissionParser {
   private static final Logger log = LoggerFactory.getLogger(SubmissionParser.class);
   private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-  private static final OffsetDateTime SOME_OLD_DATE_FOR_SUBMISSIONS_WITHOUT_SUBMISSION_DATE = OffsetDateTime.parse("1970-01-01T00:00:00.000Z");
-
-  /**
-   * Returns a list of paths pointing to all the submissions of a form in
-   * the provided date range, starting from the last exported submission (if
-   * the smartAppend argument is true), sorted by their submission dates.
-   */
-  public static List<Path> getListOfSubmissionFiles(FormMetadata formMetadata, DateRange dateRange, boolean smartAppend, BiConsumer<Path, String> onParsingError) {
-    Path instancesDir = formMetadata.getSubmissionsDir();
-    if (!Files.exists(instancesDir) || !Files.isReadable(instancesDir))
-      return Collections.emptyList();
-    // TODO Migrate this code to Try<Pair<Path, Option<OffsetDate>>> to be able to filter failed parsing attempts
-    List<Pair<Path, OffsetDateTime>> paths = new ArrayList<>();
-    list(instancesDir)
-        .filter(UncheckedFiles::isInstanceDir)
-        .forEach(instanceDir -> {
-          Path submissionFile = instanceDir.resolve("submission.xml");
-          Optional<OffsetDateTime> submissionDate = readSubmissionDate(submissionFile, onParsingError);
-          paths.add(Pair.of(submissionFile, submissionDate.orElse(SOME_OLD_DATE_FOR_SUBMISSIONS_WITHOUT_SUBMISSION_DATE)));
-        });
-    return paths.parallelStream()
-        // Filter out submissions outside the given date range and
-        // before the last exported submission, if the smartAppend
-        // feature is enabled
-        .filter(pair -> {
-          boolean inRange = dateRange.contains(pair.getRight());
-          boolean afterLastExportedSubmission = !smartAppend || formMetadata.getLastExportedSubmissionDate().map(s -> s.isBefore(pair.getRight())).orElse(true);
-          return inRange && afterLastExportedSubmission;
-        })
-        .map(Pair::getLeft)
-        .collect(toList());
-  }
 
   /**
    * Returns a parsed submission. The result will be a non-empty Optional when:
