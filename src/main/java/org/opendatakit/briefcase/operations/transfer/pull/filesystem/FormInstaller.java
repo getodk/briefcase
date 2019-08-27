@@ -24,6 +24,7 @@ import static org.opendatakit.briefcase.reused.api.UncheckedFiles.deleteRecursiv
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.list;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.walk;
+import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataCommands.insert;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,9 +34,11 @@ import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 
 public class FormInstaller {
-  static void installForm(FormMetadata sourceFormMetadata, FormMetadata targetFormMetadata, PullFromFileSystemTracker tracker) {
+  static synchronized void installForm(FormMetadata sourceFormMetadata, FormMetadata targetFormMetadata, PullFromFileSystemTracker tracker) {
     if (!exists(targetFormMetadata.getFormDir()))
       createDirectories(targetFormMetadata.getFormDir());
 
@@ -62,20 +65,21 @@ public class FormInstaller {
     }
   }
 
-  static void installSubmissions(FormMetadata formMetadata, List<Pair<Path, SubmissionLazyMetadata>> submissions, PullFromFileSystemTracker tracker) {
+  static void installSubmissions(FormMetadata formMetadata, List<Pair<Path, SubmissionLazyMetadata>> submissions, SubmissionMetadataPort submissionMetadataPort, PullFromFileSystemTracker tracker) {
     int totalSubmissions = submissions.size();
     AtomicInteger submissionSeq = new AtomicInteger(1);
 
     submissions.forEach(pair -> {
-      Path submissionFile = pair.getLeft();
       String instanceId = pair.getRight().getInstanceId().orElseThrow();
+      Path sourceSubmissionFile = pair.getLeft();
+      Path targetSubmissionFile = formMetadata.getSubmissionFile(instanceId);
       createDirectories(formMetadata.getSubmissionDir(instanceId));
-      copy(submissionFile, formMetadata.getSubmissionFile(instanceId), REPLACE_EXISTING);
+      copy(sourceSubmissionFile, targetSubmissionFile, REPLACE_EXISTING);
       int submissionNumber = submissionSeq.getAndIncrement();
       tracker.trackSubmissionInstalled(submissionNumber, totalSubmissions);
 
-      List<Path> attachments = list(submissionFile.getParent())
-          .filter(p -> !p.equals(submissionFile))
+      List<Path> attachments = list(sourceSubmissionFile.getParent())
+          .filter(p -> !p.equals(sourceSubmissionFile))
           .collect(toList());
 
       int totalAttachments = attachments.size();
@@ -85,6 +89,11 @@ public class FormInstaller {
         copy(attachment, formMetadata.getSubmissionMediaFile(instanceId, attachment.getFileName().toString()));
         tracker.trackSubmissionAttachmentInstalled(submissionNumber, totalSubmissions, attachmentSeq.getAndIncrement(), totalAttachments);
       });
+
+      SubmissionMetadata submissionMetadata = new SubmissionLazyMetadata(XmlElement.from(sourceSubmissionFile))
+          .freeze(instanceId, targetSubmissionFile)
+          .withAttachmentFilenames(attachments.stream().map(Path::getFileName).collect(toList()));
+      submissionMetadataPort.execute(insert(submissionMetadata));
     });
   }
 

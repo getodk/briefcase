@@ -35,6 +35,7 @@ import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,16 +44,16 @@ public class PullFromCollect {
   private static final Param<Void> IMPORT = Param.flag("pc", "pull_collect", "Pull from Collect");
   private static final Param<Path> ODK_DIR = Param.arg("od", "odk_directory", "ODK directory", Paths::get);
 
-  public static Operation create(FormMetadataPort formMetadataPort) {
+  public static Operation create(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     return Operation.of(
         IMPORT,
-        args -> importODK(formMetadataPort, args),
+        args -> pull(formMetadataPort, submissionMetadataPort, args),
         Arrays.asList(STORAGE_DIR, ODK_DIR),
         singletonList(FORM_ID)
     );
   }
 
-  private static void importODK(FormMetadataPort formMetadataPort, Args args) {
+  private static void pull(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
     String storageDir = args.get(STORAGE_DIR);
     Path odkDir = args.get(ODK_DIR);
     Optional<String> formId = args.getOptional(FORM_ID);
@@ -70,7 +71,7 @@ public class PullFromCollect {
     if (formId.isPresent() && forms.isEmpty())
       throw new BriefcaseException("Form " + formId.get() + " not found");
 
-    PullFromCollectDir pullOp = new PullFromCollectDir(formMetadataPort, PullFromCollect::onEvent);
+    PullFromCollectDir pullOp = new PullFromCollectDir(formMetadataPort, submissionMetadataPort, PullFromCollect::onEvent);
     JobsRunner.launchAsync(
         forms.map(formMetadata -> pullOp.pull(
             formMetadata,

@@ -23,6 +23,7 @@ import static org.opendatakit.briefcase.reused.api.UncheckedFiles.stripFileExten
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.walk;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.upsert;
+import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataQueries.hasBeenAlreadyPulled;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,37 +38,55 @@ import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 
 public class PullFromCollectDir {
   private final Consumer<FormStatusEvent> onEventCallback;
   private final FormMetadataPort formMetadataPort;
+  private final SubmissionMetadataPort submissionMetadataPort;
 
-  public PullFromCollectDir(FormMetadataPort formMetadataPort, Consumer<FormStatusEvent> onEventCallback) {
+  public PullFromCollectDir(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Consumer<FormStatusEvent> onEventCallback) {
     this.onEventCallback = onEventCallback;
     this.formMetadataPort = formMetadataPort;
+    this.submissionMetadataPort = submissionMetadataPort;
   }
 
   public Job<Void> pull(FormMetadata sourceFormMetadata, FormMetadata targetFormMetadata) {
     PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(targetFormMetadata.getKey(), onEventCallback);
 
-    return run(rs -> tracker.trackStart())
-        .thenRun(rs -> installForm(sourceFormMetadata, targetFormMetadata, tracker))
-        .thenRun(rs -> {
-          List<Pair<Path, SubmissionLazyMetadata>> submissions = walk(sourceFormMetadata.getFormDir().getParent().resolve("instances"))
-              .filter(p -> Files.isRegularFile(p)
-                  && p.getFileName().toString().startsWith(stripFileExtension(sourceFormMetadata.getFormFile()))
-                  && p.getFileName().toString().endsWith(".xml"))
-              .map(submissionFile -> Pair.of(submissionFile, new SubmissionLazyMetadata(XmlElement.from(submissionFile))))
-              .filter(pair -> pair.getRight().getInstanceId().isPresent())
-              .collect(toList());
+    return run(rs -> {
+      tracker.trackStart();
 
-          installSubmissions(targetFormMetadata, submissions, tracker);
-        })
-        .thenRun(rs -> {
-          formMetadataPort.execute(upsert(targetFormMetadata));
-          EventBus.publish(PullEvent.Success.of(targetFormMetadata.getKey()));
-        })
-        .thenRun(rs -> tracker.trackEnd());
+      installForm(sourceFormMetadata, targetFormMetadata, tracker);
+
+      List<Pair<Path, SubmissionLazyMetadata>> submissions = walk(sourceFormMetadata.getFormDir().getParent().resolve("instances"))
+          .filter(p -> Files.isRegularFile(p)
+              && p.getFileName().toString().startsWith(stripFileExtension(sourceFormMetadata.getFormFile()))
+              && p.getFileName().toString().endsWith(".xml"))
+          .map(submissionFile -> Pair.of(submissionFile, new SubmissionLazyMetadata(XmlElement.from(submissionFile))))
+          .collect(toList());
+      int totalSubmissions = submissions.size();
+
+      List<Pair<Path, SubmissionLazyMetadata>> submissionsWithInstanceId = submissions.stream()
+          .filter(pair -> pair.getRight().getInstanceId().isPresent()).collect(toList());
+      int submissionsWithoutInstanceId = totalSubmissions - submissionsWithInstanceId.size();
+      if (submissionsWithoutInstanceId > 0)
+        tracker.trackSkippedSubmissionsWithoutInstanceId(submissionsWithoutInstanceId, totalSubmissions);
+
+      List<Pair<Path, SubmissionLazyMetadata>> submissionsToPull = submissions.stream()
+          .filter(pair -> !submissionMetadataPort.query(hasBeenAlreadyPulled(sourceFormMetadata.getKey().getId(), pair.getRight().getInstanceId().orElseThrow())))
+          .collect(toList());
+      int submissionsAlreadyPulled = submissionsWithInstanceId.size() - submissionsToPull.size();
+      if (submissionsAlreadyPulled > 0)
+        tracker.trackSkippedSubmissionsAlreadyPulled(submissionsAlreadyPulled, totalSubmissions);
+
+      installSubmissions(targetFormMetadata, submissionsToPull, submissionMetadataPort, tracker);
+
+      formMetadataPort.execute(upsert(targetFormMetadata));
+      EventBus.publish(PullEvent.Success.of(targetFormMetadata.getKey()));
+
+      tracker.trackEnd();
+    });
   }
 
 }

@@ -99,7 +99,7 @@ public class CollectDir implements PullSource<Path> {
 
   @Override
   public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
-    PullFromCollectDir pullJob = new PullFromCollectDir(formMetadataPort, EventBus::publish);
+    PullFromCollectDir pullJob = new PullFromCollectDir(formMetadataPort, submissionMetadataPort, EventBus::publish);
     return JobsRunner.launchAsync(forms.map(formMetadata -> pullJob.pull(
         formMetadata,
         formMetadata.withFormFile(formMetadata.buildFormFile(briefcaseDir))

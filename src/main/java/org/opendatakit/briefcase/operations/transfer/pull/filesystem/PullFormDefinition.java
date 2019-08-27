@@ -40,12 +40,16 @@ public class PullFormDefinition {
   public Job<Void> pull(FormMetadata sourceFormMetadata, FormMetadata targetFormMetadata) {
     PullFromFileSystemTracker tracker = new PullFromFileSystemTracker(targetFormMetadata.getKey(), onEventCallback);
 
-    return run(rs -> tracker.trackStart())
-        .thenRun(rs -> installForm(sourceFormMetadata, targetFormMetadata, tracker))
-        .thenRun(rs -> {
-          formMetadataPort.execute(upsert(targetFormMetadata));
-          EventBus.publish(PullEvent.Success.of(targetFormMetadata.getKey()));
-        })
-        .thenRun(rs -> tracker.trackEnd());
+    return run(rs -> {
+      tracker.trackStart();
+
+      installForm(sourceFormMetadata, targetFormMetadata, tracker);
+
+      formMetadataPort.execute(upsert(targetFormMetadata));
+
+      EventBus.publish(PullEvent.Success.of(targetFormMetadata.getKey()));
+
+      tracker.trackEnd();
+    });
   }
 }

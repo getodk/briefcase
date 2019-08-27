@@ -18,7 +18,6 @@ package org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source;
 
 import static java.awt.Cursor.getPredefinedCursor;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.removeAllMouseListeners;
-import static org.opendatakit.briefcase.reused.job.Job.run;
 
 import java.awt.Container;
 import java.awt.Cursor;
@@ -95,10 +94,11 @@ public class FormInComputer implements PullSource<FormMetadata> {
 
   @Override
   public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
-    return JobsRunner.launchAsync(run(rs -> new PullFormDefinition(formMetadataPort, EventBus::publish).pull(
+    PullFormDefinition pullOp = new PullFormDefinition(formMetadataPort, EventBus::publish);
+    return JobsRunner.launchAsync(pullOp.pull(
         sourceFormMetadata,
         sourceFormMetadata.withFormFile(sourceFormMetadata.buildFormFile(briefcaseDir))
-    ))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+    )).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
   @Override

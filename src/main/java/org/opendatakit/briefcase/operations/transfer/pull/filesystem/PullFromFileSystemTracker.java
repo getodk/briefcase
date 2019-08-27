@@ -73,4 +73,16 @@ class PullFromFileSystemTracker {
     log.info("Pull {} - {}", formKey.getId(), message);
     notifyTrackingEvent(message);
   }
+
+  void trackSkippedSubmissionsWithoutInstanceId(int submissionsWithoutInstanceId, int totalSubmissions) {
+    String message = "Skipping " + submissionsWithoutInstanceId + " of " + totalSubmissions + " total submissions (no instance ID)";
+    log.info("Pull {} - {}", formKey.getId(), message);
+    notifyTrackingEvent(message);
+  }
+
+  void trackSkippedSubmissionsAlreadyPulled(int submissionsAlreadyPulled, int totalSubmissions) {
+    String message = "Skipping " + submissionsAlreadyPulled + " of " + totalSubmissions + " total submissions (already pulled)";
+    log.info("Pull {} - {}", formKey.getId(), message);
+    notifyTrackingEvent(message);
+  }
 }
