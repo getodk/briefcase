@@ -3,12 +3,11 @@ package org.opendatakit.briefcase.reused.model.submission;
 import static java.time.ZoneOffset.systemDefault;
 import static org.jooq.impl.DSL.count;
 import static org.jooq.impl.DSL.select;
+import static org.jooq.impl.DSL.selectFrom;
 import static org.jooq.impl.DSL.trueCondition;
 import static org.jooq.impl.DSL.value;
 import static org.opendatakit.briefcase.reused.db.jooq.Tables.SUBMISSION_METADATA;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +15,9 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.jooq.SelectSeekStep1;
 import org.jooq.impl.DSL;
+import org.opendatakit.briefcase.reused.db.jooq.tables.records.SubmissionMetadataRecord;
 import org.opendatakit.briefcase.reused.model.DateRange;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 
@@ -37,8 +38,10 @@ public class SubmissionMetadataQueries {
         .orElse(false);
   }
 
-  public static Function<SubmissionMetadataPort, Stream<Path>> sortedListOfSubmissionFiles(FormMetadata formMetadata, DateRange dateRange, boolean smartAppend) {
+  public static Function<SubmissionMetadataPort, Stream<SubmissionMetadata>> sortedSubmissions(FormMetadata formMetadata, DateRange dateRange, boolean smartAppend) {
     List<Condition> conditions = new ArrayList<>();
+    conditions.add(SUBMISSION_METADATA.FORM_ID.eq(formMetadata.getKey().getId()));
+    conditions.add(SUBMISSION_METADATA.FORM_VERSION.eq(formMetadata.getKey().getVersion().orElse("")));
     if (!dateRange.isEmpty())
       conditions.add(COALESCED_SUBMISSION_DATE.between(
           dateRange.getStart().atStartOfDay().atZone(systemDefault()).toOffsetDateTime(),
@@ -48,11 +51,10 @@ public class SubmissionMetadataQueries {
     if (smartAppend && formMetadata.getLastExportedSubmissionDate().isPresent())
       conditions.add(COALESCED_SUBMISSION_DATE.greaterThan(formMetadata.getLastExportedSubmissionDate().get()));
 
-    var query = select(SUBMISSION_METADATA.SUBMISSION_FILENAME)
-        .from(SUBMISSION_METADATA)
+    SelectSeekStep1<SubmissionMetadataRecord, OffsetDateTime> query = selectFrom(SUBMISSION_METADATA)
         .where(conditions.stream().reduce(trueCondition(), Condition::and))
         .orderBy(COALESCED_SUBMISSION_DATE.asc());
 
-    return port -> port.fetchAll(query).map(Paths::get);
+    return port -> port.fetchAll(query);
   }
 }

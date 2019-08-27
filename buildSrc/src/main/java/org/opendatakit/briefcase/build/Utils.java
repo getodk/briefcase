@@ -80,6 +80,7 @@ public class Utils {
                 .withPackageName("org.opendatakit.briefcase.reused.db.jooq")
                 .withDirectory(projectDir.toPath().resolve(mainJavaDir.toPath()).toAbsolutePath().toString()))
             .withGenerate(new Generate()
+                .withDeprecationOnUnknownTypes(false)
                 .withGeneratedAnnotation(false))
         ));
   }

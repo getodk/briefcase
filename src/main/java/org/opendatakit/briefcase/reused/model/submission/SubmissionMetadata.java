@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class SubmissionMetadata {
   private final SubmissionKey submissionKey;
@@ -32,8 +33,16 @@ public class SubmissionMetadata {
     return submissionKey;
   }
 
-  public Optional<Path> getSubmissionFile() {
-    return submissionFile;
+  public Path getSubmissionFile() {
+    return submissionFile.orElseThrow(BriefcaseException::new);
+  }
+
+  public Path getSubmissionDir() {
+    return getSubmissionFile().getParent();
+  }
+
+  public Path getAttachmentFile(Path attachment) {
+    return getSubmissionDir().resolve(attachment.getFileName());
   }
 
   public Optional<OffsetDateTime> getSubmissionDateTime() {

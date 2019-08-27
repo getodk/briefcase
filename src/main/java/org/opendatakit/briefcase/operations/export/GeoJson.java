@@ -51,7 +51,7 @@ class GeoJson {
   private static final String POINT_STRING_SEPARATOR = ";";
 
   static Stream<Feature> toFeatures(FormModel model, Submission submission) {
-    String instanceId = submission.getInstanceId(false);
+    String instanceId = submission.getInstanceId();
     return model.getSpatialFields().stream().map(field -> {
       // Get the value on the submission
       Optional<String> maybeValue = submission.findElement(field.getName()).flatMap(XmlElement::maybeValue);

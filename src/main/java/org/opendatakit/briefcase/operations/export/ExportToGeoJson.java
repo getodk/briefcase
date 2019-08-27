@@ -24,7 +24,7 @@ import static org.opendatakit.briefcase.reused.api.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.exists;
-import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataQueries.sortedListOfSubmissionFiles;
+import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataQueries.sortedSubmissions;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -38,6 +38,7 @@ import org.opendatakit.briefcase.delivery.ui.reused.Analytics;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.submission.Submission;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,17 +73,18 @@ public class ExportToGeoJson {
             analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null))
         );
 
-    List<Path> submissionFiles = submissionMetadataPort
-        .query(sortedListOfSubmissionFiles(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend()))
+    List<SubmissionMetadata> submissionFiles = submissionMetadataPort
+        .query(sortedSubmissions(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend()))
         .collect(toList());
     exportTracker.trackTotal(submissionFiles.size());
 
     createDirectories(configuration.getExportDir());
 
     // Generate csv lines grouped by the fqdn of the model they belong to
-    Stream<Submission> validSubmissions = ExportTools.getValidSubmissions(formMetadata, formDef, configuration, submissionFiles, onParsingError, onInvalidSubmission);
+    Stream<Submission> submissions = ExportTools.getSubmissions(formMetadata, configuration, submissionFiles, onParsingError);
 
-    Stream<Feature> features = validSubmissions.peek(s -> exportTracker.incAndReport())
+    Stream<Feature> features = submissions
+        .peek(s -> exportTracker.incAndReport())
         .flatMap(submission -> GeoJson.toFeatures(formDef.getModel(), submission));
 
     Path output = configuration.getExportDir()
@@ -104,15 +106,15 @@ public class ExportToGeoJson {
     return exportOutcome;
   }
 
-  private static BiConsumer<Path, String> buildParsingErrorCallback(Path errorsDir) {
+  private static BiConsumer<SubmissionMetadata, String> buildParsingErrorCallback(Path errorsDir) {
     AtomicInteger errorSeq = new AtomicInteger(1);
     // Remove errors from a previous export attempt
     if (exists(errorsDir))
       deleteRecursive(errorsDir);
-    return (path, message) -> {
+    return (submissionMetadata, message) -> {
       if (!exists(errorsDir))
         createDirectories(errorsDir);
-      copy(path, errorsDir.resolve("failed_submission_" + errorSeq.getAndIncrement() + ".xml"));
+      copy(submissionMetadata.getSubmissionFile(), errorsDir.resolve("failed_submission_" + errorSeq.getAndIncrement() + ".xml"));
       log.warn("A submission has been excluded from the export output due to some problem ({}). If you didn't expect this, please ask for support at https://forum.opendatakit.org/c/support", message);
     };
   }

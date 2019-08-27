@@ -26,10 +26,11 @@ import static org.javarosa.core.model.DataType.GEOTRACE;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -49,7 +50,8 @@ import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormModel;
 import org.opendatakit.briefcase.reused.model.form.ModelBuilder;
 import org.opendatakit.briefcase.reused.model.submission.Submission;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionKey;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 import org.xmlpull.v1.XmlPullParserException;
 
 public class GeoJsonTest {
@@ -163,10 +165,20 @@ public class GeoJsonTest {
 
     XmlElement root = ModelBuilder.parseXmlElement(xml.toString());
     Submission submission = Submission.plain(
-        Paths.get("/some/path"),
-        Paths.get("/some/path"),
-        root,
-        new SubmissionLazyMetadata(root)
+        new SubmissionMetadata(
+            new SubmissionKey(
+                "Some form",
+                Optional.empty(),
+                "uuid:39f3dd36-161e-45cb-a1a4-395831d253a7"
+            ),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Collections.emptyList()
+        ),
+        root
     );
     return GeoJson.toFeatures(model, submission).collect(Collectors.toList());
   }

@@ -19,511 +19,505 @@ import org.opendatakit.briefcase.reused.db.jooq.tables.SubmissionMetadata;
 @SuppressWarnings({"all", "unchecked", "rawtypes"})
 public class SubmissionMetadataRecord extends UpdatableRecordImpl<SubmissionMetadataRecord> implements Record9<String, String, String, String, OffsetDateTime, String, String, String, Object> {
 
-  private static final long serialVersionUID = -1232817671;
-
-  /**
-   * Setter for <code>PUBLIC.SUBMISSION_METADATA.FORM_ID</code>.
-   */
-  public void setFormId(String value) {
-    set(0, value);
-  }
-
-  /**
-   * Getter for <code>PUBLIC.SUBMISSION_METADATA.FORM_ID</code>.
-   */
-  public String getFormId() {
-    return (String) get(0);
-  }
-
-  /**
-   * Setter for <code>PUBLIC.SUBMISSION_METADATA.FORM_VERSION</code>.
-   */
-  public void setFormVersion(String value) {
-    set(1, value);
-  }
-
-  /**
-   * Getter for <code>PUBLIC.SUBMISSION_METADATA.FORM_VERSION</code>.
-   */
-  public String getFormVersion() {
-    return (String) get(1);
-  }
-
-  /**
-   * Setter for <code>PUBLIC.SUBMISSION_METADATA.INSTANCE_ID</code>.
-   */
-  public void setInstanceId(String value) {
-    set(2, value);
-  }
-
-  /**
-   * Getter for <code>PUBLIC.SUBMISSION_METADATA.INSTANCE_ID</code>.
-   */
-  public String getInstanceId() {
-    return (String) get(2);
-  }
-
-  /**
-   * Setter for <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_FILENAME</code>.
-   */
-  public void setSubmissionFilename(String value) {
-    set(3, value);
-  }
-
-  /**
-   * Getter for <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_FILENAME</code>.
-   */
-  public String getSubmissionFilename() {
-    return (String) get(3);
-  }
-
-  /**
-   * Setter for <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_DATE_TIME</code>.
-   */
-  public void setSubmissionDateTime(OffsetDateTime value) {
-    set(4, value);
-  }
-
-  /**
-   * Getter for <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_DATE_TIME</code>.
-   */
-  public OffsetDateTime getSubmissionDateTime() {
-    return (OffsetDateTime) get(4);
-  }
-
-  /**
-   * Setter for <code>PUBLIC.SUBMISSION_METADATA.ENCRYPTED_XML_FILENAME</code>.
-   */
-  public void setEncryptedXmlFilename(String value) {
-    set(5, value);
-  }
-
-  /**
-   * Getter for <code>PUBLIC.SUBMISSION_METADATA.ENCRYPTED_XML_FILENAME</code>.
-   */
-  public String getEncryptedXmlFilename() {
-    return (String) get(5);
-  }
-
-  /**
-   * Setter for <code>PUBLIC.SUBMISSION_METADATA.BASE_64_ENCRYPTED_KEY</code>.
-   */
-  public void setBase_64EncryptedKey(String value) {
-    set(6, value);
-  }
-
-  /**
-   * Getter for <code>PUBLIC.SUBMISSION_METADATA.BASE_64_ENCRYPTED_KEY</code>.
-   */
-  public String getBase_64EncryptedKey() {
-    return (String) get(6);
-  }
-
-  /**
-   * Setter for <code>PUBLIC.SUBMISSION_METADATA.ENCRYPTED_SIGNATURE</code>.
-   */
-  public void setEncryptedSignature(String value) {
-    set(7, value);
-  }
-
-  /**
-   * Getter for <code>PUBLIC.SUBMISSION_METADATA.ENCRYPTED_SIGNATURE</code>.
-   */
-  public String getEncryptedSignature() {
-    return (String) get(7);
-  }
-
-  /**
-   * @deprecated Unknown data type. Please define an explicit {@link org.jooq.Binding} to specify how this type should be handled. Deprecation can be turned off using {@literal <deprecationOnUnknownTypes/>} in your code generator configuration.
-   */
-  @java.lang.Deprecated
-  public void setAttachmentFilenames(Object value) {
-    set(8, value);
-  }
-
-  /**
-   * @deprecated Unknown data type. Please define an explicit {@link org.jooq.Binding} to specify how this type should be handled. Deprecation can be turned off using {@literal <deprecationOnUnknownTypes/>} in your code generator configuration.
-   */
-  @java.lang.Deprecated
-  public Object getAttachmentFilenames() {
-    return get(8);
-  }
-
-  // -------------------------------------------------------------------------
-  // Primary key information
-  // -------------------------------------------------------------------------
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Record3<String, String, String> key() {
-    return (Record3) super.key();
-  }
-
-  // -------------------------------------------------------------------------
-  // Record9 type implementation
-  // -------------------------------------------------------------------------
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Row9<String, String, String, String, OffsetDateTime, String, String, String, Object> fieldsRow() {
-    return (Row9) super.fieldsRow();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Row9<String, String, String, String, OffsetDateTime, String, String, String, Object> valuesRow() {
-    return (Row9) super.valuesRow();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Field<String> field1() {
-    return SubmissionMetadata.SUBMISSION_METADATA.FORM_ID;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Field<String> field2() {
-    return SubmissionMetadata.SUBMISSION_METADATA.FORM_VERSION;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Field<String> field3() {
-    return SubmissionMetadata.SUBMISSION_METADATA.INSTANCE_ID;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Field<String> field4() {
-    return SubmissionMetadata.SUBMISSION_METADATA.SUBMISSION_FILENAME;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Field<OffsetDateTime> field5() {
-    return SubmissionMetadata.SUBMISSION_METADATA.SUBMISSION_DATE_TIME;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Field<String> field6() {
-    return SubmissionMetadata.SUBMISSION_METADATA.ENCRYPTED_XML_FILENAME;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Field<String> field7() {
-    return SubmissionMetadata.SUBMISSION_METADATA.BASE_64_ENCRYPTED_KEY;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Field<String> field8() {
-    return SubmissionMetadata.SUBMISSION_METADATA.ENCRYPTED_SIGNATURE;
-  }
-
-  /**
-   * @deprecated Unknown data type. Please define an explicit {@link org.jooq.Binding} to specify how this type should be handled. Deprecation can be turned off using {@literal <deprecationOnUnknownTypes/>} in your code generator configuration.
-   */
-  @java.lang.Deprecated
-  @Override
-  public Field<Object> field9() {
-    return SubmissionMetadata.SUBMISSION_METADATA.ATTACHMENT_FILENAMES;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String component1() {
-    return getFormId();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String component2() {
-    return getFormVersion();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String component3() {
-    return getInstanceId();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String component4() {
-    return getSubmissionFilename();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public OffsetDateTime component5() {
-    return getSubmissionDateTime();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String component6() {
-    return getEncryptedXmlFilename();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String component7() {
-    return getBase_64EncryptedKey();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String component8() {
-    return getEncryptedSignature();
-  }
-
-  /**
-   * @deprecated Unknown data type. Please define an explicit {@link org.jooq.Binding} to specify how this type should be handled. Deprecation can be turned off using {@literal <deprecationOnUnknownTypes/>} in your code generator configuration.
-   */
-  @java.lang.Deprecated
-  @Override
-  public Object component9() {
-    return getAttachmentFilenames();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String value1() {
-    return getFormId();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String value2() {
-    return getFormVersion();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String value3() {
-    return getInstanceId();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String value4() {
-    return getSubmissionFilename();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public OffsetDateTime value5() {
-    return getSubmissionDateTime();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String value6() {
-    return getEncryptedXmlFilename();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String value7() {
-    return getBase_64EncryptedKey();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String value8() {
-    return getEncryptedSignature();
-  }
-
-  /**
-   * @deprecated Unknown data type. Please define an explicit {@link org.jooq.Binding} to specify how this type should be handled. Deprecation can be turned off using {@literal <deprecationOnUnknownTypes/>} in your code generator configuration.
-   */
-  @java.lang.Deprecated
-  @Override
-  public Object value9() {
-    return getAttachmentFilenames();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public SubmissionMetadataRecord value1(String value) {
-    setFormId(value);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public SubmissionMetadataRecord value2(String value) {
-    setFormVersion(value);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public SubmissionMetadataRecord value3(String value) {
-    setInstanceId(value);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public SubmissionMetadataRecord value4(String value) {
-    setSubmissionFilename(value);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public SubmissionMetadataRecord value5(OffsetDateTime value) {
-    setSubmissionDateTime(value);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public SubmissionMetadataRecord value6(String value) {
-    setEncryptedXmlFilename(value);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public SubmissionMetadataRecord value7(String value) {
-    setBase_64EncryptedKey(value);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public SubmissionMetadataRecord value8(String value) {
-    setEncryptedSignature(value);
-    return this;
-  }
-
-  /**
-   * @deprecated Unknown data type. Please define an explicit {@link org.jooq.Binding} to specify how this type should be handled. Deprecation can be turned off using {@literal <deprecationOnUnknownTypes/>} in your code generator configuration.
-   */
-  @java.lang.Deprecated
-  @Override
-  public SubmissionMetadataRecord value9(Object value) {
-    setAttachmentFilenames(value);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public SubmissionMetadataRecord values(String value1, String value2, String value3, String value4, OffsetDateTime value5, String value6, String value7, String value8, Object value9) {
-    value1(value1);
-    value2(value2);
-    value3(value3);
-    value4(value4);
-    value5(value5);
-    value6(value6);
-    value7(value7);
-    value8(value8);
-    value9(value9);
-    return this;
-  }
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  /**
-   * Create a detached SubmissionMetadataRecord
-   */
-  public SubmissionMetadataRecord() {
-    super(SubmissionMetadata.SUBMISSION_METADATA);
-  }
-
-  /**
-   * Create a detached, initialised SubmissionMetadataRecord
-   */
-  public SubmissionMetadataRecord(String formId, String formVersion, String instanceId, String submissionFilename, OffsetDateTime submissionDateTime, String encryptedXmlFilename, String base_64EncryptedKey, String encryptedSignature, Object attachmentFilenames) {
-    super(SubmissionMetadata.SUBMISSION_METADATA);
-
-    set(0, formId);
-    set(1, formVersion);
-    set(2, instanceId);
-    set(3, submissionFilename);
-    set(4, submissionDateTime);
-    set(5, encryptedXmlFilename);
-    set(6, base_64EncryptedKey);
-    set(7, encryptedSignature);
-    set(8, attachmentFilenames);
-  }
+    private static final long serialVersionUID = -608756947;
+
+    /**
+     * Setter for <code>PUBLIC.SUBMISSION_METADATA.FORM_ID</code>.
+     */
+    public void setFormId(String value) {
+        set(0, value);
+    }
+
+    /**
+     * Getter for <code>PUBLIC.SUBMISSION_METADATA.FORM_ID</code>.
+     */
+    public String getFormId() {
+        return (String) get(0);
+    }
+
+    /**
+     * Setter for <code>PUBLIC.SUBMISSION_METADATA.FORM_VERSION</code>.
+     */
+    public void setFormVersion(String value) {
+        set(1, value);
+    }
+
+    /**
+     * Getter for <code>PUBLIC.SUBMISSION_METADATA.FORM_VERSION</code>.
+     */
+    public String getFormVersion() {
+        return (String) get(1);
+    }
+
+    /**
+     * Setter for <code>PUBLIC.SUBMISSION_METADATA.INSTANCE_ID</code>.
+     */
+    public void setInstanceId(String value) {
+        set(2, value);
+    }
+
+    /**
+     * Getter for <code>PUBLIC.SUBMISSION_METADATA.INSTANCE_ID</code>.
+     */
+    public String getInstanceId() {
+        return (String) get(2);
+    }
+
+    /**
+     * Setter for <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_FILENAME</code>.
+     */
+    public void setSubmissionFilename(String value) {
+        set(3, value);
+    }
+
+    /**
+     * Getter for <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_FILENAME</code>.
+     */
+    public String getSubmissionFilename() {
+        return (String) get(3);
+    }
+
+    /**
+     * Setter for <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_DATE_TIME</code>.
+     */
+    public void setSubmissionDateTime(OffsetDateTime value) {
+        set(4, value);
+    }
+
+    /**
+     * Getter for <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_DATE_TIME</code>.
+     */
+    public OffsetDateTime getSubmissionDateTime() {
+        return (OffsetDateTime) get(4);
+    }
+
+    /**
+     * Setter for <code>PUBLIC.SUBMISSION_METADATA.ENCRYPTED_XML_FILENAME</code>.
+     */
+    public void setEncryptedXmlFilename(String value) {
+        set(5, value);
+    }
+
+    /**
+     * Getter for <code>PUBLIC.SUBMISSION_METADATA.ENCRYPTED_XML_FILENAME</code>.
+     */
+    public String getEncryptedXmlFilename() {
+        return (String) get(5);
+    }
+
+    /**
+     * Setter for <code>PUBLIC.SUBMISSION_METADATA.BASE_64_ENCRYPTED_KEY</code>.
+     */
+    public void setBase_64EncryptedKey(String value) {
+        set(6, value);
+    }
+
+    /**
+     * Getter for <code>PUBLIC.SUBMISSION_METADATA.BASE_64_ENCRYPTED_KEY</code>.
+     */
+    public String getBase_64EncryptedKey() {
+        return (String) get(6);
+    }
+
+    /**
+     * Setter for <code>PUBLIC.SUBMISSION_METADATA.ENCRYPTED_SIGNATURE</code>.
+     */
+    public void setEncryptedSignature(String value) {
+        set(7, value);
+    }
+
+    /**
+     * Getter for <code>PUBLIC.SUBMISSION_METADATA.ENCRYPTED_SIGNATURE</code>.
+     */
+    public String getEncryptedSignature() {
+        return (String) get(7);
+    }
+
+    /**
+     * Setter for <code>PUBLIC.SUBMISSION_METADATA.ATTACHMENT_FILENAMES</code>.
+     */
+    public void setAttachmentFilenames(Object value) {
+        set(8, value);
+    }
+
+    /**
+     * Getter for <code>PUBLIC.SUBMISSION_METADATA.ATTACHMENT_FILENAMES</code>.
+     */
+    public Object getAttachmentFilenames() {
+        return get(8);
+    }
+
+    // -------------------------------------------------------------------------
+    // Primary key information
+    // -------------------------------------------------------------------------
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Record3<String, String, String> key() {
+        return (Record3) super.key();
+    }
+
+    // -------------------------------------------------------------------------
+    // Record9 type implementation
+    // -------------------------------------------------------------------------
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Row9<String, String, String, String, OffsetDateTime, String, String, String, Object> fieldsRow() {
+        return (Row9) super.fieldsRow();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Row9<String, String, String, String, OffsetDateTime, String, String, String, Object> valuesRow() {
+        return (Row9) super.valuesRow();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Field<String> field1() {
+        return SubmissionMetadata.SUBMISSION_METADATA.FORM_ID;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Field<String> field2() {
+        return SubmissionMetadata.SUBMISSION_METADATA.FORM_VERSION;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Field<String> field3() {
+        return SubmissionMetadata.SUBMISSION_METADATA.INSTANCE_ID;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Field<String> field4() {
+        return SubmissionMetadata.SUBMISSION_METADATA.SUBMISSION_FILENAME;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Field<OffsetDateTime> field5() {
+        return SubmissionMetadata.SUBMISSION_METADATA.SUBMISSION_DATE_TIME;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Field<String> field6() {
+        return SubmissionMetadata.SUBMISSION_METADATA.ENCRYPTED_XML_FILENAME;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Field<String> field7() {
+        return SubmissionMetadata.SUBMISSION_METADATA.BASE_64_ENCRYPTED_KEY;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Field<String> field8() {
+        return SubmissionMetadata.SUBMISSION_METADATA.ENCRYPTED_SIGNATURE;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Field<Object> field9() {
+        return SubmissionMetadata.SUBMISSION_METADATA.ATTACHMENT_FILENAMES;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String component1() {
+        return getFormId();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String component2() {
+        return getFormVersion();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String component3() {
+        return getInstanceId();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String component4() {
+        return getSubmissionFilename();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public OffsetDateTime component5() {
+        return getSubmissionDateTime();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String component6() {
+        return getEncryptedXmlFilename();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String component7() {
+        return getBase_64EncryptedKey();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String component8() {
+        return getEncryptedSignature();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Object component9() {
+        return getAttachmentFilenames();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String value1() {
+        return getFormId();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String value2() {
+        return getFormVersion();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String value3() {
+        return getInstanceId();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String value4() {
+        return getSubmissionFilename();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public OffsetDateTime value5() {
+        return getSubmissionDateTime();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String value6() {
+        return getEncryptedXmlFilename();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String value7() {
+        return getBase_64EncryptedKey();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String value8() {
+        return getEncryptedSignature();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Object value9() {
+        return getAttachmentFilenames();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SubmissionMetadataRecord value1(String value) {
+        setFormId(value);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SubmissionMetadataRecord value2(String value) {
+        setFormVersion(value);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SubmissionMetadataRecord value3(String value) {
+        setInstanceId(value);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SubmissionMetadataRecord value4(String value) {
+        setSubmissionFilename(value);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SubmissionMetadataRecord value5(OffsetDateTime value) {
+        setSubmissionDateTime(value);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SubmissionMetadataRecord value6(String value) {
+        setEncryptedXmlFilename(value);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SubmissionMetadataRecord value7(String value) {
+        setBase_64EncryptedKey(value);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SubmissionMetadataRecord value8(String value) {
+        setEncryptedSignature(value);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SubmissionMetadataRecord value9(Object value) {
+        setAttachmentFilenames(value);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SubmissionMetadataRecord values(String value1, String value2, String value3, String value4, OffsetDateTime value5, String value6, String value7, String value8, Object value9) {
+        value1(value1);
+        value2(value2);
+        value3(value3);
+        value4(value4);
+        value5(value5);
+        value6(value6);
+        value7(value7);
+        value8(value8);
+        value9(value9);
+        return this;
+    }
+
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
+
+    /**
+     * Create a detached SubmissionMetadataRecord
+     */
+    public SubmissionMetadataRecord() {
+        super(SubmissionMetadata.SUBMISSION_METADATA);
+    }
+
+    /**
+     * Create a detached, initialised SubmissionMetadataRecord
+     */
+    public SubmissionMetadataRecord(String formId, String formVersion, String instanceId, String submissionFilename, OffsetDateTime submissionDateTime, String encryptedXmlFilename, String base_64EncryptedKey, String encryptedSignature, Object attachmentFilenames) {
+        super(SubmissionMetadata.SUBMISSION_METADATA);
+
+        set(0, formId);
+        set(1, formVersion);
+        set(2, instanceId);
+        set(3, submissionFilename);
+        set(4, submissionDateTime);
+        set(5, encryptedXmlFilename);
+        set(6, base_64EncryptedKey);
+        set(7, encryptedSignature);
+        set(8, attachmentFilenames);
+    }
 }

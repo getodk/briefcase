@@ -18,29 +18,32 @@ public class FormMetadataCommands {
   }
 
   public static Consumer<FormMetadataPort> syncWithFilesAt(Path workspaceLocation) {
-    return port -> walk(workspaceLocation.resolve("forms"))
-        // select XML files that are not submissions
-        .filter(path -> !path.getFileName().toString().equals("submission.xml")
-            && path.getFileName().toString().endsWith(".xml"))
+    return port -> {
+      port.flush();
+      walk(workspaceLocation.resolve("forms"))
+          // select XML files that are not submissions
+          .filter(path -> !path.getFileName().toString().equals("submission.xml")
+              && path.getFileName().toString().endsWith(".xml"))
 
-        // select XML files that look like forms by parsing them
-        // and looking for key parts that all forms must have
-        .filter(path -> isAForm(XmlElement.from(path)))
+          // select XML files that look like forms by parsing them
+          // and looking for key parts that all forms must have
+          .filter(path -> isAForm(XmlElement.from(path)))
 
-        // Build a FormMetadata from the form file
-        .map(FormMetadata::from)
+          // Build a FormMetadata from the form file
+          .map(FormMetadata::from)
 
-        // Try to recover any missing cursor from the legacy Java prefs system
-        .map(metadata -> {
-          if (!metadata.getCursor().isEmpty())
-            return metadata;
-          return LegacyPrefs.readCursor(metadata.getKey().getId())
-              .map(metadata::withCursor)
-              .orElse(metadata);
-        })
+          // Try to recover any missing cursor from the legacy Java prefs system
+          .map(metadata -> {
+            if (!metadata.getCursor().isEmpty())
+              return metadata;
+            return LegacyPrefs.readCursor(metadata.getKey().getId())
+                .map(metadata::withCursor)
+                .orElse(metadata);
+          })
 
-        // Write updated metadata.json files
-        .forEach(port::persist);
+          // Write updated metadata.json files
+          .forEach(port::persist);
+    };
   }
 
   private static boolean isAForm(XmlElement root) {

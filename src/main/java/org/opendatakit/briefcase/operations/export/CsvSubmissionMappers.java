@@ -55,18 +55,18 @@ final class CsvSubmissionMappers {
       cols.add(encode(submission.getSubmissionDate().map(CsvSubmissionMappers::format).orElse(null), false));
       cols.addAll(formDefinition.getModel().flatMap(field -> getMapper(field, configuration.resolveSplitSelectMultiples()).apply(
           formDefinition.getFormName(),
-          submission.getInstanceId(formDefinition.hasRepeatableFields()),
+          submission.getInstanceId(),
           submission.getWorkingDir(),
           field,
           submission.findElement(field.getName()),
           configuration
       ).map(value -> encodeMainValue(field, value))).collect(toList()));
-      cols.add(submission.getInstanceId(formDefinition.hasRepeatableFields()));
+      cols.add(submission.getInstanceId());
       if (formDefinition.isFileEncryptedForm())
         cols.add(submission.getValidationStatus().asCsvValue());
       return CsvLines.of(
           formDefinition.getModel().fqn(),
-          submission.getInstanceId(formDefinition.hasRepeatableFields()),
+          submission.getInstanceId(),
           submission.getSubmissionDate().orElse(MIN_SUBMISSION_DATE),
           String.join(",", cols)
       );
@@ -86,15 +86,15 @@ final class CsvSubmissionMappers {
           List<String> cols = new ArrayList<>();
           cols.addAll(groupModel.flatMap(field -> getMapper(field, configuration.resolveSplitSelectMultiples()).apply(
               formDefinition.getFormName(),
-              element.getCurrentLocalId(field, submission.getInstanceId(true)),
+              element.getCurrentLocalId(field, submission.getInstanceId()),
               submission.getWorkingDir(),
               field,
               element.findElement(field.getName()),
               configuration
           ).map(CsvSubmissionMappers::encodeRepeatValue)).collect(toList()));
-          cols.add(encode(element.getParentLocalId(groupModel, submission.getInstanceId(true)), false));
-          cols.add(encode(element.getCurrentLocalId(groupModel, submission.getInstanceId(true)), false));
-          cols.add(encode(element.getGroupLocalId(groupModel, submission.getInstanceId(true)), false));
+          cols.add(encode(element.getParentLocalId(groupModel, submission.getInstanceId()), false));
+          cols.add(encode(element.getCurrentLocalId(groupModel, submission.getInstanceId()), false));
+          cols.add(encode(element.getGroupLocalId(groupModel, submission.getInstanceId()), false));
           return String.join(",", cols);
         }).collect(toList())
     );

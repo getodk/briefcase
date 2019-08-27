@@ -30,7 +30,7 @@ import org.opendatakit.briefcase.reused.db.jooq.tables.records.SubmissionMetadat
 @SuppressWarnings({"all", "unchecked", "rawtypes"})
 public class SubmissionMetadata extends TableImpl<SubmissionMetadataRecord> {
 
-  private static final long serialVersionUID = 1301254514;
+  private static final long serialVersionUID = 334266127;
 
   /**
    * The reference instance of <code>PUBLIC.SUBMISSION_METADATA</code>
@@ -86,9 +86,8 @@ public class SubmissionMetadata extends TableImpl<SubmissionMetadataRecord> {
   public final TableField<SubmissionMetadataRecord, String> ENCRYPTED_SIGNATURE = createField("ENCRYPTED_SIGNATURE", org.jooq.impl.SQLDataType.CLOB, this, "");
 
   /**
-   * @deprecated Unknown data type. Please define an explicit {@link org.jooq.Binding} to specify how this type should be handled. Deprecation can be turned off using {@literal <deprecationOnUnknownTypes/>} in your code generator configuration.
+   * The column <code>PUBLIC.SUBMISSION_METADATA.ATTACHMENT_FILENAMES</code>.
    */
-  @java.lang.Deprecated
   public final TableField<SubmissionMetadataRecord, Object> ATTACHMENT_FILENAMES = createField("ATTACHMENT_FILENAMES", org.jooq.impl.DefaultDataType.getDefaultDataType(""), this, "");
 
   /**

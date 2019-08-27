@@ -21,8 +21,6 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -48,7 +46,6 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
 
   private final JEditorPane editorArea;
   private final FormKey formKey;
-  private final List<String> lines = new ArrayList<>();
 
   /**
    * Set up and show the dialog. The first Component argument determines which
@@ -124,8 +121,6 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
 
   @EventSubscriber(eventClass = FormStatusEvent.class)
   public void onFormStatusEvent(FormStatusEvent event) {
-    // Since there can be multiple FormStatusEvent's published concurrently,
-    // we have to check if the event is meant for this dialog instance.
     if (isShowing() && event.getFormKey().equals(formKey)) {
       try {
         Document doc = editorArea.getDocument();
@@ -139,6 +134,7 @@ public class ScrollingStatusListDialog extends JDialog implements ActionListener
 
   @EventSubscriber(eventClass = ExportEvent.class)
   public void onExportEvent(ExportEvent event) {
-    appendToDocument(editorArea, event.getMessage());
+    if (event.getFormKey().equals(formKey))
+      appendToDocument(editorArea, event.getMessage());
   }
 }

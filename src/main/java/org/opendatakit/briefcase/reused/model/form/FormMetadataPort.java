@@ -7,6 +7,8 @@ import java.util.stream.Stream;
 
 public interface FormMetadataPort {
 
+  void flush();
+
   <T> T query(Function<FormMetadataPort, T> query);
 
   void execute(Consumer<FormMetadataPort> command);

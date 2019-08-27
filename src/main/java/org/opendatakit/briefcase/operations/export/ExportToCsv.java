@@ -30,7 +30,7 @@ import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirector
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.write;
-import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataQueries.sortedListOfSubmissionFiles;
+import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataQueries.sortedSubmissions;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -44,6 +44,7 @@ import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataCommands;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,11 +76,9 @@ public class ExportToCsv {
     exportTracker.start();
 
     var onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getFormName().orElse(formMetadata.getKey().getId())));
-    var onInvalidSubmission = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getFormName().orElse(formMetadata.getKey().getId())))
-        .andThen((path, message) -> analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null)));
 
-    List<Path> submissionFiles = submissionMetadataPort
-        .query(sortedListOfSubmissionFiles(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend()))
+    List<SubmissionMetadata> submissionFiles = submissionMetadataPort
+        .query(sortedSubmissions(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend()))
         .collect(toList());
     exportTracker.trackTotal(submissionFiles.size());
 
@@ -96,7 +95,7 @@ public class ExportToCsv {
     }
 
     // Generate csv lines grouped by the fqdn of the model they belong to
-    Map<String, CsvLines> csvLinesPerModel = ExportTools.getValidSubmissions(formMetadata, formDef, configuration, submissionFiles, onParsingError, onInvalidSubmission)
+    Map<String, CsvLines> csvLinesPerModel = ExportTools.getSubmissions(formMetadata, configuration, submissionFiles, onParsingError)
         // Track the submission
         .peek(s -> exportTracker.incAndReport())
         // Use the mapper of each Csv instance to map the submission into their respective outputs
@@ -138,15 +137,15 @@ public class ExportToCsv {
     return exportOutcome;
   }
 
-  private static BiConsumer<Path, String> buildParsingErrorCallback(Path errorsDir) {
+  private static BiConsumer<SubmissionMetadata, String> buildParsingErrorCallback(Path errorsDir) {
     AtomicInteger errorSeq = new AtomicInteger(1);
     // Remove errors from a previous export attempt
     if (exists(errorsDir))
       deleteRecursive(errorsDir);
-    return (path, message) -> {
+    return (submissionMetadata, message) -> {
       if (!exists(errorsDir))
         createDirectories(errorsDir);
-      copy(path, errorsDir.resolve("failed_submission_" + errorSeq.getAndIncrement() + ".xml"));
+      copy(submissionMetadata.getSubmissionFile(), errorsDir.resolve("failed_submission_" + errorSeq.getAndIncrement() + ".xml"));
       log.warn("A submission has been excluded from the export output due to some problem ({}). If you didn't expect this, please ask for support at https://forum.opendatakit.org/c/support", message);
     };
   }

@@ -19,6 +19,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.db.jooq.tables.records.FormMetadataRecord;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
@@ -33,6 +34,11 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
 
   private DSLContext getDslContext() {
     return dslContextCache.computeIfAbsent("default", __ -> dslContextSupplier.get());
+  }
+
+  @Override
+  public void flush() {
+    getDslContext().execute(DSL.truncate(FORM_METADATA));
   }
 
   @Override

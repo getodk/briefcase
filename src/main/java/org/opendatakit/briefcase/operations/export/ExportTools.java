@@ -19,31 +19,24 @@ package org.opendatakit.briefcase.operations.export;
 import static org.opendatakit.briefcase.reused.model.submission.SubmissionParser.parseEncryptedSubmission;
 import static org.opendatakit.briefcase.reused.model.submission.SubmissionParser.parsePlainSubmission;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.submission.Submission;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 
 class ExportTools {
-  static Stream<Submission> getValidSubmissions(FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, List<Path> submissionFiles, BiConsumer<Path, String> onParsingError, BiConsumer<Path, String> onInvalidSubmission) {
-    return submissionFiles.parallelStream()
+  static Stream<Submission> getSubmissions(FormMetadata formMetadata, ExportConfiguration configuration, List<SubmissionMetadata> submissionMetadataList, BiConsumer<SubmissionMetadata, String> onParsingError) {
+    return submissionMetadataList.parallelStream()
         // Parse the submission and leave only those OK to be exported
-        .map(path -> formMetadata.isEncrypted()
-            ? parseEncryptedSubmission(path, configuration.getPrivateKey().orElseThrow(BriefcaseException::new), onParsingError)
-            : parsePlainSubmission(path, onParsingError)
+        .map(submissionMetadata -> formMetadata.isEncrypted()
+            ? parseEncryptedSubmission(submissionMetadata, configuration.getPrivateKey().orElseThrow(BriefcaseException::new), onParsingError)
+            : parsePlainSubmission(submissionMetadata, onParsingError)
         )
         .filter(Optional::isPresent)
-        .map(Optional::get)
-        .filter(submission -> {
-          boolean valid = submission.isValid(formDef.hasRepeatableFields());
-          if (!valid)
-            onInvalidSubmission.accept(submission.getPath(), "invalid submission");
-          return valid;
-        });
+        .map(Optional::get);
   }
 }

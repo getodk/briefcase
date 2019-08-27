@@ -18,7 +18,6 @@ package org.opendatakit.briefcase.reused.model.submission;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
-import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createTempDirectory;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.stripFileExtension;
 import static org.opendatakit.briefcase.reused.model.submission.CipherFactory.signatureDecrypter;
 
@@ -32,7 +31,6 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -46,7 +44,6 @@ import javax.xml.stream.XMLStreamReader;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.api.Iso8601Helpers;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,18 +63,15 @@ public class SubmissionParser {
    * <p>
    * Otherwise, it returns an empty Optional without throwing any exception.
    */
-  public static Optional<Submission> parsePlainSubmission(Path submissionFile, BiConsumer<Path, String> onError) {
-    Path workingDir = submissionFile.getParent();
-    return parse(submissionFile, onError).flatMap(document -> {
+  public static Optional<Submission> parsePlainSubmission(SubmissionMetadata submissionMetadata, BiConsumer<SubmissionMetadata, String> onError) {
+    return parse(submissionMetadata, onError).flatMap(document -> {
       XmlElement root = XmlElement.of(document);
-      SubmissionLazyMetadata metaData = new SubmissionLazyMetadata(root);
-      return Optional.of(Submission.plain(submissionFile, workingDir, root, metaData));
+      return Optional.of(Submission.plain(submissionMetadata, root));
     });
   }
 
-  public static Optional<Submission> parseEncryptedSubmission(Path submissionFile, PrivateKey privateKey, BiConsumer<Path, String> onError) {
-    Path workingDir = createTempDirectory("briefcase");
-    return parse(submissionFile, onError).flatMap(document -> {
+  public static Optional<Submission> parseEncryptedSubmission(SubmissionMetadata submissionMetadata, PrivateKey privateKey, BiConsumer<SubmissionMetadata, String> onError) {
+    return parse(submissionMetadata, onError).flatMap(document -> {
       XmlElement root = XmlElement.of(document);
       SubmissionLazyMetadata metaData = new SubmissionLazyMetadata(root);
 
@@ -93,19 +87,9 @@ public class SubmissionParser {
           decodeBase64(metaData.getEncryptedSignature().orElseThrow(BriefcaseException::new))
       );
 
-      Submission submission = Submission.unencrypted(submissionFile, workingDir, root, metaData, cipherFactory, signature);
-      return decrypt(submission, onError).map(s -> s.copy(ValidationStatus.of(isValid(submission, s))));
+      Submission submission = Submission.unencrypted(submissionMetadata, root, cipherFactory, signature);
+      return decrypt(submission, onError).map(s -> s.withValidationStatus(ValidationStatus.of(isValid(submission, s))));
     });
-  }
-
-  private static Optional<OffsetDateTime> readSubmissionDate(Path path, BiConsumer<Path, String> onParsingError) {
-    try (InputStream is = Files.newInputStream(path);
-         InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
-      return parseAttribute(path, isr, "submissionDate", onParsingError)
-          .map(Iso8601Helpers::parseDateTime);
-    } catch (IOException e) {
-      throw new CryptoException("Can't decrypt file", e);
-    }
   }
 
   private static Optional<String> parseAttribute(Path submission, Reader ioReader, String attributeName, BiConsumer<Path, String> onParsingError) {
@@ -124,7 +108,7 @@ public class SubmissionParser {
   }
 
 
-  private static Optional<Submission> decrypt(Submission submission, BiConsumer<Path, String> onError) {
+  private static Optional<Submission> decrypt(Submission submission, BiConsumer<SubmissionMetadata, String> onError) {
     List<Path> mediaPaths = submission.getMediaPaths();
 
     if (mediaPaths.size() != submission.countMedia())
@@ -138,7 +122,8 @@ public class SubmissionParser {
     Path decryptedSubmission = decryptFile(submission.getEncryptedFilePath(), submission.getWorkingDir(), submission.getNextCipher());
 
     // Parse the document and, if everything goes well, return a decripted copy of the submission
-    return parse(decryptedSubmission, onError).map(document -> submission.copy(decryptedSubmission, document));
+    return parse(decryptedSubmission, submission.getSubmissinoMetadata(), onError)
+        .map(document -> submission.withPathAndDocument(decryptedSubmission, document));
   }
 
   private static Path decryptFile(Path encFile, Path workingDir, Cipher cipher) {
@@ -160,8 +145,12 @@ public class SubmissionParser {
     }
   }
 
-  private static Optional<Document> parse(Path submission, BiConsumer<Path, String> onError) {
-    try (InputStream is = Files.newInputStream(submission);
+  private static Optional<Document> parse(SubmissionMetadata submissionMetadata, BiConsumer<SubmissionMetadata, String> onError) {
+    return parse(submissionMetadata.getSubmissionFile(), submissionMetadata, onError);
+  }
+
+  private static Optional<Document> parse(Path submissionFile, SubmissionMetadata submissionMetadata, BiConsumer<SubmissionMetadata, String> onError) {
+    try (InputStream is = Files.newInputStream(submissionFile);
          InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
       Document tempDoc = new Document();
       KXmlParser parser = new KXmlParser();
@@ -171,7 +160,7 @@ public class SubmissionParser {
       return Optional.of(tempDoc);
     } catch (IOException | XmlPullParserException e) {
       log.error("Can't parse submission", e);
-      onError.accept(submission, "parsing error");
+      onError.accept(submissionMetadata, "parsing error");
       return Optional.empty();
     }
   }

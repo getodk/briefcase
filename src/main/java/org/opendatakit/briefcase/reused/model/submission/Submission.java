@@ -16,7 +16,6 @@
 package org.opendatakit.briefcase.reused.model.submission;
 
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.reused.api.UncheckedFiles.checksumOf;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.stripFileExtension;
 import static org.opendatakit.briefcase.reused.model.submission.ValidationStatus.NOT_VALIDATED;
 
@@ -41,10 +40,8 @@ import org.opendatakit.briefcase.reused.model.XmlElement;
  * which is only relevant if the form is encrypted.
  */
 public class Submission {
-  private final Path path;
-  private final Path workingDir;
+  private final SubmissionMetadata submissionMetadata;
   private final XmlElement root;
-  private final SubmissionLazyMetadata metaData;
   private final ValidationStatus validationStatus;
   private final Optional<CipherFactory> cipherFactory;
   private final Optional<byte[]> signature;
@@ -55,47 +52,32 @@ public class Submission {
    */
   private Map<String, List<XmlElement>> elementsByFqn;
 
-  private Submission(Path path, Path workingDir, XmlElement root, SubmissionLazyMetadata metaData, ValidationStatus validationStatus, Optional<CipherFactory> cipherFactory, Optional<byte[]> signature) {
-    this.path = path;
-    this.workingDir = workingDir;
+  private Submission(SubmissionMetadata submissionMetadata, XmlElement root, ValidationStatus validationStatus, Optional<CipherFactory> cipherFactory, Optional<byte[]> signature) {
+    this.submissionMetadata = submissionMetadata;
     this.root = root;
-    this.metaData = metaData;
     this.validationStatus = validationStatus;
     this.cipherFactory = cipherFactory;
     this.signature = signature;
   }
 
-  public static Submission plain(Path path, Path workingDir, XmlElement root, SubmissionLazyMetadata metaData) {
-    return new Submission(path, workingDir, root, metaData, NOT_VALIDATED, Optional.empty(), Optional.empty());
+  public static Submission plain(SubmissionMetadata submissionMetadata, XmlElement root) {
+    return new Submission(submissionMetadata, root, NOT_VALIDATED, Optional.empty(), Optional.empty());
   }
 
-  public static Submission unencrypted(Path path, Path workingDir, XmlElement root, SubmissionLazyMetadata metaData, CipherFactory cipherFactory, byte[] signature) {
-    return new Submission(path, workingDir, root, metaData, NOT_VALIDATED, Optional.of(cipherFactory), Optional.of(signature));
+  public static Submission unencrypted(SubmissionMetadata submissionMetadata, XmlElement root, CipherFactory cipherFactory, byte[] signature) {
+    return new Submission(submissionMetadata, root, NOT_VALIDATED, Optional.of(cipherFactory), Optional.of(signature));
   }
 
   public Path getPath() {
-    return path;
+    return submissionMetadata.getSubmissionFile();
   }
 
-  public boolean isValid(boolean formHasRepeatableFields) {
-    return !formHasRepeatableFields || metaData.getInstanceId().isPresent();
+  public Path getWorkingDir() {
+    return submissionMetadata.getSubmissionDir();
   }
 
   public String getInstanceId() {
-    return metaData.getInstanceId().orElseThrow(BriefcaseException::new);
-  }
-
-  /**
-   * Returns the submission's instance ID.
-   *
-   * @return a {@link String} with the submission's instance ID
-   * @throws BriefcaseException if there is no instance ID and the form has repeatable fields
-   */
-  public String getInstanceId(boolean formHasRepeatableFields) {
-    Optional<String> maybeInstanceId = metaData.getInstanceId();
-    return formHasRepeatableFields
-        ? maybeInstanceId.orElseThrow(() -> new BriefcaseException("The form has repeat groups and this submission has no instance ID"))
-        : maybeInstanceId.orElse("");
+    return submissionMetadata.getKey().getInstanceId();
   }
 
   /**
@@ -109,15 +91,16 @@ public class Submission {
    */
   String buildSignature(Submission originalSubmission) {
     List<String> signatureParts = new ArrayList<>();
-    signatureParts.add(metaData.getFormId());
-    metaData.getVersion().ifPresent(signatureParts::add);
-    signatureParts.add(metaData.getBase64EncryptedKey().orElseThrow(() -> new BriefcaseException("Missing base64EncryptedKey element in encrypted form")));
-    signatureParts.add(metaData.getInstanceId().orElseGet(() -> "crc32:" + checksumOf(originalSubmission.path)));
-    for (String mediaName : metaData.getMediaNames()) {
-      Path decryptedFile = workingDir.resolve(stripFileExtension(mediaName));
+    signatureParts.add(submissionMetadata.getKey().getFormId());
+    submissionMetadata.getKey().getFormVersion().ifPresent(signatureParts::add);
+    signatureParts.add(submissionMetadata.getBase64EncryptedKey().orElseThrow(() -> new BriefcaseException("Missing base64EncryptedKey element in encrypted form")));
+    signatureParts.add(submissionMetadata.getKey().getInstanceId());
+    for (Path attachment : submissionMetadata.getAttachmentFilenames()) {
+      Path decryptedFile = submissionMetadata.getSubmissionDir().resolve(stripFileExtension(attachment.toString()));
       signatureParts.add(decryptedFile.getFileName() + "::" + UncheckedFiles.getMd5Hash(decryptedFile).orElseThrow(BriefcaseException::new));
     }
-    signatureParts.add(originalSubmission.path.getFileName().toString() + "::" + UncheckedFiles.getMd5Hash(path).orElseThrow(BriefcaseException::new));
+    Path submissionFile = originalSubmission.submissionMetadata.getSubmissionFile();
+    signatureParts.add(submissionFile.toString() + "::" + UncheckedFiles.getMd5Hash(submissionFile).orElseThrow(BriefcaseException::new));
     return String.join("\n", signatureParts) + "\n";
   }
 
@@ -126,8 +109,8 @@ public class Submission {
    * <p>
    * It will extract a new {@link XmlElement} root from the given {@link Document} document
    */
-  Submission copy(Path path, Document document) {
-    return new Submission(path, workingDir, XmlElement.of(document), metaData, validationStatus, cipherFactory, signature);
+  Submission withPathAndDocument(Path path, Document document) {
+    return new Submission(submissionMetadata.withSubmissionFile(path), XmlElement.of(document), validationStatus, cipherFactory, signature);
   }
 
   /**
@@ -136,8 +119,8 @@ public class Submission {
    * @param validationStatus new {@link ValidationStatus} value
    * @return a new {@link Submission} instance
    */
-  Submission copy(ValidationStatus validationStatus) {
-    return new Submission(path, workingDir, root, metaData, validationStatus, cipherFactory, signature);
+  Submission withValidationStatus(ValidationStatus validationStatus) {
+    return new Submission(submissionMetadata, root, validationStatus, cipherFactory, signature);
   }
 
 
@@ -159,16 +142,7 @@ public class Submission {
    *     or an {@link Optional#empty()} if there is no submission date
    */
   public Optional<OffsetDateTime> getSubmissionDate() {
-    return metaData.getSubmissionDate();
-  }
-
-  /**
-   * Returns the working directory {@link Path} to be used in any filesystem operations.
-   *
-   * @return the {@link Path} to the working directory
-   */
-  public Path getWorkingDir() {
-    return workingDir;
+    return submissionMetadata.getSubmissionDateTime();
   }
 
   /**
@@ -178,8 +152,8 @@ public class Submission {
    * @return a {@link List} of {@link Path} paths to attached media files
    */
   List<Path> getMediaPaths() {
-    return metaData.getMediaNames().stream()
-        .map(fileName -> path.getParent().resolve(fileName))
+    return submissionMetadata.getAttachmentFilenames().stream()
+        .map(submissionMetadata::getAttachmentFile)
         .filter(Files::exists)
         .collect(toList());
   }
@@ -190,12 +164,12 @@ public class Submission {
    * @return an {@link Integer} with the number of attached media files
    */
   int countMedia() {
-    return metaData.getMediaNames().size();
+    return submissionMetadata.getAttachmentFilenames().size();
   }
 
   Path getEncryptedFilePath() {
-    return metaData.getEncryptedXmlFile()
-        .map(fileName -> path.getParent().resolve(fileName))
+    return submissionMetadata.getEncryptedXmlFilename()
+        .map(submissionMetadata::getAttachmentFile)
         .filter(path -> Files.exists(path))
         .orElseThrow(() -> new BriefcaseException("Encrypted file not found"));
   }
@@ -255,5 +229,9 @@ public class Submission {
       if (left[i] != right[i])
         return false;
     return true;
+  }
+
+  public SubmissionMetadata getSubmissinoMetadata() {
+    return submissionMetadata;
   }
 }
