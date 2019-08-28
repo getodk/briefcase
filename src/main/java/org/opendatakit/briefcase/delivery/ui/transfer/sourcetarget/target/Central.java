@@ -35,6 +35,7 @@ import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
 
@@ -43,12 +44,14 @@ import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
  */
 public class Central implements PushTarget<CentralServer> {
   private final Http http;
+  private final SubmissionMetadataPort submissionMetadataPort;
   private final Test<CentralServer> serverTester;
   private final Consumer<PushTarget> onSourceCallback;
   private CentralServer server;
 
-  Central(Http http, Test<CentralServer> serverTester, Consumer<PushTarget> onSourceCallback) {
+  Central(Http http, SubmissionMetadataPort submissionMetadataPort, Test<CentralServer> serverTester, Consumer<PushTarget> onSourceCallback) {
     this.http = http;
+    this.submissionMetadataPort = submissionMetadataPort;
     this.serverTester = serverTester;
     this.onSourceCallback = onSourceCallback;
   }
@@ -66,7 +69,7 @@ public class Central implements PushTarget<CentralServer> {
         );
 
     String token = http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
-    PushToCentral pushOp = new PushToCentral(http, server, token, EventBus::publish);
+    PushToCentral pushOp = new PushToCentral(http, submissionMetadataPort, server, token, EventBus::publish);
 
     return JobsRunner
         .launchAsync(forms.filter(f -> !f.isEncrypted()).map(pushOp::push))

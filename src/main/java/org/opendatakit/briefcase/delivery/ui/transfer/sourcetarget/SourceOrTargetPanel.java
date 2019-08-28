@@ -30,6 +30,7 @@ import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.PushTa
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,13 +69,13 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
     return panel;
   }
 
-  public static SourceOrTargetPanel<PushTarget> push(Http http) {
+  public static SourceOrTargetPanel<PushTarget> push(Http http, SubmissionMetadataPort submissionMetadataPort) {
     SourceOrTargetPanel<PushTarget> panel = new SourceOrTargetPanel<>(
         SelectSourceOrTargetForm.push(),
         ShowSourceOrTargetForm.push()
     );
     panel.addOption(PushTarget.aggregate(http, panel::triggerOnSelect));
-    panel.addOption(PushTarget.central(http, panel::triggerOnSelect));
+    panel.addOption(PushTarget.central(http, submissionMetadataPort, panel::triggerOnSelect));
     return panel;
   }
 

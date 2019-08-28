@@ -127,7 +127,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
     // Add panes to the tabbedPane
     addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics, formMetadataPort, briefcaseDir, submissionMetadataPort).getContainer());
-    addPane(PushPanel.TAB_NAME, PushPanel.from(http, appPreferences, analytics, formMetadataPort).getContainer());
+    addPane(PushPanel.TAB_NAME, PushPanel.from(http, formMetadataPort, submissionMetadataPort, analytics, appPreferences).getContainer());
     addPane(ExportPanel.TAB_NAME, ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, http, formMetadataPort, submissionMetadataPort).getForm().getContainer());
     addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(appPreferences, analytics, http, versionManager, formMetadataPort, submissionMetadataPort).getContainer());
 

@@ -19,6 +19,7 @@ import org.jooq.SelectSeekStep1;
 import org.jooq.impl.DSL;
 import org.opendatakit.briefcase.reused.db.jooq.tables.records.SubmissionMetadataRecord;
 import org.opendatakit.briefcase.reused.model.DateRange;
+import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 
 public class SubmissionMetadataQueries {
@@ -36,6 +37,18 @@ public class SubmissionMetadataQueries {
             .and(SUBMISSION_METADATA.INSTANCE_ID.eq(instanceId))))
         .map(count -> count >= 1)
         .orElse(false);
+  }
+
+  public static Function<SubmissionMetadataPort, Stream<SubmissionMetadata>> sortedSubmissions(FormKey formKey) {
+    List<Condition> conditions = new ArrayList<>();
+    conditions.add(SUBMISSION_METADATA.FORM_ID.eq(formKey.getId()));
+    conditions.add(SUBMISSION_METADATA.FORM_VERSION.eq(formKey.getVersion().orElse("")));
+
+    SelectSeekStep1<SubmissionMetadataRecord, OffsetDateTime> query = selectFrom(SUBMISSION_METADATA)
+        .where(conditions.stream().reduce(trueCondition(), Condition::and))
+        .orderBy(COALESCED_SUBMISSION_DATE.asc());
+
+    return port -> port.fetchAll(query);
   }
 
   public static Function<SubmissionMetadataPort, Stream<SubmissionMetadata>> sortedSubmissions(FormMetadata formMetadata, DateRange dateRange, boolean smartAppend) {

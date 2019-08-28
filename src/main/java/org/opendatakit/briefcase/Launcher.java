@@ -72,7 +72,7 @@ public class Launcher {
         .register(PullFromAggregate.create(formMetadataPort, submissionMetadataPort))
         .register(PullFromCentral.create(formMetadataPort, submissionMetadataPort))
         .register(PushToAggregate.create(formMetadataPort))
-        .register(PushToCentral.create(formMetadataPort))
+        .register(PushToCentral.create(formMetadataPort, submissionMetadataPort))
         .register(PullFromCollect.create(formMetadataPort, submissionMetadataPort))
         .register(Export.create(formMetadataPort, submissionMetadataPort))
         .register(ClearPreferences.create(formMetadataPort))

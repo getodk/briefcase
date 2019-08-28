@@ -41,6 +41,7 @@ import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.preferences.SavePasswordsConsentRevoked;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 
 public class PushPanel {
@@ -107,10 +108,10 @@ public class PushPanel {
     });
   }
 
-  public static PushPanel from(Http http, BriefcasePreferences appPreferences, Analytics analytics, FormMetadataPort formMetadataPort) {
+  public static PushPanel from(Http http, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Analytics analytics, BriefcasePreferences appPreferences) {
     TransferForms forms = TransferForms.from(formMetadataPort.fetchAll().collect(toList()));
     return new PushPanel(
-        TransferPanelForm.push(http, forms),
+        TransferPanelForm.push(http, submissionMetadataPort, forms),
         forms,
         BriefcasePreferences.forClass(PushPanel.class),
         appPreferences,

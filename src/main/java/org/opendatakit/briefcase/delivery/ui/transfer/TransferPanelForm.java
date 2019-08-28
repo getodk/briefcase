@@ -43,6 +43,7 @@ import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.PushTa
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.model.Operation;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 
 @SuppressWarnings("checkstyle:MethodName")
@@ -83,8 +84,8 @@ public class TransferPanelForm<T extends SourceOrTarget> {
     return new TransferPanelForm<>(SourceOrTargetPanel.pull(http, briefcaseDir), TransferFormsTable.from(forms, PULL), PULL);
   }
 
-  public static TransferPanelForm<PushTarget> push(Http http, TransferForms forms) {
-    return new TransferPanelForm<>(SourceOrTargetPanel.push(http), TransferFormsTable.from(forms, PUSH), PUSH);
+  public static TransferPanelForm<PushTarget> push(Http http, SubmissionMetadataPort submissionMetadataPort, TransferForms forms) {
+    return new TransferPanelForm<>(SourceOrTargetPanel.push(http, submissionMetadataPort), TransferFormsTable.from(forms, PUSH), PUSH);
   }
 
   public void onSelect(Consumer<T> callback) {
