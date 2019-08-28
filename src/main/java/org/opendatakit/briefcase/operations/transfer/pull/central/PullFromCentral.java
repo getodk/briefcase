@@ -25,7 +25,6 @@ import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.reused.job.Job.supply;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.upsert;
 import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataCommands.insert;
-import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataQueries.hasBeenAlreadyPulled;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -94,7 +93,7 @@ public class PullFromCentral {
             tracker.trackNoSubmissions();
 
           submissions.stream()
-              .map(instanceId -> Triple.of(submissionNumber.getAndIncrement(), instanceId, submissionMetadataPort.query(hasBeenAlreadyPulled(formMetadata.getKey().getId(), instanceId))))
+              .map(instanceId -> Triple.of(submissionNumber.getAndIncrement(), instanceId, submissionMetadataPort.hasBeenAlreadyPulled(formMetadata.getKey().getId(), instanceId)))
               .peek(triple -> {
                 if (triple.get3())
                   tracker.trackSubmissionAlreadyDownloaded(triple.get1(), totalSubmissions);

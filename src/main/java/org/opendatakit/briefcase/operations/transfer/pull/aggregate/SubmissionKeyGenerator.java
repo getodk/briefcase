@@ -54,9 +54,9 @@ public class SubmissionKeyGenerator {
 
   private static boolean isEncrypted(XmlElement blankForm) {
     return blankForm
-        .findElement("head")
-        .flatMap(n -> n.findElement("model"))
-        .flatMap(n -> n.findElement("submission"))
+        .findFirstElement("head")
+        .flatMap(n -> n.findFirstElement("model"))
+        .flatMap(n -> n.findFirstElement("submission"))
         .flatMap(n -> n.getAttributeValue("base64RsaPublicKey"))
         .isPresent();
   }
@@ -69,8 +69,8 @@ public class SubmissionKeyGenerator {
 
   private static XmlElement getInstance(XmlElement blankForm) {
     return blankForm
-        .findElement("head")
-        .flatMap(n -> n.findElement("model"))
+        .findFirstElement("head")
+        .flatMap(n -> n.findFirstElement("model"))
         .map(n -> n.findElements("instance"))
         .orElse(emptyList())
         .stream()

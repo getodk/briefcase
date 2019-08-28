@@ -16,27 +16,33 @@ public class SubmissionMetadataCommands {
     return port -> port.persist(submissionMetadata);
   }
 
+  /**
+   * Finds all submissions present in the filesystem that belong to the
+   * provided collection of forms and stores them.
+   */
   public static Consumer<SubmissionMetadataPort> syncSubmissions(Stream<FormMetadata> formMetadataStream) {
     return port -> {
       port.flush();
-      formMetadataStream.forEach(formMetadata -> {
-        if (!Files.exists(formMetadata.getSubmissionsDir()))
-          return;
 
-        Stream<SubmissionMetadata> submissionMetadataStream = walk(formMetadata.getSubmissionsDir())
-            .filter(SubmissionMetadata::isSubmissionFile)
-            .filter(SubmissionMetadata::hasInstanceId)
-            .map(submissionFile -> SubmissionMetadata.from(
-                submissionFile,
-                list(submissionFile.getParent())
-                    .filter(not(SubmissionMetadata::isSubmissionFile))
-                    .map(Path::getFileName)
-                    .collect(toList()))
-            );
+      Stream<SubmissionMetadata> submissionMetadataStream = formMetadataStream
+          .filter(formMetadata -> Files.exists(formMetadata.getSubmissionsDir()))
+          .flatMap(SubmissionMetadataCommands::getFilesystemSubmissions);
 
-        port.persist(submissionMetadataStream);
-      });
+      port.persist(submissionMetadataStream);
     };
+  }
+
+  private static Stream<SubmissionMetadata> getFilesystemSubmissions(FormMetadata formMetadata) {
+    return walk(formMetadata.getSubmissionsDir())
+        .filter(SubmissionMetadata::isSubmissionFile)
+        .filter(SubmissionMetadata::hasInstanceId)
+        .map(submissionFile -> SubmissionMetadata.from(
+            submissionFile,
+            list(submissionFile.getParent())
+                .filter(not(SubmissionMetadata::isSubmissionFile))
+                .map(Path::getFileName)
+                .collect(toList()))
+        );
   }
 
 }

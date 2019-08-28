@@ -49,7 +49,7 @@ import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormModel;
 import org.opendatakit.briefcase.reused.model.form.ModelBuilder;
-import org.opendatakit.briefcase.reused.model.submission.Submission;
+import org.opendatakit.briefcase.reused.model.submission.ParsedSubmission;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionKey;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 import org.xmlpull.v1.XmlPullParserException;
@@ -164,7 +164,7 @@ public class GeoJsonTest {
     xml.append("</data>");
 
     XmlElement root = ModelBuilder.parseXmlElement(xml.toString());
-    Submission submission = Submission.plain(
+    ParsedSubmission submission = ParsedSubmission.plain(
         new SubmissionMetadata(
             new SubmissionKey(
                 "Some form",

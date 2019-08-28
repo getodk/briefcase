@@ -34,8 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Handles the initialization of {@link Cipher} objects for the decryption of submission
- * and media files.
+ * Handles the initialization of cipher objects for the decryption of submission
+ * and its attachments.
  */
 final class CipherFactory {
   private static final Logger log = LoggerFactory.getLogger(CipherFactory.class);
@@ -65,10 +65,8 @@ final class CipherFactory {
   }
 
   /**
-   * Factory that initializes a new {@link CipherFactory} for the given instance ID,
+   * Factory that initializes a new cipher object factory for the given instance ID,
    * encryption key and private key values.
-   *
-   * @throws CryptoException if the key can't be decrypted
    */
   static CipherFactory from(String instanceId, String base64EncryptedKey, PrivateKey privateKey) {
     try {
@@ -84,7 +82,7 @@ final class CipherFactory {
   }
 
   /**
-   * Factory that returns a {@link Cipher} suitable to decrypt cryptographic
+   * Factory that returns a cipher object suitable to decrypt cryptographic
    * signatures.
    */
   static Cipher signatureDecrypter(PrivateKey privateKey) {
@@ -98,7 +96,7 @@ final class CipherFactory {
   }
 
   /**
-   * Return the next {@link Cipher} instance. This method has side-effects and will
+   * Returns the next cipher object. This method has side-effects and will
    * change the initialization vector, which will affect the next call to this method.
    */
   Cipher next() {

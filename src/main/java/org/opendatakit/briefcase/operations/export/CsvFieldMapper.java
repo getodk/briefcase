@@ -27,12 +27,10 @@ import org.opendatakit.briefcase.reused.model.form.FormModel;
  * This Functional Interface represents the operation of transformation of a
  * submission field's value to a stream of CSV key-value pairs.
  * <p>
- * The {@link CsvFieldMapper#apply(String, String, Path, FormModel, Optional, ExportConfiguration)} returns
- * a list of column name and value pairs because we need to support a weird empty/null
- * value encoding scheme described <a href="https://github.com/opendatakit/briefcase/blob/master/docs/export-format.md#non-empty-value-codification">in the docs</a>.
+ * The apply method returns a list of column name and value pairs because we
+ * need to support a weird empty/null value encoding scheme described <a href="https://github.com/opendatakit/briefcase/blob/master/docs/export-format.md#non-empty-value-codification">in the docs</a>.
  * <p>
- * Normally, the {@link CsvFieldMapper#apply(String, String, Path, FormModel, Optional, ExportConfiguration)} should return just a
- * {@link Stream} of {@link String} values.
+ * Normally, the apply method should return just a stream of string values.
  */
 @FunctionalInterface
 interface CsvFieldMapper {
@@ -40,28 +38,14 @@ interface CsvFieldMapper {
   // TODO Simplify args by passing the ExportConfiguration object
   Stream<Pair<String, String>> apply(String formName, String localId, Path workingDir, FormModel model, Optional<XmlElement> maybeElement, ExportConfiguration configuration);
 
-  /**
-   * Returns a new mapper, result of composing this mapper with the given mapper
-   *
-   * @see #compose(CsvFieldMapper, CsvFieldMapper)
-   */
   default CsvFieldMapper andThen(CsvFieldMapper other) {
     return compose(this, other);
   }
 
-  /**
-   * Returns a new mapper, result of decorating the given mapper's output
-   *
-   * @see #decorateOutput(CsvFieldMapper, Function)
-   */
   default CsvFieldMapper map(Function<Stream<Pair<String, String>>, Stream<Pair<String, String>>> mapper) {
     return decorateOutput(this, mapper);
   }
 
-  /**
-   * Returns a new mapper that will run the given mappers in order and will produce
-   * a result by concatenating their outputs
-   */
   static CsvFieldMapper compose(CsvFieldMapper a, CsvFieldMapper b) {
     return (formName, localId, workingDir, model, maybeElement, configuration) -> Stream.concat(
         a.apply(formName, localId, workingDir, model, maybeElement, configuration),
@@ -69,10 +53,6 @@ interface CsvFieldMapper {
     );
   }
 
-  /**
-   * Returns a new mapper that will run the given mapper and will produce a result
-   * by transforming its output with the given function
-   */
   static CsvFieldMapper decorateOutput(CsvFieldMapper mapper, Function<Stream<Pair<String, String>>, Stream<Pair<String, String>>> decorator) {
     return (formName, localId, workingDir, model, maybeElement, configuration) ->
         decorator.apply(mapper.apply(formName, localId, workingDir, model, maybeElement, configuration));

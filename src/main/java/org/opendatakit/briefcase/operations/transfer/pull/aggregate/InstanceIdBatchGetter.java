@@ -63,12 +63,12 @@ public class InstanceIdBatchGetter implements Iterator<InstanceIdBatch> {
   }
 
   private Pair<Cursor, List<String>> parseBatch(XmlElement xmlElement) {
-    Cursor nextCursor = xmlElement.findElement("resumptionCursor")
+    Cursor nextCursor = xmlElement.findFirstElement("resumptionCursor")
         .flatMap(XmlElement::maybeValue)
         .map(Cursor::from)
         .orElseGet(Cursor::empty);
     List<String> uids = xmlElement
-        .findElement("idList")
+        .findFirstElement("idList")
         .map(e -> e.findElements("id"))
         .orElse(Collections.emptyList())
         .stream()

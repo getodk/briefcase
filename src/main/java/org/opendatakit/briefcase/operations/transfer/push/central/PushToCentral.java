@@ -18,7 +18,6 @@ package org.opendatakit.briefcase.operations.transfer.push.central;
 
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.list;
-import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataQueries.sortedSubmissions;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -87,7 +86,7 @@ public class PushToCentral {
           }
         })
         .thenRun(rs -> {
-          List<SubmissionMetadata> submissions = submissionMetadataPort.query(sortedSubmissions(formMetadata.getKey())).collect(toList());
+          List<SubmissionMetadata> submissions = submissionMetadataPort.sortedSubmissions(formMetadata.getKey()).collect(toList());
           AtomicInteger submissionNumber = new AtomicInteger(1);
           int totalSubmissions = submissions.size();
           if (submissions.isEmpty())

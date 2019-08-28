@@ -19,6 +19,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.stripFileExtension;
 import static org.opendatakit.briefcase.reused.model.submission.CipherFactory.signatureDecrypter;
+import static org.opendatakit.briefcase.reused.model.submission.ValidationStatus.NOT_VALID;
+import static org.opendatakit.briefcase.reused.model.submission.ValidationStatus.VALID;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,52 +50,45 @@ import org.xmlpull.v1.XmlPullParserException;
 public class SubmissionParser {
   private static final Logger log = LoggerFactory.getLogger(SubmissionParser.class);
 
-  /**
-   * Returns a parsed submission. The result will be a non-empty Optional when:
-   * <ul>
-   * <li>The file at the given path can be parsed</li>
-   * <li>If the form is encrypted, the submission can be decrypted</li>
-   * </ul>
-   * <p>
-   * Otherwise, it returns an empty Optional without throwing any exception.
-   */
-  public static Optional<Submission> parsePlainSubmission(SubmissionMetadata submissionMetadata, BiConsumer<SubmissionMetadata, String> onError) {
+  public static Optional<ParsedSubmission> parsePlainSubmission(SubmissionMetadata submissionMetadata, BiConsumer<SubmissionMetadata, String> onError) {
     return parse(submissionMetadata, onError)
-        .map(document -> Submission.plain(submissionMetadata, XmlElement.of(document)));
+        .map(document -> ParsedSubmission.plain(submissionMetadata, XmlElement.of(document)));
   }
 
-  public static Optional<Submission> parseEncryptedSubmission(SubmissionMetadata submissionMetadata, PrivateKey privateKey, BiConsumer<SubmissionMetadata, String> onError) {
+  public static Optional<ParsedSubmission> parseEncryptedSubmission(SubmissionMetadata submissionMetadata, PrivateKey privateKey, BiConsumer<SubmissionMetadata, String> onError) {
     return parse(submissionMetadata, onError).flatMap(document -> {
-      XmlElement root = XmlElement.of(document);
-
-      CipherFactory cipherFactory = CipherFactory.from(
-          submissionMetadata.getKey().getInstanceId(),
-          submissionMetadata.getBase64EncryptedKey().orElseThrow(BriefcaseException::new),
-          privateKey
+      ParsedSubmission submission = ParsedSubmission.unencrypted(
+          submissionMetadata,
+          XmlElement.of(document),
+          CipherFactory.from(
+              submissionMetadata.getKey().getInstanceId(),
+              submissionMetadata.getBase64EncryptedKey().orElseThrow(BriefcaseException::new),
+              privateKey
+          ),
+          decrypt(
+              signatureDecrypter(privateKey),
+              decodeBase64(submissionMetadata.getEncryptedSignature().orElseThrow(BriefcaseException::new))
+          )
       );
-
-      byte[] signature = decrypt(
-          signatureDecrypter(privateKey),
-          decodeBase64(submissionMetadata.getEncryptedSignature().orElseThrow(BriefcaseException::new))
-      );
-
-      Submission submission = Submission.unencrypted(submissionMetadata, root, cipherFactory, signature);
-      return decrypt(submission, onError).map(s -> s.withValidationStatus(ValidationStatus.of(isValid(submission, s))));
+      return decrypt(submission, onError)
+          .map(s -> s.withValidationStatus(isValid(submission, s)));
     });
   }
 
-  private static Optional<Submission> decrypt(Submission submission, BiConsumer<SubmissionMetadata, String> onError) {
-    List<Path> mediaPaths = submission.getMediaPaths();
+  private static Optional<ParsedSubmission> decrypt(ParsedSubmission submission, BiConsumer<SubmissionMetadata, String> onError) {
+    List<Path> attachmentFiles = submission.getAttachmentFiles();
 
-    if (mediaPaths.size() != submission.countMedia())
+    if (attachmentFiles.size() != submission.countAttachments())
       // We must skip this submission because some media file is missing
       return Optional.empty();
 
     // Decrypt each attached media file in order
-    mediaPaths.forEach(path -> decryptFile(path, submission.getWorkingDir(), submission.getNextCipher()));
+    attachmentFiles.stream()
+        .filter(Files::exists)
+        .forEach(path -> decryptFile(path, submission.getWorkingDir(), submission.getNextCipher()));
 
     // Decrypt the submission
-    Path decryptedSubmission = decryptFile(submission.getEncryptedFilePath(), submission.getWorkingDir(), submission.getNextCipher());
+    Path decryptedSubmission = decryptFile(submission.getEncryptedXmlFile(), submission.getWorkingDir(), submission.getNextCipher());
 
     // Parse the document and, if everything goes well, return a decripted copy of the submission
     return parse(decryptedSubmission, submission.getSubmissinoMetadata(), onError)
@@ -101,11 +96,10 @@ public class SubmissionParser {
   }
 
   private static Path decryptFile(Path encFile, Path workingDir, Cipher cipher) {
-    Path decryptedFile = workingDir.resolve(stripFileExtension(encFile.getFileName().toString()));
+    Path decryptedFile = workingDir.resolve(stripFileExtension(encFile));
     try (InputStream is = Files.newInputStream(encFile);
          CipherInputStream cis = new CipherInputStream(is, cipher);
-         OutputStream os = Files.newOutputStream(decryptedFile)
-    ) {
+         OutputStream os = Files.newOutputStream(decryptedFile)) {
       byte[] buffer = new byte[2048];
       int len = cis.read(buffer);
       while (len != -1) {
@@ -148,8 +142,8 @@ public class SubmissionParser {
     }
   }
 
-  private static boolean isValid(Submission submission, Submission decryptedSubmission) {
-    return submission.validate(computeDigest(decryptedSubmission.buildSignature(submission)));
+  private static ValidationStatus isValid(ParsedSubmission submission, ParsedSubmission decryptedSubmission) {
+    return submission.isValid(computeDigest(decryptedSubmission.buildSignature(submission))) ? VALID : NOT_VALID;
   }
 
   private static byte[] computeDigest(String message) {

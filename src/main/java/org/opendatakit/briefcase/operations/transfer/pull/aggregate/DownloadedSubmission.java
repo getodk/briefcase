@@ -50,7 +50,7 @@ public class DownloadedSubmission {
    * ultimately will be saved to the local filesystem.
    */
   public static DownloadedSubmission from(XmlElement submission) {
-    XmlElement instance = submission.findElement("data").orElseThrow(BriefcaseException::new).childrenOf().get(0);
+    XmlElement instance = submission.findFirstElement("data").orElseThrow(BriefcaseException::new).childrenOf().get(0);
     return new DownloadedSubmission(
         instance.serialize(),
         extractInstanceId(instance).orElseThrow(BriefcaseException::new),

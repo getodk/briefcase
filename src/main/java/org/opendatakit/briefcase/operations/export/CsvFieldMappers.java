@@ -61,7 +61,7 @@ import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormModel;
 
 /**
- * This class contains all the supported mappers from {@link DataType} to CSV compatible
+ * This class contains all the supported mappers from xforms datatypes to CSV compatible
  * values, and an API to produce CSV compatible values and lines from submissions.
  */
 @SuppressWarnings("checkstyle:ParameterName")
@@ -332,7 +332,7 @@ final class CsvFieldMappers {
         localId,
         workingDir,
         field,
-        maybeElement.flatMap(element -> element.findElement(field.getName())),
+        maybeElement.flatMap(element -> element.findFirstElement(field.getName())),
         configuration
     ));
   }

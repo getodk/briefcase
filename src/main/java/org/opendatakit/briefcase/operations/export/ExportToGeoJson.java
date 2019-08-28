@@ -24,20 +24,17 @@ import static org.opendatakit.briefcase.reused.api.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.exists;
-import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataQueries.sortedSubmissions;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 import org.bushe.swing.event.EventBus;
 import org.geojson.Feature;
-import org.opendatakit.briefcase.delivery.ui.reused.Analytics;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.submission.Submission;
+import org.opendatakit.briefcase.reused.model.submission.ParsedSubmission;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
@@ -47,41 +44,21 @@ public class ExportToGeoJson {
   private static final Logger log = LoggerFactory.getLogger(ExportToGeoJson.class);
 
   public static ExportOutcome export(SubmissionMetadataPort submissionMetadataPort, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration) {
-    return export(submissionMetadataPort, formMetadata, formDef, configuration, Optional.empty());
-  }
-
-  public static ExportOutcome export(SubmissionMetadataPort submissionMetadataPort, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Analytics analytics) {
-    return export(submissionMetadataPort, formMetadata, formDef, configuration, Optional.of(analytics));
-  }
-
-  /**
-   * Export a form's submissions into a GeoJSON file.
-   *
-   * @param formDef       the {@link FormDefinition} form definition of the form to be exported
-   * @param configuration the {@link ExportConfiguration} export configuration
-   * @return an {@link ExportOutcome} with the export operation's outcome
-   * @see ExportConfiguration
-   */
-  private static ExportOutcome export(SubmissionMetadataPort submissionMetadataPort, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Optional<Analytics> analytics) {
     // Create an export tracker object with the total number of submissions we have to export
     ExportProcessTracker exportTracker = new ExportProcessTracker(formMetadata.getKey());
     exportTracker.start();
 
     var onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
-    var onInvalidSubmission = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()))
-        .andThen((path, message) ->
-            analytics.ifPresent(ga -> ga.event("Export", "Export", "invalid submission", null))
-        );
 
     List<SubmissionMetadata> submissionFiles = submissionMetadataPort
-        .query(sortedSubmissions(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend()))
+        .sortedSubmissions(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend())
         .collect(toList());
     exportTracker.trackTotal(submissionFiles.size());
 
     createDirectories(configuration.getExportDir());
 
     // Generate csv lines grouped by the fqdn of the model they belong to
-    Stream<Submission> submissions = ExportTools.getSubmissions(formMetadata, configuration, submissionFiles, onParsingError);
+    Stream<ParsedSubmission> submissions = ExportTools.getSubmissions(formMetadata, configuration, submissionFiles, onParsingError);
 
     Stream<Feature> features = submissions
         .peek(s -> exportTracker.incAndReport())

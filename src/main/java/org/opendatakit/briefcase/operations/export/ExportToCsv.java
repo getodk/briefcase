@@ -30,7 +30,6 @@ import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirector
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.write;
-import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataQueries.sortedSubmissions;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -49,6 +48,7 @@ import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// TODO Migrate this to JobsRunner and FormStatusEvents
 public class ExportToCsv {
   private static final Logger log = LoggerFactory.getLogger(ExportToCsv.class);
 
@@ -60,16 +60,6 @@ public class ExportToCsv {
     return export(formMetadataPort, submissionMetadataPort, formMetadata, formDef, configuration, Optional.of(analytics));
   }
 
-  /**
-   * Export a form's submissions into some CSV files.
-   * <p>
-   * If the form has repeat groups, each repeat group will be exported into a separate CSV file.
-   *
-   * @param formDef       the {@link FormDefinition} form definition of the form to be exported
-   * @param configuration the {@link ExportConfiguration} export configuration
-   * @return an {@link ExportOutcome} with the export operation's outcome
-   * @see ExportConfiguration
-   */
   private static ExportOutcome export(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Optional<Analytics> analytics) {
     // Create an export tracker object with the total number of submissions we have to export
     ExportProcessTracker exportTracker = new ExportProcessTracker(formMetadata.getKey());
@@ -78,7 +68,7 @@ public class ExportToCsv {
     var onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getFormName().orElse(formMetadata.getKey().getId())));
 
     List<SubmissionMetadata> submissionFiles = submissionMetadataPort
-        .query(sortedSubmissions(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend()))
+        .sortedSubmissions(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend())
         .collect(toList());
     exportTracker.trackTotal(submissionFiles.size());
 

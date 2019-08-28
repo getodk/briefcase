@@ -15,40 +15,29 @@
  */
 package org.opendatakit.briefcase.reused.model.submission;
 
-/**
- * This enum holds all the possible {@link Submission} validation statuses
- */
 public enum ValidationStatus {
   /**
-   * Initially all the {@link Submission} instances have this status. This is
-   * OK when the form is not encrypted.
+   * Plain and encrypted submissions start having this validation status
    */
-  NOT_VALIDATED,
+  NOT_VALIDATED(null),
   /**
    * The incoming cryptographic signature has been matched against the parsed
    * values inside a submission and they don't match.
    */
-  NOT_VALID,
+  NOT_VALID("false"),
   /**
    * The incoming cryptographic signature has been matched against the parsed
    * values inside a submission and they do match.
    */
-  VALID;
+  VALID("true");
 
-  static ValidationStatus of(boolean value) {
-    return value ? VALID : NOT_VALID;
+  private final String csvValue;
+
+  ValidationStatus(String csvValue) {
+    this.csvValue = csvValue;
   }
 
-  /**
-   * A {@link ValidationStatus} inside a CSV must be encoded as a boolean.
-   *
-   * @return a CSV compatible {@link String}
-   */
-  public String asCsvValue() {
-    return this == VALID
-        ? Boolean.TRUE.toString()
-        : this == NOT_VALID
-        ? Boolean.FALSE.toString()
-        : null;
+  public String getCsvValue() {
+    return csvValue;
   }
 }

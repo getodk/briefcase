@@ -25,11 +25,11 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.submission.Submission;
+import org.opendatakit.briefcase.reused.model.submission.ParsedSubmission;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 
 class ExportTools {
-  static Stream<Submission> getSubmissions(FormMetadata formMetadata, ExportConfiguration configuration, List<SubmissionMetadata> submissionMetadataList, BiConsumer<SubmissionMetadata, String> onParsingError) {
+  static Stream<ParsedSubmission> getSubmissions(FormMetadata formMetadata, ExportConfiguration configuration, List<SubmissionMetadata> submissionMetadataList, BiConsumer<SubmissionMetadata, String> onParsingError) {
     return submissionMetadataList.parallelStream()
         // Parse the submission and leave only those OK to be exported
         .map(submissionMetadata -> formMetadata.isEncrypted()

@@ -77,12 +77,12 @@ public class AggregateCursor implements Cursor {
     XmlElement root = XmlElement.from(cursorXml);
 
     Optional<OffsetDateTime> lastUpdate = root
-        .findElement("attributeValue")
+        .findFirstElement("attributeValue")
         .flatMap(XmlElement::maybeValue)
         .map(Iso8601Helpers::parseDateTime);
 
     Optional<String> lastReturnedValue = root
-        .findElement("uriLastReturnedValue")
+        .findFirstElement("uriLastReturnedValue")
         .flatMap(XmlElement::maybeValue);
 
     return new AggregateCursor(cursorXml, lastUpdate, lastReturnedValue);

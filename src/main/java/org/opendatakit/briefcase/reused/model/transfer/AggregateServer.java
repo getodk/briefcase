@@ -111,17 +111,17 @@ public class AggregateServer implements RemoteServer {
         .withCredentials(credentials)
         .withResponseMapper(root -> root.findElements("xform")
             .stream()
-            .filter(e -> e.findElement("name").flatMap(XmlElement::maybeValue).isPresent() &&
-                e.findElement("formID").flatMap(XmlElement::maybeValue).isPresent())
+            .filter(e -> e.findFirstElement("name").flatMap(XmlElement::maybeValue).isPresent() &&
+                e.findFirstElement("formID").flatMap(XmlElement::maybeValue).isPresent())
             .map(e -> FormMetadata.empty(FormKey
                 .of(
-                    e.findElement("formID").flatMap(XmlElement::maybeValue).get(),
-                    e.findElement("version").flatMap(XmlElement::maybeValue)
+                    e.findFirstElement("formID").flatMap(XmlElement::maybeValue).get(),
+                    e.findFirstElement("version").flatMap(XmlElement::maybeValue)
                 ))
-                .withFormName(e.findElement("name").flatMap(XmlElement::maybeValue).get())
+                .withFormName(e.findFirstElement("name").flatMap(XmlElement::maybeValue).get())
                 .withUrls(
-                    e.findElement("manifestUrl").flatMap(XmlElement::maybeValue).map(RequestBuilder::url),
-                    e.findElement("downloadUrl").flatMap(XmlElement::maybeValue).map(RequestBuilder::url)
+                    e.findFirstElement("manifestUrl").flatMap(XmlElement::maybeValue).map(RequestBuilder::url),
+                    e.findFirstElement("downloadUrl").flatMap(XmlElement::maybeValue).map(RequestBuilder::url)
                 )).collect(toList())).build();
   }
 

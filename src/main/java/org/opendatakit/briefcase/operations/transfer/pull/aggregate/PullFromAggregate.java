@@ -28,7 +28,6 @@ import static org.opendatakit.briefcase.reused.http.RequestBuilder.get;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.upsert;
 import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataCommands.insert;
-import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataQueries.hasBeenAlreadyPulled;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -127,7 +126,7 @@ public class PullFromAggregate {
               .map(instanceId -> Triple.of(
                   submissionNumber.getAndIncrement(),
                   instanceId,
-                  submissionMetadataPort.query(hasBeenAlreadyPulled(formMetadata.getKey().getId(), instanceId))
+                  submissionMetadataPort.hasBeenAlreadyPulled(formMetadata.getKey().getId(), instanceId)
               ))
               .peek(triple -> {
                 if (triple.get3())
@@ -297,9 +296,9 @@ public class PullFromAggregate {
   static List<AggregateAttachment> asMediaFileList(List<XmlElement> xmlElements) {
     return xmlElements.stream()
         .map(mediaFile -> OptionalProduct.all(
-            mediaFile.findElement("filename").flatMap(XmlElement::maybeValue),
-            mediaFile.findElement("hash").flatMap(XmlElement::maybeValue),
-            mediaFile.findElement("downloadUrl").flatMap(XmlElement::maybeValue)
+            mediaFile.findFirstElement("filename").flatMap(XmlElement::maybeValue),
+            mediaFile.findFirstElement("hash").flatMap(XmlElement::maybeValue),
+            mediaFile.findFirstElement("downloadUrl").flatMap(XmlElement::maybeValue)
         ).map(AggregateAttachment::of))
         .filter(Optional::isPresent)
         .map(Optional::get)

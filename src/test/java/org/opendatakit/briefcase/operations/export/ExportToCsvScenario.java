@@ -17,6 +17,8 @@
 package org.opendatakit.briefcase.operations.export;
 
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -26,6 +28,7 @@ import static org.opendatakit.briefcase.reused.api.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createTempDirectory;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.deleteRecursive;
+import static org.opendatakit.briefcase.reused.api.UncheckedFiles.list;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.readAllBytes;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.readFirstLine;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.toURI;
@@ -45,13 +48,16 @@ import java.util.Optional;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.api.UncheckedFiles;
+import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.model.submission.InMemorySubmissionMetadataAdapter;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionKey;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,10 +96,10 @@ class ExportToCsvScenario {
     FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormFile);
 
     Path briefcaseDir = createTempDirectory("briefcase");
-    FormMetadata formMetadata = installForm(sourceFormMetadata.withFormFile(sourceFormMetadata.buildFormFile(briefcaseDir)));
+    FormMetadata targetMetadata = sourceFormMetadata.withFormFile(sourceFormMetadata.buildFormFile(briefcaseDir));
+    Optional<SubmissionMetadata> submissionMetadata = installForm(sourceFormMetadata, targetMetadata);
 
-    log.debug("Form dir: {}", formMetadata.getFormDir());
-
+    log.debug("Form dir: {}", targetMetadata.getFormDir());
 
     Path outputDir = createTempDirectory("briefcase_export_test_output_");
     log.debug("Output dir: {}", outputDir);
@@ -108,19 +114,22 @@ class ExportToCsvScenario {
     TimeZone.setDefault(TimeZone.getTimeZone(ZoneOffset.UTC));
 
     InMemoryFormMetadataAdapter formMetadataPort = new InMemoryFormMetadataAdapter();
-    formMetadataPort.persist(formMetadata);
+    formMetadataPort.persist(targetMetadata);
+
+    InMemorySubmissionMetadataAdapter submissionMetadataPort = new InMemorySubmissionMetadataAdapter();
+    submissionMetadata.ifPresent(submissionMetadataPort::persist);
 
     return new ExportToCsvScenario(
         briefcaseDir,
-        formMetadata.getFormDir(),
+        targetMetadata.getFormDir(),
         outputDir,
-        FormDefinition.from(formMetadata.getFormFile()),
+        FormDefinition.from(targetMetadata.getFormFile()),
         readInstanceId(formName),
         localeBackup,
         zoneBackup,
         formMetadataPort,
-        formMetadata,
-        new InMemorySubmissionMetadataAdapter()
+        targetMetadata,
+        submissionMetadataPort
     );
   }
 
@@ -191,8 +200,8 @@ class ExportToCsvScenario {
   void assertSameMedia(String suffix) {
     Path oldMediaPath = getPath(formDef.getFormId() + "-media" + (suffix.isEmpty() ? "" : "-" + suffix));
     Path newMediaPath = outputDir.resolve("new").resolve("media");
-    List<Path> oldMedia = walk(oldMediaPath).filter(p -> !p.getFileName().toString().startsWith(".git")).filter(p -> Files.isRegularFile(p)).collect(Collectors.toList());
-    List<Path> newMedia = walk(newMediaPath).filter(p -> !p.getFileName().toString().startsWith(".git")).filter(p -> Files.isRegularFile(p)).collect(Collectors.toList());
+    List<Path> oldMedia = walk(oldMediaPath).filter(p -> !p.getFileName().toString().startsWith(".git")).filter(p -> Files.isRegularFile(p)).collect(toList());
+    List<Path> newMedia = walk(newMediaPath).filter(p -> !p.getFileName().toString().startsWith(".git")).filter(p -> Files.isRegularFile(p)).collect(toList());
     assertThat(newMedia, hasSize(oldMedia.size()));
     oldMedia.stream().filter(Files::isRegularFile).forEach(path ->
         assertThat(readAllBytes(newMediaPath.resolve(oldMediaPath.relativize(path))), equalTo(readAllBytes(path)))
@@ -223,6 +232,7 @@ class ExportToCsvScenario {
     createDirectories(instanceDir);
     Path instanceFile = instanceDir.resolve("submission.xml");
     UncheckedFiles.write(instanceFile, instanceContent);
+    submissionMetadataPort.persist(SubmissionMetadata.from(instanceFile, emptyList()));
   }
 
   void createOutputFile(String dir, String file) {
@@ -246,6 +256,7 @@ class ExportToCsvScenario {
     if (Files.exists(instancesDir))
       deleteRecursive(instancesDir);
     UncheckedFiles.createDirectories(instancesDir);
+    submissionMetadataPort.flush();
   }
 
   void installSubmission(String fileName) {
@@ -258,6 +269,7 @@ class ExportToCsvScenario {
     Path target = submissionDir.resolve("submission.xml");
     log.debug("Install " + submissionDir.getFileName() + "/" + target.getFileName());
     copy(source, target);
+    submissionMetadataPort.persist(SubmissionMetadata.from(target, emptyList()));
   }
 
   private static Optional<Path> maybeGetPath(String fileName) {
@@ -275,43 +287,37 @@ class ExportToCsvScenario {
     return readFirstLine(path).split("instanceID=\"")[1].split("\"")[0];
   }
 
-  private static FormMetadata installForm(FormMetadata formMetadata) {
-    Path sourceFormFile = formMetadata.getFormFile();
-    String baseSourceFilename = sourceFormFile.getFileName().toString().substring(0, sourceFormFile.getFileName().toString().length() - 4);
+  private static Optional<SubmissionMetadata> installForm(FormMetadata sourceFormMetadata, FormMetadata targetFormMetadata) {
+    Path sourceFormFile = sourceFormMetadata.getFormFile();
+    String baseSourceFilename = UncheckedFiles.stripFileExtension(sourceFormFile);
 
-    createDirectories(formMetadata.getFormDir());
-    copy(sourceFormFile, formMetadata.getFormFile());
+    createDirectories(targetFormMetadata.getFormDir());
+    copy(sourceFormMetadata.getFormFile(), targetFormMetadata.getFormFile());
 
     // Prepare the instances directory
-    Path instancesDir = formMetadata.getFormDir().resolve("instances");
-    createDirectories(instancesDir);
+    createDirectories(targetFormMetadata.getSubmissionsDir());
 
     // Copy a submission and possibly other files
-    maybeGetPath(baseSourceFilename + "-submission.xml")
-        .filter(Files::exists)
-        .ifPresent(path -> {
-          // Read the submission's instance ID
-          String instanceId = readInstanceId(path);
+    Path submissionFile = sourceFormMetadata.getFormDir().resolve(baseSourceFilename + "-submission.xml");
+    if (Files.exists(submissionFile)) {
+      String instanceId = SubmissionKey.extractInstanceId(XmlElement.from(submissionFile)).orElseThrow();
+      createDirectories(targetFormMetadata.getSubmissionDir(instanceId));
 
-          // Create a dir for this submission
-          Path submissionDir = instancesDir.resolve(instanceId.replace(":", ""));
-          createDirectories(submissionDir);
-
-          // We will copy every file we find that is prefixed with the
-          // name of the form we're installing, ignoring PEM files and templates
-          walk(path.getParent())
-              .filter(isRelatedToForm(baseSourceFilename))
-              .filter(isPemFile().negate())
-              .filter(isTemplateFile().negate())
-              .filter(isExpectedContentsFile().negate())
-              .forEach(file -> {
-                Path target = submissionDir.resolve(file.getFileName().toString().substring(baseSourceFilename.length() + 1));
-                log.debug("Install " + submissionDir.getFileName() + "/" + target.getFileName());
-                copy(file, target);
-              });
-        });
-
-    return FormMetadata.from(formMetadata.getFormFile());
+      List<Path> attachmentFilenames = list(submissionFile.getParent())
+          .filter(isRelatedToForm(baseSourceFilename))
+          .filter(isPemFile().negate())
+          .filter(isTemplateFile().negate())
+          .filter(isExpectedContentsFile().negate())
+          .map(sourceAttachmentFile -> Pair.of(
+              sourceAttachmentFile,
+              targetFormMetadata.getSubmissionMediaFile(instanceId, sourceAttachmentFile.getFileName().toString().substring(baseSourceFilename.length() + 1))
+          ))
+          .peek(pair -> copy(pair.getLeft(), pair.getRight()))
+          .map(pair -> pair.getRight().getFileName())
+          .collect(toList());
+      return Optional.of(SubmissionMetadata.from(submissionFile, attachmentFilenames));
+    }
+    return Optional.empty();
   }
 
   private static Path installForm(Path formDir, final String formName) {

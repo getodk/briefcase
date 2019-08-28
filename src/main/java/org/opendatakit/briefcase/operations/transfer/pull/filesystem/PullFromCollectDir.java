@@ -25,7 +25,6 @@ import static org.opendatakit.briefcase.reused.api.UncheckedFiles.walk;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.upsert;
 import static org.opendatakit.briefcase.reused.model.submission.SubmissionKey.extractInstanceId;
-import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataQueries.hasBeenAlreadyPulled;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -76,7 +75,7 @@ public class PullFromCollectDir {
 
       List<SubmissionMetadata> submissionsToPull = submissionFiles.stream()
           .map(path -> SubmissionMetadata.from(path, list(path.getParent()).filter(p -> !p.equals(path)).map(Path::getFileName).collect(toList())))
-          .filter(submissionMetadata -> !submissionMetadataPort.query(hasBeenAlreadyPulled(submissionMetadata.getKey().getFormId(), submissionMetadata.getKey().getInstanceId())))
+          .filter(submissionMetadata -> !submissionMetadataPort.hasBeenAlreadyPulled(submissionMetadata.getKey().getFormId(), submissionMetadata.getKey().getInstanceId()))
           .collect(toList());
       int submissionsAlreadyPulled = submissionsWithInstanceId.size() - submissionsToPull.size();
       if (submissionsAlreadyPulled > 0)

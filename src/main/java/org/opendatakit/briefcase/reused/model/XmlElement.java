@@ -19,6 +19,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.javarosa.xform.parse.XFormParser.getXMLText;
+import static org.xmlpull.v1.XmlPullParser.FEATURE_PROCESS_NAMESPACES;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,13 +45,8 @@ import org.kxml2.kdom.Node;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.api.UncheckedFiles;
 import org.opendatakit.briefcase.reused.model.form.FormModel;
-import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-/**
- * This class represents an Element in a Form's submission xml document.
- * It can hold the root level submission or any of its fields.
- */
 public class XmlElement {
   private final Element element;
 
@@ -59,22 +55,22 @@ public class XmlElement {
   }
 
   /**
-   * Factory of {@link XmlElement} instances that takes a {@link Document}
-   * and extracts its root element {@link Element} instance.
-   *
-   * @param document {@link Document} instance
-   * @return a new {@link XmlElement} instance
+   * Returns a new XmlElement representing the root of the provided document
    */
   public static XmlElement of(Document document) {
     return new XmlElement(document.getRootElement());
   }
 
+  /**
+   * Parses the provided plain text xml document and returns a new XmlElement
+   * representing the root element of the xml
+   */
   public static XmlElement from(String xml) {
     try {
       Document tempDoc = new Document();
       KXmlParser parser = new KXmlParser();
       parser.setInput(new StringReader(xml));
-      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      parser.setFeature(FEATURE_PROCESS_NAMESPACES, true);
       tempDoc.parse(parser);
       return XmlElement.of(tempDoc);
     } catch (XmlPullParserException | IOException e) {
@@ -82,13 +78,17 @@ public class XmlElement {
     }
   }
 
+  /**
+   * Parses the provided xml file and returns a new XmlElement
+   * representing the root element of the xml
+   */
   public static XmlElement from(Path xmlFile) {
     try (InputStream is = UncheckedFiles.newInputStream(xmlFile);
          InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
       Document tempDoc = new Document();
       KXmlParser parser = new KXmlParser();
       parser.setInput(isr);
-      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      parser.setFeature(FEATURE_PROCESS_NAMESPACES, true);
       tempDoc.parse(parser);
       return XmlElement.of(tempDoc);
     } catch (IOException | XmlPullParserException e) {
@@ -100,6 +100,7 @@ public class XmlElement {
    * Builds and returns this {@link XmlElement} instance's parent's local ID.
    * This ID is used to cross-reference values in different exported files.
    */
+  // TODO Make static and move this to the export package
   public String getParentLocalId(FormModel field, String instanceId) {
     return isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(field.getParent(), instanceId);
   }
@@ -108,6 +109,7 @@ public class XmlElement {
    * Builds and returns this {@link XmlElement} instance's current local ID.
    * This ID is used to cross-reference values in different exported files.
    */
+  // TODO Make static and move this to the export package
   public String getCurrentLocalId(FormModel field, String instanceId) {
     String prefix = isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(field.getParent(), instanceId);
     return field.isRepeatable()
@@ -119,31 +121,23 @@ public class XmlElement {
    * Builds and returns this {@link XmlElement} instance's group local ID.
    * This ID is used to cross-reference values in different exported files.
    */
+  // TODO Make static and move this to the export package
   public String getGroupLocalId(FormModel field, String instanceId) {
     String prefix = isFirstLevelGroup() ? instanceId : getParent().getCurrentLocalId(field.getParent(), instanceId);
     return prefix + "/" + getName();
   }
 
   /**
-   * Builds and returns a {@link Map} index with all this {@link XmlElement} instance's
-   * descentants, grouping them with their FQN.
-   *
-   * @return the {@link Map} index of all this {@link XmlElement} instance's descendants, grouped by FQN
-   * @see XmlElement#fqn()
+   * Returns an index map with all the descendants of this element grouped by their FQN
    */
-  public Map<String, List<XmlElement>> getChildrenIndex() {
+  public Map<String, List<XmlElement>> buildDescendantsIndex() {
     return flatten().collect(groupingBy(XmlElement::fqn));
   }
 
   /**
-   * Searches an element with a given name among this {@link XmlElement} instance's
-   * descendants and returns it.
-   *
-   * @param name {@link String} to be searched
-   * @return The corresponding {@link XmlElement}, wrapped inside an {@link Optional} instance,
-   *     or {@link Optional#empty()} if no element with the given name is found.
+   * Returns the first element with the given name among this element's descendants.
    */
-  public Optional<XmlElement> findElement(String name) {
+  public Optional<XmlElement> findFirstElement(String name) {
     return flatten().filter(e -> e.hasName(name)).findFirst();
   }
 
@@ -156,39 +150,26 @@ public class XmlElement {
    * If the list of names contains more than one names, the list will be obtained by calling
    * recursively to this method while traversing this instance's descendants following the given list
    * of names.
-   *
-   * @param namesArray array of {@link String} names to follow
-   * @return The corresponding {@link List} of children elements, or an empty list if any
-   *     descendant is not found.
    */
   public List<XmlElement> findElements(String... namesArray) {
-
+    // Terminal case: there's only one name in the names array
     if (namesArray.length == 1)
       return childrenOf().stream().filter(e -> e.getName().equals(namesArray[0])).collect(Collectors.toList());
-    // Shift the first element on array
+
+    // Recursive case: take the first name, and call again with the tail of the names array
     List<String> names = Arrays.asList(namesArray);
-    return findElement(names.get(0))
+    return findFirstElement(names.get(0))
         .map(e -> e.findElements(names.subList(1, names.size()).toArray(new String[]{})))
         .orElse(Collections.emptyList());
   }
 
   /**
-   * Returns the value inside this element.
-   * <p>
-   * If no value is found, this method will throw an exception.
-   *
-   * @return the {@link String} value of this element
+   * Returns the value of this element or throws when there's no value present.
    */
   public String getValue() {
     return maybeValue().orElseThrow(() -> new BriefcaseException("No value present on element " + element.getName()));
   }
 
-  /**
-   * Returns the value inside this element.
-   *
-   * @return the {@link String} value of this element wrapped inside an {@link Optional} instance,
-   *     or an {@link Optional#empty()} if no value is found
-   */
   public Optional<String> maybeValue() {
     return Optional.ofNullable(getXMLText(element, true))
         .filter(s -> !s.isEmpty());
@@ -206,32 +187,23 @@ public class XmlElement {
 
   /**
    * Returns the value of an attribute of this element.
-   *
-   * @param attribute the {@link String} name of the attribute to get the value from
-   * @return the {@link String} value of the given attribute wrapped inside an {@link Optional} instance,
-   *     or an {@link Optional#empty()} if no value is found
    */
   public Optional<String> getAttributeValue(String attribute) {
     return Optional.ofNullable(element.getAttributeValue(null, attribute)).filter(s -> !s.isEmpty());
   }
 
   /**
-   * Returns the Fully Qualified Name of this {@link XmlElement} instance, which
-   * is the concatenation of this instance's name and all its ancestors' names.
-   *
-   * @return a @{link String} with the FQN of this {@link XmlElement}
-   * @see XmlElement#fqn(String)
+   * Returns the Fully Qualified Name of this element, which
+   * is the concatenation of this instance's name and all its
+   * ancestors' names.
    */
   public String fqn() {
     return fqn("");
   }
 
   /**
-   * Returns the Fully Qualified Name of this {@link XmlElement} instance, having
+   * Returns the Fully Qualified Name of this element, having
    * prefixed a given base name to it.
-   *
-   * @param prefix the {@link String} base prefix
-   * @return a {@link String} with the prefixed FQN of this {@link XmlElement}
    */
   private String fqn(String prefix) {
     String newBase = prefix.isEmpty() ? element.getName() : element.getName() + "-" + prefix;
@@ -241,19 +213,10 @@ public class XmlElement {
     return newBase;
   }
 
-  /**
-   * Returns this element's name, which corresponds to the tag
-   * name in the form's submission's xml document
-   *
-   * @return the {@link String} name of this element
-   */
   public String getName() {
     return element.getName();
   }
 
-  /**
-   * Returns whether this element holds a value or not.
-   */
   public boolean isEmpty() {
     return maybeValue().isEmpty();
   }
@@ -263,10 +226,9 @@ public class XmlElement {
   }
 
   private Stream<XmlElement> flatten() {
-    return childrenOf().stream()
-        .flatMap(e -> e.size() == 0
-            ? Stream.of(e)
-            : Stream.concat(Stream.of(e), e.flatten()));
+    return childrenOf().stream().flatMap(e -> e.size() == 0
+        ? Stream.of(e)
+        : Stream.concat(Stream.of(e), e.flatten()));
   }
 
   public List<XmlElement> childrenOf() {
@@ -275,6 +237,25 @@ public class XmlElement {
       if (element.getType(i) == Node.ELEMENT)
         children.add(new XmlElement(element.getElement(i)));
     return children;
+  }
+
+  /**
+   * Returns an XML string representing this element.
+   */
+  public String serialize() {
+    StringWriter stringWriter = new StringWriter();
+    KXmlSerializer serializer = new KXmlSerializer();
+    element.setPrefix(null, "http://opendatakit.org/submissions");
+    try {
+      serializer.setOutput(stringWriter);
+      element.write(serializer);
+      serializer.flush();
+      serializer.endDocument();
+      stringWriter.close();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    return stringWriter.toString();
   }
 
   private boolean hasName(String name) {
@@ -325,21 +306,5 @@ public class XmlElement {
   @Override
   public int hashCode() {
     return Objects.hash(element);
-  }
-
-  public String serialize() {
-    StringWriter stringWriter = new StringWriter();
-    KXmlSerializer serializer = new KXmlSerializer();
-    element.setPrefix(null, "http://opendatakit.org/submissions");
-    try {
-      serializer.setOutput(stringWriter);
-      element.write(serializer);
-      serializer.flush();
-      serializer.endDocument();
-      stringWriter.close();
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-    return stringWriter.toString();
   }
 }

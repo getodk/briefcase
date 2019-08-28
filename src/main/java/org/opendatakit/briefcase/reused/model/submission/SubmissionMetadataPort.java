@@ -1,14 +1,11 @@
 package org.opendatakit.briefcase.reused.model.submission;
 
-import java.time.OffsetDateTime;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import org.jooq.Record1;
-import org.jooq.SelectFinalStep;
-import org.jooq.SelectSeekStep1;
-import org.opendatakit.briefcase.reused.db.jooq.tables.records.SubmissionMetadataRecord;
+import org.opendatakit.briefcase.reused.model.DateRange;
+import org.opendatakit.briefcase.reused.model.form.FormKey;
+import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 
 public interface SubmissionMetadataPort {
 
@@ -18,13 +15,13 @@ public interface SubmissionMetadataPort {
 
   void execute(Consumer<SubmissionMetadataPort> command);
 
-  void persist(SubmissionMetadata formMetadata);
+  void persist(SubmissionMetadata submissionMetadata);
 
-  void persist(Stream<SubmissionMetadata> formMetadata);
+  void persist(Stream<SubmissionMetadata> submissionMetadataStream);
 
-  // These break the clean architecture. This interface shouldn't have jOOQ dependencies
+  boolean hasBeenAlreadyPulled(String formId, String instanceId);
 
-  <T> Optional<T> fetch(SelectFinalStep<Record1<T>> where);
+  Stream<SubmissionMetadata> sortedSubmissions(FormKey formKey);
 
-  Stream<SubmissionMetadata> fetchAll(SelectSeekStep1<SubmissionMetadataRecord, OffsetDateTime> where);
+  Stream<SubmissionMetadata> sortedSubmissions(FormMetadata formMetadata, DateRange dateRange, boolean smartAppend);
 }

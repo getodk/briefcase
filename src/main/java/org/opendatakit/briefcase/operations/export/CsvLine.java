@@ -3,14 +3,6 @@ package org.opendatakit.briefcase.operations.export;
 import java.time.OffsetDateTime;
 import java.util.Objects;
 
-/**
- * This class represents a CSV file line. It holds the submission date in case
- * this line should be sorted.
- * <p>
- * Instances of this class are Value Objects:
- * - Immutable
- * - Value equlity rules
- */
 class CsvLine {
   private final String instanceId;
   private final OffsetDateTime submissionDate;

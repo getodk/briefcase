@@ -41,7 +41,7 @@ import org.opendatakit.briefcase.reused.api.OptionalProduct;
 import org.opendatakit.briefcase.reused.api.UncheckedFiles;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormModel;
-import org.opendatakit.briefcase.reused.model.submission.Submission;
+import org.opendatakit.briefcase.reused.model.submission.ParsedSubmission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,11 +50,11 @@ class GeoJson {
   private static final String POINT_COMPONENT_SEPARATOR = " ";
   private static final String POINT_STRING_SEPARATOR = ";";
 
-  static Stream<Feature> toFeatures(FormModel model, Submission submission) {
+  static Stream<Feature> toFeatures(FormModel model, ParsedSubmission submission) {
     String instanceId = submission.getInstanceId();
     return model.getSpatialFields().stream().map(field -> {
       // Get the value on the submission
-      Optional<String> maybeValue = submission.findElement(field.getName()).flatMap(XmlElement::maybeValue);
+      Optional<String> maybeValue = submission.findFirstElement(field.getName()).flatMap(XmlElement::maybeValue);
       if (maybeValue.isEmpty())
         return emptyFeature(field, instanceId);
 

@@ -91,6 +91,6 @@ public class XmlElementTest {
       current = current.getParent();
       xml = "<" + current.getName() + ">" + xml + "</" + current.getName() + ">";
     }
-    return XmlElement.of(parse(xml)).findElement(field.getName()).get();
+    return XmlElement.of(parse(xml)).findFirstElement(field.getName()).get();
   }
 }

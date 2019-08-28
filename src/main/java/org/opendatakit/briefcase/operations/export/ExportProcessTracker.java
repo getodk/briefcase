@@ -27,6 +27,7 @@ import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// TODO Review and change to be conforming to the pull and push trackers
 public class ExportProcessTracker {
   private static final Logger log = LoggerFactory.getLogger(ExportProcessTracker.class);
 
