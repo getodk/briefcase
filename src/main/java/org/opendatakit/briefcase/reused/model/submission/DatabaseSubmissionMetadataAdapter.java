@@ -91,7 +91,6 @@ public class DatabaseSubmissionMetadataAdapter implements SubmissionMetadataPort
     ));
   }
 
-  @SuppressWarnings("unchecked")
   private Stream<String> getStringArray(Record record, Field<?> field) {
     try {
       return Arrays.stream((Object[]) ((JDBCArray) record.get(field)).getArray()).map(o -> (String) o);

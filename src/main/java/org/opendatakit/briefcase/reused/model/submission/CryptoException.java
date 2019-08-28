@@ -18,16 +18,16 @@ package org.opendatakit.briefcase.reused.model.submission;
 
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
-public class CryptoException extends BriefcaseException {
-  public CryptoException(Throwable cause) {
+class CryptoException extends BriefcaseException {
+  CryptoException(Throwable cause) {
     super(cause);
   }
 
-  public CryptoException(String message) {
+  CryptoException(String message) {
     super(message);
   }
 
-  public CryptoException(String message, Throwable cause) {
+  CryptoException(String message, Throwable cause) {
     super(message, cause);
   }
 }

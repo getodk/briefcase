@@ -16,7 +16,6 @@
 package org.opendatakit.briefcase.reused.model.submission;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.stripFileExtension;
 import static org.opendatakit.briefcase.reused.model.submission.CipherFactory.signatureDecrypter;
@@ -25,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -38,9 +36,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.IllegalBlockSizeException;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import org.kxml2.io.KXmlParser;
 import org.kxml2.kdom.Document;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -52,7 +47,6 @@ import org.xmlpull.v1.XmlPullParserException;
 
 public class SubmissionParser {
   private static final Logger log = LoggerFactory.getLogger(SubmissionParser.class);
-  private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 
   /**
    * Returns a parsed submission. The result will be a non-empty Optional when:
@@ -64,49 +58,29 @@ public class SubmissionParser {
    * Otherwise, it returns an empty Optional without throwing any exception.
    */
   public static Optional<Submission> parsePlainSubmission(SubmissionMetadata submissionMetadata, BiConsumer<SubmissionMetadata, String> onError) {
-    return parse(submissionMetadata, onError).flatMap(document -> {
-      XmlElement root = XmlElement.of(document);
-      return Optional.of(Submission.plain(submissionMetadata, root));
-    });
+    return parse(submissionMetadata, onError)
+        .map(document -> Submission.plain(submissionMetadata, XmlElement.of(document)));
   }
 
   public static Optional<Submission> parseEncryptedSubmission(SubmissionMetadata submissionMetadata, PrivateKey privateKey, BiConsumer<SubmissionMetadata, String> onError) {
     return parse(submissionMetadata, onError).flatMap(document -> {
       XmlElement root = XmlElement.of(document);
-      SubmissionLazyMetadata metaData = new SubmissionLazyMetadata(root);
 
       CipherFactory cipherFactory = CipherFactory.from(
-          metaData.getInstanceId().orElseThrow(BriefcaseException::new),
-          metaData.getBase64EncryptedKey().orElseThrow(BriefcaseException::new),
+          submissionMetadata.getKey().getInstanceId(),
+          submissionMetadata.getBase64EncryptedKey().orElseThrow(BriefcaseException::new),
           privateKey
       );
 
-      // If all the needed parts are present, decrypt the signature
       byte[] signature = decrypt(
           signatureDecrypter(privateKey),
-          decodeBase64(metaData.getEncryptedSignature().orElseThrow(BriefcaseException::new))
+          decodeBase64(submissionMetadata.getEncryptedSignature().orElseThrow(BriefcaseException::new))
       );
 
       Submission submission = Submission.unencrypted(submissionMetadata, root, cipherFactory, signature);
       return decrypt(submission, onError).map(s -> s.withValidationStatus(ValidationStatus.of(isValid(submission, s))));
     });
   }
-
-  private static Optional<String> parseAttribute(Path submission, Reader ioReader, String attributeName, BiConsumer<Path, String> onParsingError) {
-    try {
-      XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(ioReader);
-      while (reader.hasNext())
-        if (reader.next() == START_ELEMENT)
-          for (int i = 0, c = reader.getAttributeCount(); i < c; ++i)
-            if (reader.getAttributeLocalName(i).equals(attributeName))
-              return Optional.of(reader.getAttributeValue(i));
-    } catch (XMLStreamException e) {
-      log.error("Can't parse submission", e);
-      onParsingError.accept(submission, "parsing error");
-    }
-    return Optional.empty();
-  }
-
 
   private static Optional<Submission> decrypt(Submission submission, BiConsumer<SubmissionMetadata, String> onError) {
     List<Path> mediaPaths = submission.getMediaPaths();

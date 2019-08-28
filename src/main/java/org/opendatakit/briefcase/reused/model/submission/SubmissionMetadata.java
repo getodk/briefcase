@@ -120,7 +120,4 @@ public class SubmissionMetadata {
     return new SubmissionMetadata(submissionKey, Optional.of(submissionFile), submissionDateTime, encryptedXmlFilename, base64EncryptedKey, encryptedSignature, attachmentFilenames);
   }
 
-  SubmissionMetadata withAttachmentFilenames(List<Path> attachmentFilenames) {
-    return new SubmissionMetadata(submissionKey, submissionFile, submissionDateTime, encryptedXmlFilename, base64EncryptedKey, encryptedSignature, attachmentFilenames);
-  }
 }

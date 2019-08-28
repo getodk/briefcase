@@ -54,7 +54,7 @@ public class SubmissionKey {
     return formId;
   }
 
-  public Optional<String> getFormVersion() {
+  Optional<String> getFormVersion() {
     return formVersion;
   }
 

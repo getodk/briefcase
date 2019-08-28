@@ -64,8 +64,12 @@ public class Submission {
     return new Submission(submissionMetadata, root, NOT_VALIDATED, Optional.empty(), Optional.empty());
   }
 
-  public static Submission unencrypted(SubmissionMetadata submissionMetadata, XmlElement root, CipherFactory cipherFactory, byte[] signature) {
+  static Submission unencrypted(SubmissionMetadata submissionMetadata, XmlElement root, CipherFactory cipherFactory, byte[] signature) {
     return new Submission(submissionMetadata, root, NOT_VALIDATED, Optional.of(cipherFactory), Optional.of(signature));
+  }
+
+  SubmissionMetadata getSubmissinoMetadata() {
+    return submissionMetadata;
   }
 
   public Path getPath() {
@@ -229,9 +233,5 @@ public class Submission {
       if (left[i] != right[i])
         return false;
     return true;
-  }
-
-  public SubmissionMetadata getSubmissinoMetadata() {
-    return submissionMetadata;
   }
 }

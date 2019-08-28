@@ -24,7 +24,7 @@ import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 
 public class SubmissionMetadataQueries {
 
-  public static final Field<OffsetDateTime> COALESCED_SUBMISSION_DATE = DSL.coalesce(
+  private static final Field<OffsetDateTime> COALESCED_SUBMISSION_DATE = DSL.coalesce(
       SUBMISSION_METADATA.SUBMISSION_DATE_TIME,
       value(OffsetDateTime.parse("1970-01-01T00:00:00.000Z"))
   );
