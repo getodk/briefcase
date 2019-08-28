@@ -40,7 +40,7 @@ import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionKey;
 
 public class TransferTestHelpers {
   public static String buildSubmissionXml(String instanceId) {
@@ -258,9 +258,7 @@ public class TransferTestHelpers {
   }
 
   public static Path installSubmission(FormMetadata formMetadata, Path source) throws IOException {
-    String instanceId = new SubmissionLazyMetadata(XmlElement.from(new String(readAllBytes(source))))
-        .getInstanceId()
-        .orElseThrow(RuntimeException::new);
+    String instanceId = SubmissionKey.extractInstanceId(XmlElement.from(new String(readAllBytes(source)))).orElseThrow(RuntimeException::new);
     Path submissionDir = formMetadata.getSubmissionDir(instanceId);
     createDirectories(submissionDir);
     return copy(source, formMetadata.getSubmissionFile(instanceId));

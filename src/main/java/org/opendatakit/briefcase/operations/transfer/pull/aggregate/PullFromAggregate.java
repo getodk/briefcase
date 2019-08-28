@@ -41,7 +41,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.api.OptionalProduct;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.api.Triple;
@@ -54,7 +53,6 @@ import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
@@ -151,9 +149,11 @@ public class PullFromAggregate {
                     downloadSubmissionAttachment(formMetadata, submission, attachment, rs, tracker, currentSubmissionNumber, totalSubmissions, submissionAttachmentNumber.getAndIncrement(), totalSubmissionAttachments)
                 );
 
-                SubmissionMetadata submissionMetadata = new SubmissionLazyMetadata(XmlElement.from(submission.getXml()))
-                    .freeze(submission.getInstanceId(), submission.getSubmissionFile().orElseThrow(BriefcaseException::new))
-                    .withAttachmentFilenames(submission.getAttachments().stream().map(AggregateAttachment::getFilename).map(Paths::get).collect(toList()));
+                SubmissionMetadata submissionMetadata = SubmissionMetadata.from(
+                    submission.getSubmissionFile(),
+                    submission.getInstanceId(),
+                    submission.getAttachments().stream().map(AggregateAttachment::getFilename).map(Paths::get).collect(toList())
+                );
                 submissionMetadataPort.execute(insert(submissionMetadata));
               });
 

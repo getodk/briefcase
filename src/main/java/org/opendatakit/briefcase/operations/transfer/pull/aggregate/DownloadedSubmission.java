@@ -17,13 +17,13 @@
 package org.opendatakit.briefcase.operations.transfer.pull.aggregate;
 
 import static org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate.asMediaFileList;
+import static org.opendatakit.briefcase.reused.model.submission.SubmissionKey.extractInstanceId;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.model.XmlElement;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
 
 /**
  * Stores a form submission's contents and a list to its attachments.
@@ -53,7 +53,7 @@ public class DownloadedSubmission {
     XmlElement instance = submission.findElement("data").orElseThrow(BriefcaseException::new).childrenOf().get(0);
     return new DownloadedSubmission(
         instance.serialize(),
-        new SubmissionLazyMetadata(instance).getInstanceId().orElseThrow(BriefcaseException::new),
+        extractInstanceId(instance).orElseThrow(BriefcaseException::new),
         asMediaFileList(submission.findElements("mediaFile")),
         Optional.empty()
     );
@@ -75,7 +75,7 @@ public class DownloadedSubmission {
     return new DownloadedSubmission(xml, instanceId, attachments, Optional.of(submissionFile));
   }
 
-  public Optional<Path> getSubmissionFile() {
-    return submissionFile;
+  public Path getSubmissionFile() {
+    return submissionFile.orElseThrow(BriefcaseException::new);
   }
 }

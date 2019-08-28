@@ -17,8 +17,6 @@ package org.opendatakit.briefcase.reused.model.submission;
 
 import static java.util.stream.Collectors.toList;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -147,22 +145,5 @@ public class SubmissionLazyMetadata {
     if (encryptedSignature == null)
       encryptedSignature = root.findElement("base64EncryptedElementSignature").flatMap(XmlElement::maybeValue);
     return encryptedSignature;
-  }
-
-  public SubmissionMetadata freeze(String instanceId, Path submissionFile) {
-    SubmissionKey submissionKey = new SubmissionKey(
-        getFormId(),
-        getVersion(),
-        instanceId
-    );
-    return new SubmissionMetadata(
-        submissionKey,
-        Optional.of(submissionFile),
-        getSubmissionDate(),
-        getEncryptedXmlFile().map(Paths::get),
-        getBase64EncryptedKey(),
-        getEncryptedSignature(),
-        getMediaNames().stream().map(Paths::get).collect(toList())
-    );
   }
 }

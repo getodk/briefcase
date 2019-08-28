@@ -30,10 +30,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 
@@ -65,13 +63,13 @@ public class FormInstaller {
     }
   }
 
-  static void installSubmissions(FormMetadata formMetadata, List<Pair<Path, SubmissionLazyMetadata>> submissions, SubmissionMetadataPort submissionMetadataPort, PullFromFileSystemTracker tracker) {
-    int totalSubmissions = submissions.size();
+  static void installSubmissions(FormMetadata formMetadata, List<SubmissionMetadata> submissionMetadataList, SubmissionMetadataPort submissionMetadataPort, PullFromFileSystemTracker tracker) {
+    int totalSubmissions = submissionMetadataList.size();
     AtomicInteger submissionSeq = new AtomicInteger(1);
 
-    submissions.forEach(pair -> {
-      String instanceId = pair.getRight().getInstanceId().orElseThrow();
-      Path sourceSubmissionFile = pair.getLeft();
+    submissionMetadataList.forEach(sourceSubmissionMetadata -> {
+      String instanceId = sourceSubmissionMetadata.getKey().getInstanceId();
+      Path sourceSubmissionFile = sourceSubmissionMetadata.getSubmissionFile();
       Path targetSubmissionFile = formMetadata.getSubmissionFile(instanceId);
       createDirectories(formMetadata.getSubmissionDir(instanceId));
       copy(sourceSubmissionFile, targetSubmissionFile, REPLACE_EXISTING);
@@ -90,10 +88,7 @@ public class FormInstaller {
         tracker.trackSubmissionAttachmentInstalled(submissionNumber, totalSubmissions, attachmentSeq.getAndIncrement(), totalAttachments);
       });
 
-      SubmissionMetadata submissionMetadata = new SubmissionLazyMetadata(XmlElement.from(sourceSubmissionFile))
-          .freeze(instanceId, targetSubmissionFile)
-          .withAttachmentFilenames(attachments.stream().map(Path::getFileName).collect(toList()));
-      submissionMetadataPort.execute(insert(submissionMetadata));
+      submissionMetadataPort.execute(insert(sourceSubmissionMetadata.withSubmissionFile(targetSubmissionFile)));
     });
   }
 

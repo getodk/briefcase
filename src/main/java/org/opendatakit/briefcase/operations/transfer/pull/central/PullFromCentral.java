@@ -39,11 +39,9 @@ import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.RunnerStatus;
-import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.CentralAttachment;
@@ -112,10 +110,11 @@ public class PullFromCentral {
                 attachments.forEach(attachment ->
                     downloadSubmissionAttachment(formMetadata, instanceId, attachment, token, runnerStatus, tracker, currentSubmissionNumber, totalSubmissions, attachmentNumber.getAndIncrement(), totalAttachments)
                 );
-                Path submissionFile = formMetadata.getSubmissionFile(instanceId);
-                SubmissionMetadata submissionMetadata = new SubmissionLazyMetadata(XmlElement.from(submissionFile))
-                    .freeze(instanceId, submissionFile)
-                    .withAttachmentFilenames(attachments.stream().map(CentralAttachment::getName).map(Paths::get).collect(toList()));
+                SubmissionMetadata submissionMetadata = SubmissionMetadata.from(
+                    formMetadata.getSubmissionFile(instanceId),
+                    instanceId,
+                    attachments.stream().map(CentralAttachment::getName).map(Paths::get).collect(toList())
+                );
                 submissionMetadataPort.execute(insert(submissionMetadata));
               });
           tracker.trackEnd();

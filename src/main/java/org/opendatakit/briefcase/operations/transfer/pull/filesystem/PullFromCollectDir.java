@@ -19,10 +19,12 @@ package org.opendatakit.briefcase.operations.transfer.pull.filesystem;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.operations.transfer.pull.filesystem.FormInstaller.installForm;
 import static org.opendatakit.briefcase.operations.transfer.pull.filesystem.FormInstaller.installSubmissions;
+import static org.opendatakit.briefcase.reused.api.UncheckedFiles.list;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.stripFileExtension;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.walk;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.upsert;
+import static org.opendatakit.briefcase.reused.model.submission.SubmissionKey.extractInstanceId;
 import static org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataQueries.hasBeenAlreadyPulled;
 
 import java.nio.file.Files;
@@ -31,13 +33,12 @@ import java.util.List;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
-import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionLazyMetadata;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 
 public class PullFromCollectDir {
@@ -59,22 +60,23 @@ public class PullFromCollectDir {
 
       installForm(sourceFormMetadata, targetFormMetadata, tracker);
 
-      List<Pair<Path, SubmissionLazyMetadata>> submissions = walk(sourceFormMetadata.getFormDir().getParent().resolve("instances"))
+      List<Path> submissionFiles = walk(sourceFormMetadata.getFormDir().getParent().resolve("instances"))
           .filter(p -> Files.isRegularFile(p)
               && p.getFileName().toString().startsWith(stripFileExtension(sourceFormMetadata.getFormFile()))
               && p.getFileName().toString().endsWith(".xml"))
-          .map(submissionFile -> Pair.of(submissionFile, new SubmissionLazyMetadata(XmlElement.from(submissionFile))))
           .collect(toList());
-      int totalSubmissions = submissions.size();
+      int totalSubmissions = submissionFiles.size();
 
-      List<Pair<Path, SubmissionLazyMetadata>> submissionsWithInstanceId = submissions.stream()
-          .filter(pair -> pair.getRight().getInstanceId().isPresent()).collect(toList());
+      List<Path> submissionsWithInstanceId = submissionFiles.stream()
+          .filter(pair -> extractInstanceId(XmlElement.from(pair)).isPresent())
+          .collect(toList());
       int submissionsWithoutInstanceId = totalSubmissions - submissionsWithInstanceId.size();
       if (submissionsWithoutInstanceId > 0)
         tracker.trackSkippedSubmissionsWithoutInstanceId(submissionsWithoutInstanceId, totalSubmissions);
 
-      List<Pair<Path, SubmissionLazyMetadata>> submissionsToPull = submissions.stream()
-          .filter(pair -> !submissionMetadataPort.query(hasBeenAlreadyPulled(sourceFormMetadata.getKey().getId(), pair.getRight().getInstanceId().orElseThrow())))
+      List<SubmissionMetadata> submissionsToPull = submissionFiles.stream()
+          .map(path -> SubmissionMetadata.from(path, list(path.getParent()).filter(p -> !p.equals(path)).map(Path::getFileName).collect(toList())))
+          .filter(submissionMetadata -> !submissionMetadataPort.query(hasBeenAlreadyPulled(submissionMetadata.getKey().getFormId(), submissionMetadata.getKey().getInstanceId())))
           .collect(toList());
       int submissionsAlreadyPulled = submissionsWithInstanceId.size() - submissionsToPull.size();
       if (submissionsAlreadyPulled > 0)
