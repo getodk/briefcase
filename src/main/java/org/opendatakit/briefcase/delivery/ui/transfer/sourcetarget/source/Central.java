@@ -21,7 +21,6 @@ import static org.opendatakit.briefcase.delivery.ui.reused.UI.makeClickable;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.uncheckedBrowse;
 
 import java.awt.Container;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
@@ -31,6 +30,7 @@ import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
@@ -45,14 +45,14 @@ import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
  */
 public class Central implements PullSource<CentralServer> {
   private final Http http;
-  private final Path briefcaseDir;
+  private final Workspace workspace;
   private final Test<CentralServer> serverTester;
   private final Consumer<PullSource> onSourceCallback;
   private CentralServer server;
 
-  Central(Http http, Path briefcaseDir, Test<CentralServer> serverTester, Consumer<PullSource> onSourceCallback) {
+  Central(Http http, Workspace workspace, Test<CentralServer> serverTester, Consumer<PullSource> onSourceCallback) {
     this.http = http;
-    this.briefcaseDir = briefcaseDir;
+    this.workspace = workspace;
     this.serverTester = serverTester;
     this.onSourceCallback = onSourceCallback;
   }
@@ -65,7 +65,7 @@ public class Central implements PullSource<CentralServer> {
     return http.execute(server.getFormsListRequest(token))
         .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"))
         .stream()
-        .map(formMetadata -> formMetadata.withFormFile(formMetadata.buildFormFile(briefcaseDir)))
+        .map(formMetadata -> formMetadata.withFormFile(workspace.buildFormFile(formMetadata)))
         .collect(toList());
   }
 

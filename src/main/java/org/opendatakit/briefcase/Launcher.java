@@ -31,13 +31,14 @@ import java.util.Optional;
 import org.flywaydb.core.Flyway;
 import org.opendatakit.briefcase.delivery.cli.ClearPreferences;
 import org.opendatakit.briefcase.delivery.cli.Export;
-import org.opendatakit.briefcase.delivery.cli.LaunchGui;
 import org.opendatakit.briefcase.delivery.cli.PullFromAggregate;
 import org.opendatakit.briefcase.delivery.cli.PullFromCentral;
 import org.opendatakit.briefcase.delivery.cli.PullFromCollect;
 import org.opendatakit.briefcase.delivery.cli.PushToAggregate;
 import org.opendatakit.briefcase.delivery.cli.PushToCentral;
+import org.opendatakit.briefcase.delivery.cli.launchgui.LaunchGui;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.cli.Cli;
 import org.opendatakit.briefcase.reused.db.BriefcaseDb;
 import org.opendatakit.briefcase.reused.model.form.DatabaseFormMetadataAdapter;
@@ -65,32 +66,29 @@ public class Launcher {
     Optional<SentryClient> sentry = SENTRY_ENABLED ? Optional.of(initSentryClient(appPreferences)) : Optional.empty();
 
     BriefcaseDb db = BriefcaseDb.create();
+    // TODO Bunch these up in a dependency injection container
     FormMetadataPort formMetadataPort = new DatabaseFormMetadataAdapter(db::getDslContext);
     SubmissionMetadataPort submissionMetadataPort = new DatabaseSubmissionMetadataAdapter(db::getDslContext);
+    Workspace workspace = Workspace.empty()
+        .onStart(workspaceLocation -> {
+          db.startAt(workspaceLocation);
+          Flyway.configure().locations("db/migration")
+              .dataSource(db.getDsn(), db.getUser(), db.getPassword()).validateOnMigrate(false)
+              .load().migrate();
+        })
+        .onStop(db::stop);
+
 
     new Cli()
-        .register(PullFromAggregate.create(formMetadataPort, submissionMetadataPort))
-        .register(PullFromCentral.create(formMetadataPort, submissionMetadataPort))
+        .register(PullFromAggregate.create(workspace, formMetadataPort, submissionMetadataPort))
+        .register(PullFromCentral.create(workspace, formMetadataPort, submissionMetadataPort))
         .register(PushToAggregate.create(formMetadataPort))
         .register(PushToCentral.create(formMetadataPort, submissionMetadataPort))
-        .register(PullFromCollect.create(formMetadataPort, submissionMetadataPort))
+        .register(PullFromCollect.create(workspace, formMetadataPort, submissionMetadataPort))
         .register(Export.create(formMetadataPort, submissionMetadataPort))
         .register(ClearPreferences.create(formMetadataPort))
-        .registerDefault(LaunchGui.create(formMetadataPort, submissionMetadataPort))
-        .before(args -> {
-          Path storageLocation = args.get(WORKSPACE_LOCATION);
-          prepareStorageLocation(storageLocation);
-          // Set the workspace location in the app prefs for backwards compatibility. This will be replaced by form metadata
-          appPreferences.setStorageDir(storageLocation);
-          db.startAt(storageLocation);
-          Flyway
-              .configure()
-              .locations("db/migration")
-              .dataSource(db.getDsn(), db.getUser(), db.getPassword())
-              .validateOnMigrate(false)
-              .load()
-              .migrate();
-        })
+        .registerDefault(LaunchGui.create(workspace, formMetadataPort, submissionMetadataPort))
+        .before(args -> args.getOptional(WORKSPACE_LOCATION).ifPresent(workspace::startAt))
         .onError(throwable -> {
           System.err.println(throwable instanceof BriefcaseException
               ? "Error: " + throwable.getMessage()
@@ -99,7 +97,7 @@ public class Launcher {
           sentry.ifPresent(client -> client.sendException(throwable));
           System.exit(1);
         })
-        .onExit(db::stop)
+        .onExit(workspace::stop)
         .run(rawArgs);
   }
 
@@ -124,7 +122,7 @@ public class Launcher {
     return sentry;
   }
 
-  private static void prepareStorageLocation(Path storageLocation) {
-    createDirectories(storageLocation.resolve("forms"));
+  private static void prepareWorkspace(Path workspaceLocation) {
+    createDirectories(workspaceLocation.resolve("forms"));
   }
 }

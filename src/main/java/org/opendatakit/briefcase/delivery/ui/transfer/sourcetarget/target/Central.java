@@ -21,7 +21,6 @@ import static org.opendatakit.briefcase.delivery.ui.reused.UI.uncheckedBrowse;
 import static org.opendatakit.briefcase.reused.model.Operation.PUSH;
 
 import java.awt.Container;
-import java.nio.file.Path;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
@@ -62,7 +61,7 @@ public class Central implements PushTarget<CentralServer> {
   }
 
   @Override
-  public JobsRunner push(TransferForms forms, Path briefcaseDir) {
+  public JobsRunner push(TransferForms forms) {
     forms.filter(FormMetadata::isEncrypted)
         .forEach(formMetadata ->
             EventBus.publish(new FormStatusEvent(PUSH, formMetadata.getKey(), "Skipping. Encrypted forms can't be pushed to ODK Central yet"))

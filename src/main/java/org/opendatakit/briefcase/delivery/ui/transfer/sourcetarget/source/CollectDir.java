@@ -35,6 +35,7 @@ import org.opendatakit.briefcase.delivery.ui.reused.filsystem.FileChooser;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.operations.transfer.pull.filesystem.PullFromCollectDir;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
@@ -45,12 +46,12 @@ import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
  * Represents a filesystem location pointing to Collect's form directory as a source of forms for the Pull UI Panel.
  */
 public class CollectDir implements PullSource<Path> {
-  private final Path briefcaseDir;
+  private final Workspace workspace;
   private final Consumer<PullSource> consumer;
   private Path path;
 
-  CollectDir(Path briefcaseDir, Consumer<PullSource> consumer) {
-    this.briefcaseDir = briefcaseDir;
+  CollectDir(Workspace workspace, Consumer<PullSource> consumer) {
+    this.workspace = workspace;
     this.consumer = consumer;
   }
 
@@ -102,7 +103,7 @@ public class CollectDir implements PullSource<Path> {
     PullFromCollectDir pullJob = new PullFromCollectDir(formMetadataPort, submissionMetadataPort, EventBus::publish);
     return JobsRunner.launchAsync(forms.map(formMetadata -> pullJob.pull(
         formMetadata,
-        formMetadata.withFormFile(formMetadata.buildFormFile(briefcaseDir))
+        formMetadata.withFormFile(workspace.buildFormFile(formMetadata))
     ))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 

@@ -5,6 +5,7 @@ import static java.util.Collections.emptySet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -18,6 +19,7 @@ public class Operation {
   final Consumer<Args> argsConsumer;
   final Set<Param> requiredParams;
   final Set<Param> optionalParams;
+  Optional<Consumer<Args>> beforeCallback = Optional.empty();
   private final boolean deprecated;
 
   private Operation(Param param, Consumer<Args> argsConsumer, Set<Param> requiredParams, Set<Param> optionalParams, boolean deprecated) {
@@ -124,5 +126,10 @@ public class Operation {
         ", requiredParams=" + requiredParams +
         ", optionalParams=" + optionalParams +
         '}';
+  }
+
+  public Operation before(Consumer<Args> callback) {
+    beforeCallback = Optional.of(callback);
+    return this;
   }
 }

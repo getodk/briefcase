@@ -34,8 +34,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Objects;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -51,8 +49,8 @@ import org.opendatakit.briefcase.delivery.ui.reused.Analytics;
 import org.opendatakit.briefcase.delivery.ui.settings.SettingsPanel;
 import org.opendatakit.briefcase.delivery.ui.transfer.pull.PullPanel;
 import org.opendatakit.briefcase.delivery.ui.transfer.push.PushPanel;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.BriefcaseVersionManager;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.model.Host;
@@ -86,13 +84,13 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private final JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
   private final JLabel versionLabel = new JLabel("Checking for updates...");
 
-  public static void launchGUI(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  public static void launchGUI(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     try {
       if (Host.isLinux())
         UIManager.setLookAndFeel(new MetalLookAndFeel());
       else
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-      new MainBriefcaseWindow(formMetadataPort, submissionMetadataPort);
+      new MainBriefcaseWindow(workspace, formMetadataPort, submissionMetadataPort);
     } catch (Exception e) {
       log.error("Failed to launch GUI", e);
       System.err.println("Failed to launch Briefcase GUI");
@@ -100,12 +98,11 @@ public class MainBriefcaseWindow extends WindowAdapter {
     }
   }
 
-  private MainBriefcaseWindow(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  private MainBriefcaseWindow(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     // Create all dependencies
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     BriefcasePreferences pullPreferences = BriefcasePreferences.forClass(PullPanel.class);
     BriefcasePreferences exportPreferences = BriefcasePreferences.forClass(ExportPanel.class);
-    Path briefcaseDir = appPreferences.getBriefcaseDir().filter(Files::exists).orElseThrow(BriefcaseException::new);
 
     int maxHttpConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
     Http http = appPreferences.getHttpProxy()
@@ -126,10 +123,10 @@ public class MainBriefcaseWindow extends WindowAdapter {
     getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
     // Add panes to the tabbedPane
-    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics, formMetadataPort, briefcaseDir, submissionMetadataPort).getContainer());
+    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics, formMetadataPort, submissionMetadataPort, workspace).getContainer());
     addPane(PushPanel.TAB_NAME, PushPanel.from(http, formMetadataPort, submissionMetadataPort, analytics, appPreferences).getContainer());
     addPane(ExportPanel.TAB_NAME, ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, http, formMetadataPort, submissionMetadataPort).getForm().getContainer());
-    addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(appPreferences, analytics, http, versionManager, formMetadataPort, submissionMetadataPort).getContainer());
+    addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(appPreferences, analytics, http, versionManager, formMetadataPort, submissionMetadataPort, workspace).getContainer());
 
     // Set up the frame and put the UI components in it
     frame.addWindowListener(this);

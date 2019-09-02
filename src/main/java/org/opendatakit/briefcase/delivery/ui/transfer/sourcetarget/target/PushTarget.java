@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target;
 
-import java.nio.file.Path;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTarget;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
@@ -43,7 +42,7 @@ public interface PushTarget<T> extends SourceOrTarget<T> {
 
   void storeTargetPrefs(BriefcasePreferences prefs, boolean storePasswords);
 
-  JobsRunner push(TransferForms forms, Path briefcaseDir);
+  JobsRunner push(TransferForms forms);
 
   String getDescription();
 

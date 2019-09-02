@@ -13,46 +13,52 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendatakit.briefcase.delivery.cli;
+package org.opendatakit.briefcase.delivery.cli.launchgui;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 
-import java.nio.file.Path;
+import java.util.Objects;
 import org.opendatakit.briefcase.delivery.ui.MainBriefcaseWindow;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.cli.Args;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 
 
 public class LaunchGui {
   private static final Param<Void> LAUNCH_GUI_FLAG = Param.flag("gui", "gui", "Launch GUI");
 
-  public static Operation create(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  public static Operation create(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     return
         Operation.of(
             LAUNCH_GUI_FLAG,
-            args -> launchGui(formMetadataPort, submissionMetadataPort, args),
+            __ -> launchGui(workspace, formMetadataPort, submissionMetadataPort),
             emptyList(),
             singletonList(WORKSPACE_LOCATION)
-        );
+        ).before(args -> {
+          if (args.isEmpty(WORKSPACE_LOCATION))
+            try {
+              WorkspaceLocationDialogForm dialog = new WorkspaceLocationDialogForm(workspaceLocation -> args.set(
+                  WORKSPACE_LOCATION,
+                  workspaceLocation
+                      .map(Objects::toString)
+                      .orElseThrow(() -> new BriefcaseException("No workspace location has been chosen or set via CLI args"))
+              ));
+              dialog.setSize(400, 300);
+              dialog.setLocationRelativeTo(null);
+              dialog.pack();
+              dialog.setVisible(true);
+            } catch (Exception e) {
+              throw new RuntimeException(e);
+            }
+        });
   }
 
-  private static void launchGui(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
-    Path workspaceLocation = args.getOptional(WORKSPACE_LOCATION)
-        .orElseThrow(() -> new BriefcaseException("" +
-            "Choosing a workspace location with the GUI " +
-            "hasn't been implemented yet. Please, use " +
-            "the " + WORKSPACE_LOCATION.getShortCode()));
-
-    BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
-    appPreferences.setStorageDir(workspaceLocation);
-
-    MainBriefcaseWindow.launchGUI(formMetadataPort, submissionMetadataPort);
+  private static void launchGui(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+    MainBriefcaseWindow.launchGUI(workspace, formMetadataPort, submissionMetadataPort);
   }
 }

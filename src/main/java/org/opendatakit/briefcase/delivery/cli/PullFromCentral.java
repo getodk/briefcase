@@ -22,15 +22,15 @@ import static org.opendatakit.briefcase.delivery.cli.Common.FORM_ID;
 import static org.opendatakit.briefcase.delivery.cli.Common.MAX_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.delivery.cli.Common.PROJECT_ID;
 import static org.opendatakit.briefcase.delivery.cli.Common.SERVER_URL;
-import static org.opendatakit.briefcase.delivery.cli.Common.STORAGE_DIR;
+import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.api.Optionals;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
@@ -53,20 +53,18 @@ public class PullFromCentral {
   private static final Logger log = LoggerFactory.getLogger(PullFromCentral.class);
   private static final Param<Void> PULL_FROM_CENTRAL = Param.flag("pllc", "pull_central", "Pull form from a Central server");
 
-  public static Operation create(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  public static Operation create(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     return Operation.of(
         PULL_FROM_CENTRAL,
-        args -> pullFromCentral(formMetadataPort, submissionMetadataPort, args),
-        Arrays.asList(STORAGE_DIR, SERVER_URL, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD),
+        args -> pullFromCentral(workspace, formMetadataPort, submissionMetadataPort, args),
+        Arrays.asList(WORKSPACE_LOCATION, SERVER_URL, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD),
         Arrays.asList(FORM_ID, MAX_HTTP_CONNECTIONS)
     );
   }
 
-  private static void pullFromCentral(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
+  private static void pullFromCentral(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
     CliEventsCompanion.attach(log);
-    Path briefcaseDir = Common.getOrCreateBriefcaseDir(args.get(STORAGE_DIR));
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
-    appPreferences.setStorageDir(briefcaseDir);
 
     int maxHttpConnections = Optionals.race(
         args.getOptional(MAX_HTTP_CONNECTIONS),
@@ -98,7 +96,7 @@ public class PullFromCentral {
     List<FormMetadata> filteredForms = response.orElseThrow(BriefcaseException::new)
         .stream()
         .filter(f -> formId.map(id -> f.getKey().getId().equals(id)).orElse(true))
-        .map(formMetadata -> formMetadata.withFormFile(formMetadata.buildFormFile(briefcaseDir)))
+        .map(formMetadata -> formMetadata.withFormFile(workspace.buildFormFile(formMetadata)))
         .collect(toList());
 
     if (formId.isPresent() && filteredForms.isEmpty())

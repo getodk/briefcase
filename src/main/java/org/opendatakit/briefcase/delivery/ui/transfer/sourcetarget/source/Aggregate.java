@@ -22,7 +22,6 @@ import static org.opendatakit.briefcase.delivery.ui.reused.UI.uncheckedBrowse;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataQueries.lastCursorOf;
 
 import java.awt.Container;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -33,6 +32,7 @@ import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
@@ -47,15 +47,15 @@ import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
  */
 public class Aggregate implements PullSource<AggregateServer> {
   private final Http http;
-  private final Path briefcaseDir;
   private final Consumer<PullSource> consumer;
+  private final Workspace workspace;
   private Test<AggregateServer> serverTester;
   private String usernameHelp;
   private AggregateServer server;
 
-  Aggregate(Http http, Path briefcaseDir, Test<AggregateServer> serverTester, String usernameHelp, Consumer<PullSource> consumer) {
+  Aggregate(Http http, Workspace workspace, Test<AggregateServer> serverTester, String usernameHelp, Consumer<PullSource> consumer) {
     this.http = http;
-    this.briefcaseDir = briefcaseDir;
+    this.workspace = workspace;
     this.serverTester = serverTester;
     this.usernameHelp = usernameHelp;
     this.consumer = consumer;
@@ -84,7 +84,7 @@ public class Aggregate implements PullSource<AggregateServer> {
     return http.execute(server.getFormListRequest())
         .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"))
         .stream()
-        .map(formMetadata -> formMetadata.withFormFile(formMetadata.buildFormFile(briefcaseDir)))
+        .map(formMetadata -> formMetadata.withFormFile(workspace.buildFormFile(formMetadata)))
         .collect(toList());
   }
 

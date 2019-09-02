@@ -17,12 +17,9 @@ package org.opendatakit.briefcase.reused.cli;
 
 import static java.lang.Runtime.getRuntime;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -50,10 +47,9 @@ public class Cli {
 
   private final Set<Operation> operations = new HashSet<>();
   private Optional<Operation> defaultOperation = Optional.empty();
-  private final Set<Consumer<Args>> beforeCallbacks = new HashSet<>();
-
-  private final List<Consumer<Throwable>> onErrorCallbacks = new ArrayList<>();
-  private final List<Runnable> onExitCallbacks = new ArrayList<>();
+  private Optional<Consumer<Args>> beforeCallback = Optional.empty();
+  private Optional<Consumer<Throwable>> onErrorCallback = Optional.empty();
+  private Optional<Runnable> onExitCallback = Optional.empty();
 
   public Cli() {
     register(Operation.of(SHOW_HELP, args -> printHelp()));
@@ -105,7 +101,7 @@ public class Cli {
   }
 
   public Cli before(Consumer<Args> callback) {
-    beforeCallbacks.add(callback);
+    beforeCallback = Optional.of(callback);
     return this;
   }
 
@@ -119,27 +115,26 @@ public class Cli {
     Set<Param> allParams = getAllParams();
     CommandLine cli = getCli(args, allParams);
     Args allArgs = Args.from(cli, allParams);
-    getRuntime().addShutdownHook(new Thread(() -> onExitCallbacks.forEach(Runnable::run)));
+    getRuntime().addShutdownHook(new Thread(() -> onExitCallback.ifPresent(Runnable::run)));
     try {
-      beforeCallbacks.forEach(callback -> callback.accept(allArgs));
+      // Compute the operation that will be launched
+      Operation operation = operations.stream()
+          .filter(o -> cli.hasOption(o.param.shortCode))
+          .findFirst()
+          .orElseGet(() -> defaultOperation.orElseThrow(() -> new BriefcaseException("No operation was flagged and there's no default operation")));
 
-      List<Operation> flaggedOperations = operations.stream()
-          .filter(operation -> cli.hasOption(operation.param.shortCode))
-          .collect(toList());
+      // Launch the operation's "before" callback
+      operation.beforeCallback.ifPresent(callback -> callback.accept(allArgs));
 
-      if (flaggedOperations.isEmpty()) {
-        Operation operation = defaultOperation.orElseThrow(() -> new BriefcaseException("No operation was flagged and there's no default operation"));
-        checkForMissingParams(cli, operation.requiredParams);
-        operation.argsConsumer.accept(Args.from(cli, operation.getAllParams()));
-      } else {
-        flaggedOperations.forEach(operation -> {
-          checkForMissingParams(cli, operation.requiredParams);
-          operation.argsConsumer.accept(Args.from(cli, operation.getAllParams()));
-        });
-      }
+      // Launch the general "before" callback
+      beforeCallback.ifPresent(callback -> callback.accept(allArgs));
+
+      // Launch the operation
+      checkForMissingParams(cli, operation.requiredParams);
+      operation.argsConsumer.accept(Args.from(cli, operation.getAllParams()));
     } catch (Throwable t) {
-      if (!onErrorCallbacks.isEmpty())
-        onErrorCallbacks.forEach(callback -> callback.accept(t));
+      if (onErrorCallback.isPresent())
+        onErrorCallback.get().accept(t);
       else {
         System.err.println("Error: " + t.getMessage());
         System.err.println("No error callbacks have been defined");
@@ -154,12 +149,12 @@ public class Cli {
    * uncaught exception that raises up to this class.
    */
   public Cli onError(Consumer<Throwable> callback) {
-    onErrorCallbacks.add(callback);
+    onErrorCallback = Optional.of(callback);
     return this;
   }
 
   public Cli onExit(Runnable callback) {
-    onExitCallbacks.add(callback);
+    onExitCallback = Optional.of(callback);
     return this;
   }
 

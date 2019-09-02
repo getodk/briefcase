@@ -42,6 +42,7 @@ public class BriefcaseDb {
       HsqlProperties props = new HsqlProperties();
       props.setProperty("server.database.0", dbDir.resolve("briefcase").toString());
       props.setProperty("server.dbname.0", "briefcase");
+      // TODO This won't work if there is another Briefcase instance running
       props.setProperty("server.port", 9001);
       server.setProperties(props);
       server.start();

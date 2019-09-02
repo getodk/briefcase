@@ -17,7 +17,6 @@
 package org.opendatakit.briefcase.reused.model.preferences;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.Security;
 import java.util.Arrays;
 import java.util.List;
@@ -42,7 +41,6 @@ public class BriefcasePreferences {
   public static final String PASSWORD = "password";
   public static final String AGGREGATE_1_0_URL = "url_1_0";
 
-  private static final String BRIEFCASE_DIR_PROPERTY = "briefcaseDir";
   private static final String BRIEFCASE_PROXY_HOST_PROPERTY = "briefcaseProxyHost";
   private static final String BRIEFCASE_PROXY_PORT_PROPERTY = "briefcaseProxyPort";
   private static final String BRIEFCASE_START_FROM_LAST_PROPERTY = "briefcaseResumeLastPull";
@@ -162,16 +160,8 @@ public class BriefcasePreferences {
     keys.forEach(this::remove);
   }
 
-  public Optional<Path> getBriefcaseDir() {
-    return nullSafeGet(BRIEFCASE_DIR_PROPERTY).map(Paths::get);
-  }
-
   public static Path buildBriefcaseDir(Path storageDir) {
     return storageDir.resolve(BRIEFCASE_DIR);
-  }
-
-  public void setStorageDir(Path storageDir) {
-    put(BRIEFCASE_DIR_PROPERTY, storageDir.toString());
   }
 
   public Optional<HttpHost> getHttpProxy() {

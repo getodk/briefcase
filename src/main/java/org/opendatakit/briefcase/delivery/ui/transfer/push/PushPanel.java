@@ -34,7 +34,6 @@ import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.PushTa
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.operations.transfer.push.PushEvent;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
@@ -91,10 +90,7 @@ public class PushPanel {
       view.setWorking();
       view.clearAllStatusLines();
       new Thread(() -> target.ifPresent(s -> {
-        pushJobRunner = s.push(
-            forms.getSelectedForms(),
-            appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new)
-        );
+        pushJobRunner = s.push(forms.getSelectedForms());
         pushJobRunner.waitForCompletion();
       })).start();
     });

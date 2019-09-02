@@ -17,7 +17,7 @@ package org.opendatakit.briefcase.delivery.cli;
 
 import static java.util.Collections.singletonList;
 import static org.opendatakit.briefcase.delivery.cli.Common.FORM_ID;
-import static org.opendatakit.briefcase.delivery.cli.Common.STORAGE_DIR;
+import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -28,6 +28,7 @@ import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.filesystem.FormInstaller;
 import org.opendatakit.briefcase.operations.transfer.pull.filesystem.PullFromCollectDir;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.Param;
@@ -44,22 +45,20 @@ public class PullFromCollect {
   private static final Param<Void> IMPORT = Param.flag("pc", "pull_collect", "Pull from Collect");
   private static final Param<Path> ODK_DIR = Param.arg("od", "odk_directory", "ODK directory", Paths::get);
 
-  public static Operation create(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  public static Operation create(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     return Operation.of(
         IMPORT,
-        args -> pull(formMetadataPort, submissionMetadataPort, args),
-        Arrays.asList(STORAGE_DIR, ODK_DIR),
+        args -> pull(workspace, formMetadataPort, submissionMetadataPort, args),
+        Arrays.asList(WORKSPACE_LOCATION, ODK_DIR),
         singletonList(FORM_ID)
     );
   }
 
-  private static void pull(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
-    String storageDir = args.get(STORAGE_DIR);
+  private static void pull(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
     Path odkDir = args.get(ODK_DIR);
     Optional<String> formId = args.getOptional(FORM_ID);
 
     CliEventsCompanion.attach(log);
-    Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
 
     List<FormMetadata> formMetadataList = FormInstaller.scanCollectFormsAt(odkDir);
 
@@ -75,7 +74,7 @@ public class PullFromCollect {
     JobsRunner.launchAsync(
         forms.map(formMetadata -> pullOp.pull(
             formMetadata,
-            formMetadata.withFormFile(formMetadata.buildFormFile(briefcaseDir))
+            formMetadata.withFormFile(workspace.buildFormFile(formMetadata))
         )),
         PullFromCollect::onError
     ).waitForCompletion();

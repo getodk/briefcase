@@ -17,7 +17,7 @@ package org.opendatakit.briefcase.delivery.cli;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static org.opendatakit.briefcase.delivery.cli.Common.FORM_ID;
-import static org.opendatakit.briefcase.delivery.cli.Common.STORAGE_DIR;
+import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 import static org.opendatakit.briefcase.operations.export.ExportForms.buildExportDateTimePrefix;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
@@ -75,7 +75,7 @@ public class Export {
     return Operation.of(
         EXPORT,
         args -> export(formMetadataPort, submissionMetadataPort, args),
-        Arrays.asList(STORAGE_DIR, FORM_ID, FILE, EXPORT_DIR),
+        Arrays.asList(WORKSPACE_LOCATION, FORM_ID, FILE, EXPORT_DIR),
         Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE, SPLIT_SELECT_MULTIPLES, INCLUDE_GEOJSON_EXPORT, REMOVE_GROUP_NAMES, SMART_APPEND)
     );
   }

@@ -19,7 +19,6 @@ package org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget;
 import static org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTargetPanel.View.SELECT;
 import static org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTargetPanel.View.SHOW;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -57,7 +56,7 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
     container.navigateTo(SELECT);
   }
 
-  public static SourceOrTargetPanel<PullSource> pull(Http http, Path briefcaseDir) {
+  public static SourceOrTargetPanel<PullSource> pull(Http http) {
     SourceOrTargetPanel<PullSource> panel = new SourceOrTargetPanel<>(
         SelectSourceOrTargetForm.pull(),
         ShowSourceOrTargetForm.pull()

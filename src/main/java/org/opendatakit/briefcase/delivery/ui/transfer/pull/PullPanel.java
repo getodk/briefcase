@@ -22,7 +22,6 @@ import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.reused.model.Operation.PULL;
 import static org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences.getStorePasswordsConsentProperty;
 
-import java.nio.file.Path;
 import java.util.Optional;
 import javax.swing.JPanel;
 import org.bushe.swing.event.EventBus;
@@ -33,6 +32,7 @@ import org.opendatakit.briefcase.delivery.ui.transfer.TransferPanelForm;
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source.PullSource;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
@@ -104,7 +104,7 @@ public class PullPanel {
     });
   }
 
-  public static PullPanel from(Http http, BriefcasePreferences appPreferences, BriefcasePreferences pullPanelPreferences, Analytics analytics, FormMetadataPort formMetadataPort, Path briefcaseDir, SubmissionMetadataPort submissionMetadataPort) {
+  public static PullPanel from(Http http, BriefcasePreferences appPreferences, BriefcasePreferences pullPanelPreferences, Analytics analytics, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Workspace workspace) {
     TransferForms forms = TransferForms.empty();
     return new PullPanel(
         TransferPanelForm.pull(http, briefcaseDir, forms),

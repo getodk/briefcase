@@ -23,6 +23,7 @@ import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.s
 import javax.swing.JPanel;
 import org.opendatakit.briefcase.delivery.ui.reused.Analytics;
 import org.opendatakit.briefcase.reused.BriefcaseVersionManager;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
@@ -35,7 +36,7 @@ public class SettingsPanel {
   private final SettingsPanelForm form;
 
   @SuppressWarnings("checkstyle:Indentation")
-  private SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, Http http, BriefcaseVersionManager versionManager, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  private SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, Http http, BriefcaseVersionManager versionManager, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Workspace workspace) {
     this.form = form;
 
     appPreferences.getMaxHttpConnections().ifPresent(form::setMaxHttpConnections);
@@ -63,7 +64,7 @@ public class SettingsPanel {
       appPreferences.unsetHttpProxy();
     });
     form.onReloadCache(() -> {
-      formMetadataPort.execute(syncWithFilesAt(appPreferences.getBriefcaseDir().orElseThrow()));
+      formMetadataPort.execute(syncWithFilesAt(workspace.get()));
       submissionMetadataPort.execute(SubmissionMetadataCommands.syncSubmissions(formMetadataPort.fetchAll()));
       infoMessage("Forms successfully reloaded from storage location.");
     });
@@ -75,9 +76,9 @@ public class SettingsPanel {
     form.setVersion(versionManager.getCurrent());
   }
 
-  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, Http http, BriefcaseVersionManager versionManager, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, Http http, BriefcaseVersionManager versionManager, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Workspace workspace) {
     SettingsPanelForm settingsPanelForm = new SettingsPanelForm();
-    return new SettingsPanel(settingsPanelForm, appPreferences, analytics, http, versionManager, formMetadataPort, submissionMetadataPort);
+    return new SettingsPanel(settingsPanelForm, appPreferences, analytics, http, versionManager, formMetadataPort, submissionMetadataPort, workspace);
   }
 
   public JPanel getContainer() {

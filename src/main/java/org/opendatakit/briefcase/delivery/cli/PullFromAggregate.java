@@ -21,12 +21,11 @@ import static org.opendatakit.briefcase.delivery.cli.Common.CREDENTIALS_USERNAME
 import static org.opendatakit.briefcase.delivery.cli.Common.FORM_ID;
 import static org.opendatakit.briefcase.delivery.cli.Common.MAX_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.delivery.cli.Common.SERVER_URL;
-import static org.opendatakit.briefcase.delivery.cli.Common.STORAGE_DIR;
+import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataQueries.lastCursorOf;
 
 import java.net.URL;
-import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
@@ -34,6 +33,7 @@ import java.util.Optional;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.api.Optionals;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
@@ -59,17 +59,16 @@ public class PullFromAggregate {
   private static final Param<LocalDate> START_FROM_DATE = Param.arg("sfd", "start_from_date", "Start pull from date", LocalDate::parse);
   private static final Param<Void> INCLUDE_INCOMPLETE = Param.flag("ii", "include_incomplete", "Include incomplete submissions");
 
-  public static Operation create(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  public static Operation create(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
     return Operation.of(
         PULL_AGGREGATE,
-        args -> pullFormFromAggregate(formMetadataPort, submissionMetadataPort, args),
-        Arrays.asList(STORAGE_DIR, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL),
+        args -> pullFormFromAggregate(workspace, formMetadataPort, submissionMetadataPort, args),
+        Arrays.asList(WORKSPACE_LOCATION, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL),
         Arrays.asList(RESUME_LAST_PULL, INCLUDE_INCOMPLETE, FORM_ID, START_FROM_DATE, MAX_HTTP_CONNECTIONS)
     );
   }
 
-  private static void pullFormFromAggregate(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
-    String storageDir = args.get(STORAGE_DIR);
+  private static void pullFormFromAggregate(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
     Optional<String> formId = args.getOptional(FORM_ID);
     String username = args.get(CREDENTIALS_USERNAME);
     String password = args.get(CREDENTIALS_PASSWORD);
@@ -80,9 +79,7 @@ public class PullFromAggregate {
     Optional<Integer> maybeMaxHttpConnections = args.getOptional(MAX_HTTP_CONNECTIONS);
 
     CliEventsCompanion.attach(log);
-    Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
-    appPreferences.setStorageDir(briefcaseDir);
 
     int maxHttpConnections = Optionals.race(
         maybeMaxHttpConnections,
@@ -109,7 +106,7 @@ public class PullFromAggregate {
     List<FormMetadata> filteredForms = response.orElseThrow(BriefcaseException::new)
         .stream()
         .filter(f -> formId.map(id -> f.getKey().getId().equals(id)).orElse(true))
-        .map(formMetadata -> formMetadata.withFormFile(formMetadata.buildFormFile(briefcaseDir)))
+        .map(formMetadata -> formMetadata.withFormFile(workspace.buildFormFile(formMetadata)))
         .collect(toList());
 
     if (formId.isPresent() && filteredForms.isEmpty())

@@ -25,7 +25,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -80,8 +79,8 @@ public class TransferPanelForm<T extends SourceOrTarget> {
     clearAllButton.addActionListener(__ -> formsTable.clearAll());
   }
 
-  public static TransferPanelForm<PullSource> pull(Http http, Path briefcaseDir, TransferForms forms) {
-    return new TransferPanelForm<>(SourceOrTargetPanel.pull(http, briefcaseDir), TransferFormsTable.from(forms, PULL), PULL);
+  public static TransferPanelForm<PullSource> pull(Http http, TransferForms forms) {
+    return new TransferPanelForm<>(SourceOrTargetPanel.pull(http), TransferFormsTable.from(forms, PULL), PULL);
   }
 
   public static TransferPanelForm<PushTarget> push(Http http, SubmissionMetadataPort submissionMetadataPort, TransferForms forms) {

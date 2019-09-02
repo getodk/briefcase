@@ -23,7 +23,7 @@ import static org.opendatakit.briefcase.delivery.cli.Common.FORM_ID;
 import static org.opendatakit.briefcase.delivery.cli.Common.MAX_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.delivery.cli.Common.PROJECT_ID;
 import static org.opendatakit.briefcase.delivery.cli.Common.SERVER_URL;
-import static org.opendatakit.briefcase.delivery.cli.Common.STORAGE_DIR;
+import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
 import java.util.Arrays;
@@ -56,7 +56,7 @@ public class PushToCentral {
     return Operation.of(
         PUSH_TO_CENTRAL,
         args -> pushToCentral(formMetadataPort, submissionMetadataPort, args),
-        Arrays.asList(STORAGE_DIR, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD, SERVER_URL),
+        Arrays.asList(WORKSPACE_LOCATION, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD, SERVER_URL),
         Arrays.asList(MAX_HTTP_CONNECTIONS, FORM_ID)
     );
   }

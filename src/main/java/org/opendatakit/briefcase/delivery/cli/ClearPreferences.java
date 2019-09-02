@@ -16,7 +16,9 @@
 package org.opendatakit.briefcase.delivery.cli;
 
 import static java.util.Comparator.naturalOrder;
+import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 import org.opendatakit.briefcase.delivery.ui.export.ExportPanel;
@@ -32,7 +34,7 @@ public class ClearPreferences {
   private static Param<Void> CLEAR = Param.flag("c", "clear_prefs", "Clear saved preferences");
 
   public static Operation create(FormMetadataPort formMetadataPort) {
-    return Operation.of(CLEAR, args -> clear());
+    return Operation.of(CLEAR, args -> clear(), Collections.singletonList(WORKSPACE_LOCATION));
   }
 
   private static void clear() {

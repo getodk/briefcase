@@ -116,4 +116,12 @@ public class Args {
         "valuesMap=" + valuesMap +
         '}';
   }
+
+  public void set(Param key, String value) {
+    valuesMap.put(key, value);
+  }
+
+  public boolean isEmpty(Param<?> param) {
+    return getOptional(param).isEmpty();
+  }
 }
