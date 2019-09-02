@@ -29,8 +29,10 @@ public class CliTest {
   @Test
   public void the_help_flag_prints_defined_ops() {
     Output output = captureOutputOf(() -> new Cli()
-        .register(Operation.of(Param.flag("o", "operation", "Run some operation"), args -> {
-        }))
+        .register(new OperationBuilder()
+            .withFlag(Param.flag("o", "operation", "Run some operation"))
+            .withLauncher(args -> { })
+            .build())
         .run(new String[]{"-h"})
     );
 

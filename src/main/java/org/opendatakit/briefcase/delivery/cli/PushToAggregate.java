@@ -26,7 +26,6 @@ import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
 import java.net.URL;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
@@ -34,6 +33,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.api.Optionals;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
+import org.opendatakit.briefcase.reused.cli.OperationBuilder;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
@@ -54,12 +54,12 @@ public class PushToAggregate {
   private static final Param<Void> FORCE_SEND_BLANK = Param.flag("fsb", "force_send_blank", "Force sending the blank form to the Aggregate instance");
 
   public static Operation create(FormMetadataPort formMetadataPort) {
-    return Operation.of(
-        PUSH_AGGREGATE,
-        args -> pushFormToAggregate(formMetadataPort, args),
-        Arrays.asList(WORKSPACE_LOCATION, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL),
-        Arrays.asList(FORCE_SEND_BLANK, MAX_HTTP_CONNECTIONS, FORM_ID)
-    );
+    return new OperationBuilder()
+        .withFlag(PUSH_AGGREGATE)
+        .withRequiredParams(WORKSPACE_LOCATION, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL)
+        .withOptionalParams(FORCE_SEND_BLANK, MAX_HTTP_CONNECTIONS, FORM_ID)
+        .withLauncher(args -> pushFormToAggregate(formMetadataPort, args))
+        .build();
   }
 
   private static void pushFormToAggregate(FormMetadataPort formMetadataPort, Args args) {

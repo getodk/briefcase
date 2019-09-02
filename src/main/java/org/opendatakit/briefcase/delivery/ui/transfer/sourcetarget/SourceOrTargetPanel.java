@@ -27,6 +27,7 @@ import javax.swing.JPanel;
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source.PullSource;
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.PushTarget;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
@@ -56,15 +57,15 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
     container.navigateTo(SELECT);
   }
 
-  public static SourceOrTargetPanel<PullSource> pull(Http http) {
+  public static SourceOrTargetPanel<PullSource> pull(Http http, Workspace workspace) {
     SourceOrTargetPanel<PullSource> panel = new SourceOrTargetPanel<>(
         SelectSourceOrTargetForm.pull(),
         ShowSourceOrTargetForm.pull()
     );
-    panel.addOption(PullSource.aggregate(http, briefcaseDir, panel::triggerOnSelect));
-    panel.addOption(PullSource.central(http, briefcaseDir, panel::triggerOnSelect));
-    panel.addOption(PullSource.collectDir(briefcaseDir, panel::triggerOnSelect));
-    panel.addOption(PullSource.formInComputer(briefcaseDir, panel::triggerOnSelect));
+    panel.addOption(PullSource.aggregate(http, workspace, panel::triggerOnSelect));
+    panel.addOption(PullSource.central(http, workspace, panel::triggerOnSelect));
+    panel.addOption(PullSource.collectDir(workspace, panel::triggerOnSelect));
+    panel.addOption(PullSource.formInComputer(workspace, panel::triggerOnSelect));
     return panel;
   }
 

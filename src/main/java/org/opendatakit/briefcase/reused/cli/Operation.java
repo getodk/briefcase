@@ -1,9 +1,6 @@
 package org.opendatakit.briefcase.reused.cli;
 
-import static java.util.Collections.emptySet;
-
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -19,62 +16,16 @@ public class Operation {
   final Consumer<Args> argsConsumer;
   final Set<Param> requiredParams;
   final Set<Param> optionalParams;
-  Optional<Consumer<Args>> beforeCallback = Optional.empty();
-  private final boolean deprecated;
+  final boolean deprecated;
+  final Optional<Consumer<Args>> beforeCallback;
 
-  private Operation(Param param, Consumer<Args> argsConsumer, Set<Param> requiredParams, Set<Param> optionalParams, boolean deprecated) {
+  Operation(Param param, Consumer<Args> argsConsumer, Set<Param> requiredParams, Set<Param> optionalParams, boolean deprecated, Optional<Consumer<Args>> beforeCallback) {
     this.param = param;
     this.argsConsumer = argsConsumer;
     this.requiredParams = requiredParams;
     this.optionalParams = optionalParams;
     this.deprecated = deprecated;
-  }
-
-  /**
-   * Creates a new {@link Operation} without params of any kind (required or optional)
-   *
-   * @param param        main {@link Param} that will trigger the execution of this {@link Operation}, normally a {@link Param#flag(String, String, String)}
-   * @param argsConsumer {@link Consumer}&lt;{@link Args}&gt; with the logic of this {@link Operation}
-   * @return a new {@link Operation} instance
-   */
-  public static Operation of(Param param, Consumer<Args> argsConsumer) {
-    return new Operation(param, argsConsumer, emptySet(), emptySet(), false);
-  }
-
-  /**
-   * Creates a new {@link Operation} with some required params
-   *
-   * @param param          main {@link Param} that will trigger the execution of this {@link Operation}, normally a {@link Param#flag(String, String, String)}
-   * @param argsConsumer   {@link Consumer}&lt;{@link Args}&gt; with the logic of this {@link Operation}
-   * @param requiredParams a {@link Set}&lt;{@link Param}&gt; with the required params for this operation
-   * @return a new {@link Operation} instance
-   */
-  public static Operation of(Param param, Consumer<Args> argsConsumer, List<Param> requiredParams) {
-    return new Operation(param, argsConsumer, new HashSet<>(requiredParams), emptySet(), false);
-  }
-
-  /**
-   * Creates a new {@link Operation} with some required and optional params
-   *
-   * @param param          main {@link Param} that will trigger the execution of this {@link Operation}, normally a {@link Param#flag(String, String, String)}
-   * @param argsConsumer   {@link Consumer}&lt;{@link Args}&gt; with the logic of this {@link Operation}
-   * @param requiredParams a {@link Set}&lt;{@link Param}&gt; with the required params for this operation
-   * @param optionalParams a {@link Set}&lt;{@link Param}&gt; with the optional params for this operation
-   * @return a new {@link Operation} instance
-   */
-  public static Operation of(Param param, Consumer<Args> argsConsumer, List<Param> requiredParams, List<Param> optionalParams) {
-    return new Operation(param, argsConsumer, new HashSet<>(requiredParams), new HashSet<>(optionalParams), false);
-  }
-
-  /**
-   * Creates a new deprecated {@link Operation} without params of any kind (required or optional)
-   *
-   * @param param        main {@link Param} that will trigger the execution of this {@link Operation}, normally a {@link Param#flag(String, String, String)}
-   * @param argsConsumer {@link Consumer}&lt;{@link Args}&gt; with the logic of this {@link Operation}
-   * @return a new {@link Operation} instance
-   */
-  static Operation deprecated(Param param, Consumer<Args> argsConsumer) {
-    return new Operation(param, argsConsumer, emptySet(), emptySet(), true);
+    this.beforeCallback = beforeCallback;
   }
 
   Set<Param> getAllParams() {
@@ -126,10 +77,5 @@ public class Operation {
         ", requiredParams=" + requiredParams +
         ", optionalParams=" + optionalParams +
         '}';
-  }
-
-  public Operation before(Consumer<Args> callback) {
-    beforeCallback = Optional.of(callback);
-    return this;
   }
 }

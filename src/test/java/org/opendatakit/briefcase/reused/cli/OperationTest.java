@@ -68,15 +68,19 @@ public class OperationTest {
   }
 
   private static Operation buildOp(int requiredParams, int optionalParams) {
-    return Operation.of(
-        Param.flag("op", "operation", "Some operation"),
-        NO_OP,
-        IntStream.range(0, requiredParams).mapToObj(n -> Param.flag("r" + n, "required-" + n, "Required param " + n)).collect(toList()),
-        IntStream.range(0, optionalParams).mapToObj(n -> Param.flag("o" + n, "optional-" + n, "Optional param " + n)).collect(toList())
-    );
+    return new OperationBuilder()
+        .withFlag(Param.flag("op", "operation", "Some operation"))
+        .withLauncher(NO_OP)
+        .withRequiredParams(IntStream.range(0, requiredParams).mapToObj(n -> Param.flag("r" + n, "required-" + n, "Required param " + n)).collect(toList()).toArray(new Param[]{}))
+        .withOptionalParams(IntStream.range(0, optionalParams).mapToObj(n -> Param.flag("o" + n, "optional-" + n, "Optional param " + n)).collect(toList()).toArray(new Param[]{}))
+        .build();
   }
 
   private static Operation buildDeprecatedOp() {
-    return Operation.deprecated(Param.flag("op", "operation", "Some operation"), NO_OP);
+    return new OperationBuilder()
+        .withFlag(Param.flag("op", "operation", "Some operation"))
+        .withLauncher(NO_OP)
+        .deprecated()
+        .build();
   }
 }

@@ -86,7 +86,7 @@ public class Launcher {
         .register(PushToCentral.create(formMetadataPort, submissionMetadataPort))
         .register(PullFromCollect.create(workspace, formMetadataPort, submissionMetadataPort))
         .register(Export.create(formMetadataPort, submissionMetadataPort))
-        .register(ClearPreferences.create(formMetadataPort))
+        .register(ClearPreferences.create())
         .registerDefault(LaunchGui.create(workspace, formMetadataPort, submissionMetadataPort))
         .before(args -> args.getOptional(WORKSPACE_LOCATION).ifPresent(workspace::startAt))
         .onError(throwable -> {

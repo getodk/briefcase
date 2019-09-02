@@ -18,23 +18,26 @@ package org.opendatakit.briefcase.delivery.cli;
 import static java.util.Comparator.naturalOrder;
 import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 import org.opendatakit.briefcase.delivery.ui.export.ExportPanel;
 import org.opendatakit.briefcase.delivery.ui.transfer.pull.PullPanel;
 import org.opendatakit.briefcase.delivery.ui.transfer.push.PushPanel;
 import org.opendatakit.briefcase.reused.cli.Operation;
+import org.opendatakit.briefcase.reused.cli.OperationBuilder;
 import org.opendatakit.briefcase.reused.cli.Param;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 
 public class ClearPreferences {
 
   private static Param<Void> CLEAR = Param.flag("c", "clear_prefs", "Clear saved preferences");
 
-  public static Operation create(FormMetadataPort formMetadataPort) {
-    return Operation.of(CLEAR, args -> clear(), Collections.singletonList(WORKSPACE_LOCATION));
+  public static Operation create() {
+    return new OperationBuilder()
+        .withFlag(CLEAR)
+        .withOptionalParams(WORKSPACE_LOCATION)
+        .withLauncher(args -> clear())
+        .build();
   }
 
   private static void clear() {

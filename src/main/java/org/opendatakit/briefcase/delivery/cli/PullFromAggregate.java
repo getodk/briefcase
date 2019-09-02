@@ -27,7 +27,6 @@ import static org.opendatakit.briefcase.reused.model.form.FormMetadataQueries.la
 
 import java.net.URL;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
@@ -37,6 +36,7 @@ import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.api.Optionals;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
+import org.opendatakit.briefcase.reused.cli.OperationBuilder;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
@@ -60,12 +60,12 @@ public class PullFromAggregate {
   private static final Param<Void> INCLUDE_INCOMPLETE = Param.flag("ii", "include_incomplete", "Include incomplete submissions");
 
   public static Operation create(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
-    return Operation.of(
-        PULL_AGGREGATE,
-        args -> pullFormFromAggregate(workspace, formMetadataPort, submissionMetadataPort, args),
-        Arrays.asList(WORKSPACE_LOCATION, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL),
-        Arrays.asList(RESUME_LAST_PULL, INCLUDE_INCOMPLETE, FORM_ID, START_FROM_DATE, MAX_HTTP_CONNECTIONS)
-    );
+    return new OperationBuilder()
+        .withFlag(PULL_AGGREGATE)
+        .withRequiredParams(WORKSPACE_LOCATION, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL)
+        .withOptionalParams(RESUME_LAST_PULL, INCLUDE_INCOMPLETE, FORM_ID, START_FROM_DATE, MAX_HTTP_CONNECTIONS)
+        .withLauncher(args -> pullFormFromAggregate(workspace, formMetadataPort, submissionMetadataPort, args))
+        .build();
   }
 
   private static void pullFormFromAggregate(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {

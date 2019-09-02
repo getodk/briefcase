@@ -25,7 +25,6 @@ import static org.opendatakit.briefcase.delivery.cli.Common.SERVER_URL;
 import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
@@ -34,6 +33,7 @@ import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.api.Optionals;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
+import org.opendatakit.briefcase.reused.cli.OperationBuilder;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
@@ -54,12 +54,12 @@ public class PullFromCentral {
   private static final Param<Void> PULL_FROM_CENTRAL = Param.flag("pllc", "pull_central", "Pull form from a Central server");
 
   public static Operation create(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
-    return Operation.of(
-        PULL_FROM_CENTRAL,
-        args -> pullFromCentral(workspace, formMetadataPort, submissionMetadataPort, args),
-        Arrays.asList(WORKSPACE_LOCATION, SERVER_URL, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD),
-        Arrays.asList(FORM_ID, MAX_HTTP_CONNECTIONS)
-    );
+    return new OperationBuilder()
+        .withFlag(PULL_FROM_CENTRAL)
+        .withRequiredParams(WORKSPACE_LOCATION, SERVER_URL, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD)
+        .withOptionalParams(FORM_ID, MAX_HTTP_CONNECTIONS)
+        .withLauncher(args -> pullFromCentral(workspace, formMetadataPort, submissionMetadataPort, args))
+        .build();
   }
 
   private static void pullFromCentral(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {

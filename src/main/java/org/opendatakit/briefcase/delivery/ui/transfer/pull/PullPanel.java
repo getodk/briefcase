@@ -107,7 +107,7 @@ public class PullPanel {
   public static PullPanel from(Http http, BriefcasePreferences appPreferences, BriefcasePreferences pullPanelPreferences, Analytics analytics, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Workspace workspace) {
     TransferForms forms = TransferForms.empty();
     return new PullPanel(
-        TransferPanelForm.pull(http, briefcaseDir, forms),
+        TransferPanelForm.pull(http, workspace, forms),
         forms,
         pullPanelPreferences,
         appPreferences,

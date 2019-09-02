@@ -27,7 +27,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Optional;
 import org.opendatakit.briefcase.delivery.ui.export.ExportPanel;
 import org.opendatakit.briefcase.operations.export.ExportConfiguration;
@@ -38,6 +37,7 @@ import org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggr
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
+import org.opendatakit.briefcase.reused.cli.OperationBuilder;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -72,12 +72,12 @@ public class Export {
   private static final Param<Void> SMART_APPEND = Param.flag("sa", "smart_append", "Include only new submissions since last export");
 
   public static Operation create(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
-    return Operation.of(
-        EXPORT,
-        args -> export(formMetadataPort, submissionMetadataPort, args),
-        Arrays.asList(WORKSPACE_LOCATION, FORM_ID, FILE, EXPORT_DIR),
-        Arrays.asList(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE, SPLIT_SELECT_MULTIPLES, INCLUDE_GEOJSON_EXPORT, REMOVE_GROUP_NAMES, SMART_APPEND)
-    );
+    return new OperationBuilder()
+        .withFlag(EXPORT)
+        .withRequiredParams(WORKSPACE_LOCATION, FORM_ID, FILE, EXPORT_DIR)
+        .withOptionalParams(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE, SPLIT_SELECT_MULTIPLES, INCLUDE_GEOJSON_EXPORT, REMOVE_GROUP_NAMES, SMART_APPEND)
+        .withLauncher(args -> export(formMetadataPort, submissionMetadataPort, args))
+        .build();
   }
 
   private static void export(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {

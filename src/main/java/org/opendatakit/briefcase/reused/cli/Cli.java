@@ -52,8 +52,8 @@ public class Cli {
   private Optional<Runnable> onExitCallback = Optional.empty();
 
   public Cli() {
-    register(Operation.of(SHOW_HELP, args -> printHelp()));
-    register(Operation.of(SHOW_VERSION, args -> printVersion()));
+    register(new OperationBuilder().withFlag(SHOW_HELP).withLauncher(args -> printHelp()).build());
+    register(new OperationBuilder().withFlag(SHOW_VERSION).withLauncher(args -> printVersion()).build());
   }
 
   /**
@@ -74,13 +74,17 @@ public class Cli {
    *                    used instead of the deprecated Param
    * @return self {@link Cli} instance to chain more method calls
    */
-  public Cli deprecate(Param<?> oldParam, Param<?> alternative) {
-    operations.add(Operation.deprecated(oldParam, __ -> {
-      log.warn("Trying to run deprecated param -{}", oldParam.shortCode);
-      System.out.println("The param -" + oldParam.shortCode + " has been deprecated. Run Briefcase again with -" + alternative.shortCode + " instead");
-      printHelp();
-      System.exit(1);
-    }));
+  public Cli deprecate(Param oldParam, Param<?> alternative) {
+    operations.add(new OperationBuilder()
+        .withFlag(oldParam)
+        .withLauncher(__ -> {
+          log.warn("Trying to run deprecated param -{}", oldParam.shortCode);
+          System.out.println("The param -" + oldParam.shortCode + " has been deprecated. Run Briefcase again with -" + alternative.shortCode + " instead");
+          printHelp();
+          System.exit(1);
+        })
+        .deprecated()
+        .build());
     return this;
   }
 

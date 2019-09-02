@@ -40,6 +40,7 @@ import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTarge
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source.PullSource;
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.PushTarget;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.model.Operation;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
@@ -79,8 +80,8 @@ public class TransferPanelForm<T extends SourceOrTarget> {
     clearAllButton.addActionListener(__ -> formsTable.clearAll());
   }
 
-  public static TransferPanelForm<PullSource> pull(Http http, TransferForms forms) {
-    return new TransferPanelForm<>(SourceOrTargetPanel.pull(http), TransferFormsTable.from(forms, PULL), PULL);
+  public static TransferPanelForm<PullSource> pull(Http http, Workspace workspace, TransferForms forms) {
+    return new TransferPanelForm<>(SourceOrTargetPanel.pull(http, workspace), TransferFormsTable.from(forms, PULL), PULL);
   }
 
   public static TransferPanelForm<PushTarget> push(Http http, SubmissionMetadataPort submissionMetadataPort, TransferForms forms) {

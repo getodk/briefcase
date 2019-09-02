@@ -15,13 +15,11 @@
  */
 package org.opendatakit.briefcase.delivery.cli;
 
-import static java.util.Collections.singletonList;
 import static org.opendatakit.briefcase.delivery.cli.Common.FORM_ID;
 import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
@@ -31,6 +29,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
+import org.opendatakit.briefcase.reused.cli.OperationBuilder;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
@@ -46,12 +45,12 @@ public class PullFromCollect {
   private static final Param<Path> ODK_DIR = Param.arg("od", "odk_directory", "ODK directory", Paths::get);
 
   public static Operation create(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
-    return Operation.of(
-        IMPORT,
-        args -> pull(workspace, formMetadataPort, submissionMetadataPort, args),
-        Arrays.asList(WORKSPACE_LOCATION, ODK_DIR),
-        singletonList(FORM_ID)
-    );
+    return new OperationBuilder()
+        .withFlag(IMPORT)
+        .withRequiredParams(WORKSPACE_LOCATION, ODK_DIR)
+        .withOptionalParams(FORM_ID)
+        .withLauncher(args -> pull(workspace, formMetadataPort, submissionMetadataPort, args))
+        .build();
   }
 
   private static void pull(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {

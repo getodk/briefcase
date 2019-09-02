@@ -26,7 +26,6 @@ import static org.opendatakit.briefcase.delivery.cli.Common.SERVER_URL;
 import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
@@ -34,6 +33,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.api.Optionals;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
+import org.opendatakit.briefcase.reused.cli.OperationBuilder;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
@@ -53,12 +53,12 @@ public class PushToCentral {
   private static final Param<Void> PUSH_TO_CENTRAL = Param.flag("pshc", "push_central", "Push form to a Central server");
 
   public static Operation create(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
-    return Operation.of(
-        PUSH_TO_CENTRAL,
-        args -> pushToCentral(formMetadataPort, submissionMetadataPort, args),
-        Arrays.asList(WORKSPACE_LOCATION, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD, SERVER_URL),
-        Arrays.asList(MAX_HTTP_CONNECTIONS, FORM_ID)
-    );
+    return new OperationBuilder()
+        .withFlag(PUSH_TO_CENTRAL)
+        .withRequiredParams(WORKSPACE_LOCATION, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD, SERVER_URL)
+        .withOptionalParams(MAX_HTTP_CONNECTIONS, FORM_ID)
+        .withLauncher(args -> pushToCentral(formMetadataPort, submissionMetadataPort, args))
+        .build();
   }
 
   private static void pushToCentral(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
