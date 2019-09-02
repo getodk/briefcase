@@ -10,8 +10,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -102,7 +102,7 @@ public class WorkspaceLocationDialogForm extends JDialog {
   }
 
   private void setSavedLocationOptions(Workspace workspace) {
-    List<Path> savedLocations = workspace.getSavedLocations();
+    Set<Path> savedLocations = workspace.getSavedLocations();
     savedLocationSelect.addItem("Select a saved location");
     if (savedLocations.isEmpty()) {
       savedLocationLabel.setEnabled(false);
