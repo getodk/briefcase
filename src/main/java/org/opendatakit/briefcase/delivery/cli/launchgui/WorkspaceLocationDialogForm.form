@@ -15,7 +15,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="b8d2e" class="javax.swing.JLabel">
+          <component id="b8d2e" class="javax.swing.JLabel" binding="locationFieldLabel">
             <constraints>
               <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
               <gridbag weightx="0.0" weighty="0.0"/>
@@ -36,14 +36,16 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
           </vspacer>
-          <component id="5c62d" class="javax.swing.JTextField" binding="workspaceField">
+          <component id="5c62d" class="javax.swing.JTextField" binding="locationField">
             <constraints>
               <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
               </grid>
               <gridbag weightx="1.0" weighty="0.0"/>
             </constraints>
-            <properties/>
+            <properties>
+              <editable value="false"/>
+            </properties>
           </component>
           <component id="92984" class="javax.swing.JSeparator">
             <constraints>
@@ -58,7 +60,7 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
           </vspacer>
-          <component id="b1125" class="javax.swing.JComboBox" binding="previousWorkspaceSelect">
+          <component id="b1125" class="javax.swing.JComboBox" binding="savedLocationSelect" custom-create="true">
             <constraints>
               <grid row="6" column="2" row-span="1" col-span="2" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
               <gridbag weightx="0.0" weighty="0.0"/>
@@ -71,13 +73,13 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
           </hspacer>
-          <component id="62c12" class="javax.swing.JLabel">
+          <component id="62c12" class="javax.swing.JLabel" binding="savedLocationLabel">
             <constraints>
               <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
             <properties>
-              <text value="Previous workspaces"/>
+              <text value="Saved workspaces"/>
             </properties>
           </component>
           <grid id="a2106" binding="workspaceFieldActionsPane" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
@@ -88,13 +90,13 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="30664" class="javax.swing.JButton" binding="workspaceChooseButton">
+              <component id="30664" class="javax.swing.JButton" binding="locationChooseButton">
                 <constraints/>
                 <properties>
                   <text value="Choose"/>
                 </properties>
               </component>
-              <component id="6a98b" class="javax.swing.JButton" binding="workspaceClearButton">
+              <component id="6a98b" class="javax.swing.JButton" binding="locationClearButton">
                 <constraints/>
                 <properties>
                   <text value="Clear"/>
@@ -109,7 +111,7 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
           </vspacer>
-          <component id="5c74" class="javax.swing.JLabel">
+          <component id="5c74" class="javax.swing.JLabel" binding="infoLabel">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="4" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
               <gridbag weightx="1.0" weighty="0.0"/>
@@ -130,7 +132,7 @@
         <children>
           <component id="c3b30" class="javax.swing.JButton" binding="startButton">
             <constraints>
-              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
             <properties>
@@ -140,16 +142,42 @@
           </component>
           <hspacer id="b5eb3">
             <constraints>
-              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
               <gridbag weightx="1.0" weighty="0.0"/>
             </constraints>
           </hspacer>
           <vspacer id="f37fc">
             <constraints>
-              <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+              <grid row="0" column="0" row-span="1" col-span="3" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
           </vspacer>
+          <component id="56a3" class="javax.swing.JButton" binding="exitButton">
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="0.0" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <text value="Exit"/>
+            </properties>
+          </component>
+          <vspacer id="9ff85">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="3" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="0.0" weighty="0.0"/>
+            </constraints>
+          </vspacer>
+          <component id="6cd7b" class="javax.swing.JLabel" binding="tipLabel">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="1.0" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <font style="0"/>
+              <text value="Some tip"/>
+              <visible value="false"/>
+            </properties>
+          </component>
         </children>
       </grid>
       <vspacer id="bff88">

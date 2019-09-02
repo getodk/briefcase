@@ -52,10 +52,12 @@ public class BriefcaseDb {
   }
 
   public void stop() {
-    getDslContext().execute(sql("SHUTDOWN"));
-    server.signalCloseAllServerConnections();
-    server.shutdown();
-    server.stop();
+    if (!server.isNotRunning()) {
+      getDslContext().execute(sql("SHUTDOWN"));
+      server.signalCloseAllServerConnections();
+      server.shutdown();
+      server.stop();
+    }
   }
 
   public String getDsn() {

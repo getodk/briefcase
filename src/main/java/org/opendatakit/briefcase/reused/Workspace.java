@@ -4,7 +4,9 @@ import static org.opendatakit.briefcase.reused.api.StringUtils.stripIllegalChars
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -50,5 +52,10 @@ public class Workspace {
 
   public void stop() {
     stopCallbacks.forEach(Runnable::run);
+  }
+
+  public List<Path> getSavedLocations() {
+//    return Collections.emptyList();
+    return Arrays.asList(Paths.get("/tmp/cocotero"), Paths.get("/home/guillermo"));
   }
 }

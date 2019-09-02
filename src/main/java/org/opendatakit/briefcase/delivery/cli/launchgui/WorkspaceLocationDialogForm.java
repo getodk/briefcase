@@ -5,9 +5,12 @@ import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 import static javax.swing.KeyStroke.getKeyStroke;
 
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JButton;
@@ -20,37 +23,55 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import org.opendatakit.briefcase.delivery.ui.reused.events.WindowAdapterBuilder;
 import org.opendatakit.briefcase.delivery.ui.reused.filsystem.FileChooser;
+import org.opendatakit.briefcase.reused.Workspace;
 
 public class WorkspaceLocationDialogForm extends JDialog {
   private JPanel contentPane;
   private JPanel mainPane;
   private JPanel actionPane;
   private JButton startButton;
-  private JTextField workspaceField;
-  private JComboBox previousWorkspaceSelect;
+  private JTextField locationField;
+  private JComboBox<String> savedLocationSelect;
   private JPanel workspaceFieldActionsPane;
-  private JButton workspaceChooseButton;
-  private JButton workspaceClearButton;
+  private JButton locationChooseButton;
+  private JButton locationClearButton;
+  private JLabel savedLocationLabel;
+  private JLabel locationFieldLabel;
+  private JButton exitButton;
+  private JLabel infoLabel;
+  private JLabel tipLabel;
   private Optional<Path> workspaceLocation = Optional.empty();
 
-  public WorkspaceLocationDialogForm(Consumer<Optional<Path>> startCallback) {
-    setContentPane(contentPane);
-    setModal(true);
+  WorkspaceLocationDialogForm(Workspace workspace, Consumer<Optional<Path>> startCallback) {
+    $$$setupUI$$$();
 
-    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+    setSavedLocationOptions(workspace);
 
-    workspaceChooseButton.addActionListener(__ -> FileChooser
+    locationChooseButton.addActionListener(__ -> FileChooser
         .directory(contentPane, Optional.empty())
         .choose()
         .ifPresent(file -> {
           workspaceLocation = Optional.of(file.toPath());
-          workspaceField.setText(file.toPath().toString());
+          locationField.setText(workspaceLocation.get().toString());
+          showTip();
           updateButtons();
         }));
 
-    workspaceClearButton.addActionListener(__ -> {
+    locationClearButton.addActionListener(__ -> {
       workspaceLocation = Optional.empty();
-      workspaceField.setText("");
+      locationField.setText("");
+      hideTip();
+      updateButtons();
+    });
+
+    savedLocationSelect.addActionListener(__ -> {
+      workspaceLocation = Optional.ofNullable((String) savedLocationSelect.getSelectedItem())
+          .filter(value -> !value.equals("Select a saved location"))
+          .map(Paths::get);
+      if (workspaceLocation.isPresent())
+        showTip();
+      else
+        hideTip();
       updateButtons();
     });
 
@@ -59,18 +80,52 @@ public class WorkspaceLocationDialogForm extends JDialog {
       dispose();
     });
 
+    exitButton.addActionListener(__ -> exit());
+
+    setContentPane(contentPane);
+    setModal(true);
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+    addWindowListener(new WindowAdapterBuilder().onClosing(e -> exit()).build());
+    contentPane.registerKeyboardAction(e -> exit(), getKeyStroke(VK_ESCAPE, 0), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+  }
 
-    addWindowListener(new WindowAdapterBuilder().onClosing(e -> dispose()).build());
+  private void showTip() {
+    tipLabel.setText("<html><div style='text-align: center;'>You can skip this by adding -wl " + workspaceLocation.orElseThrow().toString() + "<br/>when launching Briefcase again</div></html>");
+    tipLabel.setVisible(true);
+    pack();
+  }
 
-    contentPane.registerKeyboardAction(e -> dispose(), getKeyStroke(VK_ESCAPE, 0), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+  private void hideTip() {
+    tipLabel.setText("");
+    tipLabel.setVisible(false);
+    pack();
+  }
 
+  private void setSavedLocationOptions(Workspace workspace) {
+    List<Path> savedLocations = workspace.getSavedLocations();
+    savedLocationSelect.addItem("Select a saved location");
+    if (savedLocations.isEmpty()) {
+      savedLocationLabel.setEnabled(false);
+      savedLocationSelect.setEnabled(false);
+    }
+    savedLocations.forEach(location -> savedLocationSelect.addItem(location.toString()));
+  }
+
+  private void exit() {
+    dispose();
+    System.exit(0);
   }
 
   private void updateButtons() {
     startButton.setEnabled(workspaceLocation.isPresent());
-    workspaceChooseButton.setVisible(workspaceLocation.isEmpty());
-    workspaceClearButton.setVisible(workspaceLocation.isPresent());
+    locationFieldLabel.setEnabled(savedLocationSelect.getSelectedIndex() == 0);
+    locationField.setEnabled(savedLocationSelect.getSelectedIndex() == 0);
+    locationChooseButton.setEnabled(savedLocationSelect.getSelectedIndex() == 0);
+    locationClearButton.setEnabled(savedLocationSelect.getSelectedIndex() == 0);
+    savedLocationLabel.setEnabled(locationField.getText().isBlank());
+    savedLocationSelect.setEnabled(locationField.getText().isBlank());
+    locationClearButton.setVisible(workspaceLocation.isPresent() && !locationField.getText().isBlank());
+    locationChooseButton.setVisible(!locationClearButton.isVisible());
   }
 
   void open() {
@@ -78,13 +133,6 @@ public class WorkspaceLocationDialogForm extends JDialog {
     setLocationRelativeTo(null);
     pack();
     setVisible(true);
-  }
-
-  {
-// GUI initializer generated by IntelliJ IDEA GUI Designer
-// >>> IMPORTANT!! <<<
-// DO NOT EDIT OR ADD ANY CODE HERE!
-    $$$setupUI$$$();
   }
 
   /**
@@ -95,6 +143,7 @@ public class WorkspaceLocationDialogForm extends JDialog {
    * @noinspection ALL
    */
   private void $$$setupUI$$$() {
+    createUIComponents();
     contentPane = new JPanel();
     contentPane.setLayout(new GridBagLayout());
     mainPane = new JPanel();
@@ -107,13 +156,13 @@ public class WorkspaceLocationDialogForm extends JDialog {
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
     contentPane.add(mainPane, gbc);
-    final JLabel label1 = new JLabel();
-    label1.setText("Workspace location");
+    locationFieldLabel = new JLabel();
+    locationFieldLabel.setText("Workspace location");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 2;
     gbc.anchor = GridBagConstraints.EAST;
-    mainPane.add(label1, gbc);
+    mainPane.add(locationFieldLabel, gbc);
     final JPanel spacer1 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
@@ -127,14 +176,15 @@ public class WorkspaceLocationDialogForm extends JDialog {
     gbc.gridwidth = 4;
     gbc.fill = GridBagConstraints.VERTICAL;
     mainPane.add(spacer2, gbc);
-    workspaceField = new JTextField();
+    locationField = new JTextField();
+    locationField.setEditable(false);
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 2;
     gbc.weightx = 1.0;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    mainPane.add(workspaceField, gbc);
+    mainPane.add(locationField, gbc);
     final JSeparator separator1 = new JSeparator();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
@@ -149,27 +199,26 @@ public class WorkspaceLocationDialogForm extends JDialog {
     gbc.gridwidth = 4;
     gbc.fill = GridBagConstraints.VERTICAL;
     mainPane.add(spacer3, gbc);
-    previousWorkspaceSelect = new JComboBox();
     gbc = new GridBagConstraints();
     gbc.gridx = 2;
     gbc.gridy = 6;
     gbc.gridwidth = 2;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    mainPane.add(previousWorkspaceSelect, gbc);
+    mainPane.add(savedLocationSelect, gbc);
     final JPanel spacer4 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 6;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     mainPane.add(spacer4, gbc);
-    final JLabel label2 = new JLabel();
-    label2.setText("Previous workspaces");
+    savedLocationLabel = new JLabel();
+    savedLocationLabel.setText("Saved workspaces");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 6;
     gbc.anchor = GridBagConstraints.EAST;
-    mainPane.add(label2, gbc);
+    mainPane.add(savedLocationLabel, gbc);
     workspaceFieldActionsPane = new JPanel();
     workspaceFieldActionsPane.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
     gbc = new GridBagConstraints();
@@ -177,13 +226,13 @@ public class WorkspaceLocationDialogForm extends JDialog {
     gbc.gridy = 2;
     gbc.fill = GridBagConstraints.BOTH;
     mainPane.add(workspaceFieldActionsPane, gbc);
-    workspaceChooseButton = new JButton();
-    workspaceChooseButton.setText("Choose");
-    workspaceFieldActionsPane.add(workspaceChooseButton);
-    workspaceClearButton = new JButton();
-    workspaceClearButton.setText("Clear");
-    workspaceClearButton.setVisible(false);
-    workspaceFieldActionsPane.add(workspaceClearButton);
+    locationChooseButton = new JButton();
+    locationChooseButton.setText("Choose");
+    workspaceFieldActionsPane.add(locationChooseButton);
+    locationClearButton = new JButton();
+    locationClearButton.setText("Clear");
+    locationClearButton.setVisible(false);
+    workspaceFieldActionsPane.add(locationClearButton);
     final JPanel spacer5 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
@@ -191,15 +240,15 @@ public class WorkspaceLocationDialogForm extends JDialog {
     gbc.gridwidth = 4;
     gbc.fill = GridBagConstraints.VERTICAL;
     mainPane.add(spacer5, gbc);
-    final JLabel label3 = new JLabel();
-    label3.setText("<html>You can start Briefcase manually choosing a workspace location<br/>or by selecting one of the locations previously used:</html>");
+    infoLabel = new JLabel();
+    infoLabel.setText("<html>You can start Briefcase manually choosing a workspace location<br/>or by selecting one of the locations previously used:</html>");
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 0;
     gbc.gridwidth = 4;
     gbc.weightx = 1.0;
     gbc.anchor = GridBagConstraints.WEST;
-    mainPane.add(label3, gbc);
+    mainPane.add(infoLabel, gbc);
     actionPane = new JPanel();
     actionPane.setLayout(new GridBagLayout());
     gbc = new GridBagConstraints();
@@ -212,14 +261,14 @@ public class WorkspaceLocationDialogForm extends JDialog {
     startButton.setEnabled(false);
     startButton.setText("Start");
     gbc = new GridBagConstraints();
-    gbc.gridx = 1;
-    gbc.gridy = 1;
+    gbc.gridx = 2;
+    gbc.gridy = 3;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     actionPane.add(startButton, gbc);
     final JPanel spacer6 = new JPanel();
     gbc = new GridBagConstraints();
-    gbc.gridx = 0;
-    gbc.gridy = 1;
+    gbc.gridx = 1;
+    gbc.gridy = 3;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     actionPane.add(spacer6, gbc);
@@ -227,33 +276,71 @@ public class WorkspaceLocationDialogForm extends JDialog {
     gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 0;
-    gbc.gridwidth = 2;
+    gbc.gridwidth = 3;
     gbc.fill = GridBagConstraints.VERTICAL;
     actionPane.add(spacer7, gbc);
+    exitButton = new JButton();
+    exitButton.setText("Exit");
+    gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 3;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    actionPane.add(exitButton, gbc);
     final JPanel spacer8 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 2;
+    gbc.gridwidth = 3;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    actionPane.add(spacer8, gbc);
+    tipLabel = new JLabel();
+    Font tipLabelFont = this.$$$getFont$$$(null, Font.PLAIN, -1, tipLabel.getFont());
+    if (tipLabelFont != null) tipLabel.setFont(tipLabelFont);
+    tipLabel.setText("Some tip");
+    tipLabel.setVisible(false);
+    gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.gridwidth = 3;
+    gbc.weightx = 1.0;
+    actionPane.add(tipLabel, gbc);
+    final JPanel spacer9 = new JPanel();
     gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 3;
     gbc.fill = GridBagConstraints.VERTICAL;
-    contentPane.add(spacer8, gbc);
-    final JPanel spacer9 = new JPanel();
-    gbc = new GridBagConstraints();
-    gbc.gridx = 0;
-    gbc.gridy = 1;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
     contentPane.add(spacer9, gbc);
     final JPanel spacer10 = new JPanel();
     gbc = new GridBagConstraints();
-    gbc.gridx = 2;
+    gbc.gridx = 0;
     gbc.gridy = 1;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     contentPane.add(spacer10, gbc);
     final JPanel spacer11 = new JPanel();
     gbc = new GridBagConstraints();
+    gbc.gridx = 2;
+    gbc.gridy = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    contentPane.add(spacer11, gbc);
+    final JPanel spacer12 = new JPanel();
+    gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.VERTICAL;
-    contentPane.add(spacer11, gbc);
+    contentPane.add(spacer12, gbc);
+  }
+
+  /**
+   * @noinspection ALL
+   */
+  private Font $$$getFont$$$(String fontName, int style, int size, Font currentFont) {
+    if (currentFont == null) return null;
+    String resultName;
+    if (fontName == null) {resultName = currentFont.getName();} else {
+      Font testFont = new Font(fontName, Font.PLAIN, 10);
+      if (testFont.canDisplay('a') && testFont.canDisplay('1')) {resultName = fontName;} else {resultName = currentFont.getName();}
+    }
+    return new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
   }
 
   /**
@@ -262,4 +349,7 @@ public class WorkspaceLocationDialogForm extends JDialog {
   public JComponent $$$getRootComponent$$$() { return contentPane; }
 
 
+  private void createUIComponents() {
+    savedLocationSelect = new JComboBox<>();
+  }
 }
