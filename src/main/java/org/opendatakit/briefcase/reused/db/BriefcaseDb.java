@@ -27,7 +27,7 @@ public class BriefcaseDb {
     }
   }
 
-  private BriefcaseDb(Server server) {
+  BriefcaseDb(Server server) {
     this.server = server;
   }
 

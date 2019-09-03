@@ -56,7 +56,7 @@ public class Workspace {
     return get().resolve("forms");
   }
 
-  public void startAt(Path workspaceLocation) {
+  public Workspace startAt(Path workspaceLocation) {
     this.workspaceLocation = Optional.of(workspaceLocation);
     createDirectories(getFormsDir());
     saveLocation(workspaceLocation);
@@ -64,6 +64,7 @@ public class Workspace {
     Flyway.configure().locations("db/migration")
         .dataSource(db.getDsn(), db.getUser(), db.getPassword()).validateOnMigrate(false)
         .load().migrate();
+    return this;
   }
 
   public Path buildFormFile(FormMetadata formMetadata) {
@@ -97,5 +98,10 @@ public class Workspace {
     } catch (JsonProcessingException e) {
       throw new BriefcaseException(e);
     }
+  }
+
+  public Workspace withWorkspaceLocation(Path workspaceLocation) {
+    this.workspaceLocation = Optional.of(workspaceLocation);
+    return this;
   }
 }

@@ -23,14 +23,15 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+// TODO At this point decryption works but we need to replace the test assets because the signature doesn't work since we changed the form's name to deal with the issues with how the scenario copies files into the working directory
 public class ExportToCsvEncryptedMediaTest {
   private ExportToCsvScenario scenario;
   private Path pemFile;
 
   @Before
   public void setUp() {
-    scenario = ExportToCsvScenario.setUp("encrypted-form-media");
-    pemFile = ExportToCsvScenario.getPath("encrypted-form-media-key.pem");
+    scenario = ExportToCsvScenario.setUp("encrypted-media-form");
+    pemFile = ExportToCsvScenario.getPath("encrypted-media-form-key.pem");
   }
 
   @After
@@ -47,7 +48,7 @@ public class ExportToCsvEncryptedMediaTest {
 
   @Test
   public void skips_submissions_that_are_missing_their_media_files() {
-    delete(scenario.getSubmissionDir().resolve("1538040007350.jpg.enc"));
+    delete(scenario.getSubmissionDir().resolve("1568106703399.jpg.enc"));
     scenario.runExport(pemFile);
     scenario.assertSameContent("skip");
     scenario.assertNoOutputMediaDir();

@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.operations.export;
 
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 import static java.util.Collections.emptyList;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -88,13 +89,14 @@ class ExportToCsvScenario {
   static ExportToCsvScenario setUp(String formName) {
     Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 
-    Workspace workspace = WorkspaceHelper.inMemory();
+    Path briefcaseDir = createTempDirectory("briefcase");
+
+    Workspace workspace = WorkspaceHelper.inMemory().withWorkspaceLocation(briefcaseDir);
 
     Path sourceFormFile = getPath(formName + ".xml");
     FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormFile);
 
-    Path briefcaseDir = createTempDirectory("briefcase");
-    FormMetadata targetMetadata = sourceFormMetadata.withFormFile(sourceFormMetadata.buildFormFile(briefcaseDir));
+    FormMetadata targetMetadata = sourceFormMetadata.withFormFile(workspace.buildFormFile(sourceFormMetadata));
     workspace.formMetadata.persist(targetMetadata);
     Optional<SubmissionMetadata> submissionMetadata = installForm(sourceFormMetadata, targetMetadata);
     submissionMetadata.ifPresent(workspace.submissionMetadata::persist);
@@ -181,7 +183,8 @@ class ExportToCsvScenario {
   }
 
   void assertSameContent(String suffix) {
-    String oldOutput = new String(readAllBytes(getPath(formDef.getFormId() + (suffix.isEmpty() ? "" : "-" + suffix) + ".csv.expected")));
+    String fileName = formDef.getFormId() + (suffix.isEmpty() ? "" : "-" + suffix) + ".csv.expected";
+    String oldOutput = new String(readAllBytes(getPath(fileName)));
     String newOutput = new String(readAllBytes(outputDir.resolve("new").resolve(stripIllegalChars(formDef.getFormName()) + ".csv")));
     assertThat(newOutput, is(oldOutput));
   }
@@ -191,7 +194,8 @@ class ExportToCsvScenario {
   }
 
   void assertSameMedia(String suffix) {
-    Path oldMediaPath = getPath(formDef.getFormId() + "-media" + (suffix.isEmpty() ? "" : "-" + suffix));
+    String fileName = formDef.getFormId() + "-media" + (suffix.isEmpty() ? "" : "-" + suffix);
+    Path oldMediaPath = getPath(fileName);
     Path newMediaPath = outputDir.resolve("new").resolve("media");
     List<Path> oldMedia = walk(oldMediaPath).filter(p -> !p.getFileName().toString().startsWith(".git")).filter(p -> Files.isRegularFile(p)).collect(toList());
     List<Path> newMedia = walk(newMediaPath).filter(p -> !p.getFileName().toString().startsWith(".git")).filter(p -> Files.isRegularFile(p)).collect(toList());
@@ -295,34 +299,54 @@ class ExportToCsvScenario {
     if (Files.exists(submissionFile)) {
       String instanceId = SubmissionKey.extractInstanceId(XmlElement.from(submissionFile)).orElseThrow();
       createDirectories(targetFormMetadata.getSubmissionDir(instanceId));
+      Path targetSubmissionFile = targetFormMetadata.getSubmissionFile(instanceId);
+      copy(submissionFile, targetSubmissionFile);
 
-      List<Path> attachmentFilenames = list(submissionFile.getParent())
+      List<Pair<Path, Path>> filesToInstall = list(submissionFile.getParent())
+          .filter(Files::isRegularFile)
           .filter(isRelatedToForm(baseSourceFilename))
-          .filter(isPemFile().negate())
-          .filter(isTemplateFile().negate())
-          .filter(isExpectedContentsFile().negate())
+          .filter(not(ExportToCsvScenario::isSubmissionFile))
+          .filter(not(ExportToCsvScenario::isPemFile))
+          .filter(not(ExportToCsvScenario::isTemplateFile))
+          .filter(not(ExportToCsvScenario::isExpectedContentsFile))
           .map(sourceAttachmentFile -> Pair.of(
               sourceAttachmentFile,
-              targetFormMetadata.getSubmissionMediaFile(instanceId, sourceAttachmentFile.getFileName().toString().substring(baseSourceFilename.length() + 1))
+              targetFormMetadata.getSubmissionAttachmentFile(instanceId, sourceAttachmentFile.getFileName().toString().substring(baseSourceFilename.length() + 1))
           ))
-          .peek(pair -> copy(pair.getLeft(), pair.getRight()))
-          .map(pair -> pair.getRight().getFileName())
           .collect(toList());
-      return Optional.of(SubmissionMetadata.from(submissionFile, attachmentFilenames));
+
+      filesToInstall.forEach(pair -> copy(pair.getLeft(), pair.getRight()));
+
+      List<Path> attachmentFilenames = filesToInstall.stream()
+          .map(Pair::getRight)
+          .filter(not(ExportToCsvScenario::isEncryptedSubmissionFile))
+          .map(Path::getFileName)
+          .sorted()
+          .collect(toList());
+
+      return Optional.of(SubmissionMetadata.from(targetSubmissionFile, attachmentFilenames));
     }
     return Optional.empty();
   }
 
-  private static Predicate<Path> isExpectedContentsFile() {
-    return file -> file.getFileName().toString().endsWith(".expected");
+  private static boolean isSubmissionFile(Path path) {
+    return path.getFileName().toString().endsWith("-submission.xml");
   }
 
-  private static Predicate<Path> isTemplateFile() {
-    return file -> file.getFileName().toString().endsWith(".tpl");
+  private static boolean isEncryptedSubmissionFile(Path path) {
+    return path.getFileName().toString().endsWith("submission.xml.enc");
   }
 
-  private static Predicate<Path> isPemFile() {
-    return file -> file.getFileName().toString().endsWith(".pem");
+  private static boolean isExpectedContentsFile(Path path) {
+    return path.getFileName().toString().endsWith(".expected");
+  }
+
+  private static boolean isTemplateFile(Path path) {
+    return path.getFileName().toString().endsWith(".tpl");
+  }
+
+  private static boolean isPemFile(Path path) {
+    return path.getFileName().toString().endsWith(".pem");
   }
 
   private static Predicate<Path> isRelatedToForm(String formName) {

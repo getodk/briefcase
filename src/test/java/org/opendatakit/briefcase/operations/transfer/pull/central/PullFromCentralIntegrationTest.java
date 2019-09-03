@@ -21,7 +21,7 @@ import static com.github.dreamhead.moco.Moco.httpServer;
 import static com.github.dreamhead.moco.Moco.uri;
 import static com.github.dreamhead.moco.Runner.running;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
-import static java.util.stream.Collectors.joining;
+import static java.nio.file.Files.readAllLines;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertThat;
@@ -34,7 +34,7 @@ import static org.opendatakit.briefcase.reused.api.UncheckedFiles.readAllBytes;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.toURI;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 import static org.opendatakit.briefcase.reused.job.JobsRunner.launchSync;
-import static org.opendatakit.briefcase.reused.model.transfer.TransferTestHelpers.buildMediaFileXml;
+import static org.opendatakit.briefcase.reused.model.transfer.TransferTestHelpers.getResourcePath;
 
 import com.github.dreamhead.moco.HttpServer;
 import java.net.URL;
@@ -73,7 +73,7 @@ public class PullFromCentralIntegrationTest {
   private FormMetadata formMetadata;
 
   private static Path getPath(String fileName) {
-    return Optional.ofNullable(PullFromCentralIntegrationTest.class.getClassLoader().getResource("org/opendatakit/briefcase/operations/transfer/pull/aggregate/" + fileName))
+    return Optional.ofNullable(PullFromCentralIntegrationTest.class.getClassLoader().getResource("org/opendatakit/briefcase/operations/transfer/pull/central/" + fileName))
         .map(url -> Paths.get(toURI(url)))
         .orElseThrow(RuntimeException::new);
   }
@@ -108,7 +108,7 @@ public class PullFromCentralIntegrationTest {
     // Stub the form XML request
     server
         .request(by(uri("/v1/projects/1/forms/some-form.xml")))
-        .response(new String(readAllBytes(getPath("simple-form.xml"))));
+        .response(String.join("\n", readAllLines(getResourcePath("some-form.xml"))));
 
     // Stub the form attachments request
     List<CentralAttachment> formAttachments = buildAttachments(2);
@@ -139,8 +139,7 @@ public class PullFromCentralIntegrationTest {
           instanceId,
           submissionDate,
           submissionDate,
-          "some text",
-          attachments.stream().map(a -> buildMediaFileXml(a.getName())).collect(joining("\n"))
+          "some text"
       );
 
       server
@@ -155,7 +154,7 @@ public class PullFromCentralIntegrationTest {
     });
 
     // Run the pull operation and just check that some key events are published
-    running(server, () -> launchSync(pullOp.pull(formMetadata)));
+    running(server, () -> launchSync(pullOp.pull(formMetadata, formMetadata.getFormFile())));
 
     assertThat(events, allOf(
         hasItem("Start pulling form and submissions"),

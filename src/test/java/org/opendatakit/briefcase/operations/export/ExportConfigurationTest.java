@@ -60,7 +60,7 @@ public class ExportConfigurationTest {
     Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
     createDirectories(VALID_EXPORT_DIR);
     URI sourcePemFileUri = ExportConfigurationTest.class.getClassLoader()
-        .getResource("org/opendatakit/briefcase/export/encrypted-form-key.pem")
+        .getResource("org/opendatakit/briefcase/operations/export/encrypted-form-key.pem")
         .toURI();
     copy(Paths.get(sourcePemFileUri), VALID_PEM_FILE);
     VALID_CONFIG = Builder.empty()

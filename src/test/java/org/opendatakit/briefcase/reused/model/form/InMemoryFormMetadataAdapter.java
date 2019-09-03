@@ -2,15 +2,15 @@ package org.opendatakit.briefcase.reused.model.form;
 
 import static java.util.stream.Collectors.toMap;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class InMemoryFormMetadataAdapter implements FormMetadataPort {
-  private final Map<FormKey, FormMetadata> store = new HashMap<>();
+  private final Map<FormKey, FormMetadata> store = new ConcurrentHashMap<>();
 
   @Override
   public void persist(FormMetadata metaData) {

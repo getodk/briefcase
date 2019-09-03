@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source;
 
-import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.makeClickable;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.uncheckedBrowse;
 
@@ -58,10 +57,7 @@ public class Central implements PullSource<CentralServer> {
         .orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
 
     return workspace.http.execute(server.getFormsListRequest(token))
-        .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"))
-        .stream()
-        .map(formMetadata -> formMetadata.withFormFile(workspace.buildFormFile(formMetadata)))
-        .collect(toList());
+        .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"));
   }
 
   @Override
@@ -117,7 +113,7 @@ public class Central implements PullSource<CentralServer> {
     String token = workspace.http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
     PullFromCentral pullOp = new PullFromCentral(workspace, server, token, EventBus::publish);
     return JobsRunner
-        .launchAsync(forms.map(pullOp::pull))
+        .launchAsync(forms.map(formMetadata -> pullOp.pull(formMetadata, workspace.buildFormFile(formMetadata))))
         .onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 

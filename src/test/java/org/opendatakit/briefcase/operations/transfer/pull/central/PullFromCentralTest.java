@@ -16,6 +16,7 @@
 
 package org.opendatakit.briefcase.operations.transfer.pull.central;
 
+import static java.nio.file.Files.readAllLines;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.contains;
@@ -30,7 +31,9 @@ import static org.opendatakit.briefcase.reused.api.UncheckedFiles.readAllBytes;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 import static org.opendatakit.briefcase.reused.http.response.ResponseHelpers.ok;
 import static org.opendatakit.briefcase.reused.model.transfer.TransferTestHelpers.buildSubmissionXml;
+import static org.opendatakit.briefcase.reused.model.transfer.TransferTestHelpers.getResourcePath;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -108,14 +111,14 @@ public class PullFromCentralTest {
   }
 
   @Test
-  public void knows_how_to_download_a_form() {
-    String expectedContent = "form content - won't be parsed";
+  public void knows_how_to_download_a_form() throws IOException {
+    String expectedContent = String.join("\n", readAllLines(getResourcePath("some-form.xml")));
     inMemoryHttp.stub(
         server.getDownloadFormRequest(formMetadata.getKey().getId(), formMetadata.getFormFile(), token),
         ok(expectedContent)
     );
 
-    pullOp.downloadForm(formMetadata, token, runnerStatus, tracker);
+    pullOp.downloadForm(formMetadata.getKey().getId(), formMetadata.getFormFile(), token, runnerStatus, tracker);
 
     Path actualFormFile = formMetadata.getFormFile();
     assertThat(actualFormFile, exists());
@@ -135,7 +138,7 @@ public class PullFromCentralTest {
     Path submissionFile = formMetadata.getSubmissionFile(instanceId);
     inMemoryHttp.stub(server.getDownloadSubmissionRequest(formMetadata.getKey().getId(), instanceId, submissionFile, token), ok(expectedSubmissionXml));
 
-    pullOp.downloadSubmission(formMetadata, instanceId, token, runnerStatus, tracker, 1, 1);
+    pullOp.downloadSubmission(formMetadata.getKey().getId(), instanceId, formMetadata.getSubmissionFile(instanceId), token, runnerStatus, tracker, 1, 1);
 
     String actualSubmissionXml = new String(readAllBytes(submissionFile));
     assertThat(submissionFile, exists());
@@ -155,7 +158,7 @@ public class PullFromCentralTest {
     // Stub the request to get the list of attachments
     inMemoryHttp.stub(server.getFormAttachmentListRequest(formMetadata.getKey().getId(), token), ok(jsonOfAttachments(expectedAttachments)));
 
-    List<CentralAttachment> actualAttachments = pullOp.getFormAttachments(formMetadata, token, runnerStatus, tracker);
+    List<CentralAttachment> actualAttachments = pullOp.getFormAttachments(formMetadata.getKey().getId(), token, runnerStatus, tracker);
 
     assertThat(actualAttachments, hasSize(actualAttachments.size()));
     for (CentralAttachment attachment : expectedAttachments)
@@ -177,7 +180,7 @@ public class PullFromCentralTest {
     ));
 
     AtomicInteger seq = new AtomicInteger(1);
-    attachments.forEach(attachment -> pullOp.downloadFormAttachment(formMetadata, attachment, token, runnerStatus, tracker, seq.getAndIncrement(), 3));
+    attachments.forEach(attachment -> pullOp.downloadFormAttachment(formMetadata.getKey().getId(), formMetadata.getFormMediaFile(attachment.getName()), attachment, token, runnerStatus, tracker, seq.getAndIncrement(), 3));
 
     attachments.forEach(attachment -> assertThat(formMetadata.getFormMediaFile(attachment.getName()), exists()));
 
@@ -200,7 +203,7 @@ public class PullFromCentralTest {
         server.getInstanceIdListRequest(formMetadata.getKey().getId(), token),
         ok(jsonOfSubmissions(expectedInstanceIds))
     );
-    List<String> actualInstanceIds = pullOp.getSubmissionIds(formMetadata, token, runnerStatus, tracker);
+    List<String> actualInstanceIds = pullOp.getSubmissionIds(formMetadata.getKey().getId(), token, runnerStatus, tracker);
     assertThat(actualInstanceIds, hasSize(expectedInstanceIds.size()));
     for (String instanceId : actualInstanceIds)
       assertThat(expectedInstanceIds, hasItem(instanceId));
@@ -220,7 +223,7 @@ public class PullFromCentralTest {
         ok(jsonOfAttachments(expectedAttachments))
     );
 
-    List<CentralAttachment> actualAttachments = pullOp.getSubmissionAttachments(formMetadata, instanceId, token, runnerStatus, tracker, 1, 1);
+    List<CentralAttachment> actualAttachments = pullOp.getSubmissionAttachments(formMetadata.getKey().getId(), instanceId, token, runnerStatus, tracker, 1, 1);
     assertThat(actualAttachments, hasSize(expectedAttachments.size()));
     for (CentralAttachment attachment : actualAttachments)
       assertThat(expectedAttachments, hasItem(attachment));
@@ -236,12 +239,12 @@ public class PullFromCentralTest {
     String instanceId = "some instance id";
     List<CentralAttachment> expectedAttachments = buildAttachments(3);
 
-    expectedAttachments.forEach(attachment -> inMemoryHttp.stub(server.getDownloadSubmissionAttachmentRequest(formMetadata.getKey().getId(), instanceId, attachment, formMetadata.getSubmissionMediaFile(instanceId, attachment.getName()), token), ok("some body")));
+    expectedAttachments.forEach(attachment -> inMemoryHttp.stub(server.getDownloadSubmissionAttachmentRequest(formMetadata.getKey().getId(), instanceId, attachment, formMetadata.getSubmissionAttachmentFile(instanceId, attachment.getName()), token), ok("some body")));
 
     AtomicInteger seq = new AtomicInteger(1);
-    expectedAttachments.forEach(attachment -> pullOp.downloadSubmissionAttachment(formMetadata, instanceId, attachment, token, runnerStatus, tracker, 1, 1, seq.getAndIncrement(), 3));
+    expectedAttachments.forEach(attachment -> pullOp.downloadSubmissionAttachment(formMetadata.getKey().getId(), instanceId, attachment, formMetadata.getSubmissionAttachmentFile(instanceId, attachment.getName()), token, runnerStatus, tracker, 1, 1, seq.getAndIncrement(), 3));
 
-    expectedAttachments.forEach(attachment -> assertThat(formMetadata.getSubmissionMediaFile(instanceId, attachment.getName()), exists()));
+    expectedAttachments.forEach(attachment -> assertThat(formMetadata.getSubmissionAttachmentFile(instanceId, attachment.getName()), exists()));
 
     assertThat(events, contains(
         "Start downloading attachment 1 of 3 of submission 1 of 1",

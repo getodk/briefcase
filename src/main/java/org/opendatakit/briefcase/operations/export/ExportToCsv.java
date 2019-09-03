@@ -66,10 +66,10 @@ public class ExportToCsv {
 
     var onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getFormName().orElse(formMetadata.getKey().getId())));
 
-    List<SubmissionMetadata> submissionFiles = workspace.submissionMetadata
+    List<SubmissionMetadata> submissionMetadataList = workspace.submissionMetadata
         .sortedSubmissions(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend())
         .collect(toList());
-    exportTracker.trackTotal(submissionFiles.size());
+    exportTracker.trackTotal(submissionMetadataList.size());
 
     createDirectories(configuration.getExportDir());
 
@@ -84,7 +84,7 @@ public class ExportToCsv {
     }
 
     // Generate csv lines grouped by the fqdn of the model they belong to
-    Map<String, CsvLines> csvLinesPerModel = ExportTools.getSubmissions(formMetadata, configuration, submissionFiles, onParsingError)
+    Map<String, CsvLines> csvLinesPerModel = ExportTools.getSubmissions(formMetadata, configuration, submissionMetadataList, onParsingError)
         // Track the submission
         .peek(s -> exportTracker.incAndReport())
         // Use the mapper of each Csv instance to map the submission into their respective outputs

@@ -129,7 +129,7 @@ public class Export {
             : Optional.empty();
 
         pullJob = new PullFromAggregate(workspace, server.get(), false, Export::onEvent)
-            .pull(formMetadata, lastCursor);
+            .pull(formMetadata, formMetadata.getFormFile(), lastCursor);
       }
     }
 

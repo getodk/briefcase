@@ -13,7 +13,7 @@ public class OperationBuilder {
   private Set<Param> requiredParams = new HashSet<>();
   private Set<Param> optionalParams = new HashSet<>();
   private boolean deprecated = false;
-  private Optional<Consumer<Args>> beforeCallback;
+  private Optional<Consumer<Args>> beforeCallback = Optional.empty();
 
   public Operation build() {
     return new Operation(

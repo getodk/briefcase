@@ -49,6 +49,7 @@ import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.RunnerStatus;
 import org.opendatakit.briefcase.reused.model.XmlElement;
+import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
@@ -83,102 +84,114 @@ public class PullFromAggregate {
    * <p>
    * Returns a Job that will produce a pull operation result.
    */
-  public Job<Void> pull(FormMetadata formMetadata, Optional<Cursor> lastCursor) {
-    PullFromAggregateTracker tracker = new PullFromAggregateTracker(formMetadata.getKey(), onEventCallback);
+  public Job<Void> pull(FormMetadata sourceFormMetadata, Path targetFormFile, Optional<Cursor> lastCursor) {
+    FormKey formKey = sourceFormMetadata.getKey();
+    PullFromAggregateTracker tracker = new PullFromAggregateTracker(formKey, onEventCallback);
+    String formId = formKey.getId();
 
     // Download the form and attachments, and get the submissions list
-    return run(rs -> tracker.trackStart())
-        .thenSupply(rs -> downloadForm(formMetadata, rs, tracker))
-        .thenAccept((rs, formXml) -> {
-          if (formXml == null)
-            return;
+    return run(rs -> {
+      tracker.trackStart();
+      Pair<FormMetadata, SubmissionKeyGenerator> downloadResult = downloadForm(sourceFormMetadata, targetFormFile, rs, tracker);
+      if (downloadResult == null)
+        return;
 
-          List<AggregateAttachment> attachments = getFormAttachments(formMetadata, rs, tracker);
-          int totalAttachments = attachments.size();
-          AtomicInteger attachmentNumber = new AtomicInteger(1);
-          attachments.parallelStream().forEach(attachment ->
-              downloadFormAttachment(formMetadata, attachment, rs, tracker, attachmentNumber.getAndIncrement(), totalAttachments)
-          );
+      FormMetadata targetFormMetadata = downloadResult.getLeft()
+          .withUrls(sourceFormMetadata.getManifestUrl(), sourceFormMetadata.getDownloadUrl());
+      SubmissionKeyGenerator subKeyGen = downloadResult.getRight();
 
-          List<InstanceIdBatch> instanceIdBatches = getSubmissionIds(formMetadata, lastCursor.orElse(Cursor.empty()), rs, tracker);
+      List<AggregateAttachment> attachments = getFormAttachments(sourceFormMetadata, rs, tracker);
+      int totalAttachments = attachments.size();
+      AtomicInteger attachmentNumber = new AtomicInteger(1);
+      attachments.parallelStream().forEach(attachment ->
+          downloadFormAttachment(attachment, targetFormMetadata.getFormMediaFile(attachment.getFilename()), rs, tracker, attachmentNumber.getAndIncrement(), totalAttachments)
+      );
 
-          // Build the submission key generator with the form's XML contents
-          SubmissionKeyGenerator subKeyGen = SubmissionKeyGenerator.from(formXml);
+      List<InstanceIdBatch> instanceIdBatches = getSubmissionIds(formKey.getId(), lastCursor.orElse(Cursor.empty()), rs, tracker);
 
-          // Extract all the instance IDs from all the batches and download each instance
-          List<String> ids = instanceIdBatches.stream()
-              .flatMap(batch -> batch.getInstanceIds().stream())
-              .collect(toList());
-          int totalSubmissions = ids.size();
-          AtomicInteger submissionNumber = new AtomicInteger(1);
+      // Extract all the instance IDs from all the batches and download each instance
+      List<String> ids = instanceIdBatches.stream()
+          .flatMap(batch -> batch.getInstanceIds().stream())
+          .collect(toList());
+      int totalSubmissions = ids.size();
+      AtomicInteger submissionNumber = new AtomicInteger(1);
 
-          if (ids.isEmpty())
-            tracker.trackNoSubmissions();
+      if (ids.isEmpty())
+        tracker.trackNoSubmissions();
 
-          // We need to collect to be able to create a parallel stream again
-          ids.parallelStream()
-              .map(instanceId -> Triple.of(
-                  submissionNumber.getAndIncrement(),
-                  instanceId,
-                  workspace.submissionMetadata.hasBeenAlreadyPulled(formMetadata.getKey().getId(), instanceId)
-              ))
-              .peek(triple -> {
-                if (triple.get3())
-                  tracker.trackSubmissionAlreadyDownloaded(triple.get1(), totalSubmissions);
-              })
-              .filter(not(Triple::get3))
-              .map(triple -> Pair.of(
-                  triple.get1(),
-                  downloadSubmission(formMetadata, triple.get2(), subKeyGen, rs, tracker, triple.get1(), totalSubmissions)
-              ))
-              .filter(p -> p.getRight() != null)
-              .forEach(pair -> {
-                int currentSubmissionNumber = pair.getLeft();
-                DownloadedSubmission submission = pair.getRight();
-                List<AggregateAttachment> submissionAttachments = submission.getAttachments();
-                AtomicInteger submissionAttachmentNumber = new AtomicInteger(1);
-                int totalSubmissionAttachments = submissionAttachments.size();
-                submissionAttachments.parallelStream().forEach(attachment ->
-                    downloadSubmissionAttachment(formMetadata, submission, attachment, rs, tracker, currentSubmissionNumber, totalSubmissions, submissionAttachmentNumber.getAndIncrement(), totalSubmissionAttachments)
-                );
+      // We need to collect to be able to create a parallel stream again
+      ids.parallelStream()
+          .map(instanceId -> {
+            return Triple.of(
+                submissionNumber.getAndIncrement(),
+                instanceId,
+                workspace.submissionMetadata.hasBeenAlreadyPulled(formId, instanceId)
+            );
+          })
+          .peek(triple -> {
+            if (triple.get3())
+              tracker.trackSubmissionAlreadyDownloaded(triple.get1(), totalSubmissions);
+          })
+          .filter(not(Triple::get3))
+          .map(triple -> Pair.of(
+              triple.get1(),
+              downloadSubmission(triple.get2(), targetFormMetadata.getSubmissionFile(triple.get2()), subKeyGen, rs, tracker, triple.get1(), totalSubmissions)
+          ))
+          .filter(p -> p.getRight() != null)
+          .forEach(pair -> {
+            int currentSubmissionNumber = pair.getLeft();
+            DownloadedSubmission submission = pair.getRight();
+            List<AggregateAttachment> submissionAttachments = submission.getAttachments();
+            AtomicInteger submissionAttachmentNumber = new AtomicInteger(1);
+            int totalSubmissionAttachments = submissionAttachments.size();
+            submissionAttachments.parallelStream().forEach(attachment ->
+                downloadSubmissionAttachment(attachment, targetFormMetadata.getSubmissionAttachmentFile(submission.getInstanceId(), attachment.getFilename()), rs, tracker, currentSubmissionNumber, totalSubmissions, submissionAttachmentNumber.getAndIncrement(), totalSubmissionAttachments)
+            );
 
-                SubmissionMetadata submissionMetadata = SubmissionMetadata.from(
-                    submission.getSubmissionFile(),
-                    submission.getInstanceId(),
-                    submission.getAttachments().stream().map(AggregateAttachment::getFilename).map(Paths::get).collect(toList())
-                );
-                workspace.submissionMetadata.execute(insert(submissionMetadata));
-              });
+            SubmissionMetadata submissionMetadata = SubmissionMetadata.from(
+                submission.getSubmissionFile(),
+                submission.getInstanceId(),
+                submission.getAttachments().stream()
+                    .filter(not(AggregateAttachment::isEncryptedSubmissionFile))
+                    .map(AggregateAttachment::getFilename)
+                    .map(Paths::get)
+                    .collect(toList())
+            );
+            workspace.submissionMetadata.execute(insert(submissionMetadata));
+          });
 
-          tracker.trackEnd();
-          Cursor newCursor = getLastCursor(instanceIdBatches).orElse(Cursor.empty());
+      tracker.trackEnd();
+      Cursor newCursor = getLastCursor(instanceIdBatches).orElse(Cursor.empty());
 
-          workspace.formMetadata.execute(upsert(formMetadata.withCursor(newCursor)));
+      workspace.formMetadata.execute(upsert(targetFormMetadata.withCursor(newCursor)));
 
-          EventBus.publish(PullEvent.Success.of(formMetadata.getKey(), server));
-        });
+      EventBus.publish(PullEvent.Success.of(formKey, server));
+    });
 
   }
 
-  String downloadForm(FormMetadata formMetadata, RunnerStatus runnerStatus, PullFromAggregateTracker tracker) {
+  Pair<FormMetadata, SubmissionKeyGenerator> downloadForm(FormMetadata sourceFormMetadata, Path targetFormFile, RunnerStatus runnerStatus, PullFromAggregateTracker tracker) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Download form");
       return null;
     }
 
     tracker.trackStartDownloadingForm();
-    Response<String> response = workspace.http.execute(getDownloadFormRequest(formMetadata));
+    Response<String> response = workspace.http.execute(getDownloadFormRequest(sourceFormMetadata));
     if (!response.isSuccess()) {
       tracker.trackErrorDownloadingForm(response);
       return null;
     }
 
-    createDirectories(formMetadata.getFormFile().getParent());
+    createDirectories(targetFormFile.getParent());
 
     String formXml = response.get();
-    write(formMetadata.getFormFile(), formXml, CREATE, TRUNCATE_EXISTING);
+    write(targetFormFile, formXml, CREATE, TRUNCATE_EXISTING);
     tracker.trackEndDownloadingForm();
-    return formXml;
+    return Pair.of(
+        FormMetadata.from(targetFormFile),
+        SubmissionKeyGenerator.from(formXml)
+    );
   }
 
   private Request<String> getDownloadFormRequest(FormMetadata formMetadata) {
@@ -217,34 +230,32 @@ public class PullFromAggregate {
     return attachmentsToDownload;
   }
 
-  List<InstanceIdBatch> getSubmissionIds(FormMetadata formMetadata, Cursor lastCursor, RunnerStatus runnerStatus, PullFromAggregateTracker tracker) {
+  List<InstanceIdBatch> getSubmissionIds(String formId, Cursor lastCursor, RunnerStatus runnerStatus, PullFromAggregateTracker tracker) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Get submissions IDs");
       return emptyList();
     }
 
-    return getInstanceIdBatches(formMetadata, runnerStatus, tracker, lastCursor);
+    return getInstanceIdBatches(formId, runnerStatus, tracker, lastCursor);
   }
 
-  void downloadFormAttachment(FormMetadata formMetadata, AggregateAttachment attachment, RunnerStatus runnerStatus, PullFromAggregateTracker tracker, int attachmentNumber, int totalAttachments) {
+  void downloadFormAttachment(AggregateAttachment attachment, Path targetAttachmentFile, RunnerStatus runnerStatus, PullFromAggregateTracker tracker, int attachmentNumber, int totalAttachments) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Download form attachment " + attachment.getFilename());
       return;
     }
 
-    Path target = formMetadata.getFormMediaFile(attachment.getFilename());
-    createDirectories(target.getParent());
+    createDirectories(targetAttachmentFile.getParent());
 
     tracker.trackStartDownloadingFormAttachment(attachmentNumber, totalAttachments);
-    Response response = workspace.http.execute(get(attachment.getDownloadUrl()).downloadTo(target).build());
+    Response response = workspace.http.execute(get(attachment.getDownloadUrl()).downloadTo(targetAttachmentFile).build());
     if (response.isSuccess())
       tracker.trackEndDownloadingFormAttachment(attachmentNumber, totalAttachments);
     else
       tracker.trackErrorDownloadingFormAttachment(attachmentNumber, totalAttachments, response);
   }
 
-  DownloadedSubmission downloadSubmission(FormMetadata formMetadata, String instanceId, SubmissionKeyGenerator subKeyGen, RunnerStatus runnerStatus, PullFromAggregateTracker tracker, int submissionNumber,
-                                          int totalSubmissions) {
+  DownloadedSubmission downloadSubmission(String instanceId, Path targetSubmissionFile, SubmissionKeyGenerator subKeyGen, RunnerStatus runnerStatus, PullFromAggregateTracker tracker, int submissionNumber, int totalSubmissions) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Download submission " + submissionNumber + " of " + totalSubmissions);
       return null;
@@ -259,24 +270,22 @@ public class PullFromAggregate {
     }
     DownloadedSubmission submission = response.get();
 
-    Path submissionFile = formMetadata.getSubmissionFile(submission.getInstanceId());
-    createDirectories(submissionFile.getParent());
-    write(submissionFile, submission.getXml(), CREATE, TRUNCATE_EXISTING);
+    createDirectories(targetSubmissionFile.getParent());
+    write(targetSubmissionFile, submission.getXml(), CREATE, TRUNCATE_EXISTING);
     tracker.trackEndDownloadingSubmission(submissionNumber, totalSubmissions);
-    return submission.withSubmissionFile(submissionFile);
+    return submission.withSubmissionFile(targetSubmissionFile);
   }
 
-  void downloadSubmissionAttachment(FormMetadata formMetadata, DownloadedSubmission submission, AggregateAttachment attachment, RunnerStatus runnerStatus, PullFromAggregateTracker tracker, int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
+  void downloadSubmissionAttachment(AggregateAttachment attachment, Path targetAttachmentFile, RunnerStatus runnerStatus, PullFromAggregateTracker tracker, int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Download attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions);
       return;
     }
 
-    Path target = formMetadata.getSubmissionMediaFile(submission.getInstanceId(), attachment.getFilename());
-    createDirectories(target.getParent());
+    createDirectories(targetAttachmentFile.getParent());
 
     tracker.trackStartDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
-    Response response = workspace.http.execute(get(attachment.getDownloadUrl()).downloadTo(target).build());
+    Response response = workspace.http.execute(get(attachment.getDownloadUrl()).downloadTo(targetAttachmentFile).build());
     if (response.isSuccess())
       tracker.trackEndDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
     else
@@ -299,11 +308,11 @@ public class PullFromAggregate {
         .collect(toList());
   }
 
-  private List<InstanceIdBatch> getInstanceIdBatches(FormMetadata formMetadata, RunnerStatus runnerStatus, PullFromAggregateTracker tracker, Cursor lastCursor) {
+  private List<InstanceIdBatch> getInstanceIdBatches(String formId, RunnerStatus runnerStatus, PullFromAggregateTracker tracker, Cursor lastCursor) {
     tracker.trackStartGettingSubmissionIds();
     InstanceIdBatchGetter batchPager;
     try {
-      batchPager = new InstanceIdBatchGetter(workspace, server, formMetadata.getKey().getId(), includeIncomplete, lastCursor);
+      batchPager = new InstanceIdBatchGetter(workspace, server, formId, includeIncomplete, lastCursor);
     } catch (InstanceIdBatchGetterException e) {
       tracker.trackErrorGettingInstanceIdBatches(e.aggregateResponse);
       return emptyList();

@@ -2,8 +2,8 @@ package org.opendatakit.briefcase.reused.model.submission;
 
 import java.time.OffsetDateTime;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -12,7 +12,7 @@ import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 
 public class InMemorySubmissionMetadataAdapter implements SubmissionMetadataPort {
-  private final Map<SubmissionKey, SubmissionMetadata> store = new HashMap<>();
+  private final Map<SubmissionKey, SubmissionMetadata> store = new ConcurrentHashMap<>();
 
   @Override
   public void flush() {
@@ -55,10 +55,9 @@ public class InMemorySubmissionMetadataAdapter implements SubmissionMetadataPort
   @Override
   public Stream<SubmissionMetadata> sortedSubmissions(FormMetadata formMetadata, DateRange dateRange, boolean smartAppend) {
     return store.values().stream()
-        .filter(submissionMetadata1 -> isSameForm(submissionMetadata1, formMetadata.getKey()))
+        .filter(submissionMetadata11 -> isSameForm(submissionMetadata11, formMetadata.getKey()))
         .filter(submissionMetadata1 -> dateRange.contains(coalescedSubmissionDateTime(submissionMetadata1)))
-        .filter(submissionMetadata -> true
-            || !smartAppend
+        .filter(submissionMetadata -> !smartAppend
             || formMetadata.getLastExportedSubmissionDate().isEmpty()
             || coalescedSubmissionDateTime(submissionMetadata).isAfter(formMetadata.getLastExportedSubmissionDate().get()))
         .sorted(Comparator.comparing(this::coalescedSubmissionDateTime));

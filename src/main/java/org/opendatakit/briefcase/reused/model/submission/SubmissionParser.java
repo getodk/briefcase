@@ -34,6 +34,7 @@ import java.security.PrivateKey;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -57,35 +58,35 @@ public class SubmissionParser {
 
   public static Optional<ParsedSubmission> parseEncryptedSubmission(SubmissionMetadata submissionMetadata, PrivateKey privateKey, BiConsumer<SubmissionMetadata, String> onError) {
     return parse(submissionMetadata, onError).flatMap(document -> {
-      ParsedSubmission submission = ParsedSubmission.unencrypted(
-          submissionMetadata,
-          XmlElement.of(document),
-          CipherFactory.from(
-              submissionMetadata.getKey().getInstanceId(),
-              submissionMetadata.getBase64EncryptedKey().orElseThrow(BriefcaseException::new),
-              privateKey
-          ),
-          decrypt(
-              signatureDecrypter(privateKey),
-              decodeBase64(submissionMetadata.getEncryptedSignature().orElseThrow(BriefcaseException::new))
-          )
+      XmlElement root = XmlElement.of(document);
+      CipherFactory cipherFactory = CipherFactory.from(
+          submissionMetadata.getKey().getInstanceId(),
+          submissionMetadata.getBase64EncryptedKey().orElseThrow(BriefcaseException::new),
+          privateKey
       );
-      return decrypt(submission, onError)
-          .map(s -> s.withValidationStatus(isValid(submission, s)));
+      byte[] signature = decrypt(
+          signatureDecrypter(privateKey),
+          decodeBase64(submissionMetadata.getEncryptedSignature().orElseThrow(BriefcaseException::new))
+      );
+      ParsedSubmission submission = ParsedSubmission.unencrypted(submissionMetadata, root, cipherFactory, signature);
+      return decrypt(submission, onError).map(s -> {
+        ValidationStatus valid = isValid(submission, s);
+        return s.withValidationStatus(valid);
+      });
     });
   }
 
   private static Optional<ParsedSubmission> decrypt(ParsedSubmission submission, BiConsumer<SubmissionMetadata, String> onError) {
-    List<Path> attachmentFiles = submission.getAttachmentFiles();
+    List<Path> attachmentFiles = submission.getAttachmentFiles().stream()
+        .filter(Files::exists)
+        .collect(Collectors.toList());
 
     if (attachmentFiles.size() != submission.countAttachments())
       // We must skip this submission because some media file is missing
       return Optional.empty();
 
     // Decrypt each attached media file in order
-    attachmentFiles.stream()
-        .filter(Files::exists)
-        .forEach(path -> decryptFile(path, submission.getWorkingDir(), submission.getNextCipher()));
+    attachmentFiles.forEach(path -> decryptFile(path, submission.getWorkingDir(), submission.getNextCipher()));
 
     // Decrypt the submission
     Path decryptedSubmission = decryptFile(submission.getEncryptedXmlFile(), submission.getWorkingDir(), submission.getNextCipher());
@@ -118,6 +119,8 @@ public class SubmissionParser {
   }
 
   private static Optional<Document> parse(Path submissionFile, SubmissionMetadata submissionMetadata, BiConsumer<SubmissionMetadata, String> onError) {
+    if (!Files.exists(submissionFile))
+      return Optional.empty();
     try (InputStream is = Files.newInputStream(submissionFile);
          InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
       Document tempDoc = new Document();
@@ -143,7 +146,9 @@ public class SubmissionParser {
   }
 
   private static ValidationStatus isValid(ParsedSubmission submission, ParsedSubmission decryptedSubmission) {
-    return submission.isValid(computeDigest(decryptedSubmission.buildSignature(submission))) ? VALID : NOT_VALID;
+    String message = decryptedSubmission.buildSignature();
+    byte[] signature = computeDigest(message);
+    return submission.isValid(signature) ? VALID : NOT_VALID;
   }
 
   private static byte[] computeDigest(String message) {

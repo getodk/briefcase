@@ -21,6 +21,7 @@ public class SubmissionMetadata {
   private final Optional<OffsetDateTime> submissionDateTime;
   private final Optional<Path> encryptedXmlFilename;
   private final Optional<String> base64EncryptedKey;
+  // TODO Rename this to base64EncryptedSignature
   private final Optional<String> encryptedSignature;
   private final List<Path> attachmentFilenames;
 
@@ -125,6 +126,10 @@ public class SubmissionMetadata {
     return attachmentFilenames.stream()
         .map(submissionDir::resolve)
         .collect(Collectors.toList());
+  }
+
+  public Path getAttachmentFile(String filename) {
+    return getSubmissionDir().resolve(filename);
   }
 
   public SubmissionMetadata withSubmissionFile(Path submissionFile) {

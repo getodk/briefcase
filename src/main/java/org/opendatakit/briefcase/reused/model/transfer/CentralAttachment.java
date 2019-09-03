@@ -35,6 +35,10 @@ public class CentralAttachment {
     return exists;
   }
 
+  public boolean isEncryptedSubmissionFile() {
+    return name.equals("submission.xml.enc");
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

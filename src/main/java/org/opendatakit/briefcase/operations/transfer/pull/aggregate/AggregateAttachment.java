@@ -93,6 +93,10 @@ public class AggregateAttachment {
     return downloadUrl;
   }
 
+  boolean isEncryptedSubmissionFile() {
+    return filename.equals("submission.xml.enc");
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

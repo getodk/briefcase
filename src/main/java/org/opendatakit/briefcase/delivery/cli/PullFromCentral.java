@@ -92,7 +92,7 @@ public class PullFromCentral {
 
     org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral pullOp = new org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral(workspace, server, token, PullFromCentral::onEvent);
     JobsRunner.launchAsync(
-        forms.map(pullOp::pull),
+        forms.map(formMetadata -> pullOp.pull(formMetadata, workspace.buildFormFile(formMetadata))),
         PullFromCentral::onError
     ).waitForCompletion();
     System.out.println();

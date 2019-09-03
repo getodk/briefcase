@@ -40,7 +40,6 @@ import static org.opendatakit.briefcase.reused.model.transfer.TransferTestHelper
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import org.junit.After;
 import org.junit.Before;
@@ -69,25 +68,27 @@ public class PushToCentralTest {
   private Path form;
   private Path formAttachment;
   private String instanceId = "uuid:520e7b86-1572-45b1-a89e-7da26ad1624e";
-  private SubmissionMetadata submission;
+  private SubmissionMetadata submissionMetadata;
   private Path submissionAttachment;
   private FormMetadata formMetadata;
 
   @Before
   public void setUp() throws IOException {
-    Workspace workspace = WorkspaceHelper.inMemory();
-    inMemoryHttp = (InMemoryHttp) workspace.http;
     briefcaseDir = createTempDirectory("briefcase-test-");
+    Workspace workspace = WorkspaceHelper.inMemory().withWorkspaceLocation(createTempDirectory("briefcase-test-"));
+    inMemoryHttp = (InMemoryHttp) workspace.http;
     pushOp = new PushToCentral(workspace, server, token, this::onEvent);
     events = new ArrayList<>();
     runnerStatus = new TestRunnerStatus(false);
-    formMetadata = FormMetadata.empty(FormKey.of("push-form-test"))
-        .withFormFile(briefcaseDir.resolve("forms/Push form test/Push form test.xml"));
+    formMetadata = FormMetadata.empty(FormKey.of("push-form-test"));
+    formMetadata = formMetadata.withFormFile(workspace.buildFormFile(formMetadata));
     tracker = new PushToCentralTracker(this::onEvent, formMetadata);
     form = installForm(formMetadata, getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/push-form-test.xml"));
     formAttachment = installFormAttachment(formMetadata, getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/sparrow.png"));
-    submission = SubmissionMetadata.from(installSubmission(formMetadata, getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/submission.xml")), Collections.emptyList());
     submissionAttachment = installSubmissionAttachment(formMetadata, getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/1556532531101.jpg"), instanceId);
+    submissionMetadata = installSubmission(formMetadata, getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/submission.xml"), submissionAttachment);
+    workspace.formMetadata.persist(formMetadata);
+    workspace.submissionMetadata.persist(submissionMetadata);
   }
 
   @After
@@ -104,7 +105,7 @@ public class PushToCentralTest {
     // Low-level test that drives an individual step of the push operation
 
     RequestSpy<?> requestSpy = inMemoryHttp.spyOn(
-        server.getFormExistsRequest(submission.getKey().getFormId(), token),
+        server.getFormExistsRequest(submissionMetadata.getKey().getFormId(), token),
         ok(listOfFormsResponseFromCentral(formMetadata))
     );
 
@@ -118,7 +119,7 @@ public class PushToCentralTest {
   public void knows_how_to_check_if_the_form_does_not_exist_in_Central() {
     // Low-level test that drives an individual step of the push operation
     inMemoryHttp.stub(
-        server.getFormExistsRequest(submission.getKey().getFormId(), token),
+        server.getFormExistsRequest(submissionMetadata.getKey().getFormId(), token),
         ok(listOfFormsResponseFromCentral())
     );
 
@@ -138,7 +139,7 @@ public class PushToCentralTest {
   @Test
   public void knows_how_to_push_form_attachments_to_Central() {
     // Low-level test that drives an individual step of the push operation
-    RequestSpy<?> requestSpy = inMemoryHttp.spyOn(server.getPushFormAttachmentRequest(submission.getKey().getFormId(), formAttachment, token), ok("{}"));
+    RequestSpy<?> requestSpy = inMemoryHttp.spyOn(server.getPushFormAttachmentRequest(submissionMetadata.getKey().getFormId(), formAttachment, token), ok("{}"));
 
     pushOp.pushFormAttachment(formMetadata.getKey(), formAttachment, runnerStatus, tracker, 1, 1);
 
@@ -148,22 +149,22 @@ public class PushToCentralTest {
   @Test
   public void knows_how_to_push_submissions_to_Central() {
     // Low-level test that drives an individual step of the push operation
-    RequestSpy<?> requestSpy = inMemoryHttp.spyOn(server.getPushSubmissionRequest(token, submission.getKey().getFormId(), submission.getSubmissionFile()), ok("{}"));
+    RequestSpy<?> requestSpy = inMemoryHttp.spyOn(server.getPushSubmissionRequest(token, submissionMetadata.getKey().getFormId(), submissionMetadata.getSubmissionFile()), ok("{}"));
 
-    pushOp.pushSubmission(submission, runnerStatus, tracker, 1, 1);
+    pushOp.pushSubmission(submissionMetadata, runnerStatus, tracker, 1, 1);
 
-    assertThat(requestSpy, allOf(hasBeenCalled(), not(isMultipart()), hasBody(readAllBytes(submission.getSubmissionFile()))));
+    assertThat(requestSpy, allOf(hasBeenCalled(), not(isMultipart()), hasBody(readAllBytes(submissionMetadata.getSubmissionFile()))));
   }
 
   @Test
   public void knows_how_to_push_submission_attachments_to_Central() {
     // Low-level test that drives an individual step of the push operation
     RequestSpy<?> requestSpy = inMemoryHttp.spyOn(
-        server.getPushSubmissionAttachmentRequest(token, submission.getKey().getFormId(), instanceId, submissionAttachment),
+        server.getPushSubmissionAttachmentRequest(token, submissionMetadata.getKey().getFormId(), instanceId, submissionAttachment),
         ok("{}")
     );
 
-    pushOp.pushSubmissionAttachment(submission.getKey(), submissionAttachment, runnerStatus, tracker, 1, 1, 1, 1);
+    pushOp.pushSubmissionAttachment(submissionMetadata.getKey(), submissionAttachment, runnerStatus, tracker, 1, 1, 1, 1);
 
     assertThat(requestSpy, allOf(hasBeenCalled(), not(isMultipart())));
   }
@@ -172,11 +173,11 @@ public class PushToCentralTest {
   @Test
   public void knows_how_to_push_completely_a_form_when_the_form_doesn_exist_in_Central() {
     // High-level test that drives the public push operation
-    inMemoryHttp.stub(server.getFormExistsRequest(submission.getKey().getFormId(), token), ok(listOfFormsResponseFromCentral()));
+    inMemoryHttp.stub(server.getFormExistsRequest(submissionMetadata.getKey().getFormId(), token), ok(listOfFormsResponseFromCentral()));
     inMemoryHttp.stub(server.getPushFormRequest(form, token), ok("{}"));
-    inMemoryHttp.stub(server.getPushFormAttachmentRequest(submission.getKey().getFormId(), formAttachment, token), ok("{}"));
-    inMemoryHttp.stub(server.getPushSubmissionRequest(token, submission.getKey().getFormId(), submission.getSubmissionFile()), ok("{}"));
-    inMemoryHttp.stub(server.getPushSubmissionAttachmentRequest(token, submission.getKey().getFormId(), instanceId, submissionAttachment), ok("{}"));
+    inMemoryHttp.stub(server.getPushFormAttachmentRequest(submissionMetadata.getKey().getFormId(), formAttachment, token), ok("{}"));
+    inMemoryHttp.stub(server.getPushSubmissionRequest(token, submissionMetadata.getKey().getFormId(), submissionMetadata.getSubmissionFile()), ok("{}"));
+    inMemoryHttp.stub(server.getPushSubmissionAttachmentRequest(token, submissionMetadata.getKey().getFormId(), instanceId, submissionAttachment), ok("{}"));
 
     launchSync(pushOp.push(formMetadata));
 
@@ -196,11 +197,11 @@ public class PushToCentralTest {
   @Test
   public void knows_how_to_push_completely_a_form_when_the_form_exists_in_Central() {
     // High-level test that drives the public push operation
-    inMemoryHttp.stub(server.getFormExistsRequest(submission.getKey().getFormId(), token), ok(listOfFormsResponseFromCentral(formMetadata)));
+    inMemoryHttp.stub(server.getFormExistsRequest(submissionMetadata.getKey().getFormId(), token), ok(listOfFormsResponseFromCentral(formMetadata)));
     inMemoryHttp.stub(server.getPushFormRequest(form, token), ok("{\"a\":1}"));
-    inMemoryHttp.stub(server.getPushFormAttachmentRequest(submission.getKey().getFormId(), formAttachment, token), ok("{\"a\":2}"));
-    inMemoryHttp.stub(server.getPushSubmissionRequest(token, submission.getKey().getFormId(), submission.getSubmissionFile()), ok("{\"a\":3}"));
-    inMemoryHttp.stub(server.getPushSubmissionAttachmentRequest(token, submission.getKey().getFormId(), instanceId, submissionAttachment), ok("{\"a\":4}"));
+    inMemoryHttp.stub(server.getPushFormAttachmentRequest(submissionMetadata.getKey().getFormId(), formAttachment, token), ok("{\"a\":2}"));
+    inMemoryHttp.stub(server.getPushSubmissionRequest(token, submissionMetadata.getKey().getFormId(), submissionMetadata.getSubmissionFile()), ok("{\"a\":3}"));
+    inMemoryHttp.stub(server.getPushSubmissionAttachmentRequest(token, submissionMetadata.getKey().getFormId(), instanceId, submissionAttachment), ok("{\"a\":4}"));
 
     launchSync(pushOp.push(formMetadata));
 

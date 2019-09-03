@@ -102,12 +102,11 @@ public class PullFromAggregate {
 
     org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate pullOp = new org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate(workspace, aggregateServer, includeIncomplete, PullFromAggregate::onEvent);
     JobsRunner.launchAsync(
-        forms.map(formMetadata -> pullOp.pull(formMetadata, resolveCursor(
-            resumeLastPull,
-            startFromDate,
+        forms.map(formMetadata -> pullOp.pull(
             formMetadata,
-            workspace
-        ))),
+            workspace.buildFormFile(formMetadata),
+            resolveCursor(resumeLastPull, startFromDate, formMetadata, workspace)
+        )),
         PullFromAggregate::onError
     ).waitForCompletion();
     System.out.println();

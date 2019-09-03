@@ -26,6 +26,9 @@ import static org.javarosa.core.model.DataType.GEOTRACE;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -44,8 +47,11 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.javarosa.core.model.DataType;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.api.Pair;
+import org.opendatakit.briefcase.reused.api.UncheckedFiles;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormModel;
 import org.opendatakit.briefcase.reused.model.form.ModelBuilder;
@@ -55,6 +61,20 @@ import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 import org.xmlpull.v1.XmlPullParserException;
 
 public class GeoJsonTest {
+  private Path formDir;
+  private Path submissionFile;
+
+  @Before
+  public void setUp() throws IOException {
+    formDir = Files.createTempDirectory("briefcase-form-");
+    submissionFile = formDir.resolve("instances/uuid39f3dd36-161e-45cb-a1a4-395831d253a7/submission.xml");
+    Files.createDirectories(submissionFile.getParent());
+  }
+
+  @After
+  public void tearDown() {
+    UncheckedFiles.deleteRecursive(formDir);
+  }
 
   @Test
   public void transforms_a_submission_to_a_feature_list() throws IOException, XmlPullParserException {
@@ -144,7 +164,7 @@ public class GeoJsonTest {
   }
 
   @SafeVarargs
-  private static List<Feature> getFeatures(Pair<DataType, String>... contents) throws XmlPullParserException, IOException {
+  private List<Feature> getFeatures(Pair<DataType, String>... contents) throws XmlPullParserException, IOException {
     AtomicInteger seq = new AtomicInteger(1);
     List<Pair<ModelBuilder, String>> fieldsAndContents = Stream.of(contents).map(pair1 -> {
       String fieldName1 = "some-field-" + seq.getAndIncrement();
@@ -156,14 +176,16 @@ public class GeoJsonTest {
 
     FormModel model = ModelBuilder.instance(fieldsAndContents.stream().map(Pair::getLeft).collect(toList())).build();
 
-    StringBuilder xml = new StringBuilder("<data instanceID=\"uuid:39f3dd36-161e-45cb-a1a4-395831d253a7\">");
-    fieldsAndContents.forEach(pair -> xml
+    StringBuilder xmlBuilder = new StringBuilder("<data instanceID=\"uuid:39f3dd36-161e-45cb-a1a4-395831d253a7\">");
+    fieldsAndContents.forEach(pair -> xmlBuilder
         .append("<").append(pair.getLeft().getName()).append(">")
         .append(pair.getRight())
         .append("</").append(pair.getLeft().getName()).append(">"));
-    xml.append("</data>");
+    xmlBuilder.append("</data>");
 
-    XmlElement root = ModelBuilder.parseXmlElement(xml.toString());
+    String xml = xmlBuilder.toString();
+    Files.write(submissionFile, xml.getBytes(), StandardOpenOption.CREATE);
+    XmlElement root = ModelBuilder.parseXmlElement(xml);
     ParsedSubmission submission = ParsedSubmission.plain(
         new SubmissionMetadata(
             new SubmissionKey(
@@ -171,7 +193,7 @@ public class GeoJsonTest {
                 Optional.empty(),
                 "uuid:39f3dd36-161e-45cb-a1a4-395831d253a7"
             ),
-            Optional.empty(),
+            Optional.of(submissionFile),
             Optional.empty(),
             Optional.empty(),
             Optional.empty(),

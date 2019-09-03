@@ -51,6 +51,7 @@ import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.model.transfer.TransferTestHelpers;
 
@@ -65,7 +66,7 @@ public class PushToAggregateTest {
   private Path formAttachment;
   private String instanceId = "uuid:520e7b86-1572-45b1-a89e-7da26ad1624e";
   private Path submissionAttachment;
-  private Path submission;
+  private SubmissionMetadata submissionMetadata;
   private FormMetadata formMetadata;
   private Workspace workspace;
 
@@ -80,9 +81,11 @@ public class PushToAggregateTest {
     tracker = new PushToAggregateTracker(this::onEvent, formMetadata);
     form = TransferTestHelpers.installForm(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/push-form-test.xml"));
     formAttachment = TransferTestHelpers.installFormAttachment(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/sparrow.png"));
-    submission = TransferTestHelpers.installSubmission(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/submission.xml"));
     submissionAttachment = TransferTestHelpers.installSubmissionAttachment(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/1556532531101.jpg"), instanceId);
+    submissionMetadata = TransferTestHelpers.installSubmission(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/submission.xml"), submissionAttachment);
 
+    workspace.formMetadata.persist(formMetadata);
+    workspace.submissionMetadata.persist(submissionMetadata);
   }
 
   @After
@@ -146,7 +149,7 @@ public class PushToAggregateTest {
     PushToAggregate pushOp = new PushToAggregate(workspace, server, false, this::onEvent);
 
     RequestSpy<?> requestSpy = http.spyOn(
-        server.getPushSubmissionRequest(submission, singletonList(submissionAttachment)),
+        server.getPushSubmissionRequest(submissionMetadata.getSubmissionFile(), singletonList(submissionAttachment)),
         ok("<root/>")
     );
 
@@ -167,7 +170,7 @@ public class PushToAggregateTest {
 
     http.stub(server.getFormExistsRequest(formMetadata.getKey().getId()), ok(listOfFormsResponseFromAggregate()));
     http.stub(server.getPushFormRequest(form, singletonList(formAttachment)), ok("<root/>"));
-    http.stub(server.getPushSubmissionRequest(submission, singletonList(submissionAttachment)), ok("<root/>"));
+    http.stub(server.getPushSubmissionRequest(submissionMetadata.getSubmissionFile(), singletonList(submissionAttachment)), ok("<root/>"));
 
     launchSync(pushOp.push(formMetadata));
 
@@ -189,7 +192,7 @@ public class PushToAggregateTest {
 
     http.stub(server.getFormExistsRequest(formMetadata.getKey().getId()), ok(listOfFormsResponseFromAggregate(formMetadata)));
     http.stub(server.getPushFormRequest(form, singletonList(formAttachment)), ok("<root/>"));
-    http.stub(server.getPushSubmissionRequest(submission, singletonList(submissionAttachment)), ok("<root/>"));
+    http.stub(server.getPushSubmissionRequest(submissionMetadata.getSubmissionFile(), singletonList(submissionAttachment)), ok("<root/>"));
 
     launchSync(pushOp.push(formMetadata));
 
@@ -211,7 +214,7 @@ public class PushToAggregateTest {
 
     http.stub(server.getFormExistsRequest(formMetadata.getKey().getId()), ok(listOfFormsResponseFromAggregate(formMetadata)));
     http.stub(server.getPushFormRequest(form, singletonList(formAttachment)), ok("<root/>"));
-    http.stub(server.getPushSubmissionRequest(submission, singletonList(submissionAttachment)), ok("<root/>"));
+    http.stub(server.getPushSubmissionRequest(submissionMetadata.getSubmissionFile(), singletonList(submissionAttachment)), ok("<root/>"));
 
     launchSync(pushOp.push(formMetadata));
 

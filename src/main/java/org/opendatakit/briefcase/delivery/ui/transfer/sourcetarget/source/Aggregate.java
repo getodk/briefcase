@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source;
 
-import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.makeClickable;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.uncheckedBrowse;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataQueries.lastCursorOf;
@@ -80,10 +79,7 @@ public class Aggregate implements PullSource<AggregateServer> {
   @Override
   public List<FormMetadata> getFormList() {
     return http.execute(server.getFormListRequest())
-        .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"))
-        .stream()
-        .map(formMetadata -> formMetadata.withFormFile(workspace.buildFormFile(formMetadata)))
-        .collect(toList());
+        .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"));
   }
 
   @Override
@@ -94,9 +90,10 @@ public class Aggregate implements PullSource<AggregateServer> {
   @Override
   public JobsRunner pull(TransferForms forms, boolean startFromLast) {
     PullFromAggregate pullOp = new PullFromAggregate(workspace, server, false, EventBus::publish);
-    return JobsRunner.launchAsync(forms.map(form -> pullOp.pull(
-        form,
-        startFromLast ? workspace.formMetadata.query(lastCursorOf(form.getKey())) : Optional.empty()
+    return JobsRunner.launchAsync(forms.map(formMetadata -> pullOp.pull(
+        formMetadata,
+        workspace.buildFormFile(formMetadata),
+        startFromLast ? workspace.formMetadata.query(lastCursorOf(formMetadata.getKey())) : Optional.empty()
     ))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 

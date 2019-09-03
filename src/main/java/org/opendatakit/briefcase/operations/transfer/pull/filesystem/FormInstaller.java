@@ -84,7 +84,7 @@ public class FormInstaller {
       AtomicInteger attachmentSeq = new AtomicInteger(1);
 
       attachments.forEach(attachment -> {
-        copy(attachment, formMetadata.getSubmissionMediaFile(instanceId, attachment.getFileName().toString()));
+        copy(attachment, formMetadata.getSubmissionAttachmentFile(instanceId, attachment.getFileName().toString()));
         tracker.trackSubmissionAttachmentInstalled(submissionNumber, totalSubmissions, attachmentSeq.getAndIncrement(), totalAttachments);
       });
 

@@ -1,0 +1,14 @@
+<data id="encrypted-media-form" encrypted="yes" instanceID="uuid:312799d4-a69a-4543-9007-c26e051ded7e" submissionDate="2019-09-10T09:12:21.954Z" isComplete="true" markedAsCompleteDate="2019-09-10T09:12:21.954Z" xmlns="http://opendatakit.org/submissions">
+  <base64EncryptedKey>Bxevakhv1Dkzh3IT9BcReNfRkPyT9QXQ77ljXTLXIDYNkQtju1lypOObBtgYT4fp59Jq2utnsPrUDqlmKtFFgwOIumwpGGPizWPiV8gmFlAFL/RrdHbWD7Pr/nDCm3i6wfyT/Nic0W5MUpEt7PiVntJ5S2sUnV6pd/rEea5KHqiAv+pueNMVdG8NuUz2yYLtdlxmkGXEoL9zezb+QCPmCH9u2NuK5Fc6PiwEIt9clKQgNijc6zIYo7YHFfdmLwta+19329Ghpl1H8HofPIerYu7KbPPne5voCwaoyglS1D7y8NyiY4h/4hbCM/LSHxs/TaSedyD/vt+IKNFrVo02Ig==</base64EncryptedKey>
+  <n0:meta xmlns:n0="http://openrosa.org/xforms">
+    <n0:instanceID>uuid:312799d4-a69a-4543-9007-c26e051ded7e</n0:instanceID>
+  </n0:meta>
+  <media>
+    <file>1568106703399.jpg.enc</file>
+  </media>
+  <media>
+    <file>1568106729545.jpg.enc</file>
+  </media>
+  <encryptedXmlFile>submission.xml.enc</encryptedXmlFile>
+  <base64EncryptedElementSignature>Ph38zp4mB4AFea0Z4i0gl0YZYeaYSTodiHwE49ecs3o+zx86fQVh1Gwdj5R8Tx1aknyDPyCpJ2Y+z29mh7duwVuxP3MaAZXUfkbPHkx6wQOTMXabLjtYZyR/Orcft4lfL1VSIApe1M6QwuXt4d9ImvFSRlNbIyY+UcMEVAJeGQNITFg1ULet0bAHhVF06Lo5NoB6Yw0sW+fgVlhQ5k3htzD7UqhhOuAmsbFehpkuzRegodFogQ2HJiZTEQClKuqdzwVrX2bNLOY5tlCArdllC3Nsn1UxUb6n1zmycf3z52CPslPgAvEvUAqVmc3uUFzJVsBBWZ0wSmxv9QxZaT6xNA==</base64EncryptedElementSignature>
+</data>

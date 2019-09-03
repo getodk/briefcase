@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.operations.transfer.pull.aggregate;
 
 import static java.nio.file.Files.readAllBytes;
+import static java.nio.file.Files.readAllLines;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
@@ -34,6 +35,7 @@ import static org.opendatakit.briefcase.reused.model.transfer.TransferTestHelper
 import static org.opendatakit.briefcase.reused.model.transfer.TransferTestHelpers.buildManifestXml;
 import static org.opendatakit.briefcase.reused.model.transfer.TransferTestHelpers.buildMediaFiles;
 import static org.opendatakit.briefcase.reused.model.transfer.TransferTestHelpers.generatePages;
+import static org.opendatakit.briefcase.reused.model.transfer.TransferTestHelpers.getResourcePath;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -94,13 +96,13 @@ public class PullFromAggregateTest {
 
   @Test
   public void knows_how_to_download_a_form() throws IOException {
-    String expectedContent = "form content - won't be parsed";
+    String expectedContent = String.join("\n", readAllLines(getResourcePath("some-form.xml")));
     inMemoryHttp.stub(
         server.getDownloadFormRequest(formMetadata.getKey().getId()),
         ok(expectedContent)
     );
 
-    pullOp.downloadForm(formMetadata, runnerStatus, tracker);
+    pullOp.downloadForm(formMetadata, formMetadata.getFormFile(), runnerStatus, tracker);
 
     Path actualFormFile = formMetadata.getFormFile();
     assertThat(actualFormFile, PathMatchers.exists());
@@ -139,7 +141,7 @@ public class PullFromAggregateTest {
     attachments.forEach(attachment -> inMemoryHttp.stub(get(attachment.getDownloadUrl()).build(), ok("some body")));
 
     AtomicInteger seq = new AtomicInteger(1);
-    attachments.forEach(attachment -> pullOp.downloadFormAttachment(formMetadata, attachment, runnerStatus, tracker, seq.getAndIncrement(), 3));
+    attachments.forEach(attachment -> pullOp.downloadFormAttachment(attachment, formMetadata.getFormMediaFile(attachment.getFilename()), runnerStatus, tracker, seq.getAndIncrement(), 3));
 
     attachments.forEach(attachment -> assertThat(formMetadata.getFormMediaFile(attachment.getFilename()), PathMatchers.exists()));
 
@@ -161,7 +163,7 @@ public class PullFromAggregateTest {
     String key = subKeyGen.buildKey(instanceId);
     inMemoryHttp.stub(server.getDownloadSubmissionRequest(key), ok(expectedContent));
 
-    DownloadedSubmission actualSubmission = pullOp.downloadSubmission(formMetadata, instanceId, subKeyGen, runnerStatus, tracker, 1, 1);
+    DownloadedSubmission actualSubmission = pullOp.downloadSubmission(instanceId, formMetadata.getSubmissionFile(instanceId), subKeyGen, runnerStatus, tracker, 1, 1);
 
     assertThat(formMetadata.getSubmissionFile(actualSubmission.getInstanceId()), PathMatchers.exists());
     // There's no easy way to assert the submission's contents because the document we stub
@@ -192,9 +194,9 @@ public class PullFromAggregateTest {
     attachments.forEach(attachment -> inMemoryHttp.stub(get(attachment.getDownloadUrl()).build(), ok("some body")));
 
     AtomicInteger seq = new AtomicInteger(1);
-    attachments.forEach(attachment -> pullOp.downloadSubmissionAttachment(formMetadata, submission, attachment, runnerStatus, tracker, 1, 1, seq.getAndIncrement(), 3));
+    attachments.forEach(attachment -> pullOp.downloadSubmissionAttachment(attachment, formMetadata.getSubmissionAttachmentFile(submission.getInstanceId(), attachment.getFilename()), runnerStatus, tracker, 1, 1, seq.getAndIncrement(), 3));
 
-    attachments.forEach(attachment -> assertThat(formMetadata.getSubmissionMediaFile(instanceId, attachment.getFilename()), PathMatchers.exists()));
+    attachments.forEach(attachment -> assertThat(formMetadata.getSubmissionAttachmentFile(instanceId, attachment.getFilename()), PathMatchers.exists()));
 
     assertThat(events, contains(
         "Start downloading attachment 1 of 3 of submission 1 of 1",
@@ -229,7 +231,7 @@ public class PullFromAggregateTest {
         ok(pages.get(1).getLeft())
     );
 
-    pullOp.getSubmissionIds(formMetadata, cursor, runnerStatus, tracker);
+    pullOp.getSubmissionIds(formMetadata.getKey().getId(), cursor, runnerStatus, tracker);
     assertThat(request1Spy, not(hasBeenCalled()));
     assertThat(request2Spy, hasBeenCalled());
   }

@@ -20,7 +20,6 @@ import static java.nio.file.Files.copy;
 import static java.nio.file.Files.createDirectories;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.reused.api.UncheckedFiles.readAllBytes;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.toURI;
 
 import java.io.IOException;
@@ -28,6 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -38,9 +38,8 @@ import java.util.stream.Stream;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.AggregateAttachment;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.api.Pair;
-import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionKey;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 
 public class TransferTestHelpers {
   public static String buildSubmissionXml(String instanceId) {
@@ -257,16 +256,20 @@ public class TransferTestHelpers {
     return copy(source, formMetadata.getFormMediaFile(source.getFileName().toString()));
   }
 
-  public static Path installSubmission(FormMetadata formMetadata, Path source) throws IOException {
-    String instanceId = SubmissionKey.extractInstanceId(XmlElement.from(new String(readAllBytes(source)))).orElseThrow(RuntimeException::new);
-    Path submissionDir = formMetadata.getSubmissionDir(instanceId);
-    createDirectories(submissionDir);
-    return copy(source, formMetadata.getSubmissionFile(instanceId));
+  public static SubmissionMetadata installSubmission(FormMetadata formMetadata, Path source, Path attachmentFile) throws IOException {
+    SubmissionMetadata sourceSubmissionMetadata = SubmissionMetadata.from(source, Collections.singletonList(attachmentFile));
+    SubmissionMetadata targetSubmissionMetadata = sourceSubmissionMetadata.withSubmissionFile(formMetadata.getSubmissionFile(sourceSubmissionMetadata.getKey().getInstanceId()));
+    createDirectories(targetSubmissionMetadata.getSubmissionDir());
+    copy(
+        sourceSubmissionMetadata.getSubmissionFile(),
+        targetSubmissionMetadata.getSubmissionFile()
+    );
+    return targetSubmissionMetadata;
   }
 
   public static Path installSubmissionAttachment(FormMetadata formMetadata, Path source, String instanceId) throws IOException {
     createDirectories(formMetadata.getSubmissionMediaDir(instanceId));
-    return copy(source, formMetadata.getSubmissionMediaFile(instanceId, source.getFileName().toString()));
+    return copy(source, formMetadata.getSubmissionAttachmentFile(instanceId, source.getFileName().toString()));
   }
 
   public static Path getResourcePath(String filename) {

@@ -179,7 +179,9 @@ public class ExportPanel {
       Job<Void> pullJob = configuration.resolvePullBefore() && savedPullSource.isPresent()
           ? new PullFromAggregate(workspace, savedPullSource.get(), false, EventBus::publish)
           .pull(
-              formMetadata, appPreferences.resolveStartFromLast()
+              formMetadata,
+              formMetadata.getFormFile(),
+              appPreferences.resolveStartFromLast()
                   ? Optional.of(formMetadata.getCursor())
                   : Optional.empty()
           )

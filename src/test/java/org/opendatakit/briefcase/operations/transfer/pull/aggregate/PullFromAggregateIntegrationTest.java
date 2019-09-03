@@ -25,7 +25,6 @@ import static com.github.dreamhead.moco.Moco.uri;
 import static com.github.dreamhead.moco.Runner.running;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -152,25 +151,23 @@ public class PullFromAggregateIntegrationTest {
     ));
 
     // Run the pull operation and just check that some key events are published
-    running(server, () -> launchSync(pullOp.pull(formMetadata, Optional.empty())));
+    running(server, () -> launchSync(pullOp.pull(formMetadata, formMetadata.getFormFile(), Optional.empty())));
 
     // Assert that pulling the form works indirectly by going through the status changes of the form
-    assertThat(events, allOf(
-        hasItem("Form downloaded"),
-        hasItem("Start downloading form attachment 1 of 2"),
-        hasItem("Start downloading form attachment 2 of 2"),
-        hasItem("Form attachment 1 of 2 downloaded"),
-        hasItem("Form attachment 2 of 2 downloaded"),
-        hasItem("Start downloading submission 1 of 250"),
-        hasItem("Submission 1 of 250 downloaded"),
-        hasItem("Attachment 1 of 2 of submission 1 of 250 downloaded"),
-        hasItem("Attachment 2 of 2 of submission 1 of 250 downloaded"),
-        hasItem("Start downloading submission 250 of 250"),
-        hasItem("Submission 250 of 250 downloaded"),
-        hasItem("Attachment 1 of 2 of submission 250 of 250 downloaded"),
-        hasItem("Attachment 2 of 2 of submission 250 of 250 downloaded"),
-        hasItem("Success")
-    ));
+    assertThat(events, hasItem("Form downloaded"));
+    assertThat(events, hasItem("Start downloading form attachment 1 of 2"));
+    assertThat(events, hasItem("Start downloading form attachment 2 of 2"));
+    assertThat(events, hasItem("Form attachment 1 of 2 downloaded"));
+    assertThat(events, hasItem("Form attachment 2 of 2 downloaded"));
+    assertThat(events, hasItem("Start downloading submission 1 of 250"));
+    assertThat(events, hasItem("Submission 1 of 250 downloaded"));
+    assertThat(events, hasItem("Attachment 1 of 2 of submission 1 of 250 downloaded"));
+    assertThat(events, hasItem("Attachment 2 of 2 of submission 1 of 250 downloaded"));
+    assertThat(events, hasItem("Start downloading submission 250 of 250"));
+    assertThat(events, hasItem("Submission 250 of 250 downloaded"));
+    assertThat(events, hasItem("Attachment 1 of 2 of submission 250 of 250 downloaded"));
+    assertThat(events, hasItem("Attachment 2 of 2 of submission 250 of 250 downloaded"));
+    assertThat(events, hasItem("Success"));
 
     // Assert that the last pull cursor gets saved
 
@@ -192,7 +189,7 @@ public class PullFromAggregateIntegrationTest {
         ));
 
     running(server, () -> {
-      List<InstanceIdBatch> submissionBatches = pullOp.getSubmissionIds(formMetadata, Cursor.empty(), runnerStatus, tracker);
+      List<InstanceIdBatch> submissionBatches = pullOp.getSubmissionIds(formMetadata.getKey().getId(), Cursor.empty(), runnerStatus, tracker);
       int total = submissionBatches.stream().map(InstanceIdBatch::count).reduce(0, Integer::sum);
       assertThat(submissionBatches, hasSize(4));
       assertThat(total, is(250));
@@ -211,7 +208,7 @@ public class PullFromAggregateIntegrationTest {
         ));
 
     running(server, () -> {
-      List<InstanceIdBatch> submissions = pullOp.getSubmissionIds(formMetadata, Cursor.empty(), runnerStatus, tracker);
+      List<InstanceIdBatch> submissions = pullOp.getSubmissionIds(formMetadata.getKey().getId(), Cursor.empty(), runnerStatus, tracker);
       Cursor lastCursor = PullFromAggregate.getLastCursor(submissions).orElse(Cursor.empty());
       assertThat(lastCursor, is(pages.get(3).getRight()));
     });

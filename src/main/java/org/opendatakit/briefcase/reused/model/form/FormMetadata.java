@@ -150,7 +150,7 @@ public class FormMetadata {
     return getSubmissionDir(instanceId);
   }
 
-  public Path getSubmissionMediaFile(String instanceId, String filename) {
+  public Path getSubmissionAttachmentFile(String instanceId, String filename) {
     return getSubmissionDir(instanceId).resolve(filename);
   }
 

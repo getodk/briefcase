@@ -72,7 +72,7 @@ public class PushToCentral {
 
     return startTrackingJob
         .thenRun(rs -> {
-          if (checkFormExists(formMetadata, rs, tracker) && pushForm(formMetadata, rs, tracker)) {
+          if (!checkFormExists(formMetadata, rs, tracker) && pushForm(formMetadata, rs, tracker)) {
             List<Path> formAttachments = getFormAttachments(formMetadata);
             AtomicInteger attachmentSeq = new AtomicInteger(1);
             int totalAttachments = formAttachments.size();
