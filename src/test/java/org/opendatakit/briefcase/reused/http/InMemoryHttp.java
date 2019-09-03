@@ -25,7 +25,7 @@ import java.util.function.Function;
 import org.apache.http.HttpHost;
 import org.opendatakit.briefcase.reused.http.response.Response;
 
-public class FakeHttp implements Http {
+public class InMemoryHttp implements Http {
   private final List<FakeHttpHandler<?>> handlers = new ArrayList<>();
 
   public void stub(Request<?> request, Response<InputStream> stub) {
@@ -52,6 +52,11 @@ public class FakeHttp implements Http {
 
   @Override
   public void unsetProxy() {
+
+  }
+
+  @Override
+  public void setMaxHttpConnections(int maxHttpConnections) {
 
   }
 

@@ -38,41 +38,35 @@ import org.opendatakit.briefcase.operations.export.ExportToCsv;
 import org.opendatakit.briefcase.operations.export.ExportToGeoJson;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate;
-import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 
 public class ExportPanel {
   public static final String TAB_NAME = "Export";
 
+  private final Workspace workspace;
   private final ExportForms forms;
   private final ExportPanelForm form;
   private final BriefcasePreferences appPreferences;
   private final BriefcasePreferences exportPreferences;
   private final BriefcasePreferences pullPanelPrefs;
   private final Analytics analytics;
-  private final Http http;
-  private final FormMetadataPort formMetadataPort;
-  private final SubmissionMetadataPort submissionMetadataPort;
 
-  ExportPanel(ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences exportPreferences, BriefcasePreferences pullPanelPrefs, Analytics analytics, Http http, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  ExportPanel(Workspace workspace, ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences exportPreferences, BriefcasePreferences pullPanelPrefs, Analytics analytics) {
+    this.workspace = workspace;
     this.forms = forms;
     this.form = form;
     this.appPreferences = appPreferences;
     this.exportPreferences = exportPreferences;
     this.pullPanelPrefs = pullPanelPrefs;
     this.analytics = analytics;
-    this.http = http;
-    this.formMetadataPort = formMetadataPort;
-    this.submissionMetadataPort = submissionMetadataPort;
     AnnotationProcessor.process(this);// if not using AOP
     analytics.register(form.getContainer());
 
@@ -151,25 +145,23 @@ public class ExportPanel {
     }
   }
 
-  public static ExportPanel from(BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics, Http http, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  public static ExportPanel from(Workspace workspace, BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics) {
     ExportConfiguration initialDefaultConf = load(exportPreferences);
-    ExportForms forms = ExportForms.load(initialDefaultConf, formMetadataPort.fetchAll().collect(toList()), exportPreferences);
+    ExportForms forms = ExportForms.load(initialDefaultConf, workspace.formMetadata.fetchAll().collect(toList()), exportPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, pullPrefs, initialDefaultConf);
     return new ExportPanel(
+        workspace,
         forms,
         form,
         appPreferences,
         exportPreferences,
         pullPrefs,
-        analytics,
-        http,
-        formMetadataPort,
-        submissionMetadataPort
+        analytics
     );
   }
 
   void updateForms() {
-    forms.merge(formMetadataPort.fetchAll().collect(toList()));
+    forms.merge(workspace.formMetadata.fetchAll().collect(toList()));
     form.refresh();
   }
 
@@ -185,7 +177,7 @@ public class ExportPanel {
       Optional<AggregateServer> savedPullSource = RemoteServer.readFromPrefs(appPreferences, pullPanelPrefs, formMetadata.getKey());
 
       Job<Void> pullJob = configuration.resolvePullBefore() && savedPullSource.isPresent()
-          ? new PullFromAggregate(http, formMetadataPort, submissionMetadataPort, savedPullSource.get(), false, EventBus::publish)
+          ? new PullFromAggregate(workspace, savedPullSource.get(), false, EventBus::publish)
           .pull(
               formMetadata, appPreferences.resolveStartFromLast()
                   ? Optional.of(formMetadata.getCursor())
@@ -193,10 +185,10 @@ public class ExportPanel {
           )
           : Job.noOpSupplier();
 
-      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadataPort, submissionMetadataPort, formMetadata, formDef, configuration, analytics));
+      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(workspace, formMetadata, formDef, configuration, analytics));
 
       Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
-          ? Job.run(runnerStatus -> ExportToGeoJson.export(submissionMetadataPort, formMetadata, formDef, configuration))
+          ? Job.run(runnerStatus -> ExportToGeoJson.export(workspace, formMetadata, formDef, configuration))
           : Job.noOp;
 
       return pullJob

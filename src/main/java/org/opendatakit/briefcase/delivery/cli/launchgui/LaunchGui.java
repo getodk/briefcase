@@ -24,14 +24,12 @@ import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
 import org.opendatakit.briefcase.reused.cli.Param;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 
 
 public class LaunchGui {
   private static final Param<Void> LAUNCH_GUI_FLAG = Param.flag("gui", "gui", "Launch GUI");
 
-  public static Operation create(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  public static Operation create(Workspace workspace) {
     return new OperationBuilder()
         .withFlag(LAUNCH_GUI_FLAG)
         .withOptionalParams(WORKSPACE_LOCATION)
@@ -46,11 +44,11 @@ public class LaunchGui {
               );
             }).open();
         })
-        .withLauncher(__ -> launchGui(workspace, formMetadataPort, submissionMetadataPort))
+        .withLauncher(__ -> launchGui(workspace))
         .build();
   }
 
-  private static void launchGui(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
-    MainBriefcaseWindow.launchGUI(workspace, formMetadataPort, submissionMetadataPort);
+  private static void launchGui(Workspace workspace) {
+    MainBriefcaseWindow.launchGUI(workspace);
   }
 }

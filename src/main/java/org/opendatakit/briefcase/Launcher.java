@@ -19,8 +19,10 @@ import static java.lang.Boolean.TRUE;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.SENTRY_DSN;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.SENTRY_ENABLED;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
+import static org.opendatakit.briefcase.delivery.cli.Common.MAX_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
+import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.reused.model.Host.getOsName;
 import static org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY;
 
@@ -28,7 +30,7 @@ import io.sentry.Sentry;
 import io.sentry.SentryClient;
 import java.nio.file.Path;
 import java.util.Optional;
-import org.flywaydb.core.Flyway;
+import java.util.prefs.Preferences;
 import org.opendatakit.briefcase.delivery.cli.ClearPreferences;
 import org.opendatakit.briefcase.delivery.cli.Export;
 import org.opendatakit.briefcase.delivery.cli.PullFromAggregate;
@@ -38,14 +40,16 @@ import org.opendatakit.briefcase.delivery.cli.PushToAggregate;
 import org.opendatakit.briefcase.delivery.cli.PushToCentral;
 import org.opendatakit.briefcase.delivery.cli.launchgui.LaunchGui;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.BriefcaseVersionManager;
 import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.api.Optionals;
 import org.opendatakit.briefcase.reused.cli.Cli;
 import org.opendatakit.briefcase.reused.db.BriefcaseDb;
+import org.opendatakit.briefcase.reused.http.CommonsHttp;
+import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.model.form.DatabaseFormMetadataAdapter;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.submission.DatabaseSubmissionMetadataAdapter;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,29 +70,32 @@ public class Launcher {
     Optional<SentryClient> sentry = SENTRY_ENABLED ? Optional.of(initSentryClient(appPreferences)) : Optional.empty();
 
     BriefcaseDb db = BriefcaseDb.create();
-    // TODO Bunch these up in a dependency injection container
-    FormMetadataPort formMetadataPort = new DatabaseFormMetadataAdapter(db::getDslContext);
-    SubmissionMetadataPort submissionMetadataPort = new DatabaseSubmissionMetadataAdapter(db::getDslContext);
-    Workspace workspace = Workspace.empty()
-        .onStart(workspaceLocation -> {
-          db.startAt(workspaceLocation);
-          Flyway.configure().locations("db/migration")
-              .dataSource(db.getDsn(), db.getUser(), db.getPassword()).validateOnMigrate(false)
-              .load().migrate();
-        })
-        .onStop(db::stop);
-
+    Http http = CommonsHttp.of(DEFAULT_HTTP_CONNECTIONS, appPreferences.getHttpProxy());
+    Workspace workspace = Workspace.with(
+        http,
+        new BriefcaseVersionManager(http, VERSION),
+        Preferences.userNodeForPackage(Workspace.class),
+        db,
+        DatabaseFormMetadataAdapter.from(db),
+        DatabaseSubmissionMetadataAdapter.from(db)
+    );
 
     new Cli()
-        .register(PullFromAggregate.create(workspace, formMetadataPort, submissionMetadataPort))
-        .register(PullFromCentral.create(workspace, formMetadataPort, submissionMetadataPort))
-        .register(PushToAggregate.create(formMetadataPort))
-        .register(PushToCentral.create(formMetadataPort, submissionMetadataPort))
-        .register(PullFromCollect.create(workspace, formMetadataPort, submissionMetadataPort))
-        .register(Export.create(formMetadataPort, submissionMetadataPort))
+        .register(PullFromAggregate.create(workspace))
+        .register(PullFromCentral.create(workspace))
+        .register(PushToAggregate.create(workspace))
+        .register(PushToCentral.create(workspace))
+        .register(PullFromCollect.create(workspace))
+        .register(Export.create(workspace))
         .register(ClearPreferences.create())
-        .registerDefault(LaunchGui.create(workspace, formMetadataPort, submissionMetadataPort))
-        .before(args -> args.getOptional(WORKSPACE_LOCATION).ifPresent(workspace::startAt))
+        .registerDefault(LaunchGui.create(workspace))
+        .before(args -> {
+          args.getOptional(WORKSPACE_LOCATION).ifPresent(workspace::startAt);
+          workspace.http.setMaxHttpConnections(Optionals.race(
+              args.getOptional(MAX_HTTP_CONNECTIONS),
+              appPreferences.getMaxHttpConnections()
+          ).orElse(DEFAULT_HTTP_CONNECTIONS));
+        })
         .onError(throwable -> {
           System.err.println(throwable instanceof BriefcaseException
               ? "Error: " + throwable.getMessage()

@@ -5,7 +5,7 @@
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * workspace.http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
@@ -29,8 +29,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.operations.transfer.push.PushEvent;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.api.UncheckedFiles;
-import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.RunnerStatus;
@@ -41,13 +41,13 @@ import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 
 public class PushToAggregate {
   private static final int BYTES_IN_ONE_MEGABYTE = 1_048_576;
-  private final Http http;
+  private final Workspace workspace;
   private final AggregateServer server;
   private final boolean forceSendForm;
   private final Consumer<FormStatusEvent> onEventCallback;
 
-  public PushToAggregate(Http http, AggregateServer server, boolean forceSendForm, Consumer<FormStatusEvent> onEventCallback) {
-    this.http = http;
+  public PushToAggregate(Workspace workspace, AggregateServer server, boolean forceSendForm, Consumer<FormStatusEvent> onEventCallback) {
+    this.workspace = workspace;
     this.server = server;
     this.forceSendForm = forceSendForm;
     this.onEventCallback = onEventCallback;
@@ -140,7 +140,7 @@ public class PushToAggregate {
       return false;
     }
 
-    Response<Boolean> response = http.execute(server.getFormExistsRequest(formMetadata.getKey().getId()));
+    Response<Boolean> response = workspace.http.execute(server.getFormExistsRequest(formMetadata.getKey().getId()));
     if (!response.isSuccess()) {
       tracker.trackErrorCheckingForm(response);
       return false;
@@ -162,7 +162,7 @@ public class PushToAggregate {
     }
 
     tracker.trackStartSendingFormAndAttachments(part, parts);
-    Response response = http.execute(server.getPushFormRequest(formMetadata.getFormFile(), attachments));
+    Response response = workspace.http.execute(server.getPushFormRequest(formMetadata.getFormFile(), attachments));
     if (response.isSuccess())
       tracker.trackEndSendingFormAndAttachments(part, parts);
     else
@@ -180,7 +180,7 @@ public class PushToAggregate {
     }
 
     tracker.trackStartSendingSubmissionAndAttachments(submissionNumber, totalSubmissions, part, parts);
-    Response<XmlElement> response = http.execute(server.getPushSubmissionRequest(
+    Response<XmlElement> response = workspace.http.execute(server.getPushSubmissionRequest(
         submissionFile,
         attachments
     ));

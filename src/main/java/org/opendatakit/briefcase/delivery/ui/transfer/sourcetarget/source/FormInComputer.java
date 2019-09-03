@@ -37,9 +37,7 @@ import org.opendatakit.briefcase.operations.transfer.pull.filesystem.PullFormDef
 import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 
 /**
  * Represents a filesystem location pointing to a form file as a source of forms for the Pull UI Panel.
@@ -94,8 +92,8 @@ public class FormInComputer implements PullSource<FormMetadata> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
-    PullFormDefinition pullOp = new PullFormDefinition(formMetadataPort, EventBus::publish);
+  public JobsRunner pull(TransferForms forms, boolean startFromLast) {
+    PullFormDefinition pullOp = new PullFormDefinition(workspace, EventBus::publish);
     return JobsRunner.launchAsync(pullOp.pull(
         sourceFormMetadata,
         sourceFormMetadata.withFormFile(workspace.buildFormFile(sourceFormMetadata))

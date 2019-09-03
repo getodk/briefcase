@@ -7,7 +7,7 @@ import static org.opendatakit.briefcase.reused.http.RequestBuilder.get;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
 import org.junit.Test;
-import org.opendatakit.briefcase.reused.http.FakeHttp;
+import org.opendatakit.briefcase.reused.http.InMemoryHttp;
 import org.opendatakit.briefcase.reused.http.response.ResponseHelpers;
 
 public class BriefcaseVersionManagerTest {
@@ -18,7 +18,7 @@ public class BriefcaseVersionManagerTest {
 
   @Test
   public void knows_to_get_the_latest_available_version() {
-    FakeHttp http = new FakeHttp();
+    InMemoryHttp http = new InMemoryHttp();
 
     http.stub(
         get(url("https://api.github.com/repos/opendatakit/briefcase/releases/latest")).build(),
@@ -32,7 +32,7 @@ public class BriefcaseVersionManagerTest {
 
   @Test
   public void knows_if_we_are_up_to_date() {
-    FakeHttp http = new FakeHttp();
+    InMemoryHttp http = new InMemoryHttp();
 
     http.stub(
         get(url("https://api.github.com/repos/opendatakit/briefcase/releases/latest")).build(),
@@ -46,7 +46,7 @@ public class BriefcaseVersionManagerTest {
 
   @Test
   public void knows_if_we_are_not_up_to_date() {
-    FakeHttp http = new FakeHttp();
+    InMemoryHttp http = new InMemoryHttp();
 
     http.stub(
         get(url("https://api.github.com/repos/opendatakit/briefcase/releases/latest")).build(),

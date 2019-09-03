@@ -22,13 +22,9 @@ import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.s
 
 import javax.swing.JPanel;
 import org.opendatakit.briefcase.delivery.ui.reused.Analytics;
-import org.opendatakit.briefcase.reused.BriefcaseVersionManager;
 import org.opendatakit.briefcase.reused.Workspace;
-import org.opendatakit.briefcase.reused.http.Http;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataCommands;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 
 public class SettingsPanel {
 
@@ -36,7 +32,7 @@ public class SettingsPanel {
   private final SettingsPanelForm form;
 
   @SuppressWarnings("checkstyle:Indentation")
-  private SettingsPanel(SettingsPanelForm form, BriefcasePreferences appPreferences, Analytics analytics, Http http, BriefcaseVersionManager versionManager, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Workspace workspace) {
+  private SettingsPanel(Workspace workspace, Analytics analytics, BriefcasePreferences appPreferences, SettingsPanelForm form) {
     this.form = form;
 
     appPreferences.getMaxHttpConnections().ifPresent(form::setMaxHttpConnections);
@@ -57,28 +53,28 @@ public class SettingsPanel {
       analytics.enableTracking(enabled, false);
     });
     form.onHttpProxy(proxy -> {
-      http.setProxy(proxy);
+      workspace.http.setProxy(proxy);
       appPreferences.setHttpProxy(proxy);
     }, () -> {
-      http.unsetProxy();
+      workspace.http.unsetProxy();
       appPreferences.unsetHttpProxy();
     });
     form.onReloadCache(() -> {
-      formMetadataPort.execute(syncWithFilesAt(workspace.get()));
-      submissionMetadataPort.execute(SubmissionMetadataCommands.syncSubmissions(formMetadataPort.fetchAll()));
+      workspace.formMetadata.execute(syncWithFilesAt(workspace.get()));
+      workspace.submissionMetadata.execute(SubmissionMetadataCommands.syncSubmissions(workspace.formMetadata.fetchAll()));
       infoMessage("Forms successfully reloaded from storage location.");
     });
     form.onCleanAllPullResumePoints(() -> {
-      formMetadataPort.execute(cleanAllCursors());
+      workspace.formMetadata.execute(cleanAllCursors());
       infoMessage("Pull history cleared.");
     });
 
-    form.setVersion(versionManager.getCurrent());
+    form.setVersion(workspace.versionManager.getCurrent());
   }
 
-  public static SettingsPanel from(BriefcasePreferences appPreferences, Analytics analytics, Http http, BriefcaseVersionManager versionManager, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Workspace workspace) {
+  public static SettingsPanel from(Workspace workspace, Analytics analytics, BriefcasePreferences appPreferences) {
     SettingsPanelForm settingsPanelForm = new SettingsPanelForm();
-    return new SettingsPanel(settingsPanelForm, appPreferences, analytics, http, versionManager, formMetadataPort, submissionMetadataPort, workspace);
+    return new SettingsPanel(workspace, analytics, appPreferences, settingsPanelForm);
   }
 
   public JPanel getContainer() {

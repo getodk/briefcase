@@ -35,6 +35,7 @@ import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.impl.DSL;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.db.BriefcaseDb;
 import org.opendatakit.briefcase.reused.db.jooq.tables.records.SubmissionMetadataRecord;
 import org.opendatakit.briefcase.reused.model.DateRange;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
@@ -52,8 +53,12 @@ public class DatabaseSubmissionMetadataAdapter implements SubmissionMetadataPort
   private final Supplier<DSLContext> dslContextSupplier;
   private Map<String, DSLContext> dslContextCache = new ConcurrentHashMap<>();
 
-  public DatabaseSubmissionMetadataAdapter(Supplier<DSLContext> dslContextSupplier) {
+  private DatabaseSubmissionMetadataAdapter(Supplier<DSLContext> dslContextSupplier) {
     this.dslContextSupplier = dslContextSupplier;
+  }
+
+  public static SubmissionMetadataPort from(BriefcaseDb db) {
+    return new DatabaseSubmissionMetadataAdapter(db::getDslContext);
   }
 
   private DSLContext getDslContext() {

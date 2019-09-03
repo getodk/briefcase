@@ -23,28 +23,21 @@ import static org.opendatakit.briefcase.delivery.cli.Common.MAX_HTTP_CONNECTIONS
 import static org.opendatakit.briefcase.delivery.cli.Common.PROJECT_ID;
 import static org.opendatakit.briefcase.delivery.cli.Common.SERVER_URL;
 import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
-import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
 import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Workspace;
-import org.opendatakit.briefcase.reused.api.Optionals;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
 import org.opendatakit.briefcase.reused.cli.Param;
-import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
-import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,33 +46,24 @@ public class PullFromCentral {
   private static final Logger log = LoggerFactory.getLogger(PullFromCentral.class);
   private static final Param<Void> PULL_FROM_CENTRAL = Param.flag("pllc", "pull_central", "Pull form from a Central server");
 
-  public static Operation create(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  public static Operation create(Workspace workspace) {
     return new OperationBuilder()
         .withFlag(PULL_FROM_CENTRAL)
         .withRequiredParams(WORKSPACE_LOCATION, SERVER_URL, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD)
         .withOptionalParams(FORM_ID, MAX_HTTP_CONNECTIONS)
-        .withLauncher(args -> pullFromCentral(workspace, formMetadataPort, submissionMetadataPort, args))
+        .withLauncher(args -> pullFromCentral(workspace, args))
         .build();
   }
 
-  private static void pullFromCentral(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
+  private static void pullFromCentral(Workspace workspace, Args args) {
     CliEventsCompanion.attach(log);
-    BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
-
-    int maxHttpConnections = Optionals.race(
-        args.getOptional(MAX_HTTP_CONNECTIONS),
-        appPreferences.getMaxHttpConnections()
-    ).orElse(DEFAULT_HTTP_CONNECTIONS);
-    Http http = appPreferences.getHttpProxy()
-        .map(host -> CommonsHttp.of(maxHttpConnections, host))
-        .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
 
     CentralServer server = CentralServer.of(args.get(SERVER_URL), args.get(PROJECT_ID), new Credentials(args.get(CREDENTIALS_EMAIL), args.get(CREDENTIALS_PASSWORD)));
 
-    String token = http.execute(server.getSessionTokenRequest())
+    String token = workspace.http.execute(server.getSessionTokenRequest())
         .orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
 
-    Response<List<FormMetadata>> response = http.execute(server.getFormsListRequest(token));
+    Response<List<FormMetadata>> response = workspace.http.execute(server.getFormsListRequest(token));
     if (!response.isSuccess()) {
       System.err.println(response.isRedirection()
           ? "Error connecting to Central: Redirection detected"
@@ -106,7 +90,7 @@ public class PullFromCentral {
     forms.load(filteredForms);
     forms.selectAll();
 
-    org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral pullOp = new org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral(http, formMetadataPort, submissionMetadataPort, server, token, PullFromCentral::onEvent);
+    org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral pullOp = new org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral(workspace, server, token, PullFromCentral::onEvent);
     JobsRunner.launchAsync(
         forms.map(pullOp::pull),
         PullFromCentral::onError

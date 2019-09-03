@@ -32,23 +32,20 @@ import java.util.List;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 
 public class PullFromCollectDir {
+  private final Workspace workspace;
   private final Consumer<FormStatusEvent> onEventCallback;
-  private final FormMetadataPort formMetadataPort;
-  private final SubmissionMetadataPort submissionMetadataPort;
 
-  public PullFromCollectDir(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Consumer<FormStatusEvent> onEventCallback) {
+  public PullFromCollectDir(Workspace workspace, Consumer<FormStatusEvent> onEventCallback) {
+    this.workspace = workspace;
     this.onEventCallback = onEventCallback;
-    this.formMetadataPort = formMetadataPort;
-    this.submissionMetadataPort = submissionMetadataPort;
   }
 
   public Job<Void> pull(FormMetadata sourceFormMetadata, FormMetadata targetFormMetadata) {
@@ -75,15 +72,15 @@ public class PullFromCollectDir {
 
       List<SubmissionMetadata> submissionsToPull = submissionFiles.stream()
           .map(path -> SubmissionMetadata.from(path, list(path.getParent()).filter(p -> !p.equals(path)).map(Path::getFileName).collect(toList())))
-          .filter(submissionMetadata -> !submissionMetadataPort.hasBeenAlreadyPulled(submissionMetadata.getKey().getFormId(), submissionMetadata.getKey().getInstanceId()))
+          .filter(submissionMetadata -> !workspace.submissionMetadata.hasBeenAlreadyPulled(submissionMetadata.getKey().getFormId(), submissionMetadata.getKey().getInstanceId()))
           .collect(toList());
       int submissionsAlreadyPulled = submissionsWithInstanceId.size() - submissionsToPull.size();
       if (submissionsAlreadyPulled > 0)
         tracker.trackSkippedSubmissionsAlreadyPulled(submissionsAlreadyPulled, totalSubmissions);
 
-      installSubmissions(targetFormMetadata, submissionsToPull, submissionMetadataPort, tracker);
+      installSubmissions(targetFormMetadata, submissionsToPull, workspace.submissionMetadata, tracker);
 
-      formMetadataPort.execute(upsert(targetFormMetadata));
+      workspace.formMetadata.execute(upsert(targetFormMetadata));
       EventBus.publish(PullEvent.Success.of(targetFormMetadata.getKey()));
 
       tracker.trackEnd();

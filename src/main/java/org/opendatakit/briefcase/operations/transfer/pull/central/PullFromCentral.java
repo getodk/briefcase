@@ -5,7 +5,7 @@
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * workspace.http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
@@ -33,34 +33,28 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.api.Triple;
-import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.RunnerStatus;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.CentralAttachment;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 
 public class PullFromCentral {
-  private final Http http;
-  private final FormMetadataPort formMetadataPort;
-  private final SubmissionMetadataPort submissionMetadataPort;
+  private final Workspace workspace;
   private final CentralServer server;
   private final String token;
   private final Consumer<FormStatusEvent> onEventCallback;
 
-  public PullFromCentral(Http http, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, CentralServer server, String token, Consumer<FormStatusEvent> onEventCallback) {
-    this.http = http;
-    this.submissionMetadataPort = submissionMetadataPort;
+  public PullFromCentral(Workspace workspace, CentralServer server, String token, Consumer<FormStatusEvent> onEventCallback) {
+    this.workspace = workspace;
     this.server = server;
     this.token = token;
     this.onEventCallback = onEventCallback;
-    this.formMetadataPort = formMetadataPort;
   }
 
   /**
@@ -93,7 +87,7 @@ public class PullFromCentral {
             tracker.trackNoSubmissions();
 
           submissions.stream()
-              .map(instanceId -> Triple.of(submissionNumber.getAndIncrement(), instanceId, submissionMetadataPort.hasBeenAlreadyPulled(formMetadata.getKey().getId(), instanceId)))
+              .map(instanceId -> Triple.of(submissionNumber.getAndIncrement(), instanceId, workspace.submissionMetadata.hasBeenAlreadyPulled(formMetadata.getKey().getId(), instanceId)))
               .peek(triple -> {
                 if (triple.get3())
                   tracker.trackSubmissionAlreadyDownloaded(triple.get1(), totalSubmissions);
@@ -114,11 +108,11 @@ public class PullFromCentral {
                     instanceId,
                     attachments.stream().map(CentralAttachment::getName).map(Paths::get).collect(toList())
                 );
-                submissionMetadataPort.execute(insert(submissionMetadata));
+                workspace.submissionMetadata.execute(insert(submissionMetadata));
               });
           tracker.trackEnd();
 
-          formMetadataPort.execute(upsert(formMetadata));
+          workspace.formMetadata.execute(upsert(formMetadata));
           EventBus.publish(PullEvent.Success.of(formMetadata.getKey(), server));
         });
   }
@@ -132,7 +126,7 @@ public class PullFromCentral {
     createDirectories(formMetadata.getFormDir());
 
     tracker.trackStartDownloadingForm();
-    Response response = http.execute(server.getDownloadFormRequest(formMetadata.getKey().getId(), formMetadata.getFormFile(), token));
+    Response response = workspace.http.execute(server.getDownloadFormRequest(formMetadata.getKey().getId(), formMetadata.getFormFile(), token));
     if (response.isSuccess())
       tracker.trackEndDownloadingForm();
     else
@@ -146,7 +140,7 @@ public class PullFromCentral {
     }
 
     tracker.trackStartGettingFormAttachments();
-    Response<List<CentralAttachment>> response = http.execute(server.getFormAttachmentListRequest(formMetadata.getKey().getId(), token));
+    Response<List<CentralAttachment>> response = workspace.http.execute(server.getFormAttachmentListRequest(formMetadata.getKey().getId(), token));
     if (!response.isSuccess()) {
       tracker.trackErrorGettingFormAttachments(response);
       return emptyList();
@@ -169,7 +163,7 @@ public class PullFromCentral {
     createDirectories(targetFile.getParent());
 
     tracker.trackStartDownloadingFormAttachment(attachmentNumber, totalAttachments);
-    Response response = http.execute(server.getDownloadFormAttachmentRequest(formMetadata.getKey().getId(), attachment, targetFile, token));
+    Response response = workspace.http.execute(server.getDownloadFormAttachmentRequest(formMetadata.getKey().getId(), attachment, targetFile, token));
     if (response.isSuccess())
       tracker.trackEndDownloadingFormAttachment(attachmentNumber, totalAttachments);
     else
@@ -183,7 +177,7 @@ public class PullFromCentral {
     }
 
     tracker.trackStartGettingSubmissionIds();
-    Response<List<String>> response = http.execute(server.getInstanceIdListRequest(formMetadata.getKey().getId(), token));
+    Response<List<String>> response = workspace.http.execute(server.getInstanceIdListRequest(formMetadata.getKey().getId(), token));
     if (!response.isSuccess()) {
       tracker.trackErrorGettingSubmissionIds(response);
       return emptyList();
@@ -203,7 +197,7 @@ public class PullFromCentral {
     createDirectories(formMetadata.getSubmissionDir(instanceId));
 
     tracker.trackStartDownloadingSubmission(submissionNumber, totalSubmissions);
-    Response response = http.execute(server.getDownloadSubmissionRequest(formMetadata.getKey().getId(), instanceId, formMetadata.getSubmissionFile(instanceId), token));
+    Response response = workspace.http.execute(server.getDownloadSubmissionRequest(formMetadata.getKey().getId(), instanceId, formMetadata.getSubmissionFile(instanceId), token));
     if (response.isSuccess())
       tracker.trackEndDownloadingSubmission(submissionNumber, totalSubmissions);
     else
@@ -217,7 +211,7 @@ public class PullFromCentral {
     }
 
     tracker.trackStartGettingSubmissionAttachments(submissionNumber, totalSubmissions);
-    Response<List<CentralAttachment>> response = http.execute(server.getSubmissionAttachmentListRequest(formMetadata.getKey().getId(), instanceId, token));
+    Response<List<CentralAttachment>> response = workspace.http.execute(server.getSubmissionAttachmentListRequest(formMetadata.getKey().getId(), instanceId, token));
     if (!response.isSuccess()) {
       tracker.trackErrorGettingSubmissionAttachments(submissionNumber, totalSubmissions, response);
       return emptyList();
@@ -238,7 +232,7 @@ public class PullFromCentral {
     createDirectories(targetFile.getParent());
 
     tracker.trackStartDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
-    Response response = http.execute(server.getDownloadSubmissionAttachmentRequest(formMetadata.getKey().getId(), instanceId, attachment, targetFile, token));
+    Response response = workspace.http.execute(server.getDownloadSubmissionAttachmentRequest(formMetadata.getKey().getId(), instanceId, attachment, targetFile, token));
     if (response.isSuccess())
       tracker.trackEndDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
     else

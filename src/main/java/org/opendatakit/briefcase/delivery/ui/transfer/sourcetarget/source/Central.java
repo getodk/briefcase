@@ -31,12 +31,9 @@ import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Workspace;
-import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
 
@@ -44,14 +41,12 @@ import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
  * Represents an ODK Central server as a source of forms for the Pull UI Panel.
  */
 public class Central implements PullSource<CentralServer> {
-  private final Http http;
   private final Workspace workspace;
   private final Test<CentralServer> serverTester;
   private final Consumer<PullSource> onSourceCallback;
   private CentralServer server;
 
-  Central(Http http, Workspace workspace, Test<CentralServer> serverTester, Consumer<PullSource> onSourceCallback) {
-    this.http = http;
+  Central(Workspace workspace, Test<CentralServer> serverTester, Consumer<PullSource> onSourceCallback) {
     this.workspace = workspace;
     this.serverTester = serverTester;
     this.onSourceCallback = onSourceCallback;
@@ -59,10 +54,10 @@ public class Central implements PullSource<CentralServer> {
 
   @Override
   public List<FormMetadata> getFormList() {
-    String token = http.execute(server.getSessionTokenRequest())
+    String token = workspace.http.execute(server.getSessionTokenRequest())
         .orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
 
-    return http.execute(server.getFormsListRequest(token))
+    return workspace.http.execute(server.getFormsListRequest(token))
         .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"))
         .stream()
         .map(formMetadata -> formMetadata.withFormFile(workspace.buildFormFile(formMetadata)))
@@ -118,17 +113,9 @@ public class Central implements PullSource<CentralServer> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
-    String token = http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
-    PullFromCentral pullOp = new PullFromCentral(
-        http,
-        formMetadataPort,
-        submissionMetadataPort,
-        server,
-        token,
-        EventBus::publish
-    );
-
+  public JobsRunner pull(TransferForms forms, boolean startFromLast) {
+    String token = workspace.http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
+    PullFromCentral pullOp = new PullFromCentral(workspace, server, token, EventBus::publish);
     return JobsRunner
         .launchAsync(forms.map(pullOp::pull))
         .onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));

@@ -28,9 +28,7 @@ import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source.PullSo
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.PushTarget;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Workspace;
-import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.HttpException;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,25 +55,25 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
     container.navigateTo(SELECT);
   }
 
-  public static SourceOrTargetPanel<PullSource> pull(Http http, Workspace workspace) {
+  public static SourceOrTargetPanel<PullSource> pull(Workspace workspace) {
     SourceOrTargetPanel<PullSource> panel = new SourceOrTargetPanel<>(
         SelectSourceOrTargetForm.pull(),
         ShowSourceOrTargetForm.pull()
     );
-    panel.addOption(PullSource.aggregate(http, workspace, panel::triggerOnSelect));
-    panel.addOption(PullSource.central(http, workspace, panel::triggerOnSelect));
+    panel.addOption(PullSource.aggregate(workspace, panel::triggerOnSelect));
+    panel.addOption(PullSource.central(workspace, panel::triggerOnSelect));
     panel.addOption(PullSource.collectDir(workspace, panel::triggerOnSelect));
     panel.addOption(PullSource.formInComputer(workspace, panel::triggerOnSelect));
     return panel;
   }
 
-  public static SourceOrTargetPanel<PushTarget> push(Http http, SubmissionMetadataPort submissionMetadataPort) {
+  public static SourceOrTargetPanel<PushTarget> push(Workspace workspace) {
     SourceOrTargetPanel<PushTarget> panel = new SourceOrTargetPanel<>(
         SelectSourceOrTargetForm.push(),
         ShowSourceOrTargetForm.push()
     );
-    panel.addOption(PushTarget.aggregate(http, panel::triggerOnSelect));
-    panel.addOption(PushTarget.central(http, submissionMetadataPort, panel::triggerOnSelect));
+    panel.addOption(PushTarget.aggregate(workspace, panel::triggerOnSelect));
+    panel.addOption(PushTarget.central(workspace, panel::triggerOnSelect));
     return panel;
   }
 

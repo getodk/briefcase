@@ -21,8 +21,8 @@ import static java.util.stream.Collectors.toList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.api.Pair;
-import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
@@ -33,15 +33,15 @@ import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
  */
 public class InstanceIdBatchGetter implements Iterator<InstanceIdBatch> {
   private final AggregateServer server;
-  private final Http http;
+  private final Workspace workspace;
   private final String formId;
   private final boolean includeIncomplete;
   private Cursor nextCursor;
   private List<String> nextUids;
 
-  InstanceIdBatchGetter(AggregateServer server, Http http, String formId, boolean includeIncomplete, Cursor nextCursor) {
+  InstanceIdBatchGetter(Workspace workspace, AggregateServer server, String formId, boolean includeIncomplete, Cursor nextCursor) {
     this.server = server;
-    this.http = http;
+    this.workspace = workspace;
     this.formId = formId;
     this.includeIncomplete = includeIncomplete;
     this.nextCursor = nextCursor;
@@ -49,7 +49,7 @@ public class InstanceIdBatchGetter implements Iterator<InstanceIdBatch> {
   }
 
   private void fetchNext() {
-    Response<XmlElement> response = http.execute(server.getInstanceIdBatchRequest(
+    Response<XmlElement> response = workspace.http.execute(server.getInstanceIdBatchRequest(
         formId,
         100,
         nextCursor,

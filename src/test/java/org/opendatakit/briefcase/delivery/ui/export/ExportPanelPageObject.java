@@ -21,11 +21,9 @@ import org.assertj.swing.core.Robot;
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.opendatakit.briefcase.delivery.ui.reused.NoOpAnalytics;
-import org.opendatakit.briefcase.reused.http.FakeHttp;
-import org.opendatakit.briefcase.reused.model.form.InMemoryFormMetadataAdapter;
+import org.opendatakit.briefcase.reused.WorkspaceHelper;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.preferences.InMemoryPreferences;
-import org.opendatakit.briefcase.reused.model.submission.InMemorySubmissionMetadataAdapter;
 
 // TODO Adapt to new UI behavior
 class ExportPanelPageObject {
@@ -40,16 +38,12 @@ class ExportPanelPageObject {
   static ExportPanelPageObject setUp(Robot robot) {
     ExportPanel exportPanel = GuiActionRunner.execute(() -> {
       BriefcasePreferences inMemoryPrefs = new BriefcasePreferences(InMemoryPreferences.empty());
-      InMemoryFormMetadataAdapter formMetadataPort = new InMemoryFormMetadataAdapter();
-      InMemorySubmissionMetadataAdapter submissionMetadataPort = new InMemorySubmissionMetadataAdapter();
       ExportPanel ep = ExportPanel.from(
+          WorkspaceHelper.inMemory(),
           inMemoryPrefs,
           inMemoryPrefs,
           inMemoryPrefs,
-          new NoOpAnalytics(),
-          new FakeHttp(),
-          formMetadataPort,
-          submissionMetadataPort
+          new NoOpAnalytics()
       );
       ep.updateForms();
       return ep;

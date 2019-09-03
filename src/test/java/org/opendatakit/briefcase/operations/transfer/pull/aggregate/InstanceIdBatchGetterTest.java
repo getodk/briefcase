@@ -33,21 +33,24 @@ import static org.opendatakit.briefcase.reused.model.transfer.TransferTestHelper
 import com.github.dreamhead.moco.HttpServer;
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.StreamSupport;
 import org.junit.Before;
 import org.junit.Test;
+import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.WorkspaceHelper;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
-import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 
 public class InstanceIdBatchGetterTest {
   private static final URL BASE_URL = url("http://localhost:12306");
   private static final AggregateServer REMOTE_SERVER = AggregateServer.normal(BASE_URL);
   private HttpServer server;
+  private Workspace workspace;
 
-  private static List<InstanceIdBatch> getAllBatches(Http http) {
-    InstanceIdBatchGetter batcher = new InstanceIdBatchGetter(InstanceIdBatchGetterTest.REMOTE_SERVER, http, "fomdId", true, Cursor.empty());
+  private static List<InstanceIdBatch> getAllBatches(Workspace workspace) {
+    InstanceIdBatchGetter batcher = new InstanceIdBatchGetter(workspace, InstanceIdBatchGetterTest.REMOTE_SERVER, "fomdId", true, Cursor.empty());
     Iterable<InstanceIdBatch> iterable = () -> batcher;
     return StreamSupport.stream(iterable.spliterator(), false).collect(toList());
   }
@@ -55,6 +58,7 @@ public class InstanceIdBatchGetterTest {
   @Before
   public void setUp() {
     server = httpServer(12306, log());
+    workspace = WorkspaceHelper.inMemory(CommonsHttp.of(1, Optional.empty()));
   }
 
   @Test
@@ -69,7 +73,7 @@ public class InstanceIdBatchGetterTest {
         ));
 
     running(server, () -> {
-      List<InstanceIdBatch> idBatches = getAllBatches(CommonsHttp.of(1));
+      List<InstanceIdBatch> idBatches = getAllBatches(workspace);
       int total = idBatches.stream().map(InstanceIdBatch::count).reduce(0, Integer::sum);
       assertThat(idBatches, hasSize(3));
       assertThat(total, is(250));

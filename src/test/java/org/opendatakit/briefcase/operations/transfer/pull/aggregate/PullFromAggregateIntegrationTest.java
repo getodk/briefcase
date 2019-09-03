@@ -57,6 +57,8 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.WorkspaceHelper;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
@@ -64,9 +66,8 @@ import org.opendatakit.briefcase.reused.job.RunnerStatus;
 import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.form.InMemoryFormMetadataAdapter;
+import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.submission.InMemorySubmissionMetadataAdapter;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.model.transfer.TransferTestHelpers;
 
@@ -80,10 +81,9 @@ public class PullFromAggregateIntegrationTest {
   private PullFromAggregate pullOp;
   private RunnerStatus runnerStatus;
   private PullFromAggregateTracker tracker;
-  private InMemoryFormMetadataAdapter formMetadataPort;
   private List<String> events;
   private FormMetadata formMetadata;
-  private InMemorySubmissionMetadataAdapter submissionMetadataPort;
+  private FormMetadataPort formMetadataPort;
 
   private static Path getPath(String fileName) {
     return Optional.ofNullable(PullFromAggregateIntegrationTest.class.getClassLoader().getResource("org/opendatakit/briefcase/operations/transfer/pull/aggregate/" + fileName))
@@ -95,10 +95,10 @@ public class PullFromAggregateIntegrationTest {
   public void setUp() throws IOException {
     Files.createDirectories(briefcaseDir);
     server = httpServer(serverPort);
-    formMetadataPort = new InMemoryFormMetadataAdapter();
-    submissionMetadataPort = new InMemorySubmissionMetadataAdapter();
     events = new ArrayList<>();
-    pullOp = new PullFromAggregate(CommonsHttp.of(1), formMetadataPort, submissionMetadataPort, aggregateServer, true, e -> events.add(e.getMessage()));
+    Workspace workspace = WorkspaceHelper.inMemory(CommonsHttp.of(1, Optional.empty()));
+    formMetadataPort = workspace.formMetadata;
+    pullOp = new PullFromAggregate(workspace, aggregateServer, true, e -> events.add(e.getMessage()));
     runnerStatus = new TestRunnerStatus(false);
     formMetadata = FormMetadata.empty(FormKey.of("simple-form"))
         .withFormFile(briefcaseDir.resolve("forms/Simple form/Simple form.xml"))

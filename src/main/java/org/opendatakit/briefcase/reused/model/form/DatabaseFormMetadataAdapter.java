@@ -21,6 +21,7 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
+import org.opendatakit.briefcase.reused.db.BriefcaseDb;
 import org.opendatakit.briefcase.reused.db.jooq.tables.records.FormMetadataRecord;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
 
@@ -28,8 +29,12 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
   private final Supplier<DSLContext> dslContextSupplier;
   private Map<String, DSLContext> dslContextCache = new ConcurrentHashMap<>();
 
-  public DatabaseFormMetadataAdapter(Supplier<DSLContext> dslContextSupplier) {
+  private DatabaseFormMetadataAdapter(Supplier<DSLContext> dslContextSupplier) {
     this.dslContextSupplier = dslContextSupplier;
+  }
+
+  public static FormMetadataPort from(BriefcaseDb db) {
+    return new DatabaseFormMetadataAdapter(db::getDslContext);
   }
 
   private DSLContext getDslContext() {

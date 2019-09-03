@@ -22,7 +22,6 @@ import static org.opendatakit.briefcase.delivery.cli.Common.FORM_ID;
 import static org.opendatakit.briefcase.delivery.cli.Common.MAX_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.delivery.cli.Common.SERVER_URL;
 import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
-import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataQueries.lastCursorOf;
 
 import java.net.URL;
@@ -38,16 +37,11 @@ import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
 import org.opendatakit.briefcase.reused.cli.Param;
-import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
-import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,16 +53,16 @@ public class PullFromAggregate {
   private static final Param<LocalDate> START_FROM_DATE = Param.arg("sfd", "start_from_date", "Start pull from date", LocalDate::parse);
   private static final Param<Void> INCLUDE_INCOMPLETE = Param.flag("ii", "include_incomplete", "Include incomplete submissions");
 
-  public static Operation create(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  public static Operation create(Workspace workspace) {
     return new OperationBuilder()
         .withFlag(PULL_AGGREGATE)
         .withRequiredParams(WORKSPACE_LOCATION, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL)
         .withOptionalParams(RESUME_LAST_PULL, INCLUDE_INCOMPLETE, FORM_ID, START_FROM_DATE, MAX_HTTP_CONNECTIONS)
-        .withLauncher(args -> pullFormFromAggregate(workspace, formMetadataPort, submissionMetadataPort, args))
+        .withLauncher(args -> pullFormFromAggregate(workspace, args))
         .build();
   }
 
-  private static void pullFormFromAggregate(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
+  private static void pullFormFromAggregate(Workspace workspace, Args args) {
     Optional<String> formId = args.getOptional(FORM_ID);
     String username = args.get(CREDENTIALS_USERNAME);
     String password = args.get(CREDENTIALS_PASSWORD);
@@ -76,22 +70,12 @@ public class PullFromAggregate {
     boolean resumeLastPull = args.has(RESUME_LAST_PULL);
     Optional<LocalDate> startFromDate = args.getOptional(START_FROM_DATE);
     boolean includeIncomplete = args.has(INCLUDE_INCOMPLETE);
-    Optional<Integer> maybeMaxHttpConnections = args.getOptional(MAX_HTTP_CONNECTIONS);
 
     CliEventsCompanion.attach(log);
-    BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
-
-    int maxHttpConnections = Optionals.race(
-        maybeMaxHttpConnections,
-        appPreferences.getMaxHttpConnections()
-    ).orElse(DEFAULT_HTTP_CONNECTIONS);
-    Http http = appPreferences.getHttpProxy()
-        .map(host -> CommonsHttp.of(maxHttpConnections, host))
-        .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
 
     AggregateServer aggregateServer = AggregateServer.authenticated(server, new Credentials(username, password));
 
-    Response<List<FormMetadata>> response = http.execute(aggregateServer.getFormListRequest());
+    Response<List<FormMetadata>> response = workspace.http.execute(aggregateServer.getFormListRequest());
     if (!response.isSuccess()) {
       System.err.println(response.isRedirection()
           ? "Error connecting to Aggregate: Redirection detected"
@@ -116,13 +100,13 @@ public class PullFromAggregate {
     forms.load(filteredForms);
     forms.selectAll();
 
-    org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate pullOp = new org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate(http, formMetadataPort, submissionMetadataPort, aggregateServer, includeIncomplete, PullFromAggregate::onEvent);
+    org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate pullOp = new org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate(workspace, aggregateServer, includeIncomplete, PullFromAggregate::onEvent);
     JobsRunner.launchAsync(
         forms.map(formMetadata -> pullOp.pull(formMetadata, resolveCursor(
             resumeLastPull,
             startFromDate,
             formMetadata,
-            formMetadataPort
+            workspace
         ))),
         PullFromAggregate::onError
     ).waitForCompletion();
@@ -131,11 +115,11 @@ public class PullFromAggregate {
     System.out.println();
   }
 
-  private static Optional<Cursor> resolveCursor(boolean resumeLastPull, Optional<LocalDate> startFromDate, FormMetadata formMetadata, FormMetadataPort formMetadataPort) {
+  private static Optional<Cursor> resolveCursor(boolean resumeLastPull, Optional<LocalDate> startFromDate, FormMetadata formMetadata, Workspace workspace) {
     return Optionals.race(
         startFromDate.map(Cursor::of),
         resumeLastPull
-            ? formMetadataPort.query(lastCursorOf(formMetadata.getKey()))
+            ? workspace.formMetadata.query(lastCursorOf(formMetadata.getKey()))
             : Optional.empty()
     );
   }

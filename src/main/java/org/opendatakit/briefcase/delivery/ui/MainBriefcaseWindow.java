@@ -19,12 +19,12 @@ package org.opendatakit.briefcase.delivery.ui;
 import static java.awt.GridBagConstraints.CENTER;
 import static java.awt.GridBagConstraints.WEST;
 import static java.lang.Runtime.getRuntime;
+import static org.opendatakit.briefcase.buildconfig.BuildConfig.GOOGLE_TRACKING_ID;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.infoMessage;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.makeClickable;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.uncheckedBrowse;
 import static org.opendatakit.briefcase.reused.BriefcaseVersionManager.getLatestUrl;
-import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.reused.job.JobsRunner.launchAsync;
 
@@ -43,20 +43,14 @@ import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
-import org.opendatakit.briefcase.buildconfig.BuildConfig;
 import org.opendatakit.briefcase.delivery.ui.export.ExportPanel;
 import org.opendatakit.briefcase.delivery.ui.reused.Analytics;
 import org.opendatakit.briefcase.delivery.ui.settings.SettingsPanel;
 import org.opendatakit.briefcase.delivery.ui.transfer.pull.PullPanel;
 import org.opendatakit.briefcase.delivery.ui.transfer.push.PushPanel;
-import org.opendatakit.briefcase.reused.BriefcaseVersionManager;
 import org.opendatakit.briefcase.reused.Workspace;
-import org.opendatakit.briefcase.reused.http.CommonsHttp;
-import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.model.Host;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,13 +78,13 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private final JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
   private final JLabel versionLabel = new JLabel("Checking for updates...");
 
-  public static void launchGUI(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  public static void launchGUI(Workspace workspace) {
     try {
       if (Host.isLinux())
         UIManager.setLookAndFeel(new MetalLookAndFeel());
       else
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-      new MainBriefcaseWindow(workspace, formMetadataPort, submissionMetadataPort);
+      new MainBriefcaseWindow(workspace);
     } catch (Exception e) {
       log.error("Failed to launch GUI", e);
       System.err.println("Failed to launch Briefcase GUI");
@@ -98,21 +92,14 @@ public class MainBriefcaseWindow extends WindowAdapter {
     }
   }
 
-  private MainBriefcaseWindow(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  private MainBriefcaseWindow(Workspace workspace) {
     // Create all dependencies
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     BriefcasePreferences pullPreferences = BriefcasePreferences.forClass(PullPanel.class);
     BriefcasePreferences exportPreferences = BriefcasePreferences.forClass(ExportPanel.class);
 
-    int maxHttpConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
-    Http http = appPreferences.getHttpProxy()
-        .map(host -> CommonsHttp.of(maxHttpConnections, host))
-        .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
-
-    BriefcaseVersionManager versionManager = new BriefcaseVersionManager(http, VERSION);
-
     Analytics analytics = Analytics.from(
-        BuildConfig.GOOGLE_TRACKING_ID,
+        GOOGLE_TRACKING_ID,
         VERSION,
         BriefcasePreferences.getUniqueUserID(),
         Toolkit.getDefaultToolkit().getScreenSize(),
@@ -123,10 +110,10 @@ public class MainBriefcaseWindow extends WindowAdapter {
     getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
     // Add panes to the tabbedPane
-    addPane(PullPanel.TAB_NAME, PullPanel.from(http, appPreferences, pullPreferences, analytics, formMetadataPort, submissionMetadataPort, workspace).getContainer());
-    addPane(PushPanel.TAB_NAME, PushPanel.from(http, formMetadataPort, submissionMetadataPort, analytics, appPreferences).getContainer());
-    addPane(ExportPanel.TAB_NAME, ExportPanel.from(exportPreferences, appPreferences, pullPreferences, analytics, http, formMetadataPort, submissionMetadataPort).getForm().getContainer());
-    addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(appPreferences, analytics, http, versionManager, formMetadataPort, submissionMetadataPort, workspace).getContainer());
+    addPane(PullPanel.TAB_NAME, PullPanel.from(workspace, appPreferences, pullPreferences, analytics).getContainer());
+    addPane(PushPanel.TAB_NAME, PushPanel.from(workspace, analytics, appPreferences).getContainer());
+    addPane(ExportPanel.TAB_NAME, ExportPanel.from(workspace, exportPreferences, appPreferences, pullPreferences, analytics).getForm().getContainer());
+    addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(workspace, analytics, appPreferences).getContainer());
 
     // Set up the frame and put the UI components in it
     frame.addWindowListener(this);
@@ -154,7 +141,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     frame.pack();
 
     launchAsync(run(rs -> {
-      if (versionManager.isUpToDate()) {
+      if (workspace.versionManager.isUpToDate()) {
         this.removeVersionLabel();
       } else {
         versionLabel.setText("Update available");

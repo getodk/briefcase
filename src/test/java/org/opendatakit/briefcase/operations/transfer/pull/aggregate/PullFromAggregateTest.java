@@ -47,24 +47,24 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.matchers.PathMatchers;
+import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.WorkspaceHelper;
 import org.opendatakit.briefcase.reused.api.Pair;
-import org.opendatakit.briefcase.reused.http.FakeHttp;
+import org.opendatakit.briefcase.reused.http.InMemoryHttp;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.http.RequestSpy;
 import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.form.InMemoryFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.submission.InMemorySubmissionMetadataAdapter;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 
 public class PullFromAggregateTest {
-  public static final String BASE_URL = "http://foo.bar";
+  private static final String BASE_URL = "http://foo.bar";
   private Path tmpDir = createTempDirectory("briefcase-test-");
-  private Path briefcaseDir = tmpDir.resolve(BriefcasePreferences.BRIEFCASE_DIR);
-  private FakeHttp http;
+  private Path workspaceLocation = tmpDir.resolve(BriefcasePreferences.BRIEFCASE_DIR);
+  private InMemoryHttp inMemoryHttp;
   private AggregateServer server = AggregateServer.normal(url(BASE_URL));
   private PullFromAggregate pullOp;
   private TestRunnerStatus runnerStatus;
@@ -75,26 +75,27 @@ public class PullFromAggregateTest {
 
   @Before
   public void init() throws IOException {
-    Files.createDirectories(briefcaseDir);
-    http = new FakeHttp();
+    Files.createDirectories(workspaceLocation);
+    Workspace workspace = WorkspaceHelper.inMemory();
     events = new ArrayList<>();
-    pullOp = new PullFromAggregate(http, new InMemoryFormMetadataAdapter(), new InMemorySubmissionMetadataAdapter(), server, includeIncomplete, e -> { });
+    inMemoryHttp = (InMemoryHttp) workspace.http;
+    pullOp = new PullFromAggregate(workspace, server, includeIncomplete, e -> { });
     runnerStatus = new TestRunnerStatus(false);
     formMetadata = FormMetadata.empty(FormKey.of("simple-form"))
-        .withFormFile(briefcaseDir.resolve("forms/some-form/some-form.xml"))
+        .withFormFile(workspaceLocation.resolve("forms/some-form/some-form.xml"))
         .withUrls(Optional.of(RequestBuilder.url(BASE_URL + "/manifest")), Optional.empty());
     tracker = new PullFromAggregateTracker(formMetadata.getKey(), e -> events.add(e.getMessage()));
   }
 
   @After
   public void tearDown() {
-    deleteRecursive(briefcaseDir);
+    deleteRecursive(workspaceLocation);
   }
 
   @Test
   public void knows_how_to_download_a_form() throws IOException {
     String expectedContent = "form content - won't be parsed";
-    http.stub(
+    inMemoryHttp.stub(
         server.getDownloadFormRequest(formMetadata.getKey().getId()),
         ok(expectedContent)
     );
@@ -117,7 +118,7 @@ public class PullFromAggregateTest {
     List<AggregateAttachment> expectedAttachments = buildMediaFiles(server.getBaseUrl().toString(), 3);
 
     // Stub the manifest request
-    http.stub(get(server.getBaseUrl()).withPath("/manifest").build(), ok(buildManifestXml(expectedAttachments)));
+    inMemoryHttp.stub(get(server.getBaseUrl()).withPath("/manifest").build(), ok(buildManifestXml(expectedAttachments)));
 
     List<AggregateAttachment> actualAttachments = pullOp.getFormAttachments(formMetadata, runnerStatus, tracker);
 
@@ -135,7 +136,7 @@ public class PullFromAggregateTest {
   public void knows_how_to_download_a_form_attachment() {
     List<AggregateAttachment> attachments = buildMediaFiles(server.getBaseUrl().toString(), 3);
 
-    attachments.forEach(attachment -> http.stub(get(attachment.getDownloadUrl()).build(), ok("some body")));
+    attachments.forEach(attachment -> inMemoryHttp.stub(get(attachment.getDownloadUrl()).build(), ok("some body")));
 
     AtomicInteger seq = new AtomicInteger(1);
     attachments.forEach(attachment -> pullOp.downloadFormAttachment(formMetadata, attachment, runnerStatus, tracker, seq.getAndIncrement(), 3));
@@ -158,7 +159,7 @@ public class PullFromAggregateTest {
     String expectedContent = buildAggregateSubmissionDownloadXml(instanceId, 2);
     SubmissionKeyGenerator subKeyGen = SubmissionKeyGenerator.from(buildBlankFormXml("some-form", "2010010101", "instance-name"));
     String key = subKeyGen.buildKey(instanceId);
-    http.stub(server.getDownloadSubmissionRequest(key), ok(expectedContent));
+    inMemoryHttp.stub(server.getDownloadSubmissionRequest(key), ok(expectedContent));
 
     DownloadedSubmission actualSubmission = pullOp.downloadSubmission(formMetadata, instanceId, subKeyGen, runnerStatus, tracker, 1, 1);
 
@@ -188,7 +189,7 @@ public class PullFromAggregateTest {
     List<AggregateAttachment> attachments = buildMediaFiles(server.getBaseUrl().toString(), 3);
     DownloadedSubmission submission = new DownloadedSubmission("some xml", instanceId, attachments, Optional.empty());
 
-    attachments.forEach(attachment -> http.stub(get(attachment.getDownloadUrl()).build(), ok("some body")));
+    attachments.forEach(attachment -> inMemoryHttp.stub(get(attachment.getDownloadUrl()).build(), ok("some body")));
 
     AtomicInteger seq = new AtomicInteger(1);
     attachments.forEach(attachment -> pullOp.downloadSubmissionAttachment(formMetadata, submission, attachment, runnerStatus, tracker, 1, 1, seq.getAndIncrement(), 3));
@@ -210,20 +211,20 @@ public class PullFromAggregateTest {
     List<Pair<String, Cursor>> pages = generatePages(100, 100);
 
     // This is the request (without cursor) we shouldn't see cause we're providing one
-    RequestSpy<XmlElement> request1Spy = http.spyOn(
+    RequestSpy<XmlElement> request1Spy = inMemoryHttp.spyOn(
         server.getInstanceIdBatchRequest(formMetadata.getKey().getId(), 100, Cursor.empty(), includeIncomplete),
         ok(pages.get(0).getLeft())
     );
 
     // This is the one we should see
     Cursor cursor = Cursor.of(LocalDate.of(2010, 1, 5));
-    RequestSpy<XmlElement> request2Spy = http.spyOn(
+    RequestSpy<XmlElement> request2Spy = inMemoryHttp.spyOn(
         server.getInstanceIdBatchRequest(formMetadata.getKey().getId(), 100, cursor, includeIncomplete),
         ok(pages.get(0).getLeft())
     );
 
     // This is the last request that ends the process of getting batch instanceIds.
-    http.stub(
+    inMemoryHttp.stub(
         server.getInstanceIdBatchRequest(formMetadata.getKey().getId(), 100, pages.get(0).getRight(), includeIncomplete),
         ok(pages.get(1).getLeft())
     );

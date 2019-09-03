@@ -37,4 +37,6 @@ public interface Http {
   void setProxy(HttpHost proxy);
 
   void unsetProxy();
+
+  void setMaxHttpConnections(int maxHttpConnections);
 }

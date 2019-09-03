@@ -32,25 +32,25 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 import org.bushe.swing.event.EventBus;
 import org.geojson.Feature;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.submission.ParsedSubmission;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ExportToGeoJson {
   private static final Logger log = LoggerFactory.getLogger(ExportToGeoJson.class);
 
-  public static ExportOutcome export(SubmissionMetadataPort submissionMetadataPort, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration) {
+  public static ExportOutcome export(Workspace workspace, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration) {
     // Create an export tracker object with the total number of submissions we have to export
     ExportProcessTracker exportTracker = new ExportProcessTracker(formMetadata.getKey());
     exportTracker.start();
 
     var onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formDef.getFormName()));
 
-    List<SubmissionMetadata> submissionFiles = submissionMetadataPort
+    List<SubmissionMetadata> submissionFiles = workspace.submissionMetadata
         .sortedSubmissions(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend())
         .collect(toList());
     exportTracker.trackTotal(submissionFiles.size());

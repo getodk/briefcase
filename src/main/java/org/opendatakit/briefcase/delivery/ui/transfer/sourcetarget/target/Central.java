@@ -29,12 +29,11 @@ import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.push.PushEvent;
 import org.opendatakit.briefcase.operations.transfer.push.central.PushToCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
 
@@ -42,15 +41,13 @@ import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
  * Represents an ODK Central server as a target for sending forms for the Push UI Panel.
  */
 public class Central implements PushTarget<CentralServer> {
-  private final Http http;
-  private final SubmissionMetadataPort submissionMetadataPort;
+  private final Workspace workspace;
   private final Test<CentralServer> serverTester;
   private final Consumer<PushTarget> onSourceCallback;
   private CentralServer server;
 
-  Central(Http http, SubmissionMetadataPort submissionMetadataPort, Test<CentralServer> serverTester, Consumer<PushTarget> onSourceCallback) {
-    this.http = http;
-    this.submissionMetadataPort = submissionMetadataPort;
+  Central(Workspace workspace, Test<CentralServer> serverTester, Consumer<PushTarget> onSourceCallback) {
+    this.workspace = workspace;
     this.serverTester = serverTester;
     this.onSourceCallback = onSourceCallback;
   }
@@ -67,8 +64,8 @@ public class Central implements PushTarget<CentralServer> {
             EventBus.publish(new FormStatusEvent(PUSH, formMetadata.getKey(), "Skipping. Encrypted forms can't be pushed to ODK Central yet"))
         );
 
-    String token = http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
-    PushToCentral pushOp = new PushToCentral(http, submissionMetadataPort, server, token, EventBus::publish);
+    String token = workspace.http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
+    PushToCentral pushOp = new PushToCentral(workspace, server, token, EventBus::publish);
 
     return JobsRunner
         .launchAsync(forms.filter(f -> !f.isEncrypted()).map(pushOp::push))

@@ -11,31 +11,41 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.prefs.Preferences;
+import org.flywaydb.core.Flyway;
+import org.opendatakit.briefcase.reused.db.BriefcaseDb;
+import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
+import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 
 public class Workspace {
   private static final ObjectMapper JSON = new ObjectMapper();
   private static final String SAVED_LOCATIONS_KEY = "saved locations";
-  private final List<Consumer<Path>> startCallbacks = new ArrayList<>();
-  private final List<Runnable> stopCallbacks = new ArrayList<>();
+  public final Http http;
+  public final BriefcaseVersionManager versionManager;
   private final Preferences prefs;
+  private final BriefcaseDb db;
+  public final FormMetadataPort formMetadata;
+  public final SubmissionMetadataPort submissionMetadata;
   private Optional<Path> workspaceLocation = Optional.empty();
 
-  public Workspace(Preferences prefs) {
+  public Workspace(Http http, BriefcaseVersionManager versionManager, Preferences prefs, BriefcaseDb db, FormMetadataPort formMetadata, SubmissionMetadataPort submissionMetadata) {
+    this.http = http;
+    this.versionManager = versionManager;
     this.prefs = prefs;
+    this.db = db;
+    this.formMetadata = formMetadata;
+    this.submissionMetadata = submissionMetadata;
   }
 
-  public static Workspace empty() {
-    return new Workspace(Preferences.userNodeForPackage(Workspace.class));
+  public static Workspace with(Http http, BriefcaseVersionManager versionManager, Preferences prefs, BriefcaseDb db, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+    return new Workspace(http, versionManager, prefs, db, formMetadataPort, submissionMetadataPort);
   }
 
   public Path get() {
@@ -50,7 +60,10 @@ public class Workspace {
     this.workspaceLocation = Optional.of(workspaceLocation);
     createDirectories(getFormsDir());
     saveLocation(workspaceLocation);
-    startCallbacks.forEach(callback -> callback.accept(workspaceLocation));
+    db.startAt(workspaceLocation);
+    Flyway.configure().locations("db/migration")
+        .dataSource(db.getDsn(), db.getUser(), db.getPassword()).validateOnMigrate(false)
+        .load().migrate();
   }
 
   public Path buildFormFile(FormMetadata formMetadata) {
@@ -58,18 +71,8 @@ public class Workspace {
     return getFormsDir().resolve(baseName).resolve(baseName + ".xml");
   }
 
-  public Workspace onStart(Consumer<Path> callback) {
-    startCallbacks.add(callback);
-    return this;
-  }
-
-  public Workspace onStop(Runnable callback) {
-    stopCallbacks.add(callback);
-    return this;
-  }
-
   public void stop() {
-    stopCallbacks.forEach(Runnable::run);
+    db.stop();
   }
 
   public Set<Path> getSavedLocations() {

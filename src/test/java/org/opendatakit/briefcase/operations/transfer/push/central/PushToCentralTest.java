@@ -45,21 +45,22 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.WorkspaceHelper;
 import org.opendatakit.briefcase.reused.http.Credentials;
-import org.opendatakit.briefcase.reused.http.FakeHttp;
+import org.opendatakit.briefcase.reused.http.InMemoryHttp;
 import org.opendatakit.briefcase.reused.http.RequestSpy;
 import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
-import org.opendatakit.briefcase.reused.model.submission.InMemorySubmissionMetadataAdapter;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 
 public class PushToCentralTest {
   private CentralServer server = CentralServer.of(url("http://foo.bar"), 1, Credentials.from("some user", "some password"));
   private String token = "some token";
-  private FakeHttp http;
+  private InMemoryHttp inMemoryHttp;
   private Path briefcaseDir;
   private PushToCentral pushOp;
   private List<String> events;
@@ -74,9 +75,10 @@ public class PushToCentralTest {
 
   @Before
   public void setUp() throws IOException {
-    http = new FakeHttp();
+    Workspace workspace = WorkspaceHelper.inMemory();
+    inMemoryHttp = (InMemoryHttp) workspace.http;
     briefcaseDir = createTempDirectory("briefcase-test-");
-    pushOp = new PushToCentral(http, new InMemorySubmissionMetadataAdapter(), server, token, this::onEvent);
+    pushOp = new PushToCentral(workspace, server, token, this::onEvent);
     events = new ArrayList<>();
     runnerStatus = new TestRunnerStatus(false);
     formMetadata = FormMetadata.empty(FormKey.of("push-form-test"))
@@ -101,7 +103,7 @@ public class PushToCentralTest {
   public void knows_how_to_check_if_the_form_already_exists_in_Central() {
     // Low-level test that drives an individual step of the push operation
 
-    RequestSpy<?> requestSpy = http.spyOn(
+    RequestSpy<?> requestSpy = inMemoryHttp.spyOn(
         server.getFormExistsRequest(submission.getKey().getFormId(), token),
         ok(listOfFormsResponseFromCentral(formMetadata))
     );
@@ -115,7 +117,7 @@ public class PushToCentralTest {
   @Test
   public void knows_how_to_check_if_the_form_does_not_exist_in_Central() {
     // Low-level test that drives an individual step of the push operation
-    http.stub(
+    inMemoryHttp.stub(
         server.getFormExistsRequest(submission.getKey().getFormId(), token),
         ok(listOfFormsResponseFromCentral())
     );
@@ -126,7 +128,7 @@ public class PushToCentralTest {
   @Test
   public void knows_how_to_push_forms_to_Central() {
     // Low-level test that drives an individual step of the push operation
-    RequestSpy<?> requestSpy = http.spyOn(server.getPushFormRequest(form, token), ok("{}"));
+    RequestSpy<?> requestSpy = inMemoryHttp.spyOn(server.getPushFormRequest(form, token), ok("{}"));
 
     pushOp.pushForm(formMetadata, runnerStatus, tracker);
 
@@ -136,7 +138,7 @@ public class PushToCentralTest {
   @Test
   public void knows_how_to_push_form_attachments_to_Central() {
     // Low-level test that drives an individual step of the push operation
-    RequestSpy<?> requestSpy = http.spyOn(server.getPushFormAttachmentRequest(submission.getKey().getFormId(), formAttachment, token), ok("{}"));
+    RequestSpy<?> requestSpy = inMemoryHttp.spyOn(server.getPushFormAttachmentRequest(submission.getKey().getFormId(), formAttachment, token), ok("{}"));
 
     pushOp.pushFormAttachment(formMetadata.getKey(), formAttachment, runnerStatus, tracker, 1, 1);
 
@@ -146,7 +148,7 @@ public class PushToCentralTest {
   @Test
   public void knows_how_to_push_submissions_to_Central() {
     // Low-level test that drives an individual step of the push operation
-    RequestSpy<?> requestSpy = http.spyOn(server.getPushSubmissionRequest(token, submission.getKey().getFormId(), submission.getSubmissionFile()), ok("{}"));
+    RequestSpy<?> requestSpy = inMemoryHttp.spyOn(server.getPushSubmissionRequest(token, submission.getKey().getFormId(), submission.getSubmissionFile()), ok("{}"));
 
     pushOp.pushSubmission(submission, runnerStatus, tracker, 1, 1);
 
@@ -156,7 +158,7 @@ public class PushToCentralTest {
   @Test
   public void knows_how_to_push_submission_attachments_to_Central() {
     // Low-level test that drives an individual step of the push operation
-    RequestSpy<?> requestSpy = http.spyOn(
+    RequestSpy<?> requestSpy = inMemoryHttp.spyOn(
         server.getPushSubmissionAttachmentRequest(token, submission.getKey().getFormId(), instanceId, submissionAttachment),
         ok("{}")
     );
@@ -170,11 +172,11 @@ public class PushToCentralTest {
   @Test
   public void knows_how_to_push_completely_a_form_when_the_form_doesn_exist_in_Central() {
     // High-level test that drives the public push operation
-    http.stub(server.getFormExistsRequest(submission.getKey().getFormId(), token), ok(listOfFormsResponseFromCentral()));
-    http.stub(server.getPushFormRequest(form, token), ok("{}"));
-    http.stub(server.getPushFormAttachmentRequest(submission.getKey().getFormId(), formAttachment, token), ok("{}"));
-    http.stub(server.getPushSubmissionRequest(token, submission.getKey().getFormId(), submission.getSubmissionFile()), ok("{}"));
-    http.stub(server.getPushSubmissionAttachmentRequest(token, submission.getKey().getFormId(), instanceId, submissionAttachment), ok("{}"));
+    inMemoryHttp.stub(server.getFormExistsRequest(submission.getKey().getFormId(), token), ok(listOfFormsResponseFromCentral()));
+    inMemoryHttp.stub(server.getPushFormRequest(form, token), ok("{}"));
+    inMemoryHttp.stub(server.getPushFormAttachmentRequest(submission.getKey().getFormId(), formAttachment, token), ok("{}"));
+    inMemoryHttp.stub(server.getPushSubmissionRequest(token, submission.getKey().getFormId(), submission.getSubmissionFile()), ok("{}"));
+    inMemoryHttp.stub(server.getPushSubmissionAttachmentRequest(token, submission.getKey().getFormId(), instanceId, submissionAttachment), ok("{}"));
 
     launchSync(pushOp.push(formMetadata));
 
@@ -194,11 +196,11 @@ public class PushToCentralTest {
   @Test
   public void knows_how_to_push_completely_a_form_when_the_form_exists_in_Central() {
     // High-level test that drives the public push operation
-    http.stub(server.getFormExistsRequest(submission.getKey().getFormId(), token), ok(listOfFormsResponseFromCentral(formMetadata)));
-    http.stub(server.getPushFormRequest(form, token), ok("{\"a\":1}"));
-    http.stub(server.getPushFormAttachmentRequest(submission.getKey().getFormId(), formAttachment, token), ok("{\"a\":2}"));
-    http.stub(server.getPushSubmissionRequest(token, submission.getKey().getFormId(), submission.getSubmissionFile()), ok("{\"a\":3}"));
-    http.stub(server.getPushSubmissionAttachmentRequest(token, submission.getKey().getFormId(), instanceId, submissionAttachment), ok("{\"a\":4}"));
+    inMemoryHttp.stub(server.getFormExistsRequest(submission.getKey().getFormId(), token), ok(listOfFormsResponseFromCentral(formMetadata)));
+    inMemoryHttp.stub(server.getPushFormRequest(form, token), ok("{\"a\":1}"));
+    inMemoryHttp.stub(server.getPushFormAttachmentRequest(submission.getKey().getFormId(), formAttachment, token), ok("{\"a\":2}"));
+    inMemoryHttp.stub(server.getPushSubmissionRequest(token, submission.getKey().getFormId(), submission.getSubmissionFile()), ok("{\"a\":3}"));
+    inMemoryHttp.stub(server.getPushSubmissionAttachmentRequest(token, submission.getKey().getFormId(), instanceId, submissionAttachment), ok("{\"a\":4}"));
 
     launchSync(pushOp.push(formMetadata));
 

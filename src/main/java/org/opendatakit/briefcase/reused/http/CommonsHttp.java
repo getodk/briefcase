@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.util.Optional;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.client.fluent.Executor;
@@ -39,27 +40,30 @@ import org.opendatakit.briefcase.reused.http.response.Response;
 
 public class CommonsHttp implements Http {
   private Executor executor;
-  private final int maxConnections;
+  private int maxHttpConnections;
+  private Optional<HttpHost> proxy;
 
-  private CommonsHttp(Executor executor, int maxConnections) {
+  private CommonsHttp(Executor executor, int maxHttpConnections, Optional<HttpHost> proxy) {
     this.executor = executor;
-    this.maxConnections = maxConnections;
+    this.maxHttpConnections = maxHttpConnections;
+    this.proxy = proxy;
   }
 
-  public static Http of(int maxConnections, HttpHost httpProxy) {
-    if (Http.isNotValidHttpConnectionsValue(maxConnections))
-      throw new BriefcaseException("Invalid maximum simultaneous HTTP connections " + maxConnections + ". Try a value between " + MIN_HTTP_CONNECTIONS + " and " + MAX_HTTP_CONNECTIONS);
+  public static Http create() {
     return new CommonsHttp(Executor.newInstance(
-        getBaseBuilder(maxConnections).setProxy(httpProxy).build()
-    ), maxConnections);
+        getBaseBuilder(DEFAULT_HTTP_CONNECTIONS).build()
+    ), DEFAULT_HTTP_CONNECTIONS, Optional.empty());
   }
 
-  public static Http of(int maxConnections) {
+  public static Http of(int maxConnections, Optional<HttpHost> proxy) {
     if (Http.isNotValidHttpConnectionsValue(maxConnections))
       throw new BriefcaseException("Invalid maximum simultaneous HTTP connections " + maxConnections + ". Try a value between " + MIN_HTTP_CONNECTIONS + " and " + MAX_HTTP_CONNECTIONS);
-    return new CommonsHttp(Executor.newInstance(
-        getBaseBuilder(maxConnections).build()
-    ), maxConnections);
+    return new CommonsHttp(
+        proxy.map(host -> Executor.newInstance(getBaseBuilder(maxConnections).setProxy(host).build()))
+            .orElseGet(() -> Executor.newInstance(getBaseBuilder(maxConnections).build())),
+        maxConnections,
+        proxy
+    );
   }
 
   private static HttpClientBuilder getBaseBuilder(int maxConnections) {
@@ -89,12 +93,26 @@ public class CommonsHttp implements Http {
 
   @Override
   public void setProxy(HttpHost proxy) {
-    executor = Executor.newInstance(getBaseBuilder(maxConnections).setProxy(proxy).build());
+    this.proxy = Optional.of(proxy);
+    rebuildExecutor();
   }
 
   @Override
   public void unsetProxy() {
-    executor = Executor.newInstance(getBaseBuilder(maxConnections).build());
+    proxy = Optional.empty();
+    rebuildExecutor();
+  }
+
+  @Override
+  public void setMaxHttpConnections(int maxHttpConnections) {
+    this.maxHttpConnections = maxHttpConnections;
+    rebuildExecutor();
+  }
+
+  private void rebuildExecutor() {
+    executor = proxy
+        .map(httpHost -> Executor.newInstance(getBaseBuilder(maxHttpConnections).setProxy(httpHost).build()))
+        .orElseGet(() -> Executor.newInstance(getBaseBuilder(maxHttpConnections).build()));
   }
 
   private <T> Response<T> uncheckedExecute(Request<T> request, Executor executor) {

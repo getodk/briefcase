@@ -33,9 +33,7 @@ import org.opendatakit.briefcase.reused.cli.OperationBuilder;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,16 +42,16 @@ public class PullFromCollect {
   private static final Param<Void> IMPORT = Param.flag("pc", "pull_collect", "Pull from Collect");
   private static final Param<Path> ODK_DIR = Param.arg("od", "odk_directory", "ODK directory", Paths::get);
 
-  public static Operation create(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  public static Operation create(Workspace workspace) {
     return new OperationBuilder()
         .withFlag(IMPORT)
         .withRequiredParams(WORKSPACE_LOCATION, ODK_DIR)
         .withOptionalParams(FORM_ID)
-        .withLauncher(args -> pull(workspace, formMetadataPort, submissionMetadataPort, args))
+        .withLauncher(args -> pull(workspace, args))
         .build();
   }
 
-  private static void pull(Workspace workspace, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
+  private static void pull(Workspace workspace, Args args) {
     Path odkDir = args.get(ODK_DIR);
     Optional<String> formId = args.getOptional(FORM_ID);
 
@@ -69,7 +67,7 @@ public class PullFromCollect {
     if (formId.isPresent() && forms.isEmpty())
       throw new BriefcaseException("Form " + formId.get() + " not found");
 
-    PullFromCollectDir pullOp = new PullFromCollectDir(formMetadataPort, submissionMetadataPort, PullFromCollect::onEvent);
+    PullFromCollectDir pullOp = new PullFromCollectDir(workspace, PullFromCollect::onEvent);
     JobsRunner.launchAsync(
         forms.map(formMetadata -> pullOp.pull(
             formMetadata,

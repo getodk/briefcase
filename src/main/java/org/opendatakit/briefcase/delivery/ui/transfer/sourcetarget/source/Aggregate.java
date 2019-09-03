@@ -36,9 +36,7 @@ import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
 
@@ -53,8 +51,8 @@ public class Aggregate implements PullSource<AggregateServer> {
   private String usernameHelp;
   private AggregateServer server;
 
-  Aggregate(Http http, Workspace workspace, Test<AggregateServer> serverTester, String usernameHelp, Consumer<PullSource> consumer) {
-    this.http = http;
+  Aggregate(Workspace workspace, Test<AggregateServer> serverTester, String usernameHelp, Consumer<PullSource> consumer) {
+    this.http = workspace.http;
     this.workspace = workspace;
     this.serverTester = serverTester;
     this.usernameHelp = usernameHelp;
@@ -94,20 +92,11 @@ public class Aggregate implements PullSource<AggregateServer> {
   }
 
   @Override
-  public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
-    boolean resumeLastPull = appPreferences.resolveStartFromLast();
-    PullFromAggregate pullOp = new PullFromAggregate(
-        http,
-        formMetadataPort,
-        submissionMetadataPort,
-        server,
-        false,
-        EventBus::publish
-    );
-
+  public JobsRunner pull(TransferForms forms, boolean startFromLast) {
+    PullFromAggregate pullOp = new PullFromAggregate(workspace, server, false, EventBus::publish);
     return JobsRunner.launchAsync(forms.map(form -> pullOp.pull(
         form,
-        resumeLastPull ? formMetadataPort.query(lastCursorOf(form.getKey())) : Optional.empty()
+        startFromLast ? workspace.formMetadata.query(lastCursorOf(form.getKey())) : Optional.empty()
     ))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 

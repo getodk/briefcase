@@ -20,7 +20,6 @@ import static org.opendatakit.briefcase.delivery.cli.Common.FORM_ID;
 import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 import static org.opendatakit.briefcase.operations.export.ExportForms.buildExportDateTimePrefix;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
-import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataQueries.lastCursorOf;
 
 import java.nio.file.Path;
@@ -35,21 +34,18 @@ import org.opendatakit.briefcase.operations.export.ExportToGeoJson;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
 import org.opendatakit.briefcase.reused.cli.Param;
-import org.opendatakit.briefcase.reused.http.CommonsHttp;
-import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.DateRange;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,16 +67,16 @@ public class Export {
   private static final Param<Void> REMOVE_GROUP_NAMES = Param.flag("rgn", "remove_group_names", "Remove group names from column names");
   private static final Param<Void> SMART_APPEND = Param.flag("sa", "smart_append", "Include only new submissions since last export");
 
-  public static Operation create(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort) {
+  public static Operation create(Workspace workspace) {
     return new OperationBuilder()
         .withFlag(EXPORT)
         .withRequiredParams(WORKSPACE_LOCATION, FORM_ID, FILE, EXPORT_DIR)
         .withOptionalParams(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE, SPLIT_SELECT_MULTIPLES, INCLUDE_GEOJSON_EXPORT, REMOVE_GROUP_NAMES, SMART_APPEND)
-        .withLauncher(args -> export(formMetadataPort, submissionMetadataPort, args))
+        .withLauncher(args -> export(workspace, args))
         .build();
   }
 
-  private static void export(FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Args args) {
+  private static void export(Workspace workspace, Args args) {
     String formId = args.get(FORM_ID);
     Path exportDir = args.get(EXPORT_DIR);
     String baseFilename = args.get(FILE);
@@ -100,12 +96,7 @@ public class Export {
     BriefcasePreferences exportPrefs = BriefcasePreferences.forClass(ExportPanel.class);
     BriefcasePreferences pullPrefs = BriefcasePreferences.forClass(ExportPanel.class);
 
-    int maxHttpConnections = appPreferences.getMaxHttpConnections().orElse(DEFAULT_HTTP_CONNECTIONS);
-    Http http = appPreferences.getHttpProxy()
-        .map(host -> CommonsHttp.of(maxHttpConnections, host))
-        .orElseGet(() -> CommonsHttp.of(maxHttpConnections));
-
-    Optional<FormMetadata> maybeFormStatus = formMetadataPort.fetchAll()
+    Optional<FormMetadata> maybeFormStatus = workspace.formMetadata.fetchAll()
         .filter(formMetadata -> formMetadata.getKey().getId().equals(formId))
         .findFirst();
 
@@ -134,20 +125,20 @@ public class Export {
       Optional<AggregateServer> server = AggregateServer.readFromPrefs(appPreferences, pullPrefs, formMetadata.getKey());
       if (server.isPresent()) {
         Optional<Cursor> lastCursor = appPreferences.resolveStartFromLast()
-            ? formMetadataPort.query(lastCursorOf(formMetadata.getKey()))
+            ? workspace.formMetadata.query(lastCursorOf(formMetadata.getKey()))
             : Optional.empty();
 
-        pullJob = new PullFromAggregate(http, formMetadataPort, submissionMetadataPort, server.get(), false, Export::onEvent)
+        pullJob = new PullFromAggregate(workspace, server.get(), false, Export::onEvent)
             .pull(formMetadata, lastCursor);
       }
     }
 
     FormDefinition formDef = FormDefinition.from(formMetadata);
 
-    Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadataPort, submissionMetadataPort, formMetadata, formDef, configuration));
+    Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(workspace, formMetadata, formDef, configuration));
 
     Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
-        ? Job.run(runnerStatus -> ExportToGeoJson.export(submissionMetadataPort, formMetadata, formDef, configuration))
+        ? Job.run(runnerStatus -> ExportToGeoJson.export(workspace, formMetadata, formDef, configuration))
         : Job.noOp;
 
     Job<Void> job = pullJob

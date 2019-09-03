@@ -22,22 +22,19 @@ import java.util.function.Consumer;
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTarget;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.reused.Workspace;
-import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 
 public interface PullSource<T> extends SourceOrTarget<T> {
-  static PullSource<AggregateServer> aggregate(Http http, Workspace workspace, Consumer<PullSource> consumer) {
-    return new Aggregate(http, workspace, server -> http.execute(server.getFormListRequest()), "Must have Data Collector permissions at least", consumer);
+  static PullSource<AggregateServer> aggregate(Workspace workspace, Consumer<PullSource> consumer) {
+    return new Aggregate(workspace, server -> workspace.http.execute(server.getFormListRequest()), "Must have Data Collector permissions at least", consumer);
   }
 
-  static PullSource<CentralServer> central(Http http, Workspace workspace, Consumer<PullSource> consumer) {
-    return new Central(http, workspace, server -> http.execute(server.getCredentialsTestRequest()), consumer);
+  static PullSource<CentralServer> central(Workspace workspace, Consumer<PullSource> consumer) {
+    return new Central(workspace, server -> workspace.http.execute(server.getCredentialsTestRequest()), consumer);
   }
 
   static PullSource<Path> collectDir(Workspace workspace, Consumer<PullSource> consumer) {
@@ -52,7 +49,7 @@ public interface PullSource<T> extends SourceOrTarget<T> {
 
   void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords);
 
-  JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort);
+  JobsRunner pull(TransferForms forms, boolean startFromLast);
 
   String getDescription();
 

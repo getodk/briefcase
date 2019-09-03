@@ -19,10 +19,9 @@ package org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTarget;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
-import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 
@@ -32,12 +31,12 @@ public interface PushTarget<T> extends SourceOrTarget<T> {
     CentralServer.clearStoredPrefs(prefs);
   }
 
-  static PushTarget<AggregateServer> aggregate(Http http, Consumer<PushTarget> consumer) {
-    return new Aggregate(http, server -> http.execute(server.getPushFormPreflightRequest()), "Must have Form Manager permissions", consumer);
+  static PushTarget<AggregateServer> aggregate(Workspace workspace, Consumer<PushTarget> consumer) {
+    return new Aggregate(workspace, server -> workspace.http.execute(server.getPushFormPreflightRequest()), "Must have Form Manager permissions", consumer);
   }
 
-  static PushTarget<CentralServer> central(Http http, SubmissionMetadataPort submissionMetadataPort, Consumer<PushTarget> consumer) {
-    return new Central(http, submissionMetadataPort, server -> http.execute(server.getCredentialsTestRequest()), consumer);
+  static PushTarget<CentralServer> central(Workspace workspace, Consumer<PushTarget> consumer) {
+    return new Central(workspace, server -> workspace.http.execute(server.getCredentialsTestRequest()), consumer);
   }
 
   void storeTargetPrefs(BriefcasePreferences prefs, boolean storePasswords);

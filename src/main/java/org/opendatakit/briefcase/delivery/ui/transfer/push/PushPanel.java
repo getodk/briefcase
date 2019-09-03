@@ -34,13 +34,11 @@ import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.PushTa
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.operations.transfer.push.PushEvent;
-import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.preferences.SavePasswordsConsentRevoked;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 
 public class PushPanel {
@@ -50,12 +48,12 @@ public class PushPanel {
   private final BriefcasePreferences pushPreferences;
   private final BriefcasePreferences appPreferences;
   private final Analytics analytics;
-  private final FormMetadataPort formMetadataPort;
+  private final Workspace workspace;
   private JobsRunner pushJobRunner;
   private Optional<PushTarget> target;
 
-  private PushPanel(TransferPanelForm<PushTarget> view, TransferForms forms, BriefcasePreferences pushPreferences, BriefcasePreferences appPreferences, Analytics analytics, FormMetadataPort formMetadataPort) {
-    this.formMetadataPort = formMetadataPort;
+  private PushPanel(Workspace workspace, TransferPanelForm<PushTarget> view, TransferForms forms, BriefcasePreferences pushPreferences, BriefcasePreferences appPreferences, Analytics analytics) {
+    this.workspace = workspace;
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
@@ -104,15 +102,15 @@ public class PushPanel {
     });
   }
 
-  public static PushPanel from(Http http, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, Analytics analytics, BriefcasePreferences appPreferences) {
-    TransferForms forms = TransferForms.from(formMetadataPort.fetchAll().collect(toList()));
+  public static PushPanel from(Workspace workspace, Analytics analytics, BriefcasePreferences appPreferences) {
+    TransferForms forms = TransferForms.from(workspace.formMetadata.fetchAll().collect(toList()));
     return new PushPanel(
-        TransferPanelForm.push(http, submissionMetadataPort, forms),
+        workspace,
+        TransferPanelForm.push(workspace, forms),
         forms,
         BriefcasePreferences.forClass(PushPanel.class),
         appPreferences,
-        analytics,
-        formMetadataPort
+        analytics
     );
   }
 
@@ -136,7 +134,7 @@ public class PushPanel {
   }
 
   private void updateForms() {
-    forms.merge(formMetadataPort.fetchAll().collect(toList()));
+    forms.merge(workspace.formMetadata.fetchAll().collect(toList()));
     view.refresh();
   }
 

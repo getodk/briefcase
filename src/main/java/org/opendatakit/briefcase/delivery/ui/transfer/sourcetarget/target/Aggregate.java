@@ -27,7 +27,7 @@ import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.AggregateServ
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.push.PushEvent;
 import org.opendatakit.briefcase.operations.transfer.push.aggregate.PushToAggregate;
-import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
@@ -37,14 +37,14 @@ import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
  * Represents an ODK Aggregate server as a target for sending forms for the Push UI Panel.
  */
 public class Aggregate implements PushTarget<AggregateServer> {
-  private final Http http;
   private final Consumer<PushTarget> consumer;
+  private final Workspace workspace;
   private Test<AggregateServer> serverTester;
   private String requiredPermission;
   private AggregateServer server;
 
-  Aggregate(Http http, Test<AggregateServer> serverTester, String requiredPermission, Consumer<PushTarget> consumer) {
-    this.http = http;
+  Aggregate(Workspace workspace, Test<AggregateServer> serverTester, String requiredPermission, Consumer<PushTarget> consumer) {
+    this.workspace = workspace;
     this.serverTester = serverTester;
     this.requiredPermission = requiredPermission;
     this.consumer = consumer;
@@ -75,7 +75,7 @@ public class Aggregate implements PushTarget<AggregateServer> {
 
   @Override
   public JobsRunner push(TransferForms forms) {
-    PushToAggregate pushOp = new PushToAggregate(http, server, false, EventBus::publish);
+    PushToAggregate pushOp = new PushToAggregate(workspace, server, false, EventBus::publish);
 
     return JobsRunner
         .launchAsync(forms.map(pushOp::push))

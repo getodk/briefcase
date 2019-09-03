@@ -48,23 +48,22 @@ import java.util.Optional;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.WorkspaceHelper;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.api.UncheckedFiles;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
-import org.opendatakit.briefcase.reused.model.form.InMemoryFormMetadataAdapter;
-import org.opendatakit.briefcase.reused.model.submission.InMemorySubmissionMetadataAdapter;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionKey;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
-import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class ExportToCsvScenario {
   private static final Logger log = LoggerFactory.getLogger(ExportToCsvScenario.class);
   private final AtomicInteger seq = new AtomicInteger(0);
+  private final Workspace workspace;
   private final Path briefcaseDir;
   private final Path formDir;
   private final Path outputDir;
@@ -72,11 +71,10 @@ class ExportToCsvScenario {
   private final Optional<String> instanceID;
   private final Locale localeBackup;
   private final TimeZone zoneBackup;
-  private final FormMetadataPort formMetadataPort;
   private final FormMetadata formMetadata;
-  private final SubmissionMetadataPort submissionMetadataPort;
 
-  private ExportToCsvScenario(Path briefcaseDir, Path formDir, Path outputDir, FormDefinition formDef, Optional<String> instanceID, Locale localeBackup, TimeZone zoneBackup, FormMetadataPort formMetadataPort, FormMetadata formMetadata, SubmissionMetadataPort submissionMetadataPort) {
+  private ExportToCsvScenario(Workspace workspace, Path briefcaseDir, Path formDir, Path outputDir, FormDefinition formDef, Optional<String> instanceID, Locale localeBackup, TimeZone zoneBackup, FormMetadata formMetadata) {
+    this.workspace = workspace;
     this.briefcaseDir = briefcaseDir;
     this.formDir = formDir;
     this.outputDir = outputDir;
@@ -84,20 +82,22 @@ class ExportToCsvScenario {
     this.instanceID = instanceID;
     this.localeBackup = localeBackup;
     this.zoneBackup = zoneBackup;
-    this.formMetadataPort = formMetadataPort;
     this.formMetadata = formMetadata;
-    this.submissionMetadataPort = submissionMetadataPort;
   }
 
   static ExportToCsvScenario setUp(String formName) {
     Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+
+    Workspace workspace = WorkspaceHelper.inMemory();
 
     Path sourceFormFile = getPath(formName + ".xml");
     FormMetadata sourceFormMetadata = FormMetadata.from(sourceFormFile);
 
     Path briefcaseDir = createTempDirectory("briefcase");
     FormMetadata targetMetadata = sourceFormMetadata.withFormFile(sourceFormMetadata.buildFormFile(briefcaseDir));
+    workspace.formMetadata.persist(targetMetadata);
     Optional<SubmissionMetadata> submissionMetadata = installForm(sourceFormMetadata, targetMetadata);
+    submissionMetadata.ifPresent(workspace.submissionMetadata::persist);
 
     log.debug("Form dir: {}", targetMetadata.getFormDir());
 
@@ -113,13 +113,8 @@ class ExportToCsvScenario {
     TimeZone zoneBackup = TimeZone.getDefault();
     TimeZone.setDefault(TimeZone.getTimeZone(ZoneOffset.UTC));
 
-    InMemoryFormMetadataAdapter formMetadataPort = new InMemoryFormMetadataAdapter();
-    formMetadataPort.persist(targetMetadata);
-
-    InMemorySubmissionMetadataAdapter submissionMetadataPort = new InMemorySubmissionMetadataAdapter();
-    submissionMetadata.ifPresent(submissionMetadataPort::persist);
-
     return new ExportToCsvScenario(
+        workspace,
         briefcaseDir,
         targetMetadata.getFormDir(),
         outputDir,
@@ -127,9 +122,7 @@ class ExportToCsvScenario {
         readInstanceId(formName),
         localeBackup,
         zoneBackup,
-        formMetadataPort,
-        targetMetadata,
-        submissionMetadataPort
+        targetMetadata
     );
   }
 
@@ -180,7 +173,7 @@ class ExportToCsvScenario {
         .setSplitSelectMultiples(splitSelectMultiples)
         .build();
 
-    ExportToCsv.export(formMetadataPort, submissionMetadataPort, formMetadata, formDef, configuration);
+    ExportToCsv.export(workspace, formMetadata, formDef, configuration);
   }
 
   void assertSameContent() {
@@ -232,7 +225,7 @@ class ExportToCsvScenario {
     createDirectories(instanceDir);
     Path instanceFile = instanceDir.resolve("submission.xml");
     UncheckedFiles.write(instanceFile, instanceContent);
-    submissionMetadataPort.persist(SubmissionMetadata.from(instanceFile, emptyList()));
+    workspace.submissionMetadata.persist(SubmissionMetadata.from(instanceFile, emptyList()));
   }
 
   void createOutputFile(String dir, String file) {
@@ -256,7 +249,7 @@ class ExportToCsvScenario {
     if (Files.exists(instancesDir))
       deleteRecursive(instancesDir);
     UncheckedFiles.createDirectories(instancesDir);
-    submissionMetadataPort.flush();
+    workspace.submissionMetadata.flush();
   }
 
   void installSubmission(String fileName) {
@@ -269,7 +262,7 @@ class ExportToCsvScenario {
     Path target = submissionDir.resolve("submission.xml");
     log.debug("Install " + submissionDir.getFileName() + "/" + target.getFileName());
     copy(source, target);
-    submissionMetadataPort.persist(SubmissionMetadata.from(target, emptyList()));
+    workspace.submissionMetadata.persist(SubmissionMetadata.from(target, emptyList()));
   }
 
   private static Optional<Path> maybeGetPath(String fileName) {
@@ -318,44 +311,6 @@ class ExportToCsvScenario {
       return Optional.of(SubmissionMetadata.from(submissionFile, attachmentFilenames));
     }
     return Optional.empty();
-  }
-
-  private static Path installForm(Path formDir, final String formName) {
-    // Locate and copy the form definition
-    Path sourceForm = getPath(formName + ".xml");
-    Path targetForm = formDir.resolve(sourceForm.getFileName());
-    copy(sourceForm, targetForm);
-
-    // Prepare the instances directory
-    Path instancesDir = formDir.resolve("instances");
-    createDirectories(instancesDir);
-
-    // Copy a submission and possibly other files
-    maybeGetPath(formName + "-submission.xml")
-        .filter(Files::exists)
-        .ifPresent(path -> {
-          // Read the submission's instance ID
-          String instanceId = readInstanceId(path);
-
-          // Create a dir for this submission
-          Path submissionDir = instancesDir.resolve(instanceId.replace(":", ""));
-          createDirectories(submissionDir);
-
-          // We will copy every file we find that is prefixed with the
-          // name of the form we're installing, ignoring PEM files and templates
-          walk(path.getParent())
-              .filter(isRelatedToForm(formName))
-              .filter(isPemFile().negate())
-              .filter(isTemplateFile().negate())
-              .filter(isExpectedContentsFile().negate())
-              .forEach(file -> {
-                Path target = submissionDir.resolve(file.getFileName().toString().substring(formName.length() + 1));
-                log.debug("Install " + submissionDir.getFileName() + "/" + target.getFileName());
-                copy(file, target);
-              });
-        });
-
-    return targetForm;
   }
 
   private static Predicate<Path> isExpectedContentsFile() {
