@@ -80,7 +80,7 @@ public class ExportConfiguration {
   private final OverridableBoolean removeGroupNames;
   private final OverridableBoolean smartAppend;
 
-  private ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, DateRange dateRange, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, OverridableBoolean splitSelectMultiples, OverridableBoolean includeGeoJsonExport, OverridableBoolean removeGroupNames, OverridableBoolean smartAppend) {
+  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, DateRange dateRange, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, OverridableBoolean splitSelectMultiples, OverridableBoolean includeGeoJsonExport, OverridableBoolean removeGroupNames, OverridableBoolean smartAppend) {
     this.exportFileName = exportFileName;
     this.exportDir = exportDir;
     this.pemFile = pemFile;
