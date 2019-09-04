@@ -26,8 +26,8 @@ import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTION
 
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
@@ -54,8 +54,8 @@ public class PushFormToCentral {
   public static Operation OPERATION = Operation.of(
       PUSH_TO_CENTRAL,
       PushFormToCentral::pushToCentral,
-      Arrays.asList(STORAGE_DIR, FORM_ID, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD, SERVER_URL),
-      Collections.singletonList(MAX_HTTP_CONNECTIONS)
+      Arrays.asList(STORAGE_DIR, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD, SERVER_URL),
+      Arrays.asList(MAX_HTTP_CONNECTIONS, FORM_ID)
   );
 
   private static void pushToCentral(Args args) {
@@ -78,14 +78,22 @@ public class PushFormToCentral {
     String token = http.execute(server.getSessionTokenRequest())
         .orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
 
-    String formId = args.get(FORM_ID);
-    Optional<FormStatus> maybeFormStatus = formCache.getForms().stream()
-        .filter(form -> form.getFormId().equals(formId))
-        .map(FormStatus::new)
-        .findFirst();
+    List<FormStatus> statuses;
+    if (args.getOptional(FORM_ID).isPresent()) {
+      String requestedFormId = args.getOptional(FORM_ID).get();
+      FormStatus status = formCache.getForms().stream()
+          .filter(form -> form.getFormId().equals(requestedFormId))
+          .map(FormStatus::new)
+          .findFirst()
+          .orElseThrow(() -> new BriefcaseException("Form " + requestedFormId + " not found"));
+      statuses = Arrays.asList(status);
+    } else {
+      statuses = formCache.getForms().stream()
+          .map(FormStatus::new)
+          .collect(Collectors.toList());
+    }
 
-    FormStatus form = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + formId + " not found"));
-    TransferForms forms = TransferForms.of(form);
+    TransferForms forms = TransferForms.of(statuses);
     forms.selectAll();
 
     PushToCentral pushOp = new PushToCentral(http, server, briefcaseDir, token, PushFormToCentral::onEvent);
