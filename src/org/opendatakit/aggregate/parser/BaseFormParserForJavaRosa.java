@@ -230,7 +230,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
   /**
    * The XForm definition in XML
    */
-  protected final String xml;
+  public final String xml;
 
   // original bindings from parse-time for later comparison
   private transient final List<Element> bindElements = new ArrayList<>();
