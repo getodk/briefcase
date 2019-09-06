@@ -46,8 +46,9 @@ public class Request<T> {
   final Map<String, String> headers;
   private final Optional<InputStream> body;
   final List<MultipartMessage> multipartMessages;
+  private final boolean ignoreCookies;
 
-  Request(RequestMethod method, URL url, Optional<Credentials> credentials, Function<InputStream, T> responseMapper, Map<String, String> headers, Optional<InputStream> body, List<MultipartMessage> multipartMessages) {
+  Request(RequestMethod method, URL url, Optional<Credentials> credentials, Function<InputStream, T> responseMapper, Map<String, String> headers, Optional<InputStream> body, List<MultipartMessage> multipartMessages, boolean ignoreCookies) {
     this.method = method;
     this.url = url;
     this.credentials = credentials;
@@ -55,6 +56,7 @@ public class Request<T> {
     this.headers = headers;
     this.body = body;
     this.multipartMessages = multipartMessages;
+    this.ignoreCookies = ignoreCookies;
   }
 
   public T map(InputStream responseBody) {
@@ -91,7 +93,7 @@ public class Request<T> {
    * Returns a RequestBuilder that would produce this instance when built.
    */
   public RequestBuilder<T> builder() {
-    return new RequestBuilder<>(method, url, responseMapper, credentials, headers, body, multipartMessages);
+    return new RequestBuilder<>(method, url, responseMapper, credentials, headers, body, multipartMessages, ignoreCookies);
   }
 
   @Override
@@ -120,5 +122,9 @@ public class Request<T> {
 
   public InputStream getBody() {
     return body.orElseThrow(BriefcaseException::new);
+  }
+
+  public boolean ignoreCookies() {
+    return ignoreCookies;
   }
 }
