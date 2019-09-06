@@ -11,6 +11,7 @@ import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Pair;
 
 public class FormKey implements AsJson {
   private final String name;
@@ -24,9 +25,10 @@ public class FormKey implements AsJson {
   }
 
   public static FormKey from(FormStatus formStatus) {
+    Pair<String, String> formNameAndId = getFormNameAndId(formStatus);
     return new FormKey(
-        getFormName(formStatus),
-        formStatus.getFormId(),
+        formNameAndId.getLeft(),
+        formNameAndId.getRight(),
         formStatus.getVersion()
     );
   }
@@ -51,19 +53,31 @@ public class FormKey implements AsJson {
     return new FormKey(name, id, version);
   }
 
-  private static String getFormName(FormStatus formStatus) {
+  private static Pair<String, String> getFormNameAndId(FormStatus formStatus) {
     if (!(formStatus.getFormDefinition() instanceof BriefcaseFormDefinition))
-      return formStatus.getFormName();
+      return Pair.of(
+          formStatus.getFormName(),
+          formStatus.getFormId()
+      );
 
     // We can't trust the form's title because JavaRosaParserWrapper strips illegal chars
     // from it for some reason and then we can't use it to match any stored form metadata
     BriefcaseFormDefinition formDef = (BriefcaseFormDefinition) formStatus.getFormDefinition();
     XmlElement root = XmlElement.from(formDef.formDefn.xml);
-    return root.findElement("head")
+    String formName = root.findElement("head")
         .flatMap(e -> e.findElement("title"))
         .flatMap(XmlElement::maybeValue)
         // Revert to the name in the formdef if we get to this point
         .orElseGet(formStatus::getFormName);
+
+    XmlElement instance = root.findElements("head", "model", "instance")
+        .stream()
+        .filter(e -> !e.hasAttribute("id"))
+        .findFirst()
+        .orElseThrow(BriefcaseException::new);
+
+    String formId = instance.childrenOf().get(0).getAttributeValue("id").orElseThrow(BriefcaseException::new);
+    return Pair.of(formName, formId);
   }
 
   public String getId() {
