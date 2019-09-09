@@ -16,27 +16,30 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class FormMetadata implements AsJson {
   private final FormKey key;
-  private final Path storageDirectory;
+  private final Path storageRoot;
+  private final Path formDir;
   private final boolean hasBeenPulled;
   private final Cursor cursor;
   private final Optional<SubmissionExportMetadata> lastExportedSubmission;
 
-  public FormMetadata(FormKey key, Path storageDirectory, boolean hasBeenPulled, Cursor cursor, Optional<SubmissionExportMetadata> lastExportedSubmission) {
+  public FormMetadata(FormKey key, Path storageRoot, Path formDir, boolean hasBeenPulled, Cursor cursor, Optional<SubmissionExportMetadata> lastExportedSubmission) {
     this.key = key;
-    this.storageDirectory = storageDirectory;
+    this.storageRoot = storageRoot;
+    this.formDir = formDir.isAbsolute() ? storageRoot.relativize(formDir) : formDir;
     this.hasBeenPulled = hasBeenPulled;
     this.cursor = cursor;
     this.lastExportedSubmission = lastExportedSubmission;
   }
 
-  public static FormMetadata of(FormKey key, Path storageDirectory) {
-    // Hardcoded storage directory because we want this class to decide where a
-    // form is/should be stored. Now it's based on the Briefcase storage directory,
-    // but it will change in the future to be based on a hash of the form key.
-    return new FormMetadata(key, storageDirectory, false, Cursor.empty(), Optional.empty());
+  public static FormMetadata of(FormKey key, Path storageRoot, Path formDir) {
+    return new FormMetadata(
+        key,
+        storageRoot,
+        formDir,
+        false, Cursor.empty(), Optional.empty());
   }
 
-  public static FormMetadata from(Path formFile) {
+  public static FormMetadata from(Path storageRoot, Path formFile) {
     XmlElement root = XmlElement.from(formFile);
     assert root.getName().equals("html");
     String name = root.findElements("head", "title").get(0)
@@ -49,13 +52,14 @@ public class FormMetadata implements AsJson {
     String id = mainInstance.childrenOf().get(0).getAttributeValue("id").orElseThrow(BriefcaseException::new);
     Optional<String> version = mainInstance.childrenOf().get(0).getAttributeValue("version");
     FormKey key = FormKey.of(name, id, version);
-    return new FormMetadata(key, formFile.getParent(), true, Cursor.empty(), Optional.empty());
+    return new FormMetadata(key, storageRoot, formFile.getParent(), true, Cursor.empty(), Optional.empty());
   }
 
-  public static FormMetadata from(JsonNode root) {
+  public static FormMetadata from(Path storageRoot, JsonNode root) {
     return new FormMetadata(
         FormKey.from(root.get("key")),
-        getJson(root, "storageDirectory").map(JsonNode::asText).map(Paths::get).orElseThrow(BriefcaseException::new),
+        storageRoot,
+        getJson(root, "formDir").map(JsonNode::asText).map(Paths::get).orElseThrow(BriefcaseException::new),
         getJson(root, "hasBeenPulled").map(JsonNode::asBoolean).orElseThrow(BriefcaseException::new),
         Cursor.from(root.get("cursor")),
         getJson(root, "lastExportedSubmission").map(SubmissionExportMetadata::from)
@@ -72,8 +76,8 @@ public class FormMetadata implements AsJson {
     return key;
   }
 
-  public Path getStorageDirectory() {
-    return storageDirectory;
+  public Path getFormDir() {
+    return storageRoot.resolve(formDir);
   }
 
   public boolean hasBeenPulled() {
@@ -89,26 +93,26 @@ public class FormMetadata implements AsJson {
   }
 
   FormMetadata withCursor(Cursor cursor) {
-    return new FormMetadata(key, storageDirectory, hasBeenPulled, cursor, lastExportedSubmission);
+    return new FormMetadata(key, storageRoot, formDir, hasBeenPulled, cursor, lastExportedSubmission);
   }
 
   public FormMetadata withoutCursor() {
-    return new FormMetadata(key, storageDirectory, hasBeenPulled, Cursor.empty(), lastExportedSubmission);
+    return new FormMetadata(key, storageRoot, formDir, hasBeenPulled, Cursor.empty(), lastExportedSubmission);
   }
 
   FormMetadata withHasBeenPulled(boolean hasBeenPulled) {
-    return new FormMetadata(key, storageDirectory, hasBeenPulled, cursor, lastExportedSubmission);
+    return new FormMetadata(key, storageRoot, formDir, hasBeenPulled, cursor, lastExportedSubmission);
   }
 
   FormMetadata withLastExportedSubmission(String instanceId, OffsetDateTime submissionDate, OffsetDateTime exportDateTime) {
-    return new FormMetadata(key, storageDirectory, hasBeenPulled, cursor, Optional.of(new SubmissionExportMetadata(instanceId, submissionDate, exportDateTime)));
+    return new FormMetadata(key, storageRoot, formDir, hasBeenPulled, cursor, Optional.of(new SubmissionExportMetadata(instanceId, submissionDate, exportDateTime)));
   }
 
   @Override
   public ObjectNode asJson(ObjectMapper mapper) {
     ObjectNode root = mapper.createObjectNode();
     root.putObject("key").setAll(key.asJson(mapper));
-    root.put("storageDirectory", storageDirectory.toAbsolutePath().toString());
+    root.put("formDir", formDir.toString());
     root.put("hasBeenPulled", hasBeenPulled);
     root.putObject("cursor").setAll(cursor.asJson(mapper));
     lastExportedSubmission.ifPresent(o -> root.putObject("lastExportedSubmission").setAll(o.asJson(mapper)));
@@ -122,21 +126,23 @@ public class FormMetadata implements AsJson {
     FormMetadata that = (FormMetadata) o;
     return hasBeenPulled == that.hasBeenPulled &&
         Objects.equals(key, that.key) &&
-        Objects.equals(storageDirectory, that.storageDirectory) &&
+        Objects.equals(storageRoot, that.storageRoot) &&
+        Objects.equals(formDir, that.formDir) &&
         Objects.equals(cursor, that.cursor) &&
         Objects.equals(lastExportedSubmission, that.lastExportedSubmission);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(key, storageDirectory, hasBeenPulled, cursor, lastExportedSubmission);
+    return Objects.hash(key, storageRoot, formDir, hasBeenPulled, cursor, lastExportedSubmission);
   }
 
   @Override
   public String toString() {
     return "FormMetadata{" +
         "key=" + key +
-        ", storageDirectory=" + storageDirectory +
+        ", storageRoot=" + storageRoot +
+        ", formDir=" + formDir +
         ", hasBeenPulled=" + hasBeenPulled +
         ", cursor=" + cursor +
         ", lastExportedSubmission=" + lastExportedSubmission +

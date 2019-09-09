@@ -5,7 +5,6 @@ import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.matchers.PathMatchers.exists;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
@@ -60,10 +59,10 @@ public class FileSystemFormMetadataAdapterTest {
   public void persists_metadata_by_creating_a_metadata_json_file_along_with_the_form_file() throws IOException {
     FormMetadataPort port = FileSystemFormMetadataAdapter.at(storageRoot);
     Path installedForm = installForm(storageRoot, "Some form", "some-form", Optional.empty());
-    FormMetadata persistedMetadata = buildMetadataFrom(installedForm, Cursor.empty());
+    FormMetadata persistedMetadata = buildMetadataFrom(storageRoot, installedForm, Cursor.empty());
     port.persist(persistedMetadata);
 
-    Path metadataFile = persistedMetadata.getStorageDirectory().resolve("metadata.json");
+    Path metadataFile = persistedMetadata.getFormDir().resolve("metadata.json");
     assertThat(metadataFile, exists());
     // Sanity check of the json file's structure and data.
     // Further checks are make implicitly (using object equality) in other tests
@@ -71,7 +70,7 @@ public class FileSystemFormMetadataAdapterTest {
     assertThat(root.path("key").path("name").asText(), is("Some form"));
     assertThat(root.path("key").path("id").asText(), is("some-form"));
     assertThat(root.path("key").path("version").isNull(), is(true));
-    assertThat(root.path("storageDirectory").asText(), startsWith(storageRoot.resolve("forms").toString()));
+    assertThat(root.path("formDir").asText(), is("forms/Some form"));
     assertThat(root.path("hasBeenPulled").asBoolean(), is(true));
     assertThat(root.path("cursor").path("type").asText(), is("empty"));
     assertThat(root.path("cursor").path("value").isNull(), is(true));
@@ -102,7 +101,7 @@ public class FileSystemFormMetadataAdapterTest {
 
       // Install the form in the storage root, and get a metadata object from it
       Path formFile = formInstaller.get();
-      FormMetadata metadataToBePersisted = buildMetadataFrom(formFile, cursor);
+      FormMetadata metadataToBePersisted = buildMetadataFrom(storageRoot, formFile, cursor);
 
       // Persist metadata into the filesystem
       FormMetadataPort persistPort = FileSystemFormMetadataAdapter.at(storageRoot);
@@ -121,7 +120,7 @@ public class FileSystemFormMetadataAdapterTest {
   public void persists_and_fetches_collections_of_form_metadata() {
     List<FormMetadata> expectedFormMetadatas = IntStream.range(0, 10)
         .mapToObj(i -> installForm(storageRoot, "Form " + i, "form-" + i, Optional.empty()))
-        .map(formFile -> buildMetadataFrom(formFile, Cursor.empty()))
+        .map(formFile -> buildMetadataFrom(storageRoot, formFile, Cursor.empty()))
         .collect(toList());
 
     FileSystemFormMetadataAdapter.at(storageRoot).persist(expectedFormMetadatas.stream());
@@ -174,7 +173,7 @@ public class FileSystemFormMetadataAdapterTest {
     }
   }
 
-  private static FormMetadata buildMetadataFrom(Path formFile, Cursor cursor) {
+  private static FormMetadata buildMetadataFrom(Path storageRoot, Path formFile, Cursor cursor) {
     XmlElement root = readXml(newInputStream(formFile));
     XmlElement mainInstance = root.findElements("head", "model", "instance").stream()
         .filter(e -> !e.hasAttribute("id") // It's not a secondary instance
@@ -188,6 +187,6 @@ public class FileSystemFormMetadataAdapterTest {
         mainInstance.getAttributeValue("id").orElseThrow(RuntimeException::new),
         mainInstance.getAttributeValue("version")
     );
-    return new FormMetadata(key, formFile.getParent(), cursor.isEmpty(), cursor, Optional.empty());
+    return new FormMetadata(key, storageRoot, formFile.getParent(), cursor.isEmpty(), cursor, Optional.empty());
   }
 }

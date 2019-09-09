@@ -2,6 +2,7 @@ package org.opendatakit.briefcase.model.form;
 
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.walk;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -55,19 +57,21 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
     Stream<Path> formFiles = candidateFormFiles.filter(path -> isAForm(XmlElement.from(path)));
 
     // Parse existing metadata.json files or build new FormMetadata from form files
-    Stream<FormMetadata> metadataFiles = formFiles.map(formFile -> {
+    // At this point, we collect the stream to avoid problems coming
+    // from actually writing files in the same folders we're reading from
+    List<FormMetadata> metadataFiles = formFiles.map(formFile -> {
       Path formDir = formFile.getParent();
       Path metadataFile = formDir.resolve("metadata.json");
-      FormMetadata formMetadata = Files.exists(metadataFile) ? deserialize(metadataFile) : FormMetadata.from(formFile);
+      FormMetadata formMetadata = Files.exists(metadataFile) ? deserialize(storageRoot, metadataFile) : FormMetadata.from(storageRoot, formFile);
       if (!formMetadata.getCursor().isEmpty())
         return formMetadata;
       // Try to recover any missing cursor from the legacy Java prefs system
       return LegacyPrefs.readCursor(formMetadata.getKey().getId())
           .map(formMetadata::withCursor)
           .orElse(formMetadata);
-    });
+    }).collect(toList());
 
-    Map<FormKey, FormMetadata> forms = metadataFiles
+    Map<FormKey, FormMetadata> forms = metadataFiles.stream()
         .peek(this::persist) // Write updated metadata.json files
         .collect(toMap(FormMetadata::getKey, metadata -> metadata));
 
@@ -116,9 +120,8 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
   }
 
   // region Path <-> JSON <-> FormMetadata serialization
-  private static FormMetadata deserialize(Path metadataFile) {
-    JsonNode root = uncheckedReadTree(metadataFile);
-    return FormMetadata.from(root);
+  private static FormMetadata deserialize(Path storageRoot, Path metadataFile) {
+    return FormMetadata.from(storageRoot, uncheckedReadTree(metadataFile));
   }
 
   private static Path serialize(FormMetadata metaData) {
@@ -142,7 +145,7 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
   }
 
   private static Path getMetadataFile(FormMetadata metaData) {
-    return metaData.getStorageDirectory().resolve("metadata.json");
+    return metaData.getFormDir().resolve("metadata.json");
   }
   // endregion
 }
