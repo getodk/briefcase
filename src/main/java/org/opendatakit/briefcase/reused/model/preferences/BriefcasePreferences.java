@@ -58,7 +58,7 @@ public class BriefcasePreferences {
     return new BriefcasePreferences(node, PreferenceScope.CLASS_NAME);
   }
 
-  public String get(String key, String defaultValue) {
+  private String get(String key, String defaultValue) {
     return preferences.get(key, defaultValue);
   }
 
