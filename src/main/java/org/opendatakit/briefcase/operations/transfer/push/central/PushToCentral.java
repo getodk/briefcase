@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.operations.transfer.push.PushEvent;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.RunnerStatus;
@@ -39,13 +39,13 @@ import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 
 public class PushToCentral {
-  private final Workspace workspace;
+  private final Container container;
   private final CentralServer server;
   private final String token;
   private final Consumer<FormStatusEvent> onEventCallback;
 
-  public PushToCentral(Workspace workspace, CentralServer server, String token, Consumer<FormStatusEvent> onEventCallback) {
-    this.workspace = workspace;
+  public PushToCentral(Container container, CentralServer server, String token, Consumer<FormStatusEvent> onEventCallback) {
+    this.container = container;
     this.server = server;
     this.token = token;
     this.onEventCallback = onEventCallback;
@@ -82,7 +82,7 @@ public class PushToCentral {
           }
         })
         .thenRun(rs -> {
-          List<SubmissionMetadata> submissions = workspace.submissionMetadata.sortedSubmissions(formMetadata.getKey()).collect(toList());
+          List<SubmissionMetadata> submissions = container.submissionMetadata.sortedSubmissions(formMetadata.getKey()).collect(toList());
           AtomicInteger submissionNumber = new AtomicInteger(1);
           int totalSubmissions = submissions.size();
           if (submissions.isEmpty())
@@ -133,7 +133,7 @@ public class PushToCentral {
       return false;
     }
 
-    Response<Boolean> response = workspace.http.execute(server.getFormExistsRequest(formMetadata.getKey().getId(), token));
+    Response<Boolean> response = container.http.execute(server.getFormExistsRequest(formMetadata.getKey().getId(), token));
     if (!response.isSuccess()) {
       tracker.trackErrorCheckingForm(response);
       return false;
@@ -152,7 +152,7 @@ public class PushToCentral {
     }
 
     tracker.trackStartSendingForm();
-    var response = workspace.http.execute(server.getPushFormRequest(formMetadata.getFormFile(), token));
+    var response = container.http.execute(server.getPushFormRequest(formMetadata.getFormFile(), token));
 
     if (response.isSuccess()) {
       tracker.trackEndSendingForm();
@@ -175,7 +175,7 @@ public class PushToCentral {
     }
 
     tracker.trackStartSendingFormAttachment(attachmentNumber, totalAttachments);
-    var response = workspace.http.execute(server.getPushFormAttachmentRequest(formKey.getId(), attachment, token));
+    var response = container.http.execute(server.getPushFormAttachmentRequest(formKey.getId(), attachment, token));
     if (response.isSuccess())
       tracker.trackEndSendingFormAttachment(attachmentNumber, totalAttachments);
     else if (response.getStatusCode() == 409)
@@ -191,7 +191,7 @@ public class PushToCentral {
     }
 
     tracker.trackStartSendingSubmission(submissionNumber, totalSubmissions);
-    var response = workspace.http.execute(server.getPushSubmissionRequest(token, submissionMetadata.getKey().getFormId(), submissionMetadata.getSubmissionFile()));
+    var response = container.http.execute(server.getPushSubmissionRequest(token, submissionMetadata.getKey().getFormId(), submissionMetadata.getSubmissionFile()));
 
     if (response.isSuccess()) {
       tracker.trackEndSendingSubmission(submissionNumber, totalSubmissions);
@@ -214,7 +214,7 @@ public class PushToCentral {
     }
 
     tracker.trackStartSendingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
-    var response = workspace.http.execute(server.getPushSubmissionAttachmentRequest(token, submissionKey.getFormId(), submissionKey.getInstanceId(), attachment));
+    var response = container.http.execute(server.getPushSubmissionAttachmentRequest(token, submissionKey.getFormId(), submissionKey.getInstanceId(), attachment));
     if (response.isSuccess())
       tracker.trackEndSendingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
     else if (response.getStatusCode() == 409)

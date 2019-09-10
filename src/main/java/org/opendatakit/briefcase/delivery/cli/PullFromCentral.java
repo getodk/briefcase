@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
@@ -46,24 +46,24 @@ public class PullFromCentral {
   private static final Logger log = LoggerFactory.getLogger(PullFromCentral.class);
   private static final Param<Void> PULL_FROM_CENTRAL = Param.flag("pllc", "pull_central", "Pull form from a Central server");
 
-  public static Operation create(Workspace workspace) {
+  public static Operation create(Container container) {
     return new OperationBuilder()
         .withFlag(PULL_FROM_CENTRAL)
         .withRequiredParams(WORKSPACE_LOCATION, SERVER_URL, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD)
         .withOptionalParams(FORM_ID, MAX_HTTP_CONNECTIONS)
-        .withLauncher(args -> pullFromCentral(workspace, args))
+        .withLauncher(args -> pullFromCentral(container, args))
         .build();
   }
 
-  private static void pullFromCentral(Workspace workspace, Args args) {
+  private static void pullFromCentral(Container container, Args args) {
     CliEventsCompanion.attach(log);
 
     CentralServer server = CentralServer.of(args.get(SERVER_URL), args.get(PROJECT_ID), new Credentials(args.get(CREDENTIALS_EMAIL), args.get(CREDENTIALS_PASSWORD)));
 
-    String token = workspace.http.execute(server.getSessionTokenRequest())
+    String token = container.http.execute(server.getSessionTokenRequest())
         .orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
 
-    Response<List<FormMetadata>> response = workspace.http.execute(server.getFormsListRequest(token));
+    Response<List<FormMetadata>> response = container.http.execute(server.getFormsListRequest(token));
     if (!response.isSuccess()) {
       System.err.println(response.isRedirection()
           ? "Error connecting to Central: Redirection detected"
@@ -80,7 +80,7 @@ public class PullFromCentral {
     List<FormMetadata> filteredForms = response.orElseThrow(BriefcaseException::new)
         .stream()
         .filter(f -> formId.map(id -> f.getKey().getId().equals(id)).orElse(true))
-        .map(formMetadata -> formMetadata.withFormFile(workspace.buildFormFile(formMetadata)))
+        .map(formMetadata -> formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata)))
         .collect(toList());
 
     if (formId.isPresent() && filteredForms.isEmpty())
@@ -90,9 +90,9 @@ public class PullFromCentral {
     forms.load(filteredForms);
     forms.selectAll();
 
-    org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral pullOp = new org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral(workspace, server, token, PullFromCentral::onEvent);
+    org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral pullOp = new org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral(container, server, token, PullFromCentral::onEvent);
     JobsRunner.launchAsync(
-        forms.map(formMetadata -> pullOp.pull(formMetadata, workspace.buildFormFile(formMetadata))),
+        forms.map(formMetadata -> pullOp.pull(formMetadata, container.workspace.buildFormFile(formMetadata))),
         PullFromCentral::onError
     ).waitForCompletion();
     System.out.println();

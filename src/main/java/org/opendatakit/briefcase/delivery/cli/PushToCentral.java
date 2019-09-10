@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
@@ -46,40 +46,40 @@ public class PushToCentral {
   private static final Logger log = LoggerFactory.getLogger(PushToCentral.class);
   private static final Param<Void> PUSH_TO_CENTRAL = Param.flag("pshc", "push_central", "Push form to a Central server");
 
-  public static Operation create(Workspace workspace) {
+  public static Operation create(Container container) {
     return new OperationBuilder()
         .withFlag(PUSH_TO_CENTRAL)
         .withRequiredParams(WORKSPACE_LOCATION, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD, SERVER_URL)
         .withOptionalParams(MAX_HTTP_CONNECTIONS, FORM_ID)
-        .withLauncher(args -> pushToCentral(workspace, args))
+        .withLauncher(args -> pushToCentral(container, args))
         .build();
   }
 
-  private static void pushToCentral(Workspace workspace, Args args) {
+  private static void pushToCentral(Container container, Args args) {
     CliEventsCompanion.attach(log);
 
     CentralServer server = CentralServer.of(args.get(SERVER_URL), args.get(PROJECT_ID), new Credentials(args.get(CREDENTIALS_EMAIL), args.get(CREDENTIALS_PASSWORD)));
 
-    String token = workspace.http.execute(server.getSessionTokenRequest())
+    String token = container.http.execute(server.getSessionTokenRequest())
         .orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
 
     List<FormMetadata> formMetadataList;
     if (args.getOptional(FORM_ID).isPresent()) {
       String requestedFormId = args.getOptional(FORM_ID).get();
-      Optional<FormMetadata> maybeFormStatus = workspace.formMetadata.fetchAll()
+      Optional<FormMetadata> maybeFormStatus = container.formMetadata.fetchAll()
           .filter(formMetadata -> formMetadata.getKey().getId().equals(requestedFormId))
           .findFirst();
       FormMetadata formMetadata = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + requestedFormId + " not found"));
       formMetadataList = singletonList(formMetadata);
     } else {
-      formMetadataList = workspace.formMetadata.fetchAll().collect(toList());
+      formMetadataList = container.formMetadata.fetchAll().collect(toList());
     }
 
     TransferForms forms = TransferForms.of(formMetadataList);
     forms.selectAll();
 
     org.opendatakit.briefcase.operations.transfer.push.central.PushToCentral pushOp = new org.opendatakit.briefcase.operations.transfer.push.central.PushToCentral(
-        workspace,
+        container,
         server,
         token,
         PushToCentral::onEvent

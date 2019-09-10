@@ -30,7 +30,7 @@ import org.opendatakit.briefcase.reused.db.jooq.tables.records.SubmissionMetadat
 @SuppressWarnings({"all", "unchecked", "rawtypes"})
 public class SubmissionMetadata extends TableImpl<SubmissionMetadataRecord> {
 
-  private static final long serialVersionUID = 334266127;
+  private static final long serialVersionUID = -437847196;
 
   /**
    * The reference instance of <code>PUBLIC.SUBMISSION_METADATA</code>
@@ -61,9 +61,9 @@ public class SubmissionMetadata extends TableImpl<SubmissionMetadataRecord> {
   public final TableField<SubmissionMetadataRecord, String> INSTANCE_ID = createField("INSTANCE_ID", org.jooq.impl.SQLDataType.VARCHAR(100).nullable(false), this, "");
 
   /**
-   * The column <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_FILENAME</code>.
+   * The column <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_FILE</code>.
    */
-  public final TableField<SubmissionMetadataRecord, String> SUBMISSION_FILENAME = createField("SUBMISSION_FILENAME", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
+  public final TableField<SubmissionMetadataRecord, String> SUBMISSION_FILE = createField("SUBMISSION_FILE", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
 
   /**
    * The column <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_DATE_TIME</code>.

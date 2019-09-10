@@ -29,7 +29,6 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createTempDirectory;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.readAllBytes;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.toURI;
@@ -41,9 +40,7 @@ import static org.opendatakit.briefcase.reused.model.transfer.TransferTestHelper
 import static org.opendatakit.briefcase.reused.model.transfer.TransferTestHelpers.generatePages;
 
 import com.github.dreamhead.moco.HttpServer;
-import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
@@ -56,8 +53,8 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.opendatakit.briefcase.reused.Workspace;
-import org.opendatakit.briefcase.reused.WorkspaceHelper;
+import org.opendatakit.briefcase.reused.Container;
+import org.opendatakit.briefcase.reused.ContainerHelper;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
@@ -66,7 +63,6 @@ import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.model.transfer.TransferTestHelpers;
 
@@ -74,8 +70,6 @@ public class PullFromAggregateIntegrationTest {
   private static final int serverPort = 12306;
   private static final URL BASE_URL = url("http://localhost:" + serverPort);
   private static final AggregateServer aggregateServer = AggregateServer.normal(BASE_URL);
-  private Path tmpDir = createTempDirectory("briefcase-test-");
-  private Path briefcaseDir = tmpDir.resolve(BriefcasePreferences.BRIEFCASE_DIR);
   private HttpServer server;
   private PullFromAggregate pullOp;
   private RunnerStatus runnerStatus;
@@ -83,6 +77,7 @@ public class PullFromAggregateIntegrationTest {
   private List<String> events;
   private FormMetadata formMetadata;
   private FormMetadataPort formMetadataPort;
+  private Container container;
 
   private static Path getPath(String fileName) {
     return Optional.ofNullable(PullFromAggregateIntegrationTest.class.getClassLoader().getResource("org/opendatakit/briefcase/operations/transfer/pull/aggregate/" + fileName))
@@ -91,23 +86,23 @@ public class PullFromAggregateIntegrationTest {
   }
 
   @Before
-  public void setUp() throws IOException {
-    Files.createDirectories(briefcaseDir);
+  public void setUp() {
     server = httpServer(serverPort);
     events = new ArrayList<>();
-    Workspace workspace = WorkspaceHelper.inMemory(CommonsHttp.of(1, Optional.empty()));
-    formMetadataPort = workspace.formMetadata;
-    pullOp = new PullFromAggregate(workspace, aggregateServer, true, e -> events.add(e.getMessage()));
+    container = ContainerHelper.inMemory(CommonsHttp.of(1, Optional.empty()));
+    formMetadataPort = container.formMetadata;
+    pullOp = new PullFromAggregate(container, aggregateServer, true, e -> events.add(e.getMessage()));
     runnerStatus = new TestRunnerStatus(false);
-    formMetadata = FormMetadata.empty(FormKey.of("simple-form"))
-        .withFormFile(briefcaseDir.resolve("forms/Simple form/Simple form.xml"))
+    formMetadata = FormMetadata.empty(FormKey.of("simple-form"));
+    formMetadata = formMetadata
+        .withFormFile(container.workspace.buildFormFile(formMetadata))
         .withUrls(Optional.of(RequestBuilder.url(BASE_URL + "/manifest")), Optional.empty());
     tracker = new PullFromAggregateTracker(formMetadata.getKey(), e -> { });
   }
 
   @After
   public void tearDown() {
-    deleteRecursive(briefcaseDir);
+    deleteRecursive(container.workspace.get());
   }
 
   @Test

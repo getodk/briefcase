@@ -19,7 +19,6 @@ package org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source;
 import static java.awt.Cursor.getPredefinedCursor;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.removeAllMouseListeners;
 
-import java.awt.Container;
 import java.awt.Cursor;
 import java.io.File;
 import java.nio.file.Files;
@@ -34,7 +33,7 @@ import org.opendatakit.briefcase.delivery.ui.reused.filsystem.FileChooser;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.operations.transfer.pull.filesystem.PullFormDefinition;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
@@ -44,17 +43,17 @@ import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
  */
 public class FormInComputer implements PullSource<FormMetadata> {
   private final Consumer<PullSource> consumer;
-  private final Workspace workspace;
+  private final Container container;
   private Path path;
   private FormMetadata sourceFormMetadata;
 
-  FormInComputer(Workspace workspace, Consumer<PullSource> consumer) {
-    this.workspace = workspace;
+  FormInComputer(Container container, Consumer<PullSource> consumer) {
+    this.container = container;
     this.consumer = consumer;
   }
 
   @Override
-  public void onSelect(Container container) {
+  public void onSelect(java.awt.Container container) {
     Optional<Path> selectedFile = FileChooser
         .file(container, Optional.empty(), file -> Files.isDirectory(file.toPath()) ||
             (Files.isRegularFile(file.toPath()) && file.toPath().getFileName().toString().endsWith(".xml")), "XML file")
@@ -93,10 +92,10 @@ public class FormInComputer implements PullSource<FormMetadata> {
 
   @Override
   public JobsRunner pull(TransferForms forms, boolean startFromLast) {
-    PullFormDefinition pullOp = new PullFormDefinition(workspace, EventBus::publish);
+    PullFormDefinition pullOp = new PullFormDefinition(container, EventBus::publish);
     return JobsRunner.launchAsync(pullOp.pull(
         sourceFormMetadata,
-        sourceFormMetadata.withFormFile(workspace.buildFormFile(sourceFormMetadata))
+        sourceFormMetadata.withFormFile(container.workspace.buildFormFile(sourceFormMetadata))
     )).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 

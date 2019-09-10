@@ -38,7 +38,6 @@ import static org.opendatakit.briefcase.reused.model.transfer.TransferTestHelper
 import static org.opendatakit.briefcase.reused.model.transfer.TransferTestHelpers.getResourcePath;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -49,8 +48,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.matchers.PathMatchers;
-import org.opendatakit.briefcase.reused.Workspace;
-import org.opendatakit.briefcase.reused.WorkspaceHelper;
+import org.opendatakit.briefcase.reused.Container;
+import org.opendatakit.briefcase.reused.ContainerHelper;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.http.InMemoryHttp;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
@@ -59,13 +58,11 @@ import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 
 public class PullFromAggregateTest {
   private static final String BASE_URL = "http://foo.bar";
   private Path tmpDir = createTempDirectory("briefcase-test-");
-  private Path workspaceLocation = tmpDir.resolve(BriefcasePreferences.BRIEFCASE_DIR);
   private InMemoryHttp inMemoryHttp;
   private AggregateServer server = AggregateServer.normal(url(BASE_URL));
   private PullFromAggregate pullOp;
@@ -74,24 +71,24 @@ public class PullFromAggregateTest {
   private List<String> events;
   private boolean includeIncomplete = true;
   private FormMetadata formMetadata;
+  private Container container;
 
   @Before
-  public void init() throws IOException {
-    Files.createDirectories(workspaceLocation);
-    Workspace workspace = WorkspaceHelper.inMemory();
+  public void init() {
+    container = ContainerHelper.inMemory();
     events = new ArrayList<>();
-    inMemoryHttp = (InMemoryHttp) workspace.http;
-    pullOp = new PullFromAggregate(workspace, server, includeIncomplete, e -> { });
+    inMemoryHttp = (InMemoryHttp) container.http;
+    pullOp = new PullFromAggregate(container, server, includeIncomplete, e -> { });
     runnerStatus = new TestRunnerStatus(false);
-    formMetadata = FormMetadata.empty(FormKey.of("simple-form"))
-        .withFormFile(workspaceLocation.resolve("forms/some-form/some-form.xml"))
+    formMetadata = FormMetadata.empty(FormKey.of("simple-form"));
+    formMetadata = formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata))
         .withUrls(Optional.of(RequestBuilder.url(BASE_URL + "/manifest")), Optional.empty());
     tracker = new PullFromAggregateTracker(formMetadata.getKey(), e -> events.add(e.getMessage()));
   }
 
   @After
   public void tearDown() {
-    deleteRecursive(workspaceLocation);
+    deleteRecursive(container.workspace.get());
   }
 
   @Test

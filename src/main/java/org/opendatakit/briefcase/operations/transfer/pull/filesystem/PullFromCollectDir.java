@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
@@ -40,11 +40,11 @@ import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 
 public class PullFromCollectDir {
-  private final Workspace workspace;
+  private final Container container;
   private final Consumer<FormStatusEvent> onEventCallback;
 
-  public PullFromCollectDir(Workspace workspace, Consumer<FormStatusEvent> onEventCallback) {
-    this.workspace = workspace;
+  public PullFromCollectDir(Container container, Consumer<FormStatusEvent> onEventCallback) {
+    this.container = container;
     this.onEventCallback = onEventCallback;
   }
 
@@ -72,15 +72,15 @@ public class PullFromCollectDir {
 
       List<SubmissionMetadata> submissionsToPull = submissionFiles.stream()
           .map(path -> SubmissionMetadata.from(path, list(path.getParent()).filter(p -> !p.equals(path)).map(Path::getFileName).collect(toList())))
-          .filter(submissionMetadata -> !workspace.submissionMetadata.hasBeenAlreadyPulled(submissionMetadata.getKey().getFormId(), submissionMetadata.getKey().getInstanceId()))
+          .filter(submissionMetadata -> !container.submissionMetadata.hasBeenAlreadyPulled(submissionMetadata.getKey().getFormId(), submissionMetadata.getKey().getInstanceId()))
           .collect(toList());
       int submissionsAlreadyPulled = submissionsWithInstanceId.size() - submissionsToPull.size();
       if (submissionsAlreadyPulled > 0)
         tracker.trackSkippedSubmissionsAlreadyPulled(submissionsAlreadyPulled, totalSubmissions);
 
-      installSubmissions(targetFormMetadata, submissionsToPull, workspace.submissionMetadata, tracker);
+      installSubmissions(targetFormMetadata, submissionsToPull, container.submissionMetadata, tracker);
 
-      workspace.formMetadata.execute(upsert(targetFormMetadata));
+      container.formMetadata.execute(upsert(targetFormMetadata));
       EventBus.publish(PullEvent.Success.of(targetFormMetadata.getKey()));
 
       tracker.trackEnd();

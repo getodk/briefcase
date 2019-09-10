@@ -22,7 +22,6 @@ import static org.opendatakit.briefcase.delivery.ui.reused.UI.removeAllMouseList
 import static org.opendatakit.briefcase.delivery.ui.reused.filsystem.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.operations.transfer.pull.filesystem.FormInstaller.scanCollectFormsAt;
 
-import java.awt.Container;
 import java.awt.Cursor;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,7 +34,7 @@ import org.opendatakit.briefcase.delivery.ui.reused.filsystem.FileChooser;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.operations.transfer.pull.filesystem.PullFromCollectDir;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
@@ -44,12 +43,12 @@ import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
  * Represents a filesystem location pointing to Collect's form directory as a source of forms for the Pull UI Panel.
  */
 public class CollectDir implements PullSource<Path> {
-  private final Workspace workspace;
+  private final Container container;
   private final Consumer<PullSource> consumer;
   private Path path;
 
-  CollectDir(Workspace workspace, Consumer<PullSource> consumer) {
-    this.workspace = workspace;
+  CollectDir(Container container, Consumer<PullSource> consumer) {
+    this.container = container;
     this.consumer = consumer;
   }
 
@@ -58,7 +57,7 @@ public class CollectDir implements PullSource<Path> {
   }
 
   @Override
-  public void onSelect(Container container) {
+  public void onSelect(java.awt.Container container) {
     FileChooser
         .directory(container, Optional.empty())
         .choose()
@@ -98,10 +97,10 @@ public class CollectDir implements PullSource<Path> {
 
   @Override
   public JobsRunner pull(TransferForms forms, boolean startFromLast) {
-    PullFromCollectDir pullJob = new PullFromCollectDir(workspace, EventBus::publish);
+    PullFromCollectDir pullJob = new PullFromCollectDir(container, EventBus::publish);
     return JobsRunner.launchAsync(forms.map(formMetadata -> pullJob.pull(
         formMetadata,
-        formMetadata.withFormFile(workspace.buildFormFile(formMetadata))
+        formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata))
     ))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 

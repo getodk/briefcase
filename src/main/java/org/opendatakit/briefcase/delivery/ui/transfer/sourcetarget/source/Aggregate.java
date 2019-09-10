@@ -20,7 +20,6 @@ import static org.opendatakit.briefcase.delivery.ui.reused.UI.makeClickable;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.uncheckedBrowse;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataQueries.lastCursorOf;
 
-import java.awt.Container;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -31,8 +30,7 @@ import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.Workspace;
-import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
@@ -43,23 +41,21 @@ import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
  * Represents an ODK Aggregate server as a source of forms for the Pull UI Panel.
  */
 public class Aggregate implements PullSource<AggregateServer> {
-  private final Http http;
+  private final Container container;
   private final Consumer<PullSource> consumer;
-  private final Workspace workspace;
   private Test<AggregateServer> serverTester;
   private String usernameHelp;
   private AggregateServer server;
 
-  Aggregate(Workspace workspace, Test<AggregateServer> serverTester, String usernameHelp, Consumer<PullSource> consumer) {
-    this.http = workspace.http;
-    this.workspace = workspace;
+  Aggregate(Container container, Test<AggregateServer> serverTester, String usernameHelp, Consumer<PullSource> consumer) {
+    this.container = container;
     this.serverTester = serverTester;
     this.usernameHelp = usernameHelp;
     this.consumer = consumer;
   }
 
   @Override
-  public void onSelect(Container ignored) {
+  public void onSelect(java.awt.Container ignored) {
     AggregateServerDialog dialog = AggregateServerDialog.empty(serverTester, usernameHelp);
     dialog.onConnect(this::set);
     dialog.getForm().setVisible(true);
@@ -78,7 +74,7 @@ public class Aggregate implements PullSource<AggregateServer> {
 
   @Override
   public List<FormMetadata> getFormList() {
-    return http.execute(server.getFormListRequest())
+    return container.http.execute(server.getFormListRequest())
         .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"));
   }
 
@@ -89,11 +85,11 @@ public class Aggregate implements PullSource<AggregateServer> {
 
   @Override
   public JobsRunner pull(TransferForms forms, boolean startFromLast) {
-    PullFromAggregate pullOp = new PullFromAggregate(workspace, server, false, EventBus::publish);
+    PullFromAggregate pullOp = new PullFromAggregate(container, server, false, EventBus::publish);
     return JobsRunner.launchAsync(forms.map(formMetadata -> pullOp.pull(
         formMetadata,
-        workspace.buildFormFile(formMetadata),
-        startFromLast ? workspace.formMetadata.query(lastCursorOf(formMetadata.getKey())) : Optional.empty()
+        container.workspace.buildFormFile(formMetadata),
+        startFromLast ? container.formMetadata.query(lastCursorOf(formMetadata.getKey())) : Optional.empty()
     ))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 

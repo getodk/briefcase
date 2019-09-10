@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.delivery.ui.reused.Analytics;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataCommands;
@@ -51,22 +51,22 @@ import org.slf4j.LoggerFactory;
 public class ExportToCsv {
   private static final Logger log = LoggerFactory.getLogger(ExportToCsv.class);
 
-  public static ExportOutcome export(Workspace workspace, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration) {
-    return export(workspace, formMetadata, formDef, configuration, Optional.empty());
+  public static ExportOutcome export(Container container, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration) {
+    return export(container, formMetadata, formDef, configuration, Optional.empty());
   }
 
-  public static ExportOutcome export(Workspace workspace, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Analytics analytics) {
-    return export(workspace, formMetadata, formDef, configuration, Optional.of(analytics));
+  public static ExportOutcome export(Container container, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Analytics analytics) {
+    return export(container, formMetadata, formDef, configuration, Optional.of(analytics));
   }
 
-  private static ExportOutcome export(Workspace workspace, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Optional<Analytics> analytics) {
+  private static ExportOutcome export(Container container, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Optional<Analytics> analytics) {
     // Create an export tracker object with the total number of submissions we have to export
     ExportProcessTracker exportTracker = new ExportProcessTracker(formMetadata.getKey());
     exportTracker.start();
 
     var onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getFormName().orElse(formMetadata.getKey().getId())));
 
-    List<SubmissionMetadata> submissionMetadataList = workspace.submissionMetadata
+    List<SubmissionMetadata> submissionMetadataList = container.submissionMetadata
         .sortedSubmissions(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend())
         .collect(toList());
     exportTracker.trackTotal(submissionMetadataList.size());
@@ -111,7 +111,7 @@ public class ExportToCsv {
         .getLastLine()
         .map(line -> formMetadata.withLastExportedSubmissionDate(line.getSubmissionDate()))
         .map(FormMetadataCommands::upsert)
-        .ifPresent(workspace.formMetadata::execute);
+        .ifPresent(container.formMetadata::execute);
 
     ExportOutcome exportOutcome = exportTracker.computeOutcome();
     if (exportOutcome == ALL_EXPORTED)

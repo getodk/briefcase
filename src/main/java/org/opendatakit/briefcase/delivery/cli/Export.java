@@ -34,7 +34,7 @@ import org.opendatakit.briefcase.operations.export.ExportToGeoJson;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
@@ -67,16 +67,16 @@ public class Export {
   private static final Param<Void> REMOVE_GROUP_NAMES = Param.flag("rgn", "remove_group_names", "Remove group names from column names");
   private static final Param<Void> SMART_APPEND = Param.flag("sa", "smart_append", "Include only new submissions since last export");
 
-  public static Operation create(Workspace workspace) {
+  public static Operation create(Container container) {
     return new OperationBuilder()
         .withFlag(EXPORT)
         .withRequiredParams(WORKSPACE_LOCATION, FORM_ID, FILE, EXPORT_DIR)
         .withOptionalParams(PEM_FILE, EXCLUDE_MEDIA, OVERWRITE, START, END, PULL_BEFORE, SPLIT_SELECT_MULTIPLES, INCLUDE_GEOJSON_EXPORT, REMOVE_GROUP_NAMES, SMART_APPEND)
-        .withLauncher(args -> export(workspace, args))
+        .withLauncher(args -> export(container, args))
         .build();
   }
 
-  private static void export(Workspace workspace, Args args) {
+  private static void export(Container container, Args args) {
     String formId = args.get(FORM_ID);
     Path exportDir = args.get(EXPORT_DIR);
     String baseFilename = args.get(FILE);
@@ -96,7 +96,7 @@ public class Export {
     BriefcasePreferences exportPrefs = BriefcasePreferences.forClass(ExportPanel.class);
     BriefcasePreferences pullPrefs = BriefcasePreferences.forClass(ExportPanel.class);
 
-    Optional<FormMetadata> maybeFormStatus = workspace.formMetadata.fetchAll()
+    Optional<FormMetadata> maybeFormStatus = container.formMetadata.fetchAll()
         .filter(formMetadata -> formMetadata.getKey().getId().equals(formId))
         .findFirst();
 
@@ -125,20 +125,20 @@ public class Export {
       Optional<AggregateServer> server = AggregateServer.readFromPrefs(appPreferences, pullPrefs, formMetadata.getKey());
       if (server.isPresent()) {
         Optional<Cursor> lastCursor = appPreferences.resolveStartFromLast()
-            ? workspace.formMetadata.query(lastCursorOf(formMetadata.getKey()))
+            ? container.formMetadata.query(lastCursorOf(formMetadata.getKey()))
             : Optional.empty();
 
-        pullJob = new PullFromAggregate(workspace, server.get(), false, Export::onEvent)
+        pullJob = new PullFromAggregate(container, server.get(), false, Export::onEvent)
             .pull(formMetadata, formMetadata.getFormFile(), lastCursor);
       }
     }
 
     FormDefinition formDef = FormDefinition.from(formMetadata);
 
-    Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(workspace, formMetadata, formDef, configuration));
+    Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(container, formMetadata, formDef, configuration));
 
     Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
-        ? Job.run(runnerStatus -> ExportToGeoJson.export(workspace, formMetadata, formDef, configuration))
+        ? Job.run(runnerStatus -> ExportToGeoJson.export(container, formMetadata, formDef, configuration))
         : Job.noOp;
 
     Job<Void> job = pullJob

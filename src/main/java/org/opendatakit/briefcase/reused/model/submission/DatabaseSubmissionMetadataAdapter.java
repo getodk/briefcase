@@ -35,6 +35,7 @@ import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.impl.DSL;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.db.BriefcaseDb;
 import org.opendatakit.briefcase.reused.db.jooq.tables.records.SubmissionMetadataRecord;
 import org.opendatakit.briefcase.reused.model.DateRange;
@@ -50,15 +51,17 @@ public class DatabaseSubmissionMetadataAdapter implements SubmissionMetadataPort
       SUBMISSION_METADATA.SUBMISSION_DATE_TIME,
       value(SubmissionMetadata.MIN_SUBMISSION_DATE_TIME)
   );
+  private final Workspace workspace;
   private final Supplier<DSLContext> dslContextSupplier;
   private Map<String, DSLContext> dslContextCache = new ConcurrentHashMap<>();
 
-  private DatabaseSubmissionMetadataAdapter(Supplier<DSLContext> dslContextSupplier) {
+  private DatabaseSubmissionMetadataAdapter(Workspace workspace, Supplier<DSLContext> dslContextSupplier) {
+    this.workspace = workspace;
     this.dslContextSupplier = dslContextSupplier;
   }
 
-  public static SubmissionMetadataPort from(BriefcaseDb db) {
-    return new DatabaseSubmissionMetadataAdapter(db::getDslContext);
+  public static SubmissionMetadataPort from(Workspace workspace, BriefcaseDb db) {
+    return new DatabaseSubmissionMetadataAdapter(workspace, db::getDslContext);
   }
 
   private DSLContext getDslContext() {
@@ -78,7 +81,7 @@ public class DatabaseSubmissionMetadataAdapter implements SubmissionMetadataPort
   @Override
   public void execute(Consumer<SubmissionMetadataPort> command) {
     getDslContext().transaction(conf ->
-        command.accept(new DatabaseSubmissionMetadataAdapter(() -> using(conf)))
+        command.accept(new DatabaseSubmissionMetadataAdapter(workspace, () -> using(conf)))
     );
   }
 
@@ -89,7 +92,7 @@ public class DatabaseSubmissionMetadataAdapter implements SubmissionMetadataPort
 
   @Override
   public void persist(Stream<SubmissionMetadata> submissionMetadataStream) {
-    getDslContext().batchInsert(submissionMetadataStream.map(DatabaseSubmissionMetadataAdapter::mapToDomain).collect(toList())).execute();
+    getDslContext().batchInsert(submissionMetadataStream.map(this::mapToDomain).collect(toList())).execute();
   }
 
   @Override
@@ -138,7 +141,7 @@ public class DatabaseSubmissionMetadataAdapter implements SubmissionMetadataPort
                 Optional.ofNullable(record.getFormVersion()).filter(not(String::isBlank)),
                 record.getInstanceId()
             ),
-            Optional.ofNullable(record.getSubmissionFilename()).map(Paths::get),
+            Optional.ofNullable(record.getSubmissionFile()).map(Paths::get).map(workspace::resolve),
             Optional.ofNullable(record.getSubmissionDateTime()),
             Optional.ofNullable(record.getEncryptedXmlFilename()).map(Paths::get),
             Optional.ofNullable(record.getBase_64EncryptedKey()),
@@ -155,12 +158,12 @@ public class DatabaseSubmissionMetadataAdapter implements SubmissionMetadataPort
     }
   }
 
-  private static SubmissionMetadataRecord mapToDomain(SubmissionMetadata submissionMetadata) {
+  private SubmissionMetadataRecord mapToDomain(SubmissionMetadata submissionMetadata) {
     return new SubmissionMetadataRecord(
         submissionMetadata.getKey().getFormId(),
         submissionMetadata.getKey().getFormVersion().orElse(""),
         submissionMetadata.getKey().getInstanceId(),
-        submissionMetadata.getSubmissionFile().toString(),
+        workspace.relativize(submissionMetadata.getSubmissionFile()).toString(),
         submissionMetadata.getSubmissionDateTime().orElse(null),
         submissionMetadata.getEncryptedXmlFilename().map(Objects::toString).orElse(null),
         submissionMetadata.getBase64EncryptedKey().orElse(null),

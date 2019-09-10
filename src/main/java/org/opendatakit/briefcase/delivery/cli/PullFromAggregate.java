@@ -31,7 +31,7 @@ import java.util.Optional;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.api.Optionals;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
@@ -53,16 +53,16 @@ public class PullFromAggregate {
   private static final Param<LocalDate> START_FROM_DATE = Param.arg("sfd", "start_from_date", "Start pull from date", LocalDate::parse);
   private static final Param<Void> INCLUDE_INCOMPLETE = Param.flag("ii", "include_incomplete", "Include incomplete submissions");
 
-  public static Operation create(Workspace workspace) {
+  public static Operation create(Container container) {
     return new OperationBuilder()
         .withFlag(PULL_AGGREGATE)
         .withRequiredParams(WORKSPACE_LOCATION, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL)
         .withOptionalParams(RESUME_LAST_PULL, INCLUDE_INCOMPLETE, FORM_ID, START_FROM_DATE, MAX_HTTP_CONNECTIONS)
-        .withLauncher(args -> pullFormFromAggregate(workspace, args))
+        .withLauncher(args -> pullFormFromAggregate(container, args))
         .build();
   }
 
-  private static void pullFormFromAggregate(Workspace workspace, Args args) {
+  private static void pullFormFromAggregate(Container container, Args args) {
     Optional<String> formId = args.getOptional(FORM_ID);
     String username = args.get(CREDENTIALS_USERNAME);
     String password = args.get(CREDENTIALS_PASSWORD);
@@ -75,7 +75,7 @@ public class PullFromAggregate {
 
     AggregateServer aggregateServer = AggregateServer.authenticated(server, new Credentials(username, password));
 
-    Response<List<FormMetadata>> response = workspace.http.execute(aggregateServer.getFormListRequest());
+    Response<List<FormMetadata>> response = container.http.execute(aggregateServer.getFormListRequest());
     if (!response.isSuccess()) {
       System.err.println(response.isRedirection()
           ? "Error connecting to Aggregate: Redirection detected"
@@ -90,7 +90,7 @@ public class PullFromAggregate {
     List<FormMetadata> filteredForms = response.orElseThrow(BriefcaseException::new)
         .stream()
         .filter(f -> formId.map(id -> f.getKey().getId().equals(id)).orElse(true))
-        .map(formMetadata -> formMetadata.withFormFile(workspace.buildFormFile(formMetadata)))
+        .map(formMetadata -> formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata)))
         .collect(toList());
 
     if (formId.isPresent() && filteredForms.isEmpty())
@@ -100,12 +100,12 @@ public class PullFromAggregate {
     forms.load(filteredForms);
     forms.selectAll();
 
-    org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate pullOp = new org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate(workspace, aggregateServer, includeIncomplete, PullFromAggregate::onEvent);
+    org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate pullOp = new org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate(container, aggregateServer, includeIncomplete, PullFromAggregate::onEvent);
     JobsRunner.launchAsync(
         forms.map(formMetadata -> pullOp.pull(
             formMetadata,
-            workspace.buildFormFile(formMetadata),
-            resolveCursor(resumeLastPull, startFromDate, formMetadata, workspace)
+            container.workspace.buildFormFile(formMetadata),
+            resolveCursor(container, resumeLastPull, startFromDate, formMetadata)
         )),
         PullFromAggregate::onError
     ).waitForCompletion();
@@ -114,11 +114,11 @@ public class PullFromAggregate {
     System.out.println();
   }
 
-  private static Optional<Cursor> resolveCursor(boolean resumeLastPull, Optional<LocalDate> startFromDate, FormMetadata formMetadata, Workspace workspace) {
+  private static Optional<Cursor> resolveCursor(Container container, boolean resumeLastPull, Optional<LocalDate> startFromDate, FormMetadata formMetadata) {
     return Optionals.race(
         startFromDate.map(Cursor::of),
         resumeLastPull
-            ? workspace.formMetadata.query(lastCursorOf(formMetadata.getKey()))
+            ? container.formMetadata.query(lastCursorOf(formMetadata.getKey()))
             : Optional.empty()
     );
   }

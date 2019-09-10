@@ -25,7 +25,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.matchers.PathMatchers.exists;
-import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createTempDirectory;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.readAllBytes;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
@@ -43,8 +42,8 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.opendatakit.briefcase.reused.Workspace;
-import org.opendatakit.briefcase.reused.WorkspaceHelper;
+import org.opendatakit.briefcase.reused.Container;
+import org.opendatakit.briefcase.reused.ContainerHelper;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.InMemoryHttp;
 import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
@@ -56,28 +55,29 @@ import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 public class PullFromCentralTest {
   private static final CentralServer server = CentralServer.of(url("http://foo.bar"), 1, Credentials.from("username", "password"));
   private static final String token = "some token";
-  private final Path briefcaseDir = createTempDirectory("briefcase-test-");
   private InMemoryHttp inMemoryHttp;
   private List<String> events;
   private PullFromCentralTracker tracker;
   private PullFromCentral pullOp;
   private TestRunnerStatus runnerStatus;
   private FormMetadata formMetadata;
+  private Container container;
 
   @Before
   public void init() {
-    Workspace workspace = WorkspaceHelper.inMemory();
+    container = ContainerHelper.inMemory();
     events = new ArrayList<>();
-    inMemoryHttp = (InMemoryHttp) workspace.http;
-    pullOp = new PullFromCentral(workspace, server, token, e -> { });
+    inMemoryHttp = (InMemoryHttp) container.http;
+    pullOp = new PullFromCentral(container, server, token, e -> { });
     runnerStatus = new TestRunnerStatus(false);
-    formMetadata = FormMetadata.empty(FormKey.of("some-form")).withFormFile(briefcaseDir.resolve("forms/Some form/Some form.xml"));
+    formMetadata = FormMetadata.empty(FormKey.of("some-form"));
+    formMetadata = formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata));
     tracker = new PullFromCentralTracker(formMetadata.getKey(), e -> events.add(e.getMessage()));
   }
 
   @After
   public void tearDown() {
-    deleteRecursive(briefcaseDir);
+    deleteRecursive(container.workspace.get());
   }
 
   // TODO move to PushTestHelper and fixup 43e85490

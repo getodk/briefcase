@@ -21,7 +21,7 @@ import org.assertj.swing.core.Robot;
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.opendatakit.briefcase.delivery.ui.reused.NoOpAnalytics;
-import org.opendatakit.briefcase.reused.WorkspaceHelper;
+import org.opendatakit.briefcase.reused.ContainerHelper;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.preferences.InMemoryPreferences;
 
@@ -39,7 +39,7 @@ class ExportPanelPageObject {
     ExportPanel exportPanel = GuiActionRunner.execute(() -> {
       BriefcasePreferences inMemoryPrefs = new BriefcasePreferences(InMemoryPreferences.empty());
       ExportPanel ep = ExportPanel.from(
-          WorkspaceHelper.inMemory(),
+          ContainerHelper.inMemory(),
           inMemoryPrefs,
           inMemoryPrefs,
           inMemoryPrefs,

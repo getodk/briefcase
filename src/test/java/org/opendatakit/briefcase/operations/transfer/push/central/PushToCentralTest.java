@@ -21,7 +21,6 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createTempDirectory;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.readAllBytes;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
@@ -44,8 +43,8 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.opendatakit.briefcase.reused.Workspace;
-import org.opendatakit.briefcase.reused.WorkspaceHelper;
+import org.opendatakit.briefcase.reused.Container;
+import org.opendatakit.briefcase.reused.ContainerHelper;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.InMemoryHttp;
 import org.opendatakit.briefcase.reused.http.RequestSpy;
@@ -60,7 +59,6 @@ public class PushToCentralTest {
   private CentralServer server = CentralServer.of(url("http://foo.bar"), 1, Credentials.from("some user", "some password"));
   private String token = "some token";
   private InMemoryHttp inMemoryHttp;
-  private Path briefcaseDir;
   private PushToCentral pushOp;
   private List<String> events;
   private TestRunnerStatus runnerStatus;
@@ -71,29 +69,29 @@ public class PushToCentralTest {
   private SubmissionMetadata submissionMetadata;
   private Path submissionAttachment;
   private FormMetadata formMetadata;
+  private Container container;
 
   @Before
   public void setUp() throws IOException {
-    briefcaseDir = createTempDirectory("briefcase-test-");
-    Workspace workspace = WorkspaceHelper.inMemory().withWorkspaceLocation(createTempDirectory("briefcase-test-"));
-    inMemoryHttp = (InMemoryHttp) workspace.http;
-    pushOp = new PushToCentral(workspace, server, token, this::onEvent);
+    container = ContainerHelper.inMemory();
+    inMemoryHttp = (InMemoryHttp) container.http;
+    pushOp = new PushToCentral(container, server, token, this::onEvent);
     events = new ArrayList<>();
     runnerStatus = new TestRunnerStatus(false);
     formMetadata = FormMetadata.empty(FormKey.of("push-form-test"));
-    formMetadata = formMetadata.withFormFile(workspace.buildFormFile(formMetadata));
+    formMetadata = formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata));
     tracker = new PushToCentralTracker(this::onEvent, formMetadata);
     form = installForm(formMetadata, getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/push-form-test.xml"));
     formAttachment = installFormAttachment(formMetadata, getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/sparrow.png"));
     submissionAttachment = installSubmissionAttachment(formMetadata, getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/1556532531101.jpg"), instanceId);
     submissionMetadata = installSubmission(formMetadata, getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/submission.xml"), submissionAttachment);
-    workspace.formMetadata.persist(formMetadata);
-    workspace.submissionMetadata.persist(submissionMetadata);
+    container.formMetadata.persist(formMetadata);
+    container.submissionMetadata.persist(submissionMetadata);
   }
 
   @After
   public void tearDown() {
-    deleteRecursive(briefcaseDir);
+    deleteRecursive(container.workspace.get());
   }
 
   private void onEvent(FormStatusEvent e) {

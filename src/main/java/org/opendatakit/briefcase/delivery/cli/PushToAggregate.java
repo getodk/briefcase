@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
@@ -48,16 +48,16 @@ public class PushToAggregate {
   private static final Param<Void> PUSH_AGGREGATE = Param.flag("psha", "push_aggregate", "Push form to an Aggregate instance");
   private static final Param<Void> FORCE_SEND_BLANK = Param.flag("fsb", "force_send_blank", "Force sending the blank form to the Aggregate instance");
 
-  public static Operation create(Workspace workspace) {
+  public static Operation create(Container container) {
     return new OperationBuilder()
         .withFlag(PUSH_AGGREGATE)
         .withRequiredParams(WORKSPACE_LOCATION, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL)
         .withOptionalParams(FORCE_SEND_BLANK, MAX_HTTP_CONNECTIONS, FORM_ID)
-        .withLauncher(args -> pushFormToAggregate(workspace, args))
+        .withLauncher(args -> pushFormToAggregate(container, args))
         .build();
   }
 
-  private static void pushFormToAggregate(Workspace workspace, Args args) {
+  private static void pushFormToAggregate(Container container, Args args) {
     Optional<String> maybeFormId = args.getOptional(FORM_ID);
     String username = args.get(CREDENTIALS_USERNAME);
     String password = args.get(CREDENTIALS_PASSWORD);
@@ -68,7 +68,7 @@ public class PushToAggregate {
 
     AggregateServer aggregateServer = AggregateServer.authenticated(server, new Credentials(username, password));
 
-    Response response = workspace.http.execute(aggregateServer.getPushFormPreflightRequest());
+    Response response = container.http.execute(aggregateServer.getPushFormPreflightRequest());
     if (!response.isSuccess()) {
       System.err.println(response.isRedirection()
           ? "Error connecting to Aggregate: Redirection detected"
@@ -83,19 +83,19 @@ public class PushToAggregate {
     List<FormMetadata> formMetadataList;
     if (maybeFormId.isPresent()) {
       String requestedFormId = maybeFormId.get();
-      Optional<FormMetadata> maybeFormStatus = workspace.formMetadata.fetchAll()
+      Optional<FormMetadata> maybeFormStatus = container.formMetadata.fetchAll()
           .filter(formMetadata -> formMetadata.getKey().getId().equals(requestedFormId))
           .findFirst();
       FormMetadata formMetadata = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + requestedFormId + " not found"));
       formMetadataList = singletonList(formMetadata);
     } else {
-      formMetadataList = workspace.formMetadata.fetchAll().collect(toList());
+      formMetadataList = container.formMetadata.fetchAll().collect(toList());
     }
 
     TransferForms forms = TransferForms.of(formMetadataList);
     forms.selectAll();
 
-    org.opendatakit.briefcase.operations.transfer.push.aggregate.PushToAggregate pushOp = new org.opendatakit.briefcase.operations.transfer.push.aggregate.PushToAggregate(workspace, aggregateServer, forceSendBlank, PushToAggregate::onEvent);
+    org.opendatakit.briefcase.operations.transfer.push.aggregate.PushToAggregate pushOp = new org.opendatakit.briefcase.operations.transfer.push.aggregate.PushToAggregate(container, aggregateServer, forceSendBlank, PushToAggregate::onEvent);
     JobsRunner.launchAsync(forms.map(pushOp::push), PushToAggregate::onError).waitForCompletion();
     System.out.println();
     System.out.println("All operations completed");

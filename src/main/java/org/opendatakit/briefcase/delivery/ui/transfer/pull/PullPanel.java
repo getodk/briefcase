@@ -32,7 +32,7 @@ import org.opendatakit.briefcase.delivery.ui.transfer.TransferPanelForm;
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source.PullSource;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
@@ -101,10 +101,10 @@ public class PullPanel {
     });
   }
 
-  public static PullPanel from(Workspace workspace, BriefcasePreferences appPreferences, BriefcasePreferences pullPanelPreferences, Analytics analytics) {
+  public static PullPanel from(Container container, BriefcasePreferences appPreferences, BriefcasePreferences pullPanelPreferences, Analytics analytics) {
     TransferForms forms = TransferForms.empty();
     return new PullPanel(
-        TransferPanelForm.pull(workspace, forms),
+        TransferPanelForm.pull(container, forms),
         forms,
         pullPanelPreferences,
         appPreferences,

@@ -102,7 +102,7 @@ public class WorkspaceLocationDialogForm extends JDialog {
   }
 
   private void setSavedLocationOptions(Workspace workspace) {
-    Set<Path> savedLocations = workspace.getSavedLocations();
+    Set<Path> savedLocations = workspace.getSavedWorkspaces();
     savedLocationSelect.addItem("Select a saved location");
     if (savedLocations.isEmpty()) {
       savedLocationLabel.setEnabled(false);

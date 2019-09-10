@@ -20,7 +20,7 @@ import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 import java.util.Objects;
 import org.opendatakit.briefcase.delivery.ui.MainBriefcaseWindow;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
 import org.opendatakit.briefcase.reused.cli.Param;
@@ -29,13 +29,13 @@ import org.opendatakit.briefcase.reused.cli.Param;
 public class LaunchGui {
   private static final Param<Void> LAUNCH_GUI_FLAG = Param.flag("gui", "gui", "Launch GUI");
 
-  public static Operation create(Workspace workspace) {
+  public static Operation create(Container container) {
     return new OperationBuilder()
         .withFlag(LAUNCH_GUI_FLAG)
         .withOptionalParams(WORKSPACE_LOCATION)
         .withBefore(args -> {
           if (args.isEmpty(WORKSPACE_LOCATION))
-            new WorkspaceLocationDialogForm(workspace, workspaceLocation -> {
+            new WorkspaceLocationDialogForm(container.workspace, workspaceLocation -> {
               args.set(
                   WORKSPACE_LOCATION,
                   workspaceLocation
@@ -44,11 +44,11 @@ public class LaunchGui {
               );
             }).open();
         })
-        .withLauncher(__ -> launchGui(workspace))
+        .withLauncher(__ -> launchGui(container))
         .build();
   }
 
-  private static void launchGui(Workspace workspace) {
-    MainBriefcaseWindow.launchGUI(workspace);
+  private static void launchGui(Container container) {
+    MainBriefcaseWindow.launchGUI(container);
   }
 }

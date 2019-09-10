@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.api.OptionalProduct;
 import org.opendatakit.briefcase.reused.api.Pair;
@@ -56,13 +57,15 @@ import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 
 public class PullFromAggregate {
+  private final Container container;
   private final Workspace workspace;
   private final AggregateServer server;
   private final boolean includeIncomplete;
   private final Consumer<FormStatusEvent> onEventCallback;
 
-  public PullFromAggregate(Workspace workspace, AggregateServer server, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback) {
-    this.workspace = workspace;
+  public PullFromAggregate(Container container, AggregateServer server, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback) {
+    this.container = container;
+    this.workspace = container.workspace;
     this.server = server;
     this.includeIncomplete = includeIncomplete;
     this.onEventCallback = onEventCallback;
@@ -125,7 +128,7 @@ public class PullFromAggregate {
             return Triple.of(
                 submissionNumber.getAndIncrement(),
                 instanceId,
-                workspace.submissionMetadata.hasBeenAlreadyPulled(formId, instanceId)
+                container.submissionMetadata.hasBeenAlreadyPulled(formId, instanceId)
             );
           })
           .peek(triple -> {
@@ -157,13 +160,13 @@ public class PullFromAggregate {
                     .map(Paths::get)
                     .collect(toList())
             );
-            workspace.submissionMetadata.execute(insert(submissionMetadata));
+            container.submissionMetadata.execute(insert(submissionMetadata));
           });
 
       tracker.trackEnd();
       Cursor newCursor = getLastCursor(instanceIdBatches).orElse(Cursor.empty());
 
-      workspace.formMetadata.execute(upsert(targetFormMetadata.withCursor(newCursor)));
+      container.formMetadata.execute(upsert(targetFormMetadata.withCursor(newCursor)));
 
       EventBus.publish(PullEvent.Success.of(formKey, server));
     });
@@ -177,7 +180,7 @@ public class PullFromAggregate {
     }
 
     tracker.trackStartDownloadingForm();
-    Response<String> response = workspace.http.execute(getDownloadFormRequest(sourceFormMetadata));
+    Response<String> response = container.http.execute(getDownloadFormRequest(sourceFormMetadata));
     if (!response.isSuccess()) {
       tracker.trackErrorDownloadingForm(response);
       return null;
@@ -215,7 +218,7 @@ public class PullFromAggregate {
         .asXmlElement()
         .withResponseMapper(PullFromAggregate::parseMediaFiles)
         .build();
-    Response<List<AggregateAttachment>> response = workspace.http.execute(request);
+    Response<List<AggregateAttachment>> response = container.http.execute(request);
     if (!response.isSuccess()) {
       tracker.trackErrorGettingFormManifest(response);
       return Collections.emptyList();
@@ -248,7 +251,7 @@ public class PullFromAggregate {
     createDirectories(targetAttachmentFile.getParent());
 
     tracker.trackStartDownloadingFormAttachment(attachmentNumber, totalAttachments);
-    Response response = workspace.http.execute(get(attachment.getDownloadUrl()).downloadTo(targetAttachmentFile).build());
+    Response response = container.http.execute(get(attachment.getDownloadUrl()).downloadTo(targetAttachmentFile).build());
     if (response.isSuccess())
       tracker.trackEndDownloadingFormAttachment(attachmentNumber, totalAttachments);
     else
@@ -263,7 +266,7 @@ public class PullFromAggregate {
 
     tracker.trackStartDownloadingSubmission(submissionNumber, totalSubmissions);
     String submissionKey = subKeyGen.buildKey(instanceId);
-    Response<DownloadedSubmission> response = workspace.http.execute(server.getDownloadSubmissionRequest(submissionKey));
+    Response<DownloadedSubmission> response = container.http.execute(server.getDownloadSubmissionRequest(submissionKey));
     if (!response.isSuccess()) {
       tracker.trackErrorDownloadingSubmission(submissionNumber, totalSubmissions, response);
       return null;
@@ -285,7 +288,7 @@ public class PullFromAggregate {
     createDirectories(targetAttachmentFile.getParent());
 
     tracker.trackStartDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
-    Response response = workspace.http.execute(get(attachment.getDownloadUrl()).downloadTo(targetAttachmentFile).build());
+    Response response = container.http.execute(get(attachment.getDownloadUrl()).downloadTo(targetAttachmentFile).build());
     if (response.isSuccess())
       tracker.trackEndDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
     else
@@ -312,7 +315,7 @@ public class PullFromAggregate {
     tracker.trackStartGettingSubmissionIds();
     InstanceIdBatchGetter batchPager;
     try {
-      batchPager = new InstanceIdBatchGetter(workspace, server, formId, includeIncomplete, lastCursor);
+      batchPager = new InstanceIdBatchGetter(container.http, server, formId, includeIncomplete, lastCursor);
     } catch (InstanceIdBatchGetterException e) {
       tracker.trackErrorGettingInstanceIdBatches(e.aggregateResponse);
       return emptyList();

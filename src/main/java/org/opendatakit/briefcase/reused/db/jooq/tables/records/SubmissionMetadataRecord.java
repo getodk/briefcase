@@ -19,7 +19,7 @@ import org.opendatakit.briefcase.reused.db.jooq.tables.SubmissionMetadata;
 @SuppressWarnings({"all", "unchecked", "rawtypes"})
 public class SubmissionMetadataRecord extends UpdatableRecordImpl<SubmissionMetadataRecord> implements Record9<String, String, String, String, OffsetDateTime, String, String, String, Object> {
 
-    private static final long serialVersionUID = -608756947;
+  private static final long serialVersionUID = 1474583747;
 
     /**
      * Setter for <code>PUBLIC.SUBMISSION_METADATA.FORM_ID</code>.
@@ -64,16 +64,16 @@ public class SubmissionMetadataRecord extends UpdatableRecordImpl<SubmissionMeta
     }
 
     /**
-     * Setter for <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_FILENAME</code>.
+     * Setter for <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_FILE</code>.
      */
-    public void setSubmissionFilename(String value) {
+    public void setSubmissionFile(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_FILENAME</code>.
+     * Getter for <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_FILE</code>.
      */
-    public String getSubmissionFilename() {
+    public String getSubmissionFile() {
         return (String) get(3);
     }
 
@@ -208,7 +208,7 @@ public class SubmissionMetadataRecord extends UpdatableRecordImpl<SubmissionMeta
      */
     @Override
     public Field<String> field4() {
-        return SubmissionMetadata.SUBMISSION_METADATA.SUBMISSION_FILENAME;
+      return SubmissionMetadata.SUBMISSION_METADATA.SUBMISSION_FILE;
     }
 
     /**
@@ -280,7 +280,7 @@ public class SubmissionMetadataRecord extends UpdatableRecordImpl<SubmissionMeta
      */
     @Override
     public String component4() {
-        return getSubmissionFilename();
+      return getSubmissionFile();
     }
 
     /**
@@ -352,7 +352,7 @@ public class SubmissionMetadataRecord extends UpdatableRecordImpl<SubmissionMeta
      */
     @Override
     public String value4() {
-        return getSubmissionFilename();
+      return getSubmissionFile();
     }
 
     /**
@@ -427,7 +427,7 @@ public class SubmissionMetadataRecord extends UpdatableRecordImpl<SubmissionMeta
      */
     @Override
     public SubmissionMetadataRecord value4(String value) {
-        setSubmissionFilename(value);
+      setSubmissionFile(value);
         return this;
     }
 
@@ -507,13 +507,13 @@ public class SubmissionMetadataRecord extends UpdatableRecordImpl<SubmissionMeta
     /**
      * Create a detached, initialised SubmissionMetadataRecord
      */
-    public SubmissionMetadataRecord(String formId, String formVersion, String instanceId, String submissionFilename, OffsetDateTime submissionDateTime, String encryptedXmlFilename, String base_64EncryptedKey, String encryptedSignature, Object attachmentFilenames) {
+    public SubmissionMetadataRecord(String formId, String formVersion, String instanceId, String submissionFile, OffsetDateTime submissionDateTime, String encryptedXmlFilename, String base_64EncryptedKey, String encryptedSignature, Object attachmentFilenames) {
         super(SubmissionMetadata.SUBMISSION_METADATA);
 
         set(0, formId);
         set(1, formVersion);
         set(2, instanceId);
-        set(3, submissionFilename);
+      set(3, submissionFile);
         set(4, submissionDateTime);
         set(5, encryptedXmlFilename);
         set(6, base_64EncryptedKey);

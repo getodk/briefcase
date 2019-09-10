@@ -35,7 +35,7 @@ import org.opendatakit.briefcase.delivery.ui.reused.NoOpAnalytics;
 import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 import org.opendatakit.briefcase.operations.export.ExportEvent;
 import org.opendatakit.briefcase.operations.export.ExportForms;
-import org.opendatakit.briefcase.reused.WorkspaceHelper;
+import org.opendatakit.briefcase.reused.ContainerHelper;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataHelpers;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
@@ -53,7 +53,7 @@ public class ExportPanelUnitTest {
     ExportForms forms = load(initialDefaultConf, formsList, inMemoryPrefs);
     ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, inMemoryPrefs, inMemoryPrefs, initialDefaultConf);
     new ExportPanel(
-        WorkspaceHelper.inMemory(),
+        ContainerHelper.inMemory(),
         forms,
         exportPanelForm,
         inMemoryPrefs,
@@ -75,7 +75,7 @@ public class ExportPanelUnitTest {
     ExportForms forms = load(initialDefaultConf, formsList, inMemoryPrefs);
     ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, inMemoryPrefs, inMemoryPrefs, initialDefaultConf);
     new ExportPanel(
-        WorkspaceHelper.inMemory(),
+        ContainerHelper.inMemory(),
         forms,
         exportPanelForm,
         inMemoryPrefs,
@@ -105,7 +105,7 @@ public class ExportPanelUnitTest {
     ExportForms forms = load(initialDefaultConf, formsList, inMemoryPrefs);
     ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, inMemoryPrefs, inMemoryPrefs, initialDefaultConf);
     new ExportPanel(
-        WorkspaceHelper.inMemory(),
+        ContainerHelper.inMemory(),
         forms,
         exportPanelForm,
         inMemoryPrefs,

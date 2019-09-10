@@ -38,7 +38,7 @@ import org.opendatakit.briefcase.operations.export.ExportToCsv;
 import org.opendatakit.briefcase.operations.export.ExportToGeoJson;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
@@ -51,7 +51,7 @@ import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 public class ExportPanel {
   public static final String TAB_NAME = "Export";
 
-  private final Workspace workspace;
+  private final Container container;
   private final ExportForms forms;
   private final ExportPanelForm form;
   private final BriefcasePreferences appPreferences;
@@ -59,8 +59,8 @@ public class ExportPanel {
   private final BriefcasePreferences pullPanelPrefs;
   private final Analytics analytics;
 
-  ExportPanel(Workspace workspace, ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences exportPreferences, BriefcasePreferences pullPanelPrefs, Analytics analytics) {
-    this.workspace = workspace;
+  ExportPanel(Container container, ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences exportPreferences, BriefcasePreferences pullPanelPrefs, Analytics analytics) {
+    this.container = container;
     this.forms = forms;
     this.form = form;
     this.appPreferences = appPreferences;
@@ -145,12 +145,12 @@ public class ExportPanel {
     }
   }
 
-  public static ExportPanel from(Workspace workspace, BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics) {
+  public static ExportPanel from(Container container, BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics) {
     ExportConfiguration initialDefaultConf = load(exportPreferences);
-    ExportForms forms = ExportForms.load(initialDefaultConf, workspace.formMetadata.fetchAll().collect(toList()), exportPreferences);
+    ExportForms forms = ExportForms.load(initialDefaultConf, container.formMetadata.fetchAll().collect(toList()), exportPreferences);
     ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, pullPrefs, initialDefaultConf);
     return new ExportPanel(
-        workspace,
+        container,
         forms,
         form,
         appPreferences,
@@ -161,7 +161,7 @@ public class ExportPanel {
   }
 
   void updateForms() {
-    forms.merge(workspace.formMetadata.fetchAll().collect(toList()));
+    forms.merge(container.formMetadata.fetchAll().collect(toList()));
     form.refresh();
   }
 
@@ -177,7 +177,7 @@ public class ExportPanel {
       Optional<AggregateServer> savedPullSource = RemoteServer.readFromPrefs(appPreferences, pullPanelPrefs, formMetadata.getKey());
 
       Job<Void> pullJob = configuration.resolvePullBefore() && savedPullSource.isPresent()
-          ? new PullFromAggregate(workspace, savedPullSource.get(), false, EventBus::publish)
+          ? new PullFromAggregate(container, savedPullSource.get(), false, EventBus::publish)
           .pull(
               formMetadata,
               formMetadata.getFormFile(),
@@ -187,10 +187,10 @@ public class ExportPanel {
           )
           : Job.noOpSupplier();
 
-      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(workspace, formMetadata, formDef, configuration, analytics));
+      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(container, formMetadata, formDef, configuration, analytics));
 
       Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
-          ? Job.run(runnerStatus -> ExportToGeoJson.export(workspace, formMetadata, formDef, configuration))
+          ? Job.run(runnerStatus -> ExportToGeoJson.export(container, formMetadata, formDef, configuration))
           : Job.noOp;
 
       return pullJob

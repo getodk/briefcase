@@ -23,7 +23,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createTempDirectory;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 import static org.opendatakit.briefcase.reused.http.RequestSpyMatchers.hasBeenCalled;
@@ -43,8 +42,8 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.opendatakit.briefcase.reused.Workspace;
-import org.opendatakit.briefcase.reused.WorkspaceHelper;
+import org.opendatakit.briefcase.reused.Container;
+import org.opendatakit.briefcase.reused.ContainerHelper;
 import org.opendatakit.briefcase.reused.http.InMemoryHttp;
 import org.opendatakit.briefcase.reused.http.RequestSpy;
 import org.opendatakit.briefcase.reused.job.TestRunnerStatus;
@@ -58,7 +57,6 @@ import org.opendatakit.briefcase.reused.model.transfer.TransferTestHelpers;
 public class PushToAggregateTest {
   private AggregateServer server = AggregateServer.normal(url("http://foo.bar"));
   private InMemoryHttp http;
-  private Path briefcaseDir;
   private List<String> events;
   private TestRunnerStatus runnerStatus;
   private PushToAggregateTracker tracker;
@@ -68,29 +66,29 @@ public class PushToAggregateTest {
   private Path submissionAttachment;
   private SubmissionMetadata submissionMetadata;
   private FormMetadata formMetadata;
-  private Workspace workspace;
+  private Container container;
 
   @Before
   public void setUp() throws IOException {
-    workspace = WorkspaceHelper.inMemory();
-    http = (InMemoryHttp) workspace.http;
-    briefcaseDir = createTempDirectory("briefcase-test-");
+    container = ContainerHelper.inMemory();
+    http = (InMemoryHttp) container.http;
     events = new ArrayList<>();
     runnerStatus = new TestRunnerStatus(false);
-    formMetadata = FormMetadata.empty(FormKey.of("push-form-test")).withFormFile(briefcaseDir.resolve("forms/Push form test/Push form test.xml"));
+    formMetadata = FormMetadata.empty(FormKey.of("push-form-test"));
+    formMetadata = formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata));
     tracker = new PushToAggregateTracker(this::onEvent, formMetadata);
     form = TransferTestHelpers.installForm(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/push-form-test.xml"));
     formAttachment = TransferTestHelpers.installFormAttachment(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/sparrow.png"));
     submissionAttachment = TransferTestHelpers.installSubmissionAttachment(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/1556532531101.jpg"), instanceId);
     submissionMetadata = TransferTestHelpers.installSubmission(formMetadata, TransferTestHelpers.getResourcePath("/org/opendatakit/briefcase/operations/transfer/push/aggregate/submission.xml"), submissionAttachment);
 
-    workspace.formMetadata.persist(formMetadata);
-    workspace.submissionMetadata.persist(submissionMetadata);
+    container.formMetadata.persist(formMetadata);
+    container.submissionMetadata.persist(submissionMetadata);
   }
 
   @After
   public void tearDown() {
-    deleteRecursive(briefcaseDir);
+    deleteRecursive(container.workspace.get());
   }
 
   private void onEvent(FormStatusEvent e) {
@@ -100,7 +98,7 @@ public class PushToAggregateTest {
   @Test
   public void knows_how_to_check_if_the_form_already_exists_in_Central() {
     // Low-level test that drives an individual step of the push operation
-    PushToAggregate pushOp = new PushToAggregate(workspace, server, false, this::onEvent);
+    PushToAggregate pushOp = new PushToAggregate(container, server, false, this::onEvent);
 
     RequestSpy<?> requestSpy = http.spyOn(
         server.getFormExistsRequest(formMetadata.getKey().getId()),
@@ -116,7 +114,7 @@ public class PushToAggregateTest {
   @Test
   public void knows_how_to_check_if_the_form_does_not_exist_in_Central() {
     // Low-level test that drives an individual step of the push operation
-    PushToAggregate pushOp = new PushToAggregate(workspace, server, false, this::onEvent);
+    PushToAggregate pushOp = new PushToAggregate(container, server, false, this::onEvent);
 
     http.stub(
         server.getFormExistsRequest(formMetadata.getKey().getId()),
@@ -129,24 +127,22 @@ public class PushToAggregateTest {
   @Test
   public void knows_how_to_push_forms_and_their_attachments_to_Aggregate() {
     // Low-level test that drives an individual step of the push operation
-    PushToAggregate pushOp = new PushToAggregate(workspace, server, false, this::onEvent);
+    PushToAggregate pushOp = new PushToAggregate(container, server, false, this::onEvent);
 
     RequestSpy<?> requestSpy = http.spyOn(server.getPushFormRequest(form, singletonList(formAttachment)));
 
     pushOp.pushFormAndAttachments(formMetadata, singletonList(formAttachment), runnerStatus, tracker);
 
-    assertThat(requestSpy, allOf(
-        hasBeenCalled(),
-        isMultipart(),
-        hasPart("form_def_file", "application/xml", "Push form test.xml"),
-        hasPart("sparrow.png", "application/octet-stream", "sparrow.png")
-    ));
+    assertThat(requestSpy, hasBeenCalled());
+    assertThat(requestSpy, isMultipart());
+    assertThat(requestSpy, hasPart("form_def_file", "application/xml", "push_form_test.xml"));
+    assertThat(requestSpy, hasPart("sparrow.png", "application/octet-stream", "sparrow.png"));
   }
 
   @Test
   public void knows_how_to_push_submissions_and_their_attachments_to_Aggregate() {
     // Low-level test that drives an individual step of the push operation
-    PushToAggregate pushOp = new PushToAggregate(workspace, server, false, this::onEvent);
+    PushToAggregate pushOp = new PushToAggregate(container, server, false, this::onEvent);
 
     RequestSpy<?> requestSpy = http.spyOn(
         server.getPushSubmissionRequest(submissionMetadata.getSubmissionFile(), singletonList(submissionAttachment)),
@@ -166,7 +162,7 @@ public class PushToAggregateTest {
   @Test
   public void knows_how_to_push_completely_a_form_when_the_form_doesn_exist_in_Aggregate() {
     // High-level test that drives the public push operation
-    PushToAggregate pushOp = new PushToAggregate(workspace, server, false, this::onEvent);
+    PushToAggregate pushOp = new PushToAggregate(container, server, false, this::onEvent);
 
     http.stub(server.getFormExistsRequest(formMetadata.getKey().getId()), ok(listOfFormsResponseFromAggregate()));
     http.stub(server.getPushFormRequest(form, singletonList(formAttachment)), ok("<root/>"));
@@ -188,7 +184,7 @@ public class PushToAggregateTest {
   @Test
   public void knows_how_to_push_completely_a_form_when_the_form_exists_in_Aggregate() {
     // High-level test that drives the public push operation
-    PushToAggregate pushOp = new PushToAggregate(workspace, server, false, this::onEvent);
+    PushToAggregate pushOp = new PushToAggregate(container, server, false, this::onEvent);
 
     http.stub(server.getFormExistsRequest(formMetadata.getKey().getId()), ok(listOfFormsResponseFromAggregate(formMetadata)));
     http.stub(server.getPushFormRequest(form, singletonList(formAttachment)), ok("<root/>"));
@@ -210,7 +206,7 @@ public class PushToAggregateTest {
   @Test
   public void can_force_send_a_form_even_when_the_form_exists_in_Aggregate() {
     // High-level test that drives the public push operation
-    PushToAggregate pushOp = new PushToAggregate(workspace, server, true, this::onEvent);
+    PushToAggregate pushOp = new PushToAggregate(container, server, true, this::onEvent);
 
     http.stub(server.getFormExistsRequest(formMetadata.getKey().getId()), ok(listOfFormsResponseFromAggregate(formMetadata)));
     http.stub(server.getPushFormRequest(form, singletonList(formAttachment)), ok("<root/>"));

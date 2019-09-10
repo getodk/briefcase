@@ -19,7 +19,6 @@ package org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.makeClickable;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.uncheckedBrowse;
 
-import java.awt.Container;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
@@ -29,6 +28,7 @@ import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
@@ -41,22 +41,24 @@ import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
  */
 public class Central implements PullSource<CentralServer> {
   private final Workspace workspace;
+  private final Container container;
   private final Test<CentralServer> serverTester;
   private final Consumer<PullSource> onSourceCallback;
   private CentralServer server;
 
-  Central(Workspace workspace, Test<CentralServer> serverTester, Consumer<PullSource> onSourceCallback) {
-    this.workspace = workspace;
+  Central(Container container, Test<CentralServer> serverTester, Consumer<PullSource> onSourceCallback) {
+    this.workspace = container.workspace;
+    this.container = container;
     this.serverTester = serverTester;
     this.onSourceCallback = onSourceCallback;
   }
 
   @Override
   public List<FormMetadata> getFormList() {
-    String token = workspace.http.execute(server.getSessionTokenRequest())
+    String token = container.http.execute(server.getSessionTokenRequest())
         .orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
 
-    return workspace.http.execute(server.getFormsListRequest(token))
+    return container.http.execute(server.getFormsListRequest(token))
         .orElseThrow(() -> new BriefcaseException("Can't get forms list from server"));
   }
 
@@ -71,7 +73,7 @@ public class Central implements PullSource<CentralServer> {
   }
 
   @Override
-  public void onSelect(Container container) {
+  public void onSelect(java.awt.Container container) {
     CentralServerDialog dialog = CentralServerDialog.empty(serverTester);
     dialog.onConnect(this::set);
     dialog.getForm().setVisible(true);
@@ -110,8 +112,8 @@ public class Central implements PullSource<CentralServer> {
 
   @Override
   public JobsRunner pull(TransferForms forms, boolean startFromLast) {
-    String token = workspace.http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
-    PullFromCentral pullOp = new PullFromCentral(workspace, server, token, EventBus::publish);
+    String token = container.http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
+    PullFromCentral pullOp = new PullFromCentral(container, server, token, EventBus::publish);
     return JobsRunner
         .launchAsync(forms.map(formMetadata -> pullOp.pull(formMetadata, workspace.buildFormFile(formMetadata))))
         .onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));

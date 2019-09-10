@@ -22,7 +22,7 @@ import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.s
 
 import javax.swing.JPanel;
 import org.opendatakit.briefcase.delivery.ui.reused.Analytics;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataCommands;
 
@@ -32,7 +32,7 @@ public class SettingsPanel {
   private final SettingsPanelForm form;
 
   @SuppressWarnings("checkstyle:Indentation")
-  private SettingsPanel(Workspace workspace, Analytics analytics, BriefcasePreferences appPreferences, SettingsPanelForm form) {
+  private SettingsPanel(Container container, Analytics analytics, BriefcasePreferences appPreferences, SettingsPanelForm form) {
     this.form = form;
 
     appPreferences.getMaxHttpConnections().ifPresent(form::setMaxHttpConnections);
@@ -53,28 +53,28 @@ public class SettingsPanel {
       analytics.enableTracking(enabled, false);
     });
     form.onHttpProxy(proxy -> {
-      workspace.http.setProxy(proxy);
+      container.http.setProxy(proxy);
       appPreferences.setHttpProxy(proxy);
     }, () -> {
-      workspace.http.unsetProxy();
+      container.http.unsetProxy();
       appPreferences.unsetHttpProxy();
     });
     form.onReloadCache(() -> {
-      workspace.formMetadata.execute(syncWithFilesAt(workspace.get()));
-      workspace.submissionMetadata.execute(SubmissionMetadataCommands.syncSubmissions(workspace.formMetadata.fetchAll()));
+      container.formMetadata.execute(syncWithFilesAt(container.workspace.get()));
+      container.submissionMetadata.execute(SubmissionMetadataCommands.syncSubmissions(container.formMetadata.fetchAll()));
       infoMessage("Forms successfully reloaded from storage location.");
     });
     form.onCleanAllPullResumePoints(() -> {
-      workspace.formMetadata.execute(cleanAllCursors());
+      container.formMetadata.execute(cleanAllCursors());
       infoMessage("Pull history cleared.");
     });
 
-    form.setVersion(workspace.versionManager.getCurrent());
+    form.setVersion(container.versionManager.getCurrent());
   }
 
-  public static SettingsPanel from(Workspace workspace, Analytics analytics, BriefcasePreferences appPreferences) {
+  public static SettingsPanel from(Container container, Analytics analytics, BriefcasePreferences appPreferences) {
     SettingsPanelForm settingsPanelForm = new SettingsPanelForm();
-    return new SettingsPanel(workspace, analytics, appPreferences, settingsPanelForm);
+    return new SettingsPanel(container, analytics, appPreferences, settingsPanelForm);
   }
 
   public JPanel getContainer() {

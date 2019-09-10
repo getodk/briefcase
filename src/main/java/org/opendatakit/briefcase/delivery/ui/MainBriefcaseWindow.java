@@ -48,7 +48,7 @@ import org.opendatakit.briefcase.delivery.ui.reused.Analytics;
 import org.opendatakit.briefcase.delivery.ui.settings.SettingsPanel;
 import org.opendatakit.briefcase.delivery.ui.transfer.pull.PullPanel;
 import org.opendatakit.briefcase.delivery.ui.transfer.push.PushPanel;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.model.Host;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.slf4j.Logger;
@@ -78,13 +78,13 @@ public class MainBriefcaseWindow extends WindowAdapter {
   private final JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
   private final JLabel versionLabel = new JLabel("Checking for updates...");
 
-  public static void launchGUI(Workspace workspace) {
+  public static void launchGUI(Container container) {
     try {
       if (Host.isLinux())
         UIManager.setLookAndFeel(new MetalLookAndFeel());
       else
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-      new MainBriefcaseWindow(workspace);
+      new MainBriefcaseWindow(container);
     } catch (Exception e) {
       log.error("Failed to launch GUI", e);
       System.err.println("Failed to launch Briefcase GUI");
@@ -92,7 +92,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     }
   }
 
-  private MainBriefcaseWindow(Workspace workspace) {
+  private MainBriefcaseWindow(Container container) {
     // Create all dependencies
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     BriefcasePreferences pullPreferences = BriefcasePreferences.forClass(PullPanel.class);
@@ -110,10 +110,10 @@ public class MainBriefcaseWindow extends WindowAdapter {
     getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
     // Add panes to the tabbedPane
-    addPane(PullPanel.TAB_NAME, PullPanel.from(workspace, appPreferences, pullPreferences, analytics).getContainer());
-    addPane(PushPanel.TAB_NAME, PushPanel.from(workspace, analytics, appPreferences).getContainer());
-    addPane(ExportPanel.TAB_NAME, ExportPanel.from(workspace, exportPreferences, appPreferences, pullPreferences, analytics).getForm().getContainer());
-    addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(workspace, analytics, appPreferences).getContainer());
+    addPane(PullPanel.TAB_NAME, PullPanel.from(container, appPreferences, pullPreferences, analytics).getContainer());
+    addPane(PushPanel.TAB_NAME, PushPanel.from(container, analytics, appPreferences).getContainer());
+    addPane(ExportPanel.TAB_NAME, ExportPanel.from(container, exportPreferences, appPreferences, pullPreferences, analytics).getForm().getContainer());
+    addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(container, analytics, appPreferences).getContainer());
 
     // Set up the frame and put the UI components in it
     frame.addWindowListener(this);
@@ -141,7 +141,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     frame.pack();
 
     launchAsync(run(rs -> {
-      if (workspace.versionManager.isUpToDate()) {
+      if (container.versionManager.isUpToDate()) {
         this.removeVersionLabel();
       } else {
         versionLabel.setText("Update available");

@@ -20,7 +20,6 @@ import static org.opendatakit.briefcase.delivery.ui.reused.UI.makeClickable;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.uncheckedBrowse;
 import static org.opendatakit.briefcase.reused.model.Operation.PUSH;
 
-import java.awt.Container;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
@@ -29,7 +28,7 @@ import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.push.PushEvent;
 import org.opendatakit.briefcase.operations.transfer.push.central.PushToCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
@@ -41,13 +40,13 @@ import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
  * Represents an ODK Central server as a target for sending forms for the Push UI Panel.
  */
 public class Central implements PushTarget<CentralServer> {
-  private final Workspace workspace;
+  private final Container container;
   private final Test<CentralServer> serverTester;
   private final Consumer<PushTarget> onSourceCallback;
   private CentralServer server;
 
-  Central(Workspace workspace, Test<CentralServer> serverTester, Consumer<PushTarget> onSourceCallback) {
-    this.workspace = workspace;
+  Central(Container container, Test<CentralServer> serverTester, Consumer<PushTarget> onSourceCallback) {
+    this.container = container;
     this.serverTester = serverTester;
     this.onSourceCallback = onSourceCallback;
   }
@@ -64,8 +63,8 @@ public class Central implements PushTarget<CentralServer> {
             EventBus.publish(new FormStatusEvent(PUSH, formMetadata.getKey(), "Skipping. Encrypted forms can't be pushed to ODK Central yet"))
         );
 
-    String token = workspace.http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
-    PushToCentral pushOp = new PushToCentral(workspace, server, token, EventBus::publish);
+    String token = container.http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
+    PushToCentral pushOp = new PushToCentral(container, server, token, EventBus::publish);
 
     return JobsRunner
         .launchAsync(forms.filter(f -> !f.isEncrypted()).map(pushOp::push))
@@ -78,7 +77,7 @@ public class Central implements PushTarget<CentralServer> {
   }
 
   @Override
-  public void onSelect(Container container) {
+  public void onSelect(java.awt.Container container) {
     CentralServerDialog dialog = CentralServerDialog.empty(serverTester);
     dialog.onConnect(this::set);
     dialog.getForm().setVisible(true);

@@ -19,7 +19,6 @@ package org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.makeClickable;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.uncheckedBrowse;
 
-import java.awt.Container;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
@@ -27,7 +26,7 @@ import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.AggregateServ
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.push.PushEvent;
 import org.opendatakit.briefcase.operations.transfer.push.aggregate.PushToAggregate;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
@@ -38,20 +37,20 @@ import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
  */
 public class Aggregate implements PushTarget<AggregateServer> {
   private final Consumer<PushTarget> consumer;
-  private final Workspace workspace;
+  private final Container container;
   private Test<AggregateServer> serverTester;
   private String requiredPermission;
   private AggregateServer server;
 
-  Aggregate(Workspace workspace, Test<AggregateServer> serverTester, String requiredPermission, Consumer<PushTarget> consumer) {
-    this.workspace = workspace;
+  Aggregate(Container container, Test<AggregateServer> serverTester, String requiredPermission, Consumer<PushTarget> consumer) {
+    this.container = container;
     this.serverTester = serverTester;
     this.requiredPermission = requiredPermission;
     this.consumer = consumer;
   }
 
   @Override
-  public void onSelect(Container ignored) {
+  public void onSelect(java.awt.Container ignored) {
     AggregateServerDialog dialog = AggregateServerDialog.empty(serverTester, requiredPermission);
     dialog.onConnect(this::set);
     dialog.getForm().setVisible(true);
@@ -75,7 +74,7 @@ public class Aggregate implements PushTarget<AggregateServer> {
 
   @Override
   public JobsRunner push(TransferForms forms) {
-    PushToAggregate pushOp = new PushToAggregate(workspace, server, false, EventBus::publish);
+    PushToAggregate pushOp = new PushToAggregate(container, server, false, EventBus::publish);
 
     return JobsRunner
         .launchAsync(forms.map(pushOp::push))

@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.api.Triple;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.Job;
@@ -44,13 +44,13 @@ import org.opendatakit.briefcase.reused.model.transfer.CentralAttachment;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 
 public class PullFromCentral {
-  private final Workspace workspace;
+  private final Container container;
   private final CentralServer server;
   private final String token;
   private final Consumer<FormStatusEvent> onEventCallback;
 
-  public PullFromCentral(Workspace workspace, CentralServer server, String token, Consumer<FormStatusEvent> onEventCallback) {
-    this.workspace = workspace;
+  public PullFromCentral(Container container, CentralServer server, String token, Consumer<FormStatusEvent> onEventCallback) {
+    this.container = container;
     this.server = server;
     this.token = token;
     this.onEventCallback = onEventCallback;
@@ -87,7 +87,7 @@ public class PullFromCentral {
         tracker.trackNoSubmissions();
 
       submissions.stream()
-          .map(instanceId -> Triple.of(submissionNumber.getAndIncrement(), instanceId, workspace.submissionMetadata.hasBeenAlreadyPulled(formId, instanceId)))
+          .map(instanceId -> Triple.of(submissionNumber.getAndIncrement(), instanceId, container.submissionMetadata.hasBeenAlreadyPulled(formId, instanceId)))
           .peek(triple -> {
             if (triple.get3())
               tracker.trackSubmissionAlreadyDownloaded(triple.get1(), totalSubmissions);
@@ -112,11 +112,11 @@ public class PullFromCentral {
                     .map(Paths::get)
                     .collect(toList())
             );
-            workspace.submissionMetadata.execute(insert(submissionMetadata));
+            container.submissionMetadata.execute(insert(submissionMetadata));
           });
       tracker.trackEnd();
 
-      workspace.formMetadata.execute(upsert(targetFormMetadata));
+      container.formMetadata.execute(upsert(targetFormMetadata));
       EventBus.publish(PullEvent.Success.of(formKey, server));
     });
   }
@@ -130,7 +130,7 @@ public class PullFromCentral {
     createDirectories(targetFormFile.getParent());
 
     tracker.trackStartDownloadingForm();
-    Response response = workspace.http.execute(server.getDownloadFormRequest(formId, targetFormFile, token));
+    Response response = container.http.execute(server.getDownloadFormRequest(formId, targetFormFile, token));
     if (response.isSuccess()) {
       tracker.trackEndDownloadingForm();
       return FormMetadata.from(targetFormFile);
@@ -147,7 +147,7 @@ public class PullFromCentral {
     }
 
     tracker.trackStartGettingFormAttachments();
-    Response<List<CentralAttachment>> response = workspace.http.execute(server.getFormAttachmentListRequest(formId, token));
+    Response<List<CentralAttachment>> response = container.http.execute(server.getFormAttachmentListRequest(formId, token));
     if (!response.isSuccess()) {
       tracker.trackErrorGettingFormAttachments(response);
       return emptyList();
@@ -169,7 +169,7 @@ public class PullFromCentral {
     createDirectories(targetAttachmentFile.getParent());
 
     tracker.trackStartDownloadingFormAttachment(attachmentNumber, totalAttachments);
-    Response response = workspace.http.execute(server.getDownloadFormAttachmentRequest(formId, attachment, targetAttachmentFile, token));
+    Response response = container.http.execute(server.getDownloadFormAttachmentRequest(formId, attachment, targetAttachmentFile, token));
     if (response.isSuccess())
       tracker.trackEndDownloadingFormAttachment(attachmentNumber, totalAttachments);
     else
@@ -183,7 +183,7 @@ public class PullFromCentral {
     }
 
     tracker.trackStartGettingSubmissionIds();
-    Response<List<String>> response = workspace.http.execute(server.getInstanceIdListRequest(formId, token));
+    Response<List<String>> response = container.http.execute(server.getInstanceIdListRequest(formId, token));
     if (!response.isSuccess()) {
       tracker.trackErrorGettingSubmissionIds(response);
       return emptyList();
@@ -203,7 +203,7 @@ public class PullFromCentral {
     createDirectories(targetSubmissionFile.getParent());
 
     tracker.trackStartDownloadingSubmission(submissionNumber, totalSubmissions);
-    Response response = workspace.http.execute(server.getDownloadSubmissionRequest(formId, instanceId, targetSubmissionFile, token));
+    Response response = container.http.execute(server.getDownloadSubmissionRequest(formId, instanceId, targetSubmissionFile, token));
     if (response.isSuccess())
       tracker.trackEndDownloadingSubmission(submissionNumber, totalSubmissions);
     else
@@ -217,7 +217,7 @@ public class PullFromCentral {
     }
 
     tracker.trackStartGettingSubmissionAttachments(submissionNumber, totalSubmissions);
-    Response<List<CentralAttachment>> response = workspace.http.execute(server.getSubmissionAttachmentListRequest(formId, instanceId, token));
+    Response<List<CentralAttachment>> response = container.http.execute(server.getSubmissionAttachmentListRequest(formId, instanceId, token));
     if (!response.isSuccess()) {
       tracker.trackErrorGettingSubmissionAttachments(submissionNumber, totalSubmissions, response);
       return emptyList();
@@ -237,7 +237,7 @@ public class PullFromCentral {
     createDirectories(targetAttachmentFile.getParent());
 
     tracker.trackStartDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
-    Response response = workspace.http.execute(server.getDownloadSubmissionAttachmentRequest(formId, instanceId, attachment, targetAttachmentFile, token));
+    Response response = container.http.execute(server.getDownloadSubmissionAttachmentRequest(formId, instanceId, attachment, targetAttachmentFile, token));
     if (response.isSuccess())
       tracker.trackEndDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
     else

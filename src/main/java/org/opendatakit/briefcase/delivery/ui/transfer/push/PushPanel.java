@@ -34,7 +34,7 @@ import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.PushTa
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.operations.transfer.push.PushEvent;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
@@ -48,12 +48,12 @@ public class PushPanel {
   private final BriefcasePreferences pushPreferences;
   private final BriefcasePreferences appPreferences;
   private final Analytics analytics;
-  private final Workspace workspace;
+  private final Container container;
   private JobsRunner pushJobRunner;
   private Optional<PushTarget> target;
 
-  private PushPanel(Workspace workspace, TransferPanelForm<PushTarget> view, TransferForms forms, BriefcasePreferences pushPreferences, BriefcasePreferences appPreferences, Analytics analytics) {
-    this.workspace = workspace;
+  private PushPanel(Container container, TransferPanelForm<PushTarget> view, TransferForms forms, BriefcasePreferences pushPreferences, BriefcasePreferences appPreferences, Analytics analytics) {
+    this.container = container;
     AnnotationProcessor.process(this);
     this.view = view;
     this.forms = forms;
@@ -102,11 +102,11 @@ public class PushPanel {
     });
   }
 
-  public static PushPanel from(Workspace workspace, Analytics analytics, BriefcasePreferences appPreferences) {
-    TransferForms forms = TransferForms.from(workspace.formMetadata.fetchAll().collect(toList()));
+  public static PushPanel from(Container container, Analytics analytics, BriefcasePreferences appPreferences) {
+    TransferForms forms = TransferForms.from(container.formMetadata.fetchAll().collect(toList()));
     return new PushPanel(
-        workspace,
-        TransferPanelForm.push(workspace, forms),
+        container,
+        TransferPanelForm.push(container, forms),
         forms,
         BriefcasePreferences.forClass(PushPanel.class),
         appPreferences,
@@ -134,7 +134,7 @@ public class PushPanel {
   }
 
   private void updateForms() {
-    forms.merge(workspace.formMetadata.fetchAll().collect(toList()));
+    forms.merge(container.formMetadata.fetchAll().collect(toList()));
     view.refresh();
   }
 

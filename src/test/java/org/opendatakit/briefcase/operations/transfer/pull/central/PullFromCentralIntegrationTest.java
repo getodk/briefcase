@@ -28,7 +28,6 @@ import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentralTest.buildAttachments;
 import static org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentralTest.jsonOfAttachments;
 import static org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentralTest.jsonOfSubmissions;
-import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createTempDirectory;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.readAllBytes;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.toURI;
@@ -50,8 +49,8 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.opendatakit.briefcase.reused.Workspace;
-import org.opendatakit.briefcase.reused.WorkspaceHelper;
+import org.opendatakit.briefcase.reused.Container;
+import org.opendatakit.briefcase.reused.ContainerHelper;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
@@ -65,12 +64,12 @@ public class PullFromCentralIntegrationTest {
   private static final int serverPort = 12306;
   private static final URL BASE_URL = url("http://localhost:" + serverPort);
   private static final CentralServer centralServer = CentralServer.of(BASE_URL, 1, Credentials.from("username", "password"));
-  private final Path briefcaseDir = createTempDirectory("briefcase-test-");
   private HttpServer server;
   private PullFromCentral pullOp;
   private FormMetadataPort formMetadataPort;
   private ArrayList<Object> events;
   private FormMetadata formMetadata;
+  private Container container;
 
   private static Path getPath(String fileName) {
     return Optional.ofNullable(PullFromCentralIntegrationTest.class.getClassLoader().getResource("org/opendatakit/briefcase/operations/transfer/pull/central/" + fileName))
@@ -81,17 +80,17 @@ public class PullFromCentralIntegrationTest {
   @Before
   public void setUp() {
     server = httpServer(serverPort);
-    Workspace workspace = WorkspaceHelper.inMemory(CommonsHttp.of(1, Optional.empty()));
-    formMetadataPort = workspace.formMetadata;
+    container = ContainerHelper.inMemory(CommonsHttp.of(1, Optional.empty()));
+    formMetadataPort = container.formMetadata;
     events = new ArrayList<>();
-    pullOp = new PullFromCentral(workspace, centralServer, token, e -> events.add(e.getMessage()));
-    formMetadata = FormMetadata.empty(FormKey.of("some-form"))
-        .withFormFile(briefcaseDir.resolve("forms/Some form/Some form.xml"));
+    pullOp = new PullFromCentral(container, centralServer, token, e -> events.add(e.getMessage()));
+    formMetadata = FormMetadata.empty(FormKey.of("some-form"));
+    formMetadata = formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata));
   }
 
   @After
   public void tearDown() {
-    deleteRecursive(briefcaseDir);
+    deleteRecursive(container.workspace.get());
   }
 
   @Test

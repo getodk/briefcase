@@ -40,7 +40,7 @@ import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTarge
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source.PullSource;
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.PushTarget;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.model.Operation;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 
@@ -78,12 +78,12 @@ public class TransferPanelForm<T extends SourceOrTarget> {
     clearAllButton.addActionListener(__ -> formsTable.clearAll());
   }
 
-  public static TransferPanelForm<PullSource> pull(Workspace workspace, TransferForms forms) {
-    return new TransferPanelForm<>(SourceOrTargetPanel.pull(workspace), TransferFormsTable.from(forms, PULL), PULL);
+  public static TransferPanelForm<PullSource> pull(Container container, TransferForms forms) {
+    return new TransferPanelForm<>(SourceOrTargetPanel.pull(container), TransferFormsTable.from(forms, PULL), PULL);
   }
 
-  public static TransferPanelForm<PushTarget> push(Workspace workspace, TransferForms forms) {
-    return new TransferPanelForm<>(SourceOrTargetPanel.push(workspace), TransferFormsTable.from(forms, PUSH), PUSH);
+  public static TransferPanelForm<PushTarget> push(Container container, TransferForms forms) {
+    return new TransferPanelForm<>(SourceOrTargetPanel.push(container), TransferFormsTable.from(forms, PUSH), PUSH);
   }
 
   public void onSelect(Consumer<T> callback) {

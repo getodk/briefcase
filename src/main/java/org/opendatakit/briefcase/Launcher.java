@@ -41,6 +41,7 @@ import org.opendatakit.briefcase.delivery.cli.PushToCentral;
 import org.opendatakit.briefcase.delivery.cli.launchgui.LaunchGui;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.BriefcaseVersionManager;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.api.Optionals;
 import org.opendatakit.briefcase.reused.cli.Cli;
@@ -48,8 +49,10 @@ import org.opendatakit.briefcase.reused.db.BriefcaseDb;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.model.form.DatabaseFormMetadataAdapter;
+import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.submission.DatabaseSubmissionMetadataAdapter;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,32 +72,31 @@ public class Launcher {
 
     Optional<SentryClient> sentry = SENTRY_ENABLED ? Optional.of(initSentryClient(appPreferences)) : Optional.empty();
 
-    BriefcaseDb db = BriefcaseDb.create();
+    Preferences prefs = Preferences.userNodeForPackage(Workspace.class);
+    Workspace workspace = new Workspace(prefs);
     Http http = CommonsHttp.of(DEFAULT_HTTP_CONNECTIONS, appPreferences.getHttpProxy());
-    Workspace workspace = Workspace.with(
-        http,
-        new BriefcaseVersionManager(http, VERSION),
-        Preferences.userNodeForPackage(Workspace.class),
-        db,
-        DatabaseFormMetadataAdapter.from(db),
-        DatabaseSubmissionMetadataAdapter.from(db)
-    );
+    BriefcaseVersionManager versionManager = new BriefcaseVersionManager(http, VERSION);
+    BriefcaseDb db = BriefcaseDb.create();
+    FormMetadataPort formMetadataPort = DatabaseFormMetadataAdapter.from(workspace, db);
+    SubmissionMetadataPort submissionMetadataPort = DatabaseSubmissionMetadataAdapter.from(workspace, db);
+    Container container = new Container(workspace, http, versionManager, db, formMetadataPort, submissionMetadataPort);
 
     new Cli()
-        .register(PullFromAggregate.create(workspace))
-        .register(PullFromCentral.create(workspace))
-        .register(PushToAggregate.create(workspace))
-        .register(PushToCentral.create(workspace))
-        .register(PullFromCollect.create(workspace))
-        .register(Export.create(workspace))
+        .register(PullFromAggregate.create(container))
+        .register(PullFromCentral.create(container))
+        .register(PushToAggregate.create(container))
+        .register(PushToCentral.create(container))
+        .register(PullFromCollect.create(container))
+        .register(Export.create(container))
         .register(ClearPreferences.create())
-        .registerDefault(LaunchGui.create(workspace))
+        .registerDefault(LaunchGui.create(container))
         .before(args -> {
-          args.getOptional(WORKSPACE_LOCATION).ifPresent(workspace::startAt);
-          workspace.http.setMaxHttpConnections(Optionals.race(
+          args.getOptional(WORKSPACE_LOCATION).ifPresent(container.workspace::setWorkspaceLocation);
+          container.http.setMaxHttpConnections(Optionals.race(
               args.getOptional(MAX_HTTP_CONNECTIONS),
               appPreferences.getMaxHttpConnections()
           ).orElse(DEFAULT_HTTP_CONNECTIONS));
+          container.start();
         })
         .onError(throwable -> {
           System.err.println(throwable instanceof BriefcaseException
@@ -104,7 +106,7 @@ public class Launcher {
           sentry.ifPresent(client -> client.sendException(throwable));
           System.exit(1);
         })
-        .onExit(workspace::stop)
+        .onExit(container::stop)
         .run(rawArgs);
   }
 

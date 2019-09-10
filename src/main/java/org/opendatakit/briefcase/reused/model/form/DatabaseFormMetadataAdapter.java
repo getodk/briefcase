@@ -21,20 +21,23 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
+import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.db.BriefcaseDb;
 import org.opendatakit.briefcase.reused.db.jooq.tables.records.FormMetadataRecord;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
 
 public class DatabaseFormMetadataAdapter implements FormMetadataPort {
+  private final Workspace workspace;
   private final Supplier<DSLContext> dslContextSupplier;
   private Map<String, DSLContext> dslContextCache = new ConcurrentHashMap<>();
 
-  private DatabaseFormMetadataAdapter(Supplier<DSLContext> dslContextSupplier) {
+  private DatabaseFormMetadataAdapter(Workspace workspace, Supplier<DSLContext> dslContextSupplier) {
+    this.workspace = workspace;
     this.dslContextSupplier = dslContextSupplier;
   }
 
-  public static FormMetadataPort from(BriefcaseDb db) {
-    return new DatabaseFormMetadataAdapter(db::getDslContext);
+  public static FormMetadataPort from(Workspace workspace, BriefcaseDb db) {
+    return new DatabaseFormMetadataAdapter(workspace, db::getDslContext);
   }
 
   private DSLContext getDslContext() {
@@ -54,7 +57,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
   @Override
   public void execute(Consumer<FormMetadataPort> command) {
     getDslContext().transaction(conf ->
-        command.accept(new DatabaseFormMetadataAdapter(() -> using(conf)))
+        command.accept(new DatabaseFormMetadataAdapter(workspace, () -> using(conf)))
     );
   }
 
@@ -66,7 +69,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         .on(getMatchingCriteria(formMetadata.getKey()))
         .whenMatchedThenUpdate()
         .set(FORM_METADATA.FORM_NAME, formMetadata.getFormName().orElse(null))
-        .set(FORM_METADATA.FORM_FILE, formMetadata.getFormFile().toString())
+        .set(FORM_METADATA.FORM_FILE, workspace.relativize(formMetadata.getFormFile()).toString())
         .set(FORM_METADATA.CURSOR_TYPE, formMetadata.getCursor().getType().getName())
         .set(FORM_METADATA.CURSOR_VALUE, formMetadata.getCursor().getValue())
         .set(FORM_METADATA.IS_ENCRYPTED, formMetadata.isEncrypted())
@@ -89,7 +92,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
             value(formMetadata.getKey().getId()),
             value(formMetadata.getKey().getVersion().orElse("")),
             value(formMetadata.getFormName().orElse(null)),
-            value(formMetadata.getFormFile().toString()),
+            value(workspace.relativize(formMetadata.getFormFile()).toString()),
             value(formMetadata.getCursor().getType().getName()),
             value(formMetadata.getCursor().getValue()),
             value(formMetadata.isEncrypted()),
@@ -110,22 +113,22 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
   public Optional<FormMetadata> fetch(FormKey key) {
     return getDslContext()
         .fetchOptional(selectFrom(FORM_METADATA).where(getMatchingCriteria(key)))
-        .map(DatabaseFormMetadataAdapter::mapToDomain);
+        .map(this::mapToDomain);
   }
 
   @Override
   public Stream<FormMetadata> fetchAll() {
-    return getDslContext().fetchStream(FORM_METADATA).map(DatabaseFormMetadataAdapter::mapToDomain);
+    return getDslContext().fetchStream(FORM_METADATA).map(this::mapToDomain);
   }
 
-  private static FormMetadata mapToDomain(FormMetadataRecord record) {
+  private FormMetadata mapToDomain(FormMetadataRecord record) {
     return new FormMetadata(
         FormKey.of(
             record.getFormId(),
             Optional.ofNullable(record.getFormVersion())
         ),
         Optional.ofNullable(record.getFormName()),
-        Optional.ofNullable(record.getFormFile()).map(Paths::get),
+        Optional.ofNullable(record.getFormFile()).map(Paths::get).map(workspace::resolve),
         Cursor.Type.from(record.getCursorType()).create(record.getCursorValue()),
         record.getIsEncrypted(),
         Optional.ofNullable(record.getUrlManifest()).map(RequestBuilder::url),

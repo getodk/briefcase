@@ -26,7 +26,7 @@ import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.filesystem.FormInstaller;
 import org.opendatakit.briefcase.operations.transfer.pull.filesystem.PullFromCollectDir;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
@@ -42,16 +42,16 @@ public class PullFromCollect {
   private static final Param<Void> IMPORT = Param.flag("pc", "pull_collect", "Pull from Collect");
   private static final Param<Path> ODK_DIR = Param.arg("od", "odk_directory", "ODK directory", Paths::get);
 
-  public static Operation create(Workspace workspace) {
+  public static Operation create(Container container) {
     return new OperationBuilder()
         .withFlag(IMPORT)
         .withRequiredParams(WORKSPACE_LOCATION, ODK_DIR)
         .withOptionalParams(FORM_ID)
-        .withLauncher(args -> pull(workspace, args))
+        .withLauncher(args -> pull(container, args))
         .build();
   }
 
-  private static void pull(Workspace workspace, Args args) {
+  private static void pull(Container container, Args args) {
     Path odkDir = args.get(ODK_DIR);
     Optional<String> formId = args.getOptional(FORM_ID);
 
@@ -67,11 +67,11 @@ public class PullFromCollect {
     if (formId.isPresent() && forms.isEmpty())
       throw new BriefcaseException("Form " + formId.get() + " not found");
 
-    PullFromCollectDir pullOp = new PullFromCollectDir(workspace, PullFromCollect::onEvent);
+    PullFromCollectDir pullOp = new PullFromCollectDir(container, PullFromCollect::onEvent);
     JobsRunner.launchAsync(
         forms.map(formMetadata -> pullOp.pull(
             formMetadata,
-            formMetadata.withFormFile(workspace.buildFormFile(formMetadata))
+            formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata))
         )),
         PullFromCollect::onError
     ).waitForCompletion();
