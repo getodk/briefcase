@@ -209,7 +209,7 @@ public class FormInstallerTest {
     return new FormStatus(new OdkCollectFormDefinition(formPath.toFile()));
   }
 
-  private static Path getPath(String fileName) throws URISyntaxException {
+  public static Path getPath(String fileName) throws URISyntaxException {
     return Paths.get(FormInstallerTest.class.getClassLoader().getResource(fileName).toURI());
   }
 
