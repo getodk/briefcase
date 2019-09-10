@@ -14,15 +14,16 @@ public class FormMetadataQueriesTest {
   @Test
   public void queries_the_last_cursor_of_a_form() {
     FormKey key = FormKey.of("Some form", "some-form");
-    Path storageDirectory = Paths.get("/some/path/to/the/form");
-    FormMetadata formMetadata = new FormMetadata(key, storageDirectory, false, Cursor.empty(), Optional.empty());
+    Path storageRoot = Paths.get("/some/path");
+    Path formDir = storageRoot.resolve("forms/Some form");
+    FormMetadata formMetadata = new FormMetadata(key, storageRoot, formDir, false, Cursor.empty(), Optional.empty());
     FormMetadataPort formMetadataPort = new InMemoryFormMetadataAdapter();
     formMetadataPort.persist(formMetadata);
 
     assertThat(formMetadataPort.query(lastCursorOf(key)), isPresentAndIs(Cursor.empty()));
 
     Cursor cursor = Cursor.from("some cursor");
-    formMetadataPort.execute(FormMetadataCommands.updateAsPulled(key, cursor, storageDirectory));
+    formMetadataPort.execute(FormMetadataCommands.updateAsPulled(key, cursor, storageRoot, formDir));
 
     assertThat(formMetadataPort.query(lastCursorOf(key)), isPresentAndIs(cursor));
   }

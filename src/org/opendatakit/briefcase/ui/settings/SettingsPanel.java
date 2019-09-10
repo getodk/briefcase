@@ -53,13 +53,14 @@ public class SettingsPanel {
     form.onStorageLocation(path -> {
       Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(path);
       UncheckedFiles.createBriefcaseDir(briefcaseDir);
+      formCache.unsetLocation();
       formCache.setLocation(briefcaseDir);
       formCache.update();
       appPreferences.setStorageDir(path);
+      formMetadataPort.flush();
       formMetadataPort.syncWithFilesAt(briefcaseDir);
     }, () -> {
       formCache.unsetLocation();
-      formCache.update();
       appPreferences.unsetStorageDir();
       formMetadataPort.flush();
     });

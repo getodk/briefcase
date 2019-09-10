@@ -7,12 +7,12 @@ import java.util.function.Consumer;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 
 public class FormMetadataCommands {
-  public static Consumer<FormMetadataPort> updateAsPulled(FormKey key, Cursor cursor, Path storageDirectory) {
+  public static Consumer<FormMetadataPort> updateAsPulled(FormKey key, Cursor cursor, Path storageRoot, Path formDir) {
     return port -> {
       Optional<FormMetadata> fetch = port
           .fetch(key);
       FormMetadata formMetadata = fetch
-          .orElseGet(() -> FormMetadata.of(key, storageDirectory));
+          .orElseGet(() -> FormMetadata.of(key, storageRoot, formDir));
       FormMetadata formMetadata1 = formMetadata
           .withHasBeenPulled(true)
           .withCursor(cursor);
@@ -20,17 +20,17 @@ public class FormMetadataCommands {
     };
   }
 
-  public static Consumer<FormMetadataPort> updateAsPulled(FormKey key, Path storageDirectory) {
+  public static Consumer<FormMetadataPort> updateAsPulled(FormKey key, Path storageRoot, Path formDir) {
     return port -> port.persist(port
         .fetch(key)
-        .orElseGet(() -> FormMetadata.of(key, storageDirectory))
+        .orElseGet(() -> FormMetadata.of(key, storageRoot, formDir))
         .withHasBeenPulled(true));
   }
 
-  public static Consumer<FormMetadataPort> updateLastExportedSubmission(FormKey key, String instanceId, OffsetDateTime submissionDate, OffsetDateTime exportDateTime, Path storageDirectory) {
+  public static Consumer<FormMetadataPort> updateLastExportedSubmission(FormKey key, String instanceId, OffsetDateTime submissionDate, OffsetDateTime exportDateTime, Path storageRoot, Path formDir) {
     return port -> port.persist(port
         .fetch(key)
-        .orElseGet(() -> FormMetadata.of(key, storageDirectory))
+        .orElseGet(() -> FormMetadata.of(key, storageRoot, formDir))
         .withLastExportedSubmission(instanceId, submissionDate, exportDateTime));
   }
 

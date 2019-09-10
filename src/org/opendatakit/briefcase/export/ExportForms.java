@@ -34,11 +34,11 @@ import org.opendatakit.briefcase.model.FormStatus;
 public class ExportForms {
   private static final String EXPORT_DATE_PREFIX = "export_date_";
   private static final String CUSTOM_CONF_PREFIX = "custom_";
-  private final List<FormStatus> forms;
-  private ExportConfiguration defaultConfiguration;
   private final Map<String, ExportConfiguration> customConfigurations;
   private final Map<String, LocalDateTime> lastExportDateTimes;
   private final List<BiConsumer<String, LocalDateTime>> onSuccessfulExportCallbacks = new ArrayList<>();
+  private ExportConfiguration defaultConfiguration;
+  private List<FormStatus> forms;
   private Map<String, FormStatus> formsIndex = new HashMap<>();
 
   public ExportForms(List<FormStatus> forms, ExportConfiguration defaultConfiguration, Map<String, ExportConfiguration> configurations, Map<String, LocalDateTime> lastExportDateTimes) {
@@ -84,11 +84,7 @@ public class ExportForms {
   }
 
   public void merge(List<FormStatus> incomingForms) {
-    List<String> incomingFormIds = incomingForms.stream().map(ExportForms::getFormId).collect(toList());
-    List<FormStatus> formsToAdd = incomingForms.stream().filter(form -> !formsIndex.containsKey(getFormId(form))).collect(toList());
-    List<FormStatus> formsToRemove = formsIndex.values().stream().filter(form -> !incomingFormIds.contains(getFormId(form))).collect(toList());
-    forms.addAll(formsToAdd);
-    forms.removeAll(formsToRemove);
+    forms = new ArrayList<>(incomingForms);
     rebuildIndex();
   }
 

@@ -169,6 +169,7 @@ class ExportToCsvScenario {
     FormKey formKey = FormKey.of(formDef.getFormName(), formDef.getFormId());
     FormMetadata formMetadata = new FormMetadata(
         formKey,
+        briefcaseDir,
         formDef.getFormDir().resolve(stripIllegalChars(formDef.getFormName()) + ".xml"),
         true,
         Cursor.empty(),
