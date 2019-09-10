@@ -29,13 +29,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.reused.api.OptionalProduct;
 
-/**
- * This class is used to manage the applications preferences. It achieves this task, by using the standard
- * {@link java.util.prefs.Preferences Preferences API}.
- */
 public class BriefcasePreferences {
-
-  // TODO v2.0 Move these to AggregateServer
   public static final String USERNAME = "username";
   public static final String PASSWORD = "password";
   public static final String AGGREGATE_1_0_URL = "url_1_0";
@@ -67,52 +61,18 @@ public class BriefcasePreferences {
     this.preferences = scope.preferenceFactory(node);
   }
 
-  /**
-   * Factory that creates a class scoped <tt>BriefcasePreferences</tt> object.
-   *
-   * @param node the managing class
-   */
   public static BriefcasePreferences forClass(Class<?> node) {
     return new BriefcasePreferences(node, PreferenceScope.CLASS_NAME);
   }
 
-  /**
-   * Returns the value associated with the specified key in this preference
-   * node. Returns the specified default if there is no value associated with
-   * the key, or the backing store is inaccessible.
-   *
-   * @param key          key whose associated value is to be returned.
-   * @param defaultValue the value to be returned in the event that this preference node
-   *                     has no value associated with key.
-   * @return the value associated with key, or defaultValue if no value is associated
-   *     with key, or the backing store is inaccessible.
-   */
   public String get(String key, String defaultValue) {
     return preferences.get(key, defaultValue);
   }
 
-  /**
-   * Returns an Optional instance with the value associated with the specified key
-   * in this preference node or an Optional.empty() if no value is associated with key,
-   * or the backing store is inaccessible.
-   *
-   * @param key key whose associated value is to be returned.
-   * @return an Optional instance with the value associated with key, or Optional.empty()
-   *     if no value is associated with key, or the backing store is inaccessible.
-   */
   public Optional<String> nullSafeGet(String key) {
     return Optional.ofNullable(get(key, null));
   }
 
-  /**
-   * Associates the specified value with the specified key in this preference
-   * node.
-   * <p>
-   * If the value is null, then the key is removed
-   *
-   * @param key   key with which the specified value is to be associated.
-   * @param value value to be associated with the specified key or null.
-   */
   public void put(String key, String value) {
     if (value != null)
       preferences.put(key, value);
@@ -120,41 +80,18 @@ public class BriefcasePreferences {
       remove(key);
   }
 
-  /**
-   * Associates the specified key/value map in this preference node.
-   *
-   * @param keyValues map of keys and values to ve associated.
-   */
   public void putAll(Map<String, String> keyValues) {
     keyValues.forEach(this::put);
   }
 
-  /**
-   * Removes the value associated with the specified key in this preference
-   * node, if any.
-   *
-   * @param key key whose mapping is to be removed from the preference node.
-   */
   public void remove(String key) {
     preferences.remove(key);
   }
 
-  /**
-   * Removes all the values associated with the specified key list in this preference
-   * node, if any.
-   *
-   * @param keys keys whose mappings are to be removed from the preference node.
-   */
   private void removeAll(String... keys) {
     removeAll(Arrays.asList(keys));
   }
 
-  /**
-   * Removes all the values associated with the specified key list in this preference
-   * node, if any.
-   *
-   * @param keys keys whose mappings are to be removed from the preference node.
-   */
   public void removeAll(List<String> keys) {
     keys.forEach(this::remove);
   }
@@ -220,9 +157,6 @@ public class BriefcasePreferences {
     return getStartFromLast().orElse(false);
   }
 
-  /**
-   * Enum that implements the strategies, to create differently scoped preferences.
-   */
   private enum PreferenceScope {
     APPLICATION {
       @Override
@@ -240,13 +174,6 @@ public class BriefcasePreferences {
     public abstract Preferences preferenceFactory(Class<?> node);
   }
 
-  /**
-   * Through this static nested class, we implement the Initialization-on-demand
-   * holder idiom. It enables a safe, highly concurrent lazy initialization for
-   * singletons. For more information on this idiom, please refer to <a href=
-   * "https://en.wikipedia.org/wiki/Initialization-on-demand_holder_idiom">
-   * Initialization-on-demand holder idiom</a>.
-   */
   private static class Preference {
     private static final BriefcasePreferences APPLICATION_SCOPED =
         new BriefcasePreferences(BriefcasePreferences.class, PreferenceScope.APPLICATION);
@@ -256,11 +183,6 @@ public class BriefcasePreferences {
     return Preference.APPLICATION_SCOPED;
   }
 
-  /**
-   * Get the user's persisted decision regarding their consent to being tracked.
-   *
-   * @return the boolean representation of the user's consent to being tracked.
-   */
   public static boolean getBriefcaseTrackingConsentProperty() {
     return getBooleanProperty(BRIEFCASE_TRACKING_CONSENT_PROPERTY);
   }
@@ -273,12 +195,6 @@ public class BriefcasePreferences {
     return Boolean.parseBoolean(Preference.APPLICATION_SCOPED.get(key, Boolean.FALSE.toString()));
   }
 
-  /**
-   * Get the persisted UUID for the current user.
-   * <P>Note that the method will generate and persist a UUID if the user doesn't have one.</P>
-   *
-   * @return the String representation of the user's UUID.
-   */
   public static String getUniqueUserID() {
     String defaultUuidValue = "UUID missing, defaulting to this message";
     String uniqueUserID = Preference.APPLICATION_SCOPED.get(BRIEFCASE_UNIQUE_USER_ID_PROPERTY, defaultUuidValue);
