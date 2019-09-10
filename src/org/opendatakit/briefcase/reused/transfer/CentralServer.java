@@ -73,6 +73,7 @@ public class CentralServer implements RemoteServer {
   public Request<String> getProjectTestRequest(String token) {
     return RequestBuilder.get(baseUrl)
         .asText()
+        .withIgnoreCookies()
         .withPath("/v1/projects/" + projectId)
         .withHeader("Authorization", "Bearer " + token)
         .withResponseMapper(json -> json)
@@ -82,6 +83,7 @@ public class CentralServer implements RemoteServer {
   public Request<String> getSessionTokenRequest() {
     return RequestBuilder.post(baseUrl)
         .asJsonMap()
+        .withIgnoreCookies()
         .withPath("/v1/sessions")
         .withHeader("Content-Type", "application/json")
         .withBody(buildSessionPayload(credentials))
@@ -99,6 +101,7 @@ public class CentralServer implements RemoteServer {
 
   public Request<Void> getDownloadFormRequest(String formId, Path target, String token) {
     return RequestBuilder.get(baseUrl)
+        .withIgnoreCookies()
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + ".xml")
         .withHeader("Authorization", "Bearer " + token)
         .downloadTo(target)
@@ -108,6 +111,7 @@ public class CentralServer implements RemoteServer {
   public Request<List<CentralAttachment>> getFormAttachmentListRequest(String formId, String token) {
     return RequestBuilder.get(baseUrl)
         .asJsonList(CentralAttachment.class)
+        .withIgnoreCookies()
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/attachments")
         .withHeader("Authorization", "Bearer " + token)
         .build();
@@ -115,6 +119,7 @@ public class CentralServer implements RemoteServer {
 
   public Request<Void> getDownloadFormAttachmentRequest(String formId, CentralAttachment attachment, Path target, String token) {
     return RequestBuilder.get(baseUrl)
+        .withIgnoreCookies()
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/attachments/" + attachment.getName())
         .withHeader("Authorization", "Bearer " + token)
         .downloadTo(target)
@@ -124,6 +129,7 @@ public class CentralServer implements RemoteServer {
   public Request<List<String>> getInstanceIdListRequest(String formId, String token) {
     return RequestBuilder.get(baseUrl)
         .asJsonList()
+        .withIgnoreCookies()
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/submissions")
         .withHeader("Authorization", "Bearer " + token)
         .withResponseMapper(json -> json.stream().map(o -> (String) o.get("instanceId")).collect(toList()))
@@ -132,6 +138,7 @@ public class CentralServer implements RemoteServer {
 
   public Request<Void> getDownloadSubmissionRequest(String formId, String instanceId, Path target, String token) {
     return RequestBuilder.get(baseUrl)
+        .withIgnoreCookies()
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/submissions/" + instanceId + ".xml")
         .withHeader("Authorization", "Bearer " + token)
         .downloadTo(target)
@@ -140,6 +147,7 @@ public class CentralServer implements RemoteServer {
 
   public Request<List<CentralAttachment>> getSubmissionAttachmentListRequest(String formId, String instanceId, String token) {
     return RequestBuilder.get(baseUrl)
+        .withIgnoreCookies()
         .asJsonList(CentralAttachment.class)
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/submissions/" + instanceId + "/attachments")
         .withHeader("Authorization", "Bearer " + token)
@@ -148,6 +156,7 @@ public class CentralServer implements RemoteServer {
 
   public Request<Void> getDownloadSubmissionAttachmentRequest(String formId, String instanceId, CentralAttachment attachment, Path target, String token) {
     return RequestBuilder.get(baseUrl)
+        .withIgnoreCookies()
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/submissions/" + instanceId + "/attachments/" + attachment.getName())
         .withHeader("Authorization", "Bearer " + token)
         .downloadTo(target)
@@ -163,6 +172,7 @@ public class CentralServer implements RemoteServer {
   public Request<Map<String, Object>> getPushFormRequest(Path formFile, String token) {
     return RequestBuilder.post(baseUrl)
         .asJsonMap()
+        .withIgnoreCookies()
         .withPath("/v1/projects/" + projectId + "/forms")
         .withHeader("Authorization", "Bearer " + token)
         .withHeader("Content-Type", "application/xml")
@@ -173,6 +183,7 @@ public class CentralServer implements RemoteServer {
   public Request<Map<String, Object>> getPushFormAttachmentRequest(String formId, Path attachment, String token) {
     return RequestBuilder.post(baseUrl)
         .asJsonMap()
+        .withIgnoreCookies()
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/attachments/" + attachment.getFileName().toString())
         .withHeader("Authorization", "Bearer " + token)
         .withHeader("Content-Type", "*/*")
@@ -183,6 +194,7 @@ public class CentralServer implements RemoteServer {
   public Request<Map<String, Object>> getPushSubmissionRequest(String token, String formId, Path submission) {
     return RequestBuilder.post(baseUrl)
         .asJsonMap()
+        .withIgnoreCookies()
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/submissions")
         .withHeader("Authorization", "Bearer " + token)
         .withHeader("Content-Type", "application/xml")
@@ -193,6 +205,7 @@ public class CentralServer implements RemoteServer {
   public Request<Map<String, Object>> getPushSubmissionAttachmentRequest(String token, String formId, String instanceId, Path attachment) {
     return RequestBuilder.post(baseUrl)
         .asJsonMap()
+        .withIgnoreCookies()
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/submissions/" + instanceId + "/attachments/" + attachment.getFileName().toString())
         .withHeader("Authorization", "Bearer " + token)
         .withHeader("Content-Type", "*/*")
@@ -203,6 +216,7 @@ public class CentralServer implements RemoteServer {
   public Request<List<RemoteFormDefinition>> getFormsListRequest(String token) {
     return RequestBuilder.get(baseUrl)
         .asJsonList()
+        .withIgnoreCookies()
         .withPath("/v1/projects/" + projectId + "/forms")
         .withHeader("Authorization", "Bearer " + token)
         .withResponseMapper(list -> list.stream()

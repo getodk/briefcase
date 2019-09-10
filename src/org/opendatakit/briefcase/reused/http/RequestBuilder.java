@@ -71,8 +71,9 @@ public class RequestBuilder<T> {
   private final Map<String, String> headers;
   private final Optional<InputStream> body;
   private final List<MultipartMessage> multipartMessages;
+  private final boolean ignoreCookies;
 
-  RequestBuilder(RequestMethod method, URL baseUrl, Function<InputStream, T> responseMapper, Optional<Credentials> credentials, Map<String, String> headers, Optional<InputStream> body, List<MultipartMessage> multipartMessages) {
+  RequestBuilder(RequestMethod method, URL baseUrl, Function<InputStream, T> responseMapper, Optional<Credentials> credentials, Map<String, String> headers, Optional<InputStream> body, List<MultipartMessage> multipartMessages, boolean ignoreCookies) {
     this.method = method;
     this.baseUrl = baseUrl;
     this.credentials = credentials;
@@ -80,22 +81,23 @@ public class RequestBuilder<T> {
     this.headers = headers;
     this.body = body;
     this.multipartMessages = multipartMessages;
+    this.ignoreCookies = ignoreCookies;
   }
 
   public static RequestBuilder<InputStream> get(String baseUrl) {
-    return new RequestBuilder<>(GET, url(stripTrailingSlash(baseUrl)), Function.identity(), empty(), new HashMap<>(), empty(), emptyList());
+    return new RequestBuilder<>(GET, url(stripTrailingSlash(baseUrl)), Function.identity(), empty(), new HashMap<>(), empty(), emptyList(), false);
   }
 
   public static RequestBuilder<InputStream> get(URL baseUrl) {
-    return new RequestBuilder<>(GET, url(stripTrailingSlash(baseUrl)), Function.identity(), empty(), new HashMap<>(), empty(), emptyList());
+    return new RequestBuilder<>(GET, url(stripTrailingSlash(baseUrl)), Function.identity(), empty(), new HashMap<>(), empty(), emptyList(), false);
   }
 
   public static RequestBuilder<InputStream> post(URL baseUrl) {
-    return new RequestBuilder<>(POST, url(stripTrailingSlash(baseUrl)), Function.identity(), empty(), new HashMap<>(), empty(), emptyList());
+    return new RequestBuilder<>(POST, url(stripTrailingSlash(baseUrl)), Function.identity(), empty(), new HashMap<>(), empty(), emptyList(), false);
   }
 
   public static RequestBuilder<InputStream> head(URL baseUrl) {
-    return new RequestBuilder<>(HEAD, url(stripTrailingSlash(baseUrl)), Function.identity(), empty(), new HashMap<>(), empty(), emptyList());
+    return new RequestBuilder<>(HEAD, url(stripTrailingSlash(baseUrl)), Function.identity(), empty(), new HashMap<>(), empty(), emptyList(), false);
   }
 
   private static String readString(InputStream in) {
@@ -176,46 +178,46 @@ public class RequestBuilder<T> {
   }
 
   public Request<T> build() {
-    return new Request<>(method, baseUrl, credentials, responseMapper, headers, body, multipartMessages);
+    return new Request<>(method, baseUrl, credentials, responseMapper, headers, body, multipartMessages, ignoreCookies);
   }
 
   public RequestBuilder<String> asText() {
-    return new RequestBuilder<>(method, baseUrl, RequestBuilder::readString, credentials, headers, body, multipartMessages);
+    return new RequestBuilder<>(method, baseUrl, RequestBuilder::readString, credentials, headers, body, multipartMessages, ignoreCookies);
   }
 
   public RequestBuilder<XmlElement> asXmlElement() {
-    return new RequestBuilder<>(method, baseUrl, RequestBuilder::readXmlElement, credentials, headers, body, multipartMessages);
+    return new RequestBuilder<>(method, baseUrl, RequestBuilder::readXmlElement, credentials, headers, body, multipartMessages, ignoreCookies);
   }
 
   public RequestBuilder<Map<String, Object>> asJsonMap() {
-    return new RequestBuilder<>(method, baseUrl, RequestBuilder::readJsonMap, credentials, headers, body, multipartMessages);
+    return new RequestBuilder<>(method, baseUrl, RequestBuilder::readJsonMap, credentials, headers, body, multipartMessages, ignoreCookies);
   }
 
   public RequestBuilder<List<Map>> asJsonList() {
-    return new RequestBuilder<>(method, baseUrl, RequestBuilder.readJsonList(Map.class), credentials, headers, body, multipartMessages);
+    return new RequestBuilder<>(method, baseUrl, RequestBuilder.readJsonList(Map.class), credentials, headers, body, multipartMessages, ignoreCookies);
   }
 
   public <U> RequestBuilder<List<U>> asJsonList(Class<U> mappingClass) {
-    return new RequestBuilder<>(method, baseUrl, RequestBuilder.readJsonList(mappingClass), credentials, headers, body, multipartMessages);
+    return new RequestBuilder<>(method, baseUrl, RequestBuilder.readJsonList(mappingClass), credentials, headers, body, multipartMessages, ignoreCookies);
   }
 
   public RequestBuilder<Void> downloadTo(Path target) {
     return new RequestBuilder<>(method, baseUrl, in -> {
       copy(in, target, REPLACE_EXISTING);
       return null;
-    }, credentials, headers, body, multipartMessages);
+    }, credentials, headers, body, multipartMessages, ignoreCookies);
   }
 
   public <U> RequestBuilder<U> withResponseMapper(Function<T, U> mapper) {
-    return new RequestBuilder<>(method, baseUrl, responseMapper.andThen(mapper), credentials, headers, body, multipartMessages);
+    return new RequestBuilder<>(method, baseUrl, responseMapper.andThen(mapper), credentials, headers, body, multipartMessages, ignoreCookies);
   }
 
   public RequestBuilder<T> withCredentials(Optional<Credentials> credentials) {
-    return new RequestBuilder<>(method, baseUrl, responseMapper, credentials, headers, body, multipartMessages);
+    return new RequestBuilder<>(method, baseUrl, responseMapper, credentials, headers, body, multipartMessages, ignoreCookies);
   }
 
   public RequestBuilder<T> withCredentials(Credentials credentials) {
-    return new RequestBuilder<>(method, baseUrl, responseMapper, Optional.of(credentials), headers, body, multipartMessages);
+    return new RequestBuilder<>(method, baseUrl, responseMapper, Optional.of(credentials), headers, body, multipartMessages, ignoreCookies);
   }
 
   public RequestBuilder<T> withPath(String path) {
@@ -223,7 +225,7 @@ public class RequestBuilder<T> {
     int endOffset = path.endsWith("/") ? 1 : 0;
     String cleanPath = path.substring(startOffset, path.length() - endOffset);
     URL newBaseUrl = url(baseUrl + "/" + cleanPath);
-    return new RequestBuilder<>(method, newBaseUrl, responseMapper, credentials, headers, body, multipartMessages);
+    return new RequestBuilder<>(method, newBaseUrl, responseMapper, credentials, headers, body, multipartMessages, ignoreCookies);
   }
 
   @SafeVarargs
@@ -232,27 +234,31 @@ public class RequestBuilder<T> {
       throw new BriefcaseException("Can't apply withQuery() twice");
     String queryString = Stream.of(keyValues).map(p -> p.getLeft() + "=" + urlEncode(p.getRight())).collect(joining("&"));
     URL newBaseUrl = url(baseUrl.toString() + "?" + queryString);
-    return new RequestBuilder<>(method, newBaseUrl, responseMapper, credentials, headers, body, multipartMessages);
+    return new RequestBuilder<>(method, newBaseUrl, responseMapper, credentials, headers, body, multipartMessages, ignoreCookies);
   }
 
   public RequestBuilder<T> withBody(String bodyContents) {
     Optional<InputStream> newBody = Optional.of(new ByteArrayInputStream(bodyContents.getBytes(UTF_8)));
-    return new RequestBuilder<>(method, baseUrl, responseMapper, credentials, headers, newBody, multipartMessages);
+    return new RequestBuilder<>(method, baseUrl, responseMapper, credentials, headers, newBody, multipartMessages, ignoreCookies);
   }
 
   public RequestBuilder<T> withBody(InputStream body) {
-    return new RequestBuilder<>(method, baseUrl, responseMapper, credentials, headers, Optional.of(body), multipartMessages);
+    return new RequestBuilder<>(method, baseUrl, responseMapper, credentials, headers, Optional.of(body), multipartMessages, ignoreCookies);
   }
 
   public RequestBuilder<T> withHeader(String name, String value) {
     Map<String, String> newHeaders = new HashMap<>(headers);
     newHeaders.put(name, value);
-    return new RequestBuilder<>(method, baseUrl, responseMapper, credentials, newHeaders, body, multipartMessages);
+    return new RequestBuilder<>(method, baseUrl, responseMapper, credentials, newHeaders, body, multipartMessages, ignoreCookies);
   }
 
   public RequestBuilder<T> withMultipartMessage(String name, String contentType, String attachmentName, InputStream messageBody) {
     List<MultipartMessage> newMultipartMessages = new ArrayList<>(multipartMessages);
     newMultipartMessages.add(new MultipartMessage(name, contentType, attachmentName, messageBody));
-    return new RequestBuilder<>(method, baseUrl, responseMapper, credentials, headers, body, newMultipartMessages);
+    return new RequestBuilder<>(method, baseUrl, responseMapper, credentials, headers, body, newMultipartMessages, ignoreCookies);
+  }
+
+  public RequestBuilder<T> withIgnoreCookies() {
+    return new RequestBuilder<>(method, baseUrl, responseMapper, credentials, headers, body, multipartMessages, true);
   }
 }

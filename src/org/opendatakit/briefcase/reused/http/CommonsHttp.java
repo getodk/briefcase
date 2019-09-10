@@ -16,7 +16,7 @@
 
 package org.opendatakit.briefcase.reused.http;
 
-import static org.apache.http.client.config.CookieSpecs.IGNORE_COOKIES;
+import static org.apache.http.client.config.CookieSpecs.STANDARD;
 import static org.apache.http.client.config.RequestConfig.custom;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.POST;
 
@@ -33,6 +33,8 @@ import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.InputStreamBody;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.http.response.Response;
@@ -40,38 +42,43 @@ import org.opendatakit.briefcase.reused.http.response.Response;
 public class CommonsHttp implements Http {
   private Executor executor;
   private final int maxConnections;
+  private final BasicCookieStore cookieStore;
 
-  private CommonsHttp(Executor executor, int maxConnections) {
+  private CommonsHttp(Executor executor, int maxConnections, BasicCookieStore cookieStore) {
     this.executor = executor;
     this.maxConnections = maxConnections;
+    this.cookieStore = cookieStore;
   }
 
   public static Http of(int maxConnections, HttpHost httpProxy) {
     if (!Http.isValidHttpConnections(maxConnections))
       throw new BriefcaseException("Invalid maximum simultaneous HTTP connections " + maxConnections + ". Try a value between " + MIN_HTTP_CONNECTIONS + " and " + MAX_HTTP_CONNECTIONS);
-    return new CommonsHttp(Executor.newInstance(
-        getBaseBuilder(maxConnections).setProxy(httpProxy).build()
-    ), maxConnections);
+    BasicCookieStore cookieStore = new BasicCookieStore();
+    return new CommonsHttp(Executor.newInstance(getBaseBuilder(maxConnections, cookieStore).setProxy(httpProxy).build()), maxConnections, cookieStore);
   }
 
   public static Http of(int maxConnections) {
     if (!Http.isValidHttpConnections(maxConnections))
       throw new BriefcaseException("Invalid maximum simultaneous HTTP connections " + maxConnections + ". Try a value between " + MIN_HTTP_CONNECTIONS + " and " + MAX_HTTP_CONNECTIONS);
-    return new CommonsHttp(Executor.newInstance(
-        getBaseBuilder(maxConnections).build()
-    ), maxConnections);
+    BasicCookieStore cookieStore = new BasicCookieStore();
+    HttpClientBuilder baseBuilder = getBaseBuilder(maxConnections, cookieStore);
+
+    CloseableHttpClient build = baseBuilder.build();
+
+    return new CommonsHttp(Executor.newInstance(build), maxConnections, cookieStore);
   }
 
-  private static HttpClientBuilder getBaseBuilder(int maxConnections) {
+  private static HttpClientBuilder getBaseBuilder(int maxConnections, BasicCookieStore cookieStore) {
     return HttpClientBuilder
         .create()
+        .setDefaultCookieStore(cookieStore)
         .setMaxConnPerRoute(maxConnections)
         .setMaxConnTotal(maxConnections)
         .setDefaultRequestConfig(custom()
             .setConnectionRequestTimeout(0)
             .setSocketTimeout(0)
             .setConnectTimeout(0)
-            .setCookieSpec(IGNORE_COOKIES)
+            .setCookieSpec(STANDARD)
             .build());
   }
 
@@ -89,15 +96,18 @@ public class CommonsHttp implements Http {
 
   @Override
   public void setProxy(HttpHost proxy) {
-    executor = Executor.newInstance(getBaseBuilder(maxConnections).setProxy(proxy).build());
+    executor = Executor.newInstance(getBaseBuilder(maxConnections, new BasicCookieStore()).setProxy(proxy).build());
   }
 
   @Override
   public void unsetProxy() {
-    executor = Executor.newInstance(getBaseBuilder(maxConnections).build());
+    executor = Executor.newInstance(getBaseBuilder(maxConnections, new BasicCookieStore()).build());
   }
 
   private <T> Response<T> uncheckedExecute(Request<T> request, Executor executor) {
+    if (request.ignoreCookies())
+      cookieStore.clear();
+
     // Get an Apache Commons HTTPClient request and set some reasonable timeouts
     org.apache.http.client.fluent.Request commonsRequest = getCommonsRequest(request);
 
