@@ -19,11 +19,18 @@ package org.opendatakit.briefcase.delivery.ui.settings;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.infoMessage;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.cleanAllCursors;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.syncWithFilesAt;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.removeSavedServers;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.setHttpProxy;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.setMaxHttpConnections;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.setRememberPasswords;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.setStartPullFromLast;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.setTrackingConsent;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.unsetHttpProxy;
 
 import javax.swing.JPanel;
 import org.opendatakit.briefcase.delivery.ui.reused.Analytics;
 import org.opendatakit.briefcase.reused.Container;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.model.preferences.PreferenceQueries;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataCommands;
 
 public class SettingsPanel {
@@ -32,32 +39,38 @@ public class SettingsPanel {
   private final SettingsPanelForm form;
 
   @SuppressWarnings("checkstyle:Indentation")
-  private SettingsPanel(Container container, Analytics analytics, BriefcasePreferences appPreferences, SettingsPanelForm form) {
+  private SettingsPanel(Container container, Analytics analytics, SettingsPanelForm form) {
     this.form = form;
 
-    appPreferences.getMaxHttpConnections().ifPresent(form::setMaxHttpConnections);
-    appPreferences.getStartFromLast().ifPresent(form::setResumeLastPull);
-    appPreferences.getRememberPasswords().ifPresent(form::setRememberPasswords);
-    appPreferences.getSendUsageData().ifPresent(form::setSendUsageData);
-    appPreferences.getHttpProxy().ifPresent(httpProxy -> {
+    container.preferences.query(PreferenceQueries.getMaxHttpConnections()).ifPresent(form::setMaxHttpConnections);
+    container.preferences.query(PreferenceQueries.getStartPullFromLast()).ifPresent(form::setStartPullFromLast);
+    container.preferences.query(PreferenceQueries.getRememberPasswords()).ifPresent(form::setRememberPasswords);
+    container.preferences.query(PreferenceQueries.getHttpProxy()).ifPresent(proxy -> {
       form.enableUseHttpProxy();
-      form.setHttpProxy(httpProxy);
+      form.setHttpProxy(proxy);
       form.updateHttpProxyFields();
     });
+    form.setSendUsageData(container.preferences.query(PreferenceQueries.getTrackingConsent()));
 
-    form.onMaxHttpConnectionsChange(appPreferences::setMaxHttpConnections);
-    form.onResumeLastPullChange(appPreferences::setStartFromLast);
-    form.onRememberPasswordsChange(appPreferences::setRememberPasswords);
+    form.onMaxHttpConnectionsChange(maxHttpConnections -> container.preferences.execute(setMaxHttpConnections(maxHttpConnections)));
+    form.onStartPullFromLastChange(startPullFromLastEnabled -> container.preferences.execute(setStartPullFromLast(startPullFromLastEnabled)));
+    form.onRememberPasswordsChange(rememberEnabled -> {
+      container.preferences.execute(setRememberPasswords(rememberEnabled));
+      if (!rememberEnabled) {
+        container.preferences.execute(removeSavedServers());
+        container.formMetadata.forgetPullSources();
+      }
+    });
     form.onSendUsageDataChange(enabled -> {
-      appPreferences.setSendUsage(enabled);
+      container.preferences.execute(setTrackingConsent(enabled));
       analytics.enableTracking(enabled, false);
     });
-    form.onHttpProxy(proxy -> {
+    form.onHttpProxyChange(proxy -> {
       container.http.setProxy(proxy);
-      appPreferences.setHttpProxy(proxy);
+      container.preferences.execute(setHttpProxy(proxy));
     }, () -> {
       container.http.unsetProxy();
-      appPreferences.unsetHttpProxy();
+      container.preferences.execute(unsetHttpProxy());
     });
     form.onReloadCache(() -> {
       container.formMetadata.execute(syncWithFilesAt(container.workspace.get()));
@@ -72,9 +85,8 @@ public class SettingsPanel {
     form.setVersion(container.versionManager.getCurrent());
   }
 
-  public static SettingsPanel from(Container container, Analytics analytics, BriefcasePreferences appPreferences) {
-    SettingsPanelForm settingsPanelForm = new SettingsPanelForm();
-    return new SettingsPanel(container, analytics, appPreferences, settingsPanelForm);
+  public static SettingsPanel from(Container container, Analytics analytics) {
+    return new SettingsPanel(container, analytics, new SettingsPanelForm());
   }
 
   public JPanel getContainer() {

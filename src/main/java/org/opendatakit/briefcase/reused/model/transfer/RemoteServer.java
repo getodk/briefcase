@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.reused.model.transfer;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.opendatakit.briefcase.reused.api.Optionals;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
@@ -79,6 +80,30 @@ public interface RemoteServer {
         AggregateServer.readFromPrefs(prefs, pullPanelPrefs, formKey).map(o -> (T) o),
         CentralServer.readFromPrefs(prefs, formKey).map(o -> (T) o)
     );
+  }
+
+  enum Type {
+    AGGREGATE("aggregate"),
+    CENTRAL("central");
+
+    private final String name;
+
+    Type(String name) {
+      this.name = name;
+    }
+
+    public static Type from(String name) {
+      return Stream.of(values())
+          .filter(v -> v.name.equals(name))
+          .findFirst()
+          .orElseThrow();
+    }
+
+    public String getName() {
+      return name;
+    }
+
+
   }
 
   @FunctionalInterface

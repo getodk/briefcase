@@ -15,7 +15,6 @@
  */
 package org.opendatakit.briefcase;
 
-import static java.lang.Boolean.TRUE;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.SENTRY_DSN;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.SENTRY_ENABLED;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
@@ -23,7 +22,6 @@ import static org.opendatakit.briefcase.delivery.cli.Common.MAX_HTTP_CONNECTIONS
 import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.reused.model.Host.getOsName;
-import static org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY;
 
 import io.sentry.Sentry;
 import io.sentry.SentryClient;
@@ -42,15 +40,16 @@ import org.opendatakit.briefcase.delivery.cli.launchgui.LaunchGui;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.BriefcaseVersionManager;
 import org.opendatakit.briefcase.reused.Container;
+import org.opendatakit.briefcase.reused.NoOpSentryClient;
 import org.opendatakit.briefcase.reused.Workspace;
-import org.opendatakit.briefcase.reused.api.Optionals;
 import org.opendatakit.briefcase.reused.cli.Cli;
 import org.opendatakit.briefcase.reused.db.BriefcaseDb;
 import org.opendatakit.briefcase.reused.http.CommonsHttp;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.model.form.DatabaseFormMetadataAdapter;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.model.preferences.DatabasePreferenceAdapter;
+import org.opendatakit.briefcase.reused.model.preferences.PreferencePort;
 import org.opendatakit.briefcase.reused.model.submission.DatabaseSubmissionMetadataAdapter;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
@@ -68,20 +67,16 @@ public class Launcher {
   public static void main(String[] rawArgs) {
     Security.addProvider(new BouncyCastleProvider());
 
-    BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
-    if (!appPreferences.hasKey(BRIEFCASE_TRACKING_CONSENT_PROPERTY))
-      appPreferences.put(BRIEFCASE_TRACKING_CONSENT_PROPERTY, TRUE.toString());
-
-    Optional<SentryClient> sentry = SENTRY_ENABLED ? Optional.of(initSentryClient(appPreferences)) : Optional.empty();
-
     Preferences prefs = Preferences.userNodeForPackage(Workspace.class);
     Workspace workspace = new Workspace(prefs);
-    Http http = CommonsHttp.of(DEFAULT_HTTP_CONNECTIONS, appPreferences.getHttpProxy());
+    Http http = CommonsHttp.of(DEFAULT_HTTP_CONNECTIONS, Optional.empty());
     BriefcaseVersionManager versionManager = new BriefcaseVersionManager(http, VERSION);
     BriefcaseDb db = BriefcaseDb.create();
+    SentryClient sentry = SENTRY_ENABLED ? initSentryClient() : new NoOpSentryClient();
     FormMetadataPort formMetadataPort = DatabaseFormMetadataAdapter.from(workspace, db);
     SubmissionMetadataPort submissionMetadataPort = DatabaseSubmissionMetadataAdapter.from(workspace, db);
-    Container container = new Container(workspace, http, versionManager, db, formMetadataPort, submissionMetadataPort);
+    PreferencePort preferencePort = DatabasePreferenceAdapter.from(db);
+    Container container = new Container(workspace, http, versionManager, db, sentry, formMetadataPort, submissionMetadataPort, preferencePort);
 
     new Cli()
         .register(PullFromAggregate.create(container))
@@ -92,27 +87,23 @@ public class Launcher {
         .register(Export.create(container))
         .register(ClearPreferences.create())
         .registerDefault(LaunchGui.create(container))
-        .before(args -> {
-          args.getOptional(WORKSPACE_LOCATION).ifPresent(container.workspace::setWorkspaceLocation);
-          container.http.setMaxHttpConnections(Optionals.race(
-              args.getOptional(MAX_HTTP_CONNECTIONS),
-              appPreferences.getMaxHttpConnections()
-          ).orElse(DEFAULT_HTTP_CONNECTIONS));
-          container.start();
-        })
+        .before(args -> container.start(
+            args.get(WORKSPACE_LOCATION),
+            args.getOptional(MAX_HTTP_CONNECTIONS)
+        ))
         .onError(throwable -> {
           System.err.println(throwable instanceof BriefcaseException
               ? "Error: " + throwable.getMessage()
               : "Unexpected error in Briefcase. Please review briefcase.log for more information. For help, post to https://forum.opendatakit.org/c/support");
           log.error("Error", throwable);
-          sentry.ifPresent(client -> client.sendException(throwable));
+          container.sentry.sendException(throwable);
           System.exit(1);
         })
         .onExit(container::stop)
         .run(rawArgs);
   }
 
-  private static SentryClient initSentryClient(BriefcasePreferences appPreferences) {
+  private static SentryClient initSentryClient() {
     Sentry.init(String.format(
         "%s?release=%s&stacktrace.app.packages=org.opendatakit&tags=os:%s,jvm:%s",
         SENTRY_DSN,
@@ -121,15 +112,6 @@ public class Launcher {
         System.getProperty("java.version")
     ));
 
-    SentryClient sentry = Sentry.getStoredClient();
-
-    // Add a callback that will prevent sending crash reports to Sentry
-    // if the user disables tracking
-    sentry.addShouldSendEventCallback(event -> appPreferences
-        .nullSafeGet(BRIEFCASE_TRACKING_CONSENT_PROPERTY)
-        .map(Boolean::valueOf)
-        .orElse(true));
-
-    return sentry;
+    return Sentry.getStoredClient();
   }
 }

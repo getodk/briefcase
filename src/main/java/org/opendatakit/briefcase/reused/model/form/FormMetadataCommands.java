@@ -10,7 +10,6 @@ import org.opendatakit.briefcase.reused.model.preferences.LegacyPrefs;
 public class FormMetadataCommands {
   public static Consumer<FormMetadataPort> upsert(FormMetadata formMetadata) {
     return port -> port.persist(formMetadata);
-
   }
 
   public static Consumer<FormMetadataPort> cleanAllCursors() {

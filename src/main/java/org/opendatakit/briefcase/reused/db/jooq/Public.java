@@ -11,6 +11,7 @@ import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
 import org.opendatakit.briefcase.reused.db.jooq.tables.FormMetadata;
+import org.opendatakit.briefcase.reused.db.jooq.tables.Preference;
 import org.opendatakit.briefcase.reused.db.jooq.tables.SubmissionMetadata;
 
 
@@ -20,7 +21,7 @@ import org.opendatakit.briefcase.reused.db.jooq.tables.SubmissionMetadata;
 @SuppressWarnings({"all", "unchecked", "rawtypes"})
 public class Public extends SchemaImpl {
 
-  private static final long serialVersionUID = -2013207752;
+  private static final long serialVersionUID = 1964530372;
 
   /**
    * The reference instance of <code>PUBLIC</code>
@@ -31,6 +32,11 @@ public class Public extends SchemaImpl {
    * The table <code>PUBLIC.FORM_METADATA</code>.
    */
   public final FormMetadata FORM_METADATA = org.opendatakit.briefcase.reused.db.jooq.tables.FormMetadata.FORM_METADATA;
+
+  /**
+   * The table <code>PUBLIC.PREFERENCE</code>.
+   */
+  public final Preference PREFERENCE = org.opendatakit.briefcase.reused.db.jooq.tables.Preference.PREFERENCE;
 
   /**
    * The table <code>PUBLIC.SUBMISSION_METADATA</code>.
@@ -63,6 +69,7 @@ public class Public extends SchemaImpl {
   private final List<Table<?>> getTables0() {
     return Arrays.<Table<?>>asList(
         FormMetadata.FORM_METADATA,
+        Preference.PREFERENCE,
         SubmissionMetadata.SUBMISSION_METADATA);
   }
 }

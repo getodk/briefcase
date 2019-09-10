@@ -34,15 +34,14 @@ public class LaunchGui {
         .withFlag(LAUNCH_GUI_FLAG)
         .withOptionalParams(WORKSPACE_LOCATION)
         .withBefore(args -> {
-          if (args.isEmpty(WORKSPACE_LOCATION))
-            new WorkspaceLocationDialogForm(container.workspace, workspaceLocation -> {
-              args.set(
-                  WORKSPACE_LOCATION,
-                  workspaceLocation
-                      .map(Objects::toString)
-                      .orElseThrow(() -> new BriefcaseException("No workspace location has been chosen or set via CLI args"))
-              );
-            }).open();
+          if (!args.isEmpty(WORKSPACE_LOCATION))
+            return;
+          new WorkspaceLocationDialogForm(container.workspace, workspaceLocation -> args.set(
+              WORKSPACE_LOCATION,
+              workspaceLocation
+                  .map(Objects::toString)
+                  .orElseThrow(() -> new BriefcaseException("No workspace location has been chosen or set via CLI args"))
+          )).open();
         })
         .withLauncher(__ -> launchGui(container))
         .build();

@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.delivery.ui.transfer.pull;
 
-import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.reused.model.Operation.PULL;
@@ -36,7 +35,8 @@ import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.preferences.SavePasswordsConsentRevoked;
+import org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands;
+import org.opendatakit.briefcase.reused.model.preferences.PreferenceQueries;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,17 +46,17 @@ public class PullPanel {
   public static final String TAB_NAME = "Pull";
   private final TransferPanelForm view;
   private final TransferForms forms;
-  private final BriefcasePreferences tabPreferences;
   private final BriefcasePreferences appPreferences;
   private final Analytics analytics;
+  private final Container container;
   private JobsRunner pullJobRunner;
   private Optional<PullSource> source;
 
-  private PullPanel(TransferPanelForm<PullSource> view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, Analytics analytics) {
+  private PullPanel(Container container, TransferPanelForm<PullSource> view, TransferForms forms, BriefcasePreferences tabPreferences, BriefcasePreferences appPreferences, Analytics analytics) {
     AnnotationProcessor.process(this);
+    this.container = container;
     this.view = view;
     this.forms = forms;
-    this.tabPreferences = tabPreferences;
     this.appPreferences = appPreferences;
     this.analytics = analytics;
     getContainer().addComponentListener(analytics.buildComponentListener("Pull"));
@@ -68,7 +68,8 @@ public class PullPanel {
     // Register callbacks to view events
     view.onSelect(source -> {
       this.source = Optional.of(source);
-      source.storeSourcePrefs(tabPreferences, getStorePasswordsConsentProperty());
+      if (container.preferences.query(PreferenceQueries.getRememberPasswords()).orElse(false))
+        container.preferences.execute(PreferenceCommands.setCurrentServer(PULL, source.storeSourcePrefs();));
       onSource(view, forms, source);
     });
 
@@ -104,6 +105,7 @@ public class PullPanel {
   public static PullPanel from(Container container, BriefcasePreferences appPreferences, BriefcasePreferences pullPanelPreferences, Analytics analytics) {
     TransferForms forms = TransferForms.empty();
     return new PullPanel(
+        container,
         TransferPanelForm.pull(container, forms),
         forms,
         pullPanelPreferences,
@@ -150,16 +152,11 @@ public class PullPanel {
     view.refresh();
   }
 
-  @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
-  public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
-    // TODO This should be managed by the Settings vertical. We'll deal with it when we have a central database
-    tabPreferences.removeAll(tabPreferences.keys().stream().filter(RemoteServer::isPrefKey).collect(toList()));
-    appPreferences.removeAll(appPreferences.keys().stream().filter(RemoteServer::isPrefKey).collect(toList()));
-  }
-
   @EventSubscriber(eventClass = PullEvent.Success.class)
   public void onPullSuccess(PullEvent.Success event) {
+
     event.ifRemoteServer((formKey, server) ->
+        // TODO Deal with this in the PullFromXYZ class
         server.storeInPrefs(appPreferences, getStorePasswordsConsentProperty(), formKey.getId())
     );
   }

@@ -7,8 +7,10 @@ package org.opendatakit.briefcase.reused.db.jooq;
 import org.jooq.UniqueKey;
 import org.jooq.impl.Internal;
 import org.opendatakit.briefcase.reused.db.jooq.tables.FormMetadata;
+import org.opendatakit.briefcase.reused.db.jooq.tables.Preference;
 import org.opendatakit.briefcase.reused.db.jooq.tables.SubmissionMetadata;
 import org.opendatakit.briefcase.reused.db.jooq.tables.records.FormMetadataRecord;
+import org.opendatakit.briefcase.reused.db.jooq.tables.records.PreferenceRecord;
 import org.opendatakit.briefcase.reused.db.jooq.tables.records.SubmissionMetadataRecord;
 
 
@@ -29,6 +31,7 @@ public class Keys {
   // -------------------------------------------------------------------------
 
   public static final UniqueKey<FormMetadataRecord> SYS_PK_10132 = UniqueKeys0.SYS_PK_10132;
+  public static final UniqueKey<PreferenceRecord> SYS_PK_10156 = UniqueKeys0.SYS_PK_10156;
   public static final UniqueKey<SubmissionMetadataRecord> SYS_PK_10146 = UniqueKeys0.SYS_PK_10146;
 
   // -------------------------------------------------------------------------
@@ -42,6 +45,7 @@ public class Keys {
 
   private static class UniqueKeys0 {
     public static final UniqueKey<FormMetadataRecord> SYS_PK_10132 = Internal.createUniqueKey(FormMetadata.FORM_METADATA, "SYS_PK_10132", FormMetadata.FORM_METADATA.FORM_ID, FormMetadata.FORM_METADATA.FORM_VERSION);
+    public static final UniqueKey<PreferenceRecord> SYS_PK_10156 = Internal.createUniqueKey(Preference.PREFERENCE, "SYS_PK_10156", Preference.PREFERENCE.CATEGORY, Preference.PREFERENCE.NAME, Preference.PREFERENCE.VALUE);
     public static final UniqueKey<SubmissionMetadataRecord> SYS_PK_10146 = Internal.createUniqueKey(SubmissionMetadata.SUBMISSION_METADATA, "SYS_PK_10146", SubmissionMetadata.SUBMISSION_METADATA.FORM_ID, SubmissionMetadata.SUBMISSION_METADATA.FORM_VERSION, SubmissionMetadata.SUBMISSION_METADATA.INSTANCE_ID);
   }
 }

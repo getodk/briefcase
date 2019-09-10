@@ -30,7 +30,7 @@ import org.opendatakit.briefcase.reused.db.jooq.tables.records.FormMetadataRecor
 @SuppressWarnings({"all", "unchecked", "rawtypes"})
 public class FormMetadata extends TableImpl<FormMetadataRecord> {
 
-  private static final long serialVersionUID = 1960665135;
+  private static final long serialVersionUID = 670159348;
 
   /**
    * The reference instance of <code>PUBLIC.FORM_METADATA</code>
@@ -48,32 +48,32 @@ public class FormMetadata extends TableImpl<FormMetadataRecord> {
   /**
    * The column <code>PUBLIC.FORM_METADATA.FORM_ID</code>.
    */
-  public final TableField<FormMetadataRecord, String> FORM_ID = createField("FORM_ID", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false), this, "");
+  public final TableField<FormMetadataRecord, String> FORM_ID = createField("FORM_ID", org.jooq.impl.SQLDataType.VARCHAR(512).nullable(false), this, "");
 
   /**
    * The column <code>PUBLIC.FORM_METADATA.FORM_VERSION</code>.
    */
-  public final TableField<FormMetadataRecord, String> FORM_VERSION = createField("FORM_VERSION", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false), this, "");
+  public final TableField<FormMetadataRecord, String> FORM_VERSION = createField("FORM_VERSION", org.jooq.impl.SQLDataType.VARCHAR(512).nullable(false), this, "");
 
   /**
    * The column <code>PUBLIC.FORM_METADATA.FORM_NAME</code>.
    */
-  public final TableField<FormMetadataRecord, String> FORM_NAME = createField("FORM_NAME", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
+  public final TableField<FormMetadataRecord, String> FORM_NAME = createField("FORM_NAME", org.jooq.impl.SQLDataType.VARCHAR(512), this, "");
 
   /**
    * The column <code>PUBLIC.FORM_METADATA.FORM_FILE</code>.
    */
-  public final TableField<FormMetadataRecord, String> FORM_FILE = createField("FORM_FILE", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
+  public final TableField<FormMetadataRecord, String> FORM_FILE = createField("FORM_FILE", org.jooq.impl.SQLDataType.VARCHAR(512), this, "");
 
   /**
    * The column <code>PUBLIC.FORM_METADATA.CURSOR_TYPE</code>.
    */
-  public final TableField<FormMetadataRecord, String> CURSOR_TYPE = createField("CURSOR_TYPE", org.jooq.impl.SQLDataType.VARCHAR(20), this, "");
+  public final TableField<FormMetadataRecord, String> CURSOR_TYPE = createField("CURSOR_TYPE", org.jooq.impl.SQLDataType.VARCHAR(128), this, "");
 
   /**
    * The column <code>PUBLIC.FORM_METADATA.CURSOR_VALUE</code>.
    */
-  public final TableField<FormMetadataRecord, String> CURSOR_VALUE = createField("CURSOR_VALUE", org.jooq.impl.SQLDataType.CLOB, this, "");
+  public final TableField<FormMetadataRecord, String> CURSOR_VALUE = createField("CURSOR_VALUE", org.jooq.impl.SQLDataType.VARCHAR(16777216), this, "");
 
   /**
    * The column <code>PUBLIC.FORM_METADATA.IS_ENCRYPTED</code>.
@@ -83,17 +83,27 @@ public class FormMetadata extends TableImpl<FormMetadataRecord> {
   /**
    * The column <code>PUBLIC.FORM_METADATA.URL_MANIFEST</code>.
    */
-  public final TableField<FormMetadataRecord, String> URL_MANIFEST = createField("URL_MANIFEST", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
+  public final TableField<FormMetadataRecord, String> URL_MANIFEST = createField("URL_MANIFEST", org.jooq.impl.SQLDataType.VARCHAR(512), this, "");
 
   /**
    * The column <code>PUBLIC.FORM_METADATA.URL_DOWNLOAD</code>.
    */
-  public final TableField<FormMetadataRecord, String> URL_DOWNLOAD = createField("URL_DOWNLOAD", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
+  public final TableField<FormMetadataRecord, String> URL_DOWNLOAD = createField("URL_DOWNLOAD", org.jooq.impl.SQLDataType.VARCHAR(512), this, "");
 
   /**
    * The column <code>PUBLIC.FORM_METADATA.LAST_EXPORTED_SUBMISSION_DATE</code>.
    */
   public final TableField<FormMetadataRecord, OffsetDateTime> LAST_EXPORTED_SUBMISSION_DATE = createField("LAST_EXPORTED_SUBMISSION_DATE", org.jooq.impl.SQLDataType.TIMESTAMPWITHTIMEZONE, this, "");
+
+  /**
+   * The column <code>PUBLIC.FORM_METADATA.PULL_SOURCE_TYPE</code>.
+   */
+  public final TableField<FormMetadataRecord, String> PULL_SOURCE_TYPE = createField("PULL_SOURCE_TYPE", org.jooq.impl.SQLDataType.VARCHAR(128), this, "");
+
+  /**
+   * The column <code>PUBLIC.FORM_METADATA.PULL_SOURCE_VALUE</code>.
+   */
+  public final TableField<FormMetadataRecord, String> PULL_SOURCE_VALUE = createField("PULL_SOURCE_VALUE", org.jooq.impl.SQLDataType.VARCHAR(16777216), this, "");
 
   /**
    * Create a <code>PUBLIC.FORM_METADATA</code> table reference

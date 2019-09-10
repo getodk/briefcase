@@ -20,4 +20,6 @@ public interface FormMetadataPort {
   Optional<FormMetadata> fetch(FormKey key);
 
   Stream<FormMetadata> fetchAll();
+
+  void forgetPullSources();
 }

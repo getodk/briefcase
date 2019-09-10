@@ -80,6 +80,7 @@ public class Aggregate implements PullSource<AggregateServer> {
 
   @Override
   public void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords) {
+    container.preferences.execute();
     server.storeInPrefs(prefs, storePasswords);
   }
 

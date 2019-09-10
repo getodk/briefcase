@@ -4,6 +4,8 @@ import static org.jooq.impl.DSL.mergeInto;
 import static org.jooq.impl.DSL.selectFrom;
 import static org.jooq.impl.DSL.selectOne;
 import static org.jooq.impl.DSL.trueCondition;
+import static org.jooq.impl.DSL.truncate;
+import static org.jooq.impl.DSL.update;
 import static org.jooq.impl.DSL.using;
 import static org.jooq.impl.DSL.value;
 import static org.opendatakit.briefcase.reused.db.jooq.Tables.FORM_METADATA;
@@ -19,7 +21,6 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.db.BriefcaseDb;
@@ -46,7 +47,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
 
   @Override
   public void flush() {
-    getDslContext().execute(DSL.truncate(FORM_METADATA));
+    getDslContext().execute(truncate(FORM_METADATA));
   }
 
   @Override
@@ -76,6 +77,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         .set(FORM_METADATA.URL_MANIFEST, formMetadata.getManifestUrl().map(Objects::toString).orElse(null))
         .set(FORM_METADATA.URL_DOWNLOAD, formMetadata.getDownloadUrl().map(Objects::toString).orElse(null))
         .set(FORM_METADATA.LAST_EXPORTED_SUBMISSION_DATE, formMetadata.getLastExportedSubmissionDate().orElse(null))
+        // TODO deal with the new fields pull_source_type and pull_source_value
         .whenNotMatchedThenInsert(
             FORM_METADATA.FORM_ID,
             FORM_METADATA.FORM_VERSION,
@@ -87,6 +89,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
             FORM_METADATA.URL_MANIFEST,
             FORM_METADATA.URL_DOWNLOAD,
             FORM_METADATA.LAST_EXPORTED_SUBMISSION_DATE
+            // TODO deal with the new fields pull_source_type and pull_source_value
         )
         .values(
             value(formMetadata.getKey().getId()),
@@ -99,6 +102,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
             value(formMetadata.getManifestUrl().map(Objects::toString).orElse(null)),
             value(formMetadata.getDownloadUrl().map(Objects::toString).orElse(null)),
             value(formMetadata.getLastExportedSubmissionDate().orElse(null))
+            // TODO deal with the new fields pull_source_type and pull_source_value
         )
     );
   }
@@ -121,6 +125,13 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
     return getDslContext().fetchStream(FORM_METADATA).map(this::mapToDomain);
   }
 
+  @Override
+  public void forgetPullSources() {
+    getDslContext().execute(update(FORM_METADATA)
+        .set(FORM_METADATA.PULL_SOURCE_TYPE, "")
+        .set(FORM_METADATA.PULL_SOURCE_VALUE, ""));
+  }
+
   private FormMetadata mapToDomain(FormMetadataRecord record) {
     return new FormMetadata(
         FormKey.of(
@@ -134,6 +145,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         Optional.ofNullable(record.getUrlManifest()).map(RequestBuilder::url),
         Optional.ofNullable(record.getUrlDownload()).map(RequestBuilder::url),
         Optional.ofNullable(record.getLastExportedSubmissionDate())
+        // TODO deal with the new fields pull_source_type and pull_source_value
     );
   }
 

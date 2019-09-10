@@ -113,7 +113,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     addPane(PullPanel.TAB_NAME, PullPanel.from(container, appPreferences, pullPreferences, analytics).getContainer());
     addPane(PushPanel.TAB_NAME, PushPanel.from(container, analytics, appPreferences).getContainer());
     addPane(ExportPanel.TAB_NAME, ExportPanel.from(container, exportPreferences, appPreferences, pullPreferences, analytics).getForm().getContainer());
-    addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(container, analytics, appPreferences).getContainer());
+    addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(container, analytics).getContainer());
 
     // Set up the frame and put the UI components in it
     frame.addWindowListener(this);

@@ -6,6 +6,7 @@ import org.opendatakit.briefcase.reused.db.InMemoryBriefcaseDb;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.InMemoryHttp;
 import org.opendatakit.briefcase.reused.model.form.InMemoryFormMetadataAdapter;
+import org.opendatakit.briefcase.reused.model.preferences.InMemoryPreferenceAdapter;
 import org.opendatakit.briefcase.reused.model.preferences.InMemoryPreferences;
 import org.opendatakit.briefcase.reused.model.submission.InMemorySubmissionMetadataAdapter;
 
@@ -20,8 +21,9 @@ public class ContainerHelper {
         new InMemoryHttp(),
         null,
         new InMemoryBriefcaseDb(),
-        new InMemoryFormMetadataAdapter(),
-        new InMemorySubmissionMetadataAdapter()
+        sentry, new InMemoryFormMetadataAdapter(),
+        new InMemorySubmissionMetadataAdapter(),
+        new InMemoryPreferenceAdapter()
     );
   }
 
@@ -34,8 +36,9 @@ public class ContainerHelper {
         http,
         null,
         new InMemoryBriefcaseDb(),
-        new InMemoryFormMetadataAdapter(),
-        new InMemorySubmissionMetadataAdapter()
+        sentry, new InMemoryFormMetadataAdapter(),
+        new InMemorySubmissionMetadataAdapter(),
+        new InMemoryPreferenceAdapter()
     );
   }
 }

@@ -50,9 +50,11 @@ public class CommonsHttp implements Http {
   }
 
   public static Http create() {
-    return new CommonsHttp(Executor.newInstance(
-        getBaseBuilder(DEFAULT_HTTP_CONNECTIONS).build()
-    ), DEFAULT_HTTP_CONNECTIONS, Optional.empty());
+    return new CommonsHttp(
+        Executor.newInstance(getBaseBuilder(DEFAULT_HTTP_CONNECTIONS).build()),
+        DEFAULT_HTTP_CONNECTIONS,
+        Optional.empty()
+    );
   }
 
   public static Http of(int maxConnections, Optional<HttpHost> proxy) {

@@ -5,6 +5,7 @@ package org.opendatakit.briefcase.reused.db.jooq;
 
 
 import org.opendatakit.briefcase.reused.db.jooq.tables.FormMetadata;
+import org.opendatakit.briefcase.reused.db.jooq.tables.Preference;
 import org.opendatakit.briefcase.reused.db.jooq.tables.SubmissionMetadata;
 
 
@@ -18,6 +19,11 @@ public class Tables {
    * The table <code>PUBLIC.FORM_METADATA</code>.
    */
   public static final FormMetadata FORM_METADATA = org.opendatakit.briefcase.reused.db.jooq.tables.FormMetadata.FORM_METADATA;
+
+  /**
+   * The table <code>PUBLIC.PREFERENCE</code>.
+   */
+  public static final Preference PREFERENCE = org.opendatakit.briefcase.reused.db.jooq.tables.Preference.PREFERENCE;
 
   /**
    * The table <code>PUBLIC.SUBMISSION_METADATA</code>.

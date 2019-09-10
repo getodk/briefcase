@@ -119,7 +119,7 @@ public class SettingsPanelForm {
     onHttpProxyCallbacks.forEach(callback -> callback.accept(proxy));
   }
 
-  void onHttpProxy(Consumer<HttpHost> onSet, Runnable onClear) {
+  void onHttpProxyChange(Consumer<HttpHost> onSet, Runnable onClear) {
     onHttpProxyCallbacks.add(onSet);
     onClearHttpProxyCallbacks.add(onClear);
   }
@@ -142,11 +142,11 @@ public class SettingsPanelForm {
     maxHttpConnectionsField.setValue(value);
   }
 
-  void onResumeLastPullChange(Consumer<Boolean> callback) {
+  void onStartPullFromLastChange(Consumer<Boolean> callback) {
     resumeLastPullField.addActionListener(__ -> callback.accept(resumeLastPullField.isSelected()));
   }
 
-  void setResumeLastPull(Boolean enabled) {
+  void setStartPullFromLast(Boolean enabled) {
     resumeLastPullField.setSelected(enabled);
   }
 

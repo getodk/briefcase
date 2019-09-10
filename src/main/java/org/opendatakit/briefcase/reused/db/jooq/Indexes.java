@@ -8,6 +8,7 @@ import org.jooq.Index;
 import org.jooq.OrderField;
 import org.jooq.impl.Internal;
 import org.opendatakit.briefcase.reused.db.jooq.tables.FormMetadata;
+import org.opendatakit.briefcase.reused.db.jooq.tables.Preference;
 import org.opendatakit.briefcase.reused.db.jooq.tables.SubmissionMetadata;
 
 
@@ -22,6 +23,7 @@ public class Indexes {
   // -------------------------------------------------------------------------
 
   public static final Index SYS_IDX_SYS_PK_10132_10134 = Indexes0.SYS_IDX_SYS_PK_10132_10134;
+  public static final Index SYS_IDX_SYS_PK_10156_10157 = Indexes0.SYS_IDX_SYS_PK_10156_10157;
   public static final Index SYS_IDX_SYS_PK_10146_10147 = Indexes0.SYS_IDX_SYS_PK_10146_10147;
 
   // -------------------------------------------------------------------------
@@ -30,6 +32,7 @@ public class Indexes {
 
   private static class Indexes0 {
     public static Index SYS_IDX_SYS_PK_10132_10134 = Internal.createIndex("SYS_IDX_SYS_PK_10132_10134", FormMetadata.FORM_METADATA, new OrderField[]{FormMetadata.FORM_METADATA.FORM_ID, FormMetadata.FORM_METADATA.FORM_VERSION}, true);
+    public static Index SYS_IDX_SYS_PK_10156_10157 = Internal.createIndex("SYS_IDX_SYS_PK_10156_10157", Preference.PREFERENCE, new OrderField[]{Preference.PREFERENCE.CATEGORY, Preference.PREFERENCE.NAME, Preference.PREFERENCE.VALUE}, true);
     public static Index SYS_IDX_SYS_PK_10146_10147 = Internal.createIndex("SYS_IDX_SYS_PK_10146_10147", SubmissionMetadata.SUBMISSION_METADATA, new OrderField[]{SubmissionMetadata.SUBMISSION_METADATA.FORM_ID, SubmissionMetadata.SUBMISSION_METADATA.FORM_VERSION, SubmissionMetadata.SUBMISSION_METADATA.INSTANCE_ID}, true);
   }
 }

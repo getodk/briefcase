@@ -30,7 +30,7 @@ import org.opendatakit.briefcase.reused.db.jooq.tables.records.SubmissionMetadat
 @SuppressWarnings({"all", "unchecked", "rawtypes"})
 public class SubmissionMetadata extends TableImpl<SubmissionMetadataRecord> {
 
-  private static final long serialVersionUID = -437847196;
+  private static final long serialVersionUID = -60444901;
 
   /**
    * The reference instance of <code>PUBLIC.SUBMISSION_METADATA</code>
@@ -48,22 +48,22 @@ public class SubmissionMetadata extends TableImpl<SubmissionMetadataRecord> {
   /**
    * The column <code>PUBLIC.SUBMISSION_METADATA.FORM_ID</code>.
    */
-  public final TableField<SubmissionMetadataRecord, String> FORM_ID = createField("FORM_ID", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false), this, "");
+  public final TableField<SubmissionMetadataRecord, String> FORM_ID = createField("FORM_ID", org.jooq.impl.SQLDataType.VARCHAR(512).nullable(false), this, "");
 
   /**
    * The column <code>PUBLIC.SUBMISSION_METADATA.FORM_VERSION</code>.
    */
-  public final TableField<SubmissionMetadataRecord, String> FORM_VERSION = createField("FORM_VERSION", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false), this, "");
+  public final TableField<SubmissionMetadataRecord, String> FORM_VERSION = createField("FORM_VERSION", org.jooq.impl.SQLDataType.VARCHAR(512).nullable(false), this, "");
 
   /**
    * The column <code>PUBLIC.SUBMISSION_METADATA.INSTANCE_ID</code>.
    */
-  public final TableField<SubmissionMetadataRecord, String> INSTANCE_ID = createField("INSTANCE_ID", org.jooq.impl.SQLDataType.VARCHAR(100).nullable(false), this, "");
+  public final TableField<SubmissionMetadataRecord, String> INSTANCE_ID = createField("INSTANCE_ID", org.jooq.impl.SQLDataType.VARCHAR(512).nullable(false), this, "");
 
   /**
    * The column <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_FILE</code>.
    */
-  public final TableField<SubmissionMetadataRecord, String> SUBMISSION_FILE = createField("SUBMISSION_FILE", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
+  public final TableField<SubmissionMetadataRecord, String> SUBMISSION_FILE = createField("SUBMISSION_FILE", org.jooq.impl.SQLDataType.VARCHAR(512), this, "");
 
   /**
    * The column <code>PUBLIC.SUBMISSION_METADATA.SUBMISSION_DATE_TIME</code>.
@@ -73,17 +73,17 @@ public class SubmissionMetadata extends TableImpl<SubmissionMetadataRecord> {
   /**
    * The column <code>PUBLIC.SUBMISSION_METADATA.ENCRYPTED_XML_FILENAME</code>.
    */
-  public final TableField<SubmissionMetadataRecord, String> ENCRYPTED_XML_FILENAME = createField("ENCRYPTED_XML_FILENAME", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
+  public final TableField<SubmissionMetadataRecord, String> ENCRYPTED_XML_FILENAME = createField("ENCRYPTED_XML_FILENAME", org.jooq.impl.SQLDataType.VARCHAR(512), this, "");
 
   /**
    * The column <code>PUBLIC.SUBMISSION_METADATA.BASE_64_ENCRYPTED_KEY</code>.
    */
-  public final TableField<SubmissionMetadataRecord, String> BASE_64_ENCRYPTED_KEY = createField("BASE_64_ENCRYPTED_KEY", org.jooq.impl.SQLDataType.CLOB, this, "");
+  public final TableField<SubmissionMetadataRecord, String> BASE_64_ENCRYPTED_KEY = createField("BASE_64_ENCRYPTED_KEY", org.jooq.impl.SQLDataType.VARCHAR(512), this, "");
 
   /**
    * The column <code>PUBLIC.SUBMISSION_METADATA.ENCRYPTED_SIGNATURE</code>.
    */
-  public final TableField<SubmissionMetadataRecord, String> ENCRYPTED_SIGNATURE = createField("ENCRYPTED_SIGNATURE", org.jooq.impl.SQLDataType.CLOB, this, "");
+  public final TableField<SubmissionMetadataRecord, String> ENCRYPTED_SIGNATURE = createField("ENCRYPTED_SIGNATURE", org.jooq.impl.SQLDataType.VARCHAR(512), this, "");
 
   /**
    * The column <code>PUBLIC.SUBMISSION_METADATA.ATTACHMENT_FILENAMES</code>.

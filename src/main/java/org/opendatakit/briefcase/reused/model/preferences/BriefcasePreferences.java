@@ -35,7 +35,7 @@ public class BriefcasePreferences {
   private static final String BRIEFCASE_PROXY_HOST_PROPERTY = "briefcaseProxyHost";
   private static final String BRIEFCASE_PROXY_PORT_PROPERTY = "briefcaseProxyPort";
   private static final String BRIEFCASE_START_FROM_LAST_PROPERTY = "briefcaseResumeLastPull";
-  public static final String BRIEFCASE_TRACKING_CONSENT_PROPERTY = "briefcaseTrackingConsent";
+  private static final String BRIEFCASE_TRACKING_CONSENT_PROPERTY = "briefcaseTrackingConsent";
   private static final String BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY = "briefcaseStorePasswordsConsent";
   private static final String BRIEFCASE_UNIQUE_USER_ID_PROPERTY = "uniqueUserID";
   private static final String BRIEFCASE_MAX_HTTP_CONNECTIONS_PROPERTY = "maxHttpConnections";
@@ -62,15 +62,15 @@ public class BriefcasePreferences {
     return preferences.get(key, defaultValue);
   }
 
-  public Optional<String> nullSafeGet(String key) {
-    return Optional.ofNullable(get(key, null));
-  }
-
-  public void put(String key, String value) {
+  private void put(String key, String value) {
     if (value != null)
       preferences.put(key, value);
     else
       remove(key);
+  }
+
+  public Optional<String> nullSafeGet(String key) {
+    return Optional.ofNullable(get(key, null));
   }
 
   public void putAll(Map<String, String> keyValues) {
