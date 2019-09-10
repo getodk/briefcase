@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.reused.model.preferences;
 
-import java.security.Security;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +24,6 @@ import java.util.UUID;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import org.apache.http.HttpHost;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.reused.api.OptionalProduct;
 
@@ -43,11 +41,6 @@ public class BriefcasePreferences {
   private static final String BRIEFCASE_MAX_HTTP_CONNECTIONS_PROPERTY = "maxHttpConnections";
   public static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
   private static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
-
-  static {
-    // load the security provider
-    Security.addProvider(new BouncyCastleProvider());
-  }
 
   private final Preferences preferences;
   public Class<?> node;

@@ -27,8 +27,10 @@ import static org.opendatakit.briefcase.reused.model.preferences.BriefcasePrefer
 
 import io.sentry.Sentry;
 import io.sentry.SentryClient;
+import java.security.Security;
 import java.util.Optional;
 import java.util.prefs.Preferences;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.opendatakit.briefcase.delivery.cli.ClearPreferences;
 import org.opendatakit.briefcase.delivery.cli.Export;
 import org.opendatakit.briefcase.delivery.cli.PullFromAggregate;
@@ -64,6 +66,8 @@ public class Launcher {
   private static final Logger log = LoggerFactory.getLogger(Launcher.class);
 
   public static void main(String[] rawArgs) {
+    Security.addProvider(new BouncyCastleProvider());
+
     BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
     if (!appPreferences.hasKey(BRIEFCASE_TRACKING_CONSENT_PROPERTY))
       appPreferences.put(BRIEFCASE_TRACKING_CONSENT_PROPERTY, TRUE.toString());
