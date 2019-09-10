@@ -86,6 +86,7 @@ public class FormCache {
   }
 
   public void unsetLocation() {
+    cacheFile.ifPresent(UncheckedFiles::delete);
     briefcaseDir = Optional.empty();
     cacheFile = Optional.empty();
     hashByPath = new HashMap<>();
