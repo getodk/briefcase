@@ -16,7 +16,7 @@ public class LegacyPrefs {
     return readCursor(formId, BriefcasePreferences.appScoped());
   }
 
-  public static Optional<Cursor> readCursor(String formId, BriefcasePreferences prefs) {
+  private static Optional<Cursor> readCursor(String formId, BriefcasePreferences prefs) {
     Cursor.Type type = prefs.nullSafeGet(formId + LAST_CURSOR_TYPE_PREFERENCE_KEY_SUFFIX)
         .map(Cursor.Type::from)
         .orElse(Cursor.Type.AGGREGATE);

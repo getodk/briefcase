@@ -41,7 +41,6 @@ import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.reused.Container;
-import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.api.OptionalProduct;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.api.Triple;
@@ -58,14 +57,12 @@ import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 
 public class PullFromAggregate {
   private final Container container;
-  private final Workspace workspace;
   private final AggregateServer server;
   private final boolean includeIncomplete;
   private final Consumer<FormStatusEvent> onEventCallback;
 
   public PullFromAggregate(Container container, AggregateServer server, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback) {
     this.container = container;
-    this.workspace = container.workspace;
     this.server = server;
     this.includeIncomplete = includeIncomplete;
     this.onEventCallback = onEventCallback;
@@ -124,13 +121,11 @@ public class PullFromAggregate {
 
       // We need to collect to be able to create a parallel stream again
       ids.parallelStream()
-          .map(instanceId -> {
-            return Triple.of(
-                submissionNumber.getAndIncrement(),
-                instanceId,
-                container.submissionMetadata.hasBeenAlreadyPulled(formId, instanceId)
-            );
-          })
+          .map(instanceId -> Triple.of(
+              submissionNumber.getAndIncrement(),
+              instanceId,
+              container.submissionMetadata.hasBeenAlreadyPulled(formId, instanceId)
+          ))
           .peek(triple -> {
             if (triple.get3())
               tracker.trackSubmissionAlreadyDownloaded(triple.get1(), totalSubmissions);

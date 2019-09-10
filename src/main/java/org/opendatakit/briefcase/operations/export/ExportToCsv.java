@@ -38,7 +38,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.delivery.ui.reused.Analytics;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
@@ -52,14 +51,6 @@ public class ExportToCsv {
   private static final Logger log = LoggerFactory.getLogger(ExportToCsv.class);
 
   public static ExportOutcome export(Container container, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration) {
-    return export(container, formMetadata, formDef, configuration, Optional.empty());
-  }
-
-  public static ExportOutcome export(Container container, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Analytics analytics) {
-    return export(container, formMetadata, formDef, configuration, Optional.of(analytics));
-  }
-
-  private static ExportOutcome export(Container container, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, Optional<Analytics> analytics) {
     // Create an export tracker object with the total number of submissions we have to export
     ExportProcessTracker exportTracker = new ExportProcessTracker(formMetadata.getKey());
     exportTracker.start();

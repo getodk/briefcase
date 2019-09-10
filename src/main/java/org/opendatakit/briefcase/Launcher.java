@@ -21,14 +21,12 @@ import static org.opendatakit.briefcase.buildconfig.BuildConfig.SENTRY_ENABLED;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
 import static org.opendatakit.briefcase.delivery.cli.Common.MAX_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
-import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.reused.model.Host.getOsName;
 import static org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences.BRIEFCASE_TRACKING_CONSENT_PROPERTY;
 
 import io.sentry.Sentry;
 import io.sentry.SentryClient;
-import java.nio.file.Path;
 import java.util.Optional;
 import java.util.prefs.Preferences;
 import org.opendatakit.briefcase.delivery.cli.ClearPreferences;
@@ -129,9 +127,5 @@ public class Launcher {
         .orElse(true));
 
     return sentry;
-  }
-
-  private static void prepareWorkspace(Path workspaceLocation) {
-    createDirectories(workspaceLocation.resolve("forms"));
   }
 }

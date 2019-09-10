@@ -297,7 +297,7 @@ public class AggregateServer implements RemoteServer {
   public void storeInPrefs(BriefcasePreferences prefs, boolean storePasswords) {
     clearStoredPrefs(prefs);
 
-    if (!credentials.isPresent()) {
+    if (credentials.isEmpty()) {
       prefs.put(buildUrlKey(), getBaseUrl().toString());
       prefs.put(buildUsernameKey(), "");
       prefs.put(buildPasswordKey(), "");

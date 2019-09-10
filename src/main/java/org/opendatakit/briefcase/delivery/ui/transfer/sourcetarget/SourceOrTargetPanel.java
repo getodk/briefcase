@@ -16,9 +16,6 @@
 
 package org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget;
 
-import static org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTargetPanel.View.SELECT;
-import static org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTargetPanel.View.SHOW;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -43,8 +40,8 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
   private final SelectSourceOrTargetForm<T> selectView;
 
   private SourceOrTargetPanel(SelectSourceOrTargetForm<T> selectView, ShowSourceOrTargetForm<T> showView) {
-    container.addForm(SELECT, selectView.container);
-    container.addForm(SHOW, showView.container);
+    container.addForm(View.SELECT, selectView.container);
+    container.addForm(View.SHOW, showView.container);
 
     this.showView = showView;
     this.selectView = selectView;
@@ -52,7 +49,7 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
     showView.onReset(this::reset);
     showView.onReload(this::reload);
 
-    container.navigateTo(SELECT);
+    container.navigateTo(View.SELECT);
   }
 
   public static SourceOrTargetPanel<PullSource> pull(Container container) {
@@ -78,7 +75,7 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
   }
 
   private void reset() {
-    container.navigateTo(SELECT);
+    container.navigateTo(View.SELECT);
     triggerReset();
   }
 
@@ -110,7 +107,7 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
   private void triggerOnSelect(T selectedOption) {
     onSelectCallbacks.forEach(callback -> callback.accept(selectedOption));
     showView.showSelectedOption(selectedOption);
-    container.navigateTo(SHOW);
+    container.navigateTo(View.SHOW);
   }
 
   public void disableInteraction() {

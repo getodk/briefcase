@@ -16,13 +16,10 @@
 package org.opendatakit.briefcase.delivery.cli;
 
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.opendatakit.briefcase.reused.api.UncheckedFiles;
 import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 
 public class Common {
   public static final Param<Path> WORKSPACE_LOCATION = Param.arg("wl", "workspace_location", "Workspace location", Paths::get);
@@ -34,12 +31,4 @@ public class Common {
   static final Param<URL> SERVER_URL = Param.arg("U", "odk_url", "ODK Server URL", RequestBuilder::url);
   public static final Param<Integer> MAX_HTTP_CONNECTIONS = Param.arg("mhc", "max_http_connections", "Maximum simultaneous HTTP connections (defaults to 8)", Integer::parseInt);
 
-  static Path getOrCreateBriefcaseDir(String storageDir) {
-    Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
-    if (!Files.exists(briefcaseDir)) {
-      System.err.println("The directory " + briefcaseDir.toString() + " doesn't exist. Creating it");
-      UncheckedFiles.createBriefcaseDir(briefcaseDir);
-    }
-    return briefcaseDir;
-  }
 }

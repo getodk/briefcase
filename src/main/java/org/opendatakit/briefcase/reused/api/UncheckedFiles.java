@@ -40,7 +40,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -219,14 +218,6 @@ public class UncheckedFiles {
         : Optional.empty();
   }
 
-  public static long checksumOf(Path file) {
-    try {
-      return FileUtils.checksumCRC32(file.toFile());
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
   public static boolean isInstanceDir(Path dir) {
     return Files.isDirectory(dir)
         // Ignore hidden mac/linux hidden folders
@@ -265,12 +256,6 @@ public class UncheckedFiles {
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
-  }
-
-  public static void createBriefcaseDir(Path briefcaseDir) {
-    createDirectories(briefcaseDir);
-    createDirectories(briefcaseDir.resolve("forms"));
-    write(briefcaseDir.resolve("readme.txt"), README_CONTENTS);
   }
 
   public static Stream<String> lines(Path path) {

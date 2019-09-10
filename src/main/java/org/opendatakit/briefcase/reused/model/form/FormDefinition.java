@@ -238,10 +238,4 @@ public class FormDefinition {
     return repeatFields;
   }
 
-  /**
-   * Returns true if the form definition includes repeat groups, false otherwise.
-   */
-  public boolean hasRepeatableFields() {
-    return !repeatFields.isEmpty();
-  }
 }

@@ -175,12 +175,6 @@ class PushToCentralTracker {
     notifyTrackingEvent(message);
   }
 
-  void trackNoInstanceId(int submissionNumber, int totalSubmissions) {
-    String message = "Skipping submission " + submissionNumber + " of " + totalSubmissions + ": missing instance ID";
-    log.info("Push {} - {}", formMetadata.getFormName(), message);
-    notifyTrackingEvent(message);
-  }
-
   void trackStartSendingSubmissionAttachment(int submissionNumber, int totalSubmissions, int attachmentNumber, int totalAttachments) {
     String message = "Sending attachment " + attachmentNumber + " of " + totalAttachments + " of submission " + submissionNumber + " of " + totalSubmissions;
     log.info("Push {} - {}", formMetadata.getFormName(), message);

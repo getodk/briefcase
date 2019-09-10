@@ -16,7 +16,6 @@
 
 package org.opendatakit.briefcase.reused.model.preferences;
 
-import java.nio.file.Path;
 import java.security.Security;
 import java.util.Arrays;
 import java.util.List;
@@ -158,10 +157,6 @@ public class BriefcasePreferences {
    */
   public void removeAll(List<String> keys) {
     keys.forEach(this::remove);
-  }
-
-  public static Path buildBriefcaseDir(Path storageDir) {
-    return storageDir.resolve(BRIEFCASE_DIR);
   }
 
   public Optional<HttpHost> getHttpProxy() {

@@ -7,8 +7,6 @@ import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 
 public class Container {
-
-
   public final Workspace workspace;
   public final Http http;
   public final BriefcaseVersionManager versionManager;
@@ -31,7 +29,6 @@ public class Container {
         .dataSource(db.getDsn(), db.getUser(), db.getPassword()).validateOnMigrate(false)
         .load().migrate();
   }
-
 
   public void stop() {
     db.stop();
