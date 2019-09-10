@@ -24,7 +24,6 @@ import java.util.stream.Stream;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.LegacyPrefs;
-import org.opendatakit.briefcase.reused.UncheckedFiles;
 
 public class FileSystemFormMetadataAdapter implements FormMetadataPort {
   private static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
@@ -88,11 +87,6 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
 
   @Override
   public void flush() {
-    store.values()
-        .stream()
-        .map(FileSystemFormMetadataAdapter::getMetadataFile)
-        .filter(Files::exists)
-        .forEach(UncheckedFiles::delete);
     store.clear();
   }
 
