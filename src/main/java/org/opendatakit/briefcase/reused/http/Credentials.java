@@ -16,7 +16,14 @@
 
 package org.opendatakit.briefcase.reused.http;
 
+import static org.opendatakit.briefcase.reused.api.Json.get;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Objects;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.api.OptionalProduct;
 
 /**
  * Stores a username/password pair.
@@ -37,6 +44,13 @@ public class Credentials {
     return new Credentials(username, password);
   }
 
+  public static Credentials from(JsonNode root) {
+    return OptionalProduct.all(
+        get(root, "username").map(JsonNode::asText),
+        get(root, "password").map(JsonNode::asText)
+    ).map(Credentials::new).orElseThrow(BriefcaseException::new);
+  }
+
   public String getUsername() {
     return username;
   }
@@ -44,6 +58,17 @@ public class Credentials {
   public String getPassword() {
     return password;
   }
+
+  //region JSON serialization
+
+  public ObjectNode asJson(ObjectMapper mapper) {
+    ObjectNode root = mapper.createObjectNode();
+    root.put("username", username);
+    root.put("password", password);
+    return root;
+  }
+
+  //endregion
 
   @Override
   public boolean equals(Object o) {

@@ -21,26 +21,30 @@ import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.newInputStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.api.Json;
 import org.opendatakit.briefcase.reused.api.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Request;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 
 /**
  * This class represents a remote ODK Central server and provides methods to get
  * the different HTTP requests available in Central's REST API.
  */
 // TODO v2.0 Test the methods that return Request objects
-public class CentralServer implements RemoteServer {
+public class CentralServer implements RemoteServer, SourceOrTarget {
   private final URL baseUrl;
   private final int projectId;
   private final Credentials credentials;
@@ -55,8 +59,12 @@ public class CentralServer implements RemoteServer {
     return new CentralServer(baseUrl, projectId, credentials);
   }
 
-  private static CentralServer from(URL url, int projectId, String username, String password) {
-    return new CentralServer(url, projectId, Credentials.from(username, password));
+  public static CentralServer from(JsonNode root) {
+    return OptionalProduct.all(
+        Json.get(root, "baseUrl").map(JsonNode::asText).map(RequestBuilder::url),
+        Json.get(root, "projectId").map(JsonNode::asInt),
+        Json.get(root, "credentials").map(Credentials::from)
+    ).map(CentralServer::new).orElseThrow(BriefcaseException::new);
   }
 
   private static String buildSessionPayload(Credentials credentials) {
@@ -226,68 +234,20 @@ public class CentralServer implements RemoteServer {
     )).collect(toList());
   }
 
-  //region Saved preferences management - Soon to be replace by a database
-  private static String buildUrlKey() {
-    return "pull_source_central_url";
-  }
-
-  private static String buildProjectIdKey() {
-    return "pull_source_central_project_id";
-  }
-
-  private static String buildPasswordKey() {
-    return "pull_source_central_password";
-  }
-
-  private static String buildUsernameKey() {
-    return "pull_source_central_username";
-  }
-
-  static boolean isPrefKey(String key) {
-    return key.endsWith(buildUrlKey())
-        || key.endsWith(buildProjectIdKey())
-        || key.endsWith(buildUsernameKey())
-        || key.endsWith(buildPasswordKey());
+  @Override
+  public ObjectNode asJson(ObjectMapper mapper) {
+    ObjectNode root = mapper.createObjectNode();
+    root.put("type", getType().getName());
+    root.put("baseUrl", baseUrl.toString());
+    root.put("projectId", projectId);
+    root.putObject("credentials").setAll(credentials.asJson(mapper));
+    return root;
   }
 
   @Override
-  public void storeInPrefs(BriefcasePreferences prefs, boolean storePasswords) {
-    clearStoredPrefs(prefs);
-    if (storePasswords) {
-      prefs.put(buildUrlKey(), baseUrl.toString());
-      prefs.put(buildProjectIdKey(), String.valueOf(projectId));
-      prefs.put(buildUsernameKey(), credentials.getUsername());
-      prefs.put(buildPasswordKey(), credentials.getPassword());
-    }
+  public Type getType() {
+    return Type.CENTRAL;
   }
-
-  @Override
-  public void storeInPrefs(BriefcasePreferences prefs, boolean storePasswords, String formId) {
-    // Do nothing for now
-  }
-
-  public static void clearStoredPrefs(BriefcasePreferences prefs) {
-    prefs.remove(buildUrlKey());
-    prefs.remove(buildProjectIdKey());
-    prefs.remove(buildUsernameKey());
-    prefs.remove(buildPasswordKey());
-  }
-
-  static Optional<CentralServer> readFromPrefs(BriefcasePreferences prefs) {
-    return OptionalProduct.all(
-        prefs.nullSafeGet(buildUrlKey()).map(RequestBuilder::url),
-        prefs.nullSafeGet(buildProjectIdKey()).map(Integer::parseInt),
-        prefs.nullSafeGet(buildUsernameKey()),
-        prefs.nullSafeGet(buildPasswordKey())
-    ).map(CentralServer::from);
-  }
-
-  static Optional<RemoteServer> readFromPrefs(BriefcasePreferences prefs, FormKey formKey) {
-    // Do nothing for now
-    return Optional.empty();
-  }
-
-  //endregion
 
   @Override
   public boolean equals(Object o) {

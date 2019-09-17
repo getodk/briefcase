@@ -21,7 +21,8 @@ public class ContainerHelper {
         new InMemoryHttp(),
         null,
         new InMemoryBriefcaseDb(),
-        sentry, new InMemoryFormMetadataAdapter(),
+        new NoOpSentryClient(),
+        new InMemoryFormMetadataAdapter(),
         new InMemorySubmissionMetadataAdapter(),
         new InMemoryPreferenceAdapter()
     );
@@ -36,7 +37,8 @@ public class ContainerHelper {
         http,
         null,
         new InMemoryBriefcaseDb(),
-        sentry, new InMemoryFormMetadataAdapter(),
+        new NoOpSentryClient(),
+        new InMemoryFormMetadataAdapter(),
         new InMemorySubmissionMetadataAdapter(),
         new InMemoryPreferenceAdapter()
     );

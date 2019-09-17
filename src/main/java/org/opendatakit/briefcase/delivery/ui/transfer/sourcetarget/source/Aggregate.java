@@ -26,6 +26,7 @@ import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.AggregateServerDialog;
+import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate;
@@ -33,21 +34,20 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
 
 /**
  * Represents an ODK Aggregate server as a source of forms for the Pull UI Panel.
  */
-public class Aggregate implements PullSource<AggregateServer> {
+public class Aggregate implements SourcePanelValueContainer {
   private final Container container;
-  private final Consumer<PullSource> consumer;
+  private final Consumer<SourcePanelValueContainer> consumer;
   private Test<AggregateServer> serverTester;
   private String usernameHelp;
   private AggregateServer server;
 
-  Aggregate(Container container, Test<AggregateServer> serverTester, String usernameHelp, Consumer<PullSource> consumer) {
+  Aggregate(Container container, Test<AggregateServer> serverTester, String usernameHelp, Consumer<SourcePanelValueContainer> consumer) {
     this.container = container;
     this.serverTester = serverTester;
     this.usernameHelp = usernameHelp;
@@ -62,9 +62,14 @@ public class Aggregate implements PullSource<AggregateServer> {
   }
 
   @Override
-  public void set(AggregateServer server) {
-    this.server = server;
+  public void set(SourceOrTarget server) {
+    this.server = (AggregateServer) server;
     consumer.accept(this);
+  }
+
+  @Override
+  public SourceOrTarget get() {
+    return server;
   }
 
   @Override
@@ -79,12 +84,6 @@ public class Aggregate implements PullSource<AggregateServer> {
   }
 
   @Override
-  public void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords) {
-    container.preferences.execute();
-    server.storeInPrefs(prefs, storePasswords);
-  }
-
-  @Override
   public JobsRunner pull(TransferForms forms, boolean startFromLast) {
     PullFromAggregate pullOp = new PullFromAggregate(container, server, false, EventBus::publish);
     return JobsRunner.launchAsync(forms.map(formMetadata -> pullOp.pull(
@@ -92,11 +91,6 @@ public class Aggregate implements PullSource<AggregateServer> {
         container.workspace.buildFormFile(formMetadata),
         startFromLast ? container.formMetadata.query(lastCursorOf(formMetadata.getKey())) : Optional.empty()
     ))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
-  }
-
-  @Override
-  public boolean canBeReloaded() {
-    return true;
   }
 
   @Override
@@ -111,7 +105,13 @@ public class Aggregate implements PullSource<AggregateServer> {
   }
 
   @Override
+  public boolean canBeReloaded() {
+    return true;
+  }
+
+  @Override
   public String toString() {
     return "Aggregate server";
   }
+
 }

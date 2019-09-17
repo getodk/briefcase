@@ -125,8 +125,8 @@ public class DatabaseSubmissionMetadataAdapter implements SubmissionMetadataPort
           dateRange.getEnd().atStartOfDay().atZone(systemDefault()).toOffsetDateTime()
       ));
 
-    if (smartAppend && formMetadata.getLastExportedSubmissionDate().isPresent())
-      conditions.add(COALESCED_SUBMISSION_DATE.greaterThan(formMetadata.getLastExportedSubmissionDate().get()));
+    if (smartAppend && formMetadata.getLastExportedSubmissionDateTime().isPresent())
+      conditions.add(COALESCED_SUBMISSION_DATE.greaterThan(formMetadata.getLastExportedSubmissionDateTime().get()));
 
     return sortedSubmissions(conditions);
   }

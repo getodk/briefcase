@@ -21,19 +21,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JPanel;
-import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source.PullSource;
-import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.PushTarget;
+import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source.SourcePanelValueContainer;
+import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.TargetPanelValueContainer;
+import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.http.HttpException;
-import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SourceOrTargetPanel<T extends SourceOrTarget> {
+public class SourceOrTargetPanel<T extends SourceOrTargetPanelValueContainer> {
   private static final Logger log = LoggerFactory.getLogger(SourceOrTargetPanel.class);
   private final SourceOrTargetPanelForm container = new SourceOrTargetPanelForm();
-  private final List<T> options = new ArrayList<>();
+  private final List<T> valueContainers = new ArrayList<>();
   private final List<Consumer<T>> onSelectCallbacks = new ArrayList<>();
   private final List<Runnable> onResetCallbacks = new ArrayList<>();
   private final ShowSourceOrTargetForm<T> showView;
@@ -52,25 +52,25 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
     container.navigateTo(View.SELECT);
   }
 
-  public static SourceOrTargetPanel<PullSource> pull(Container container) {
-    SourceOrTargetPanel<PullSource> panel = new SourceOrTargetPanel<>(
+  public static SourceOrTargetPanel<SourcePanelValueContainer> pull(Container container) {
+    SourceOrTargetPanel<SourcePanelValueContainer> panel = new SourceOrTargetPanel<>(
         SelectSourceOrTargetForm.pull(),
         ShowSourceOrTargetForm.pull()
     );
-    panel.addOption(PullSource.aggregate(container, panel::triggerOnSelect));
-    panel.addOption(PullSource.central(container, panel::triggerOnSelect));
-    panel.addOption(PullSource.collectDir(container, panel::triggerOnSelect));
-    panel.addOption(PullSource.formInComputer(container, panel::triggerOnSelect));
+    panel.addOption(SourcePanelValueContainer.aggregate(container, panel::triggerOnSelect));
+    panel.addOption(SourcePanelValueContainer.central(container, panel::triggerOnSelect));
+    panel.addOption(SourcePanelValueContainer.collectDir(container, panel::triggerOnSelect));
+    panel.addOption(SourcePanelValueContainer.formInComputer(container, panel::triggerOnSelect));
     return panel;
   }
 
-  public static SourceOrTargetPanel<PushTarget> push(Container container) {
-    SourceOrTargetPanel<PushTarget> panel = new SourceOrTargetPanel<>(
+  public static SourceOrTargetPanel<TargetPanelValueContainer> push(Container container) {
+    SourceOrTargetPanel<TargetPanelValueContainer> panel = new SourceOrTargetPanel<>(
         SelectSourceOrTargetForm.push(),
         ShowSourceOrTargetForm.push()
     );
-    panel.addOption(PushTarget.aggregate(container, panel::triggerOnSelect));
-    panel.addOption(PushTarget.central(container, panel::triggerOnSelect));
+    panel.addOption(TargetPanelValueContainer.aggregate(container, panel::triggerOnSelect));
+    panel.addOption(TargetPanelValueContainer.central(container, panel::triggerOnSelect));
     return panel;
   }
 
@@ -84,7 +84,7 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
   }
 
   private void addOption(T option) {
-    options.add(option);
+    valueContainers.add(option);
     selectView.addOption(option);
   }
 
@@ -120,13 +120,12 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
     selectView.setEnabled(true);
   }
 
-  @SuppressWarnings("unchecked")
-  public Optional<T> preloadOption(RemoteServer server) {
+  public Optional<T> preloadSourceOrTarget(SourceOrTarget sourceOrTarget) {
     try {
-      T option = getOption(server);
-      option.set(server);
-      triggerOnSelect(option);
-      return Optional.of(option);
+      T valueContainer = getValueContainer(sourceOrTarget);
+      valueContainer.set(sourceOrTarget);
+      triggerOnSelect(valueContainer);
+      return Optional.of(valueContainer);
     } catch (HttpException e) {
       log.warn("Can't preload option. Resetting view", e);
       reset();
@@ -134,9 +133,9 @@ public class SourceOrTargetPanel<T extends SourceOrTarget> {
     }
   }
 
-  private T getOption(RemoteServer server) {
-    return options.stream()
-        .filter(s -> s.accepts(server))
+  private T getValueContainer(SourceOrTarget value) {
+    return valueContainers.stream()
+        .filter(s -> s.accepts(value))
         .findFirst()
         .orElseThrow(BriefcaseException::new);
   }

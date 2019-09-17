@@ -110,9 +110,9 @@ public class MainBriefcaseWindow extends WindowAdapter {
     getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
     // Add panes to the tabbedPane
-    addPane(PullPanel.TAB_NAME, PullPanel.from(container, appPreferences, pullPreferences, analytics).getContainer());
+    addPane(PullPanel.TAB_NAME, PullPanel.from(container, analytics).getContainer());
     addPane(PushPanel.TAB_NAME, PushPanel.from(container, analytics, appPreferences).getContainer());
-    addPane(ExportPanel.TAB_NAME, ExportPanel.from(container, exportPreferences, appPreferences, pullPreferences, analytics).getForm().getContainer());
+    addPane(ExportPanel.TAB_NAME, ExportPanel.from(container, exportPreferences, analytics).getForm().getContainer());
     addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(container, analytics).getContainer());
 
     // Set up the frame and put the UI components in it

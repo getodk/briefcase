@@ -41,8 +41,6 @@ class ExportPanelPageObject {
       ExportPanel ep = ExportPanel.from(
           ContainerHelper.inMemory(),
           inMemoryPrefs,
-          inMemoryPrefs,
-          inMemoryPrefs,
           new NoOpAnalytics()
       );
       ep.updateForms();

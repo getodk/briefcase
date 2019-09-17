@@ -35,6 +35,7 @@ import org.opendatakit.briefcase.delivery.ui.reused.NoOpAnalytics;
 import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 import org.opendatakit.briefcase.operations.export.ExportEvent;
 import org.opendatakit.briefcase.operations.export.ExportForms;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.ContainerHelper;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataHelpers;
@@ -51,13 +52,12 @@ public class ExportPanelUnitTest {
     BriefcasePreferences inMemoryPrefs = new BriefcasePreferences(InMemoryPreferences.empty());
     initialDefaultConf = empty().build();
     ExportForms forms = load(initialDefaultConf, formsList, inMemoryPrefs);
-    ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, inMemoryPrefs, inMemoryPrefs, initialDefaultConf);
+    Container container = ContainerHelper.inMemory();
+    ExportPanelForm exportPanelForm = ExportPanelForm.from(container, forms, initialDefaultConf);
     new ExportPanel(
-        ContainerHelper.inMemory(),
+        container,
         forms,
         exportPanelForm,
-        inMemoryPrefs,
-        inMemoryPrefs,
         inMemoryPrefs,
         new NoOpAnalytics()
     );
@@ -73,13 +73,12 @@ public class ExportPanelUnitTest {
     BriefcasePreferences inMemoryPrefs = new BriefcasePreferences(InMemoryPreferences.empty());
     initialDefaultConf = empty().build();
     ExportForms forms = load(initialDefaultConf, formsList, inMemoryPrefs);
-    ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, inMemoryPrefs, inMemoryPrefs, initialDefaultConf);
+    Container container = ContainerHelper.inMemory();
+    ExportPanelForm exportPanelForm = ExportPanelForm.from(container, forms, initialDefaultConf);
     new ExportPanel(
-        ContainerHelper.inMemory(),
+        container,
         forms,
         exportPanelForm,
-        inMemoryPrefs,
-        inMemoryPrefs,
         inMemoryPrefs,
         new NoOpAnalytics()
     );
@@ -103,13 +102,12 @@ public class ExportPanelUnitTest {
     BriefcasePreferences inMemoryPrefs = new BriefcasePreferences(InMemoryPreferences.empty());
     initialDefaultConf = empty().build();
     ExportForms forms = load(initialDefaultConf, formsList, inMemoryPrefs);
-    ExportPanelForm exportPanelForm = ExportPanelForm.from(forms, inMemoryPrefs, inMemoryPrefs, initialDefaultConf);
+    Container container = ContainerHelper.inMemory();
+    ExportPanelForm exportPanelForm = ExportPanelForm.from(container, forms, initialDefaultConf);
     new ExportPanel(
-        ContainerHelper.inMemory(),
+        container,
         forms,
         exportPanelForm,
-        inMemoryPrefs,
-        inMemoryPrefs,
         inMemoryPrefs,
         new NoOpAnalytics()
     );

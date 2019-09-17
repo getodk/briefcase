@@ -58,8 +58,8 @@ public class InMemorySubmissionMetadataAdapter implements SubmissionMetadataPort
         .filter(submissionMetadata11 -> isSameForm(submissionMetadata11, formMetadata.getKey()))
         .filter(submissionMetadata1 -> dateRange.contains(coalescedSubmissionDateTime(submissionMetadata1)))
         .filter(submissionMetadata -> !smartAppend
-            || formMetadata.getLastExportedSubmissionDate().isEmpty()
-            || coalescedSubmissionDateTime(submissionMetadata).isAfter(formMetadata.getLastExportedSubmissionDate().get()))
+            || formMetadata.getLastExportedSubmissionDateTime().isEmpty()
+            || coalescedSubmissionDateTime(submissionMetadata).isAfter(formMetadata.getLastExportedSubmissionDateTime().get()))
         .sorted(Comparator.comparing(this::coalescedSubmissionDateTime));
   }
 

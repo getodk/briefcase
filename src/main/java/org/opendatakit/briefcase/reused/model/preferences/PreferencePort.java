@@ -14,9 +14,17 @@ public interface PreferencePort {
 
   void persist(Preference<?> preference);
 
+  default void persist(Preference<?>... preferences) {
+    persist(Stream.of(preferences));
+  }
+
   void persist(Stream<Preference<?>> preferenceStream);
 
   void remove(PreferenceKey<?> preference);
+
+  default void remove(PreferenceKey<?>... preferences) {
+    remove(Stream.of(preferences));
+  }
 
   void remove(Stream<PreferenceKey<?>> preferenceStream);
 

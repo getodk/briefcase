@@ -25,11 +25,11 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Timer;
-import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source.PullSource;
-import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.PushTarget;
+import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source.SourcePanelValueContainer;
+import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.TargetPanelValueContainer;
 
 @SuppressWarnings("checkstyle:MethodName")
-public class ShowSourceOrTargetForm<T extends SourceOrTarget> extends JComponent {
+public class ShowSourceOrTargetForm<T extends SourceOrTargetPanelValueContainer> extends JComponent {
   private final String action;
   public JPanel container;
   private JLabel sourceLabel;
@@ -62,11 +62,11 @@ public class ShowSourceOrTargetForm<T extends SourceOrTarget> extends JComponent
       reloadButton.setVisible(false);
   }
 
-  static ShowSourceOrTargetForm<PullSource> pull() {
+  static ShowSourceOrTargetForm<SourcePanelValueContainer> pull() {
     return new ShowSourceOrTargetForm<>("Pulling from", true);
   }
 
-  static ShowSourceOrTargetForm<PushTarget> push() {
+  static ShowSourceOrTargetForm<TargetPanelValueContainer> push() {
     return new ShowSourceOrTargetForm<>("Pushing to", false);
   }
 

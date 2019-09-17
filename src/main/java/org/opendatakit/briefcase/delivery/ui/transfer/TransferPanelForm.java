@@ -34,18 +34,18 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
-import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTarget;
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTargetPanel;
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTargetPanelForm;
-import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source.PullSource;
-import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.PushTarget;
+import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTargetPanelValueContainer;
+import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source.SourcePanelValueContainer;
+import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.TargetPanelValueContainer;
+import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.model.Operation;
-import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 
 @SuppressWarnings("checkstyle:MethodName")
-public class TransferPanelForm<T extends SourceOrTarget> {
+public class TransferPanelForm<T extends SourceOrTargetPanelValueContainer> {
   public JPanel container;
   private SourceOrTargetPanel<T> sourceOrTargetPanel;
   private SourceOrTargetPanelForm sourceOrTargetPanelForm;
@@ -78,11 +78,11 @@ public class TransferPanelForm<T extends SourceOrTarget> {
     clearAllButton.addActionListener(__ -> formsTable.clearAll());
   }
 
-  public static TransferPanelForm<PullSource> pull(Container container, TransferForms forms) {
+  public static TransferPanelForm<SourcePanelValueContainer> pull(Container container, TransferForms forms) {
     return new TransferPanelForm<>(SourceOrTargetPanel.pull(container), TransferFormsTable.from(forms, PULL), PULL);
   }
 
-  public static TransferPanelForm<PushTarget> push(Container container, TransferForms forms) {
+  public static TransferPanelForm<TargetPanelValueContainer> push(Container container, TransferForms forms) {
     return new TransferPanelForm<>(SourceOrTargetPanel.push(container), TransferFormsTable.from(forms, PUSH), PUSH);
   }
 
@@ -163,8 +163,8 @@ public class TransferPanelForm<T extends SourceOrTarget> {
     actionButton.setVisible(true);
   }
 
-  public Optional<T> preloadOption(RemoteServer server) {
-    return sourceOrTargetPanel.preloadOption(server);
+  public Optional<T> preloadSourceOrTarget(SourceOrTarget sourceOrTarget) {
+    return sourceOrTargetPanel.preloadSourceOrTarget(sourceOrTarget);
   }
 
   public void onReady(Runnable callback) {
@@ -311,6 +311,4 @@ public class TransferPanelForm<T extends SourceOrTarget> {
   public JComponent $$$getRootComponent$$$() {
     return container;
   }
-
-
 }

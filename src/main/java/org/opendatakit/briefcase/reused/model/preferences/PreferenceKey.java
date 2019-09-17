@@ -3,7 +3,6 @@ package org.opendatakit.briefcase.reused.model.preferences;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.function.Function;
 import org.opendatakit.briefcase.reused.api.Json;
-import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 
 public class PreferenceKey<T> {
   private final PreferenceCategory category;
@@ -60,12 +59,8 @@ public class PreferenceKey<T> {
    * Keys that should be qualified with a particular PreferenceCategory
    */
   public static class Local {
-    public static PreferenceKey<RemoteServer.Type> currentServerType(PreferenceCategory category) {
-      return PreferenceKey.local(category, "Current server type", RemoteServer.Type::getName, RemoteServer.Type::from);
-    }
-
-    public static PreferenceKey<JsonNode> currentServerValue(PreferenceCategory category) {
-      return PreferenceKey.local(category, "Current server value", Json::serialize, Json::deserialize);
+    public static PreferenceKey<JsonNode> currentSourceOrTarget(PreferenceCategory category) {
+      return PreferenceKey.local(category, "Current source or target", Json::serialize, Json::deserialize);
     }
   }
 }

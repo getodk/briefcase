@@ -23,26 +23,26 @@ import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.AggregateServerDialog;
+import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.push.PushEvent;
 import org.opendatakit.briefcase.operations.transfer.push.aggregate.PushToAggregate;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
 
 /**
  * Represents an ODK Aggregate server as a target for sending forms for the Push UI Panel.
  */
-public class Aggregate implements PushTarget<AggregateServer> {
-  private final Consumer<PushTarget> consumer;
+public class Aggregate implements TargetPanelValueContainer {
+  private final Consumer<TargetPanelValueContainer> consumer;
   private final Container container;
   private Test<AggregateServer> serverTester;
   private String requiredPermission;
   private AggregateServer server;
 
-  Aggregate(Container container, Test<AggregateServer> serverTester, String requiredPermission, Consumer<PushTarget> consumer) {
+  Aggregate(Container container, Test<AggregateServer> serverTester, String requiredPermission, Consumer<TargetPanelValueContainer> consumer) {
     this.container = container;
     this.serverTester = serverTester;
     this.requiredPermission = requiredPermission;
@@ -57,19 +57,19 @@ public class Aggregate implements PushTarget<AggregateServer> {
   }
 
   @Override
-  public void set(AggregateServer server) {
-    this.server = server;
+  public void set(SourceOrTarget server) {
+    this.server = (AggregateServer) server;
     consumer.accept(this);
+  }
+
+  @Override
+  public SourceOrTarget get() {
+    return server;
   }
 
   @Override
   public boolean accepts(Object o) {
     return o instanceof AggregateServer;
-  }
-
-  @Override
-  public void storeTargetPrefs(BriefcasePreferences prefs, boolean storePasswords) {
-    server.storeInPrefs(prefs, storePasswords);
   }
 
   @Override

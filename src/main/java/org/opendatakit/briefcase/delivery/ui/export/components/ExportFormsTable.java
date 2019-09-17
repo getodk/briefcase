@@ -15,11 +15,11 @@
  */
 package org.opendatakit.briefcase.delivery.ui.export.components;
 
+import java.util.function.Supplier;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.operations.export.ExportEvent;
 import org.opendatakit.briefcase.operations.export.ExportForms;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 
 public class ExportFormsTable {
   private final ExportFormsTableView view;
@@ -33,8 +33,8 @@ public class ExportFormsTable {
     AnnotationProcessor.process(this);
   }
 
-  public static ExportFormsTable from(ExportForms forms, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs) {
-    ExportFormsTableViewModel viewModel = new ExportFormsTableViewModel(forms, appPreferences, pullPrefs);
+  public static ExportFormsTable from(Supplier<Boolean> rememberPasswordsGetter, ExportForms forms) {
+    ExportFormsTableViewModel viewModel = new ExportFormsTableViewModel(rememberPasswordsGetter, forms);
     return new ExportFormsTable(forms, new ExportFormsTableView(viewModel), viewModel);
   }
 

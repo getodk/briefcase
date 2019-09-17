@@ -19,6 +19,7 @@ package org.opendatakit.briefcase.operations.transfer.pull.filesystem;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.operations.transfer.pull.filesystem.FormInstaller.installForm;
 import static org.opendatakit.briefcase.operations.transfer.pull.filesystem.FormInstaller.installSubmissions;
+import static org.opendatakit.briefcase.operations.transfer.pull.filesystem.PathSourceOrTarget.collectFormAt;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.list;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.stripFileExtension;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.walk;
@@ -80,7 +81,7 @@ public class PullFromCollectDir {
 
       installSubmissions(targetFormMetadata, submissionsToPull, container.submissionMetadata, tracker);
 
-      container.formMetadata.execute(upsert(targetFormMetadata));
+      container.formMetadata.execute(upsert(targetFormMetadata.withPullSource(collectFormAt(sourceFormMetadata.getFormDir()))));
       EventBus.publish(PullEvent.Success.of(targetFormMetadata.getKey()));
 
       tracker.trackEnd();

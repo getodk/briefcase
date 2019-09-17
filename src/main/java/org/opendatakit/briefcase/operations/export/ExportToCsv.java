@@ -19,6 +19,7 @@ package org.opendatakit.briefcase.operations.export;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
+import static java.time.OffsetDateTime.now;
 import static java.util.stream.Collectors.groupingByConcurrent;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
@@ -30,6 +31,7 @@ import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirector
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.deleteRecursive;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.write;
+import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.upsert;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -41,7 +43,6 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.form.FormMetadataCommands;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,12 +98,13 @@ public class ExportToCsv {
 
     exportTracker.end();
 
-    Optional.ofNullable(csvLinesPerModel.get(formDef.getModel().fqn()))
+    FormMetadata newFormMetadata = Optional.ofNullable(csvLinesPerModel.get(formDef.getModel().fqn()))
         .orElse(CsvLines.empty())
         .getLastLine()
-        .map(line -> formMetadata.withLastExportedSubmissionDate(line.getSubmissionDate()))
-        .map(FormMetadataCommands::upsert)
-        .ifPresent(container.formMetadata::execute);
+        .map(CsvLine::getSubmissionDate)
+        .map(lastSubmissionDateTime -> formMetadata.withLastExportedDateTimes(now(), lastSubmissionDateTime))
+        .orElse(formMetadata.withLastExportedDateTimes(now()));
+    container.formMetadata.execute(upsert(newFormMetadata));
 
     ExportOutcome exportOutcome = exportTracker.computeOutcome();
     if (exportOutcome == ALL_EXPORTED)

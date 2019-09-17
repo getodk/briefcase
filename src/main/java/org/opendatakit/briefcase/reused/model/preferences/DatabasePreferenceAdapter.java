@@ -52,22 +52,22 @@ public class DatabasePreferenceAdapter implements PreferencePort {
   }
 
   @Override
-  public <T> Preference<T> fetch(PreferenceKey key, Function<String, T> mapper) {
+  public void remove(PreferenceKey<?> preference) {
+
+  }
+
+  @Override
+  public void remove(Stream<PreferenceKey<?>> preferenceStream) {
+
+  }
+
+  @Override
+  public <T> Preference<T> fetch(PreferenceKey<T> key) {
     return null;
   }
 
   @Override
-  public <T> Preference<T> fetch(Preference<T> preference) {
-    return null;
-  }
-
-  @Override
-  public <T> Optional<Preference<T>> fetchOptional(Preference<T> preference) {
-    return Optional.empty();
-  }
-
-  @Override
-  public <T> Optional<Preference<T>> fetchOptional(PreferenceKey key, Function<String, T> mapper) {
+  public <T> Optional<Preference<T>> fetchOptional(PreferenceKey<T> preference) {
     return Optional.empty();
   }
 }

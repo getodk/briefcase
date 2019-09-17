@@ -19,7 +19,8 @@ package org.opendatakit.briefcase.delivery.ui.settings;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.infoMessage;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.cleanAllCursors;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.syncWithFilesAt;
-import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.removeSavedServers;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.removeCurrentSource;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.removeCurrentTarget;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.setHttpProxy;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.setMaxHttpConnections;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.setRememberPasswords;
@@ -43,8 +44,8 @@ public class SettingsPanel {
     this.form = form;
 
     container.preferences.query(PreferenceQueries.getMaxHttpConnections()).ifPresent(form::setMaxHttpConnections);
-    container.preferences.query(PreferenceQueries.getStartPullFromLast()).ifPresent(form::setStartPullFromLast);
-    container.preferences.query(PreferenceQueries.getRememberPasswords()).ifPresent(form::setRememberPasswords);
+    form.setStartPullFromLast(container.preferences.query(PreferenceQueries.getStartPullFromLast()));
+    form.setRememberPasswords(container.preferences.query(PreferenceQueries.getRememberPasswords()));
     container.preferences.query(PreferenceQueries.getHttpProxy()).ifPresent(proxy -> {
       form.enableUseHttpProxy();
       form.setHttpProxy(proxy);
@@ -57,7 +58,8 @@ public class SettingsPanel {
     form.onRememberPasswordsChange(rememberEnabled -> {
       container.preferences.execute(setRememberPasswords(rememberEnabled));
       if (!rememberEnabled) {
-        container.preferences.execute(removeSavedServers());
+        container.preferences.execute(removeCurrentSource());
+        container.preferences.execute(removeCurrentTarget());
         container.formMetadata.forgetPullSources();
       }
     });

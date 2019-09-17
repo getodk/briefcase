@@ -17,29 +17,19 @@
 package org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target;
 
 import java.util.function.Consumer;
-import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTarget;
+import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTargetPanelValueContainer;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
-import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 
-public interface PushTarget<T> extends SourceOrTarget<T> {
-  static void clearSourcePrefs(BriefcasePreferences prefs) {
-    AggregateServer.clearStoredPrefs(prefs);
-    CentralServer.clearStoredPrefs(prefs);
-  }
-
-  static PushTarget<AggregateServer> aggregate(Container container, Consumer<PushTarget> consumer) {
+public interface TargetPanelValueContainer extends SourceOrTargetPanelValueContainer {
+  static TargetPanelValueContainer aggregate(Container container, Consumer<TargetPanelValueContainer> consumer) {
     return new Aggregate(container, server -> container.http.execute(server.getPushFormPreflightRequest()), "Must have Form Manager permissions", consumer);
   }
 
-  static PushTarget<CentralServer> central(Container container, Consumer<PushTarget> consumer) {
+  static TargetPanelValueContainer central(Container container, Consumer<TargetPanelValueContainer> consumer) {
     return new Central(container, server -> container.http.execute(server.getCredentialsTestRequest()), consumer);
   }
-
-  void storeTargetPrefs(BriefcasePreferences prefs, boolean storePasswords);
 
   JobsRunner push(TransferForms forms);
 

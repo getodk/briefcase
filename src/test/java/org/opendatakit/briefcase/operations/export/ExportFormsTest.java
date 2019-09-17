@@ -17,27 +17,20 @@ package org.opendatakit.briefcase.operations.export;
 
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isEmpty;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
-import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.operations.export.ExportConfiguration.Builder.empty;
-import static org.opendatakit.briefcase.operations.export.ExportForms.buildCustomConfPrefix;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataHelpers.buildFormStatusList;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.preferences.InMemoryPreferences;
 
 public class ExportFormsTest {
   private static ExportConfiguration VALID_CONFIGURATION;
@@ -130,40 +123,6 @@ public class ExportFormsTest {
     ExportEvent event = ExportEvent.successForm(10, form.getKey());
     forms.appendStatus(event);
 
-    assertThat(forms.getLastExportDateTime(form.getKey()), isPresent());
-  }
-
-  @Test
-  public void it_lets_a_third_party_react_to_successful_exports() {
-    AtomicInteger count = new AtomicInteger(0);
-    ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>());
-    FormMetadata form = forms.get(0);
-    forms.onSuccessfulExport((formId, exportDateTime) -> {
-      if (formId.equals(form.getKey()))
-        count.incrementAndGet();
-    });
-
-    ExportEvent event = ExportEvent.successForm(10, form.getKey());
-    forms.appendStatus(event);
-
-    assertThat(count.get(), is(1));
-  }
-
-  @Test
-  public void it_has_a_factory_that_creates_a_new_instance_from_saved_preferences() {
-    LocalDateTime exportDateTime = LocalDateTime.now();
-    List<FormMetadata> formsList = buildFormStatusList(10);
-    FormMetadata form = formsList.get(0);
-    String formId = form.getKey().getId();
-    BriefcasePreferences exportPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
-    exportPreferences.putAll(VALID_CONFIGURATION.asMap(buildCustomConfPrefix(formId)));
-    exportPreferences.put(ExportForms.buildExportDateTimePrefix(formId), exportDateTime.format(ISO_DATE_TIME));
-    BriefcasePreferences appPreferences = new BriefcasePreferences(InMemoryPreferences.empty());
-
-    ExportForms forms = ExportForms.load(empty().build(), formsList, exportPreferences);
-
-    assertThat(forms.size(), is(10));
-    assertThat(forms.hasConfiguration(form.getKey()), is(true));
     assertThat(forms.getLastExportDateTime(form.getKey()), isPresent());
   }
 

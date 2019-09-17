@@ -16,6 +16,7 @@
 package org.opendatakit.briefcase.delivery.ui.export;
 
 import static org.opendatakit.briefcase.operations.export.ExportConfiguration.Builder.empty;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceQueries.getRememberPasswords;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -24,6 +25,7 @@ import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -35,7 +37,7 @@ import org.opendatakit.briefcase.delivery.ui.export.components.ExportFormsTable;
 import org.opendatakit.briefcase.delivery.ui.export.components.ExportFormsTableView;
 import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 import org.opendatakit.briefcase.operations.export.ExportForms;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
+import org.opendatakit.briefcase.reused.Container;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportPanelForm {
@@ -55,7 +57,7 @@ public class ExportPanelForm {
   private List<Consumer<ExportConfiguration>> onDefaultConfSetCallbacks = new ArrayList<>();
   private List<Runnable> onDefaultConfResetCallbacks = new ArrayList<>();
 
-  private ExportPanelForm(ExportFormsTable formsTable, BriefcasePreferences appPreferences, ExportConfiguration initialConf) {
+  private ExportPanelForm(Supplier<Boolean> rememberPasswordsGetter, ExportFormsTable formsTable, ExportConfiguration initialConf) {
     this.formsTable = formsTable;
     this.formsTableForm = formsTable.getView();
     $$$setupUI$$$();
@@ -68,7 +70,7 @@ public class ExportPanelForm {
     selectAllButton.addActionListener(__ -> formsTable.selectAll());
     clearAllButton.addActionListener(__ -> formsTable.clearAll());
     setDefaultConfButton.addActionListener(ignored -> {
-      ConfigurationDialog dialog = ConfigurationDialog.defaultPanel(defaultConf, appPreferences.getRememberPasswords().orElse(false));
+      ConfigurationDialog dialog = ConfigurationDialog.defaultPanel(defaultConf, rememberPasswordsGetter.get());
       dialog.onOK(this::setDefaultConf);
       dialog.onRemove(this::resetDefaultConf);
       dialog.open();
@@ -87,10 +89,11 @@ public class ExportPanelForm {
     setDefaultConfButton.setText("Set Default Configuration");
   }
 
-  public static ExportPanelForm from(ExportForms forms, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, ExportConfiguration defaultConf) {
+  public static ExportPanelForm from(Container container, ExportForms forms, ExportConfiguration defaultConf) {
+    Supplier<Boolean> rememberPasswordsGetter = () -> container.preferences.query(getRememberPasswords());
     return new ExportPanelForm(
-        ExportFormsTable.from(forms, appPreferences, pullPrefs),
-        appPreferences,
+        rememberPasswordsGetter,
+        ExportFormsTable.from(rememberPasswordsGetter, forms),
         defaultConf
     );
   }

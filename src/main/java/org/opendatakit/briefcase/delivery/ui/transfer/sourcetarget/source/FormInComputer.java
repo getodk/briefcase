@@ -30,26 +30,46 @@ import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.delivery.ui.reused.filsystem.FileChooser;
+import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
+import org.opendatakit.briefcase.operations.transfer.pull.filesystem.PathSourceOrTarget;
 import org.opendatakit.briefcase.operations.transfer.pull.filesystem.PullFormDefinition;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 
 /**
  * Represents a filesystem location pointing to a form file as a source of forms for the Pull UI Panel.
  */
-public class FormInComputer implements PullSource<FormMetadata> {
-  private final Consumer<PullSource> consumer;
+public class FormInComputer implements SourcePanelValueContainer {
+  private final Consumer<SourcePanelValueContainer> consumer;
   private final Container container;
-  private Path path;
-  private FormMetadata sourceFormMetadata;
+  private PathSourceOrTarget value;
+  private FormMetadata formMetadata;
 
-  FormInComputer(Container container, Consumer<PullSource> consumer) {
+  FormInComputer(Container container, Consumer<SourcePanelValueContainer> consumer) {
     this.container = container;
     this.consumer = consumer;
+  }
+
+  @Override
+  public List<FormMetadata> getFormList() {
+    return Collections.singletonList(formMetadata);
+  }
+
+  @Override
+  public JobsRunner pull(TransferForms forms, boolean startFromLast) {
+    PullFormDefinition pullOp = new PullFormDefinition(container, EventBus::publish);
+    return JobsRunner.launchAsync(pullOp.pull(
+        formMetadata,
+        formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata))
+    )).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+  }
+
+  @Override
+  public String getDescription() {
+    return String.format("%s at %s", formMetadata.getFormName(), value.toString());
   }
 
   @Override
@@ -65,38 +85,14 @@ public class FormInComputer implements PullSource<FormMetadata> {
     if (selectedFile.isEmpty())
       return;
 
-    path = selectedFile.get();
-    set(FormMetadata.from(path));
+    set(PathSourceOrTarget.formDefinitionAt(selectedFile.get()));
   }
 
   @Override
-  public void set(FormMetadata sourceFormMetadata) {
-    this.sourceFormMetadata = sourceFormMetadata;
-    consumer.accept(this);
-  }
-
-  @Override
-  public boolean accepts(Object o) {
-    return o instanceof Path;
-  }
-
-  @Override
-  public List<FormMetadata> getFormList() {
-    return Collections.singletonList(sourceFormMetadata);
-  }
-
-  @Override
-  public void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords) {
-    // No prefs to store
-  }
-
-  @Override
-  public JobsRunner pull(TransferForms forms, boolean startFromLast) {
-    PullFormDefinition pullOp = new PullFormDefinition(container, EventBus::publish);
-    return JobsRunner.launchAsync(pullOp.pull(
-        sourceFormMetadata,
-        sourceFormMetadata.withFormFile(container.workspace.buildFormFile(sourceFormMetadata))
-    )).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+  public void decorate(JLabel label) {
+    label.setText(getDescription());
+    label.setCursor(getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+    removeAllMouseListeners(label);
   }
 
   @Override
@@ -105,15 +101,20 @@ public class FormInComputer implements PullSource<FormMetadata> {
   }
 
   @Override
-  public String getDescription() {
-    return String.format("%s at %s", sourceFormMetadata.getFormName(), path.toString());
+  public boolean accepts(Object o) {
+    return o instanceof Path;
   }
 
   @Override
-  public void decorate(JLabel label) {
-    label.setText(getDescription());
-    label.setCursor(getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-    removeAllMouseListeners(label);
+  public void set(SourceOrTarget value) {
+    this.value = (PathSourceOrTarget) value;
+    this.formMetadata = FormMetadata.from(this.value.getPath());
+    this.consumer.accept(this);
+  }
+
+  @Override
+  public SourceOrTarget get() {
+    return value;
   }
 
   @Override

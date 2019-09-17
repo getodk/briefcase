@@ -10,6 +10,7 @@ import static org.jooq.impl.DSL.using;
 import static org.jooq.impl.DSL.value;
 import static org.opendatakit.briefcase.reused.db.jooq.Tables.FORM_METADATA;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Objects;
@@ -21,8 +22,10 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.Workspace;
+import org.opendatakit.briefcase.reused.api.Json;
 import org.opendatakit.briefcase.reused.db.BriefcaseDb;
 import org.opendatakit.briefcase.reused.db.jooq.tables.records.FormMetadataRecord;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
@@ -65,6 +68,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
   @Override
   public void persist(FormMetadata formMetadata) {
     // TODO Use generated records and let jOOQ do the work instead of explicitly using all the fields in the table, because this will break each time we change the table structure
+    ObjectMapper mapper = Json.getMapper();
     getDslContext().execute(mergeInto(FORM_METADATA)
         .using(selectOne())
         .on(getMatchingCriteria(formMetadata.getKey()))
@@ -76,7 +80,9 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         .set(FORM_METADATA.IS_ENCRYPTED, formMetadata.isEncrypted())
         .set(FORM_METADATA.URL_MANIFEST, formMetadata.getManifestUrl().map(Objects::toString).orElse(null))
         .set(FORM_METADATA.URL_DOWNLOAD, formMetadata.getDownloadUrl().map(Objects::toString).orElse(null))
-        .set(FORM_METADATA.LAST_EXPORTED_SUBMISSION_DATE, formMetadata.getLastExportedSubmissionDate().orElse(null))
+        .set(FORM_METADATA.LAST_EXPORTED_DATE_TIME, formMetadata.getLastExportedDateTime().orElse(null))
+        .set(FORM_METADATA.LAST_EXPORTED_SUBMISSION_DATE_TIME, formMetadata.getLastExportedSubmissionDateTime().orElse(null))
+        .set(FORM_METADATA.PULL_SOURCE, formMetadata.getPullSource().map(sot -> sot.asJson(mapper)).map(Json::serialize).orElse(null))
         // TODO deal with the new fields pull_source_type and pull_source_value
         .whenNotMatchedThenInsert(
             FORM_METADATA.FORM_ID,
@@ -88,8 +94,9 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
             FORM_METADATA.IS_ENCRYPTED,
             FORM_METADATA.URL_MANIFEST,
             FORM_METADATA.URL_DOWNLOAD,
-            FORM_METADATA.LAST_EXPORTED_SUBMISSION_DATE
-            // TODO deal with the new fields pull_source_type and pull_source_value
+            FORM_METADATA.LAST_EXPORTED_DATE_TIME,
+            FORM_METADATA.LAST_EXPORTED_SUBMISSION_DATE_TIME,
+            FORM_METADATA.PULL_SOURCE
         )
         .values(
             value(formMetadata.getKey().getId()),
@@ -101,7 +108,9 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
             value(formMetadata.isEncrypted()),
             value(formMetadata.getManifestUrl().map(Objects::toString).orElse(null)),
             value(formMetadata.getDownloadUrl().map(Objects::toString).orElse(null)),
-            value(formMetadata.getLastExportedSubmissionDate().orElse(null))
+            value(formMetadata.getLastExportedDateTime().orElse(null)),
+            value(formMetadata.getLastExportedSubmissionDateTime().orElse(null)),
+            value(formMetadata.getPullSource().map(sot -> sot.asJson(mapper)).map(Json::serialize).orElse(null))
             // TODO deal with the new fields pull_source_type and pull_source_value
         )
     );
@@ -128,8 +137,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
   @Override
   public void forgetPullSources() {
     getDslContext().execute(update(FORM_METADATA)
-        .set(FORM_METADATA.PULL_SOURCE_TYPE, "")
-        .set(FORM_METADATA.PULL_SOURCE_VALUE, ""));
+        .set(FORM_METADATA.PULL_SOURCE, (String) null));
   }
 
   private FormMetadata mapToDomain(FormMetadataRecord record) {
@@ -144,8 +152,9 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         record.getIsEncrypted(),
         Optional.ofNullable(record.getUrlManifest()).map(RequestBuilder::url),
         Optional.ofNullable(record.getUrlDownload()).map(RequestBuilder::url),
-        Optional.ofNullable(record.getLastExportedSubmissionDate())
-        // TODO deal with the new fields pull_source_type and pull_source_value
+        Optional.ofNullable(record.getLastExportedDateTime()),
+        Optional.ofNullable(record.getLastExportedSubmissionDateTime()),
+        Optional.ofNullable(record.getPullSource()).map(Json::deserialize).map(SourceOrTarget::from)
     );
   }
 

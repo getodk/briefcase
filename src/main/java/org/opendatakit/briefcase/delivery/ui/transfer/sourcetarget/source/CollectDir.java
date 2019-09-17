@@ -31,23 +31,24 @@ import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.delivery.ui.reused.filsystem.FileChooser;
+import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
+import org.opendatakit.briefcase.operations.transfer.pull.filesystem.PathSourceOrTarget;
 import org.opendatakit.briefcase.operations.transfer.pull.filesystem.PullFromCollectDir;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 
 /**
  * Represents a filesystem location pointing to Collect's form directory as a source of forms for the Pull UI Panel.
  */
-public class CollectDir implements PullSource<Path> {
+public class CollectDir implements SourcePanelValueContainer {
   private final Container container;
-  private final Consumer<PullSource> consumer;
-  private Path path;
+  private final Consumer<SourcePanelValueContainer> consumer;
+  private PathSourceOrTarget value;
 
-  CollectDir(Container container, Consumer<PullSource> consumer) {
+  CollectDir(Container container, Consumer<SourcePanelValueContainer> consumer) {
     this.container = container;
     this.consumer = consumer;
   }
@@ -57,42 +58,8 @@ public class CollectDir implements PullSource<Path> {
   }
 
   @Override
-  public void onSelect(java.awt.Container container) {
-    FileChooser
-        .directory(container, Optional.empty())
-        .choose()
-        // TODO Changing the FileChooser to handle Paths instead of Files would improve this code and it's also coherent with the modernization (use NIO2 API) of this basecode
-        .ifPresent(file -> {
-          if (isValidCustomDir(file.toPath()))
-            set(file.toPath());
-          else {
-            errorMessage(
-                "Wrong directory",
-                "The selected directory doesn't look like an ODK Collect storage directory. Please select another directory."
-            );
-          }
-        });
-  }
-
-  @Override
-  public void set(Path path) {
-    this.path = path;
-    consumer.accept(this);
-  }
-
-  @Override
-  public boolean accepts(Object o) {
-    return o instanceof Path;
-  }
-
-  @Override
   public List<FormMetadata> getFormList() {
-    return scanCollectFormsAt(path);
-  }
-
-  @Override
-  public void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords) {
-    // No prefs to store
+    return scanCollectFormsAt(value.getPath());
   }
 
   @Override
@@ -105,13 +72,26 @@ public class CollectDir implements PullSource<Path> {
   }
 
   @Override
-  public boolean canBeReloaded() {
-    return false;
+  public String getDescription() {
+    return value.toString();
   }
 
   @Override
-  public String getDescription() {
-    return path.toString();
+  public void onSelect(java.awt.Container container) {
+    FileChooser
+        .directory(container, Optional.empty())
+        .choose()
+        // TODO Changing the FileChooser to handle Paths instead of Files would improve this code and it's also coherent with the modernization (use NIO2 API) of this basecode
+        .ifPresent(file -> {
+          if (isValidCustomDir(file.toPath()))
+            set(PathSourceOrTarget.collectFormAt(file.toPath()));
+          else {
+            errorMessage(
+                "Wrong directory",
+                "The selected directory doesn't look like an ODK Collect storage directory. Please select another directory."
+            );
+          }
+        });
   }
 
   @Override
@@ -119,6 +99,27 @@ public class CollectDir implements PullSource<Path> {
     label.setText(getDescription());
     label.setCursor(getPredefinedCursor(Cursor.DEFAULT_CURSOR));
     removeAllMouseListeners(label);
+  }
+
+  @Override
+  public boolean canBeReloaded() {
+    return false;
+  }
+
+  @Override
+  public boolean accepts(Object o) {
+    return o instanceof Path;
+  }
+
+  @Override
+  public void set(SourceOrTarget value) {
+    this.value = (PathSourceOrTarget) value;
+    consumer.accept(this);
+  }
+
+  @Override
+  public SourceOrTarget get() {
+    return value;
   }
 
   @Override

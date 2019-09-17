@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
@@ -43,8 +44,6 @@ import org.opendatakit.briefcase.operations.export.ExportEvent;
 import org.opendatakit.briefcase.operations.export.ExportForms;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 
 public class ExportFormsTableViewModel extends AbstractTableModel {
   private static final Color NO_CONF_OVERRIDE_COLOR = new Color(0, 128, 0);
@@ -52,19 +51,17 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
   private final Map<FormKey, JButton> detailButtons = new HashMap<>();
   private final Map<FormKey, JButton> confButtons = new HashMap<>();
   private final ExportForms forms;
-  private final BriefcasePreferences appPreferences;
   private final Map<FormKey, String> statusLines = new ConcurrentHashMap<>();
   private final Map<FormKey, String> lastStatusLine = new ConcurrentHashMap<>();
-  private final BriefcasePreferences pullPrefs;
 
   private static final Font ic_settings = FontUtils.getCustomFont("ic_settings.ttf", 16f);
+  private final Supplier<Boolean> rememberPasswordsGetter;
   private boolean enabled = true;
 
-  ExportFormsTableViewModel(ExportForms forms, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs) {
+  ExportFormsTableViewModel(Supplier<Boolean> rememberPasswordsGetter, ExportForms forms) {
+    this.rememberPasswordsGetter = rememberPasswordsGetter;
     AnnotationProcessor.process(this);
     this.forms = forms;
-    this.appPreferences = appPreferences;
-    this.pullPrefs = pullPrefs;
   }
 
   public void onChange(Runnable callback) {
@@ -82,28 +79,28 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
   }
 
   @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
-  private JButton buildOverrideConfButton(FormKey formKey, String formName) {
+  private JButton buildOverrideConfButton(FormMetadata formMetadata, String formName) {
     // Use custom fonts instead of png for easier scaling
     JButton button = new JButton("\uE900");
     button.setFont(ic_settings); // custom font that overrides  with a gear icon
     button.setToolTipText("Override the export configuration for this form");
     button.setMargin(new Insets(0, 0, 0, 0));
 
-    updateConfButton(formKey, button);
+    updateConfButton(formMetadata.getKey(), button);
     button.addActionListener(__ -> {
       if (enabled) {
         ConfigurationDialog dialog = ConfigurationDialog.overridePanel(
-            forms.getCustomConfiguration(formKey).orElse(empty().build()),
+            forms.getCustomConfiguration(formMetadata.getKey()).orElse(empty().build()),
             formName,
-            RemoteServer.readFromPrefs(appPreferences, pullPrefs, formKey).isPresent(),
-            BriefcasePreferences.getStorePasswordsConsentProperty()
+            formMetadata.hasPullSource(),
+            rememberPasswordsGetter.get()
         );
-        dialog.onRemove(() -> removeConfiguration(formKey));
+        dialog.onRemove(() -> removeConfiguration(formMetadata.getKey()));
         dialog.onOK(configuration -> {
           if (configuration.isEmpty())
-            removeConfiguration(formKey);
+            removeConfiguration(formMetadata.getKey());
           else
-            putConfiguration(formKey, configuration);
+            putConfiguration(formMetadata.getKey(), configuration);
         });
         dialog.open();
       }
@@ -150,7 +147,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
       case ExportFormsTableView.SELECTED_CHECKBOX_COL:
         return forms.isSelected(formKey);
       case ExportFormsTableView.OVERRIDE_CONF_COL:
-        return confButtons.computeIfAbsent(formKey, __ -> this.buildOverrideConfButton(formKey, formName));
+        return confButtons.computeIfAbsent(formKey, __ -> this.buildOverrideConfButton(formMetadata, formName));
       case ExportFormsTableView.FORM_NAME_COL:
         return formName;
       case ExportFormsTableView.EXPORT_STATUS_COL:

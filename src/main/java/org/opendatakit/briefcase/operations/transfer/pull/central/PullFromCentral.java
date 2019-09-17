@@ -116,7 +116,7 @@ public class PullFromCentral {
           });
       tracker.trackEnd();
 
-      container.formMetadata.execute(upsert(targetFormMetadata));
+      container.formMetadata.execute(upsert(targetFormMetadata.withPullSource(server)));
       EventBus.publish(PullEvent.Success.of(formKey, server));
     });
   }

@@ -24,6 +24,7 @@ import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.CentralServerDialog;
+import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.push.PushEvent;
 import org.opendatakit.briefcase.operations.transfer.push.central.PushToCentral;
@@ -32,28 +33,22 @@ import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
 
 /**
  * Represents an ODK Central server as a target for sending forms for the Push UI Panel.
  */
-public class Central implements PushTarget<CentralServer> {
+public class Central implements TargetPanelValueContainer {
   private final Container container;
   private final Test<CentralServer> serverTester;
-  private final Consumer<PushTarget> onSourceCallback;
+  private final Consumer<TargetPanelValueContainer> onSourceCallback;
   private CentralServer server;
 
-  Central(Container container, Test<CentralServer> serverTester, Consumer<PushTarget> onSourceCallback) {
+  Central(Container container, Test<CentralServer> serverTester, Consumer<TargetPanelValueContainer> onSourceCallback) {
     this.container = container;
     this.serverTester = serverTester;
     this.onSourceCallback = onSourceCallback;
-  }
-
-  @Override
-  public void storeTargetPrefs(BriefcasePreferences prefs, boolean storePasswords) {
-    server.storeInPrefs(prefs, storePasswords);
   }
 
   @Override
@@ -104,9 +99,14 @@ public class Central implements PushTarget<CentralServer> {
   }
 
   @Override
-  public void set(CentralServer server) {
-    this.server = server;
+  public void set(SourceOrTarget server) {
+    this.server = (CentralServer) server;
     onSourceCallback.accept(this);
+  }
+
+  @Override
+  public SourceOrTarget get() {
+    return server;
   }
 
   @Override

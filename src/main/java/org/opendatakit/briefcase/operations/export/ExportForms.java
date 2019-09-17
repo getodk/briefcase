@@ -179,7 +179,4 @@ public class ExportForms {
     return Optional.ofNullable(lastExportDateTimes.get(formKey));
   }
 
-  public void onSuccessfulExport(BiConsumer<FormKey, LocalDateTime> callback) {
-    onSuccessfulExportCallbacks.add(callback);
-  }
 }

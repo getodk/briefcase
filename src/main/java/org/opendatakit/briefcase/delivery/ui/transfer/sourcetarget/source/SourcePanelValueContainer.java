@@ -16,38 +16,32 @@
 
 package org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
-import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTarget;
+import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.SourceOrTargetPanelValueContainer;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
-import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 
-public interface PullSource<T> extends SourceOrTarget<T> {
-  static PullSource<AggregateServer> aggregate(Container container, Consumer<PullSource> consumer) {
+public interface SourcePanelValueContainer extends SourceOrTargetPanelValueContainer {
+  static SourcePanelValueContainer aggregate(Container container, Consumer<SourcePanelValueContainer> consumer) {
     return new Aggregate(container, server -> container.http.execute(server.getFormListRequest()), "Must have Data Collector permissions at least", consumer);
   }
 
-  static PullSource<CentralServer> central(Container container, Consumer<PullSource> consumer) {
+  static SourcePanelValueContainer central(Container container, Consumer<SourcePanelValueContainer> consumer) {
     return new Central(container, server -> container.http.execute(server.getCredentialsTestRequest()), consumer);
   }
 
-  static PullSource<Path> collectDir(Container container, Consumer<PullSource> consumer) {
+  static SourcePanelValueContainer collectDir(Container container, Consumer<SourcePanelValueContainer> consumer) {
     return new CollectDir(container, consumer);
   }
 
-  static PullSource<FormMetadata> formInComputer(Container container, Consumer<PullSource> consumer) {
+  static SourcePanelValueContainer formInComputer(Container container, Consumer<SourcePanelValueContainer> consumer) {
     return new FormInComputer(container, consumer);
   }
 
   List<FormMetadata> getFormList();
-
-  void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords);
 
   JobsRunner pull(TransferForms forms, boolean startFromLast);
 

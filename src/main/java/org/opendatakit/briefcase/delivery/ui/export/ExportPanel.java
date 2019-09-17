@@ -15,17 +15,15 @@
  */
 package org.opendatakit.briefcase.delivery.ui.export;
 
-import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.operations.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.operations.export.ExportConfiguration.Builder.load;
 import static org.opendatakit.briefcase.operations.export.ExportForms.buildCustomConfPrefix;
+import static org.opendatakit.briefcase.operations.transfer.pull.Pull.buildPullJob;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
@@ -37,16 +35,12 @@ import org.opendatakit.briefcase.operations.export.ExportForms;
 import org.opendatakit.briefcase.operations.export.ExportToCsv;
 import org.opendatakit.briefcase.operations.export.ExportToGeoJson;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
-import org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
-import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
-import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 
 public class ExportPanel {
   public static final String TAB_NAME = "Export";
@@ -54,18 +48,14 @@ public class ExportPanel {
   private final Container container;
   private final ExportForms forms;
   private final ExportPanelForm form;
-  private final BriefcasePreferences appPreferences;
   private final BriefcasePreferences exportPreferences;
-  private final BriefcasePreferences pullPanelPrefs;
   private final Analytics analytics;
 
-  ExportPanel(Container container, ExportForms forms, ExportPanelForm form, BriefcasePreferences appPreferences, BriefcasePreferences exportPreferences, BriefcasePreferences pullPanelPrefs, Analytics analytics) {
+  ExportPanel(Container container, ExportForms forms, ExportPanelForm form, BriefcasePreferences exportPreferences, Analytics analytics) {
     this.container = container;
     this.forms = forms;
     this.form = form;
-    this.appPreferences = appPreferences;
     this.exportPreferences = exportPreferences;
-    this.pullPanelPrefs = pullPanelPrefs;
     this.analytics = analytics;
     AnnotationProcessor.process(this);// if not using AOP
     analytics.register(form.getContainer());
@@ -80,10 +70,6 @@ public class ExportPanel {
       forms.updateDefaultConfiguration(empty().build());
       exportPreferences.removeAll(ExportConfiguration.keys());
     });
-
-    forms.onSuccessfulExport((FormKey formKey, LocalDateTime exportDateTime) ->
-        exportPreferences.put(ExportForms.buildExportDateTimePrefix(formKey.getId()), exportDateTime.format(ISO_DATE_TIME))
-    );
 
     form.onChange(() -> {
       updateCustomConfPreferences();
@@ -145,17 +131,15 @@ public class ExportPanel {
     }
   }
 
-  public static ExportPanel from(Container container, BriefcasePreferences exportPreferences, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs, Analytics analytics) {
+  public static ExportPanel from(Container container, BriefcasePreferences exportPreferences, Analytics analytics) {
     ExportConfiguration initialDefaultConf = load(exportPreferences);
     ExportForms forms = ExportForms.load(initialDefaultConf, container.formMetadata.fetchAll().collect(toList()), exportPreferences);
-    ExportPanelForm form = ExportPanelForm.from(forms, appPreferences, pullPrefs, initialDefaultConf);
+    ExportPanelForm form = ExportPanelForm.from(container, forms, initialDefaultConf);
     return new ExportPanel(
         container,
         forms,
         form,
-        appPreferences,
         exportPreferences,
-        pullPrefs,
         analytics
     );
   }
@@ -174,17 +158,9 @@ public class ExportPanel {
       ExportConfiguration configuration = forms.getConfiguration(formMetadata);
       FormDefinition formDef = FormDefinition.from(formMetadata);
       // TODO Abstract away the subtype of RemoteServer. This should say Optional<RemoteServer>
-      Optional<AggregateServer> savedPullSource = RemoteServer.readFromPrefs(appPreferences, pullPanelPrefs, formMetadata.getKey());
 
-      Job<Void> pullJob = configuration.resolvePullBefore() && savedPullSource.isPresent()
-          ? new PullFromAggregate(container, savedPullSource.get(), false, EventBus::publish)
-          .pull(
-              formMetadata,
-              formMetadata.getFormFile(),
-              appPreferences.resolveStartFromLast()
-                  ? Optional.of(formMetadata.getCursor())
-                  : Optional.empty()
-          )
+      Job<Void> pullJob = configuration.resolvePullBefore() && formMetadata.getPullSource().isPresent()
+          ? buildPullJob(container, formMetadata, EventBus::publish)
           : Job.noOpSupplier();
 
       Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(container, formMetadata, formDef, configuration));

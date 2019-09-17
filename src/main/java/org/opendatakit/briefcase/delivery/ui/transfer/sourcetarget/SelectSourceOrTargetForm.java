@@ -25,12 +25,12 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source.PullSource;
-import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.PushTarget;
+import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.source.SourcePanelValueContainer;
+import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.TargetPanelValueContainer;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 
 @SuppressWarnings("checkstyle:MethodName")
-public class SelectSourceOrTargetForm<T extends SourceOrTarget> extends JComponent {
+public class SelectSourceOrTargetForm<T extends SourceOrTargetPanelValueContainer> extends JComponent {
   public JPanel container;
   private JComboBox<T> selectField;
   private JButton configureButton;
@@ -46,11 +46,11 @@ public class SelectSourceOrTargetForm<T extends SourceOrTarget> extends JCompone
         .onSelect(container));
   }
 
-  public static SelectSourceOrTargetForm<PullSource> pull() {
+  public static SelectSourceOrTargetForm<SourcePanelValueContainer> pull() {
     return new SelectSourceOrTargetForm<>("Pull from:");
   }
 
-  public static SelectSourceOrTargetForm<PushTarget> push() {
+  public static SelectSourceOrTargetForm<TargetPanelValueContainer> push() {
     return new SelectSourceOrTargetForm<>("Push to:");
   }
 

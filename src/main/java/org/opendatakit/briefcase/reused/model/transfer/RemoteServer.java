@@ -16,96 +16,9 @@
 
 package org.opendatakit.briefcase.reused.model.transfer;
 
-import java.util.Optional;
-import java.util.stream.Stream;
-import org.opendatakit.briefcase.reused.api.Optionals;
 import org.opendatakit.briefcase.reused.http.response.Response;
-import org.opendatakit.briefcase.reused.model.form.FormKey;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 
 public interface RemoteServer {
-  /**
-   * Returns true if the given key is a prefs key managed by this class hierarchy.
-   * <p>
-   * Includes keys used to store the last configured source in the Pull & Push
-   * panels, and the keys used to support the "pull before export" feature.
-   */
-  static boolean isPrefKey(String key) {
-    return AggregateServer.isPrefKey(key) || CentralServer.isPrefKey(key);
-  }
-
-  /**
-   * Stores in the given prefs object this RemoteServer's information used as a pull source or push target in the UI
-   */
-  void storeInPrefs(BriefcasePreferences prefs, boolean storePasswords);
-
-  /**
-   * Stores in the given prefs object this RemoteServer's information used to pull the given form.
-   */
-  void storeInPrefs(BriefcasePreferences prefs, boolean storePasswords, String formId);
-
-  static void clearStoredPrefs(BriefcasePreferences prefs) {
-    AggregateServer.clearStoredPrefs(prefs);
-    CentralServer.clearStoredPrefs(prefs);
-  }
-
-  /**
-   * Searches for keys used to store the last configured source in the Pull & Push
-   * panels and returns a non-empty value when they're found.
-   */
-  @SuppressWarnings("unchecked")
-  static <T extends RemoteServer> Optional<T> readFromPrefs(BriefcasePreferences prefs) {
-    // Hacky way to get the correct subtype. Basically, try to de-serialize saved prefs
-    // until one of the de-serializers successfully manages to get an instance
-    return Optionals.race(
-        AggregateServer.readFromPrefs(prefs).map(o -> (T) o),
-        CentralServer.readFromPrefs(prefs).map(o -> (T) o)
-    );
-  }
-
-  /**
-   * Searches for keys used to store the last used pull source for
-   * a form to support the "pull before export" feature and returns
-   * a non-empty value when they're found.
-   * <p>
-   * This method requires both the app's prefs object and the pull
-   * panel's prefs object to be able to be backwards-compatible with
-   * older versions that store prefs using different keys
-   */
-  @SuppressWarnings("unchecked")
-  static <T extends RemoteServer> Optional<T> readFromPrefs(BriefcasePreferences prefs, BriefcasePreferences pullPanelPrefs, FormKey formKey) {
-    // Hacky way to get the correct subtype. Basically, try to de-serialize saved prefs
-    // until one of the de-serializers successfully manages to get an instance
-    return Optionals.race(
-        AggregateServer.readFromPrefs(prefs, pullPanelPrefs, formKey).map(o -> (T) o),
-        CentralServer.readFromPrefs(prefs, formKey).map(o -> (T) o)
-    );
-  }
-
-  enum Type {
-    AGGREGATE("aggregate"),
-    CENTRAL("central");
-
-    private final String name;
-
-    Type(String name) {
-      this.name = name;
-    }
-
-    public static Type from(String name) {
-      return Stream.of(values())
-          .filter(v -> v.name.equals(name))
-          .findFirst()
-          .orElseThrow();
-    }
-
-    public String getName() {
-      return name;
-    }
-
-
-  }
-
   @FunctionalInterface
   interface Test<T extends RemoteServer> {
     Response test(T server);

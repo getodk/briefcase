@@ -161,11 +161,13 @@ public class PullFromAggregate {
       tracker.trackEnd();
       Cursor newCursor = getLastCursor(instanceIdBatches).orElse(Cursor.empty());
 
-      container.formMetadata.execute(upsert(targetFormMetadata.withCursor(newCursor)));
+      container.formMetadata.execute(upsert(targetFormMetadata
+          .withCursor(newCursor)
+          .withPullSource(server)));
+
 
       EventBus.publish(PullEvent.Success.of(formKey, server));
     });
-
   }
 
   Pair<FormMetadata, SubmissionKeyGenerator> downloadForm(FormMetadata sourceFormMetadata, Path targetFormFile, RunnerStatus runnerStatus, PullFromAggregateTracker tracker) {

@@ -22,10 +22,10 @@ import static org.opendatakit.briefcase.reused.api.UncheckedFiles.getFileExtensi
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.newInputStream;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.get;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.head;
-import static org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences.AGGREGATE_1_0_URL;
-import static org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences.PASSWORD;
-import static org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences.USERNAME;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
@@ -33,10 +33,11 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.DownloadedSubmission;
-import org.opendatakit.briefcase.reused.api.OptionalProduct;
-import org.opendatakit.briefcase.reused.api.Optionals;
+import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.api.Json;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Request;
@@ -44,14 +45,13 @@ import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 
 /**
  * This class represents a remote ODK Aggregate server and provides methods to get
  * the different HTTP requests available in Aggregate's web API.
  */
 // TODO v2.0 Test the methods that return Request objects
-public class AggregateServer implements RemoteServer {
+public class AggregateServer implements RemoteServer, SourceOrTarget {
   private final URL baseUrl;
   private final Optional<Credentials> credentials;
 
@@ -62,6 +62,13 @@ public class AggregateServer implements RemoteServer {
 
   public static AggregateServer authenticated(URL baseUrl, Credentials credentials) {
     return new AggregateServer(baseUrl, Optional.of(credentials));
+  }
+
+  public static AggregateServer from(JsonNode root) {
+    return new AggregateServer(
+        Json.get(root, "baseUrl").map(JsonNode::asText).map(RequestBuilder::url).orElseThrow(BriefcaseException::new),
+        Json.get(root, "credentials").map(Credentials::from)
+    );
   }
 
   public static AggregateServer normal(URL baseUrl) {
@@ -227,157 +234,20 @@ public class AggregateServer implements RemoteServer {
         .orElse("application/octet-stream");
   }
 
-
-  //region Saved preferences management - Soon to be replace by a database
-  private static String buildUrlKey() {
-    return "pull_source_aggregate_url";
-  }
-
-  private static String buildUrlKey(String formId) {
-    return String.format("%s_pull_source_aggregate_url", formId);
-  }
-
-  private static String buildUsernameKey() {
-    return "pull_source_aggregate_username";
-  }
-
-  private static String buildUsernameKey(String formId) {
-    return String.format("%s_pull_source_aggregate_username", formId);
-  }
-
-  private static String buildPasswordKey() {
-    return "pull_source_aggregate_password";
-  }
-
-  private static String buildPasswordKey(String formId) {
-    return String.format("%s_pull_source_aggregate_password", formId);
-  }
-
-  private static String buildLegacyUrlKey() {
-    return AGGREGATE_1_0_URL;
-  }
-
-  private static String buildLegacyUrlKey(String formId) {
-    return String.format("%s_pull_settings_url", formId);
-  }
-
-  private static String buildLegacyUsernameKey() {
-    return USERNAME;
-  }
-
-  private static String buildLegacyUsernameKey(String formId) {
-    return String.format("%s_pull_settings_username", formId);
-  }
-
-  private static String buildLegacyPasswordKey() {
-    return PASSWORD;
-  }
-
-  private static String buildLegacyPasswordKey(String formId) {
-    return String.format("%s_pull_settings_password", formId);
-  }
-
-  static boolean isPrefKey(String key) {
-    boolean sourceKey = key.equals(buildUrlKey())
-        || key.equals(buildUsernameKey())
-        || key.equals(buildPasswordKey());
-    boolean legacySourceKey = key.equals(buildLegacyUrlKey())
-        || key.equals(buildLegacyUsernameKey())
-        || key.equals(buildLegacyPasswordKey());
-    boolean formKey = key.endsWith(buildUrlKey(""))
-        || key.endsWith(buildUsernameKey(""))
-        || key.endsWith(buildPasswordKey(""));
-    boolean legacyFormKey = key.endsWith(buildLegacyUrlKey(""))
-        || key.endsWith(buildLegacyUsernameKey(""))
-        || key.endsWith(buildLegacyPasswordKey(""));
-    return sourceKey || legacySourceKey || formKey || legacyFormKey;
+  @Override
+  public ObjectNode asJson(ObjectMapper mapper) {
+    ObjectNode root = mapper.createObjectNode();
+    root.put("type", getType().getName());
+    root.put("baseUrl", baseUrl.toString());
+    ObjectNode credentialsNode = root.putObject("credentials");
+    credentials.map(c -> c.asJson(mapper)).ifPresent(credentialsNode::setAll);
+    return root;
   }
 
   @Override
-  public void storeInPrefs(BriefcasePreferences prefs, boolean storePasswords) {
-    clearStoredPrefs(prefs);
-
-    if (credentials.isEmpty()) {
-      prefs.put(buildUrlKey(), getBaseUrl().toString());
-      prefs.put(buildUsernameKey(), "");
-      prefs.put(buildPasswordKey(), "");
-    }
-
-    if (credentials.isPresent() && storePasswords) {
-      prefs.put(buildUrlKey(), getBaseUrl().toString());
-      prefs.put(buildUsernameKey(), credentials.get().getUsername());
-      prefs.put(buildPasswordKey(), credentials.get().getPassword());
-    }
+  public Type getType() {
+    return Type.AGGREGATE;
   }
-
-  @Override
-  public void storeInPrefs(BriefcasePreferences prefs, boolean storePasswords, String formId) {
-    clearStoredPrefs(prefs, formId);
-    if (storePasswords) {
-      prefs.put(buildUrlKey(formId), this.baseUrl.toString());
-      prefs.put(buildUsernameKey(formId), credentials.map(Credentials::getUsername).orElse(""));
-      prefs.put(buildPasswordKey(formId), credentials.map(Credentials::getPassword).orElse(""));
-    }
-  }
-
-  public static void clearStoredPrefs(BriefcasePreferences prefs) {
-    prefs.remove(buildUrlKey());
-    prefs.remove(buildUsernameKey());
-    prefs.remove(buildPasswordKey());
-    prefs.remove(buildLegacyUrlKey());
-    prefs.remove(buildLegacyUsernameKey());
-    prefs.remove(buildLegacyPasswordKey());
-  }
-
-  void clearStoredPrefs(BriefcasePreferences prefs, String formId) {
-    prefs.remove(buildUrlKey(formId));
-    prefs.remove(buildUsernameKey(formId));
-    prefs.remove(buildPasswordKey(formId));
-    prefs.remove(buildLegacyUrlKey(formId));
-    prefs.remove(buildLegacyUsernameKey(formId));
-    prefs.remove(buildLegacyPasswordKey(formId));
-  }
-
-  static Optional<AggregateServer> readFromPrefs(BriefcasePreferences prefs) {
-    return Optionals.race(
-        readFromPrefs(prefs, buildUrlKey(), buildUsernameKey(), buildPasswordKey()),
-        readFromPrefs(prefs, buildLegacyUrlKey(), buildLegacyUsernameKey(), buildLegacyPasswordKey())
-    );
-  }
-
-  public static Optional<AggregateServer> readFromPrefs(BriefcasePreferences prefs, BriefcasePreferences pullPanelPrefs, FormKey formKey) {
-    Optional<AggregateServer> maybeServer = Optionals.race(
-        readFromPrefs(prefs, buildUrlKey(formKey.getId()), buildUsernameKey(formKey.getId()), buildPasswordKey(formKey.getId())),
-        readFromPrefs(pullPanelPrefs, buildUrlKey(formKey.getId()), buildUsernameKey(formKey.getId()), buildPasswordKey(formKey.getId())),
-        readFromPrefs(prefs, buildLegacyUrlKey(formKey.getId()), buildLegacyUsernameKey(formKey.getId()), buildLegacyPasswordKey(formKey.getId())),
-        readFromPrefs(pullPanelPrefs, buildLegacyUrlKey(formKey.getId()), buildLegacyUsernameKey(formKey.getId()), buildLegacyPasswordKey(formKey.getId()))
-    );
-    maybeServer.ifPresent(server -> {
-      // Move prefs from legacy storage to new storage
-      server.clearStoredPrefs(pullPanelPrefs, formKey.getId());
-      // We assume storePasswords=true because if server has
-      // credentials, then storePasswords must be true, and
-      // if it doesn't have credentials, then storePasswords'
-      // value is irrelevant
-      server.storeInPrefs(prefs, true, formKey.getId());
-    });
-    return maybeServer;
-  }
-
-  private static Optional<AggregateServer> readFromPrefs(BriefcasePreferences prefs, String urlKey, String usernameKey, String passwordKey) {
-    if (!prefs.hasKey(urlKey))
-      return Optional.empty();
-
-    return Optional.of(new AggregateServer(
-        prefs.nullSafeGet(urlKey).map(RequestBuilder::url).get(),
-        OptionalProduct.all(
-            prefs.nullSafeGet(usernameKey).filter(s -> !s.isEmpty()),
-            prefs.nullSafeGet(passwordKey).filter(s -> !s.isEmpty())
-        ).map(Credentials::new)
-    ));
-  }
-  //endregion
-
 
   @Override
   public boolean equals(Object o) {

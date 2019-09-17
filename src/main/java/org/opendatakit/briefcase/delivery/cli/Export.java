@@ -15,24 +15,18 @@
  */
 package org.opendatakit.briefcase.delivery.cli;
 
-import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static org.opendatakit.briefcase.delivery.cli.Common.FORM_ID;
 import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
-import static org.opendatakit.briefcase.operations.export.ExportForms.buildExportDateTimePrefix;
+import static org.opendatakit.briefcase.operations.transfer.pull.Pull.buildPullJob;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
-import static org.opendatakit.briefcase.reused.model.form.FormMetadataQueries.lastCursorOf;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Optional;
-import org.opendatakit.briefcase.delivery.ui.export.ExportPanel;
 import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 import org.opendatakit.briefcase.operations.export.ExportToCsv;
 import org.opendatakit.briefcase.operations.export.ExportToGeoJson;
-import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
-import org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.cli.Args;
@@ -45,8 +39,6 @@ import org.opendatakit.briefcase.reused.model.DateRange;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,9 +84,6 @@ public class Export {
     boolean smartAppend = args.has(SMART_APPEND);
 
     CliEventsCompanion.attach(log);
-    BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
-    BriefcasePreferences exportPrefs = BriefcasePreferences.forClass(ExportPanel.class);
-    BriefcasePreferences pullPrefs = BriefcasePreferences.forClass(ExportPanel.class);
 
     Optional<FormMetadata> maybeFormStatus = container.formMetadata.fetchAll()
         .filter(formMetadata -> formMetadata.getKey().getId().equals(formId))
@@ -120,18 +109,9 @@ public class Export {
         .setSmartAppend(smartAppend)
         .build();
 
-    Job<Void> pullJob = Job.noOpSupplier();
-    if (configuration.resolvePullBefore()) {
-      Optional<AggregateServer> server = AggregateServer.readFromPrefs(appPreferences, pullPrefs, formMetadata.getKey());
-      if (server.isPresent()) {
-        Optional<Cursor> lastCursor = appPreferences.resolveStartFromLast()
-            ? container.formMetadata.query(lastCursorOf(formMetadata.getKey()))
-            : Optional.empty();
-
-        pullJob = new PullFromAggregate(container, server.get(), false, Export::onEvent)
-            .pull(formMetadata, formMetadata.getFormFile(), lastCursor);
-      }
-    }
+    Job<Void> pullJob = configuration.resolvePullBefore() && formMetadata.getPullSource().isPresent()
+        ? buildPullJob(container, formMetadata, Export::onEvent)
+        : Job.noOpSupplier();
 
     FormDefinition formDef = FormDefinition.from(formMetadata);
 
@@ -143,11 +123,7 @@ public class Export {
 
     Job<Void> job = pullJob
         .thenRun(exportJob)
-        .thenRun(exportGeoJsonJob)
-        .thenRun(__ -> exportPrefs.put(
-            buildExportDateTimePrefix(formMetadata.getKey().getId()),
-            LocalDateTime.now().format(ISO_DATE_TIME)
-        ));
+        .thenRun(exportGeoJsonJob);
 
     JobsRunner.launchAsync(job, Export::onError).waitForCompletion();
     System.out.println();

@@ -24,6 +24,7 @@ import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.CentralServerDialog;
+import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.operations.transfer.pull.central.PullFromCentral;
@@ -32,21 +33,20 @@ import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.Workspace;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.model.transfer.CentralServer;
 import org.opendatakit.briefcase.reused.model.transfer.RemoteServer.Test;
 
 /**
  * Represents an ODK Central server as a source of forms for the Pull UI Panel.
  */
-public class Central implements PullSource<CentralServer> {
+public class Central implements SourcePanelValueContainer {
   private final Workspace workspace;
   private final Container container;
   private final Test<CentralServer> serverTester;
-  private final Consumer<PullSource> onSourceCallback;
+  private final Consumer<SourcePanelValueContainer> onSourceCallback;
   private CentralServer server;
 
-  Central(Container container, Test<CentralServer> serverTester, Consumer<PullSource> onSourceCallback) {
+  Central(Container container, Test<CentralServer> serverTester, Consumer<SourcePanelValueContainer> onSourceCallback) {
     this.workspace = container.workspace;
     this.container = container;
     this.serverTester = serverTester;
@@ -63,8 +63,12 @@ public class Central implements PullSource<CentralServer> {
   }
 
   @Override
-  public void storeSourcePrefs(BriefcasePreferences prefs, boolean storePasswords) {
-    server.storeInPrefs(prefs, storePasswords);
+  public JobsRunner pull(TransferForms forms, boolean startFromLast) {
+    String token = container.http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
+    PullFromCentral pullOp = new PullFromCentral(container, server, token, EventBus::publish);
+    return JobsRunner
+        .launchAsync(forms.map(formMetadata -> pullOp.pull(formMetadata, workspace.buildFormFile(formMetadata))))
+        .onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
   @Override
@@ -100,23 +104,19 @@ public class Central implements PullSource<CentralServer> {
   }
 
   @Override
-  public void set(CentralServer server) {
-    this.server = server;
+  public void set(SourceOrTarget server) {
+    this.server = (CentralServer) server;
     onSourceCallback.accept(this);
+  }
+
+  @Override
+  public SourceOrTarget get() {
+    return server;
   }
 
   @Override
   public String toString() {
     return "Central server";
-  }
-
-  @Override
-  public JobsRunner pull(TransferForms forms, boolean startFromLast) {
-    String token = container.http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
-    PullFromCentral pullOp = new PullFromCentral(container, server, token, EventBus::publish);
-    return JobsRunner
-        .launchAsync(forms.map(formMetadata -> pullOp.pull(formMetadata, workspace.buildFormFile(formMetadata))))
-        .onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
 }

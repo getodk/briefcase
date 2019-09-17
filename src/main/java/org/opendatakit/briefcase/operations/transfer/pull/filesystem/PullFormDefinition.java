@@ -45,7 +45,7 @@ public class PullFormDefinition {
 
       installForm(sourceFormMetadata, targetFormMetadata, tracker);
 
-      container.formMetadata.execute(upsert(targetFormMetadata));
+      container.formMetadata.execute(upsert(targetFormMetadata.withPullSource(PathSourceOrTarget.formDefinitionAt(sourceFormMetadata.getFormFile()))));
 
       EventBus.publish(PullEvent.Success.of(targetFormMetadata.getKey()));
 

@@ -18,10 +18,10 @@ package org.opendatakit.briefcase.delivery.ui.transfer.push;
 
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.reused.model.Operation.PUSH;
-import static org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences.AGGREGATE_1_0_URL;
-import static org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences.PASSWORD;
-import static org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences.USERNAME;
-import static org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences.getStorePasswordsConsentProperty;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.removeCurrentTarget;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.setCurrentTarget;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceQueries.GET_CURRENT_TARGET;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceQueries.getRememberPasswords;
 
 import java.util.Optional;
 import javax.swing.JPanel;
@@ -30,7 +30,7 @@ import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.opendatakit.briefcase.delivery.ui.reused.Analytics;
 import org.opendatakit.briefcase.delivery.ui.transfer.TransferPanelForm;
-import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.PushTarget;
+import org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget.target.TargetPanelValueContainer;
 import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
 import org.opendatakit.briefcase.operations.transfer.push.PushEvent;
@@ -38,8 +38,6 @@ import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.preferences.SavePasswordsConsentRevoked;
-import org.opendatakit.briefcase.reused.model.transfer.RemoteServer;
 
 public class PushPanel {
   public static final String TAB_NAME = "Push";
@@ -50,9 +48,9 @@ public class PushPanel {
   private final Analytics analytics;
   private final Container container;
   private JobsRunner pushJobRunner;
-  private Optional<PushTarget> target;
+  private Optional<TargetPanelValueContainer> target;
 
-  private PushPanel(Container container, TransferPanelForm<PushTarget> view, TransferForms forms, BriefcasePreferences pushPreferences, BriefcasePreferences appPreferences, Analytics analytics) {
+  private PushPanel(Container container, TransferPanelForm<TargetPanelValueContainer> view, TransferForms forms, BriefcasePreferences pushPreferences, BriefcasePreferences appPreferences, Analytics analytics) {
     this.container = container;
     AnnotationProcessor.process(this);
     this.view = view;
@@ -63,22 +61,21 @@ public class PushPanel {
     getContainer().addComponentListener(analytics.buildComponentListener("Push"));
 
     // Read prefs and load saved remote server if available
-    this.target = RemoteServer.readFromPrefs(pushPreferences).flatMap(view::preloadOption);
-
-    this.target.ifPresent(source -> updateActionButtons());
+    target = container.preferences.query(GET_CURRENT_TARGET).flatMap(view::preloadSourceOrTarget);
+    target.ifPresent(source -> updateActionButtons());
 
     // Register callbacks to view events
     view.onSelect(target -> {
       this.target = Optional.of(target);
-      PushTarget.clearSourcePrefs(pushPreferences);
-      target.storeTargetPrefs(pushPreferences, getStorePasswordsConsentProperty());
+      if (container.preferences.query(getRememberPasswords()))
+        container.preferences.execute(setCurrentTarget(target.get()));
       updateActionButtons();
     });
 
     view.onReset(() -> {
       target = Optional.empty();
       view.clearAllStatusLines();
-      PushTarget.clearSourcePrefs(pushPreferences);
+      container.preferences.execute(removeCurrentTarget());
       updateActionButtons();
     });
 
@@ -142,18 +139,6 @@ public class PushPanel {
   public void onFormPulledSuccessfully(PullEvent.Success event) {
     updateForms();
     view.refresh();
-  }
-
-  @EventSubscriber(eventClass = SavePasswordsConsentRevoked.class)
-  public void onSavePasswordsConsentRevoked(SavePasswordsConsentRevoked event) {
-    pushPreferences.remove(AGGREGATE_1_0_URL);
-    pushPreferences.remove(USERNAME);
-    pushPreferences.remove(PASSWORD);
-    appPreferences.removeAll(appPreferences.keys().stream().filter((String key) ->
-        key.endsWith("_push_settings_url")
-            || key.endsWith("_push_settings_username")
-            || key.endsWith("_push_settings_password")
-    ).collect(toList()));
   }
 
   @EventSubscriber(eventClass = PushEvent.Complete.class)

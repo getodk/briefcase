@@ -6,9 +6,3 @@ CREATE TABLE preference (
 );
 
 INSERT INTO preference VALUES ('global', 'tracking consent', 'true');
-
-ALTER TABLE form_metadata
-    ADD COLUMN pull_source_type VARCHAR(128);
-
-ALTER TABLE form_metadata
-    ADD COLUMN pull_source_value LONGVARCHAR;

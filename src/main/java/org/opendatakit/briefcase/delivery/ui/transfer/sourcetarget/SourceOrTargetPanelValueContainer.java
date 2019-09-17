@@ -18,8 +18,9 @@ package org.opendatakit.briefcase.delivery.ui.transfer.sourcetarget;
 
 import java.awt.Container;
 import javax.swing.JLabel;
+import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 
-public interface SourceOrTarget<T> {
+public interface SourceOrTargetPanelValueContainer {
   void onSelect(Container container);
 
   void decorate(JLabel label);
@@ -28,5 +29,7 @@ public interface SourceOrTarget<T> {
 
   boolean accepts(Object o);
 
-  void set(T t);
+  void set(SourceOrTarget t);
+
+  SourceOrTarget get();
 }

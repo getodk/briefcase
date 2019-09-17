@@ -33,6 +33,11 @@ public class InMemoryFormMetadataAdapter implements FormMetadataPort {
   }
 
   @Override
+  public void forgetPullSources() {
+    store.forEach((key, formMetadata) -> store.put(key, formMetadata.withoutPullSource()));
+  }
+
+  @Override
   public void flush() {
     store.clear();
   }
