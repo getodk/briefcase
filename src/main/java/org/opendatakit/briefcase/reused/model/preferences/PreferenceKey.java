@@ -48,6 +48,7 @@ public class PreferenceKey<T> {
 
   public static class Global {
     public static final PreferenceKey<Boolean> TRACKING_CONSENT = globalBoolean("Tracking consent");
+    public static final PreferenceKey<Boolean> WELCOME_MESSAGE_SHOWED = globalBoolean("Tracking warning showed");
     public static final PreferenceKey<String> HTTP_PROXY_HOST = global("HTTP proxy host");
     public static final PreferenceKey<Integer> HTTP_PROXY_PORT = globalInt("HTTP proxy port");
     public static final PreferenceKey<Integer> MAX_HTTP_CONNECTIONS = globalInt("Max HTTP connections");

@@ -27,6 +27,9 @@ import static org.opendatakit.briefcase.delivery.ui.reused.UI.uncheckedBrowse;
 import static org.opendatakit.briefcase.reused.BriefcaseVersionManager.getLatestUrl;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.reused.job.JobsRunner.launchAsync;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.setWelcomeMessageShowed;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceQueries.getTrackingConsent;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceQueries.getWelcomeMessageShowed;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -55,11 +58,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MainBriefcaseWindow extends WindowAdapter {
-  private static final String TRACKING_WARNING = "" +
-      "We now send usage data (e.g., operating system, version number) and crash logs\n" +
-      "to the core developers to help prioritize features and fixes.\n\n" +
-      "If you do not want to contribute your usage data or crash logs, please uncheck\n" +
-      "that setting in the Settings tab.\n";
   private static final String BRIEFCASE_WELCOME = "" +
       "Welcome to ODK Briefcase! Here are three things you should know to get started.\n" +
       "\n" +
@@ -94,8 +92,6 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
   private MainBriefcaseWindow(Container container) {
     // Create all dependencies
-    BriefcasePreferences appPreferences = BriefcasePreferences.appScoped();
-    BriefcasePreferences pullPreferences = BriefcasePreferences.forClass(PullPanel.class);
     BriefcasePreferences exportPreferences = BriefcasePreferences.forClass(ExportPanel.class);
 
     Analytics analytics = Analytics.from(
@@ -105,13 +101,13 @@ public class MainBriefcaseWindow extends WindowAdapter {
         Toolkit.getDefaultToolkit().getScreenSize(),
         frame::getSize
     );
-    analytics.enableTracking(BriefcasePreferences.getBriefcaseTrackingConsentProperty());
+    analytics.enableTracking(container.preferences.query(getTrackingConsent()));
     analytics.enter("Briefcase");
     getRuntime().addShutdownHook(new Thread(() -> analytics.leave("Briefcase")));
 
     // Add panes to the tabbedPane
     addPane(PullPanel.TAB_NAME, PullPanel.from(container, analytics).getContainer());
-    addPane(PushPanel.TAB_NAME, PushPanel.from(container, analytics, appPreferences).getContainer());
+    addPane(PushPanel.TAB_NAME, PushPanel.from(container, analytics).getContainer());
     addPane(ExportPanel.TAB_NAME, ExportPanel.from(container, exportPreferences, analytics).getForm().getContainer());
     addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(container, analytics).getContainer());
 
@@ -151,16 +147,9 @@ public class MainBriefcaseWindow extends WindowAdapter {
 
     AnnotationProcessor.process(this);
 
-    if (isFirstLaunch()) {
+    if (container.preferences.query(getWelcomeMessageShowed())) {
       showWelcomeMessage();
-      appPreferences.setTrackingWarningShowed();
-    }
-
-    // Starting with Briefcase version 1.10.0, tracking is enabled by default.
-    // Users upgrading from previous versions must be warned about this.
-    if (isFirstLaunchAfterTrackingUpgrade(appPreferences)) {
-      showTrackingWarning();
-      appPreferences.setTrackingWarningShowed();
+      container.preferences.execute(setWelcomeMessageShowed(true));
     }
   }
 
@@ -170,21 +159,8 @@ public class MainBriefcaseWindow extends WindowAdapter {
     frame.pack();
   }
 
-  private void showTrackingWarning() {
-    infoMessage(TRACKING_WARNING);
-  }
-
   private void showWelcomeMessage() {
     infoMessage(BRIEFCASE_WELCOME);
-  }
-
-  private boolean isFirstLaunchAfterTrackingUpgrade(BriefcasePreferences appPreferences) {
-    return !appPreferences.hasTrackingWarningBeenShowed();
-  }
-
-  private boolean isFirstLaunch() {
-    // TODO Implement this using the db. For now, skip
-    return false;
   }
 
   private void addPane(String title, Component pane) {

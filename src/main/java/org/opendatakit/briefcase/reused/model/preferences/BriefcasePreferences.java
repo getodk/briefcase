@@ -23,24 +23,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
-import org.apache.http.HttpHost;
-import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.reused.api.OptionalProduct;
 
 public class BriefcasePreferences {
-  public static final String USERNAME = "username";
-  public static final String PASSWORD = "password";
-  public static final String AGGREGATE_1_0_URL = "url_1_0";
-
-  private static final String BRIEFCASE_PROXY_HOST_PROPERTY = "briefcaseProxyHost";
-  private static final String BRIEFCASE_PROXY_PORT_PROPERTY = "briefcaseProxyPort";
-  private static final String BRIEFCASE_START_FROM_LAST_PROPERTY = "briefcaseResumeLastPull";
-  private static final String BRIEFCASE_TRACKING_CONSENT_PROPERTY = "briefcaseTrackingConsent";
-  private static final String BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY = "briefcaseStorePasswordsConsent";
   private static final String BRIEFCASE_UNIQUE_USER_ID_PROPERTY = "uniqueUserID";
-  private static final String BRIEFCASE_MAX_HTTP_CONNECTIONS_PROPERTY = "maxHttpConnections";
   public static final String BRIEFCASE_DIR = "ODK Briefcase Storage";
-  private static final String TRACKING_WARNING_SHOWED_PREF_KEY = "tracking warning showed";
 
   private final Preferences preferences;
   public Class<?> node;
@@ -81,73 +67,8 @@ public class BriefcasePreferences {
     preferences.remove(key);
   }
 
-  private void removeAll(String... keys) {
-    removeAll(Arrays.asList(keys));
-  }
-
   public void removeAll(List<String> keys) {
     keys.forEach(this::remove);
-  }
-
-  public Optional<HttpHost> getHttpProxy() {
-    return OptionalProduct.all(
-        nullSafeGet(BRIEFCASE_PROXY_HOST_PROPERTY),
-        nullSafeGet(BRIEFCASE_PROXY_PORT_PROPERTY).map(Integer::parseInt)
-    ).map(HttpHost::new);
-  }
-
-  public void setHttpProxy(HttpHost proxy) {
-    put(BRIEFCASE_PROXY_HOST_PROPERTY, proxy.getHostName());
-    put(BRIEFCASE_PROXY_PORT_PROPERTY, Integer.valueOf(proxy.getPort()).toString());
-  }
-
-  public void unsetHttpProxy() {
-    removeAll(BRIEFCASE_PROXY_HOST_PROPERTY, BRIEFCASE_PROXY_PORT_PROPERTY);
-  }
-
-  public Optional<Boolean> getStartFromLast() {
-    return nullSafeGet(BRIEFCASE_START_FROM_LAST_PROPERTY).map(Boolean::parseBoolean);
-  }
-
-  public Optional<Integer> getMaxHttpConnections() {
-    return nullSafeGet(BRIEFCASE_MAX_HTTP_CONNECTIONS_PROPERTY).map(Integer::parseInt);
-  }
-
-  public void setMaxHttpConnections(int value) {
-    put(BRIEFCASE_MAX_HTTP_CONNECTIONS_PROPERTY, String.valueOf(value));
-  }
-
-  public void setStartFromLast(Boolean enabled) {
-    put(BRIEFCASE_START_FROM_LAST_PROPERTY, enabled.toString());
-  }
-
-  public void setRememberPasswords(Boolean enabled) {
-    put(BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY, enabled.toString());
-    EventBus.publish(enabled ? new SavePasswordsConsentGiven() : new SavePasswordsConsentRevoked());
-  }
-
-  public Optional<Boolean> getRememberPasswords() {
-    return nullSafeGet(BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY).map(Boolean::parseBoolean);
-  }
-
-  public void setSendUsage(Boolean enabled) {
-    put(BRIEFCASE_TRACKING_CONSENT_PROPERTY, enabled.toString());
-  }
-
-  public Optional<Boolean> getSendUsageData() {
-    return nullSafeGet(BRIEFCASE_TRACKING_CONSENT_PROPERTY).map(Boolean::parseBoolean);
-  }
-
-  public void setTrackingWarningShowed() {
-    put(TRACKING_WARNING_SHOWED_PREF_KEY, Boolean.TRUE.toString());
-  }
-
-  public boolean hasTrackingWarningBeenShowed() {
-    return hasKey(TRACKING_WARNING_SHOWED_PREF_KEY);
-  }
-
-  public boolean resolveStartFromLast() {
-    return getStartFromLast().orElse(false);
   }
 
   private enum PreferenceScope {
@@ -176,18 +97,6 @@ public class BriefcasePreferences {
     return Preference.APPLICATION_SCOPED;
   }
 
-  public static boolean getBriefcaseTrackingConsentProperty() {
-    return getBooleanProperty(BRIEFCASE_TRACKING_CONSENT_PROPERTY);
-  }
-
-  public static boolean getStorePasswordsConsentProperty() {
-    return getBooleanProperty(BRIEFCASE_STORE_PASSWORDS_CONSENT_PROPERTY);
-  }
-
-  private static boolean getBooleanProperty(String key) {
-    return Boolean.parseBoolean(Preference.APPLICATION_SCOPED.get(key, Boolean.FALSE.toString()));
-  }
-
   public static String getUniqueUserID() {
     String defaultUuidValue = "UUID missing, defaulting to this message";
     String uniqueUserID = Preference.APPLICATION_SCOPED.get(BRIEFCASE_UNIQUE_USER_ID_PROPERTY, defaultUuidValue);
@@ -204,9 +113,4 @@ public class BriefcasePreferences {
       throw new RuntimeException(e);
     }
   }
-
-  public boolean hasKey(String key) {
-    return keys().contains(key);
-  }
-
 }

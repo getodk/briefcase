@@ -9,6 +9,7 @@ import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.G
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.REMEMBER_PASSWORDS;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.START_PULL_FROM_LAST;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.TRACKING_CONSENT;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.WELCOME_MESSAGE_SHOWED;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Local.currentSourceOrTarget;
 
 import java.util.function.Consumer;
@@ -19,6 +20,10 @@ import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 public class PreferenceCommands {
   public static Consumer<PreferencePort> setTrackingConsent(boolean value) {
     return port -> port.persist(Preference.of(TRACKING_CONSENT, value));
+  }
+
+  public static Consumer<PreferencePort> setWelcomeMessageShowed(boolean value) {
+    return port -> port.persist(Preference.of(WELCOME_MESSAGE_SHOWED, value));
   }
 
   public static Consumer<PreferencePort> setHttpProxy(HttpHost proxy) {

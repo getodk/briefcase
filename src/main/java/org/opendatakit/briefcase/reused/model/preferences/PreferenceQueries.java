@@ -8,6 +8,7 @@ import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.G
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.REMEMBER_PASSWORDS;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.START_PULL_FROM_LAST;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.TRACKING_CONSENT;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.WELCOME_MESSAGE_SHOWED;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Local.currentSourceOrTarget;
 
 import java.util.Optional;
@@ -19,6 +20,10 @@ import org.opendatakit.briefcase.reused.api.OptionalProduct;
 public class PreferenceQueries {
   public static Function<PreferencePort, Boolean> getTrackingConsent() {
     return port -> port.fetch(TRACKING_CONSENT).getValue();
+  }
+
+  public static Function<PreferencePort, Boolean> getWelcomeMessageShowed() {
+    return port -> port.fetchOptional(WELCOME_MESSAGE_SHOWED).map(Preference::getValue).orElse(false);
   }
 
   public static Function<PreferencePort, Optional<HttpHost>> getHttpProxy() {
