@@ -24,6 +24,9 @@ import static org.opendatakit.briefcase.delivery.ui.reused.filsystem.FileChooser
 import static org.opendatakit.briefcase.reused.api.StringUtils.stripIllegalChars;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.exists;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,6 +46,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import org.bouncycastle.openssl.PEMReader;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.api.Json;
 import org.opendatakit.briefcase.reused.api.StringUtils;
 import org.opendatakit.briefcase.reused.api.TriStateBoolean;
 import org.opendatakit.briefcase.reused.api.UncheckedFiles;
@@ -93,6 +97,22 @@ public class ExportConfiguration {
     this.includeGeoJsonExport = includeGeoJsonExport;
     this.removeGroupNames = removeGroupNames;
     this.smartAppend = smartAppend;
+  }
+
+  public static ExportConfiguration from(JsonNode root) {
+    return new ExportConfiguration(
+        Json.get(root, "exportFilename").map(JsonNode::asText),
+        Json.get(root, "exportDir").map(JsonNode::asText).map(Paths::get),
+        Json.get(root, "pemFile").map(JsonNode::asText).map(Paths::get),
+        Json.get(root, "dateRange").flatMap(DateRange::from).orElse(DateRange.empty()),
+        Json.get(root, "startFromLast").map(OverridableBoolean::from).orElse(OverridableBoolean.empty()),
+        Json.get(root, "overwriteFiles").map(OverridableBoolean::from).orElse(OverridableBoolean.empty()),
+        Json.get(root, "exportMedia").map(OverridableBoolean::from).orElse(OverridableBoolean.empty()),
+        Json.get(root, "splitSelectMultiples").map(OverridableBoolean::from).orElse(OverridableBoolean.empty()),
+        Json.get(root, "includeGeoJsonExport").map(OverridableBoolean::from).orElse(OverridableBoolean.empty()),
+        Json.get(root, "removeGroupNames").map(OverridableBoolean::from).orElse(OverridableBoolean.empty()),
+        Json.get(root, "smartAppend").map(OverridableBoolean::from).orElse(OverridableBoolean.empty())
+    );
   }
 
   public static List<String> keys() {
@@ -296,6 +316,22 @@ public class ExportConfiguration {
 
   Path getAuditPath(String formName) {
     return exportDir.orElseThrow(BriefcaseException::new).resolve(formName + " - audit.csv");
+  }
+
+  public ObjectNode asJson(ObjectMapper mapper) {
+    ObjectNode root = mapper.createObjectNode();
+    root.put("exportFilename", exportFileName.map(Object::toString).orElse(null));
+    root.put("exportDir", exportDir.map(Object::toString).orElse(null));
+    root.put("pemFile", pemFile.map(Object::toString).orElse(null));
+    root.putObject("dateRange").setAll(dateRange.asJson(mapper));
+    root.putObject("startFromLast").setAll(pullBefore.asJson(mapper));
+    root.putObject("overwriteFiles").setAll(overwriteFiles.asJson(mapper));
+    root.putObject("exportMedia").setAll(exportMedia.asJson(mapper));
+    root.putObject("splitSelectMultiples").setAll(splitSelectMultiples.asJson(mapper));
+    root.putObject("includeGeoJsonExport").setAll(includeGeoJsonExport.asJson(mapper));
+    root.putObject("removeGroupNames").setAll(removeGroupNames.asJson(mapper));
+    root.putObject("smartAppend").setAll(smartAppend.asJson(mapper));
+    return root;
   }
 
   @Override

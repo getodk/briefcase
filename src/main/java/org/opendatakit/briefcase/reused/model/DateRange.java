@@ -15,6 +15,11 @@
  */
 package org.opendatakit.briefcase.reused.model;
 
+import static java.time.format.DateTimeFormatter.ISO_DATE;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
@@ -22,6 +27,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.api.Json;
 import org.opendatakit.briefcase.reused.api.OptionalProduct;
 
 /**
@@ -58,6 +64,13 @@ public class DateRange {
 
   public static DateRange empty() {
     return new DateRange(Optional.empty(), Optional.empty());
+  }
+
+  public static Optional<DateRange> from(JsonNode root) {
+    return OptionalProduct.all(
+        Json.get(root, "start").map(JsonNode::asText).map(LocalDate::parse),
+        Json.get(root, "end").map(JsonNode::asText).map(LocalDate::parse)
+    ).map(DateRange::from);
   }
 
   /**
@@ -136,4 +149,10 @@ public class DateRange {
   }
 
 
+  public ObjectNode asJson(ObjectMapper mapper) {
+    ObjectNode root = mapper.createObjectNode();
+    root.put("start", start.map(date -> date.format(ISO_DATE)).orElse(null));
+    root.put("end", end.map(date -> date.format(ISO_DATE)).orElse(null));
+    return root;
+  }
 }

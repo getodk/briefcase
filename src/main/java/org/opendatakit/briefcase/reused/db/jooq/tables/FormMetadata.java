@@ -30,7 +30,7 @@ import org.opendatakit.briefcase.reused.db.jooq.tables.records.FormMetadataRecor
 @SuppressWarnings({"all", "unchecked", "rawtypes"})
 public class FormMetadata extends TableImpl<FormMetadataRecord> {
 
-  private static final long serialVersionUID = -1295114092;
+  private static final long serialVersionUID = -740371929;
 
   /**
    * The reference instance of <code>PUBLIC.FORM_METADATA</code>
@@ -104,6 +104,11 @@ public class FormMetadata extends TableImpl<FormMetadataRecord> {
    * The column <code>PUBLIC.FORM_METADATA.PULL_SOURCE</code>.
    */
   public final TableField<FormMetadataRecord, String> PULL_SOURCE = createField("PULL_SOURCE", org.jooq.impl.SQLDataType.VARCHAR(16777216), this, "");
+
+  /**
+   * The column <code>PUBLIC.FORM_METADATA.EXPORT_CONFIGURATION</code>.
+   */
+  public final TableField<FormMetadataRecord, String> EXPORT_CONFIGURATION = createField("EXPORT_CONFIGURATION", org.jooq.impl.SQLDataType.VARCHAR(16777216), this, "");
 
   /**
    * Create a <code>PUBLIC.FORM_METADATA</code> table reference

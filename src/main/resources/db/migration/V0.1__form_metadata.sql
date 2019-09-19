@@ -11,6 +11,7 @@ CREATE TABLE form_metadata (
     last_exported_date_time            TIMESTAMP WITH TIME ZONE,
     last_exported_submission_date_time TIMESTAMP WITH TIME ZONE,
     pull_source                        LONGVARCHAR,
+    export_configuration               LONGVARCHAR,
     PRIMARY KEY (form_id, form_version),
     CHECK (form_id != '')
 );

@@ -5,8 +5,12 @@ import static org.opendatakit.briefcase.reused.api.TriStateBoolean.UNDETERMINED;
 import static org.opendatakit.briefcase.reused.api.TriStateBoolean.isNotUndetermined;
 import static org.opendatakit.briefcase.reused.api.TriStateBoolean.isUndetermined;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Objects;
 import java.util.Optional;
+import org.opendatakit.briefcase.reused.api.Json;
 import org.opendatakit.briefcase.reused.api.TriStateBoolean;
 
 public class OverridableBoolean {
@@ -62,6 +66,13 @@ public class OverridableBoolean {
     }
   }
 
+  public static OverridableBoolean from(JsonNode root) {
+    return new OverridableBoolean(
+        Json.get(root, "value").map(JsonNode::asBoolean),
+        Json.get(root, "overrideValue").map(JsonNode::asBoolean).map(TriStateBoolean::of).orElse(UNDETERMINED)
+    );
+  }
+
   public String serialize() {
     return value.map(Object::toString).orElse("") + "," + overrideValue.name();
   }
@@ -94,5 +105,12 @@ public class OverridableBoolean {
   @Override
   public int hashCode() {
     return Objects.hash(value, overrideValue);
+  }
+
+  public ObjectNode asJson(ObjectMapper mapper) {
+    ObjectNode root = mapper.createObjectNode();
+    root.put("value", value.orElse(null));
+    root.put("overrideValue", isUndetermined(overrideValue) ? null : overrideValue.getBooleanValue());
+    return root;
   }
 }

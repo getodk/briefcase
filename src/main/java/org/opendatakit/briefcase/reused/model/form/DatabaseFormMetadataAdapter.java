@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.Workspace;
@@ -83,6 +84,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         .set(FORM_METADATA.LAST_EXPORTED_DATE_TIME, formMetadata.getLastExportedDateTime().orElse(null))
         .set(FORM_METADATA.LAST_EXPORTED_SUBMISSION_DATE_TIME, formMetadata.getLastExportedSubmissionDateTime().orElse(null))
         .set(FORM_METADATA.PULL_SOURCE, formMetadata.getPullSource().map(sot -> sot.asJson(mapper)).map(Json::serialize).orElse(null))
+        .set(FORM_METADATA.EXPORT_CONFIGURATION, formMetadata.getExportConfiguration().map(ec -> ec.asJson(mapper)).map(Json::serialize).orElse(null))
         // TODO deal with the new fields pull_source_type and pull_source_value
         .whenNotMatchedThenInsert(
             FORM_METADATA.FORM_ID,
@@ -96,7 +98,8 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
             FORM_METADATA.URL_DOWNLOAD,
             FORM_METADATA.LAST_EXPORTED_DATE_TIME,
             FORM_METADATA.LAST_EXPORTED_SUBMISSION_DATE_TIME,
-            FORM_METADATA.PULL_SOURCE
+            FORM_METADATA.PULL_SOURCE,
+            FORM_METADATA.EXPORT_CONFIGURATION
         )
         .values(
             value(formMetadata.getKey().getId()),
@@ -110,7 +113,8 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
             value(formMetadata.getDownloadUrl().map(Objects::toString).orElse(null)),
             value(formMetadata.getLastExportedDateTime().orElse(null)),
             value(formMetadata.getLastExportedSubmissionDateTime().orElse(null)),
-            value(formMetadata.getPullSource().map(sot -> sot.asJson(mapper)).map(Json::serialize).orElse(null))
+            value(formMetadata.getPullSource().map(sot -> sot.asJson(mapper)).map(Json::serialize).orElse(null)),
+            value(formMetadata.getExportConfiguration().map(ec -> ec.asJson(mapper)).map(Json::serialize).orElse(null))
             // TODO deal with the new fields pull_source_type and pull_source_value
         )
     );
@@ -154,7 +158,8 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         Optional.ofNullable(record.getUrlDownload()).map(RequestBuilder::url),
         Optional.ofNullable(record.getLastExportedDateTime()),
         Optional.ofNullable(record.getLastExportedSubmissionDateTime()),
-        Optional.ofNullable(record.getPullSource()).map(Json::deserialize).map(SourceOrTarget::from)
+        Optional.ofNullable(record.getPullSource()).map(Json::deserialize).map(SourceOrTarget::from),
+        Optional.ofNullable(record.getPullSource()).map(Json::deserialize).map(ExportConfiguration::from)
     );
   }
 
