@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.prefs.Preferences;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 
@@ -77,5 +78,13 @@ public class Workspace {
     } catch (IOException e) {
       return emptySet();
     }
+  }
+
+  public String getUniqueUserId() {
+    String defaultUuidValue = "UUID missing, defaulting to this message";
+    String uniqueUserID = prefs.get("uniqueUserID", defaultUuidValue);
+    if (uniqueUserID.equals(defaultUuidValue))
+      prefs.put("uniqueUserID", UUID.randomUUID().toString());
+    return prefs.get("uniqueUserID", defaultUuidValue);
   }
 }

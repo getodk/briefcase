@@ -1,5 +1,6 @@
 package org.opendatakit.briefcase.reused.model.preferences;
 
+import static org.opendatakit.briefcase.operations.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCategory.PULL;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCategory.PUSH;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.HTTP_PROXY_HOST;
@@ -9,11 +10,13 @@ import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.G
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.START_PULL_FROM_LAST;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.TRACKING_CONSENT;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.WELCOME_MESSAGE_SHOWED;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Local.DEFAULT_EXPORT_CONFIGURATION;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Local.currentSourceOrTarget;
 
 import java.util.Optional;
 import java.util.function.Function;
 import org.apache.http.HttpHost;
+import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 import org.opendatakit.briefcase.reused.api.OptionalProduct;
 
@@ -48,6 +51,11 @@ public class PreferenceQueries {
   public static Function<PreferencePort, Optional<SourceOrTarget>> GET_CURRENT_SOURCE = getCurrentSourceOrTarget(PULL);
 
   public static Function<PreferencePort, Optional<SourceOrTarget>> GET_CURRENT_TARGET = getCurrentSourceOrTarget(PUSH);
+
+  public static Function<PreferencePort, ExportConfiguration> GET_DEFAULT_EXPORT_CONFIGURATION = port -> port
+      .fetchOptional(DEFAULT_EXPORT_CONFIGURATION)
+      .map(Preference::getValue)
+      .orElse(empty().build());
 
   private static Function<PreferencePort, Optional<SourceOrTarget>> getCurrentSourceOrTarget(PreferenceCategory category) {
     return port -> port.fetchOptional(currentSourceOrTarget(category))

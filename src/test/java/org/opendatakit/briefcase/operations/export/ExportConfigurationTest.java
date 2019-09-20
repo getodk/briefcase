@@ -21,7 +21,6 @@ import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.matchers.ExportConfigurationMatchers.isEmpty;
 import static org.opendatakit.briefcase.matchers.ExportConfigurationMatchers.isValid;
 import static org.opendatakit.briefcase.operations.export.ExportConfiguration.Builder.empty;
-import static org.opendatakit.briefcase.operations.export.ExportConfiguration.Builder.load;
 import static org.opendatakit.briefcase.reused.api.TriStateBoolean.FALSE;
 import static org.opendatakit.briefcase.reused.api.TriStateBoolean.TRUE;
 import static org.opendatakit.briefcase.reused.api.TriStateBoolean.UNDETERMINED;
@@ -42,8 +41,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opendatakit.briefcase.operations.export.ExportConfiguration.Builder;
 import org.opendatakit.briefcase.reused.BriefcaseException;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.preferences.InMemoryPreferences;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportConfigurationTest {
@@ -99,14 +96,6 @@ public class ExportConfigurationTest {
   }
 
   @Test
-  public void the_builder_rejects_export_dirs_inside_a_Briefcase_storage_directory() {
-    Path wrongPath = BASE_TEMP_DIR.resolve(BriefcasePreferences.BRIEFCASE_DIR);
-    createDirectories(wrongPath);
-    createDirectories(wrongPath.resolve("forms"));
-    assertThat(Builder.empty().setExportDir(wrongPath).build(), isEmpty());
-  }
-
-  @Test
   public void the_builder_rejects_non_existent_pem_file() {
     Path wrongPath = Paths.get("some/path");
     assertThat(Builder.empty().setPemFile(wrongPath).build(), isEmpty());
@@ -129,26 +118,6 @@ public class ExportConfigurationTest {
     Builder.empty()
         .setStartDate(LocalDate.of(2018, 1, 1))
         .setEndDate(LocalDate.of(2017, 1, 1)).build();
-  }
-
-  @Test
-  public void it_has_a_factory_that_creates_a_new_instance_from_saved_preferences() {
-    BriefcasePreferences prefs = new BriefcasePreferences(InMemoryPreferences.empty());
-    prefs.putAll(VALID_CONFIG.asMap());
-
-    ExportConfiguration load = load(prefs);
-
-    assertThat(load, is(VALID_CONFIG));
-  }
-
-  @Test
-  public void the_factory_can_load_prefixed_keys_on_saved_preferences() {
-    BriefcasePreferences prefs = new BriefcasePreferences(InMemoryPreferences.empty());
-    prefs.putAll(VALID_CONFIG.asMap("some_prefix"));
-
-    ExportConfiguration load = load(prefs, "some_prefix");
-
-    assertThat(load, is(VALID_CONFIG));
   }
 
   @Test

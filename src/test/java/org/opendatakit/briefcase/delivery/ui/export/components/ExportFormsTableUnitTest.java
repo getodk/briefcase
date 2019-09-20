@@ -19,8 +19,7 @@ import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.operations.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataHelpers.buildFormStatusList;
 
-import java.util.HashMap;
-import java.util.function.Supplier;
+import java.util.Optional;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.opendatakit.briefcase.operations.export.ExportForms;
@@ -28,8 +27,8 @@ import org.opendatakit.briefcase.operations.export.ExportForms;
 public class ExportFormsTableUnitTest {
   @Test
   public void can_select_all_forms() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>());
-    TestExportFormsTableViewModel viewModel = new TestExportFormsTableViewModel(() -> true, forms);
+    ExportForms forms = new ExportForms(buildFormStatusList(10));
+    TestExportFormsTableViewModel viewModel = new TestExportFormsTableViewModel(forms);
     ExportFormsTable formsTable = new ExportFormsTable(forms, new TestExportFormsTableView(viewModel), viewModel);
 
     assertThat(forms.noneSelected(), Matchers.is(true));
@@ -41,8 +40,8 @@ public class ExportFormsTableUnitTest {
 
   @Test
   public void can_clear_selection_of_forms() {
-    ExportForms forms = new ExportForms(buildFormStatusList(10), empty().build(), new HashMap<>(), new HashMap<>());
-    TestExportFormsTableViewModel viewModel = new TestExportFormsTableViewModel(() -> true, forms);
+    ExportForms forms = new ExportForms(buildFormStatusList(10));
+    TestExportFormsTableViewModel viewModel = new TestExportFormsTableViewModel(forms);
     ExportFormsTable formsTable = new ExportFormsTable(forms, new TestExportFormsTableView(viewModel), viewModel);
     formsTable.selectAll();
 
@@ -58,8 +57,8 @@ public class ExportFormsTableUnitTest {
   }
 
   private class TestExportFormsTableViewModel extends ExportFormsTableViewModel {
-    TestExportFormsTableViewModel(Supplier<Boolean> rememberPasswordGetter, ExportForms forms) {
-      super(rememberPasswordGetter, forms);
+    TestExportFormsTableViewModel(ExportForms forms) {
+      super(__ -> Optional.empty(), __ -> empty().build(), () -> true, forms);
     }
   }
 }

@@ -146,6 +146,10 @@ public class FormMetadata {
     return new FormMetadata(key, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, Optional.empty(), exportConfiguration);
   }
 
+  public FormMetadata withExportConfiguration(ExportConfiguration exportConfiguration) {
+    return new FormMetadata(key, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, Optional.of(exportConfiguration));
+  }
+
   public FormMetadata withoutExportConfiguration() {
     return new FormMetadata(key, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, Optional.empty());
   }

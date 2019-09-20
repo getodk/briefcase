@@ -39,6 +39,14 @@ public class PreferenceKey<T> {
     return new PreferenceKey<>(category, name, serializer, deserializer);
   }
 
+  public PreferenceCategory getCategory() {
+    return category;
+  }
+
+  public String getName() {
+    return name;
+  }
+
   public T deserialize(String value) {
     return deserializer.apply(value);
   }
@@ -66,6 +74,11 @@ public class PreferenceKey<T> {
       return PreferenceKey.local(category, "Current source or target", Json::serialize, Json::deserialize);
     }
 
-    public static final PreferenceKey<ExportConfiguration> DEFAULT_EXPORT_CONFIGURATION = PreferenceKey.local(PreferenceCategory.EXPORT, "Default export configuration", conf -> Json.serialize(conf.asJson(Json.getMapper())), json -> ExportConfiguration.from(Json.deserialize(json)))
+    public static final PreferenceKey<ExportConfiguration> DEFAULT_EXPORT_CONFIGURATION = PreferenceKey.local(
+        PreferenceCategory.EXPORT,
+        "Default export configuration",
+        conf -> Json.serialize(conf.asJson(Json.getMapper())),
+        json -> ExportConfiguration.from(Json.deserialize(json))
+    );
   }
 }

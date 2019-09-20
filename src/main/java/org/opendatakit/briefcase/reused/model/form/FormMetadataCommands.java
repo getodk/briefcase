@@ -5,7 +5,6 @@ import static org.opendatakit.briefcase.reused.api.UncheckedFiles.walk;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.reused.model.XmlElement;
-import org.opendatakit.briefcase.reused.model.preferences.LegacyPrefs;
 
 public class FormMetadataCommands {
   public static Consumer<FormMetadataPort> upsert(FormMetadata formMetadata) {
@@ -36,15 +35,6 @@ public class FormMetadataCommands {
 
           // Build a FormMetadata from the form file
           .map(FormMetadata::from)
-
-          // Try to recover any missing cursor from the legacy Java prefs system
-          .map(metadata -> {
-            if (!metadata.getCursor().isEmpty())
-              return metadata;
-            return LegacyPrefs.readCursor(metadata.getKey().getId())
-                .map(metadata::withCursor)
-                .orElse(metadata);
-          })
 
           // Write updated metadata.json files
           .forEach(port::persist);

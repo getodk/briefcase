@@ -12,6 +12,7 @@ import static org.opendatakit.briefcase.reused.db.jooq.Tables.FORM_METADATA;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Paths;
+import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -142,6 +143,16 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
   public void forgetPullSources() {
     getDslContext().execute(update(FORM_METADATA)
         .set(FORM_METADATA.PULL_SOURCE, (String) null));
+  }
+
+  @Override
+  public ExportConfiguration getExportConfiguration(FormKey formKey) {
+    throw new RuntimeException("NOT IMPLEMENTED");
+  }
+
+  @Override
+  public Optional<OffsetDateTime> getLastExportDateTime(FormKey formKey) {
+    throw new RuntimeException("NOT IMPLEMENTED");
   }
 
   private FormMetadata mapToDomain(FormMetadataRecord record) {

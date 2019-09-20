@@ -17,13 +17,11 @@ package org.opendatakit.briefcase.delivery.ui.export;
 
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.delivery.ui.reused.UI.errorMessage;
-import static org.opendatakit.briefcase.operations.export.ExportConfiguration.Builder.empty;
-import static org.opendatakit.briefcase.operations.export.ExportConfiguration.Builder.load;
-import static org.opendatakit.briefcase.operations.export.ExportForms.buildCustomConfPrefix;
 import static org.opendatakit.briefcase.operations.transfer.pull.Pull.buildPullJob;
-import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.cleanAllExportConfigurations;
+import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.upsert;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.removeDefaultExportConfiguration;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.setDefaultExportConfiguration;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceQueries.GET_DEFAULT_EXPORT_CONFIGURATION;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,46 +40,43 @@ import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
+import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 
 public class ExportPanel {
   public static final String TAB_NAME = "Export";
 
   private final Container container;
   private final ExportForms forms;
-  private final ExportPanelForm form;
-  private final BriefcasePreferences exportPreferences;
+  private final ExportPanelForm panel;
   private final Analytics analytics;
 
-  ExportPanel(Container container, ExportForms forms, ExportPanelForm form, BriefcasePreferences exportPreferences, Analytics analytics) {
+  private ExportPanel(Container container, ExportForms forms, ExportPanelForm panel, Analytics analytics) {
     this.container = container;
     this.forms = forms;
-    this.form = form;
-    this.exportPreferences = exportPreferences;
+    this.panel = panel;
     this.analytics = analytics;
     AnnotationProcessor.process(this);// if not using AOP
-    analytics.register(form.getContainer());
+    analytics.register(panel.getContainer());
 
-    form.onDefaultConfSet(conf -> {
-      forms.updateDefaultConfiguration(conf);
-      container.preferences.execute(setDefaultExportConfiguration(conf));
-    });
+    panel.onDefaultConfSet(conf -> container.preferences.execute(setDefaultExportConfiguration(conf)));
 
-    form.onDefaultConfReset(() -> {
-      forms.updateDefaultConfiguration(empty().build());
-      container.preferences.execute(removeDefaultExportConfiguration());
-    });
+    panel.onDefaultConfReset(() -> container.preferences.execute(removeDefaultExportConfiguration()));
 
-    form.onChange(() -> {
-      updateCustomConfPreferences();
-      updateSelectButtons();
-    });
+    panel.onConfigurationSet(((formMetadata, conf) ->
+        container.formMetadata.execute(upsert(formMetadata.withExportConfiguration(conf)))
+    ));
 
-    form.onExport(() -> {
+    panel.onConfigurationReset((formMetadata ->
+        container.formMetadata.execute(upsert(formMetadata.withoutExportConfiguration()))
+    ));
+
+    panel.onChange(this::updateSelectButtons);
+
+    panel.onExport(() -> {
       List<String> errors = getErrors();
       if (errors.isEmpty()) {
-        form.setExporting();
+        panel.setExporting();
         new Thread(this::export).start();
       } else
         errorMessage(
@@ -95,17 +90,23 @@ public class ExportPanel {
     updateSelectButtons();
   }
 
+  private ExportConfiguration resolveConfiguration(FormKey formKey) {
+    ExportConfiguration overrideConfiguration = container.formMetadata.getExportConfiguration(formKey);
+    ExportConfiguration defaultConfiguration = container.preferences.query(GET_DEFAULT_EXPORT_CONFIGURATION);
+    return overrideConfiguration.fallingBackTo(defaultConfiguration);
+  }
+
   private List<String> getErrors() {
     List<String> errors = new ArrayList<>();
 
     if (!forms.someSelected())
       errors.add("- No forms have been selected. Please, select a form.");
 
-    if (!forms.allSelectedFormsHaveConfiguration())
-      errors.add("- Some forms are missing their export directory. Please, ensure that there's a default export directory or that you have set one in all custom configurations.");
-
     for (FormMetadata formMetadata : forms.getSelectedForms()) {
-      ExportConfiguration conf = forms.getConfiguration(formMetadata);
+      ExportConfiguration conf = resolveConfiguration(formMetadata.getKey());
+
+      if (!conf.isValid())
+        errors.add("- The form " + formMetadata.getFormName() + " has no valid configuration. Please, set a default configuration or review its custom configuration");
 
       if (formMetadata.isEncrypted() && !conf.isPemFilePresent())
         errors.add("- The form " + formMetadata.getFormName() + " is encrypted. Please, configure a PEM file.");
@@ -113,64 +114,44 @@ public class ExportPanel {
     return errors;
   }
 
-  private void updateCustomConfPreferences() {
-    container.formMetadata.execute(cleanAllExportConfigurations());
-
-    // Clean all custom conf keys
-    forms.forEach(formMetadata ->
-        exportPreferences.removeAll(ExportConfiguration.keys(buildCustomConfPrefix(formMetadata.getKey().getId())))
-    );
-
-    // Put custom confs
-    forms.getCustomConfigurations().forEach((formKey, configuration) ->
-        exportPreferences.putAll(configuration.asMap(buildCustomConfPrefix(formKey.getId())))
-    );
-  }
-
   private void updateSelectButtons() {
     if (forms.allSelected()) {
-      form.toggleClearAll();
+      panel.toggleClearAll();
     } else {
-      form.toggleSelectAll();
+      panel.toggleSelectAll();
     }
   }
 
-  public static ExportPanel from(Container container, BriefcasePreferences exportPreferences, Analytics analytics) {
-    ExportConfiguration initialDefaultConf = load(exportPreferences);
-    ExportForms forms = ExportForms.load(initialDefaultConf, container.formMetadata.fetchAll().collect(toList()), exportPreferences);
-    ExportPanelForm form = ExportPanelForm.from(container, forms, initialDefaultConf);
-    return new ExportPanel(
-        container,
-        forms,
-        form,
-        exportPreferences,
-        analytics
-    );
+  public static ExportPanel from(Container container, Analytics analytics) {
+    ExportForms forms = new ExportForms(container.formMetadata.fetchAll().collect(toList()));
+    ExportPanelForm panel = ExportPanelForm.from(container, forms, container.preferences.query(GET_DEFAULT_EXPORT_CONFIGURATION));
+    return new ExportPanel(container, forms, panel, analytics);
   }
 
   void updateForms() {
-    forms.merge(container.formMetadata.fetchAll().collect(toList()));
-    form.refresh();
+    forms.refresh(container.formMetadata.fetchAll().collect(toList()));
+    panel.refresh();
   }
 
-  public ExportPanelForm getForm() {
-    return form;
+  public ExportPanelForm getPanel() {
+    return panel;
   }
 
   private void export() {
     Stream<Job<?>> allJobs = forms.getSelectedForms().stream().map(formMetadata -> {
-      ExportConfiguration configuration = forms.getConfiguration(formMetadata);
+      ExportConfiguration conf = resolveConfiguration(formMetadata.getKey());
+
       FormDefinition formDef = FormDefinition.from(formMetadata);
       // TODO Abstract away the subtype of RemoteServer. This should say Optional<RemoteServer>
 
-      Job<Void> pullJob = configuration.resolvePullBefore() && formMetadata.getPullSource().isPresent()
+      Job<Void> pullJob = conf.resolvePullBefore() && formMetadata.getPullSource().isPresent()
           ? buildPullJob(container, formMetadata, EventBus::publish)
           : Job.noOpSupplier();
 
-      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(container, formMetadata, formDef, configuration));
+      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(container, formMetadata, formDef, conf));
 
-      Job<Void> exportGeoJsonJob = configuration.resolveIncludeGeoJsonExport()
-          ? Job.run(runnerStatus -> ExportToGeoJson.export(container, formMetadata, formDef, configuration))
+      Job<Void> exportGeoJsonJob = conf.resolveIncludeGeoJsonExport()
+          ? Job.run(runnerStatus -> ExportToGeoJson.export(container, formMetadata, formDef, conf))
           : Job.noOp;
 
       return pullJob
@@ -178,8 +159,8 @@ public class ExportPanel {
           .thenRun(exportGeoJsonJob);
     });
 
-    form.cleanAllStatusLines();
-    JobsRunner.launchAsync(allJobs).onComplete(form::unsetExporting).waitForCompletion();
+    panel.cleanAllStatusLines();
+    JobsRunner.launchAsync(allJobs).onComplete(panel::unsetExporting).waitForCompletion();
   }
 
   @EventSubscriber(eventClass = PullEvent.Success.class)

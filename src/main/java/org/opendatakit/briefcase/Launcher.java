@@ -67,8 +67,7 @@ public class Launcher {
   public static void main(String[] rawArgs) {
     Security.addProvider(new BouncyCastleProvider());
 
-    Preferences prefs = Preferences.userNodeForPackage(Workspace.class);
-    Workspace workspace = new Workspace(prefs);
+    Workspace workspace = new Workspace(Preferences.userNodeForPackage(Workspace.class));
     Http http = CommonsHttp.of(DEFAULT_HTTP_CONNECTIONS, Optional.empty());
     BriefcaseVersionManager versionManager = new BriefcaseVersionManager(http, VERSION);
     BriefcaseDb db = BriefcaseDb.create();
@@ -76,6 +75,7 @@ public class Launcher {
     FormMetadataPort formMetadataPort = DatabaseFormMetadataAdapter.from(workspace, db);
     SubmissionMetadataPort submissionMetadataPort = DatabaseSubmissionMetadataAdapter.from(workspace, db);
     PreferencePort preferencePort = DatabasePreferenceAdapter.from(db);
+
     Container container = new Container(workspace, http, versionManager, db, sentry, formMetadataPort, submissionMetadataPort, preferencePort);
 
     new Cli()
@@ -85,7 +85,7 @@ public class Launcher {
         .register(PushToCentral.create(container))
         .register(PullFromCollect.create(container))
         .register(Export.create(container))
-        .register(ClearPreferences.create())
+        .register(ClearPreferences.create(container))
         .registerDefault(LaunchGui.create(container))
         .before(args -> container.start(
             args.get(WORKSPACE_LOCATION),

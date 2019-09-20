@@ -15,47 +15,28 @@
  */
 package org.opendatakit.briefcase.delivery.cli;
 
-import static java.util.Comparator.naturalOrder;
 import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 
-import java.util.List;
-import java.util.stream.Stream;
-import org.opendatakit.briefcase.delivery.ui.export.ExportPanel;
-import org.opendatakit.briefcase.delivery.ui.transfer.pull.PullPanel;
-import org.opendatakit.briefcase.delivery.ui.transfer.push.PushPanel;
+import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
 import org.opendatakit.briefcase.reused.cli.Param;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 
 public class ClearPreferences {
 
   private static Param<Void> CLEAR = Param.flag("c", "clear_prefs", "Clear saved preferences");
 
-  public static Operation create() {
+  public static Operation create(Container container) {
     return new OperationBuilder()
         .withFlag(CLEAR)
         .withOptionalParams(WORKSPACE_LOCATION)
-        .withLauncher(args -> clear())
+        .withLauncher(args -> clear(container))
         .build();
   }
 
-  private static void clear() {
-    flush(BriefcasePreferences.appScoped());
-    Stream.of(
-        PullPanel.class,
-        PushPanel.class,
-        ExportPanel.class
-    ).map(BriefcasePreferences::forClass)
-        .forEach(ClearPreferences::flush);
+  private static void clear(Container container) {
+    container.preferences.fetchAll()
+        .forEach(preference -> System.out.println(String.format("(%s) %s", preference.getKey().getCategory().getName(), preference.getKey().getName())));
+    container.preferences.flush();
   }
-
-  private static void flush(BriefcasePreferences appPreferences) {
-    System.out.println("Clearing saved keys on " + appPreferences.node);
-    List<String> keys = appPreferences.keys();
-    appPreferences.removeAll(keys);
-    keys.sort(naturalOrder());
-    keys.forEach(key -> System.out.println("  " + key));
-  }
-
 }

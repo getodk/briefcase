@@ -53,7 +53,6 @@ import org.opendatakit.briefcase.delivery.ui.transfer.pull.PullPanel;
 import org.opendatakit.briefcase.delivery.ui.transfer.push.PushPanel;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.model.Host;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,13 +90,10 @@ public class MainBriefcaseWindow extends WindowAdapter {
   }
 
   private MainBriefcaseWindow(Container container) {
-    // Create all dependencies
-    BriefcasePreferences exportPreferences = BriefcasePreferences.forClass(ExportPanel.class);
-
     Analytics analytics = Analytics.from(
         GOOGLE_TRACKING_ID,
         VERSION,
-        BriefcasePreferences.getUniqueUserID(),
+        container.workspace.getUniqueUserId(),
         Toolkit.getDefaultToolkit().getScreenSize(),
         frame::getSize
     );
@@ -108,7 +104,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     // Add panes to the tabbedPane
     addPane(PullPanel.TAB_NAME, PullPanel.from(container, analytics).getContainer());
     addPane(PushPanel.TAB_NAME, PushPanel.from(container, analytics).getContainer());
-    addPane(ExportPanel.TAB_NAME, ExportPanel.from(container, exportPreferences, analytics).getForm().getContainer());
+    addPane(ExportPanel.TAB_NAME, ExportPanel.from(container, analytics).getPanel().getContainer());
     addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(container, analytics).getContainer());
 
     // Set up the frame and put the UI components in it

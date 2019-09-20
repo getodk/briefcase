@@ -31,4 +31,6 @@ public interface PreferencePort {
   <T> Preference<T> fetch(PreferenceKey<T> key);
 
   <T> Optional<Preference<T>> fetchOptional(PreferenceKey<T> preference);
+
+  Stream<Preference<?>> fetchAll();
 }

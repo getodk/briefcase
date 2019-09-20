@@ -15,11 +15,19 @@
  */
 package org.opendatakit.briefcase.delivery.ui.export.components;
 
+import java.time.OffsetDateTime;
+import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
+import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 import org.opendatakit.briefcase.operations.export.ExportEvent;
 import org.opendatakit.briefcase.operations.export.ExportForms;
+import org.opendatakit.briefcase.reused.model.form.FormKey;
+import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 
 public class ExportFormsTable {
   private final ExportFormsTableView view;
@@ -33,13 +41,21 @@ public class ExportFormsTable {
     AnnotationProcessor.process(this);
   }
 
-  public static ExportFormsTable from(Supplier<Boolean> rememberPasswordsGetter, ExportForms forms) {
-    ExportFormsTableViewModel viewModel = new ExportFormsTableViewModel(rememberPasswordsGetter, forms);
+  public static ExportFormsTable from(Function<FormKey, Optional<OffsetDateTime>> lastExportDateTimeGetter, Function<FormKey, ExportConfiguration> configurationGetter, Supplier<Boolean> rememberPasswordsGetter, ExportForms forms) {
+    ExportFormsTableViewModel viewModel = new ExportFormsTableViewModel(lastExportDateTimeGetter, configurationGetter, rememberPasswordsGetter, forms);
     return new ExportFormsTable(forms, new ExportFormsTableView(viewModel), viewModel);
   }
 
   public void onChange(Runnable callback) {
     viewModel.onChange(callback);
+  }
+
+  public void onConfigurationSet(BiConsumer<FormMetadata, ExportConfiguration> callback) {
+    viewModel.onConfigurationSet(callback);
+  }
+
+  public void onConfigurationReset(Consumer<FormMetadata> callback) {
+    viewModel.onConfigurationReset(callback);
   }
 
   public void selectAll() {
@@ -71,7 +87,6 @@ public class ExportFormsTable {
 
   @EventSubscriber(eventClass = ExportEvent.class)
   public void onExportEvent(ExportEvent event) {
-    forms.appendStatus(event);
     viewModel.refresh();
   }
 }

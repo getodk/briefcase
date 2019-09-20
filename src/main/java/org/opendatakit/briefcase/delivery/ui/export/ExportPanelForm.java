@@ -24,6 +24,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javax.swing.JButton;
@@ -38,6 +39,7 @@ import org.opendatakit.briefcase.delivery.ui.export.components.ExportFormsTableV
 import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 import org.opendatakit.briefcase.operations.export.ExportForms;
 import org.opendatakit.briefcase.reused.Container;
+import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 
 @SuppressWarnings("checkstyle:MethodName")
 public class ExportPanelForm {
@@ -93,7 +95,7 @@ public class ExportPanelForm {
     Supplier<Boolean> rememberPasswordsGetter = () -> container.preferences.query(getRememberPasswords());
     return new ExportPanelForm(
         rememberPasswordsGetter,
-        ExportFormsTable.from(rememberPasswordsGetter, forms),
+        ExportFormsTable.from(container.formMetadata::getLastExportDateTime, container.formMetadata::getExportConfiguration, rememberPasswordsGetter, forms),
         defaultConf
     );
   }
@@ -112,6 +114,14 @@ public class ExportPanelForm {
 
   void onChange(Runnable callback) {
     formsTable.onChange(callback);
+  }
+
+  public void onConfigurationSet(BiConsumer<FormMetadata, ExportConfiguration> callback) {
+    formsTable.onConfigurationSet(callback);
+  }
+
+  public void onConfigurationReset(Consumer<FormMetadata> callback) {
+    formsTable.onConfigurationReset(callback);
   }
 
   void toggleClearAll() {

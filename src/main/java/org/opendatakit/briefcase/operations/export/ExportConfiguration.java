@@ -36,11 +36,6 @@ import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -52,27 +47,11 @@ import org.opendatakit.briefcase.reused.api.TriStateBoolean;
 import org.opendatakit.briefcase.reused.api.UncheckedFiles;
 import org.opendatakit.briefcase.reused.model.DateRange;
 import org.opendatakit.briefcase.reused.model.OverridableBoolean;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ExportConfiguration {
   private static final Logger log = LoggerFactory.getLogger(ExportConfiguration.class);
-  private static final String EXPORT_DIR = "exportDir";
-  private static final String PEM_FILE = "pemFile";
-  private static final String START_DATE = "startDate";
-  private static final String END_DATE = "endDate";
-  private static final String PULL_BEFORE = "pullBefore";
-  private static final String PULL_BEFORE_OVERRIDE = "pullBeforeOverride";
-  private static final String OVERWRITE_FILES = "overwriteExistingFiles";
-  private static final String OVERWRITE_FILES_OVERRIDE = "overwriteFilesOverride";
-  private static final String EXPORT_MEDIA = "exportMedia";
-  private static final String EXPORT_MEDIA_OVERRIDE = "exportMediaOverride";
-  private static final String SPLIT_SELECT_MULTIPLES = "splitSelectMultiples";
-  private static final String SPLIT_SELECT_MULTIPLES_OVERRIDE = "splitSelectMultiplesOverride";
-  private static final String INCLUDE_GEOJSON_EXPORT = "includeGeoJsonExport";
-  private static final String REMOVE_GROUP_NAMES = "removeGroupNames";
-  private static final String SMART_APPEND = "smartAppend";
   private final Optional<String> exportFileName;
   private final Optional<Path> exportDir;
   private final Optional<Path> pemFile;
@@ -115,26 +94,6 @@ public class ExportConfiguration {
     );
   }
 
-  public static List<String> keys() {
-    return keys("");
-  }
-
-  public static List<String> keys(String keyPrefix) {
-    return Arrays.asList(
-        keyPrefix + EXPORT_DIR,
-        keyPrefix + PEM_FILE,
-        keyPrefix + START_DATE,
-        keyPrefix + END_DATE,
-        keyPrefix + PULL_BEFORE,
-        keyPrefix + OVERWRITE_FILES,
-        keyPrefix + EXPORT_MEDIA,
-        keyPrefix + SPLIT_SELECT_MULTIPLES,
-        keyPrefix + INCLUDE_GEOJSON_EXPORT,
-        keyPrefix + REMOVE_GROUP_NAMES,
-        keyPrefix + SMART_APPEND
-    );
-  }
-
   private static Optional<PrivateKey> readPemFile(Path pemFile) {
     try (InputStream is = newInputStream(pemFile);
          InputStreamReader isr = new InputStreamReader(is, UTF_8);
@@ -158,28 +117,6 @@ public class ExportConfiguration {
     } catch (IOException e) {
       throw new BriefcaseException("Briefcase can't read the pem file", e);
     }
-  }
-
-  public Map<String, String> asMap() {
-    return asMap("");
-  }
-
-  public Map<String, String> asMap(String keyPrefix) {
-    // This should be a stream of tuples that's reduces into a
-    // map but we'll have to wait for that
-    HashMap<String, String> map = new HashMap<>();
-    exportDir.ifPresent(value -> map.put(keyPrefix + EXPORT_DIR, value.toString()));
-    pemFile.ifPresent(value -> map.put(keyPrefix + PEM_FILE, value.toString()));
-    dateRange.ifStartPresent(value -> map.put(keyPrefix + START_DATE, value.format(DateTimeFormatter.ISO_DATE)));
-    dateRange.ifEndPresent(value -> map.put(keyPrefix + END_DATE, value.format(DateTimeFormatter.ISO_DATE)));
-    map.put(keyPrefix + PULL_BEFORE, pullBefore.serialize());
-    map.put(keyPrefix + OVERWRITE_FILES, overwriteFiles.serialize());
-    map.put(keyPrefix + EXPORT_MEDIA, exportMedia.serialize());
-    map.put(keyPrefix + SPLIT_SELECT_MULTIPLES, splitSelectMultiples.serialize());
-    map.put(keyPrefix + INCLUDE_GEOJSON_EXPORT, includeGeoJsonExport.serialize());
-    map.put(keyPrefix + REMOVE_GROUP_NAMES, removeGroupNames.serialize());
-    map.put(keyPrefix + SMART_APPEND, smartAppend.serialize());
-    return map;
   }
 
   public Path getExportDir() {
@@ -275,7 +212,7 @@ public class ExportConfiguration {
     return exportDir.isPresent();
   }
 
-  ExportConfiguration fallingBackTo(ExportConfiguration defaultConfiguration) {
+  public ExportConfiguration fallingBackTo(ExportConfiguration defaultConfiguration) {
     return Builder.empty()
         .setExportFilename(exportFileName.isPresent() ? exportFileName : defaultConfiguration.exportFileName)
         .setExportDir(exportDir.isPresent() ? exportDir : defaultConfiguration.exportDir)
@@ -390,37 +327,6 @@ public class ExportConfiguration {
 
     public static Builder empty() {
       return new Builder();
-    }
-
-    public static ExportConfiguration load(BriefcasePreferences prefs) {
-      return load(prefs, "");
-    }
-
-    public static ExportConfiguration load(BriefcasePreferences prefs, String keyPrefix) {
-      Optional<LocalDate> startDate = prefs.nullSafeGet(keyPrefix + START_DATE).map(LocalDate::parse);
-      Optional<LocalDate> endDate = prefs.nullSafeGet(keyPrefix + END_DATE).map(LocalDate::parse);
-      return empty()
-          .setExportDir(prefs.nullSafeGet(keyPrefix + EXPORT_DIR).map(Paths::get))
-          .setPemFile(prefs.nullSafeGet(keyPrefix + PEM_FILE).map(Paths::get))
-          .setDateRange(startDate, endDate)
-          .setPullBefore(readOverridableBoolean(prefs, keyPrefix + PULL_BEFORE, keyPrefix + PULL_BEFORE_OVERRIDE))
-          .setOverwriteFiles(readOverridableBoolean(prefs, keyPrefix + OVERWRITE_FILES, keyPrefix + OVERWRITE_FILES_OVERRIDE))
-          .setExportMedia(readOverridableBoolean(prefs, keyPrefix + EXPORT_MEDIA, keyPrefix + EXPORT_MEDIA_OVERRIDE))
-          .setSplitSelectMultiples(readOverridableBoolean(prefs, keyPrefix + SPLIT_SELECT_MULTIPLES, keyPrefix + SPLIT_SELECT_MULTIPLES_OVERRIDE))
-          .setIncludeGeoJsonExport(readOverridableBoolean(prefs, keyPrefix + INCLUDE_GEOJSON_EXPORT))
-          .setRemoveGroupNames(readOverridableBoolean(prefs, keyPrefix + REMOVE_GROUP_NAMES))
-          .setSmartAppend(readOverridableBoolean(prefs, keyPrefix + SMART_APPEND))
-          .build();
-    }
-
-    private static OverridableBoolean readOverridableBoolean(BriefcasePreferences prefs, String mainKey, String overrideKey) {
-      OverridableBoolean ob = prefs.nullSafeGet(mainKey).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty);
-      prefs.nullSafeGet(overrideKey).map(TriStateBoolean::from).ifPresent(ob::overrideWith);
-      return ob;
-    }
-
-    private static OverridableBoolean readOverridableBoolean(BriefcasePreferences prefs, String mainKey) {
-      return prefs.nullSafeGet(mainKey).map(OverridableBoolean::from).orElseGet(OverridableBoolean::empty);
     }
 
     public ExportConfiguration build() {

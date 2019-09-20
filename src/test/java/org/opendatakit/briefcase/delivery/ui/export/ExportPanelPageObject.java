@@ -22,8 +22,6 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.opendatakit.briefcase.delivery.ui.reused.NoOpAnalytics;
 import org.opendatakit.briefcase.reused.ContainerHelper;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
-import org.opendatakit.briefcase.reused.model.preferences.InMemoryPreferences;
 
 // TODO Adapt to new UI behavior
 class ExportPanelPageObject {
@@ -37,10 +35,8 @@ class ExportPanelPageObject {
 
   static ExportPanelPageObject setUp(Robot robot) {
     ExportPanel exportPanel = GuiActionRunner.execute(() -> {
-      BriefcasePreferences inMemoryPrefs = new BriefcasePreferences(InMemoryPreferences.empty());
       ExportPanel ep = ExportPanel.from(
           ContainerHelper.inMemory(),
-          inMemoryPrefs,
           new NoOpAnalytics()
       );
       ep.updateForms();
@@ -48,7 +44,7 @@ class ExportPanelPageObject {
     });
     JFrame testFrame = GuiActionRunner.execute(() -> {
       JFrame f = new JFrame();
-      f.add(exportPanel.getForm().getContainer());
+      f.add(exportPanel.getPanel().getContainer());
       return f;
     });
     FrameFixture window = new FrameFixture(robot, testFrame);
@@ -60,6 +56,6 @@ class ExportPanelPageObject {
   }
 
   JButton exportButton() {
-    return component.getForm().exportButton;
+    return component.getPanel().exportButton;
   }
 }

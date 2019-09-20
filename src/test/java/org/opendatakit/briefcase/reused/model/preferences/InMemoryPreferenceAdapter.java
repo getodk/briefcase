@@ -51,4 +51,9 @@ public class InMemoryPreferenceAdapter implements PreferencePort {
   public <T> Optional<Preference<T>> fetchOptional(PreferenceKey<T> preference) {
     return Optional.empty();
   }
+
+  @Override
+  public Stream<Preference<?>> fetchAll() {
+    return null;
+  }
 }

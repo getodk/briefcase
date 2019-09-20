@@ -22,16 +22,20 @@ import static java.time.format.FormatStyle.SHORT;
 import static org.opendatakit.briefcase.delivery.ui.export.components.ExportFormsTableView.EDITABLE_COLS;
 import static org.opendatakit.briefcase.delivery.ui.export.components.ExportFormsTableView.HEADERS;
 import static org.opendatakit.briefcase.delivery.ui.export.components.ExportFormsTableView.TYPES;
-import static org.opendatakit.briefcase.operations.export.ExportConfiguration.Builder.empty;
 
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Insets;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
@@ -48,6 +52,8 @@ import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 public class ExportFormsTableViewModel extends AbstractTableModel {
   private static final Color NO_CONF_OVERRIDE_COLOR = new Color(0, 128, 0);
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
+  private final List<BiConsumer<FormMetadata, ExportConfiguration>> onConfigurationSetCallbacks = new ArrayList<>();
+  private final List<Consumer<FormMetadata>> onConfigurationResetCallbacks = new ArrayList<>();
   private final Map<FormKey, JButton> detailButtons = new HashMap<>();
   private final Map<FormKey, JButton> confButtons = new HashMap<>();
   private final ExportForms forms;
@@ -55,10 +61,14 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
   private final Map<FormKey, String> lastStatusLine = new ConcurrentHashMap<>();
 
   private static final Font ic_settings = FontUtils.getCustomFont("ic_settings.ttf", 16f);
+  private final Function<FormKey, Optional<OffsetDateTime>> lastExportDateTimeGetter;
+  private final Function<FormKey, ExportConfiguration> configurationGetter;
   private final Supplier<Boolean> rememberPasswordsGetter;
   private boolean enabled = true;
 
-  ExportFormsTableViewModel(Supplier<Boolean> rememberPasswordsGetter, ExportForms forms) {
+  ExportFormsTableViewModel(Function<FormKey, Optional<OffsetDateTime>> lastExportDateTimeGetter, Function<FormKey, ExportConfiguration> configurationGetter, Supplier<Boolean> rememberPasswordsGetter, ExportForms forms) {
+    this.lastExportDateTimeGetter = lastExportDateTimeGetter;
+    this.configurationGetter = configurationGetter;
     this.rememberPasswordsGetter = rememberPasswordsGetter;
     AnnotationProcessor.process(this);
     this.forms = forms;
@@ -90,17 +100,21 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
     button.addActionListener(__ -> {
       if (enabled) {
         ConfigurationDialog dialog = ConfigurationDialog.overridePanel(
-            forms.getCustomConfiguration(formMetadata.getKey()).orElse(empty().build()),
+            configurationGetter.apply(formMetadata.getKey()),
             formName,
             formMetadata.hasPullSource(),
             rememberPasswordsGetter.get()
         );
-        dialog.onRemove(() -> removeConfiguration(formMetadata.getKey()));
+        dialog.onRemove(() -> {
+          onConfigurationResetCallbacks.forEach(c -> c.accept(formMetadata));
+        });
         dialog.onOK(configuration -> {
           if (configuration.isEmpty())
-            removeConfiguration(formMetadata.getKey());
+            onConfigurationResetCallbacks.forEach(c -> c.accept(formMetadata));
           else
-            putConfiguration(formMetadata.getKey(), configuration);
+            onConfigurationSetCallbacks.forEach(c -> c.accept(formMetadata, configuration));
+          updateConfButton(formMetadata.getKey(), confButtons.get(formMetadata.getKey()));
+          triggerChange();
         });
         dialog.open();
       }
@@ -108,16 +122,12 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
     return button;
   }
 
-  private void putConfiguration(FormKey formKey, ExportConfiguration configuration) {
-    forms.putConfiguration(formKey, configuration);
-    updateConfButton(formKey, confButtons.get(formKey));
-    triggerChange();
+  public void onConfigurationSet(BiConsumer<FormMetadata, ExportConfiguration> callback) {
+    onConfigurationSetCallbacks.add(callback);
   }
 
-  private void removeConfiguration(FormKey formKey) {
-    forms.removeConfiguration(formKey);
-    updateConfButton(formKey, confButtons.get(formKey));
-    triggerChange();
+  public void onConfigurationReset(Consumer<FormMetadata> callback) {
+    onConfigurationResetCallbacks.add(callback);
   }
 
   private void updateDetailButton(FormKey formKey, JButton button) {
@@ -125,7 +135,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
   }
 
   private void updateConfButton(FormKey formKey, JButton button) {
-    button.setForeground(forms.hasConfiguration(formKey) ? NO_CONF_OVERRIDE_COLOR : DARK_GRAY);
+    button.setForeground(configurationGetter.apply(formKey).isEmpty() ? NO_CONF_OVERRIDE_COLOR : DARK_GRAY);
   }
 
   @Override
@@ -153,7 +163,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
       case ExportFormsTableView.EXPORT_STATUS_COL:
         return lastStatusLine.getOrDefault(formKey, "");
       case ExportFormsTableView.LAST_EXPORT_COL:
-        return forms.getLastExportDateTime(formKey)
+        return lastExportDateTimeGetter.apply(formKey)
             .map(dateTime -> dateTime.format(ofLocalizedDateTime(SHORT, SHORT)))
             .orElse("Not exported yet");
       case ExportFormsTableView.DETAIL_BUTTON_COL:

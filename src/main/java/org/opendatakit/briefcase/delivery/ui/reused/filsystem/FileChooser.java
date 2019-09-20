@@ -32,7 +32,6 @@ import java.util.function.Predicate;
 import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
-import org.opendatakit.briefcase.reused.model.preferences.BriefcasePreferences;
 
 public interface FileChooser {
   /**
@@ -41,28 +40,21 @@ public interface FileChooser {
    * @param pathname the File to check
    */
   static boolean isUnderBriefcaseFolder(File pathname) {
-    File current = pathname;
     File parent = pathname == null ? null : pathname.getParentFile();
     while (parent != null) {
-      if (isStorageLocationParent(parent) && current.getName().equals(BriefcasePreferences.BRIEFCASE_DIR)) {
+      if (isStorageLocation(parent))
         return true;
-      }
-      current = parent;
       parent = parent.getParentFile();
     }
     return false;
   }
 
-  static boolean isStorageLocationParent(File pathname) {
-    if (!pathname.exists()) {
+  static boolean isStorageLocation(File path) {
+    if (!path.exists())
       return false;
-    }
-    File folder = new File(pathname, BriefcasePreferences.BRIEFCASE_DIR);
-    if (!folder.exists() || !folder.isDirectory()) {
-      return false;
-    }
-    File forms = new File(folder, "forms");
-    return forms.exists() && forms.isDirectory();
+    File forms = new File(path, "forms");
+    File db = new File(path, "db");
+    return forms.exists() && db.exists() && forms.isDirectory();
   }
 
   static boolean isODKDevice(File pathname) {
