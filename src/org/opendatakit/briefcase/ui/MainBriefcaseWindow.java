@@ -73,7 +73,7 @@ public class MainBriefcaseWindow {
 
   private final JFrame frame = new JFrame();
   private final JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-  private final JLabel versionLabel = new JLabel("Checking for updates...");
+  private final JLabel versionLabel = new JLabel("Checking for updates…");
   private final Map<String, Integer> tabTitleIndexes = new HashMap<>();
 
   public static void main(String[] args) {
