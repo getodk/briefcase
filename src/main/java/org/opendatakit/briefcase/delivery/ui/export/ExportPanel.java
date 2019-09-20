@@ -21,6 +21,9 @@ import static org.opendatakit.briefcase.operations.export.ExportConfiguration.Bu
 import static org.opendatakit.briefcase.operations.export.ExportConfiguration.Builder.load;
 import static org.opendatakit.briefcase.operations.export.ExportForms.buildCustomConfPrefix;
 import static org.opendatakit.briefcase.operations.transfer.pull.Pull.buildPullJob;
+import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.cleanAllExportConfigurations;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.removeDefaultExportConfiguration;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCommands.setDefaultExportConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,13 +65,12 @@ public class ExportPanel {
 
     form.onDefaultConfSet(conf -> {
       forms.updateDefaultConfiguration(conf);
-      exportPreferences.removeAll(ExportConfiguration.keys());
-      exportPreferences.putAll(conf.asMap());
+      container.preferences.execute(setDefaultExportConfiguration(conf));
     });
 
     form.onDefaultConfReset(() -> {
       forms.updateDefaultConfiguration(empty().build());
-      exportPreferences.removeAll(ExportConfiguration.keys());
+      container.preferences.execute(removeDefaultExportConfiguration());
     });
 
     form.onChange(() -> {
@@ -112,6 +114,8 @@ public class ExportPanel {
   }
 
   private void updateCustomConfPreferences() {
+    container.formMetadata.execute(cleanAllExportConfigurations());
+
     // Clean all custom conf keys
     forms.forEach(formMetadata ->
         exportPreferences.removeAll(ExportConfiguration.keys(buildCustomConfPrefix(formMetadata.getKey().getId())))

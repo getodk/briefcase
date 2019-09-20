@@ -10,11 +10,13 @@ import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.G
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.START_PULL_FROM_LAST;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.TRACKING_CONSENT;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.WELCOME_MESSAGE_SHOWED;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Local.DEFAULT_EXPORT_CONFIGURATION;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Local.currentSourceOrTarget;
 
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.apache.http.HttpHost;
+import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 
 public class PreferenceCommands {
@@ -71,5 +73,13 @@ public class PreferenceCommands {
 
   private static Consumer<PreferencePort> setCurrentSourceOrTarget(PreferenceCategory category, SourceOrTarget sourceOrTarget) {
     return port -> port.persist(Preference.of(currentSourceOrTarget(category), sourceOrTarget.asJson(getMapper())));
+  }
+
+  public static Consumer<PreferencePort> setDefaultExportConfiguration(ExportConfiguration conf) {
+    return port -> port.persist(Preference.of(DEFAULT_EXPORT_CONFIGURATION, conf));
+  }
+
+  public static Consumer<PreferencePort> removeDefaultExportConfiguration() {
+    return port -> port.remove(DEFAULT_EXPORT_CONFIGURATION);
   }
 }

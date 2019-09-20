@@ -2,6 +2,7 @@ package org.opendatakit.briefcase.reused.model.preferences;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.function.Function;
+import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 import org.opendatakit.briefcase.reused.api.Json;
 
 public class PreferenceKey<T> {
@@ -60,8 +61,11 @@ public class PreferenceKey<T> {
    * Keys that should be qualified with a particular PreferenceCategory
    */
   public static class Local {
+    // TODO Make this know about SourceOrTarget instead of JsonNodes
     public static PreferenceKey<JsonNode> currentSourceOrTarget(PreferenceCategory category) {
       return PreferenceKey.local(category, "Current source or target", Json::serialize, Json::deserialize);
     }
+
+    public static final PreferenceKey<ExportConfiguration> DEFAULT_EXPORT_CONFIGURATION = PreferenceKey.local(PreferenceCategory.EXPORT, "Default export configuration", conf -> Json.serialize(conf.asJson(Json.getMapper())), json -> ExportConfiguration.from(Json.deserialize(json)))
   }
 }

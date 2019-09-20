@@ -12,8 +12,14 @@ public class FormMetadataCommands {
     return port -> port.persist(formMetadata);
   }
 
+  // TODO Replace with more performant query built into the port
   public static Consumer<FormMetadataPort> cleanAllCursors() {
     return port -> port.persist(port.fetchAll().map(FormMetadata::withoutCursor));
+  }
+
+  // TODO Replace with more performant query built into the port
+  public static Consumer<FormMetadataPort> cleanAllExportConfigurations() {
+    return port -> port.persist(port.fetchAll().map(FormMetadata::withoutExportConfiguration));
   }
 
   public static Consumer<FormMetadataPort> syncWithFilesAt(Path workspaceLocation) {
