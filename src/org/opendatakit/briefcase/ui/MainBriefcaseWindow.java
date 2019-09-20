@@ -16,8 +16,8 @@
 
 package org.opendatakit.briefcase.ui;
 
-import static java.awt.GridBagConstraints.CENTER;
-import static java.awt.GridBagConstraints.WEST;
+import static java.awt.BorderLayout.CENTER;
+import static java.awt.BorderLayout.SOUTH;
 import static java.lang.Runtime.getRuntime;
 import static org.opendatakit.briefcase.buildconfig.BuildConfig.VERSION;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
@@ -31,22 +31,24 @@ import static org.opendatakit.briefcase.ui.reused.UI.makeClickable;
 import static org.opendatakit.briefcase.ui.reused.UI.uncheckedBrowse;
 import static org.opendatakit.briefcase.util.BriefcaseVersionManager.getLatestUrl;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.Container;
 import java.awt.Toolkit;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
+import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
@@ -137,33 +139,25 @@ public class MainBriefcaseWindow {
     addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(appPreferences, analytics, formCache, http, versionManager, formMetadataAdapter).getContainer());
 
     // Set up the frame and put the UI components in it
-    frame.setLayout(new GridBagLayout());
     frame.setTitle(APP_NAME);
     frame.setIconImage(new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png")).getImage());
     frame.setLocationRelativeTo(null);
-    frame.setVisible(true);
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-    GridBagConstraints tabbedPaneConstraint;
-    tabbedPaneConstraint = new GridBagConstraints();
-    tabbedPaneConstraint.gridx = 0;
-    tabbedPaneConstraint.gridy = 0;
-    tabbedPaneConstraint.weightx = 1.0;
-    tabbedPaneConstraint.weighty = 1.0;
-    tabbedPaneConstraint.anchor = WEST;
-    frame.add(tabbedPane, tabbedPaneConstraint);
-    GridBagConstraints versionLabelConstraints;
-    versionLabelConstraints = new GridBagConstraints();
-    versionLabelConstraints.gridx = 0;
-    versionLabelConstraints.gridy = 1;
-    versionLabelConstraints.anchor = CENTER;
-    versionLabelConstraints.insets = new Insets(5, 10, 5, 10);
-    versionLabel.setMinimumSize(versionLabel.getPreferredSize());
-    frame.add(versionLabel, versionLabelConstraints);
+    Container cp = frame.getContentPane();
+    cp.setLayout(new BorderLayout());
+    cp.add(tabbedPane, CENTER);
+    JPanel bottomPanel = new JPanel();
+    bottomPanel.setBorder(new EmptyBorder(0, 0, 6, 0));
+    bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.Y_AXIS));
+    versionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    bottomPanel.add(versionLabel);
+    cp.add(bottomPanel, SOUTH);
     frame.pack();
+    frame.setVisible(true);
 
     launchAsync(run(rs -> {
       if (versionManager.isUpToDate()) {
-        this.removeVersionLabel();
+        removeVersionLabel();
       } else {
         versionLabel.setText("Update available");
         makeClickable(versionLabel, () -> uncheckedBrowse(getLatestUrl()));
