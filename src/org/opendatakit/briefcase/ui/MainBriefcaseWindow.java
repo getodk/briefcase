@@ -36,7 +36,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Toolkit;
-import java.awt.event.WindowAdapter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -68,7 +67,7 @@ import org.opendatakit.briefcase.util.Host;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MainBriefcaseWindow extends WindowAdapter {
+public class MainBriefcaseWindow {
   private static final Logger log = LoggerFactory.getLogger(MainBriefcaseWindow.class.getName());
   public static final String APP_NAME = "ODK Briefcase";
 
@@ -138,7 +137,6 @@ public class MainBriefcaseWindow extends WindowAdapter {
     addPane(SettingsPanel.TAB_NAME, SettingsPanel.from(appPreferences, analytics, formCache, http, versionManager, formMetadataAdapter).getContainer());
 
     // Set up the frame and put the UI components in it
-    frame.addWindowListener(this);
     frame.setLayout(new GridBagLayout());
     frame.setTitle(APP_NAME);
     frame.setIconImage(new ImageIcon(getClass().getClassLoader().getResource("odk_logo.png")).getImage());
@@ -159,6 +157,7 @@ public class MainBriefcaseWindow extends WindowAdapter {
     versionLabelConstraints.gridy = 1;
     versionLabelConstraints.anchor = CENTER;
     versionLabelConstraints.insets = new Insets(5, 10, 5, 10);
+    versionLabel.setMinimumSize(versionLabel.getPreferredSize());
     frame.add(versionLabel, versionLabelConstraints);
     frame.pack();
 
