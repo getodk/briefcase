@@ -107,8 +107,8 @@ public class CollectDir implements SourcePanelValueContainer {
   }
 
   @Override
-  public boolean accepts(Object o) {
-    return o instanceof Path;
+  public SourceOrTarget.Type getType() {
+    return SourceOrTarget.Type.COLLECT_DIRECTORY;
   }
 
   @Override

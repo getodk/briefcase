@@ -69,7 +69,7 @@ public class FormInComputer implements SourcePanelValueContainer {
 
   @Override
   public String getDescription() {
-    return String.format("%s at %s", formMetadata.getFormName(), value.toString());
+    return String.format("%s at %s", formMetadata.getFormName().orElse(formMetadata.getKey().getId()), value.toString());
   }
 
   @Override
@@ -101,8 +101,8 @@ public class FormInComputer implements SourcePanelValueContainer {
   }
 
   @Override
-  public boolean accepts(Object o) {
-    return o instanceof Path;
+  public SourceOrTarget.Type getType() {
+    return SourceOrTarget.Type.FORM_DEFINITION;
   }
 
   @Override

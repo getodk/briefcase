@@ -27,9 +27,9 @@ public interface SourceOrTargetPanelValueContainer {
 
   boolean canBeReloaded();
 
-  boolean accepts(Object o);
-
   void set(SourceOrTarget t);
 
   SourceOrTarget get();
+
+  SourceOrTarget.Type getType();
 }

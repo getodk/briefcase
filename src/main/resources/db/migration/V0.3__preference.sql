@@ -5,4 +5,4 @@ CREATE TABLE preference (
     PRIMARY KEY (category, name, value)
 );
 
-INSERT INTO preference VALUES ('global', 'tracking consent', 'true');
+INSERT INTO preference VALUES ('', 'Tracking consent', 'true');

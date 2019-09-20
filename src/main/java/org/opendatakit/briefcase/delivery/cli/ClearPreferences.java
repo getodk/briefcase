@@ -35,8 +35,8 @@ public class ClearPreferences {
   }
 
   private static void clear(Container container) {
-    container.preferences.fetchAll()
-        .forEach(preference -> System.out.println(String.format("(%s) %s", preference.getKey().getCategory().getName(), preference.getKey().getName())));
+    container.preferences.fetchAllKeys()
+        .forEach(key -> System.out.println(String.format("(%s) %s", key.getCategory().getName(), key.getName())));
     container.preferences.flush();
   }
 }

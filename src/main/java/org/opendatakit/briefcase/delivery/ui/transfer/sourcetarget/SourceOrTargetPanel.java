@@ -135,7 +135,7 @@ public class SourceOrTargetPanel<T extends SourceOrTargetPanelValueContainer> {
 
   private T getValueContainer(SourceOrTarget value) {
     return valueContainers.stream()
-        .filter(s -> s.accepts(value))
+        .filter(s -> s.getType() == value.getType())
         .findFirst()
         .orElseThrow(BriefcaseException::new);
   }

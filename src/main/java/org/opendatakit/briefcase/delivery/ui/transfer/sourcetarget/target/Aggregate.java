@@ -68,8 +68,8 @@ public class Aggregate implements TargetPanelValueContainer {
   }
 
   @Override
-  public boolean accepts(Object o) {
-    return o instanceof AggregateServer;
+  public SourceOrTarget.Type getType() {
+    return SourceOrTarget.Type.AGGREGATE;
   }
 
   @Override

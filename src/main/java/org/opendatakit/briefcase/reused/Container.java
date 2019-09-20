@@ -41,15 +41,15 @@ public class Container {
     workspace.setWorkspaceLocation(workspaceLocation);
     db.startAt(workspaceLocation);
 
-    // Second, set anything related to prefs
-    Optionals.race(maybeMaxHttpConnections, preferences.query(getMaxHttpConnections())).ifPresent(http::setMaxHttpConnections);
-    preferences.query(getHttpProxy()).ifPresent(http::setProxy);
-    sentry.addShouldSendEventCallback(event -> preferences.query(getTrackingConsent()));
-
-    // Third, run migrations
+    // Second, run migrations
     Flyway.configure().locations("db/migration")
         .dataSource(db.getDsn(), db.getUser(), db.getPassword()).validateOnMigrate(false)
         .load().migrate();
+
+    // Third, set anything related to prefs
+    Optionals.race(maybeMaxHttpConnections, preferences.query(getMaxHttpConnections())).ifPresent(http::setMaxHttpConnections);
+    preferences.query(getHttpProxy()).ifPresent(http::setProxy);
+    sentry.addShouldSendEventCallback(event -> preferences.query(getTrackingConsent()));
   }
 
   public void stop() {

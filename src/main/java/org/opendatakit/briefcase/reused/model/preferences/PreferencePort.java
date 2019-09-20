@@ -18,19 +18,19 @@ public interface PreferencePort {
     persist(Stream.of(preferences));
   }
 
-  void persist(Stream<Preference<?>> preferenceStream);
+  void persist(Stream<Preference<?>> preferences);
 
-  void remove(PreferenceKey<?> preference);
+  void remove(PreferenceKey<?> key);
 
   default void remove(PreferenceKey<?>... preferences) {
     remove(Stream.of(preferences));
   }
 
-  void remove(Stream<PreferenceKey<?>> preferenceStream);
+  void remove(Stream<PreferenceKey<?>> keys);
 
   <T> Preference<T> fetch(PreferenceKey<T> key);
 
-  <T> Optional<Preference<T>> fetchOptional(PreferenceKey<T> preference);
+  <T> Optional<Preference<T>> fetchOptional(PreferenceKey<T> key);
 
-  Stream<Preference<?>> fetchAll();
+  Stream<PreferenceKey<?>> fetchAllKeys();
 }

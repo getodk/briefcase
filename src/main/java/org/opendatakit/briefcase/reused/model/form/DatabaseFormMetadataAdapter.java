@@ -1,6 +1,7 @@
 package org.opendatakit.briefcase.reused.model.form;
 
 import static org.jooq.impl.DSL.mergeInto;
+import static org.jooq.impl.DSL.select;
 import static org.jooq.impl.DSL.selectFrom;
 import static org.jooq.impl.DSL.selectOne;
 import static org.jooq.impl.DSL.trueCondition;
@@ -8,6 +9,7 @@ import static org.jooq.impl.DSL.truncate;
 import static org.jooq.impl.DSL.update;
 import static org.jooq.impl.DSL.using;
 import static org.jooq.impl.DSL.value;
+import static org.opendatakit.briefcase.operations.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.reused.db.jooq.Tables.FORM_METADATA;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +25,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Record1;
 import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
@@ -147,12 +150,21 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
 
   @Override
   public ExportConfiguration getExportConfiguration(FormKey formKey) {
-    throw new RuntimeException("NOT IMPLEMENTED");
+    return getDslContext().fetchOptional(select(FORM_METADATA.EXPORT_CONFIGURATION)
+        .from(FORM_METADATA)
+        .where(getMatchingCriteria(formKey)))
+        .map(Record1::component1)
+        .map(Json::deserialize)
+        .map(ExportConfiguration::from)
+        .orElse(empty().build());
   }
 
   @Override
   public Optional<OffsetDateTime> getLastExportDateTime(FormKey formKey) {
-    throw new RuntimeException("NOT IMPLEMENTED");
+    return getDslContext().fetchOptional(select(FORM_METADATA.LAST_EXPORTED_DATE_TIME)
+        .from(FORM_METADATA)
+        .where(getMatchingCriteria(formKey)))
+        .map(Record1::component1);
   }
 
   private FormMetadata mapToDomain(FormMetadataRecord record) {

@@ -94,8 +94,8 @@ public class Central implements TargetPanelValueContainer {
   }
 
   @Override
-  public boolean accepts(Object o) {
-    return o instanceof CentralServer;
+  public SourceOrTarget.Type getType() {
+    return SourceOrTarget.Type.CENTRAL;
   }
 
   @Override
