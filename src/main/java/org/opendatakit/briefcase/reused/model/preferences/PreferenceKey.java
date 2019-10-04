@@ -2,6 +2,7 @@ package org.opendatakit.briefcase.reused.model.preferences;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.function.Function;
+import org.opendatakit.briefcase.delivery.LegacyPrefsStatus;
 import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 import org.opendatakit.briefcase.reused.api.Json;
 
@@ -63,6 +64,7 @@ public class PreferenceKey<T> {
     public static final PreferenceKey<Integer> MAX_HTTP_CONNECTIONS = globalInt("Max HTTP connections");
     public static final PreferenceKey<Boolean> START_PULL_FROM_LAST = globalBoolean("Start pull from last");
     public static final PreferenceKey<Boolean> REMEMBER_PASSWORDS = globalBoolean("Remember passwords");
+    public static final PreferenceKey<LegacyPrefsStatus> LEGACY_PREFS_STATUS = global("Legacy prefs status", Enum::name, LegacyPrefsStatus::valueOf);
   }
 
   /**

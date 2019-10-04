@@ -1,10 +1,12 @@
 package org.opendatakit.briefcase.reused.model.preferences;
 
+import static org.opendatakit.briefcase.delivery.LegacyPrefsStatus.UNDECIDED;
 import static org.opendatakit.briefcase.operations.export.ExportConfiguration.Builder.empty;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCategory.PULL;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCategory.PUSH;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.HTTP_PROXY_HOST;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.HTTP_PROXY_PORT;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.LEGACY_PREFS_STATUS;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.MAX_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.REMEMBER_PASSWORDS;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.START_PULL_FROM_LAST;
@@ -16,6 +18,7 @@ import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.L
 import java.util.Optional;
 import java.util.function.Function;
 import org.apache.http.HttpHost;
+import org.opendatakit.briefcase.delivery.LegacyPrefsStatus;
 import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 import org.opendatakit.briefcase.reused.api.OptionalProduct;
@@ -61,5 +64,11 @@ public class PreferenceQueries {
     return port -> port.fetchOptional(currentSourceOrTarget(category))
         .map(Preference::getValue)
         .map(SourceOrTarget::from);
+  }
+
+  private static Function<PreferencePort, LegacyPrefsStatus> getLegacyPrefsStatus() {
+    return port -> port.fetchOptional(LEGACY_PREFS_STATUS)
+        .map(Preference::getValue)
+        .orElse(UNDECIDED);
   }
 }
