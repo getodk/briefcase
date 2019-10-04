@@ -38,11 +38,9 @@ import java.awt.Insets;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
-import java.awt.font.TextAttribute;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Map;
 import java.util.Optional;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -191,17 +189,7 @@ public class UI {
   }
 
   public static void makeClickable(JLabel label, Runnable callback) {
-    makeClickable(label, callback, true);
-  }
-
-  public static void makeClickable(JLabel label, Runnable callback, boolean underline) {
     label.setForeground(Color.BLUE);
-    if (underline) {
-      Font f = label.getFont();
-      Map attrs = f.getAttributes();
-      attrs.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
-      label.setFont(f.deriveFont(attrs));
-    }
     label.setCursor(getPredefinedCursor(HAND_CURSOR));
     removeAllMouseListeners(label);
     label.addMouseListener(new MouseAdapterBuilder().onClick(__ -> invokeLater(callback)).build());
