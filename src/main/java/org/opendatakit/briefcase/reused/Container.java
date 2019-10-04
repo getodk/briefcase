@@ -1,5 +1,6 @@
 package org.opendatakit.briefcase.reused;
 
+import static org.opendatakit.briefcase.reused.db.StartType.NEW_DB;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceQueries.getHttpProxy;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceQueries.getMaxHttpConnections;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceQueries.getTrackingConsent;
@@ -10,9 +11,12 @@ import java.util.Optional;
 import org.flywaydb.core.Flyway;
 import org.opendatakit.briefcase.reused.api.Optionals;
 import org.opendatakit.briefcase.reused.db.BriefcaseDb;
+import org.opendatakit.briefcase.reused.db.StartType;
 import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.model.form.FormMetadataCommands;
 import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.preferences.PreferencePort;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataCommands;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 
 public class Container {
@@ -39,7 +43,7 @@ public class Container {
   public void start(Path workspaceLocation, Optional<Integer> maybeMaxHttpConnections) {
     // First, set the workspace and start the db
     workspace.setWorkspaceLocation(workspaceLocation);
-    db.startAt(workspaceLocation);
+    StartType startType = db.startAt(workspaceLocation);
 
     // Second, run migrations
     Flyway.configure().locations("db/migration")
@@ -50,6 +54,12 @@ public class Container {
     Optionals.race(maybeMaxHttpConnections, preferences.query(getMaxHttpConnections())).ifPresent(http::setMaxHttpConnections);
     preferences.query(getHttpProxy()).ifPresent(http::setProxy);
     sentry.addShouldSendEventCallback(event -> preferences.query(getTrackingConsent()));
+
+    // Fourth, if we're starting a new db, then sync form & submission metadata
+    if (startType == NEW_DB) {
+      formMetadata.execute(FormMetadataCommands.syncWithFilesAt(workspaceLocation));
+      submissionMetadata.execute(SubmissionMetadataCommands.syncSubmissions(formMetadata.fetchAll()));
+    }
   }
 
   public void stop() {

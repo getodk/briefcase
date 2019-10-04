@@ -42,7 +42,7 @@ public class WorkspaceLocationDialogForm extends JDialog {
   private JLabel tipLabel;
   private Optional<Path> workspaceLocation = Optional.empty();
 
-  WorkspaceLocationDialogForm(Workspace workspace, Consumer<Optional<Path>> startCallback) {
+  public WorkspaceLocationDialogForm(Workspace workspace, Consumer<Optional<Path>> startCallback) {
     $$$setupUI$$$();
 
     setSavedLocationOptions(workspace);
@@ -128,7 +128,7 @@ public class WorkspaceLocationDialogForm extends JDialog {
     locationChooseButton.setVisible(!locationClearButton.isVisible());
   }
 
-  void open() {
+  public void open() {
     setSize(400, 300);
     setLocationRelativeTo(null);
     pack();

@@ -22,6 +22,7 @@ import static org.opendatakit.briefcase.delivery.cli.Common.MAX_HTTP_CONNECTIONS
 import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.reused.model.Host.getOsName;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceQueries.getLegacyPrefsStatus;
 
 import io.sentry.Sentry;
 import io.sentry.SentryClient;
@@ -29,6 +30,7 @@ import java.security.Security;
 import java.util.Optional;
 import java.util.prefs.Preferences;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.opendatakit.briefcase.delivery.LegacyPrefs;
 import org.opendatakit.briefcase.delivery.cli.ClearPreferences;
 import org.opendatakit.briefcase.delivery.cli.Export;
 import org.opendatakit.briefcase.delivery.cli.PullFromAggregate;
@@ -87,10 +89,21 @@ public class Launcher {
         .register(Export.create(container))
         .register(ClearPreferences.create(container))
         .registerDefault(LaunchGui.create(container))
-        .before(args -> container.start(
-            args.get(WORKSPACE_LOCATION),
-            args.getOptional(MAX_HTTP_CONNECTIONS)
-        ))
+        .before((args, op) -> {
+          // Ask for the workspace location if the user hasn't provided one with the -wl arg
+          if (!args.has(WORKSPACE_LOCATION))
+            op.deliveryType.promptWorkspaceLocation(container, path -> args.set(WORKSPACE_LOCATION, path.toString()));
+
+          // Start the container
+          container.start(
+              args.get(WORKSPACE_LOCATION),
+              args.getOptional(MAX_HTTP_CONNECTIONS)
+          );
+
+          // Run the legacy prefs workflow
+          if (container.preferences.query(getLegacyPrefsStatus()).isUnresolved() && LegacyPrefs.prefsDetected())
+            op.deliveryType.promptLegacyPrefsDecision(container);
+        })
         .onError(throwable -> {
           System.err.println(throwable instanceof BriefcaseException
               ? "Error: " + throwable.getMessage()

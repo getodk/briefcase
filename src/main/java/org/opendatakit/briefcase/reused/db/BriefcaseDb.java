@@ -6,6 +6,7 @@ import static org.jooq.impl.DSL.using;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -35,9 +36,10 @@ public class BriefcaseDb {
     return new BriefcaseDb(new Server());
   }
 
-  public void startAt(Path workspaceLocation) {
+  public StartType startAt(Path workspaceLocation) {
     try {
       Path dbDir = workspaceLocation.toAbsolutePath().resolve("db");
+      StartType startType = Files.exists(dbDir) ? StartType.EXISTING_DB : StartType.NEW_DB;
       createDirectories(dbDir);
       HsqlProperties props = new HsqlProperties();
       props.setProperty("server.database.0", dbDir.resolve("briefcase").toString());
@@ -46,6 +48,7 @@ public class BriefcaseDb {
       props.setProperty("server.port", 9001);
       server.setProperties(props);
       server.start();
+      return startType;
     } catch (IOException | ServerAcl.AclFormatException e) {
       throw new BriefcaseException(e);
     }
@@ -83,4 +86,5 @@ public class BriefcaseDb {
   public DSLContext getDslContext() {
     return using(getConnection(), HSQLDB);
   }
+
 }

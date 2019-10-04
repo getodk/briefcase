@@ -63,4 +63,9 @@ public class InMemoryFormMetadataAdapter implements FormMetadataPort {
   public void execute(Consumer<FormMetadataPort> command) {
     command.accept(this);
   }
+
+  @Override
+  public Optional<FormMetadata> fetchWithFormIdWithoutPullSource(String formId) {
+    return store.values().stream().filter(v -> v.getKey().getId().equals(formId) && v.getPullSource().isEmpty()).findFirst();
+  }
 }

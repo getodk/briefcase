@@ -54,7 +54,7 @@ public class PullFromAggregate {
   private static final Param<Void> INCLUDE_INCOMPLETE = Param.flag("ii", "include_incomplete", "Include incomplete submissions");
 
   public static Operation create(Container container) {
-    return new OperationBuilder()
+    return OperationBuilder.cli()
         .withFlag(PULL_AGGREGATE)
         .withRequiredParams(WORKSPACE_LOCATION, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL)
         .withOptionalParams(RESUME_LAST_PULL, INCLUDE_INCOMPLETE, FORM_ID, START_FROM_DATE, MAX_HTTP_CONNECTIONS)

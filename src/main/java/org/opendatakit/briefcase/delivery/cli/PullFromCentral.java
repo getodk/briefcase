@@ -47,7 +47,7 @@ public class PullFromCentral {
   private static final Param<Void> PULL_FROM_CENTRAL = Param.flag("pllc", "pull_central", "Pull form from a Central server");
 
   public static Operation create(Container container) {
-    return new OperationBuilder()
+    return OperationBuilder.cli()
         .withFlag(PULL_FROM_CENTRAL)
         .withRequiredParams(WORKSPACE_LOCATION, SERVER_URL, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD)
         .withOptionalParams(FORM_ID, MAX_HTTP_CONNECTIONS)

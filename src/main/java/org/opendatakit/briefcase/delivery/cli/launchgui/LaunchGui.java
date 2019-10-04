@@ -17,32 +17,19 @@ package org.opendatakit.briefcase.delivery.cli.launchgui;
 
 import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 
-import java.util.Objects;
 import org.opendatakit.briefcase.delivery.ui.MainBriefcaseWindow;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
 import org.opendatakit.briefcase.reused.cli.Param;
 
-
 public class LaunchGui {
   private static final Param<Void> LAUNCH_GUI_FLAG = Param.flag("gui", "gui", "Launch GUI");
 
   public static Operation create(Container container) {
-    return new OperationBuilder()
+    return OperationBuilder.gui()
         .withFlag(LAUNCH_GUI_FLAG)
         .withOptionalParams(WORKSPACE_LOCATION)
-        .withBefore(args -> {
-          if (!args.isEmpty(WORKSPACE_LOCATION))
-            return;
-          new WorkspaceLocationDialogForm(container.workspace, workspaceLocation -> args.set(
-              WORKSPACE_LOCATION,
-              workspaceLocation
-                  .map(Objects::toString)
-                  .orElseThrow(() -> new BriefcaseException("No workspace location has been chosen or set via CLI args"))
-          )).open();
-        })
         .withLauncher(__ -> launchGui(container))
         .build();
   }
@@ -50,4 +37,6 @@ public class LaunchGui {
   private static void launchGui(Container container) {
     MainBriefcaseWindow.launchGUI(container);
   }
+
+
 }

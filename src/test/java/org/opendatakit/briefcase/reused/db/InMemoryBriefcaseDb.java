@@ -9,8 +9,8 @@ public class InMemoryBriefcaseDb extends BriefcaseDb {
   }
 
   @Override
-  public void startAt(Path workspaceLocation) {
-
+  public StartType startAt(Path workspaceLocation) {
+    return StartType.EXISTING_DB;
   }
 
   @Override

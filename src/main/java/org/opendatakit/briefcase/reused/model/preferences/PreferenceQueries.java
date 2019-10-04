@@ -66,7 +66,7 @@ public class PreferenceQueries {
         .map(SourceOrTarget::from);
   }
 
-  private static Function<PreferencePort, LegacyPrefsStatus> getLegacyPrefsStatus() {
+  public static Function<PreferencePort, LegacyPrefsStatus> getLegacyPrefsStatus() {
     return port -> port.fetchOptional(LEGACY_PREFS_STATUS)
         .map(Preference::getValue)
         .orElse(UNDECIDED);

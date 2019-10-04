@@ -5,6 +5,7 @@ import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCateg
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceCategory.PUSH;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.HTTP_PROXY_HOST;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.HTTP_PROXY_PORT;
+import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.LEGACY_PREFS_STATUS;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.MAX_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.REMEMBER_PASSWORDS;
 import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.Global.START_PULL_FROM_LAST;
@@ -16,6 +17,7 @@ import static org.opendatakit.briefcase.reused.model.preferences.PreferenceKey.L
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.apache.http.HttpHost;
+import org.opendatakit.briefcase.delivery.LegacyPrefsStatus;
 import org.opendatakit.briefcase.operations.export.ExportConfiguration;
 import org.opendatakit.briefcase.operations.transfer.SourceOrTarget;
 
@@ -67,19 +69,23 @@ public class PreferenceCommands {
     return removeCurrentSourceOrTarget(PUSH);
   }
 
-  private static Consumer<PreferencePort> removeCurrentSourceOrTarget(PreferenceCategory category) {
-    return port -> port.remove(currentSourceOrTarget(category));
-  }
-
-  private static Consumer<PreferencePort> setCurrentSourceOrTarget(PreferenceCategory category, SourceOrTarget sourceOrTarget) {
-    return port -> port.persist(Preference.of(currentSourceOrTarget(category), sourceOrTarget.asJson(getMapper())));
-  }
-
   public static Consumer<PreferencePort> setDefaultExportConfiguration(ExportConfiguration conf) {
     return port -> port.persist(Preference.of(DEFAULT_EXPORT_CONFIGURATION, conf));
   }
 
   public static Consumer<PreferencePort> removeDefaultExportConfiguration() {
     return port -> port.remove(DEFAULT_EXPORT_CONFIGURATION);
+  }
+
+  public static Consumer<PreferencePort> setLegacyPrefsStatus(LegacyPrefsStatus newStatus) {
+    return port -> port.persist(Preference.of(LEGACY_PREFS_STATUS, newStatus));
+  }
+
+  private static Consumer<PreferencePort> removeCurrentSourceOrTarget(PreferenceCategory category) {
+    return port -> port.remove(currentSourceOrTarget(category));
+  }
+
+  private static Consumer<PreferencePort> setCurrentSourceOrTarget(PreferenceCategory category, SourceOrTarget sourceOrTarget) {
+    return port -> port.persist(Preference.of(currentSourceOrTarget(category), sourceOrTarget.asJson(getMapper())));
   }
 }

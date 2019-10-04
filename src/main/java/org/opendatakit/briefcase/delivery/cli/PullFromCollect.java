@@ -43,7 +43,7 @@ public class PullFromCollect {
   private static final Param<Path> ODK_DIR = Param.arg("od", "odk_directory", "ODK directory", Paths::get);
 
   public static Operation create(Container container) {
-    return new OperationBuilder()
+    return OperationBuilder.cli()
         .withFlag(IMPORT)
         .withRequiredParams(WORKSPACE_LOCATION, ODK_DIR)
         .withOptionalParams(FORM_ID)

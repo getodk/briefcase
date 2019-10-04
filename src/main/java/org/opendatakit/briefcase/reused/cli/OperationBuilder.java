@@ -1,5 +1,9 @@
 package org.opendatakit.briefcase.reused.cli;
 
+
+import static org.opendatakit.briefcase.reused.cli.DeliveryType.CLI;
+import static org.opendatakit.briefcase.reused.cli.DeliveryType.GUI;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
@@ -8,6 +12,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class OperationBuilder {
+  private final DeliveryType deliveryType;
   private Param flag;
   private Consumer<Args> argsConsumer;
   private Set<Param> requiredParams = new HashSet<>();
@@ -15,8 +20,21 @@ public class OperationBuilder {
   private boolean deprecated = false;
   private Optional<Consumer<Args>> beforeCallback = Optional.empty();
 
+  public OperationBuilder(DeliveryType deliveryType) {
+    this.deliveryType = deliveryType;
+  }
+
+  public static OperationBuilder gui() {
+    return new OperationBuilder(GUI);
+  }
+
+  public static OperationBuilder cli() {
+    return new OperationBuilder(CLI);
+  }
+
   public Operation build() {
     return new Operation(
+        deliveryType,
         Objects.requireNonNull(flag),
         Objects.requireNonNull(argsConsumer),
         requiredParams,

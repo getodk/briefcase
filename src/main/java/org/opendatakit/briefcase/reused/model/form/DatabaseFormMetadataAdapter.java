@@ -167,6 +167,13 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         .map(Record1::component1);
   }
 
+  @Override
+  public Optional<FormMetadata> fetchWithFormIdWithoutPullSource(String formId) {
+    return getDslContext().fetchOptional(selectFrom(FORM_METADATA)
+        .where(FORM_METADATA.FORM_ID.eq(formId).and(FORM_METADATA.PULL_SOURCE.isNull())))
+        .map(this::mapToDomain);
+  }
+
   private FormMetadata mapToDomain(FormMetadataRecord record) {
     return new FormMetadata(
         FormKey.of(
@@ -182,7 +189,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         Optional.ofNullable(record.getLastExportedDateTime()),
         Optional.ofNullable(record.getLastExportedSubmissionDateTime()),
         Optional.ofNullable(record.getPullSource()).map(Json::deserialize).map(SourceOrTarget::from),
-        Optional.ofNullable(record.getPullSource()).map(Json::deserialize).map(ExportConfiguration::from)
+        Optional.ofNullable(record.getExportConfiguration()).map(Json::deserialize).map(ExportConfiguration::from)
     );
   }
 

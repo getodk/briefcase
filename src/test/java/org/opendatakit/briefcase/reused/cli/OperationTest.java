@@ -68,7 +68,7 @@ public class OperationTest {
   }
 
   private static Operation buildOp(int requiredParams, int optionalParams) {
-    return new OperationBuilder()
+    return OperationBuilder.cli()
         .withFlag(Param.flag("op", "operation", "Some operation"))
         .withLauncher(NO_OP)
         .withRequiredParams(IntStream.range(0, requiredParams).mapToObj(n -> Param.flag("r" + n, "required-" + n, "Required param " + n)).collect(toList()).toArray(new Param[]{}))
@@ -77,7 +77,7 @@ public class OperationTest {
   }
 
   private static Operation buildDeprecatedOp() {
-    return new OperationBuilder()
+    return OperationBuilder.cli()
         .withFlag(Param.flag("op", "operation", "Some operation"))
         .withLauncher(NO_OP)
         .deprecated()

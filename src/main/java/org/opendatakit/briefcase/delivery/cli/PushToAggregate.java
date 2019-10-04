@@ -49,7 +49,7 @@ public class PushToAggregate {
   private static final Param<Void> FORCE_SEND_BLANK = Param.flag("fsb", "force_send_blank", "Force sending the blank form to the Aggregate instance");
 
   public static Operation create(Container container) {
-    return new OperationBuilder()
+    return OperationBuilder.cli()
         .withFlag(PUSH_AGGREGATE)
         .withRequiredParams(WORKSPACE_LOCATION, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL)
         .withOptionalParams(FORCE_SEND_BLANK, MAX_HTTP_CONNECTIONS, FORM_ID)

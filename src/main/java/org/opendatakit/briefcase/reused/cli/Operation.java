@@ -12,6 +12,7 @@ import java.util.function.Consumer;
  * Uses a {@link Consumer}&lt;{@link Args}&gt; to pass command-line arguments to the logic of this {@link Operation}
  */
 public class Operation {
+  public final DeliveryType deliveryType;
   final Param param;
   final Consumer<Args> argsConsumer;
   final Set<Param> requiredParams;
@@ -19,7 +20,8 @@ public class Operation {
   final boolean deprecated;
   final Optional<Consumer<Args>> beforeCallback;
 
-  Operation(Param param, Consumer<Args> argsConsumer, Set<Param> requiredParams, Set<Param> optionalParams, boolean deprecated, Optional<Consumer<Args>> beforeCallback) {
+  Operation(DeliveryType deliveryType, Param param, Consumer<Args> argsConsumer, Set<Param> requiredParams, Set<Param> optionalParams, boolean deprecated, Optional<Consumer<Args>> beforeCallback) {
+    this.deliveryType = deliveryType;
     this.param = param;
     this.argsConsumer = argsConsumer;
     this.requiredParams = requiredParams;

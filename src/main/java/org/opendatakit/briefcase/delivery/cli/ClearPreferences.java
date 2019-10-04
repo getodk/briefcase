@@ -27,7 +27,7 @@ public class ClearPreferences {
   private static Param<Void> CLEAR = Param.flag("c", "clear_prefs", "Clear saved preferences");
 
   public static Operation create(Container container) {
-    return new OperationBuilder()
+    return OperationBuilder.cli()
         .withFlag(CLEAR)
         .withOptionalParams(WORKSPACE_LOCATION)
         .withLauncher(args -> clear(container))

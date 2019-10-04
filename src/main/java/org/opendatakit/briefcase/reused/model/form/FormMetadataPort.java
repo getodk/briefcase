@@ -28,4 +28,6 @@ public interface FormMetadataPort {
   ExportConfiguration getExportConfiguration(FormKey formKey);
 
   Optional<OffsetDateTime> getLastExportDateTime(FormKey formKey);
+
+  Optional<FormMetadata> fetchWithFormIdWithoutPullSource(String formId);
 }

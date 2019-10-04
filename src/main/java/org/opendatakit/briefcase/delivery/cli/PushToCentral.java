@@ -47,7 +47,7 @@ public class PushToCentral {
   private static final Param<Void> PUSH_TO_CENTRAL = Param.flag("pshc", "push_central", "Push form to a Central server");
 
   public static Operation create(Container container) {
-    return new OperationBuilder()
+    return OperationBuilder.cli()
         .withFlag(PUSH_TO_CENTRAL)
         .withRequiredParams(WORKSPACE_LOCATION, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD, SERVER_URL)
         .withOptionalParams(MAX_HTTP_CONNECTIONS, FORM_ID)

@@ -22,6 +22,7 @@ import static java.util.stream.Collectors.toSet;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -47,13 +48,13 @@ public class Cli {
 
   private final Set<Operation> operations = new HashSet<>();
   private Optional<Operation> defaultOperation = Optional.empty();
-  private Optional<Consumer<Args>> beforeCallback = Optional.empty();
+  private Optional<BiConsumer<Args, Operation>> beforeCallback = Optional.empty();
   private Optional<Consumer<Throwable>> onErrorCallback = Optional.empty();
   private Optional<Runnable> onExitCallback = Optional.empty();
 
   public Cli() {
-    register(new OperationBuilder().withFlag(SHOW_HELP).withLauncher(args -> printHelp()).build());
-    register(new OperationBuilder().withFlag(SHOW_VERSION).withLauncher(args -> printVersion()).build());
+    register(OperationBuilder.cli().withFlag(SHOW_HELP).withLauncher(args -> printHelp()).build());
+    register(OperationBuilder.cli().withFlag(SHOW_VERSION).withLauncher(args -> printVersion()).build());
   }
 
   /**
@@ -75,7 +76,7 @@ public class Cli {
    * @return self {@link Cli} instance to chain more method calls
    */
   public Cli deprecate(Param oldParam, Param<?> alternative) {
-    operations.add(new OperationBuilder()
+    operations.add(OperationBuilder.cli()
         .withFlag(oldParam)
         .withLauncher(__ -> {
           log.warn("Trying to run deprecated param -{}", oldParam.shortCode);
@@ -104,7 +105,7 @@ public class Cli {
     return this;
   }
 
-  public Cli before(Consumer<Args> callback) {
+  public Cli before(BiConsumer<Args, Operation> callback) {
     beforeCallback = Optional.of(callback);
     return this;
   }
@@ -131,7 +132,7 @@ public class Cli {
       operation.beforeCallback.ifPresent(callback -> callback.accept(allArgs));
 
       // Launch the general "before" callback
-      beforeCallback.ifPresent(callback -> callback.accept(allArgs));
+      beforeCallback.ifPresent(callback -> callback.accept(allArgs, operation));
 
       // Launch the operation
       checkForMissingParams(cli, operation.requiredParams);
