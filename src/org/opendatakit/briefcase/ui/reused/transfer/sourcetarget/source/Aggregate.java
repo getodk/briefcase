@@ -125,7 +125,7 @@ public class Aggregate implements PullSource<AggregateServer> {
 
   @Override
   public void decorate(JLabel label) {
-    label.setText("<html>URL: <a href=\"\">" + getDescription() + "</a></html>");
+    label.setText("URL: " + getDescription());
     makeClickable(label, () -> uncheckedBrowse(server.getBaseUrl()));
   }
 
