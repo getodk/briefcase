@@ -31,6 +31,7 @@ import static javax.swing.SwingUtilities.invokeLater;
 import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.APP_NAME;
 import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
@@ -188,7 +189,7 @@ public class UI {
   }
 
   public static void makeClickable(JLabel label, Runnable callback) {
-    label.setText(label.getText().startsWith("<html>") ? label.getText() : String.format("<html><a href=\"\">%s</a></html>", label.getText()));
+    label.setForeground(Color.BLUE);
     label.setCursor(getPredefinedCursor(HAND_CURSOR));
     removeAllMouseListeners(label);
     label.addMouseListener(new MouseAdapterBuilder().onClick(__ -> invokeLater(callback)).build());

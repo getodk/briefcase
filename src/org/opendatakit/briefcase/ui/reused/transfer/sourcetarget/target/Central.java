@@ -85,7 +85,7 @@ public class Central implements PushTarget<CentralServer> {
   public void decorate(JLabel label) {
     label.setText("" +
         "<html>" +
-        "URL: <a href=\"" + server.getBaseUrl().toString() + "\">" + getDescription() + "</a><br/>" +
+        "URL: <a style=\"text-decoration: none\" href=\"" + server.getBaseUrl().toString() + "\">" + getDescription() + "</a><br/>" +
         "Project ID: " + server.getProjectId() + "" +
         "</html>");
     makeClickable(label, () -> uncheckedBrowse(server.getBaseUrl()));

@@ -90,7 +90,7 @@ public class Aggregate implements PushTarget<AggregateServer> {
 
   @Override
   public void decorate(JLabel label) {
-    label.setText("<html>URL: <a href=\"\">" + getDescription() + "</a></html>");
+    label.setText("URL: " + getDescription());
     makeClickable(label, () -> uncheckedBrowse(server.getBaseUrl()));
   }
 
