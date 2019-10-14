@@ -40,10 +40,11 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import org.bushe.swing.event.EventBus;
-import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
+import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,14 +52,14 @@ import org.slf4j.LoggerFactory;
 public class ExportToCsv {
   private static final Logger log = LoggerFactory.getLogger(ExportToCsv.class);
 
-  public static ExportOutcome export(Container container, FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration) {
+  public static ExportOutcome export(FormMetadata formMetadata, FormDefinition formDef, ExportConfiguration configuration, SubmissionMetadataPort submissionMetadataPort, FormMetadataPort formMetadataPort) {
     // Create an export tracker object with the total number of submissions we have to export
     ExportProcessTracker exportTracker = new ExportProcessTracker(formMetadata.getKey());
     exportTracker.start();
 
     var onParsingError = buildParsingErrorCallback(configuration.getErrorsDir(formMetadata.getFormName().orElse(formMetadata.getKey().getId())));
 
-    List<SubmissionMetadata> submissionMetadataList = container.submissionMetadata
+    List<SubmissionMetadata> submissionMetadataList = submissionMetadataPort
         .sortedSubmissions(formMetadata, configuration.getDateRange(), configuration.resolveSmartAppend())
         .collect(toList());
     exportTracker.trackTotal(submissionMetadataList.size());
@@ -104,7 +105,7 @@ public class ExportToCsv {
         .map(CsvLine::getSubmissionDate)
         .map(lastSubmissionDateTime -> formMetadata.withLastExportedDateTimes(now(), lastSubmissionDateTime))
         .orElse(formMetadata.withLastExportedDateTimes(now()));
-    container.formMetadata.execute(upsert(newFormMetadata));
+    formMetadataPort.execute(upsert(newFormMetadata));
 
     ExportOutcome exportOutcome = exportTracker.computeOutcome();
     if (exportOutcome == ALL_EXPORTED)

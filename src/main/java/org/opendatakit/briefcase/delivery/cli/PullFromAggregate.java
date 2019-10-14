@@ -15,30 +15,33 @@
  */
 package org.opendatakit.briefcase.delivery.cli;
 
-import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.delivery.cli.Common.CREDENTIALS_PASSWORD;
 import static org.opendatakit.briefcase.delivery.cli.Common.CREDENTIALS_USERNAME;
 import static org.opendatakit.briefcase.delivery.cli.Common.FORM_ID;
-import static org.opendatakit.briefcase.delivery.cli.Common.MAX_HTTP_CONNECTIONS;
-import static org.opendatakit.briefcase.delivery.cli.Common.SERVER_URL;
-import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
+import static org.opendatakit.briefcase.delivery.cli.Common.INCLUDE_INCOMPLETE;
+import static org.opendatakit.briefcase.delivery.cli.Common.PULL;
+import static org.opendatakit.briefcase.delivery.cli.Common.PULL_SOURCE;
+import static org.opendatakit.briefcase.delivery.cli.Common.PULL_SOURCE_TYPE;
+import static org.opendatakit.briefcase.delivery.cli.Common.START_FROM_DATE;
+import static org.opendatakit.briefcase.delivery.cli.Common.START_FROM_LAST;
+import static org.opendatakit.briefcase.delivery.cli.Common.getFormsToPull;
+import static org.opendatakit.briefcase.operations.transfer.SourceOrTarget.Type.AGGREGATE;
+import static org.opendatakit.briefcase.operations.transfer.pull.Pull.buildPullJob;
+import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataQueries.lastCursorOf;
 
-import java.net.URL;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
-import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.operations.transfer.pull.aggregate.Cursor;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Container;
+import org.opendatakit.briefcase.reused.api.OptionalProduct;
 import org.opendatakit.briefcase.reused.api.Optionals;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
-import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.http.Credentials;
-import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
@@ -48,78 +51,55 @@ import org.slf4j.LoggerFactory;
 
 public class PullFromAggregate {
   private static final Logger log = LoggerFactory.getLogger(PullFromAggregate.class);
-  private static final Param<Void> PULL_AGGREGATE = Param.flag("plla", "pull_aggregate", "Pull form from an Aggregate instance");
-  private static final Param<Void> RESUME_LAST_PULL = Param.flag("sfl", "start_from_last", "Start pull from last submission pulled");
-  private static final Param<LocalDate> START_FROM_DATE = Param.arg("sfd", "start_from_date", "Start pull from date", LocalDate::parse);
-  private static final Param<Void> INCLUDE_INCOMPLETE = Param.flag("ii", "include_incomplete", "Include incomplete submissions");
 
   public static Operation create(Container container) {
-    return OperationBuilder.cli()
-        .withFlag(PULL_AGGREGATE)
-        .withRequiredParams(WORKSPACE_LOCATION, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL)
-        .withOptionalParams(RESUME_LAST_PULL, INCLUDE_INCOMPLETE, FORM_ID, START_FROM_DATE, MAX_HTTP_CONNECTIONS)
+    return OperationBuilder.cli("Pull from Aggregate")
+        .withMatcher(args -> args.has(PULL) && args.has(PULL_SOURCE_TYPE, AGGREGATE))
+        .withRequiredParams(PULL, PULL_SOURCE, PULL_SOURCE_TYPE)
+        .withOptionalParams(FORM_ID, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, START_FROM_LAST, START_FROM_DATE, INCLUDE_INCOMPLETE)
         .withLauncher(args -> pullFormFromAggregate(container, args))
         .build();
   }
 
   private static void pullFormFromAggregate(Container container, Args args) {
-    Optional<String> formId = args.getOptional(FORM_ID);
-    String username = args.get(CREDENTIALS_USERNAME);
-    String password = args.get(CREDENTIALS_PASSWORD);
-    URL server = args.get(SERVER_URL);
-    boolean resumeLastPull = args.has(RESUME_LAST_PULL);
-    Optional<LocalDate> startFromDate = args.getOptional(START_FROM_DATE);
-    boolean includeIncomplete = args.has(INCLUDE_INCOMPLETE);
+    List<FormMetadata> formsToPull = getFormsToPull(container.http, args.getOptional(FORM_ID), parseSource(args).getFormListRequest());
 
-    CliEventsCompanion.attach(log);
-
-    AggregateServer aggregateServer = AggregateServer.authenticated(server, new Credentials(username, password));
-
-    Response<List<FormMetadata>> response = container.http.execute(aggregateServer.getFormListRequest());
-    if (!response.isSuccess()) {
-      System.err.println(response.isRedirection()
-          ? "Error connecting to Aggregate: Redirection detected"
-          : response.isUnauthorized()
-          ? "Error connecting to Aggregate: Wrong credentials"
-          : response.isNotFound()
-          ? "Error connecting to Aggregate: Aggregate not found"
-          : "Error connecting to Aggregate");
-      return;
-    }
-
-    List<FormMetadata> filteredForms = response.orElseThrow(BriefcaseException::new)
-        .stream()
-        .filter(f -> formId.map(id -> f.getKey().getId().equals(id)).orElse(true))
-        .map(formMetadata -> formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata)))
-        .collect(toList());
-
-    if (formId.isPresent() && filteredForms.isEmpty())
-      throw new BriefcaseException("Form " + formId.get() + " not found");
-
-    TransferForms forms = TransferForms.empty();
-    forms.load(filteredForms);
-    forms.selectAll();
-
-    org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate pullOp = new org.opendatakit.briefcase.operations.transfer.pull.aggregate.PullFromAggregate(container, aggregateServer, includeIncomplete, PullFromAggregate::onEvent);
-    JobsRunner.launchAsync(
-        forms.map(formMetadata -> pullOp.pull(
+    JobsRunner.launchAsync(formsToPull.stream()
+        .map(formMetadata -> buildPullJob(
+            container.workspace,
+            container.http,
+            container.formMetadata,
+            container.submissionMetadata,
             formMetadata,
-            container.workspace.buildFormFile(formMetadata),
-            resolveCursor(container, resumeLastPull, startFromDate, formMetadata)
-        )),
-        PullFromAggregate::onError
+            PullFromAggregate::onEvent,
+            resolveCursor(
+                args.getOptional(START_FROM_DATE).map(OffsetDateTime::toLocalDate),
+                args.has(START_FROM_LAST),
+                container.formMetadata.query(lastCursorOf(formMetadata.getKey()))
+            )
+        )), PullFromAggregate::onError
     ).waitForCompletion();
+
     System.out.println();
-    System.out.println("All operations completed");
+    System.out.println("Pull complete");
     System.out.println();
   }
 
-  private static Optional<Cursor> resolveCursor(Container container, boolean resumeLastPull, Optional<LocalDate> startFromDate, FormMetadata formMetadata) {
+  private static AggregateServer parseSource(Args args) {
+    Optional<Credentials> maybeCredentials = OptionalProduct.all(
+        args.getOptional(CREDENTIALS_USERNAME),
+        args.getOptional(CREDENTIALS_PASSWORD)
+    ).map(Credentials::from);
+
+    return maybeCredentials
+        .map(credentials -> AggregateServer.authenticated(url(args.get(PULL_SOURCE)), credentials))
+        .orElseGet(() -> AggregateServer.normal(url(args.get(PULL_SOURCE))));
+  }
+
+  private static Optional<Cursor> resolveCursor(Optional<LocalDate> startFromDate, boolean startFromLast, Optional<Cursor> storedCursor) {
     return Optionals.race(
         startFromDate.map(Cursor::of),
-        resumeLastPull
-            ? container.formMetadata.query(lastCursorOf(formMetadata.getKey()))
-            : Optional.empty()
+        startFromLast ? storedCursor : Optional.empty()
     );
   }
 

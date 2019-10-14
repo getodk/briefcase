@@ -56,22 +56,22 @@ public class ExportConfiguration {
   private final Optional<Path> exportDir;
   private final Optional<Path> pemFile;
   private final DateRange dateRange;
-  private final OverridableBoolean pullBefore;
+  private final OverridableBoolean startFromLast;
   private final OverridableBoolean overwriteFiles;
-  private final OverridableBoolean exportMedia;
+  private final OverridableBoolean exportAttachments;
   private final OverridableBoolean splitSelectMultiples;
   private final OverridableBoolean includeGeoJsonExport;
   private final OverridableBoolean removeGroupNames;
   private final OverridableBoolean smartAppend;
 
-  private ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, DateRange dateRange, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, OverridableBoolean splitSelectMultiples, OverridableBoolean includeGeoJsonExport, OverridableBoolean removeGroupNames, OverridableBoolean smartAppend) {
+  private ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, DateRange dateRange, OverridableBoolean startFromLast, OverridableBoolean overwriteFiles, OverridableBoolean exportAttachments, OverridableBoolean splitSelectMultiples, OverridableBoolean includeGeoJsonExport, OverridableBoolean removeGroupNames, OverridableBoolean smartAppend) {
     this.exportFileName = exportFileName;
     this.exportDir = exportDir;
     this.pemFile = pemFile;
     this.dateRange = dateRange;
-    this.pullBefore = pullBefore;
+    this.startFromLast = startFromLast;
     this.overwriteFiles = overwriteFiles;
-    this.exportMedia = exportMedia;
+    this.exportAttachments = exportAttachments;
     this.splitSelectMultiples = splitSelectMultiples;
     this.includeGeoJsonExport = includeGeoJsonExport;
     this.removeGroupNames = removeGroupNames;
@@ -86,7 +86,7 @@ public class ExportConfiguration {
         Json.get(root, "dateRange").flatMap(DateRange::from).orElse(DateRange.empty()),
         Json.get(root, "startFromLast").map(OverridableBoolean::from).orElse(OverridableBoolean.empty()),
         Json.get(root, "overwriteFiles").map(OverridableBoolean::from).orElse(OverridableBoolean.empty()),
-        Json.get(root, "exportMedia").map(OverridableBoolean::from).orElse(OverridableBoolean.empty()),
+        Json.get(root, "exportAttachments").map(OverridableBoolean::from).orElse(OverridableBoolean.empty()),
         Json.get(root, "splitSelectMultiples").map(OverridableBoolean::from).orElse(OverridableBoolean.empty()),
         Json.get(root, "includeGeoJsonExport").map(OverridableBoolean::from).orElse(OverridableBoolean.empty()),
         Json.get(root, "removeGroupNames").map(OverridableBoolean::from).orElse(OverridableBoolean.empty()),
@@ -132,11 +132,11 @@ public class ExportConfiguration {
   }
 
   public boolean resolvePullBefore() {
-    return pullBefore.resolve(false);
+    return startFromLast.resolve(false);
   }
 
-  boolean resolveExportMedia() {
-    return exportMedia.resolve(true);
+  boolean resolveExportAttachments() {
+    return exportAttachments.resolve(true);
   }
 
   boolean resolveOverwriteExistingFiles() {
@@ -159,16 +159,16 @@ public class ExportConfiguration {
     return smartAppend.resolve(false);
   }
 
-  public OverridableBoolean getPullBefore() {
-    return pullBefore;
+  public OverridableBoolean getStartFromLast() {
+    return startFromLast;
   }
 
   public OverridableBoolean getOverwriteFiles() {
     return overwriteFiles;
   }
 
-  public OverridableBoolean getExportMedia() {
-    return exportMedia;
+  public OverridableBoolean getExportAttachments() {
+    return exportAttachments;
   }
 
   public OverridableBoolean getSplitSelectMultiples() {
@@ -199,9 +199,9 @@ public class ExportConfiguration {
     return exportDir.isEmpty()
         && pemFile.isEmpty()
         && dateRange.isEmpty()
-        && pullBefore.isEmpty()
+        && startFromLast.isEmpty()
         && overwriteFiles.isEmpty()
-        && exportMedia.isEmpty()
+        && exportAttachments.isEmpty()
         && splitSelectMultiples.isEmpty()
         && includeGeoJsonExport.isEmpty()
         && removeGroupNames.isEmpty()
@@ -218,9 +218,9 @@ public class ExportConfiguration {
         .setExportDir(exportDir.isPresent() ? exportDir : defaultConfiguration.exportDir)
         .setPemFile(pemFile.isPresent() ? pemFile : defaultConfiguration.pemFile)
         .setDateRange(!dateRange.isEmpty() ? dateRange : defaultConfiguration.dateRange)
-        .setPullBefore(pullBefore.fallingBackTo(defaultConfiguration.pullBefore))
+        .setStartFromLast(startFromLast.fallingBackTo(defaultConfiguration.startFromLast))
         .setOverwriteFiles(overwriteFiles.fallingBackTo(defaultConfiguration.overwriteFiles))
-        .setExportMedia(exportMedia.fallingBackTo(defaultConfiguration.exportMedia))
+        .setExportAttachments(exportAttachments.fallingBackTo(defaultConfiguration.exportAttachments))
         .setSplitSelectMultiples(splitSelectMultiples.fallingBackTo(defaultConfiguration.splitSelectMultiples))
         .setIncludeGeoJsonExport(includeGeoJsonExport.fallingBackTo(defaultConfiguration.includeGeoJsonExport))
         .setRemoveGroupNames(removeGroupNames.fallingBackTo(defaultConfiguration.removeGroupNames))
@@ -236,7 +236,7 @@ public class ExportConfiguration {
     return dateRange;
   }
 
-  Path getExportMediaPath() {
+  Path getExportAttachmentsPath() {
     return exportDir.map(dir -> dir.resolve("media")).orElseThrow(() -> new BriefcaseException("No export dir configured"));
   }
 
@@ -261,9 +261,9 @@ public class ExportConfiguration {
     root.put("exportDir", exportDir.map(Object::toString).orElse(null));
     root.put("pemFile", pemFile.map(Object::toString).orElse(null));
     root.putObject("dateRange").setAll(dateRange.asJson(mapper));
-    root.putObject("startFromLast").setAll(pullBefore.asJson(mapper));
+    root.putObject("startFromLast").setAll(startFromLast.asJson(mapper));
     root.putObject("overwriteFiles").setAll(overwriteFiles.asJson(mapper));
-    root.putObject("exportMedia").setAll(exportMedia.asJson(mapper));
+    root.putObject("exportAttachments").setAll(exportAttachments.asJson(mapper));
     root.putObject("splitSelectMultiples").setAll(splitSelectMultiples.asJson(mapper));
     root.putObject("includeGeoJsonExport").setAll(includeGeoJsonExport.asJson(mapper));
     root.putObject("removeGroupNames").setAll(removeGroupNames.asJson(mapper));
@@ -277,9 +277,9 @@ public class ExportConfiguration {
         "exportDir=" + exportDir +
         ", pemFile=" + pemFile +
         ", dateRange=" + dateRange +
-        ", pullBefore=" + pullBefore +
+        ", pullBefore=" + startFromLast +
         ", overwriteFiles=" + overwriteFiles +
-        ", exportMedia=" + exportMedia +
+        ", exportAttachments=" + exportAttachments +
         ", splitSelectMultiples=" + splitSelectMultiples +
         ", includeGeoJsonExport=" + includeGeoJsonExport +
         ", removeGroupNames=" + removeGroupNames +
@@ -297,9 +297,9 @@ public class ExportConfiguration {
     return Objects.equals(exportDir, that.exportDir) &&
         Objects.equals(pemFile, that.pemFile) &&
         Objects.equals(dateRange, that.dateRange) &&
-        Objects.equals(pullBefore, that.pullBefore) &&
+        Objects.equals(startFromLast, that.startFromLast) &&
         Objects.equals(overwriteFiles, that.overwriteFiles) &&
-        Objects.equals(exportMedia, that.exportMedia) &&
+        Objects.equals(exportAttachments, that.exportAttachments) &&
         Objects.equals(splitSelectMultiples, that.splitSelectMultiples) &&
         Objects.equals(includeGeoJsonExport, that.includeGeoJsonExport) &&
         Objects.equals(removeGroupNames, that.removeGroupNames) &&
@@ -308,7 +308,7 @@ public class ExportConfiguration {
 
   @Override
   public int hashCode() {
-    return Objects.hash(exportDir, pemFile, dateRange, pullBefore, overwriteFiles, exportMedia, splitSelectMultiples, includeGeoJsonExport, removeGroupNames, smartAppend);
+    return Objects.hash(exportDir, pemFile, dateRange, startFromLast, overwriteFiles, exportAttachments, splitSelectMultiples, includeGeoJsonExport, removeGroupNames, smartAppend);
   }
 
   public static class Builder {
@@ -317,9 +317,9 @@ public class ExportConfiguration {
     private Path exportDir;
     private Path pemFile;
     private DateRange dateRange = DateRange.empty();
-    private OverridableBoolean pullBefore = OverridableBoolean.empty();
+    private OverridableBoolean startFromLast = OverridableBoolean.empty();
     private OverridableBoolean overwriteFiles = OverridableBoolean.empty();
-    private OverridableBoolean exportMedia = OverridableBoolean.empty();
+    private OverridableBoolean exportAttachments = OverridableBoolean.empty();
     private OverridableBoolean splitSelectMultiples = OverridableBoolean.empty();
     private OverridableBoolean includeGeoJsonExport = OverridableBoolean.empty();
     private OverridableBoolean removeGroupNames = OverridableBoolean.empty();
@@ -335,9 +335,9 @@ public class ExportConfiguration {
           Optional.ofNullable(exportDir),
           Optional.ofNullable(pemFile),
           dateRange,
-          pullBefore,
+          startFromLast,
           overwriteFiles,
-          exportMedia,
+          exportAttachments,
           splitSelectMultiples,
           includeGeoJsonExport,
           removeGroupNames,
@@ -432,13 +432,13 @@ public class ExportConfiguration {
       return this;
     }
 
-    public Builder setPullBefore(OverridableBoolean pullBefore) {
-      this.pullBefore = pullBefore;
+    public Builder setStartFromLast(OverridableBoolean pullBefore) {
+      this.startFromLast = pullBefore;
       return this;
     }
 
-    public Builder setPullBefore(boolean value) {
-      pullBefore = pullBefore.set(value);
+    public Builder setStartFromLast(boolean value) {
+      startFromLast = startFromLast.set(value);
       return this;
     }
 
@@ -452,13 +452,13 @@ public class ExportConfiguration {
       return this;
     }
 
-    public Builder setExportMedia(OverridableBoolean exportMedia) {
-      this.exportMedia = exportMedia;
+    public Builder setExportAttachments(OverridableBoolean exportAttachments) {
+      this.exportAttachments = exportAttachments;
       return this;
     }
 
-    public Builder setExportMedia(boolean value) {
-      exportMedia = exportMedia.set(value);
+    public Builder setExportAttachments(boolean value) {
+      exportAttachments = exportAttachments.set(value);
       return this;
     }
 
@@ -503,7 +503,7 @@ public class ExportConfiguration {
     }
 
     public Builder overridePullBefore(TriStateBoolean overrideValue) {
-      pullBefore = pullBefore.overrideWith(overrideValue);
+      startFromLast = startFromLast.overrideWith(overrideValue);
       return this;
     }
 
@@ -512,8 +512,8 @@ public class ExportConfiguration {
       return this;
     }
 
-    Builder overrideExportMedia(TriStateBoolean overrideValue) {
-      exportMedia = exportMedia.overrideWith(overrideValue);
+    Builder overrideExportAttachments(TriStateBoolean overrideValue) {
+      exportAttachments = exportAttachments.overrideWith(overrideValue);
       return this;
     }
 

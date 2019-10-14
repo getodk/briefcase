@@ -23,18 +23,18 @@ import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.u
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
-import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.job.Job;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
+import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 
 public class PullFormDefinition {
-  private final Container container;
   private final Consumer<FormStatusEvent> onEventCallback;
+  private final FormMetadataPort formMetadataPort;
 
-  public PullFormDefinition(Container container, Consumer<FormStatusEvent> onEventCallback) {
-    this.container = container;
+  public PullFormDefinition(FormMetadataPort formMetadataPort, Consumer<FormStatusEvent> onEventCallback) {
     this.onEventCallback = onEventCallback;
+    this.formMetadataPort = formMetadataPort;
   }
 
   public Job<Void> pull(FormMetadata sourceFormMetadata, FormMetadata targetFormMetadata) {
@@ -45,7 +45,7 @@ public class PullFormDefinition {
 
       installForm(sourceFormMetadata, targetFormMetadata, tracker);
 
-      container.formMetadata.execute(upsert(targetFormMetadata.withPullSource(PathSourceOrTarget.formDefinitionAt(sourceFormMetadata.getFormFile()))));
+      formMetadataPort.execute(upsert(targetFormMetadata.withPullSource(PathSourceOrTarget.formDefinitionAt(sourceFormMetadata.getFormFile()))));
 
       EventBus.publish(PullEvent.Success.of(targetFormMetadata.getKey()));
 

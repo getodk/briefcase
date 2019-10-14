@@ -10,14 +10,18 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class OperationBuilder {
   private final DeliveryType deliveryType;
+  private String name;
   private Param flag;
+  private Predicate<Args> matcher;
   private Consumer<Args> argsConsumer;
   private Set<Param> requiredParams = new HashSet<>();
   private Set<Param> optionalParams = new HashSet<>();
   private boolean deprecated = false;
+  private boolean requiresContainer = true;
   private Optional<Consumer<Args>> beforeCallback = Optional.empty();
 
   public OperationBuilder(DeliveryType deliveryType) {
@@ -25,27 +29,34 @@ public class OperationBuilder {
   }
 
   public static OperationBuilder gui() {
-    return new OperationBuilder(GUI);
+    return new OperationBuilder(GUI).withName("GUI");
   }
 
-  public static OperationBuilder cli() {
-    return new OperationBuilder(CLI);
+  public static OperationBuilder cli(String name) {
+    return new OperationBuilder(CLI).withName(name);
   }
 
   public Operation build() {
     return new Operation(
         deliveryType,
-        Objects.requireNonNull(flag),
+        Objects.requireNonNull(name),
+        Objects.requireNonNull(matcher),
         Objects.requireNonNull(argsConsumer),
         requiredParams,
         optionalParams,
         deprecated,
-        beforeCallback
+        beforeCallback,
+        requiresContainer
     );
   }
 
-  public OperationBuilder withFlag(Param flag) {
-    this.flag = flag;
+  public OperationBuilder withName(String name) {
+    this.name = name;
+    return this;
+  }
+
+  public OperationBuilder withMatcher(Predicate<Args> matcher) {
+    this.matcher = matcher;
     return this;
   }
 
@@ -71,6 +82,11 @@ public class OperationBuilder {
 
   public OperationBuilder deprecated() {
     deprecated = true;
+    return this;
+  }
+
+  public OperationBuilder withoutContainer() {
+    requiresContainer = false;
     return this;
   }
 }

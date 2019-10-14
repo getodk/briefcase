@@ -228,11 +228,11 @@ final class CsvFieldMappers {
 
     String sourceFilename = element.getValue();
 
-    if (!configuration.resolveExportMedia())
+    if (!configuration.resolveExportAttachments())
       return Stream.of(Pair.of(element.fqn(), sourceFilename));
 
-    if (!Files.exists(configuration.getExportMediaPath()))
-      createDirectories(configuration.getExportMediaPath());
+    if (!Files.exists(configuration.getExportAttachmentsPath()))
+      createDirectories(configuration.getExportAttachmentsPath());
 
     Path sourceFile = workingDir.resolve(sourceFilename);
 
@@ -242,7 +242,7 @@ final class CsvFieldMappers {
 
     // When the destination file doesn't exist, we copy the source file
     // there and return its path relative to the instance folder
-    Path destinationFile = configuration.getExportMediaPath().resolve(sourceFilename);
+    Path destinationFile = configuration.getExportAttachmentsPath().resolve(sourceFilename);
     if (!exists(destinationFile)) {
       copy(sourceFile, destinationFile);
       return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(destinationFile.getFileName()).toString()));
@@ -264,7 +264,7 @@ final class CsvFieldMappers {
     int sequenceSuffix = 2;
     Path sequentialDestinationFile;
     do {
-      sequentialDestinationFile = configuration.getExportMediaPath().resolve(String.format("%s-%d%s", namePart, sequenceSuffix++, extPart));
+      sequentialDestinationFile = configuration.getExportAttachmentsPath().resolve(String.format("%s-%d%s", namePart, sequenceSuffix++, extPart));
     } while (exists(sequentialDestinationFile));
 
     // Now that we have a valid destination file, we copy the source file
@@ -281,18 +281,18 @@ final class CsvFieldMappers {
 
     String sourceFilename = element.getValue();
 
-    if (!configuration.resolveExportMedia())
+    if (!configuration.resolveExportAttachments())
       return Stream.of(Pair.of(element.fqn(), sourceFilename));
 
-    if (!Files.exists(configuration.getExportMediaPath()))
-      createDirectories(configuration.getExportMediaPath());
+    if (!Files.exists(configuration.getExportAttachmentsPath()))
+      createDirectories(configuration.getExportAttachmentsPath());
 
     Path sourceFile = workingDir.resolve(sourceFilename);
 
     if (!exists(sourceFile))
       return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(sourceFilename).toString()));
 
-    Path destinationFile = configuration.getExportMediaPath().resolve("audit-" + stripIllegalChars(instanceId) + ".csv");
+    Path destinationFile = configuration.getExportAttachmentsPath().resolve("audit-" + stripIllegalChars(instanceId) + ".csv");
     copy(sourceFile, destinationFile, REPLACE_EXISTING);
     return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(destinationFile.getFileName()).toString()));
   }

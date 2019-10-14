@@ -224,7 +224,7 @@ class Scenario {
     ExportConfiguration configuration = ExportConfiguration.Builder.empty()
         .setExportFilename("test_output.csv")
         .setExportDir(getOutputMediaDir().getParent())
-        .setExportMedia(exportMedia)
+        .setExportAttachments(exportMedia)
         .build();
     return CsvFieldMappers
         .getMapper(fieldModel, false)

@@ -30,6 +30,7 @@ public class OperationTest {
 
   private static final Consumer<Args> NO_OP = args -> {
   };
+  public static final Param<Void> FLAG = Param.flag("op", "operation", "Some operation");
 
 
   @Test
@@ -68,8 +69,8 @@ public class OperationTest {
   }
 
   private static Operation buildOp(int requiredParams, int optionalParams) {
-    return OperationBuilder.cli()
-        .withFlag(Param.flag("op", "operation", "Some operation"))
+    return OperationBuilder.cli("Test operation")
+        .withMatcher(args -> args.has(FLAG))
         .withLauncher(NO_OP)
         .withRequiredParams(IntStream.range(0, requiredParams).mapToObj(n -> Param.flag("r" + n, "required-" + n, "Required param " + n)).collect(toList()).toArray(new Param[]{}))
         .withOptionalParams(IntStream.range(0, optionalParams).mapToObj(n -> Param.flag("o" + n, "optional-" + n, "Optional param " + n)).collect(toList()).toArray(new Param[]{}))
@@ -77,8 +78,9 @@ public class OperationTest {
   }
 
   private static Operation buildDeprecatedOp() {
-    return OperationBuilder.cli()
-        .withFlag(Param.flag("op", "operation", "Some operation"))
+    return OperationBuilder.cli("Test operation")
+        .withMatcher(args -> args.has(FLAG))
+        .withRequiredParams(FLAG)
         .withLauncher(NO_OP)
         .deprecated()
         .build();

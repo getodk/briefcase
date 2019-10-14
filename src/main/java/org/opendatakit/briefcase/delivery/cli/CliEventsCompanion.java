@@ -18,9 +18,6 @@ package org.opendatakit.briefcase.delivery.cli;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.operations.export.ExportEvent;
-import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
-import org.opendatakit.briefcase.operations.transfer.push.PushEvent;
-import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.slf4j.Logger;
 
 /**
@@ -37,21 +34,6 @@ class CliEventsCompanion {
         log.info(event.getMessage());
         System.out.println(event.getMessage());
       }
-    });
-
-    on(PullEvent.Success.class, event -> {
-      log.info("Pull Succeeded");
-      System.out.println("Pull Succeeded");
-    });
-
-    on(PushEvent.Success.class, event -> {
-      log.info("Push Succeeded");
-      System.out.println("Push Succeeded");
-    });
-
-    on(FormStatusEvent.class, fse -> {
-      log.info(fse.getMessage());
-      System.out.println(fse.getMessage());
     });
   }
 

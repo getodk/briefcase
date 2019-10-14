@@ -78,7 +78,7 @@ public class PullFromAggregateTest {
     container = ContainerHelper.inMemory();
     events = new ArrayList<>();
     inMemoryHttp = (InMemoryHttp) container.http;
-    pullOp = new PullFromAggregate(container, server, includeIncomplete, e -> { });
+    pullOp = new PullFromAggregate(container.http, container.formMetadata, container.submissionMetadata, server, includeIncomplete, e -> { });
     runnerStatus = new TestRunnerStatus(false);
     formMetadata = FormMetadata.empty(FormKey.of("simple-form"));
     formMetadata = formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata))

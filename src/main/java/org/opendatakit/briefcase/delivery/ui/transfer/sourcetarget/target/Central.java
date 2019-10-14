@@ -59,7 +59,7 @@ public class Central implements TargetPanelValueContainer {
         );
 
     String token = container.http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
-    PushToCentral pushOp = new PushToCentral(container, server, token, EventBus::publish);
+    PushToCentral pushOp = new PushToCentral(container.http, container.submissionMetadata, server, token, EventBus::publish);
 
     return JobsRunner
         .launchAsync(forms.filter(f -> !f.isEncrypted()).map(pushOp::push))

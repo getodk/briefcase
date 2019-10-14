@@ -53,8 +53,18 @@ public class Cli {
   private Optional<Runnable> onExitCallback = Optional.empty();
 
   public Cli() {
-    register(OperationBuilder.cli().withFlag(SHOW_HELP).withLauncher(args -> printHelp()).build());
-    register(OperationBuilder.cli().withFlag(SHOW_VERSION).withLauncher(args -> printVersion()).build());
+    register(OperationBuilder.cli("Show help")
+        .withMatcher(args -> args.has(SHOW_HELP))
+        .withRequiredParams(SHOW_HELP)
+        .withLauncher(args -> printHelp())
+        .withoutContainer()
+        .build());
+    register(OperationBuilder.cli("Show version")
+        .withMatcher(args -> args.has(SHOW_VERSION))
+        .withRequiredParams(SHOW_VERSION)
+        .withLauncher(args -> printVersion())
+        .withoutContainer()
+        .build());
   }
 
   /**
@@ -76,8 +86,9 @@ public class Cli {
    * @return self {@link Cli} instance to chain more method calls
    */
   public Cli deprecate(Param oldParam, Param<?> alternative) {
-    operations.add(OperationBuilder.cli()
-        .withFlag(oldParam)
+    operations.add(OperationBuilder.cli("Deprecated -" + oldParam.shortCode)
+        .withMatcher(args -> args.has(oldParam))
+        .withRequiredParams(oldParam)
         .withLauncher(__ -> {
           log.warn("Trying to run deprecated param -{}", oldParam.shortCode);
           System.out.println("The param -" + oldParam.shortCode + " has been deprecated. Run Briefcase again with -" + alternative.shortCode + " instead");
@@ -124,7 +135,7 @@ public class Cli {
     try {
       // Compute the operation that will be launched
       Operation operation = operations.stream()
-          .filter(o -> cli.hasOption(o.param.shortCode))
+          .filter(o -> o.matches(allArgs))
           .findFirst()
           .orElseGet(() -> defaultOperation.orElseThrow(() -> new BriefcaseException("No operation was flagged and there's no default operation")));
 

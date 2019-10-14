@@ -15,20 +15,20 @@
  */
 package org.opendatakit.briefcase.delivery.cli.launchgui;
 
+import static org.opendatakit.briefcase.delivery.cli.Common.GUI;
 import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
 
 import org.opendatakit.briefcase.delivery.ui.MainBriefcaseWindow;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
-import org.opendatakit.briefcase.reused.cli.Param;
 
 public class LaunchGui {
-  private static final Param<Void> LAUNCH_GUI_FLAG = Param.flag("gui", "gui", "Launch GUI");
+
 
   public static Operation create(Container container) {
     return OperationBuilder.gui()
-        .withFlag(LAUNCH_GUI_FLAG)
+        .withMatcher(args -> args.has(GUI))
         .withOptionalParams(WORKSPACE_LOCATION)
         .withLauncher(__ -> launchGui(container))
         .build();

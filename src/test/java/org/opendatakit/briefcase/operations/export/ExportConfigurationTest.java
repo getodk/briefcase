@@ -127,9 +127,9 @@ public class ExportConfigurationTest {
     assertThat(empty().setPemFile(VALID_PEM_FILE).build(), not(isEmpty()));
     assertThat(empty().setStartDate(LocalDate.of(2018, 1, 1)).build(), not(isEmpty()));
     assertThat(empty().setEndDate(LocalDate.of(2018, 1, 1)).build(), not(isEmpty()));
-    assertThat(empty().setPullBefore(true).build(), not(isEmpty()));
+    assertThat(empty().setStartFromLast(true).build(), not(isEmpty()));
     assertThat(empty().setOverwriteFiles(true).build(), not(isEmpty()));
-    assertThat(empty().setExportMedia(true).build(), not(isEmpty()));
+    assertThat(empty().setExportAttachments(true).build(), not(isEmpty()));
     assertThat(empty().setSplitSelectMultiples(true).build(), not(isEmpty()));
     assertThat(empty().setIncludeGeoJsonExport(true).build(), not(isEmpty()));
     assertThat(empty().setRemoveGroupNames(true).build(), not(isEmpty()));
@@ -143,9 +143,9 @@ public class ExportConfigurationTest {
     assertThat(empty().overrideOverwriteFiles(UNDETERMINED).build(), isEmpty());
     assertThat(empty().overrideOverwriteFiles(TRUE).build(), not(isEmpty()));
     assertThat(empty().overrideOverwriteFiles(FALSE).build(), not(isEmpty()));
-    assertThat(empty().overrideExportMedia(UNDETERMINED).build(), isEmpty());
-    assertThat(empty().overrideExportMedia(TRUE).build(), not(isEmpty()));
-    assertThat(empty().overrideExportMedia(FALSE).build(), not(isEmpty()));
+    assertThat(empty().overrideExportAttachments(UNDETERMINED).build(), isEmpty());
+    assertThat(empty().overrideExportAttachments(TRUE).build(), not(isEmpty()));
+    assertThat(empty().overrideExportAttachments(FALSE).build(), not(isEmpty()));
     assertThat(empty().overrideSplitSelectMultiples(UNDETERMINED).build(), isEmpty());
     assertThat(empty().overrideSplitSelectMultiples(TRUE).build(), not(isEmpty()));
     assertThat(empty().overrideSplitSelectMultiples(FALSE).build(), not(isEmpty()));
@@ -174,7 +174,7 @@ public class ExportConfigurationTest {
 
   @Test
   public void export_media_defaults_to_true_on_empty_confs() {
-    assertThat(EMPTY_CONF.resolveExportMedia(), is(true));
+    assertThat(EMPTY_CONF.resolveExportAttachments(), is(true));
   }
 
   @Test

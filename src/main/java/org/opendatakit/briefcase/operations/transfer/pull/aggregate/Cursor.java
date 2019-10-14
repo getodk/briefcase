@@ -60,6 +60,10 @@ public interface Cursor extends Comparable<Cursor> {
     return AggregateCursor.of(lastUpdateDate);
   }
 
+  static AggregateCursor of(OffsetDateTime lastUpdateDate) {
+    return AggregateCursor.of(lastUpdateDate);
+  }
+
   /**
    * Create a cursor that would start pulling from the provided date in Aggregate servers.
    */

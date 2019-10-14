@@ -31,7 +31,6 @@ import java.util.Optional;
 import java.util.prefs.Preferences;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.opendatakit.briefcase.delivery.LegacyPrefs;
-import org.opendatakit.briefcase.delivery.cli.ClearPreferences;
 import org.opendatakit.briefcase.delivery.cli.Export;
 import org.opendatakit.briefcase.delivery.cli.PullFromAggregate;
 import org.opendatakit.briefcase.delivery.cli.PullFromCentral;
@@ -81,17 +80,19 @@ public class Launcher {
     Container container = new Container(workspace, http, versionManager, db, sentry, formMetadataPort, submissionMetadataPort, preferencePort);
 
     new Cli()
+        .registerDefault(LaunchGui.create(container))
         .register(PullFromAggregate.create(container))
         .register(PullFromCentral.create(container))
+        .register(PullFromCollect.create(container))
         .register(PushToAggregate.create(container))
         .register(PushToCentral.create(container))
-        .register(PullFromCollect.create(container))
         .register(Export.create(container))
-        .register(ClearPreferences.create(container))
-        .registerDefault(LaunchGui.create(container))
         .before((args, op) -> {
+          if (!op.requiresContainer())
+            return;
+
           // Ask for the workspace location if the user hasn't provided one with the -wl arg
-          if (!args.has(WORKSPACE_LOCATION))
+          if (args.getOptional(WORKSPACE_LOCATION).isEmpty())
             op.deliveryType.promptWorkspaceLocation(container, path -> args.set(WORKSPACE_LOCATION, path.toString()));
 
           // Start the container

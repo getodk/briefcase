@@ -60,7 +60,7 @@ public class FormInComputer implements SourcePanelValueContainer {
 
   @Override
   public JobsRunner pull(TransferForms forms, boolean startFromLast) {
-    PullFormDefinition pullOp = new PullFormDefinition(container, EventBus::publish);
+    PullFormDefinition pullOp = new PullFormDefinition(container.formMetadata, EventBus::publish);
     return JobsRunner.launchAsync(pullOp.pull(
         formMetadata,
         formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata))

@@ -85,7 +85,7 @@ public class Aggregate implements SourcePanelValueContainer {
 
   @Override
   public JobsRunner pull(TransferForms forms, boolean startFromLast) {
-    PullFromAggregate pullOp = new PullFromAggregate(container, server, false, EventBus::publish);
+    PullFromAggregate pullOp = new PullFromAggregate(container.http, container.formMetadata, container.submissionMetadata, server, false, EventBus::publish);
     return JobsRunner.launchAsync(forms.map(formMetadata -> pullOp.pull(
         formMetadata,
         container.workspace.buildFormFile(formMetadata),

@@ -166,11 +166,11 @@ class ExportToCsvScenario {
         .setStartDate(startDate)
         .setEndDate(endDate)
         .setOverwriteFiles(overwrite)
-        .setExportMedia(exportMedia)
+        .setExportAttachments(exportMedia)
         .setSplitSelectMultiples(splitSelectMultiples)
         .build();
 
-    ExportToCsv.export(container, formMetadata, formDef, configuration);
+    ExportToCsv.export(formMetadata, formDef, configuration, container.submissionMetadata, container.formMetadata);
   }
 
   void assertSameContent() {

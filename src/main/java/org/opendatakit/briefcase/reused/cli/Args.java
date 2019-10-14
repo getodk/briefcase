@@ -71,6 +71,10 @@ public class Args {
     return valuesMap.containsKey(key);
   }
 
+  public <T> boolean has(Param<T> key, T value) {
+    return valuesMap.containsKey(key) && Objects.equals(valuesMap.get(key), value);
+  }
+
   /**
    * <p>Returns an {@link Optional} instance with the value of the given <code>key</code>
    *
@@ -94,7 +98,7 @@ public class Args {
    */
   public <T> T get(Param<T> key) {
     return getOptional(key)
-        .orElseThrow(() -> new IllegalArgumentException("No param -" + key.shortCode + " has been declared"));
+        .orElseThrow(() -> new IllegalArgumentException("Launch params don't contain -" + key.shortCode));
   }
 
   @Override

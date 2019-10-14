@@ -83,7 +83,7 @@ public class PullFromCentralIntegrationTest {
     container = ContainerHelper.inMemory(CommonsHttp.of(1, Optional.empty()));
     formMetadataPort = container.formMetadata;
     events = new ArrayList<>();
-    pullOp = new PullFromCentral(container, centralServer, token, e -> events.add(e.getMessage()));
+    pullOp = new PullFromCentral(container.http, container.formMetadata, container.submissionMetadata, centralServer, token, e -> events.add(e.getMessage()));
     formMetadata = FormMetadata.empty(FormKey.of("some-form"));
     formMetadata = formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata));
   }

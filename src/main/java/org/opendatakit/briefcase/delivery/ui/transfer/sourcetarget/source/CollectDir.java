@@ -64,7 +64,7 @@ public class CollectDir implements SourcePanelValueContainer {
 
   @Override
   public JobsRunner pull(TransferForms forms, boolean startFromLast) {
-    PullFromCollectDir pullJob = new PullFromCollectDir(container, EventBus::publish);
+    PullFromCollectDir pullJob = new PullFromCollectDir(container.formMetadata, container.submissionMetadata, EventBus::publish);
     return JobsRunner.launchAsync(forms.map(formMetadata -> pullJob.pull(
         formMetadata,
         formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata))

@@ -65,7 +65,7 @@ public class Central implements SourcePanelValueContainer {
   @Override
   public JobsRunner pull(TransferForms forms, boolean startFromLast) {
     String token = container.http.execute(server.getSessionTokenRequest()).orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
-    PullFromCentral pullOp = new PullFromCentral(container, server, token, EventBus::publish);
+    PullFromCentral pullOp = new PullFromCentral(container.http, container.formMetadata, container.submissionMetadata, server, token, EventBus::publish);
     return JobsRunner
         .launchAsync(forms.map(formMetadata -> pullOp.pull(formMetadata, workspace.buildFormFile(formMetadata))))
         .onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));

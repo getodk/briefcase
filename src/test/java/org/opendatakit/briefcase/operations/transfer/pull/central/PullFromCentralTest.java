@@ -68,7 +68,7 @@ public class PullFromCentralTest {
     container = ContainerHelper.inMemory();
     events = new ArrayList<>();
     inMemoryHttp = (InMemoryHttp) container.http;
-    pullOp = new PullFromCentral(container, server, token, e -> { });
+    pullOp = new PullFromCentral(container.http, container.formMetadata, container.submissionMetadata, server, token, e -> { });
     runnerStatus = new TestRunnerStatus(false);
     formMetadata = FormMetadata.empty(FormKey.of("some-form"));
     formMetadata = formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata));

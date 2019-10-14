@@ -170,9 +170,9 @@ public class ConfigurationPanelForm extends JComponent {
     configuration.ifExportDirPresent(this::setExportDir);
     configuration.ifPemFilePresent(this::setPemFile);
     setDateRange(configuration.getDateRange());
-    setPullBefore(configuration.getPullBefore());
+    setPullBefore(configuration.getStartFromLast());
     setOverwriteFiles(configuration.getOverwriteFiles());
-    setExportMedia(configuration.getExportMedia());
+    setExportMedia(configuration.getExportAttachments());
     setSplitSelectMultiples(configuration.getSplitSelectMultiples());
     setIncludeGeoJsonExport(configuration.getIncludeGeoJsonExport());
     setRemoveGroupNames(configuration.getRemoveGroupNames());
@@ -405,9 +405,9 @@ public class ConfigurationPanelForm extends JComponent {
           clearPemFile();
         })
         .setDateRange(dateRange)
-        .setPullBefore(pullBefore)
+        .setStartFromLast(pullBefore)
         .setOverwriteFiles(overwriteFiles)
-        .setExportMedia(exportMedia)
+        .setExportAttachments(exportMedia)
         .setSplitSelectMultiples(splitSelectMultiples)
         .setIncludeGeoJsonExport(includeGeoJsonExport)
         .setRemoveGroupNames(removeGroupNames)

@@ -130,9 +130,9 @@ public class LegacyPrefs {
     legacyPrefs.getValue("exportDir").map(Paths::get).ifPresent(defaultExportConfBuilder::setExportDir);
     legacyPrefs.getValue("pemFile").map(Paths::get).ifPresent(defaultExportConfBuilder::setPemFile);
     legacyPrefs.getValues("startDate", "endDate").map((start, end) -> DateRange.from(LocalDate.parse(start), LocalDate.parse(end))).ifPresent(defaultExportConfBuilder::setDateRange);
-    setOverridableBoolean(legacyPrefs, "pullBefore", defaultExportConfBuilder::setPullBefore);
+    setOverridableBoolean(legacyPrefs, "pullBefore", defaultExportConfBuilder::setStartFromLast);
     setOverridableBoolean(legacyPrefs, "overwriteExistingFiles", defaultExportConfBuilder::setOverwriteFiles);
-    setOverridableBoolean(legacyPrefs, "exportMedia", defaultExportConfBuilder::setExportMedia);
+    setOverridableBoolean(legacyPrefs, "exportMedia", defaultExportConfBuilder::setExportAttachments);
     setOverridableBoolean(legacyPrefs, "splitSelectMultiples", defaultExportConfBuilder::setSplitSelectMultiples);
     setOverridableBoolean(legacyPrefs, "includeGeoJsonExport", defaultExportConfBuilder::setIncludeGeoJsonExport);
     setOverridableBoolean(legacyPrefs, "removeGroupNames", defaultExportConfBuilder::setRemoveGroupNames);

@@ -108,7 +108,7 @@ public class ConfigurationPanelTest extends AssertJSwingJUnitTestCase {
         .setPemFile(ConfigurationPanelPageObject.VALID_PEM_FILE)
         .setStartDate(LocalDate.of(2018, 1, 1))
         .setEndDate(LocalDate.of(2019, 1, 1))
-        .setPullBefore(true)
+        .setStartFromLast(true)
         .build();
     component = ConfigurationPanelPageObject.setUpDefaultPanel(robot(), expectedConfiguration, true, true);
     component.show();

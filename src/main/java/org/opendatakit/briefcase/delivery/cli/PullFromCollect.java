@@ -16,21 +16,20 @@
 package org.opendatakit.briefcase.delivery.cli;
 
 import static org.opendatakit.briefcase.delivery.cli.Common.FORM_ID;
-import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
+import static org.opendatakit.briefcase.delivery.cli.Common.PULL;
+import static org.opendatakit.briefcase.delivery.cli.Common.PULL_SOURCE;
+import static org.opendatakit.briefcase.delivery.cli.Common.PULL_SOURCE_TYPE;
+import static org.opendatakit.briefcase.delivery.cli.Common.getFormsToPull;
+import static org.opendatakit.briefcase.operations.transfer.SourceOrTarget.Type.COLLECT_DIRECTORY;
+import static org.opendatakit.briefcase.operations.transfer.pull.Pull.buildPullJob;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
-import org.opendatakit.briefcase.operations.transfer.TransferForms;
-import org.opendatakit.briefcase.operations.transfer.pull.filesystem.FormInstaller;
-import org.opendatakit.briefcase.operations.transfer.pull.filesystem.PullFromCollectDir;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
-import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
@@ -39,43 +38,34 @@ import org.slf4j.LoggerFactory;
 
 public class PullFromCollect {
   private static final Logger log = LoggerFactory.getLogger(PullFromCollect.class);
-  private static final Param<Void> IMPORT = Param.flag("pc", "pull_collect", "Pull from Collect");
-  private static final Param<Path> ODK_DIR = Param.arg("od", "odk_directory", "ODK directory", Paths::get);
 
   public static Operation create(Container container) {
-    return OperationBuilder.cli()
-        .withFlag(IMPORT)
-        .withRequiredParams(WORKSPACE_LOCATION, ODK_DIR)
+    return OperationBuilder.cli("Pull from Collect")
+        .withMatcher(args -> args.has(PULL) && args.has(PULL_SOURCE_TYPE, COLLECT_DIRECTORY))
+        .withRequiredParams(PULL_SOURCE, PULL_SOURCE_TYPE)
         .withOptionalParams(FORM_ID)
         .withLauncher(args -> pull(container, args))
         .build();
   }
 
   private static void pull(Container container, Args args) {
-    Path odkDir = args.get(ODK_DIR);
-    Optional<String> formId = args.getOptional(FORM_ID);
+    List<FormMetadata> formsToPull = getFormsToPull(args.getOptional(FORM_ID), Paths.get(args.get(PULL_SOURCE)));
 
-    CliEventsCompanion.attach(log);
-
-    List<FormMetadata> formMetadataList = FormInstaller.scanCollectFormsAt(odkDir);
-
-    TransferForms forms = TransferForms.from(formMetadataList)
-        .filter(formMetadata -> formId.map(id -> formMetadata.getKey().getId().equals(id)).orElse(true));
-
-    forms.selectAll();
-
-    if (formId.isPresent() && forms.isEmpty())
-      throw new BriefcaseException("Form " + formId.get() + " not found");
-
-    PullFromCollectDir pullOp = new PullFromCollectDir(container, PullFromCollect::onEvent);
-    JobsRunner.launchAsync(
-        forms.map(formMetadata -> pullOp.pull(
+    JobsRunner.launchAsync(formsToPull.stream()
+        .map(formMetadata -> buildPullJob(
+            container.workspace,
+            container.http,
+            container.formMetadata,
+            container.submissionMetadata,
             formMetadata,
-            formMetadata.withFormFile(container.workspace.buildFormFile(formMetadata))
-        )),
-        PullFromCollect::onError
+            PullFromCollect::onEvent,
+            Optional.empty()
+        )), PullFromCollect::onError
     ).waitForCompletion();
 
+    System.out.println();
+    System.out.println("Pull complete");
+    System.out.println();
   }
 
   private static void onEvent(FormStatusEvent event) {

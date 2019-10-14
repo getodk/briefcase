@@ -91,7 +91,7 @@ public class PullFromAggregateIntegrationTest {
     events = new ArrayList<>();
     container = ContainerHelper.inMemory(CommonsHttp.of(1, Optional.empty()));
     formMetadataPort = container.formMetadata;
-    pullOp = new PullFromAggregate(container, aggregateServer, true, e -> events.add(e.getMessage()));
+    pullOp = new PullFromAggregate(container.http, container.formMetadata, container.submissionMetadata, aggregateServer, true, e -> events.add(e.getMessage()));
     runnerStatus = new TestRunnerStatus(false);
     formMetadata = FormMetadata.empty(FormKey.of("simple-form"));
     formMetadata = formMetadata

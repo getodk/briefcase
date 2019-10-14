@@ -75,7 +75,7 @@ public class PushToCentralTest {
   public void setUp() throws IOException {
     container = ContainerHelper.inMemory();
     inMemoryHttp = (InMemoryHttp) container.http;
-    pushOp = new PushToCentral(container, server, token, this::onEvent);
+    pushOp = new PushToCentral(container.http, container.submissionMetadata, server, token, this::onEvent);
     events = new ArrayList<>();
     runnerStatus = new TestRunnerStatus(false);
     formMetadata = FormMetadata.empty(FormKey.of("push-form-test"));

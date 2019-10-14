@@ -74,7 +74,7 @@ public class Aggregate implements TargetPanelValueContainer {
 
   @Override
   public JobsRunner push(TransferForms forms) {
-    PushToAggregate pushOp = new PushToAggregate(container, server, false, EventBus::publish);
+    PushToAggregate pushOp = new PushToAggregate(container.http, server, false, EventBus::publish);
 
     return JobsRunner
         .launchAsync(forms.map(pushOp::push))

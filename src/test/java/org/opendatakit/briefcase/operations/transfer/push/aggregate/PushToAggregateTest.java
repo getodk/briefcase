@@ -98,7 +98,7 @@ public class PushToAggregateTest {
   @Test
   public void knows_how_to_check_if_the_form_already_exists_in_Central() {
     // Low-level test that drives an individual step of the push operation
-    PushToAggregate pushOp = new PushToAggregate(container, server, false, this::onEvent);
+    PushToAggregate pushOp = new PushToAggregate(container.http, server, false, this::onEvent);
 
     RequestSpy<?> requestSpy = http.spyOn(
         server.getFormExistsRequest(formMetadata.getKey().getId()),
@@ -114,7 +114,7 @@ public class PushToAggregateTest {
   @Test
   public void knows_how_to_check_if_the_form_does_not_exist_in_Central() {
     // Low-level test that drives an individual step of the push operation
-    PushToAggregate pushOp = new PushToAggregate(container, server, false, this::onEvent);
+    PushToAggregate pushOp = new PushToAggregate(container.http, server, false, this::onEvent);
 
     http.stub(
         server.getFormExistsRequest(formMetadata.getKey().getId()),
@@ -127,7 +127,7 @@ public class PushToAggregateTest {
   @Test
   public void knows_how_to_push_forms_and_their_attachments_to_Aggregate() {
     // Low-level test that drives an individual step of the push operation
-    PushToAggregate pushOp = new PushToAggregate(container, server, false, this::onEvent);
+    PushToAggregate pushOp = new PushToAggregate(container.http, server, false, this::onEvent);
 
     RequestSpy<?> requestSpy = http.spyOn(server.getPushFormRequest(form, singletonList(formAttachment)));
 
@@ -142,7 +142,7 @@ public class PushToAggregateTest {
   @Test
   public void knows_how_to_push_submissions_and_their_attachments_to_Aggregate() {
     // Low-level test that drives an individual step of the push operation
-    PushToAggregate pushOp = new PushToAggregate(container, server, false, this::onEvent);
+    PushToAggregate pushOp = new PushToAggregate(container.http, server, false, this::onEvent);
 
     RequestSpy<?> requestSpy = http.spyOn(
         server.getPushSubmissionRequest(submissionMetadata.getSubmissionFile(), singletonList(submissionAttachment)),
@@ -162,7 +162,7 @@ public class PushToAggregateTest {
   @Test
   public void knows_how_to_push_completely_a_form_when_the_form_doesn_exist_in_Aggregate() {
     // High-level test that drives the public push operation
-    PushToAggregate pushOp = new PushToAggregate(container, server, false, this::onEvent);
+    PushToAggregate pushOp = new PushToAggregate(container.http, server, false, this::onEvent);
 
     http.stub(server.getFormExistsRequest(formMetadata.getKey().getId()), ok(listOfFormsResponseFromAggregate()));
     http.stub(server.getPushFormRequest(form, singletonList(formAttachment)), ok("<root/>"));
@@ -184,7 +184,7 @@ public class PushToAggregateTest {
   @Test
   public void knows_how_to_push_completely_a_form_when_the_form_exists_in_Aggregate() {
     // High-level test that drives the public push operation
-    PushToAggregate pushOp = new PushToAggregate(container, server, false, this::onEvent);
+    PushToAggregate pushOp = new PushToAggregate(container.http, server, false, this::onEvent);
 
     http.stub(server.getFormExistsRequest(formMetadata.getKey().getId()), ok(listOfFormsResponseFromAggregate(formMetadata)));
     http.stub(server.getPushFormRequest(form, singletonList(formAttachment)), ok("<root/>"));
@@ -206,7 +206,7 @@ public class PushToAggregateTest {
   @Test
   public void can_force_send_a_form_even_when_the_form_exists_in_Aggregate() {
     // High-level test that drives the public push operation
-    PushToAggregate pushOp = new PushToAggregate(container, server, true, this::onEvent);
+    PushToAggregate pushOp = new PushToAggregate(container.http, server, true, this::onEvent);
 
     http.stub(server.getFormExistsRequest(formMetadata.getKey().getId()), ok(listOfFormsResponseFromAggregate(formMetadata)));
     http.stub(server.getPushFormRequest(form, singletonList(formAttachment)), ok("<root/>"));

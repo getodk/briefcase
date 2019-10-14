@@ -1,12 +1,16 @@
 package org.opendatakit.briefcase.reused.cli;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import org.apache.commons.cli.Option;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.api.Iso8601Helpers;
 
 /**
  * This class represents a command-line execution argument. It can be either a flag (without a
@@ -22,7 +26,7 @@ public class Param<T> {
   final Option option;
   private final Optional<Function<String, T>> mapper;
 
-  private Param(String shortCode, Option option, Optional<Function<String, T>> mapper) {
+  protected Param(String shortCode, Option option, Optional<Function<String, T>> mapper) {
     this.shortCode = shortCode;
     this.option = option;
     this.mapper = mapper;
@@ -94,11 +98,22 @@ public class Param<T> {
    * @return a new {@link Param}&lt;{@link Void}&gt; instance
    */
   public static Param<Void> flag(String shortCode, String longCode, String description) {
-    return new Param<>(
+    return new Flag(
         shortCode,
-        new Option(shortCode, longCode, false, description),
-        Optional.empty()
+        new Option(shortCode, longCode, false, description)
     );
+  }
+
+  public static Param<OffsetDateTime> dateTime(String shortCode, String longCode, String description) {
+    return Param.arg(shortCode, longCode, description, Iso8601Helpers::parseDateTime);
+  }
+
+  public static Param<Path> path(String shortCode, String longCode, String description) {
+    return Param.arg(shortCode, longCode, description, Paths::get);
+  }
+
+  public static Param<Integer> integer(String shortCode, String longCode, String description) {
+    return Param.arg(shortCode, longCode, description, Integer::parseInt);
   }
 
   boolean isArg() {
@@ -113,6 +128,10 @@ public class Param<T> {
     return this.mapper
         .orElseThrow(() -> new RuntimeException("No mapper defined for param -" + shortCode))
         .apply(value);
+  }
+
+  public String getShortCode() {
+    return shortCode;
   }
 
   @Override

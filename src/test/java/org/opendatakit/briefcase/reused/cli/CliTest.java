@@ -26,11 +26,14 @@ import org.junit.Test;
 
 public class CliTest {
 
+  public static final Param<Void> FLAG = Param.flag("o", "operation", "Run some operation");
+
   @Test
   public void the_help_flag_prints_defined_ops() {
     Output output = captureOutputOf(() -> new Cli()
-        .register(OperationBuilder.cli()
-            .withFlag(Param.flag("o", "operation", "Run some operation"))
+        .register(OperationBuilder.cli("Test operation")
+            .withMatcher(args -> args.has(FLAG))
+            .withRequiredParams(FLAG)
             .withLauncher(args -> { })
             .build())
         .run(new String[]{"-h"})

@@ -105,6 +105,11 @@ public class AggregateCursor implements Cursor {
     return new AggregateCursor(buildCursorXml(lastUpdate, lastUri), Optional.of(lastUpdate), lastUri);
   }
 
+  public static AggregateCursor of(OffsetDateTime lastUpdate) {
+    Optional<String> lastUri = Optional.empty();
+    return new AggregateCursor(buildCursorXml(lastUpdate, lastUri), Optional.of(lastUpdate), lastUri);
+  }
+
   /**
    * Returns a synthetic Cursor instance with the provided values.
    */

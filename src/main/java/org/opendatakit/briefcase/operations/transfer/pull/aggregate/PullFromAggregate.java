@@ -40,10 +40,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.operations.transfer.pull.PullEvent;
-import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.api.OptionalProduct;
 import org.opendatakit.briefcase.reused.api.Pair;
 import org.opendatakit.briefcase.reused.api.Triple;
+import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.Request;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.Job;
@@ -51,21 +51,27 @@ import org.opendatakit.briefcase.reused.job.RunnerStatus;
 import org.opendatakit.briefcase.reused.model.XmlElement;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
+import org.opendatakit.briefcase.reused.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
 import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadata;
+import org.opendatakit.briefcase.reused.model.submission.SubmissionMetadataPort;
 import org.opendatakit.briefcase.reused.model.transfer.AggregateServer;
 
 public class PullFromAggregate {
-  private final Container container;
   private final AggregateServer server;
   private final boolean includeIncomplete;
   private final Consumer<FormStatusEvent> onEventCallback;
+  private final SubmissionMetadataPort submissionMetadataPort;
+  private final FormMetadataPort formMetadataPort;
+  private final Http http;
 
-  public PullFromAggregate(Container container, AggregateServer server, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback) {
-    this.container = container;
+  public PullFromAggregate(Http http, FormMetadataPort formMetadataPort, SubmissionMetadataPort submissionMetadataPort, AggregateServer server, boolean includeIncomplete, Consumer<FormStatusEvent> onEventCallback) {
     this.server = server;
     this.includeIncomplete = includeIncomplete;
     this.onEventCallback = onEventCallback;
+    this.submissionMetadataPort = submissionMetadataPort;
+    this.formMetadataPort = formMetadataPort;
+    this.http = http;
   }
 
   static Optional<Cursor> getLastCursor(List<InstanceIdBatch> batches) {
@@ -124,7 +130,7 @@ public class PullFromAggregate {
           .map(instanceId -> Triple.of(
               submissionNumber.getAndIncrement(),
               instanceId,
-              container.submissionMetadata.hasBeenAlreadyPulled(formId, instanceId)
+              submissionMetadataPort.hasBeenAlreadyPulled(formId, instanceId)
           ))
           .peek(triple -> {
             if (triple.get3())
@@ -155,13 +161,13 @@ public class PullFromAggregate {
                     .map(Paths::get)
                     .collect(toList())
             );
-            container.submissionMetadata.execute(insert(submissionMetadata));
+            this.submissionMetadataPort.execute(insert(submissionMetadata));
           });
 
       tracker.trackEnd();
       Cursor newCursor = getLastCursor(instanceIdBatches).orElse(Cursor.empty());
 
-      container.formMetadata.execute(upsert(targetFormMetadata
+      formMetadataPort.execute(upsert(targetFormMetadata
           .withCursor(newCursor)
           .withPullSource(server)));
 
@@ -177,7 +183,7 @@ public class PullFromAggregate {
     }
 
     tracker.trackStartDownloadingForm();
-    Response<String> response = container.http.execute(getDownloadFormRequest(sourceFormMetadata));
+    Response<String> response = http.execute(getDownloadFormRequest(sourceFormMetadata));
     if (!response.isSuccess()) {
       tracker.trackErrorDownloadingForm(response);
       return null;
@@ -215,7 +221,7 @@ public class PullFromAggregate {
         .asXmlElement()
         .withResponseMapper(PullFromAggregate::parseMediaFiles)
         .build();
-    Response<List<AggregateAttachment>> response = container.http.execute(request);
+    Response<List<AggregateAttachment>> response = http.execute(request);
     if (!response.isSuccess()) {
       tracker.trackErrorGettingFormManifest(response);
       return Collections.emptyList();
@@ -248,7 +254,7 @@ public class PullFromAggregate {
     createDirectories(targetAttachmentFile.getParent());
 
     tracker.trackStartDownloadingFormAttachment(attachmentNumber, totalAttachments);
-    Response response = container.http.execute(get(attachment.getDownloadUrl()).downloadTo(targetAttachmentFile).build());
+    Response response = http.execute(get(attachment.getDownloadUrl()).downloadTo(targetAttachmentFile).build());
     if (response.isSuccess())
       tracker.trackEndDownloadingFormAttachment(attachmentNumber, totalAttachments);
     else
@@ -263,7 +269,7 @@ public class PullFromAggregate {
 
     tracker.trackStartDownloadingSubmission(submissionNumber, totalSubmissions);
     String submissionKey = subKeyGen.buildKey(instanceId);
-    Response<DownloadedSubmission> response = container.http.execute(server.getDownloadSubmissionRequest(submissionKey));
+    Response<DownloadedSubmission> response = http.execute(server.getDownloadSubmissionRequest(submissionKey));
     if (!response.isSuccess()) {
       tracker.trackErrorDownloadingSubmission(submissionNumber, totalSubmissions, response);
       return null;
@@ -285,7 +291,7 @@ public class PullFromAggregate {
     createDirectories(targetAttachmentFile.getParent());
 
     tracker.trackStartDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
-    Response response = container.http.execute(get(attachment.getDownloadUrl()).downloadTo(targetAttachmentFile).build());
+    Response response = http.execute(get(attachment.getDownloadUrl()).downloadTo(targetAttachmentFile).build());
     if (response.isSuccess())
       tracker.trackEndDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
     else
@@ -312,7 +318,7 @@ public class PullFromAggregate {
     tracker.trackStartGettingSubmissionIds();
     InstanceIdBatchGetter batchPager;
     try {
-      batchPager = new InstanceIdBatchGetter(container.http, server, formId, includeIncomplete, lastCursor);
+      batchPager = new InstanceIdBatchGetter(http, server, formId, includeIncomplete, lastCursor);
     } catch (InstanceIdBatchGetterException e) {
       tracker.trackErrorGettingInstanceIdBatches(e.aggregateResponse);
       return emptyList();

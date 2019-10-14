@@ -15,26 +15,28 @@
  */
 package org.opendatakit.briefcase.delivery.cli;
 
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.delivery.cli.Common.CREDENTIALS_EMAIL;
 import static org.opendatakit.briefcase.delivery.cli.Common.CREDENTIALS_PASSWORD;
 import static org.opendatakit.briefcase.delivery.cli.Common.FORM_ID;
-import static org.opendatakit.briefcase.delivery.cli.Common.MAX_HTTP_CONNECTIONS;
 import static org.opendatakit.briefcase.delivery.cli.Common.PROJECT_ID;
-import static org.opendatakit.briefcase.delivery.cli.Common.SERVER_URL;
-import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
+import static org.opendatakit.briefcase.delivery.cli.Common.PULL_SOURCE;
+import static org.opendatakit.briefcase.delivery.cli.Common.PUSH;
+import static org.opendatakit.briefcase.delivery.cli.Common.PUSH_TARGET;
+import static org.opendatakit.briefcase.delivery.cli.Common.PUSH_TARGET_TYPE;
+import static org.opendatakit.briefcase.delivery.cli.Common.getFormsToPush;
+import static org.opendatakit.briefcase.operations.transfer.SourceOrTarget.Type.CENTRAL;
+import static org.opendatakit.briefcase.operations.transfer.push.Push.buildPushJob;
+import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
 import java.util.List;
-import java.util.Optional;
-import org.opendatakit.briefcase.operations.transfer.TransferForms;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Container;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
-import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.http.Credentials;
+import org.opendatakit.briefcase.reused.http.Http;
+import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
@@ -44,50 +46,56 @@ import org.slf4j.LoggerFactory;
 
 public class PushToCentral {
   private static final Logger log = LoggerFactory.getLogger(PushToCentral.class);
-  private static final Param<Void> PUSH_TO_CENTRAL = Param.flag("pshc", "push_central", "Push form to a Central server");
 
   public static Operation create(Container container) {
-    return OperationBuilder.cli()
-        .withFlag(PUSH_TO_CENTRAL)
-        .withRequiredParams(WORKSPACE_LOCATION, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD, SERVER_URL)
-        .withOptionalParams(MAX_HTTP_CONNECTIONS, FORM_ID)
+    return OperationBuilder.cli("Push to Central")
+        .withMatcher(args -> args.has(PUSH) && args.has(PUSH_TARGET_TYPE, CENTRAL))
+        .withRequiredParams(PUSH, PUSH_TARGET, PUSH_TARGET_TYPE, PROJECT_ID, CREDENTIALS_EMAIL, CREDENTIALS_PASSWORD)
+        .withOptionalParams(FORM_ID)
         .withLauncher(args -> pushToCentral(container, args))
         .build();
   }
 
   private static void pushToCentral(Container container, Args args) {
-    CliEventsCompanion.attach(log);
+    List<FormMetadata> formsToPush = getFormsToPush(container.formMetadata, args.getOptional(FORM_ID));
 
-    CentralServer server = CentralServer.of(args.get(SERVER_URL), args.get(PROJECT_ID), new Credentials(args.get(CREDENTIALS_EMAIL), args.get(CREDENTIALS_PASSWORD)));
+    JobsRunner.launchAsync(formsToPush.stream()
+        .map(formMetadata -> buildPushJob(
+            container.http,
+            container.submissionMetadata,
+            formMetadata,
+            parseTarget(args),
+            false,
+            PushToCentral::onEvent
+        )), PushToCentral::onError
+    ).waitForCompletion();
 
-    String token = container.http.execute(server.getSessionTokenRequest())
-        .orElseThrow(() -> new BriefcaseException("Can't authenticate with ODK Central"));
+    System.out.println();
+    System.out.println("Push complete");
+    System.out.println();
+  }
 
-    List<FormMetadata> formMetadataList;
-    if (args.getOptional(FORM_ID).isPresent()) {
-      String requestedFormId = args.getOptional(FORM_ID).get();
-      Optional<FormMetadata> maybeFormStatus = container.formMetadata.fetchAll()
-          .filter(formMetadata -> formMetadata.getKey().getId().equals(requestedFormId))
-          .findFirst();
-      FormMetadata formMetadata = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + requestedFormId + " not found"));
-      formMetadataList = singletonList(formMetadata);
-    } else {
-      formMetadataList = container.formMetadata.fetchAll().collect(toList());
-    }
+  private static String authenticate(Http http, CentralServer server) {
+    Response<String> tokenResponse = http.execute(server.getSessionTokenRequest());
+    if (!tokenResponse.isSuccess())
+      throw new BriefcaseException(
+          tokenResponse.isRedirection()
+              ? "Error connecting to Central: Redirection detected"
+              : tokenResponse.isUnauthorized()
+              ? "Error connecting to Central: Wrong credentials"
+              : tokenResponse.isNotFound()
+              ? "Error connecting to Central: Central not found"
+              : "Error connecting to Central"
+      );
+    return tokenResponse.get();
+  }
 
-    TransferForms forms = TransferForms.of(formMetadataList);
-    forms.selectAll();
-
-    org.opendatakit.briefcase.operations.transfer.push.central.PushToCentral pushOp = new org.opendatakit.briefcase.operations.transfer.push.central.PushToCentral(
-        container,
-        server,
-        token,
-        PushToCentral::onEvent
+  private static CentralServer parseTarget(Args args) {
+    return CentralServer.of(
+        url(args.get(PULL_SOURCE)),
+        args.get(PROJECT_ID),
+        new Credentials(args.get(CREDENTIALS_EMAIL), args.get(CREDENTIALS_PASSWORD))
     );
-    JobsRunner.launchAsync(forms.map(pushOp::push), PushToCentral::onError).waitForCompletion();
-    System.out.println();
-    System.out.println("All operations completed");
-    System.out.println();
   }
 
   private static void onEvent(FormStatusEvent event) {

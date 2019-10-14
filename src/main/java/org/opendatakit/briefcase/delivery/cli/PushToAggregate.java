@@ -15,27 +15,27 @@
  */
 package org.opendatakit.briefcase.delivery.cli;
 
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.delivery.cli.Common.CREDENTIALS_PASSWORD;
 import static org.opendatakit.briefcase.delivery.cli.Common.CREDENTIALS_USERNAME;
+import static org.opendatakit.briefcase.delivery.cli.Common.FORCE_SEND_BLANK;
 import static org.opendatakit.briefcase.delivery.cli.Common.FORM_ID;
-import static org.opendatakit.briefcase.delivery.cli.Common.MAX_HTTP_CONNECTIONS;
-import static org.opendatakit.briefcase.delivery.cli.Common.SERVER_URL;
-import static org.opendatakit.briefcase.delivery.cli.Common.WORKSPACE_LOCATION;
+import static org.opendatakit.briefcase.delivery.cli.Common.PULL_SOURCE;
+import static org.opendatakit.briefcase.delivery.cli.Common.PUSH;
+import static org.opendatakit.briefcase.delivery.cli.Common.PUSH_TARGET;
+import static org.opendatakit.briefcase.delivery.cli.Common.PUSH_TARGET_TYPE;
+import static org.opendatakit.briefcase.delivery.cli.Common.getFormsToPush;
+import static org.opendatakit.briefcase.operations.transfer.SourceOrTarget.Type.AGGREGATE;
+import static org.opendatakit.briefcase.operations.transfer.push.Push.buildPushJob;
+import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
-import java.net.URL;
 import java.util.List;
 import java.util.Optional;
-import org.opendatakit.briefcase.operations.transfer.TransferForms;
-import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Container;
+import org.opendatakit.briefcase.reused.api.OptionalProduct;
 import org.opendatakit.briefcase.reused.cli.Args;
 import org.opendatakit.briefcase.reused.cli.Operation;
 import org.opendatakit.briefcase.reused.cli.OperationBuilder;
-import org.opendatakit.briefcase.reused.cli.Param;
 import org.opendatakit.briefcase.reused.http.Credentials;
-import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
 import org.opendatakit.briefcase.reused.model.form.FormStatusEvent;
@@ -45,61 +45,44 @@ import org.slf4j.LoggerFactory;
 
 public class PushToAggregate {
   private static final Logger log = LoggerFactory.getLogger(PushToAggregate.class);
-  private static final Param<Void> PUSH_AGGREGATE = Param.flag("psha", "push_aggregate", "Push form to an Aggregate instance");
-  private static final Param<Void> FORCE_SEND_BLANK = Param.flag("fsb", "force_send_blank", "Force sending the blank form to the Aggregate instance");
 
   public static Operation create(Container container) {
-    return OperationBuilder.cli()
-        .withFlag(PUSH_AGGREGATE)
-        .withRequiredParams(WORKSPACE_LOCATION, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, SERVER_URL)
-        .withOptionalParams(FORCE_SEND_BLANK, MAX_HTTP_CONNECTIONS, FORM_ID)
+    return OperationBuilder.cli("Push to Aggregate")
+        .withMatcher(args -> args.has(PUSH) && args.has(PUSH_TARGET_TYPE, AGGREGATE))
+        .withRequiredParams(PUSH, PUSH_TARGET, PUSH_TARGET_TYPE)
+        .withOptionalParams(FORM_ID, CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD, FORCE_SEND_BLANK)
         .withLauncher(args -> pushFormToAggregate(container, args))
         .build();
   }
 
   private static void pushFormToAggregate(Container container, Args args) {
-    Optional<String> maybeFormId = args.getOptional(FORM_ID);
-    String username = args.get(CREDENTIALS_USERNAME);
-    String password = args.get(CREDENTIALS_PASSWORD);
-    URL server = args.get(SERVER_URL);
-    boolean forceSendBlank = args.has(FORCE_SEND_BLANK);
+    List<FormMetadata> formsToPush = getFormsToPush(container.formMetadata, args.getOptional(FORM_ID));
 
-    CliEventsCompanion.attach(log);
+    JobsRunner.launchAsync(formsToPush.stream()
+        .map(formMetadata -> buildPushJob(
+            container.http,
+            container.submissionMetadata,
+            formMetadata,
+            parseTarget(args),
+            args.has(FORCE_SEND_BLANK),
+            PushToAggregate::onEvent
+        )), PushToAggregate::onError
+    ).waitForCompletion();
 
-    AggregateServer aggregateServer = AggregateServer.authenticated(server, new Credentials(username, password));
-
-    Response response = container.http.execute(aggregateServer.getPushFormPreflightRequest());
-    if (!response.isSuccess()) {
-      System.err.println(response.isRedirection()
-          ? "Error connecting to Aggregate: Redirection detected"
-          : response.isUnauthorized()
-          ? "Error connecting to Aggregate: Wrong credentials"
-          : response.isNotFound()
-          ? "Error connecting to Aggregate: Aggregate not found"
-          : "Error connecting to Aggregate");
-      return;
-    }
-
-    List<FormMetadata> formMetadataList;
-    if (maybeFormId.isPresent()) {
-      String requestedFormId = maybeFormId.get();
-      Optional<FormMetadata> maybeFormStatus = container.formMetadata.fetchAll()
-          .filter(formMetadata -> formMetadata.getKey().getId().equals(requestedFormId))
-          .findFirst();
-      FormMetadata formMetadata = maybeFormStatus.orElseThrow(() -> new BriefcaseException("Form " + requestedFormId + " not found"));
-      formMetadataList = singletonList(formMetadata);
-    } else {
-      formMetadataList = container.formMetadata.fetchAll().collect(toList());
-    }
-
-    TransferForms forms = TransferForms.of(formMetadataList);
-    forms.selectAll();
-
-    org.opendatakit.briefcase.operations.transfer.push.aggregate.PushToAggregate pushOp = new org.opendatakit.briefcase.operations.transfer.push.aggregate.PushToAggregate(container, aggregateServer, forceSendBlank, PushToAggregate::onEvent);
-    JobsRunner.launchAsync(forms.map(pushOp::push), PushToAggregate::onError).waitForCompletion();
     System.out.println();
-    System.out.println("All operations completed");
+    System.out.println("Push complete");
     System.out.println();
+  }
+
+  private static AggregateServer parseTarget(Args args) {
+    Optional<Credentials> maybeCredentials = OptionalProduct.all(
+        args.getOptional(CREDENTIALS_USERNAME),
+        args.getOptional(CREDENTIALS_PASSWORD)
+    ).map(Credentials::from);
+
+    return maybeCredentials
+        .map(credentials -> AggregateServer.authenticated(url(args.get(PULL_SOURCE)), credentials))
+        .orElseGet(() -> AggregateServer.normal(url(args.get(PULL_SOURCE))));
   }
 
   private static void onEvent(FormStatusEvent event) {

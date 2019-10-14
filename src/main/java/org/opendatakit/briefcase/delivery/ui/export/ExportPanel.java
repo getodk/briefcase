@@ -25,6 +25,7 @@ import static org.opendatakit.briefcase.reused.model.preferences.PreferenceQueri
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
@@ -42,6 +43,7 @@ import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.model.form.FormDefinition;
 import org.opendatakit.briefcase.reused.model.form.FormKey;
 import org.opendatakit.briefcase.reused.model.form.FormMetadata;
+import org.opendatakit.briefcase.reused.model.preferences.PreferenceQueries;
 
 public class ExportPanel {
   public static final String TAB_NAME = "Export";
@@ -142,13 +144,21 @@ public class ExportPanel {
       ExportConfiguration conf = resolveConfiguration(formMetadata.getKey());
 
       FormDefinition formDef = FormDefinition.from(formMetadata);
-      // TODO Abstract away the subtype of RemoteServer. This should say Optional<RemoteServer>
 
-      Job<Void> pullJob = conf.resolvePullBefore() && formMetadata.getPullSource().isPresent()
-          ? buildPullJob(container, formMetadata, EventBus::publish)
-          : Job.noOpSupplier();
+      Job<Void> pullJob = conf.resolvePullBefore() && formMetadata.getPullSource().isPresent() ?
+          buildPullJob(
+              container.workspace,
+              container.http,
+              container.formMetadata,
+              container.submissionMetadata,
+              formMetadata,
+              EventBus::publish,
+              container.preferences.query(PreferenceQueries.getStartPullFromLast())
+                  ? Optional.of(formMetadata.getCursor())
+                  : Optional.empty()
+          ) : Job.noOpSupplier();
 
-      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(container, formMetadata, formDef, conf));
+      Job<Void> exportJob = Job.run(runnerStatus -> ExportToCsv.export(formMetadata, formDef, conf, container.submissionMetadata, container.formMetadata));
 
       Job<Void> exportGeoJsonJob = conf.resolveIncludeGeoJsonExport()
           ? Job.run(runnerStatus -> ExportToGeoJson.export(container, formMetadata, formDef, conf))
