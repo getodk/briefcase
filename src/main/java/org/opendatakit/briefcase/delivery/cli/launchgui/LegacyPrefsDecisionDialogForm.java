@@ -5,13 +5,21 @@ import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 import static javax.swing.KeyStroke.getKeyStroke;
 
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.io.IOException;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
+import javax.swing.border.EmptyBorder;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
 import org.opendatakit.briefcase.delivery.ui.reused.events.WindowAdapterBuilder;
 
 public class LegacyPrefsDecisionDialogForm extends JDialog {
@@ -39,6 +47,40 @@ public class LegacyPrefsDecisionDialogForm extends JDialog {
       exit();
     });
 
+    Color background = actionPane.getBackground();
+
+    HTMLEditorKit editorKit = new HTMLEditorKit();
+    StyleSheet styleSheet = new StyleSheet();
+    styleSheet.addRule("" +
+        "body {" +
+        "  padding: 10px;" +
+        "  font-family: sans;" +
+        "}" +
+        "h1 {" +
+        "  font-weight: bold;" +
+        "  margin: 0 0 10px;" +
+        "}" +
+        "p {" +
+        "  margin: 0 0 10px;" +
+        "}");
+    editorKit.setStyleSheet(styleSheet);
+    dialogText.setEditorKit(editorKit);
+    HTMLDocument html = (HTMLDocument) editorKit.createDefaultDocument();
+
+    try {
+      Element body = html.getRootElements()[0].getElement(0);
+      html.setInnerHTML(body, "" +
+          "<h1>Legacy preferences from Briefcase v1.x detected!</h1>" +
+          "<p>Briefcase can read preferences from older versions and import them into the database.</p>" +
+          "<p>What do you want to do?</p>" +
+          "");
+    } catch (BadLocationException | IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    dialogText.setBorder(new EmptyBorder(0, 0, 0, 0));
+    dialogText.setBackground(background);
+    dialogText.setDocument(html);
     setContentPane(contentPane);
     setModal(true);
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -78,8 +120,7 @@ public class LegacyPrefsDecisionDialogForm extends JDialog {
     gbc.fill = GridBagConstraints.BOTH;
     contentPane.add(mainPane, gbc);
     dialogText = new JTextPane();
-    dialogText.setContentType("text/html");
-    dialogText.setText("<html>\n  <head>\n    \n  </head>\n  <body>\n    <h1>\n      Legacy preferences from Briefcase v1.x detected!\n    </h1>\n    <p>\n      Briefcase can read preferences from older versions and import them into \n      the database.\n    </p>\n    <p>\n      What do you want to do?\n    </p>\n  </body>\n</html>\n");
+    dialogText.setEditable(false);
     mainPane.add(dialogText, "Card1");
     final JPanel spacer1 = new JPanel();
     gbc = new GridBagConstraints();
@@ -139,6 +180,12 @@ public class LegacyPrefsDecisionDialogForm extends JDialog {
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     actionPane.add(spacer5, gbc);
+    final JPanel spacer6 = new JPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 3;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    contentPane.add(spacer6, gbc);
   }
 
   /**
