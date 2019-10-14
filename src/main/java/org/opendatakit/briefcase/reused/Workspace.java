@@ -3,6 +3,8 @@ package org.opendatakit.briefcase.reused;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.reused.api.StringUtils.stripIllegalChars;
+import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
+import static org.opendatakit.briefcase.reused.api.UncheckedFiles.exists;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -86,5 +88,10 @@ public class Workspace {
     if (uniqueUserID.equals(defaultUuidValue))
       prefs.put("uniqueUserID", UUID.randomUUID().toString());
     return prefs.get("uniqueUserID", defaultUuidValue);
+  }
+
+  void init() {
+    if (!exists(getFormsDir()))
+      createDirectories(getFormsDir());
   }
 }

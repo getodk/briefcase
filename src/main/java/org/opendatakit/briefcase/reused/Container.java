@@ -41,8 +41,9 @@ public class Container {
   }
 
   public void start(Path workspaceLocation, Optional<Integer> maybeMaxHttpConnections) {
-    // First, set the workspace and start the db
+    // First, set the workspace, initialize it, and start the db
     workspace.setWorkspaceLocation(workspaceLocation);
+    workspace.init();
     StartType startType = db.startAt(workspaceLocation);
 
     // Second, run migrations
