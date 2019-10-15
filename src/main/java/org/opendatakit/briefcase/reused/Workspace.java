@@ -63,8 +63,10 @@ public class Workspace {
             : formId);
 
     return getFormsDir()
-        .resolve(String.format("%s%s", formId, maybeVersion.map(s -> "[" + s + "]").orElse("")))
-        .resolve(formName.orElse(formId) + ".xml");
+        .resolve(formId)
+        .resolve(formName
+            .map(fn -> String.format("%s%s", fn, maybeVersion.map(s -> "[" + s + "]").orElse("")))
+            .orElse(String.format("%s%s", formId, maybeVersion.map(s -> "[" + s + "]").orElse(""))) + ".xml");
   }
 
   private boolean hasMeaningfulChars(String text) {

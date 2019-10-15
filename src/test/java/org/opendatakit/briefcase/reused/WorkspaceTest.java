@@ -26,7 +26,7 @@ public class WorkspaceTest {
   public void the_form_directory_is_based_on_the_form_id_and_version() {
     assertThat(
         workspace.buildFormFile(buildFormMetadata("form id", Optional.of("form version"), Optional.of("Some form"))),
-        is(workspace.getFormsDir().resolve("form id[form version]").resolve("Some form.xml"))
+        is(workspace.getFormsDir().resolve("form id").resolve("Some form[form version].xml"))
     );
     assertThat(
         workspace.buildFormFile(buildFormMetadata("form id", Optional.empty(), Optional.of("Some form"))),
@@ -34,7 +34,7 @@ public class WorkspaceTest {
     );
     assertThat(
         workspace.buildFormFile(buildFormMetadata("form id", Optional.of("form version"), Optional.empty())),
-        is(workspace.getFormsDir().resolve("form id[form version]").resolve("form id.xml"))
+        is(workspace.getFormsDir().resolve("form id").resolve("form id[form version].xml"))
     );
   }
 
@@ -42,7 +42,7 @@ public class WorkspaceTest {
   public void form_id_and_version_get_sanitized_for_filesystem_friendly_strings() {
     assertThat(
         workspace.buildFormFile(buildFormMetadata("fo.rm\tid", Optional.of("fo.rm\tversion"), Optional.of("So.me\tform"))),
-        is(workspace.getFormsDir().resolve("fo_rm id[fo_rm version]").resolve("So_me form.xml"))
+        is(workspace.getFormsDir().resolve("fo_rm id").resolve("So_me form[fo_rm version].xml"))
     );
   }
 
@@ -58,19 +58,19 @@ public class WorkspaceTest {
     );
     assertThat(
         workspace.buildFormFile(buildFormMetadata(",,,", Optional.of("form version"), Optional.of("Some form"))),
-        is(workspace.getFormsDir().resolve("2c2c2c[form version]").resolve("Some form.xml"))
+        is(workspace.getFormsDir().resolve("2c2c2c").resolve("Some form[form version].xml"))
     );
     assertThat(
         workspace.buildFormFile(buildFormMetadata(":::", Optional.of("form version"), Optional.of("Some form"))),
-        is(workspace.getFormsDir().resolve("3a3a3a[form version]").resolve("Some form.xml"))
+        is(workspace.getFormsDir().resolve("3a3a3a").resolve("Some form[form version].xml"))
     );
     assertThat(
         workspace.buildFormFile(buildFormMetadata(",,,", Optional.of(",,,"), Optional.of("Some form"))),
-        is(workspace.getFormsDir().resolve("2c2c2c[2c2c2c]").resolve("Some form.xml"))
+        is(workspace.getFormsDir().resolve("2c2c2c").resolve("Some form[2c2c2c].xml"))
     );
     assertThat(
         workspace.buildFormFile(buildFormMetadata(":::", Optional.of(":::"), Optional.of("Some form"))),
-        is(workspace.getFormsDir().resolve("3a3a3a[3a3a3a]").resolve("Some form.xml"))
+        is(workspace.getFormsDir().resolve("3a3a3a").resolve("Some form[3a3a3a].xml"))
     );
   }
 
@@ -78,11 +78,11 @@ public class WorkspaceTest {
   public void form_id_is_used_if_no_meaningful_name_can_be_produced_from_the_form_name() {
     assertThat(
         workspace.buildFormFile(buildFormMetadata("form id", Optional.of("form version"), Optional.of(",,,"))),
-        is(workspace.getFormsDir().resolve("form id[form version]").resolve("form id.xml"))
+        is(workspace.getFormsDir().resolve("form id").resolve("form id[form version].xml"))
     );
     assertThat(
         workspace.buildFormFile(buildFormMetadata(",,,", Optional.of("form version"), Optional.of(",,,"))),
-        is(workspace.getFormsDir().resolve("2c2c2c[form version]").resolve("2c2c2c.xml"))
+        is(workspace.getFormsDir().resolve("2c2c2c").resolve("2c2c2c[form version].xml"))
     );
   }
 
