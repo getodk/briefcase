@@ -21,7 +21,7 @@ import static java.nio.file.Files.isRegularFile;
 import static java.nio.file.Files.newInputStream;
 import static org.opendatakit.briefcase.delivery.ui.reused.filsystem.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.delivery.ui.reused.filsystem.FileChooser.isUnderODKFolder;
-import static org.opendatakit.briefcase.reused.api.StringUtils.stripIllegalChars;
+import static org.opendatakit.briefcase.reused.api.StringUtils.sanitize;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.exists;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -243,12 +243,12 @@ public class ExportConfiguration {
   String getFilenameBase(String formName) {
     return exportFileName
         .map(UncheckedFiles::stripFileExtension)
-        .map(StringUtils::stripIllegalChars)
-        .orElse(stripIllegalChars(formName));
+        .map(StringUtils::sanitize)
+        .orElse(sanitize(formName));
   }
 
   Path getErrorsDir(String formName) {
-    return exportDir.map(dir -> dir.resolve(stripIllegalChars(formName) + " - errors")).orElseThrow(BriefcaseException::new);
+    return exportDir.map(dir -> dir.resolve(sanitize(formName) + " - errors")).orElseThrow(BriefcaseException::new);
   }
 
   Path getAuditPath(String formName) {

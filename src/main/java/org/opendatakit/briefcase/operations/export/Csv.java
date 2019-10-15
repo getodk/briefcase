@@ -7,7 +7,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.operations.export.CsvSubmissionMappers.getMainHeader;
 import static org.opendatakit.briefcase.operations.export.CsvSubmissionMappers.getRepeatHeader;
-import static org.opendatakit.briefcase.reused.api.StringUtils.stripIllegalChars;
+import static org.opendatakit.briefcase.reused.api.StringUtils.sanitize;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.write;
 
 import java.nio.file.Files;
@@ -97,7 +97,7 @@ class Csv {
     return configuration.getExportDir().resolve(String.format(
         "%s-%s.csv",
         configuration.getFilenameBase(formDefinition.getFormName()),
-        stripIllegalChars(groupModel.getName())
+        sanitize(groupModel.getName())
     ));
   }
 
@@ -105,7 +105,7 @@ class Csv {
     return configuration.getExportDir().resolve(String.format(
         "%s-%s~%d.csv",
         configuration.getFilenameBase(formDefinition.getFormName()),
-        stripIllegalChars(groupModel.getName()),
+        sanitize(groupModel.getName()),
         sequenceNumber
     ));
   }

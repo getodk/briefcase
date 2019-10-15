@@ -1,8 +1,9 @@
 package org.opendatakit.briefcase.reused;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.reused.api.StringUtils.stripIllegalChars;
+import static org.opendatakit.briefcase.reused.api.StringUtils.sanitize;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.exists;
 
@@ -10,6 +11,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashSet;
@@ -41,13 +43,32 @@ public class Workspace {
     return workspaceLocation.orElseThrow(() -> new BriefcaseException("Workspace location not set"));
   }
 
-  private Path getFormsDir() {
+  Path getFormsDir() {
     return get().resolve("forms");
   }
 
   public Path buildFormFile(FormMetadata formMetadata) {
-    String baseName = stripIllegalChars(formMetadata.getFormName().orElse(formMetadata.getKey().getId()));
-    return getFormsDir().resolve(baseName).resolve(baseName + ".xml");
+    String formId = hasMeaningfulChars(sanitize(formMetadata.getKey().getId()))
+        ? sanitize(formMetadata.getKey().getId())
+        : String.format("%x", new BigInteger(1, formMetadata.getKey().getId().getBytes(UTF_8)));
+
+    Optional<String> maybeVersion = formMetadata.getKey().getVersion()
+        .map(s -> hasMeaningfulChars(sanitize(s))
+            ? sanitize(s)
+            : String.format("%x", new BigInteger(1, s.getBytes(UTF_8))));
+
+    Optional<String> formName = formMetadata.getFormName()
+        .map(s -> hasMeaningfulChars(sanitize(s))
+            ? sanitize(s)
+            : formId);
+
+    return getFormsDir()
+        .resolve(String.format("%s%s", formId, maybeVersion.map(s -> "[" + s + "]").orElse("")))
+        .resolve(formName.orElse(formId) + ".xml");
+  }
+
+  private boolean hasMeaningfulChars(String text) {
+    return !text.replaceAll(" ", "").replaceAll("_", "").replaceAll("-", "").isBlank();
   }
 
   public Path relativize(Path path) {

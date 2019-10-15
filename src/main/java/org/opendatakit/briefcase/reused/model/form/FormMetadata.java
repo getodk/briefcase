@@ -1,6 +1,6 @@
 package org.opendatakit.briefcase.reused.model.form;
 
-import static org.opendatakit.briefcase.reused.api.StringUtils.stripIllegalChars;
+import static org.opendatakit.briefcase.reused.api.StringUtils.sanitize;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -200,7 +200,7 @@ public class FormMetadata {
   }
 
   private String getFilesystemCompatibleBaseName() {
-    return stripIllegalChars(formName.orElse(key.getId()));
+    return sanitize(formName.orElse(key.getId()));
   }
 
   public boolean hasPullSource() {

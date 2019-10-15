@@ -26,7 +26,7 @@ import static org.javarosa.core.model.DataType.NULL;
 import static org.javarosa.core.model.DataType.TIME;
 import static org.opendatakit.briefcase.reused.api.Iso8601Helpers.parseDateTime;
 import static org.opendatakit.briefcase.reused.api.Iso8601Helpers.parseTime;
-import static org.opendatakit.briefcase.reused.api.StringUtils.stripIllegalChars;
+import static org.opendatakit.briefcase.reused.api.StringUtils.sanitize;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.exists;
@@ -292,7 +292,7 @@ final class CsvFieldMappers {
     if (!exists(sourceFile))
       return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(sourceFilename).toString()));
 
-    Path destinationFile = configuration.getExportAttachmentsPath().resolve("audit-" + stripIllegalChars(instanceId) + ".csv");
+    Path destinationFile = configuration.getExportAttachmentsPath().resolve("audit-" + sanitize(instanceId) + ".csv");
     copy(sourceFile, destinationFile, REPLACE_EXISTING);
     return Stream.of(Pair.of(element.fqn(), Paths.get("media").resolve(destinationFile.getFileName()).toString()));
   }

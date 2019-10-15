@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.opendatakit.briefcase.reused.api.StringUtils.stripIllegalChars;
+import static org.opendatakit.briefcase.reused.api.StringUtils.sanitize;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.copy;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.api.UncheckedFiles.createTempDirectory;
@@ -180,7 +180,7 @@ class ExportToCsvScenario {
   void assertSameContent(String suffix) {
     String fileName = formDef.getFormId() + (suffix.isEmpty() ? "" : "-" + suffix) + ".csv.expected";
     String oldOutput = new String(readAllBytes(getPath(fileName)));
-    String newOutput = new String(readAllBytes(outputDir.resolve("new").resolve(stripIllegalChars(formDef.getFormName()) + ".csv")));
+    String newOutput = new String(readAllBytes(outputDir.resolve("new").resolve(sanitize(formDef.getFormName()) + ".csv")));
     assertThat(newOutput, is(oldOutput));
   }
 
@@ -203,7 +203,7 @@ class ExportToCsvScenario {
   void assertSameContentRepeats(String suffix, String... groupNames) {
     Arrays.asList(groupNames).forEach(groupName -> {
       String oldOutput = new String(readAllBytes(getPath(formDef.getFormId() + "-" + groupName + (suffix.isEmpty() ? "" : "-" + suffix) + ".csv.expected")));
-      String newOutput = new String(readAllBytes(outputDir.resolve("new").resolve(stripIllegalChars(formDef.getFormName()) + "-" + groupName + ".csv")));
+      String newOutput = new String(readAllBytes(outputDir.resolve("new").resolve(sanitize(formDef.getFormName()) + "-" + groupName + ".csv")));
       assertThat(newOutput, is(oldOutput));
     });
   }

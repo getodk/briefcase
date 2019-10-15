@@ -27,7 +27,7 @@ public class StringUtils {
     return text == null || text.isBlank();
   }
 
-  public static String stripIllegalChars(String text) {
-    return text == null ? null : text.replaceAll("\\p{Punct}", "_").replaceAll("\\p{Space}", " ");
+  public static String sanitize(String text) {
+    return text == null ? null : text.replaceAll("\\p{Punct}", "_").replaceAll("\\p{Space}", " ").trim();
   }
 }
