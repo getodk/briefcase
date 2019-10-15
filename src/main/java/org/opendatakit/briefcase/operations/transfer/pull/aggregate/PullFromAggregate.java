@@ -168,6 +168,7 @@ public class PullFromAggregate {
       Cursor newCursor = getLastCursor(instanceIdBatches).orElse(Cursor.empty());
 
       formMetadataPort.execute(upsert(targetFormMetadata
+          .asDefaultFormVersion()
           .withCursor(newCursor)
           .withPullSource(server)));
 

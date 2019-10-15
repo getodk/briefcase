@@ -156,6 +156,10 @@ public class FormMetadata {
     return new FormMetadata(key, defaultFormVersion, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, Optional.empty());
   }
 
+  public FormMetadata asDefaultFormVersion() {
+    return new FormMetadata(key, true, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, exportConfiguration);
+  }
+
   public boolean isDefaultFormVersion() {
     return defaultFormVersion;
   }

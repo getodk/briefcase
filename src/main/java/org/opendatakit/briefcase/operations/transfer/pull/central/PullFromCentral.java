@@ -122,7 +122,9 @@ public class PullFromCentral {
           });
       tracker.trackEnd();
 
-      formMetadataPort.execute(upsert(targetFormMetadata.withPullSource(server)));
+      formMetadataPort.execute(upsert(targetFormMetadata
+          .asDefaultFormVersion()
+          .withPullSource(server)));
       EventBus.publish(PullEvent.Success.of(formKey, server));
     });
   }

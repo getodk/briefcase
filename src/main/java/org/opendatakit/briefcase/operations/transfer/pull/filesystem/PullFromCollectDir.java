@@ -84,7 +84,9 @@ public class PullFromCollectDir {
 
       installSubmissions(targetFormMetadata, submissionsToPull, submissionMetadataPort, tracker);
 
-      formMetadataPort.execute(upsert(targetFormMetadata.withPullSource(collectFormAt(sourceFormMetadata.getFormDir()))));
+      formMetadataPort.execute(upsert(targetFormMetadata
+          .asDefaultFormVersion()
+          .withPullSource(collectFormAt(sourceFormMetadata.getFormDir()))));
       EventBus.publish(PullEvent.Success.of(targetFormMetadata.getKey()));
 
       tracker.trackEnd();

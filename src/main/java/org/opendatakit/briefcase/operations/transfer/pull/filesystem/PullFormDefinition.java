@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.operations.transfer.pull.filesystem;
 
 import static org.opendatakit.briefcase.operations.transfer.pull.filesystem.FormInstaller.installForm;
+import static org.opendatakit.briefcase.operations.transfer.pull.filesystem.PathSourceOrTarget.formDefinitionAt;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.reused.model.form.FormMetadataCommands.upsert;
 
@@ -45,7 +46,9 @@ public class PullFormDefinition {
 
       installForm(sourceFormMetadata, targetFormMetadata, tracker);
 
-      formMetadataPort.execute(upsert(targetFormMetadata.withPullSource(PathSourceOrTarget.formDefinitionAt(sourceFormMetadata.getFormFile()))));
+      formMetadataPort.execute(upsert(targetFormMetadata
+          .asDefaultFormVersion()
+          .withPullSource(formDefinitionAt(sourceFormMetadata.getFormFile()))));
 
       EventBus.publish(PullEvent.Success.of(targetFormMetadata.getKey()));
 
