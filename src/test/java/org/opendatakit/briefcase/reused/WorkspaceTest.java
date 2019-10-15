@@ -89,6 +89,7 @@ public class WorkspaceTest {
   private FormMetadata buildFormMetadata(String formId, Optional<String> formVersion, Optional<String> formName) {
     return new FormMetadata(
         FormKey.of(formId, formVersion),
+        false,
         formName,
         Optional.empty(),
         Cursor.empty(),

@@ -1,6 +1,7 @@
 CREATE TABLE form_metadata (
     form_id                            VARCHAR(512) NOT NULL,
     form_version                       VARCHAR(512) NOT NULL, -- Using '' for non-present versions to avoid problems with NULL values and unique constraints
+    default_form_version               BOOLEAN,
     form_name                          VARCHAR(512),
     form_file                          VARCHAR(512),
     cursor_type                        VARCHAR(128),

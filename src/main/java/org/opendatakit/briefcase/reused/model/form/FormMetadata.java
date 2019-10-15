@@ -15,6 +15,7 @@ import org.opendatakit.briefcase.reused.model.XmlElement;
 
 public class FormMetadata {
   private final FormKey key;
+  private final Boolean defaultFormVersion;
   private final Optional<String> formName;
   private final Optional<Path> formFile;
   private final Cursor cursor;
@@ -26,8 +27,9 @@ public class FormMetadata {
   private final Optional<SourceOrTarget> pullSource;
   private final Optional<ExportConfiguration> exportConfiguration;
 
-  public FormMetadata(FormKey key, Optional<String> formName, Optional<Path> formFile, Cursor cursor, boolean isEncrypted, Optional<URL> manifestUrl, Optional<URL> downloadUrl, Optional<OffsetDateTime> lastExportedDateTime, Optional<OffsetDateTime> lastExportedSubmissionDateTime, Optional<SourceOrTarget> pullSource, Optional<ExportConfiguration> exportConfiguration) {
+  public FormMetadata(FormKey key, Boolean defaultFormVersion, Optional<String> formName, Optional<Path> formFile, Cursor cursor, boolean isEncrypted, Optional<URL> manifestUrl, Optional<URL> downloadUrl, Optional<OffsetDateTime> lastExportedDateTime, Optional<OffsetDateTime> lastExportedSubmissionDateTime, Optional<SourceOrTarget> pullSource, Optional<ExportConfiguration> exportConfiguration) {
     this.key = key;
+    this.defaultFormVersion = defaultFormVersion;
     this.formName = formName;
     this.formFile = formFile;
     this.cursor = cursor;
@@ -57,7 +59,7 @@ public class FormMetadata {
         .findFirst()
         .map(e -> e.hasAttribute("base64RsaPublicKey"))
         .orElse(false);
-    return new FormMetadata(key, formName, Optional.of(formFile), Cursor.empty(), isEncrypted, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    return new FormMetadata(key, false, formName, Optional.of(formFile), Cursor.empty(), isEncrypted, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
   private static boolean isTheMainInstance(XmlElement e) {
@@ -67,7 +69,7 @@ public class FormMetadata {
   }
 
   public static FormMetadata empty(FormKey key) {
-    return new FormMetadata(key, Optional.empty(), Optional.empty(), Cursor.empty(), false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    return new FormMetadata(key, false, Optional.empty(), Optional.empty(), Cursor.empty(), false, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
   public FormKey getKey() {
@@ -107,51 +109,55 @@ public class FormMetadata {
   }
 
   public FormMetadata withFormName(String formName) {
-    return new FormMetadata(key, Optional.of(formName), formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, exportConfiguration);
+    return new FormMetadata(key, defaultFormVersion, Optional.of(formName), formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, exportConfiguration);
   }
 
   public FormMetadata withFormFile(Path formFile) {
-    return new FormMetadata(key, formName, Optional.of(formFile), cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, exportConfiguration);
+    return new FormMetadata(key, defaultFormVersion, formName, Optional.of(formFile), cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, exportConfiguration);
   }
 
   public FormMetadata withCursor(Cursor cursor) {
-    return new FormMetadata(key, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, exportConfiguration);
+    return new FormMetadata(key, defaultFormVersion, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, exportConfiguration);
   }
 
   public FormMetadata withoutCursor() {
-    return new FormMetadata(key, formName, formFile, Cursor.empty(), isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, exportConfiguration);
+    return new FormMetadata(key, defaultFormVersion, formName, formFile, Cursor.empty(), isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, exportConfiguration);
   }
 
   public FormMetadata withLastExportedDateTimes(OffsetDateTime exportedDateTime) {
-    return new FormMetadata(key, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, Optional.of(exportedDateTime), Optional.empty(), pullSource, exportConfiguration);
+    return new FormMetadata(key, defaultFormVersion, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, Optional.of(exportedDateTime), Optional.empty(), pullSource, exportConfiguration);
   }
 
   public FormMetadata withLastExportedDateTimes(OffsetDateTime exportedDateTime, OffsetDateTime lastExportedSubmissionDateTime) {
-    return new FormMetadata(key, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, Optional.of(exportedDateTime), Optional.of(lastExportedSubmissionDateTime), pullSource, exportConfiguration);
+    return new FormMetadata(key, defaultFormVersion, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, Optional.of(exportedDateTime), Optional.of(lastExportedSubmissionDateTime), pullSource, exportConfiguration);
   }
 
   public FormMetadata withIsEncrypted(boolean isEncrypted) {
-    return new FormMetadata(key, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, exportConfiguration);
+    return new FormMetadata(key, defaultFormVersion, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, exportConfiguration);
   }
 
   public FormMetadata withUrls(Optional<URL> manifestUrl, Optional<URL> downloadUrl) {
-    return new FormMetadata(key, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, exportConfiguration);
+    return new FormMetadata(key, defaultFormVersion, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, exportConfiguration);
   }
 
   public FormMetadata withPullSource(SourceOrTarget pullSource) {
-    return new FormMetadata(key, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, Optional.of(pullSource), exportConfiguration);
+    return new FormMetadata(key, defaultFormVersion, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, Optional.of(pullSource), exportConfiguration);
   }
 
   public FormMetadata withoutPullSource() {
-    return new FormMetadata(key, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, Optional.empty(), exportConfiguration);
+    return new FormMetadata(key, defaultFormVersion, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, Optional.empty(), exportConfiguration);
   }
 
   public FormMetadata withExportConfiguration(ExportConfiguration exportConfiguration) {
-    return new FormMetadata(key, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, Optional.of(exportConfiguration));
+    return new FormMetadata(key, defaultFormVersion, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, Optional.of(exportConfiguration));
   }
 
   public FormMetadata withoutExportConfiguration() {
-    return new FormMetadata(key, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, Optional.empty());
+    return new FormMetadata(key, defaultFormVersion, formName, formFile, cursor, isEncrypted, manifestUrl, downloadUrl, lastExportedDateTime, lastExportedSubmissionDateTime, pullSource, Optional.empty());
+  }
+
+  public boolean isDefaultFormVersion() {
+    return defaultFormVersion;
   }
 
   public Optional<String> getFormName() {

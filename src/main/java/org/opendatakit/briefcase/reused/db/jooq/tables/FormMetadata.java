@@ -30,7 +30,7 @@ import org.opendatakit.briefcase.reused.db.jooq.tables.records.FormMetadataRecor
 @SuppressWarnings({"all", "unchecked", "rawtypes"})
 public class FormMetadata extends TableImpl<FormMetadataRecord> {
 
-  private static final long serialVersionUID = -740371929;
+  private static final long serialVersionUID = -1758501508;
 
   /**
    * The reference instance of <code>PUBLIC.FORM_METADATA</code>
@@ -54,6 +54,11 @@ public class FormMetadata extends TableImpl<FormMetadataRecord> {
    * The column <code>PUBLIC.FORM_METADATA.FORM_VERSION</code>.
    */
   public final TableField<FormMetadataRecord, String> FORM_VERSION = createField("FORM_VERSION", org.jooq.impl.SQLDataType.VARCHAR(512).nullable(false), this, "");
+
+  /**
+   * The column <code>PUBLIC.FORM_METADATA.DEFAULT_FORM_VERSION</code>.
+   */
+  public final TableField<FormMetadataRecord, Boolean> DEFAULT_FORM_VERSION = createField("DEFAULT_FORM_VERSION", org.jooq.impl.SQLDataType.BOOLEAN, this, "");
 
   /**
    * The column <code>PUBLIC.FORM_METADATA.FORM_NAME</code>.

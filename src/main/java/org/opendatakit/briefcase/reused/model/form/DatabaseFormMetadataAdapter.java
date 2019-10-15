@@ -78,6 +78,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         .using(selectOne())
         .on(getMatchingCriteria(formMetadata.getKey()))
         .whenMatchedThenUpdate()
+        .set(FORM_METADATA.DEFAULT_FORM_VERSION, formMetadata.isDefaultFormVersion())
         .set(FORM_METADATA.FORM_NAME, formMetadata.getFormName().orElse(null))
         .set(FORM_METADATA.FORM_FILE, workspace.relativize(formMetadata.getFormFile()).toString())
         .set(FORM_METADATA.CURSOR_TYPE, formMetadata.getCursor().getType().getName())
@@ -93,6 +94,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         .whenNotMatchedThenInsert(
             FORM_METADATA.FORM_ID,
             FORM_METADATA.FORM_VERSION,
+            FORM_METADATA.DEFAULT_FORM_VERSION,
             FORM_METADATA.FORM_NAME,
             FORM_METADATA.FORM_FILE,
             FORM_METADATA.CURSOR_TYPE,
@@ -108,6 +110,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
         .values(
             value(formMetadata.getKey().getId()),
             value(formMetadata.getKey().getVersion().orElse("")),
+            value(formMetadata.isDefaultFormVersion()),
             value(formMetadata.getFormName().orElse(null)),
             value(workspace.relativize(formMetadata.getFormFile()).toString()),
             value(formMetadata.getCursor().getType().getName()),
@@ -180,6 +183,7 @@ public class DatabaseFormMetadataAdapter implements FormMetadataPort {
             record.getFormId(),
             Optional.ofNullable(record.getFormVersion())
         ),
+        record.getDefaultFormVersion(),
         Optional.ofNullable(record.getFormName()),
         Optional.ofNullable(record.getFormFile()).map(Paths::get).map(workspace::resolve),
         Cursor.Type.from(record.getCursorType()).create(record.getCursorValue()),

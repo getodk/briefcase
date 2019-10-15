@@ -29,6 +29,7 @@ public class FormMetadataHelpers {
     try {
       return new FormMetadata(
           FormKey.of("form-" + id),
+          false,
           Optional.of("Form " + id),
           Optional.ofNullable(Files.createTempFile("briefcase-form-" + id, ".xml")),
           Cursor.empty(),
