@@ -42,7 +42,7 @@ public class TerminationFuture {
   @EventSubscriber(eventClass = PullEvent.Cancel.class)
   public void markAsCancelled(PullEvent.Cancel event) {
     cancelled = true;
-    log.info("cancel requested: " + event.cause);
+    log.info("cancel requested: " + event.getCause());
   }
 
   public void reset() {

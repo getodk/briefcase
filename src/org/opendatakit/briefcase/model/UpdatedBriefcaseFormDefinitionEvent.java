@@ -17,9 +17,13 @@
 package org.opendatakit.briefcase.model;
 
 public class UpdatedBriefcaseFormDefinitionEvent {
-  public final BriefcaseFormDefinition definition;
+  private final BriefcaseFormDefinition definition;
   
   UpdatedBriefcaseFormDefinitionEvent(BriefcaseFormDefinition definition) {
     this.definition = definition;
+  }
+  
+  public BriefcaseFormDefinition getDefinition() {
+	  return this.definition;
   }
 }

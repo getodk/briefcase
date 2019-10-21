@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 public class CentralServerDialog {
   private static final Logger log = LoggerFactory.getLogger(CentralServerDialog.class);
-  final CentralServerDialogForm form;
+  private final CentralServerDialogForm form;
   private final List<Consumer<CentralServer>> onConnectCallbacks = new ArrayList<>();
 
   private CentralServerDialog(CentralServerDialogForm form, Test<CentralServer> serverTester) {

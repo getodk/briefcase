@@ -111,7 +111,7 @@ public class FormDefinition {
         briefcaseFormDefinition.getFormName(),
         briefcaseFormDefinition.isFileEncryptedForm(),
         // TODO Improve getting the FormDef out of the BriefcaseFormDefinition
-        new Model(briefcaseFormDefinition.getSubmissionElement(), getFormControls(briefcaseFormDefinition.formDefn.rootJavaRosaFormDef))
+        new Model(briefcaseFormDefinition.getSubmissionElement(), getFormControls(briefcaseFormDefinition.getFormDefn().rootJavaRosaFormDef))
     );
   }
 
