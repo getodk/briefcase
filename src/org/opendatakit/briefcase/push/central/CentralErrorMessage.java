@@ -26,4 +26,9 @@ class CentralErrorMessage {
   public static CentralErrorMessage empty() {
     return new CentralErrorMessage("");
   }
+
+  @Override
+  public String toString() {
+    return message;
+  }
 }
