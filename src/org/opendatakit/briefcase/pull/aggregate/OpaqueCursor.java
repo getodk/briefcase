@@ -23,7 +23,7 @@ public class OpaqueCursor implements Cursor {
 
   @Override
   public boolean isEmpty() {
-    return Optional.ofNullable(value).isEmpty();
+    return !Optional.ofNullable(value).isPresent();
   }
 
   @Override
