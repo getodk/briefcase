@@ -21,6 +21,7 @@ import java.util.stream.IntStream;
 import org.junit.Before;
 import org.junit.Test;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
+import org.opendatakit.briefcase.reused.BriefcaseException;
 
 public class FormMetadataCommandsTest {
 
@@ -79,7 +80,7 @@ public class FormMetadataCommandsTest {
         .stream()
         .map(FormMetadata::getKey)
         .forEach(key -> {
-          FormMetadata actualFormMetadata = formMetadataPort.fetch(key).orElseThrow();
+          FormMetadata actualFormMetadata = formMetadataPort.fetch(key).orElseThrow(BriefcaseException::new);
           assertThat(actualFormMetadata.getCursor().isEmpty(), is(true));
         });
   }
