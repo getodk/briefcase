@@ -48,7 +48,7 @@ public class Workspace {
   }
 
   public Path buildFormFile(FormMetadata formMetadata) {
-    String formId = hasMeaningfulChars(sanitize(formMetadata.getKey().getId()))
+    String formIdPart = hasMeaningfulChars(sanitize(formMetadata.getKey().getId()))
         ? sanitize(formMetadata.getKey().getId())
         : String.format("%x", new BigInteger(1, formMetadata.getKey().getId().getBytes(UTF_8)));
 
@@ -60,13 +60,19 @@ public class Workspace {
     Optional<String> formName = formMetadata.getFormName()
         .map(s -> hasMeaningfulChars(sanitize(s))
             ? sanitize(s)
-            : formId);
+            : formIdPart);
+
+    String formDir = formName.isPresent() && !formName.get().equals(formIdPart)
+        ? formIdPart + "(" + formName.get() + ")"
+        : formIdPart;
 
     return getFormsDir()
-        .resolve(formId)
-        .resolve(formName
-            .map(fn -> String.format("%s%s", fn, maybeVersion.map(s -> "[" + s + "]").orElse("")))
-            .orElse(String.format("%s%s", formId, maybeVersion.map(s -> "[" + s + "]").orElse(""))) + ".xml");
+        .resolve(formDir)
+        .resolve(suffixVersion(formDir, maybeVersion) + ".xml");
+  }
+
+  private String suffixVersion(String prefix, Optional<String> maybeVersion) {
+    return String.format("%s%s", prefix, maybeVersion.map(s -> "[" + s + "]").orElse(""));
   }
 
   private boolean hasMeaningfulChars(String text) {
