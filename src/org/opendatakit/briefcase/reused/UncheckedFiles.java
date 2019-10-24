@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.attribute.FileAttribute;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -49,12 +50,12 @@ import org.slf4j.LoggerFactory;
  */
 public class UncheckedFiles {
   private static final String README_CONTENTS = "" +
-      "This ODK Briefcase storage area retains\n" +
-      "all the forms and submissions that have been\n" +
-      "gathered into it.\n" +
-      "\n" +
-      "Users should not navigate into or modify its\n" +
-      "contents unless explicitly directed to do so.\n";
+          "This ODK Briefcase storage area retains\n" +
+          "all the forms and submissions that have been\n" +
+          "gathered into it.\n" +
+          "\n" +
+          "Users should not navigate into or modify its\n" +
+          "contents unless explicitly directed to do so.\n";
   private static final Logger log = LoggerFactory.getLogger(UncheckedFiles.class);
 
   public static Path write(Path path, List<String> lines, OpenOption... options) {
@@ -64,8 +65,12 @@ public class UncheckedFiles {
   public static Path write(Path path, Stream<String> lines, OpenOption... options) {
     try {
       return Files.write(path, (Iterable<String>) lines::iterator, UTF_8, options);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
+    } catch (NoSuchFileException e) {
+      log.error(String.format("File %s does not exist"), path.getFileName());
+      return path;
+    }catch (IOException e) {
+      log.error(String.format("Error related to %s: %s"), path.getFileName(), e.getMessage());
+      return path;
     }
   }
 
@@ -76,8 +81,12 @@ public class UncheckedFiles {
   public static Path write(Path path, byte[] contents, OpenOption... options) {
     try {
       return Files.write(path, contents, options);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
+    } catch (NoSuchFileException e) {
+      log.error(String.format("File %s does not exist"), path.getFileName());
+      return path;
+    }catch (IOException e) {
+      log.error(String.format("Error related to %s: %s"), path.getFileName(), e.getMessage());
+      return path;
     }
   }
 
