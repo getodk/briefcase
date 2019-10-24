@@ -66,7 +66,7 @@ public class BriefcasePreferences {
     this.preferences = preferences;
   }
 
-  public BriefcasePreferences(Class<?> node, PreferenceScope scope) {
+  private BriefcasePreferences(Class<?> node, PreferenceScope scope) {
     this.node = node;
     this.preferences = scope.preferenceFactory(node);
   }
