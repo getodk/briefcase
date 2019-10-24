@@ -63,7 +63,7 @@ public class FormKey implements AsJson {
     // We can't trust the form's title because JavaRosaParserWrapper strips illegal chars
     // from it for some reason and then we can't use it to match any stored form metadata
     BriefcaseFormDefinition formDef = (BriefcaseFormDefinition) formStatus.getFormDefinition();
-    XmlElement root = XmlElement.from(formDef.formDefn.xml);
+    XmlElement root = XmlElement.from(formDef.getFormDefn().xml);
     String formName = root.findElement("head")
         .flatMap(e -> e.findElement("title"))
         .flatMap(XmlElement::maybeValue)

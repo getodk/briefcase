@@ -63,7 +63,7 @@ public class RequestSpyMatchers {
       @Override
       protected boolean matchesSafely(RequestSpy<T> item) {
         List<String> partNames = item.request.multipartMessages
-            .stream().map(mm -> mm.name)
+            .stream().map(mm -> mm.getName())
             .collect(toList());
         return partNames.size() == parts.length
             && partNames.containsAll(Arrays.asList(parts));
@@ -77,7 +77,7 @@ public class RequestSpyMatchers {
       @Override
       protected void describeMismatchSafely(RequestSpy<T> item, Description mismatchDescription) {
         List<String> partNames = item.request.multipartMessages
-            .stream().map(mm -> mm.name)
+            .stream().map(mm -> mm.getName())
             .collect(toList());
         mismatchDescription.appendText("has parts with names ").appendValue(partNames);
       }
@@ -90,9 +90,9 @@ public class RequestSpyMatchers {
       protected boolean matchesSafely(RequestSpy<T> item) {
         return item.request.multipartMessages
             .stream()
-            .anyMatch(mm -> mm.name.equals(name)
-                & mm.contentType.equals(contentType)
-                && mm.attachmentName.equals(attachmentName));
+            .anyMatch(mm -> mm.getName().equals(name)
+                & mm.getContentType().equals(contentType)
+                && mm.getAttachmentName().equals(attachmentName));
       }
 
       @Override
