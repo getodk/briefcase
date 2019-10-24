@@ -33,19 +33,19 @@ public class MultipartMessage {
   }
 
   public String getName() {
-	return name;
+    return name;
   }
 
   public String getContentType() {
-	return contentType;
+    return contentType;
   }
 
   public String getAttachmentName() {
-	return attachmentName;
+    return attachmentName;
   }
 
   public InputStream getBody() {
-	return body;
+    return body;
   }
 
   @Override

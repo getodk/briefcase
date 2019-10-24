@@ -305,7 +305,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
   }
   
   public JavaRosaParserWrapper getFormDefn() {
-	  return formDefn;
+    return formDefn;
   }
 
   @Override

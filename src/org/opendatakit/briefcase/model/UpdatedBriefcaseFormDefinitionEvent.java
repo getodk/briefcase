@@ -24,6 +24,6 @@ public class UpdatedBriefcaseFormDefinitionEvent {
   }
   
   public BriefcaseFormDefinition getDefinition() {
-	  return this.definition;
+    return this.definition;
   }
 }
