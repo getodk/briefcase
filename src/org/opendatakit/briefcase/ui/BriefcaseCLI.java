@@ -25,6 +25,11 @@ import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoField;
 import java.util.Optional;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -45,8 +50,8 @@ import org.slf4j.LoggerFactory;
  */
 public class BriefcaseCLI {
   private static final String AGGREGATE_URL = "aggregate_url";
-  private static final String DATE_FORMAT1 = "yyyy-MM-dd";
-  private static final String DATE_FORMAT2 = "yyyy/MM/dd";
+  private static final String DATE_FORMAT1 = "yyyy-MM-dd['T'HH:mm:ss.SSSXXX]";
+  private static final String DATE_FORMAT2 = "yyyy/MM/dd['T'HH:mm:ss.SSSXXX]";
   private static final String EXCLUDE_MEDIA_EXPORT = "exclude_media_export";
   private static final String EXPORT_DIRECTORY = "export_directory";
   private static final String EXPORT_END_DATE = "export_end_date";
@@ -276,9 +281,14 @@ public class BriefcaseCLI {
   private static boolean testDateFormat(String date) {
     date = date.replaceAll("/", "-");
     try {
-      DateFormat df = new SimpleDateFormat(DATE_FORMAT1);
-      df.parse(date);
-    } catch (java.text.ParseException e) {
+      DateTimeFormatter formatter =
+          new DateTimeFormatterBuilder().appendPattern(DATE_FORMAT1)
+              .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+              .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
+              .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
+              .toFormatter();
+      formatter.parse(date);
+    } catch (DateTimeParseException e) {
       return false;
     }
     return true;
@@ -299,6 +309,12 @@ public class BriefcaseCLI {
     boolean overwrite = cli.hasOption(OVERWRITE_CSV_EXPORT);
     String odkDir = cli.getOptionValue(ODK_DIR);
     String pemKeyFile = cli.getOptionValue(PEM_FILE);
+    DateTimeFormatter formatter =
+        new DateTimeFormatterBuilder().appendPattern(DATE_FORMAT1)
+            .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+            .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
+            .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
+            .toFormatter();
 
     try {
       if (odkDir != null)
@@ -319,8 +335,8 @@ public class BriefcaseCLI {
             exportMedia,
             overwrite,
             false,
-            Optional.ofNullable(startDateString).map(s -> LocalDate.parse(s.replaceAll("/", "-"))),
-            Optional.ofNullable(endDateString).map(s -> LocalDate.parse(s.replaceAll("/", "-"))),
+            Optional.ofNullable(startDateString).map(s -> LocalDateTime.parse(s.replaceAll("/", "-"), formatter)),
+            Optional.ofNullable(endDateString).map(s -> LocalDateTime.parse(s.replaceAll("/", "-"), formatter)),
             Optional.ofNullable(pemKeyFile).map(Paths::get),
             false,
             false,
