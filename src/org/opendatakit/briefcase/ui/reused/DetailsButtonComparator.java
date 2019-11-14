@@ -22,7 +22,7 @@ import java.util.Comparator;
 import javax.swing.JButton;
 
 /**
- * Sort comparator for column containing detail button
+ *  Sort comparator for column containing detail button
  */
 public class DetailsButtonComparator  implements Comparator<JButton> {
 
