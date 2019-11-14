@@ -20,6 +20,9 @@ import static java.awt.Color.LIGHT_GRAY;
 import java.util.Comparator;
 import javax.swing.JButton;
 
+/**
+ * Sort comparator for column containing detail button
+ */
 public class DetailsButtonComparator  implements Comparator<JButton> {
 
   public int compare(JButton o1, JButton o2) {

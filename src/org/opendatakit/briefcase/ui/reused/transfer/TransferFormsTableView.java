@@ -74,6 +74,7 @@ public class TransferFormsTableView extends JTable {
     setFillsViewportHeight(true);
 
     TableRowSorter<TransferFormsTableViewModel> sorter = sortBy(getModel(), FORM_NAME_COL, ASCENDING);
+    //Custom sorting added
     sorter.setComparator(SELECTED_CHECKBOX_COL, new SelectionComparator());
     sorter.setComparator(DETAIL_BUTTON_COL, new DetailsButtonComparator());
     setRowSorter(sorter);

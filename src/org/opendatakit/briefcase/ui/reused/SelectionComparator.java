@@ -17,6 +17,9 @@ package org.opendatakit.briefcase.ui.reused;
 
 import java.util.Comparator;
 
+/**
+ * Sort Comparator for columns providing booleans
+ */
 public class SelectionComparator  implements Comparator<Boolean> {
 
   public int compare(Boolean o1, Boolean o2) {

@@ -20,6 +20,9 @@ import java.awt.Color;
 import java.util.Comparator;
 import javax.swing.JButton;
 
+/**
+ * Sort comparator for configuration button
+ */
 public class ConfigurationButtonComparator  implements Comparator<JButton> {
   private static final Color NO_CONF_OVERRIDE_COLOR = new Color(0, 128, 0);
 
