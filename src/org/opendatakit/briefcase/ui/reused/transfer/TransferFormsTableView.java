@@ -30,7 +30,9 @@ import javax.swing.SortOrder;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import org.opendatakit.briefcase.ui.reused.DetailsButtonComparator;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
+import org.opendatakit.briefcase.ui.reused.SelectionComparator;
 import org.opendatakit.briefcase.ui.reused.UI;
 
 public class TransferFormsTableView extends JTable {
@@ -72,6 +74,8 @@ public class TransferFormsTableView extends JTable {
     setFillsViewportHeight(true);
 
     TableRowSorter<TransferFormsTableViewModel> sorter = sortBy(getModel(), FORM_NAME_COL, ASCENDING);
+    sorter.setComparator(SELECTED_CHECKBOX_COL, new SelectionComparator());
+    sorter.setComparator(DETAIL_BUTTON_COL, new DetailsButtonComparator());
     setRowSorter(sorter);
     sorter.sort();
   }
