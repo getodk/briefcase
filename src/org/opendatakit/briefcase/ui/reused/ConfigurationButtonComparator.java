@@ -16,6 +16,7 @@
 package org.opendatakit.briefcase.ui.reused;
 
 import static java.awt.Color.DARK_GRAY;
+
 import java.awt.Color;
 import java.util.Comparator;
 import javax.swing.JButton;

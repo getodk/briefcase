@@ -17,6 +17,7 @@ package org.opendatakit.briefcase.ui.reused;
 
 import static java.awt.Color.DARK_GRAY;
 import static java.awt.Color.LIGHT_GRAY;
+
 import java.util.Comparator;
 import javax.swing.JButton;
 
@@ -28,8 +29,8 @@ public class DetailsButtonComparator  implements Comparator<JButton> {
   public int compare(JButton o1, JButton o2) {
     int result;
     if (o1.getForeground().equals(o2.getForeground())) result = 0;
-      else if (o1.getForeground().equals(DARK_GRAY) && o2.getForeground().equals(LIGHT_GRAY)) result = -1;
-        else result = 1;
+    else if (o1.getForeground().equals(DARK_GRAY) && o2.getForeground().equals(LIGHT_GRAY)) result = -1;
+    else result = 1;
     return result;
   }
 }
