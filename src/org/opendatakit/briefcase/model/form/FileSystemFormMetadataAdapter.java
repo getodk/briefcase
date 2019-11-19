@@ -86,7 +86,7 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
     try {
       root = XmlElement.from(path);
     } catch (BriefcaseException e) {
-      log.error("Couldn't parse form at {}", path);
+      log.error("Couldn't parse form at {}", path, e);
       return false;
     }
     return root.getName().equals("html")
