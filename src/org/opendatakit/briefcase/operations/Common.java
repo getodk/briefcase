@@ -48,7 +48,7 @@ public class Common {
    * Returns an absolute path to the given string path, using the user.dir property
    * to resolve input relative paths if necessary
    */
-  private static Path absolutePath(String path) {
+  static Path absolutePath(String path) {
     Path storageDir = Paths.get(path);
     return storageDir.isAbsolute()
         ? storageDir

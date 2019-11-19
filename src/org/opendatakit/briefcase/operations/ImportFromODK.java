@@ -20,7 +20,6 @@ import static org.opendatakit.briefcase.operations.Common.FORM_ID;
 import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -37,7 +36,7 @@ import org.slf4j.LoggerFactory;
 public class ImportFromODK {
   private static final Logger log = LoggerFactory.getLogger(ImportFromODK.class);
   private static final Param<Void> IMPORT = Param.flag("pc", "pull_collect", "Pull from Collect");
-  private static final Param<Path> ODK_DIR = Param.arg("od", "odk_directory", "ODK directory", Paths::get);
+  private static final Param<Path> ODK_DIR = Param.arg("od", "odk_directory", "ODK directory", Common::absolutePath);
 
   public static final Operation IMPORT_FROM_ODK = Operation.of(
       IMPORT,

@@ -24,7 +24,6 @@ import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
 import static org.opendatakit.briefcase.reused.http.Http.DEFAULT_HTTP_CONNECTIONS;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -61,13 +60,13 @@ import org.slf4j.LoggerFactory;
 public class Export {
   private static final Logger log = LoggerFactory.getLogger(Export.class);
   private static final Param<Void> EXPORT = Param.flag("e", "export", "Export a form");
-  private static final Param<Path> EXPORT_DIR = Param.arg("ed", "export_directory", "Export directory", Paths::get);
+  private static final Param<Path> EXPORT_DIR = Param.arg("ed", "export_directory", "Export directory", Common::absolutePath);
   private static final Param<String> FILE = Param.arg("f", "export_filename", "Filename for export operation");
   private static final Param<LocalDate> START = Param.localDate("start", "export_start_date", "Export start date (inclusive)");
   private static final Param<LocalDate> END = Param.localDate("end", "export_end_date", "Export end date (inclusive)");
   private static final Param<Void> EXCLUDE_MEDIA = Param.flag("em", "exclude_media_export", "Exclude media in export");
   private static final Param<Void> OVERWRITE = Param.flag("oc", "overwrite_csv_export", "Overwrite files during export");
-  private static final Param<Path> PEM_FILE = Param.arg("pf", "pem_file", "PEM file for form decryption", Paths::get);
+  private static final Param<Path> PEM_FILE = Param.arg("pf", "pem_file", "PEM file for form decryption", Common::absolutePath);
   private static final Param<Void> PULL_BEFORE = Param.flag("pb", "pull_before", "Pull before export");
   private static final Param<Void> SPLIT_SELECT_MULTIPLES = Param.flag("ssm", "split_select_multiples", "Split select multiple fields");
   private static final Param<Void> INCLUDE_GEOJSON_EXPORT = Param.flag("ig", "include_geojson", "Include a GeoJSON file with spatial data");
