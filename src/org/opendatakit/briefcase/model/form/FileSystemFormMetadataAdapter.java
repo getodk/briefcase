@@ -82,17 +82,17 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
   }
 
   private boolean isAForm(Path path) {
-    XmlElement foo;
+    XmlElement root;
     try {
-      foo = XmlElement.from(path);
+      root = XmlElement.from(path);
     } catch (BriefcaseException e) {
       log.error("Couldn't parse form at {}", path);
       return false;
     }
-    return foo.getName().equals("html")
-        && foo.findElements("head", "title").size() == 1
-        && foo.findElements("head", "model", "instance").size() >= 1
-        && foo.findElements("body").size() == 1;
+    return root.getName().equals("html")
+        && root.findElements("head", "title").size() == 1
+        && root.findElements("head", "model", "instance").size() >= 1
+        && root.findElements("body").size() == 1;
   }
 
   @Override
