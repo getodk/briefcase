@@ -53,7 +53,7 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
 
     // select XML files that look like forms by parsing them
     // and looking for key parts that all forms must have
-    Stream<Path> formFiles = candidateFormFiles.filter(path -> isAForm(path));
+    Stream<Path> formFiles = candidateFormFiles.filter(this::isAForm);
 
     // Parse existing metadata.json files or build new FormMetadata from form files
     // At this point, we collect the stream to avoid problems coming
