@@ -24,8 +24,11 @@ import java.util.stream.Stream;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.LegacyPrefs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileSystemFormMetadataAdapter implements FormMetadataPort {
+  private static final Logger log = LoggerFactory.getLogger(FileSystemFormMetadataAdapter.class);
   private static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
   private final Map<FormKey, FormMetadata> store = new ConcurrentHashMap<>();
 
@@ -79,7 +82,13 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
   }
 
   private boolean isAForm(Path path) {
-    XmlElement foo = XmlElement.from(path);
+    XmlElement foo;
+    try {
+      foo = XmlElement.from(path);
+    } catch (BriefcaseException e) {
+      log.error("Couldn't parse form at {}", path);
+      return false;
+    }
     return foo.getName().equals("html")
         && foo.findElements("head", "title").size() == 1
         && foo.findElements("head", "model", "instance").size() >= 1
