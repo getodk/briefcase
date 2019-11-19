@@ -53,7 +53,7 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
 
     // select XML files that look like forms by parsing them
     // and looking for key parts that all forms must have
-    Stream<Path> formFiles = candidateFormFiles.filter(path -> isAForm(path, XmlElement.from(path)));
+    Stream<Path> formFiles = candidateFormFiles.filter(path -> isAForm(path));
 
     // Parse existing metadata.json files or build new FormMetadata from form files
     // At this point, we collect the stream to avoid problems coming
@@ -78,7 +78,7 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
     return this;
   }
 
-  private boolean isAForm(Path path, XmlElement root) {
+  private boolean isAForm(Path path) {
     XmlElement foo = XmlElement.from(path);
     return foo.getName().equals("html")
         && foo.findElements("head", "title").size() == 1
