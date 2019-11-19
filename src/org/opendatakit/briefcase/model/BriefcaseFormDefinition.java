@@ -56,9 +56,9 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
         line = rdr.readLine();
       }
     } catch (FileNotFoundException e) {
-      throw new BadFormDefinition("Form not found");
+      throw new BadFormDefinition("Form not found", e);
     } catch (IOException e) {
-      throw new BadFormDefinition("Unable to read form");
+      throw new BadFormDefinition("Unable to read form", e);
     } finally {
       if (rdr != null) {
         try {
@@ -131,7 +131,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
           } catch (IOException e) {
             String msg = "Unable to copy form definition file into briefcase directory";
             log.error(msg, e);
-            throw new BadFormDefinition(msg);
+            throw new BadFormDefinition(msg, e);
           }
         } else {
           if (!tmpFormFile.renameTo(briefcaseFormFile)) {
@@ -142,7 +142,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
             } catch (IOException e) {
               String msg = "Form directory does not contain form (can neither rename nor copy into briefcase directory)";
               log.error(msg);
-              throw new BadFormDefinition(msg);
+              throw new BadFormDefinition(msg, e);
             }
           }
         }
@@ -182,7 +182,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
                 } catch (IOException e) {
                   String msg = "Unable to overwrite the '.revised' form definition file in briefcase storage";
                   log.error(msg, e);
-                  throw new BadFormDefinition(msg);
+                  throw new BadFormDefinition(msg, e);
                 }
               } else {
                 renameOrCopyAndMarkForDeletion(tmpFormFile, revised);
@@ -215,7 +215,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
               } catch (IOException e) {
                 String msg = "Unable to overwrite form definition file in briefcase storage";
                 log.error(msg, e);
-                throw new BadFormDefinition(msg);
+                throw new BadFormDefinition(msg, e);
               }
             } else {
               renameOrCopyAndMarkForDeletion(tmpFormFile, briefcaseFormFile);
@@ -263,7 +263,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
       } catch (IOException e) {
         String msg = "Form directory does not contain form (can neither rename nor copy into briefcase directory)";
         log.error(msg, e);
-        throw new BadFormDefinition(msg);
+        throw new BadFormDefinition(msg, e);
       }
     }
   }

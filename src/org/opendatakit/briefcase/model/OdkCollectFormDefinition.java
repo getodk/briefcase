@@ -47,9 +47,9 @@ public class OdkCollectFormDefinition implements IFormDefinition {
         line = rdr.readLine();
       }
     } catch (FileNotFoundException e) {
-      throw new BadFormDefinition("Form not found");
+      throw new BadFormDefinition("Form not found", e);
     } catch (IOException e) {
-      throw new BadFormDefinition("Unable to read form");
+      throw new BadFormDefinition("Unable to read form", e);
     }
     return xmlBuilder.toString();
   }
