@@ -81,7 +81,7 @@ public class PullFormFromAggregate {
       Arrays.asList(RESUME_LAST_PULL, INCLUDE_INCOMPLETE, FORM_ID, START_FROM_DATE, MAX_HTTP_CONNECTIONS)
   );
 
-  public static void pullFormFromAggregate(String storageDir, Optional<String> formId, String username, String password, URL server, boolean resumeLastPull, Optional<LocalDate> startFromDate, boolean includeIncomplete, Optional<Integer> maybeMaxHttpConnections) {
+  public static void pullFormFromAggregate(Path storageDir, Optional<String> formId, String username, String password, URL server, boolean resumeLastPull, Optional<LocalDate> startFromDate, boolean includeIncomplete, Optional<Integer> maybeMaxHttpConnections) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);

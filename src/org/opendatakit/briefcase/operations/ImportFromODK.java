@@ -50,7 +50,7 @@ public class ImportFromODK {
       Arrays.asList(FORM_ID)
   );
 
-  public static void importODK(String storageDir, Path odkDir, Optional<String> formId) {
+  public static void importODK(Path storageDir, Path odkDir, Optional<String> formId) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);

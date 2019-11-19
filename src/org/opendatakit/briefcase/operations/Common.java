@@ -25,18 +25,18 @@ import org.opendatakit.briefcase.reused.http.RequestBuilder;
 import org.opendatakit.common.cli.Param;
 
 public class Common {
-  static final Param<String> STORAGE_DIR = Param.arg("sd", "storage_directory", "Briefcase storage directory");
+  public static final Param<String> DEPRECATED_AGGREGATE_SERVER = Param.arg("url", "aggregate_url", "Aggregate server URL");
+  public static final Param<URL> SERVER_URL = Param.arg("U", "odk_url", "ODK Server URL", RequestBuilder::url);
+  public static final Param<Integer> MAX_HTTP_CONNECTIONS = Param.arg("mhc", "max_http_connections", "Maximum simultaneous HTTP connections (defaults to 8)", Integer::parseInt);
+  static final Param<Path> STORAGE_DIR = Param.arg("sd", "storage_directory", "Briefcase storage directory", Paths::get);
   static final Param<String> FORM_ID = Param.arg("id", "form_id", "Form ID");
   static final Param<Integer> PROJECT_ID = Param.arg("pid", "project_id", "ODK Project ID number", Integer::parseInt);
   static final Param<String> CREDENTIALS_USERNAME = Param.arg("u", "odk_username", "ODK Username");
   static final Param<String> CREDENTIALS_EMAIL = Param.arg("E", "odk_email", "ODK Email");
   static final Param<String> CREDENTIALS_PASSWORD = Param.arg("p", "odk_password", "ODK Password");
-  public static final Param<String> DEPRECATED_AGGREGATE_SERVER = Param.arg("url", "aggregate_url", "Aggregate server URL");
-  public static final Param<URL> SERVER_URL = Param.arg("U", "odk_url", "ODK Server URL", RequestBuilder::url);
-  public static final Param<Integer> MAX_HTTP_CONNECTIONS = Param.arg("mhc", "max_http_connections", "Maximum simultaneous HTTP connections (defaults to 8)", Integer::parseInt);
 
-  static Path getOrCreateBriefcaseDir(String storageDir) {
-    Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(Paths.get(storageDir));
+  static Path getOrCreateBriefcaseDir(Path storageDir) {
+    Path briefcaseDir = BriefcasePreferences.buildBriefcaseDir(storageDir);
     if (!Files.exists(briefcaseDir)) {
       System.err.println("The directory " + briefcaseDir.toString() + " doesn't exist. Creating it");
       UncheckedFiles.createBriefcaseDir(briefcaseDir);

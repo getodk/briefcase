@@ -68,7 +68,7 @@ public class PushFormToAggregate {
       Arrays.asList(FORCE_SEND_BLANK, MAX_HTTP_CONNECTIONS, FORM_ID)
   );
 
-  private static void pushFormToAggregate(String storageDir, Optional<String> formid, String username, String password, URL server, boolean forceSendBlank, Optional<Integer> maybeMaxConnections) {
+  private static void pushFormToAggregate(Path storageDir, Optional<String> formid, String username, String password, URL server, boolean forceSendBlank, Optional<Integer> maybeMaxConnections) {
     CliEventsCompanion.attach(log);
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
