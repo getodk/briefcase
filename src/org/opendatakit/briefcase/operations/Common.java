@@ -28,12 +28,7 @@ public class Common {
   public static final Param<String> DEPRECATED_AGGREGATE_SERVER = Param.arg("url", "aggregate_url", "Aggregate server URL");
   public static final Param<URL> SERVER_URL = Param.arg("U", "odk_url", "ODK Server URL", RequestBuilder::url);
   public static final Param<Integer> MAX_HTTP_CONNECTIONS = Param.arg("mhc", "max_http_connections", "Maximum simultaneous HTTP connections (defaults to 8)", Integer::parseInt);
-  static final Param<Path> STORAGE_DIR = Param.arg("sd", "storage_directory", "Briefcase storage directory", path -> {
-    Path storageDir = Paths.get(path);
-    return storageDir.isAbsolute()
-        ? storageDir
-        : Paths.get(System.getProperty("user.dir")).resolve(storageDir);
-  });
+  static final Param<Path> STORAGE_DIR = Param.arg("sd", "storage_directory", "Briefcase storage directory", Common::absolutePath);
   static final Param<String> FORM_ID = Param.arg("id", "form_id", "Form ID");
   static final Param<Integer> PROJECT_ID = Param.arg("pid", "project_id", "ODK Project ID number", Integer::parseInt);
   static final Param<String> CREDENTIALS_USERNAME = Param.arg("u", "odk_username", "ODK Username");
@@ -47,5 +42,16 @@ public class Common {
       UncheckedFiles.createBriefcaseDir(briefcaseDir);
     }
     return briefcaseDir;
+  }
+
+  /**
+   * Returns an absolute path to the given string path, using the user.dir property
+   * to resolve input relative paths if necessary
+   */
+  private static Path absolutePath(String path) {
+    Path storageDir = Paths.get(path);
+    return storageDir.isAbsolute()
+        ? storageDir
+        : Paths.get(System.getProperty("user.dir")).resolve(storageDir);
   }
 }
