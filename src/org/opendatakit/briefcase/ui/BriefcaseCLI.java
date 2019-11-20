@@ -21,6 +21,7 @@ import static org.opendatakit.briefcase.operations.Export.export;
 import static org.opendatakit.briefcase.operations.ImportFromODK.importODK;
 import static org.opendatakit.briefcase.operations.PullFormFromAggregate.pullFormFromAggregate;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -289,7 +290,7 @@ public class BriefcaseCLI {
     String password = cli.getOptionValue(ODK_PASSWORD);
     String server = cli.getOptionValue(AGGREGATE_URL);
     String formid = cli.getOptionValue(FORM_ID);
-    String storageDir = cli.getOptionValue(STORAGE_DIRECTORY);
+    Path storageDir = Paths.get(cli.getOptionValue(STORAGE_DIRECTORY));
     String fileName = cli.getOptionValue(EXPORT_FILENAME);
     String exportPath = cli.getOptionValue(EXPORT_DIRECTORY);
     String startDateString = cli.getOptionValue(EXPORT_START_DATE);
