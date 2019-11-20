@@ -256,6 +256,6 @@ public class UI {
     if(o1.equals(Boolean.TRUE)&&o2.equals(Boolean.FALSE))
       return -1;
     return 1;
-    }
+  }
 
 }
