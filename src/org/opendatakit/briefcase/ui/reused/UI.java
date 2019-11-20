@@ -252,10 +252,10 @@ public class UI {
   public static int compareSelectionButton(Boolean o1, Boolean o2){
 
     if(o1.equals(o2))
-    return 0;
+      return 0;
     if(o1.equals(Boolean.TRUE)&&o2.equals(Boolean.FALSE))
       return -1;
     return 1;
-}
+    }
 
 }
