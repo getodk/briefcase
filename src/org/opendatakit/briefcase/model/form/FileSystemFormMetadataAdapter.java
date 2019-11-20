@@ -24,8 +24,11 @@ import java.util.stream.Stream;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.LegacyPrefs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileSystemFormMetadataAdapter implements FormMetadataPort {
+  private static final Logger log = LoggerFactory.getLogger(FileSystemFormMetadataAdapter.class);
   private static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
   private final Map<FormKey, FormMetadata> store = new ConcurrentHashMap<>();
 
@@ -53,7 +56,7 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
 
     // select XML files that look like forms by parsing them
     // and looking for key parts that all forms must have
-    Stream<Path> formFiles = candidateFormFiles.filter(path -> isAForm(XmlElement.from(path)));
+    Stream<Path> formFiles = candidateFormFiles.filter(this::isAForm);
 
     // Parse existing metadata.json files or build new FormMetadata from form files
     // At this point, we collect the stream to avoid problems coming
@@ -78,7 +81,14 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
     return this;
   }
 
-  private boolean isAForm(XmlElement root) {
+  private boolean isAForm(Path path) {
+    XmlElement root;
+    try {
+      root = XmlElement.from(path);
+    } catch (BriefcaseException e) {
+      log.error("Couldn't parse form at {}", path, e);
+      return false;
+    }
     return root.getName().equals("html")
         && root.findElements("head", "title").size() == 1
         && root.findElements("head", "model", "instance").size() >= 1
