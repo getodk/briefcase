@@ -23,6 +23,7 @@ import static org.opendatakit.briefcase.ui.reused.TableCustomizer.getHeaderDimen
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
+import java.util.Comparator;
 import javax.swing.JButton;
 import javax.swing.JTable;
 import javax.swing.RowSorter;
@@ -30,10 +31,7 @@ import javax.swing.SortOrder;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import org.opendatakit.briefcase.ui.reused.ConfigurationButtonComparator;
-import org.opendatakit.briefcase.ui.reused.DetailsButtonComparator;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
-import org.opendatakit.briefcase.ui.reused.SelectionComparator;
 import org.opendatakit.briefcase.ui.reused.UI;
 
 public class ExportFormsTableView extends JTable {
@@ -83,10 +81,9 @@ public class ExportFormsTableView extends JTable {
     setFillsViewportHeight(true);
 
     TableRowSorter<ExportFormsTableViewModel> sorter = sortBy(getModel(), FORM_NAME_COL, ASCENDING);
-    //Custom sorting added
-    sorter.setComparator(SELECTED_CHECKBOX_COL, new SelectionComparator());
-    sorter.setComparator(OVERRIDE_CONF_COL, new ConfigurationButtonComparator());
-    sorter.setComparator(DETAIL_BUTTON_COL, new DetailsButtonComparator());
+    sorter.setComparator(OVERRIDE_CONF_COL, (Comparator<JButton>) UI::compareConfButton);
+    sorter.setComparator(SELECTED_CHECKBOX_COL, (Comparator<Boolean>) UI::compareSelectionButton);
+    sorter.setComparator(DETAIL_BUTTON_COL, (Comparator<JButton>) UI::compareDetailsButton);
     setRowSorter(sorter);
     sorter.sort();
   }

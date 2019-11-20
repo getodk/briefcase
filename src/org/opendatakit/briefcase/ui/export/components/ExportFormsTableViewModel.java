@@ -42,7 +42,7 @@ import org.opendatakit.briefcase.ui.reused.FontUtils;
 import org.opendatakit.briefcase.ui.reused.UI;
 
 public class ExportFormsTableViewModel extends AbstractTableModel {
-  private static final Color NO_CONF_OVERRIDE_COLOR = new Color(0, 128, 0);
+  public static final Color NO_CONF_OVERRIDE_COLOR = new Color(0, 128, 0);
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
   private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
   private final Map<FormStatus, JButton> confButtons = new HashMap<>();
