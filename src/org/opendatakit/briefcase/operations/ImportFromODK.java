@@ -22,10 +22,10 @@ import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
-import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FileSystemFormMetadataAdapter;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
+import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.pull.PullFromCollect;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.transfer.TransferForms;
@@ -68,7 +68,15 @@ public class ImportFromODK {
     if (formId.isPresent() && forms.isEmpty())
       throw new BriefcaseException("Form " + formId.get() + " not found");
 
-    PullFromCollect.pullForms(formMetadataPort, forms, briefcaseDir, odkDir, EventBus::publish).waitForCompletion();
+    PullFromCollect.pullForms(formMetadataPort, forms, briefcaseDir, odkDir, ImportFromODK::onEvent).waitForCompletion();
+  }
+
+  private static void onEvent(PullEvent pullEvent) {
+    if (pullEvent instanceof PullEvent.Success) {
+      System.out.println("Success pulling form " + ((PullEvent.Success) pullEvent).form.getFormName());
+    } else if (pullEvent instanceof PullEvent.PullComplete) {
+      System.out.println("End of pull operation");
+    }
   }
 
 }
