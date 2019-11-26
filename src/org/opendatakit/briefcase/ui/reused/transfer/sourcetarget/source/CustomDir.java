@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
@@ -99,7 +100,7 @@ public class CustomDir implements PullSource<Path> {
   @Override
   public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
     Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
-    return pullForms(formMetadataPort, forms, briefcaseDir, path);
+    return pullForms(formMetadataPort, forms, briefcaseDir, path, EventBus::publish);
   }
 
   @Override

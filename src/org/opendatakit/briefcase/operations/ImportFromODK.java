@@ -22,6 +22,7 @@ import static org.opendatakit.briefcase.operations.Common.STORAGE_DIR;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
+import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FileSystemFormMetadataAdapter;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
@@ -67,7 +68,7 @@ public class ImportFromODK {
     if (formId.isPresent() && forms.isEmpty())
       throw new BriefcaseException("Form " + formId.get() + " not found");
 
-    PullFromCollect.pullForms(formMetadataPort, forms, briefcaseDir, odkDir).waitForCompletion();
+    PullFromCollect.pullForms(formMetadataPort, forms, briefcaseDir, odkDir, EventBus::publish).waitForCompletion();
   }
 
 }
