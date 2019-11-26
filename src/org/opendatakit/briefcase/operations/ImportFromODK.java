@@ -55,15 +55,15 @@ public class ImportFromODK {
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
 
-    TransferForms from = TransferForms.from(FileSystemUtils.getODKFormList(odkDir.toFile()).stream()
+    TransferForms forms = TransferForms.from(FileSystemUtils.getODKFormList(odkDir.toFile()).stream()
         .map(FormStatus::new)
         .filter(form -> formId.map(id -> form.getFormDefinition().getFormId().equals(id)).orElse(true))
         .collect(toList()));
-    from.selectAll();
+    forms.selectAll();
 
-    if (formId.isPresent() && from.isEmpty())
+    if (formId.isPresent() && forms.isEmpty())
       throw new BriefcaseException("Form " + formId.get() + " not found");
 
-    TransferFromODK.pull(briefcaseDir, odkDir, from);
+    TransferFromODK.pull(briefcaseDir, odkDir, forms);
   }
 }
