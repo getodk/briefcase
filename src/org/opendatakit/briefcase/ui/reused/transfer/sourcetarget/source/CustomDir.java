@@ -111,6 +111,7 @@ public class CustomDir implements PullSource<Path> {
       try {
         boolean success = action.doAction();
         if (success) {
+          EventBus.publish(PullEvent.Success.of(form));
           formMetadataPort.execute(updateAsPulled(FormKey.from(form), briefcaseDir, form.getFormDir(briefcaseDir)));
         }
       } catch (Exception e) {
