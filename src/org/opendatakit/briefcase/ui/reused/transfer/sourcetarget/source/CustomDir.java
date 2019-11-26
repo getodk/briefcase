@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source;
 
 import static java.awt.Cursor.getPredefinedCursor;
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.model.form.FormMetadataCommands.updateAsPulled;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
@@ -36,6 +37,7 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.TerminationFuture;
+import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -102,12 +104,15 @@ public class CustomDir implements PullSource<Path> {
 
   @Override
   public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
-    return JobsRunner.launchAsync(forms.map(form -> run(jobStatus -> transferODKToBriefcase(
-        appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
-        path.toFile(),
-        new TerminationFuture(),
-        TransferForms.of(form)
-    )))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+    return JobsRunner.launchAsync(forms.map(form -> run(jobStatus -> {
+      transferODKToBriefcase(
+          appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new),
+          path.toFile(),
+          new TerminationFuture(),
+          TransferForms.of(form)
+      );
+      formMetadataPort.execute(updateAsPulled(FormKey.from(form), appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), form.getFormDir(appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new))));
+    }))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
   @Override
