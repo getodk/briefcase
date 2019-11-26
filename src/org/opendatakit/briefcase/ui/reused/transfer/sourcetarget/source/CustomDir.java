@@ -106,6 +106,7 @@ public class CustomDir implements PullSource<Path> {
   public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
     Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
     return JobsRunner.launchAsync(forms.map(form -> run(jobStatus -> {
+      // TODO Do error management. This action is run in a background thread that will swallow errors.
       transferODKToBriefcase(
           briefcaseDir,
           path.toFile(),
