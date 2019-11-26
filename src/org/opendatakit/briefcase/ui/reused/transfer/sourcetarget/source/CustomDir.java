@@ -105,20 +105,23 @@ public class CustomDir implements PullSource<Path> {
   @Override
   public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
     Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
-    return JobsRunner.launchAsync(forms.map(form -> run(jobStatus -> {
-      // TODO Do error management. This action is run in a background thread that will swallow errors.
+    return JobsRunner.launchAsync(forms.map(form -> {
       TransferFromODK action = new TransferFromODK(briefcaseDir, path.toFile(), new TerminationFuture(), TransferForms.of(form));
-      try {
-        boolean success = action.doAction();
-        if (success) {
-          EventBus.publish(PullEvent.Success.of(form));
-          formMetadataPort.execute(updateAsPulled(FormKey.from(form), briefcaseDir, form.getFormDir(briefcaseDir)));
+      return run(jobStatus -> {
+        try {
+          boolean success = action.doAction();
+          if (success) {
+            EventBus.publish(PullEvent.Success.of(form));
+            formMetadataPort.execute(updateAsPulled(FormKey.from(form), briefcaseDir, form.getFormDir(briefcaseDir)));
+          } // TODO Originally there was no explicit side effect on non successful individual pulls. We might want to give some feedback
+        } catch (Exception e) {
+          // This will lift any checked exception thrown by the underlying code
+          // into a BriefcaseException that is managed by the error management
+          // flow driven by the Launcher class
+          throw new BriefcaseException("Failed to pull form (legacy)", e);
         }
-      } catch (Exception e) {
-        throw new BriefcaseException("Failed to pull form (legacy)", e);
-      }
-
-    }))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+      });
+    })).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
   @Override
