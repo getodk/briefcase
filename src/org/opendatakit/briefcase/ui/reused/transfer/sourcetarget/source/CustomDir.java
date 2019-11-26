@@ -18,8 +18,7 @@ package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source;
 
 import static java.awt.Cursor.getPredefinedCursor;
 import static java.util.stream.Collectors.toList;
-import static org.opendatakit.briefcase.model.form.FormMetadataCommands.updateAsPulled;
-import static org.opendatakit.briefcase.reused.job.Job.run;
+import static org.opendatakit.briefcase.pull.PullFromCollect.pullForms;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
@@ -32,19 +31,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
-import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
-import org.opendatakit.briefcase.model.TerminationFuture;
-import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
-import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.FileSystemUtils;
-import org.opendatakit.briefcase.util.TransferFromODK;
 
 /**
  * Represents a filesystem location pointing to Collect's form directory as a source of forms for the Pull UI Panel.
@@ -105,23 +99,7 @@ public class CustomDir implements PullSource<Path> {
   @Override
   public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
     Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
-    return JobsRunner.launchAsync(forms.map(form -> {
-      TransferFromODK action = new TransferFromODK(briefcaseDir, path.toFile(), new TerminationFuture(), TransferForms.of(form));
-      return run(jobStatus -> {
-        try {
-          boolean success = action.doAction();
-          if (success) {
-            EventBus.publish(PullEvent.Success.of(form));
-            formMetadataPort.execute(updateAsPulled(FormKey.from(form), briefcaseDir, form.getFormDir(briefcaseDir)));
-          } // TODO Originally there was no explicit side effect on non successful individual pulls. We might want to give some feedback
-        } catch (Exception e) {
-          // This will lift any checked exception thrown by the underlying code
-          // into a BriefcaseException that is managed by the error management
-          // flow driven by the Launcher class
-          throw new BriefcaseException("Failed to pull form (legacy)", e);
-        }
-      });
-    })).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+    return pullForms(formMetadataPort, forms, briefcaseDir, path);
   }
 
   @Override
