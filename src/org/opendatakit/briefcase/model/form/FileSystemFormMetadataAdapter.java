@@ -13,6 +13,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -149,7 +151,11 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
   }
 
   private static Path getMetadataFile(FormMetadata metaData) {
-    return metaData.getFormDir().resolve("metadata.json");
+    try {
+      return metaData.getFormDir().resolve("metadata.json");
+    } catch (InvalidPathException e) {
+      throw new BriefcaseException("cannot resolve metadata path", e);
+    }
   }
   // endregion
 }
