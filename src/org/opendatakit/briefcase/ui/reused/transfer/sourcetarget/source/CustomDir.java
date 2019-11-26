@@ -23,7 +23,6 @@ import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.ui.reused.FileChooser.isUnderBriefcaseFolder;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 import static org.opendatakit.briefcase.ui.reused.UI.removeAllMouseListeners;
-import static org.opendatakit.briefcase.util.TransferAction.transferODKToBriefcase;
 
 import java.awt.Container;
 import java.awt.Cursor;
@@ -45,6 +44,7 @@ import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.FileChooser;
 import org.opendatakit.briefcase.util.FileSystemUtils;
+import org.opendatakit.briefcase.util.TransferFromODK;
 
 /**
  * Represents a filesystem location pointing to Collect's form directory as a source of forms for the Pull UI Panel.
@@ -107,12 +107,7 @@ public class CustomDir implements PullSource<Path> {
     Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
     return JobsRunner.launchAsync(forms.map(form -> run(jobStatus -> {
       // TODO Do error management. This action is run in a background thread that will swallow errors.
-      transferODKToBriefcase(
-          briefcaseDir,
-          path.toFile(),
-          new TerminationFuture(),
-          TransferForms.of(form)
-      );
+      new TransferFromODK(briefcaseDir, path.toFile(), new TerminationFuture(), TransferForms.of(form)).doAction();
       formMetadataPort.execute(updateAsPulled(FormKey.from(form), briefcaseDir, form.getFormDir(briefcaseDir)));
     }))).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
