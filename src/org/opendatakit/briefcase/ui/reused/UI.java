@@ -30,7 +30,6 @@ import static javax.swing.JOptionPane.getFrameForComponent;
 import static javax.swing.SwingUtilities.invokeLater;
 import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.APP_NAME;
 import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
-import static org.opendatakit.briefcase.ui.export.components.ExportFormsTableViewModel.NO_CONF_OVERRIDE_COLOR;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -215,47 +214,5 @@ public class UI {
   }
 
 
-  /**
-   * Sort comparator for configuration button
-   * @param o1 The first object to be compared
-   * @param o2 The second object to be compared
-   * @return int for sorting of two elements (0(equals) , -1(less than), 1(greater than)
-   */
-  public static int compareConfButton(JButton o1, JButton o2) {
-    if (o1.getForeground().equals(o2.getForeground()))
-      return 0;
-    if (o1.getForeground().equals(NO_CONF_OVERRIDE_COLOR) && o2.getForeground().equals(DARK_GRAY))
-      return -1;
-    return 1;
-  }
-
-  /**
-   * Sort comparator for column containing detail button
-   * @param o1 The first object to be compared
-   * @param o2 The second object to be compared
-   * @return int for sorting of two elements (0(equals) , -1(less than), 1(greater than)
-   */
-  public static int compareDetailsButton(JButton o1, JButton o2) {
-    if (o1.getForeground().equals(o2.getForeground()))
-      return 0;
-    if (o1.getForeground().equals(DARK_GRAY) && o2.getForeground().equals(LIGHT_GRAY))
-      return -1;
-    return 1;
-  }
-
-  /**
-   * Sort Comparator for columns providing booleans
-   * @param o1 The first object to be compared
-   * @param o2 The second object to be compared
-   * @return int for sorting of two elements (0(equals) , -1(less than), 1(greater than)
-   */
-  public static int compareSelectionButton(Boolean o1, Boolean o2){
-
-    if(o1.equals(o2))
-      return 0;
-    if(o1.equals(Boolean.TRUE)&&o2.equals(Boolean.FALSE))
-      return -1;
-    return 1;
-  }
 
 }

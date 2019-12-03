@@ -24,9 +24,6 @@ import static org.opendatakit.briefcase.ui.export.components.ExportFormsTableVie
 import static org.opendatakit.briefcase.ui.export.components.ExportFormsTableView.HEADERS;
 import static org.opendatakit.briefcase.ui.export.components.ExportFormsTableView.TYPES;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,19 +35,17 @@ import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer;
-import org.opendatakit.briefcase.ui.reused.FontUtils;
+import org.opendatakit.briefcase.ui.reused.ExportConfigurationButton;
 import org.opendatakit.briefcase.ui.reused.UI;
 
 public class ExportFormsTableViewModel extends AbstractTableModel {
-  public static final Color NO_CONF_OVERRIDE_COLOR = new Color(0, 128, 0);
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
   private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
-  private final Map<FormStatus, JButton> confButtons = new HashMap<>();
+  private final Map<FormStatus, ExportConfigurationButton> confButtons = new HashMap<>();
   private final ExportForms forms;
   private final BriefcasePreferences appPreferences;
   private BriefcasePreferences pullPrefs;
 
-  private static final Font ic_settings = FontUtils.getCustomFont("ic_settings.ttf", 16f);
   private boolean enabled = true;
 
   ExportFormsTableViewModel(ExportForms forms, BriefcasePreferences appPreferences, BriefcasePreferences pullPrefs) {
@@ -74,12 +69,8 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
   }
 
   @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
-  private JButton buildOverrideConfButton(FormStatus form) {
-    // Use custom fonts instead of png for easier scaling
-    JButton button = new JButton("\uE900");
-    button.setFont(ic_settings); // custom font that overrides  with a gear icon
-    button.setToolTipText("Override the export configuration for this form");
-    button.setMargin(new Insets(0, 0, 0, 0));
+  private ExportConfigurationButton buildOverrideConfButton(FormStatus form) {
+    ExportConfigurationButton button = new ExportConfigurationButton();
 
     updateConfButton(form, button);
     button.addActionListener(__ -> {
@@ -119,8 +110,8 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
     button.setForeground(form.getStatusHistory().isEmpty() ? LIGHT_GRAY : DARK_GRAY);
   }
 
-  private void updateConfButton(FormStatus form, JButton button) {
-    button.setForeground(forms.hasConfiguration(form) ? NO_CONF_OVERRIDE_COLOR : DARK_GRAY);
+  private void updateConfButton(FormStatus form, ExportConfigurationButton button) {
+    button.setConfigured(forms.hasConfiguration(form));
   }
 
   @Override
@@ -157,7 +148,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
   }
 
   @Override
-  // Suppressing next ParameterName checkstyle error becasue 'aValue' param triggers it by mistake
+  // Suppressing next ParameterName checkstyle error because 'aValue' param triggers it by mistake
   @SuppressWarnings("checkstyle:ParameterName")
   public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
     FormStatus form = forms.get(rowIndex);
