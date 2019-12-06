@@ -65,6 +65,7 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
     // from actually writing files in the same folders we're reading from
     List<FormMetadata> metadataFiles = formFiles.map(formFile -> {
       Path formDir = formFile.getParent();
+      //System.out.println("formFile.getParent(): "+formDir);
       Path metadataFile = formDir.resolve("metadata.json");
       FormMetadata formMetadata = Files.exists(metadataFile) ? deserialize(storageRoot, metadataFile) : FormMetadata.from(storageRoot, formFile);
       if (!formMetadata.getCursor().isEmpty())
@@ -132,12 +133,23 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
 
   private static Path serialize(FormMetadata metaData) {
     try {
-      return write(
-          getMetadataFile(metaData),
-          MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(metaData.asJson(MAPPER)),
-          CREATE, TRUNCATE_EXISTING
-      );
-    } catch (JsonProcessingException e) {
+      Path formDir = metaData.getFormDir();
+      if (Files.exists(formDir)) {
+        return write(
+            getMetadataFile(metaData),
+            MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(metaData.asJson(MAPPER)),
+            CREATE, TRUNCATE_EXISTING
+        );
+      } else {
+        Files.createDirectory(formDir);
+        return write(
+            getMetadataFile(metaData),
+            MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(metaData.asJson(MAPPER)),
+            CREATE, TRUNCATE_EXISTING
+        );
+      }
+
+    } catch (IOException e) {
       throw new BriefcaseException("Couldn't produce JSON FormMetadata", e);
     }
   }
@@ -151,11 +163,7 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
   }
 
   private static Path getMetadataFile(FormMetadata metaData) {
-    try {
-      return metaData.getFormDir().resolve("metadata.json");
-    } catch (InvalidPathException e) {
-      throw new BriefcaseException("cannot resolve metadata path", e);
-    }
+    return metaData.getFormDir().resolve("metadata.json");
   }
   // endregion
 }
