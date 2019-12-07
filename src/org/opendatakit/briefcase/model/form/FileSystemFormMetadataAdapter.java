@@ -7,14 +7,11 @@ import static java.util.stream.Collectors.toMap;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.walk;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.write;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +62,6 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
     // from actually writing files in the same folders we're reading from
     List<FormMetadata> metadataFiles = formFiles.map(formFile -> {
       Path formDir = formFile.getParent();
-      //System.out.println("formFile.getParent(): "+formDir);
       Path metadataFile = formDir.resolve("metadata.json");
       FormMetadata formMetadata = Files.exists(metadataFile) ? deserialize(storageRoot, metadataFile) : FormMetadata.from(storageRoot, formFile);
       if (!formMetadata.getCursor().isEmpty())
