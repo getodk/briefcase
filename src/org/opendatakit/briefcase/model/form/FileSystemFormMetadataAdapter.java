@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.LegacyPrefs;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -130,21 +131,12 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
   private static Path serialize(FormMetadata metaData) {
     try {
       Path formDir = metaData.getFormDir();
-      if (Files.exists(formDir)) {
-        return write(
-            getMetadataFile(metaData),
-            MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(metaData.asJson(MAPPER)),
-            CREATE, TRUNCATE_EXISTING
-        );
-      } else {
-        Files.createDirectory(formDir);
-        return write(
-            getMetadataFile(metaData),
-            MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(metaData.asJson(MAPPER)),
-            CREATE, TRUNCATE_EXISTING
-        );
-      }
-
+      UncheckedFiles.createDirectories(formDir);
+      return write(
+          getMetadataFile(metaData),
+          MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(metaData.asJson(MAPPER)),
+          CREATE, TRUNCATE_EXISTING
+      );
     } catch (IOException e) {
       throw new BriefcaseException("Couldn't produce JSON FormMetadata", e);
     }
