@@ -1,60 +1,40 @@
 package org.opendatakit.briefcase.util;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.junit.Assert;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.util.StringUtils.stripIllegalChars;
+
+import java.util.Arrays;
+import java.util.Collection;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+@RunWith(value = Parameterized.class)
 public class StringUtilsTest {
+  @Parameterized.Parameter(value = 0)
+  public String testCase;
 
-  @Test
-  public void stripIllegalChars_shouldReturnNullForNullInput() {
-    Assert.assertNull(StringUtils.stripIllegalChars(null));
+  @Parameterized.Parameter(value = 1)
+  public String input;
+
+  @Parameterized.Parameter(value = 2)
+  public String expectedOutput;
+
+  @Parameterized.Parameters(name = "{0}")
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][]{
+        {"null input produces null output", null, null},
+        {"Common punctuation chars get replaced by underscore", "abcdef.:;", "abcdef___"},
+        {"Windows and *nix dir separators get replaced by underscore", "a\\b/c", "a_b_c"},
+        {"Whitespace chars get normalized", "abcdef\t\n\r ", "abcdef    "},
+        {"Unicode chars should get through", "シャンプー", "シャンプー"},
+    });
   }
 
   @Test
-  public void stripIllegalChars_shouldRemovePunctuationChars() {
-    String input = "abcdef.:;";
-    String output = StringUtils.stripIllegalChars(input);
-
-    Pattern pattern = Pattern.compile("\\p{Punct}");
-    Matcher matcher = pattern.matcher(output);
-    Assert.assertTrue(!matcher.matches());
-    Assert.assertEquals("abcdef___", output);
+  public void test_stripIllegalChars() {
+    assertThat(stripIllegalChars(input), expectedOutput == null ? is(nullValue()) : is(expectedOutput));
   }
-
-  @Test
-  public void stripIllegalChars_shouldRemoveDirectorySeparatorChars() {
-    String input = "a\\b/c";
-    String output = StringUtils.stripIllegalChars(input);
-    Assert.assertEquals("a_b_c", output);
-  }
-
-  @Test
-  public void stripIllegalChars_shouldReplaceWhitespaceWithSpace() {
-    String input = "abcdef\t\n\r";
-    String output = StringUtils.stripIllegalChars(input);
-
-    Pattern pattern = Pattern.compile("[\\t\\n\\x0B\\f\\r]");
-    Matcher matcher = pattern.matcher(output);
-    Assert.assertTrue(String.format("Input: %s, output: %s", input, output), !matcher.matches());
-    Assert.assertEquals("abcdef   ", output);
-  }
-
-  @Test
-  public void stripIllegalChars_shouldWorkWithUnicodeCharacters() {
-    String input = ".:;%&シャンプー \n\r";
-    String output = StringUtils.stripIllegalChars(input);
-
-    Pattern pattern = Pattern.compile("\\p{Punct}");
-    Matcher matcher = pattern.matcher(output);
-    Assert.assertTrue(String.format("Input: %s, output: %s", input, output), !matcher.matches());
-
-    pattern = Pattern.compile("[\\t\\n\\x0B\\f\\r]");
-    matcher = pattern.matcher(output);
-    Assert.assertTrue(String.format("Input: %s, output: %s", input, output), !matcher.matches());
-
-    Assert.assertEquals("_____シャンプー   ", output);
-  }
-
 }
