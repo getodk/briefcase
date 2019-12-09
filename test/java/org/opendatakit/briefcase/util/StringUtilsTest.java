@@ -24,6 +24,13 @@ public class StringUtilsTest {
   }
 
   @Test
+  public void stripIllegalChars_shouldRemoveDirectorySeparatorChars() {
+    String input = "a\\b/c";
+    String output = StringUtils.stripIllegalChars(input);
+    Assert.assertEquals("a_b_c", output);
+  }
+
+  @Test
   public void stripIllegalChars_shouldReplaceWhitespaceWithSpace() {
     String input = "abcdef\t\n\r";
     String output = StringUtils.stripIllegalChars(input);
