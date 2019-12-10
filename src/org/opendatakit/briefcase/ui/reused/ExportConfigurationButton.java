@@ -22,40 +22,53 @@ import java.awt.Font;
 import java.awt.Insets;
 import javax.swing.JButton;
 
+
 /**
  * Contains application logic pertaining to the Export Configuration Button
  */
-public class ExportConfigurationButton extends JButton implements Comparable<ExportConfigurationButton> {
+public class ExportConfigurationButton {
   private static final Color NO_CONF_OVERRIDE_COLOR = new Color(0, 128, 0);
   private static final Font IC_SETTINGS = FontUtils.getCustomFont("ic_settings.ttf", 16f);
 
-  private boolean configured = false;
+  private final JButton button;
+
+  private ExportConfigurationButton(JButton button) {
+    this.button = button;
+  }
 
   @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
-  public ExportConfigurationButton() {
-    super();
-    // Use custom fonts instead of png for easier scaling
-    setText("\uE900");
-    setFont(IC_SETTINGS);
-    setToolTipText("Override the export configuration for this form");
-    setMargin(new Insets(0, 0, 0, 0));
+  public static ExportConfigurationButton create() {
+    JButton button = new JButton();
+    button.setText("\uE900");
+    button.setFont(IC_SETTINGS);
+    button.setToolTipText("Override the export configuration for this form");
+    button.setMargin(new Insets(0, 0, 0, 0));
+    return new ExportConfigurationButton(button);
   }
 
-  public void setConfigured(boolean value) {
-    configured = value;
-    setForeground(configured ? NO_CONF_OVERRIDE_COLOR : DARK_GRAY);
+  public JButton getJButton() {
+    return button;
   }
 
-  private boolean getConfigured() {
-    return configured;
+  public void setConfigured(boolean configured) {
+    button.setForeground(configured ? NO_CONF_OVERRIDE_COLOR : DARK_GRAY);
   }
 
-  public int compareTo(ExportConfigurationButton button) {
-    if (this.getConfigured() == button.getConfigured())
+  public static int compare(ExportConfigurationButton a, ExportConfigurationButton b) {
+    boolean aConfigured = a.getJButton().getForeground().equals(NO_CONF_OVERRIDE_COLOR);
+    boolean bConfigured = b.getJButton().getForeground().equals(NO_CONF_OVERRIDE_COLOR);
+    if (aConfigured == bConfigured)
       return 0;
-    if (this.getConfigured() && !button.getConfigured())
+    if (aConfigured)
       return -1;
     return 1;
   }
 
+  public void onClick(Runnable callback) {
+    button.addActionListener(__ -> callback.run());
+  }
+
+  public void setEnabled(boolean enabled) {
+    button.setEnabled(enabled);
+  }
 }

@@ -76,6 +76,14 @@ public class UI {
     return button;
   }
 
+  public static JButton cellWithExportConfButton(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+    JButton button = ((ExportConfigurationButton) value).getJButton();
+    button.setOpaque(true);
+    button.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+    return button;
+  }
+
+
   /**
    * Pops up an informative dialog
    * <ul>
@@ -218,5 +226,4 @@ public class UI {
       return -1;
     return 1;
   }
-
 }

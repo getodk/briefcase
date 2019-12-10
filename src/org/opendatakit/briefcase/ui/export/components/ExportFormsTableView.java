@@ -65,7 +65,7 @@ public class ExportFormsTableView extends JTable {
     columns.getColumn(SELECTED_CHECKBOX_COL).setMinWidth(40);
     columns.getColumn(SELECTED_CHECKBOX_COL).setMaxWidth(40);
     columns.getColumn(SELECTED_CHECKBOX_COL).setPreferredWidth(40);
-    columns.getColumn(OVERRIDE_CONF_COL).setCellRenderer(UI::cellWithButton);
+    columns.getColumn(OVERRIDE_CONF_COL).setCellRenderer(UI::cellWithExportConfButton);
     columns.getColumn(OVERRIDE_CONF_COL).setMinWidth(40);
     columns.getColumn(OVERRIDE_CONF_COL).setMaxWidth(40);
     columns.getColumn(OVERRIDE_CONF_COL).setPreferredWidth(40);
@@ -83,7 +83,7 @@ public class ExportFormsTableView extends JTable {
     setFillsViewportHeight(true);
 
     TableRowSorter<ExportFormsTableViewModel> sorter = sortBy(getModel(), FORM_NAME_COL, ASCENDING);
-    sorter.setComparator(SELECTED_CHECKBOX_COL, (Comparator<Boolean>) UI::compareSelectionButton);
+    sorter.setComparator(OVERRIDE_CONF_COL, (Comparator<ExportConfigurationButton>) ExportConfigurationButton::compare);
     setRowSorter(sorter);
     sorter.sort();
   }

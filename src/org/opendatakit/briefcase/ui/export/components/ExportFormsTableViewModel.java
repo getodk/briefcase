@@ -68,10 +68,10 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
 
   @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
   private ExportConfigurationButton buildOverrideConfButton(FormStatus form) {
-    ExportConfigurationButton button = new ExportConfigurationButton();
+    ExportConfigurationButton button = ExportConfigurationButton.create();
 
     updateConfButton(form, button);
-    button.addActionListener(__ -> {
+    button.onClick(() -> {
       if (enabled) {
         ConfigurationDialog dialog = ConfigurationDialog.overridePanel(
             forms.getCustomConfiguration(form).orElse(empty().build()),
