@@ -24,13 +24,13 @@ import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.Comparator;
-import javax.swing.JButton;
 import javax.swing.JTable;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import org.opendatakit.briefcase.ui.reused.ButtonProcessing;
 import org.opendatakit.briefcase.ui.reused.DetailsStatusButton;
 import org.opendatakit.briefcase.ui.reused.ExportConfigurationButton;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
@@ -65,7 +65,7 @@ public class ExportFormsTableView extends JTable {
     columns.getColumn(SELECTED_CHECKBOX_COL).setMinWidth(40);
     columns.getColumn(SELECTED_CHECKBOX_COL).setMaxWidth(40);
     columns.getColumn(SELECTED_CHECKBOX_COL).setPreferredWidth(40);
-    columns.getColumn(OVERRIDE_CONF_COL).setCellRenderer(UI::cellWithExportConfButton);
+    columns.getColumn(OVERRIDE_CONF_COL).setCellRenderer(UI::cellWithButton);
     columns.getColumn(OVERRIDE_CONF_COL).setMinWidth(40);
     columns.getColumn(OVERRIDE_CONF_COL).setMaxWidth(40);
     columns.getColumn(OVERRIDE_CONF_COL).setPreferredWidth(40);
@@ -75,7 +75,7 @@ public class ExportFormsTableView extends JTable {
     columns.getColumn(EXPORT_STATUS_COL).setPreferredWidth(exportStatusDims.width + 25);
     columns.getColumn(LAST_EXPORT_COL).setMinWidth(lastExportDims.width + 25);
     columns.getColumn(LAST_EXPORT_COL).setPreferredWidth(lastExportDims.width + 25);
-    columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(UI::cellWithDetailButton);
+    columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(UI::cellWithButton);
     columns.getColumn(DETAIL_BUTTON_COL).setMinWidth(40);
     columns.getColumn(DETAIL_BUTTON_COL).setMaxWidth(40);
     columns.getColumn(DETAIL_BUTTON_COL).setPreferredWidth(40);
@@ -83,7 +83,7 @@ public class ExportFormsTableView extends JTable {
     setFillsViewportHeight(true);
 
     TableRowSorter<ExportFormsTableViewModel> sorter = sortBy(getModel(), FORM_NAME_COL, ASCENDING);
-    sorter.setComparator(OVERRIDE_CONF_COL, (Comparator<ExportConfigurationButton>) ExportConfigurationButton::compare);
+    sorter.setComparator(SELECTED_CHECKBOX_COL, (Comparator<Boolean>) UI::compareSelectionButton);
     setRowSorter(sorter);
     sorter.sort();
   }
@@ -94,8 +94,8 @@ public class ExportFormsTableView extends JTable {
 
     if (row < getRowCount() && row >= 0 && column < getColumnCount() && column >= 0) {
       Object value = getValueAt(row, column);
-      if (value instanceof JButton)
-        ((JButton) value).doClick();
+      if (value instanceof ButtonProcessing)
+        ((ButtonProcessing) value).getJButton().doClick();
     }
   }
 

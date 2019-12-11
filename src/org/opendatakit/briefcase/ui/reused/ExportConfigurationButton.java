@@ -26,7 +26,7 @@ import javax.swing.JButton;
 /**
  * Contains application logic pertaining to the Export Configuration Button
  */
-public class ExportConfigurationButton {
+public class ExportConfigurationButton implements ButtonProcessing, Comparable<ButtonProcessing> {
   private static final Color NO_CONF_OVERRIDE_COLOR = new Color(0, 128, 0);
   private static final Font IC_SETTINGS = FontUtils.getCustomFont("ic_settings.ttf", 16f);
 
@@ -50,16 +50,16 @@ public class ExportConfigurationButton {
     return button;
   }
 
-  public void setConfigured(boolean configured) {
-    button.setForeground(configured ? NO_CONF_OVERRIDE_COLOR : DARK_GRAY);
+  public void setStatus(boolean status) {
+    button.setForeground(status ? NO_CONF_OVERRIDE_COLOR : DARK_GRAY);
   }
 
-  public static int compare(ExportConfigurationButton a, ExportConfigurationButton b) {
-    boolean aConfigured = a.getJButton().getForeground().equals(NO_CONF_OVERRIDE_COLOR);
-    boolean bConfigured = b.getJButton().getForeground().equals(NO_CONF_OVERRIDE_COLOR);
-    if (aConfigured == bConfigured)
+  public int compareTo(ButtonProcessing b) {
+    boolean aStatus = this.getJButton().getForeground().equals(NO_CONF_OVERRIDE_COLOR);
+    boolean bStatus = b.getJButton().getForeground().equals(NO_CONF_OVERRIDE_COLOR);
+    if (aStatus == bStatus)
       return 0;
-    if (aConfigured)
+    if (aStatus)
       return -1;
     return 1;
   }

@@ -55,7 +55,7 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
   }
 
   private void updateDetailButton(FormStatus form, DetailsStatusButton button) {
-    button.setStatus((form.getStatusHistory().isEmpty()));
+    button.setStatus(!(form.getStatusHistory().isEmpty()));
   }
 
   @Override

@@ -24,13 +24,13 @@ import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.Comparator;
-import javax.swing.JButton;
 import javax.swing.JTable;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import org.opendatakit.briefcase.ui.reused.ButtonProcessing;
 import org.opendatakit.briefcase.ui.reused.DetailsStatusButton;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.UI;
@@ -66,7 +66,7 @@ public class TransferFormsTableView extends JTable {
     columns.getColumn(FORM_NAME_COL).setPreferredWidth(formNameDims.width + 25);
     columns.getColumn(STATUS_COL).setMinWidth(statusDims.width + 25);
     columns.getColumn(STATUS_COL).setPreferredWidth(statusDims.width + 25);
-    columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(UI::cellWithDetailButton);
+    columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(UI::cellWithButton);
     columns.getColumn(DETAIL_BUTTON_COL).setMinWidth(40);
     columns.getColumn(DETAIL_BUTTON_COL).setMaxWidth(40);
     columns.getColumn(DETAIL_BUTTON_COL).setPreferredWidth(40);
@@ -89,8 +89,8 @@ public class TransferFormsTableView extends JTable {
 
     if (row < getRowCount() && row >= 0 && column < getColumnCount() && column >= 0) {
       Object value = getValueAt(row, column);
-      if (value instanceof JButton)
-        ((JButton) value).doClick();
+      if (value instanceof ButtonProcessing)
+        ((ButtonProcessing) value).getJButton().doClick();
     }
   }
 

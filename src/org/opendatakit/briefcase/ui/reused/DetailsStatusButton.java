@@ -22,7 +22,7 @@ import java.awt.Font;
 import java.awt.Insets;
 import javax.swing.JButton;
 
-public class DetailsStatusButton {
+public class DetailsStatusButton implements ButtonProcessing, Comparable<ButtonProcessing> {
   private static final Font IC_RECEIPT = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
 
   private boolean status = false;
@@ -39,6 +39,7 @@ public class DetailsStatusButton {
     button.setFont(IC_RECEIPT);
     button.setToolTipText("View this form's status history");
     button.setMargin(new Insets(0, 0, 0, 0));
+    button.setForeground(LIGHT_GRAY);
     return new DetailsStatusButton(button);
   }
 
@@ -51,16 +52,12 @@ public class DetailsStatusButton {
     button.setForeground(status ? DARK_GRAY : LIGHT_GRAY);
   }
 
-  private boolean getStatus() {
-    return status;
-  }
-
-  public static int compare(ExportConfigurationButton a, ExportConfigurationButton b) {
-    boolean aConfigured = a.getJButton().getForeground().equals(LIGHT_GRAY);
-    boolean bConfigured = b.getJButton().getForeground().equals(LIGHT_GRAY);
-    if (aConfigured == bConfigured)
+  public int compareTo(ButtonProcessing b) {
+    boolean aStatus = this.getJButton().getForeground().equals(DARK_GRAY);
+    boolean bStatus = b.getJButton().getForeground().equals(DARK_GRAY);
+    if (aStatus == bStatus)
       return 0;
-    if (aConfigured)
+    if (aStatus)
       return -1;
     return 1;
   }

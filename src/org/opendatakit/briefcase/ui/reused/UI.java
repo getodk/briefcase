@@ -70,26 +70,11 @@ public class UI {
   }
 
   public static JButton cellWithButton(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    JButton button = (JButton) value;
+    JButton button = ((ButtonProcessing) value).getJButton();
     button.setOpaque(true);
     button.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
     return button;
   }
-
-  public static JButton cellWithDetailButton(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    JButton button = ((DetailsStatusButton) value).getJButton();
-    button.setOpaque(true);
-    button.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
-    return button;
-  }
-
-  public static JButton cellWithExportConfButton(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    JButton button = ((ExportConfigurationButton) value).getJButton();
-    button.setOpaque(true);
-    button.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
-    return button;
-  }
-
 
   /**
    * Pops up an informative dialog

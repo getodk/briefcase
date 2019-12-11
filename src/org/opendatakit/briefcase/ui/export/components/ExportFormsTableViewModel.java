@@ -109,7 +109,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
   }
 
   private void updateConfButton(FormStatus form, ExportConfigurationButton button) {
-    button.setConfigured(forms.hasConfiguration(form));
+    button.setStatus(forms.hasConfiguration(form));
   }
 
   @Override
