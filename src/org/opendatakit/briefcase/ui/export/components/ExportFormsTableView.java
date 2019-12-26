@@ -65,7 +65,7 @@ public class ExportFormsTableView extends JTable {
     columns.getColumn(SELECTED_CHECKBOX_COL).setMinWidth(40);
     columns.getColumn(SELECTED_CHECKBOX_COL).setMaxWidth(40);
     columns.getColumn(SELECTED_CHECKBOX_COL).setPreferredWidth(40);
-    columns.getColumn(OVERRIDE_CONF_COL).setCellRenderer(UI::cellWithButton);
+    columns.getColumn(OVERRIDE_CONF_COL).setCellRenderer(ButtonProcessing::cellWithButton);
     columns.getColumn(OVERRIDE_CONF_COL).setMinWidth(40);
     columns.getColumn(OVERRIDE_CONF_COL).setMaxWidth(40);
     columns.getColumn(OVERRIDE_CONF_COL).setPreferredWidth(40);
@@ -75,7 +75,7 @@ public class ExportFormsTableView extends JTable {
     columns.getColumn(EXPORT_STATUS_COL).setPreferredWidth(exportStatusDims.width + 25);
     columns.getColumn(LAST_EXPORT_COL).setMinWidth(lastExportDims.width + 25);
     columns.getColumn(LAST_EXPORT_COL).setPreferredWidth(lastExportDims.width + 25);
-    columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(UI::cellWithButton);
+    columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(ButtonProcessing::cellWithButton);
     columns.getColumn(DETAIL_BUTTON_COL).setMinWidth(40);
     columns.getColumn(DETAIL_BUTTON_COL).setMaxWidth(40);
     columns.getColumn(DETAIL_BUTTON_COL).setPreferredWidth(40);

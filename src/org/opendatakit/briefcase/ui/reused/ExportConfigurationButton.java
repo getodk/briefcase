@@ -50,8 +50,8 @@ public class ExportConfigurationButton implements ButtonProcessing, Comparable<B
     return button;
   }
 
-  public void setStatus(boolean status) {
-    button.setForeground(status ? NO_CONF_OVERRIDE_COLOR : DARK_GRAY);
+  public void setConfigured(boolean configured) {
+    button.setForeground(configured ? NO_CONF_OVERRIDE_COLOR : DARK_GRAY);
   }
 
   public int compareTo(ButtonProcessing b) {

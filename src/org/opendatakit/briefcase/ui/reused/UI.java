@@ -24,14 +24,11 @@ import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static javax.swing.JOptionPane.YES_OPTION;
-import static javax.swing.JOptionPane.getFrameForComponent;
 import static javax.swing.SwingUtilities.invokeLater;
 import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.APP_NAME;
-import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
@@ -40,41 +37,20 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Optional;
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.OptionalProduct;
 import org.opendatakit.briefcase.reused.http.Credentials;
 
 public class UI {
-  private static final Font ic_receipt = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
-
-  public static DetailsStatusButton buildDetailButton(FormStatus form) {
-    // Use custom fonts instead of png for easier scaling
-    DetailsStatusButton button = DetailsStatusButton.create();
-    button.onClick(() -> {
-      if (!form.getStatusHistory().isEmpty())
-        showDialog(getFrameForComponent(button.getJButton()), form.getFormDefinition(), form.getStatusHistory());
-    });
-    return button;
-  }
-
-  public static JButton cellWithButton(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    JButton button = ((ButtonProcessing) value).getJButton();
-    button.setOpaque(true);
-    button.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
-    return button;
-  }
 
   /**
    * Pops up an informative dialog

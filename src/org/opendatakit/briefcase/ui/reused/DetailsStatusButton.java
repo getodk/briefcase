@@ -17,23 +17,35 @@ package org.opendatakit.briefcase.ui.reused;
 
 import static java.awt.Color.DARK_GRAY;
 import static java.awt.Color.LIGHT_GRAY;
+import static javax.swing.JOptionPane.getFrameForComponent;
+import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
 
 import java.awt.Font;
 import java.awt.Insets;
 import javax.swing.JButton;
+import org.opendatakit.briefcase.model.FormStatus;
 
 public class DetailsStatusButton implements ButtonProcessing, Comparable<ButtonProcessing> {
   private static final Font IC_RECEIPT = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
 
-  private boolean status = false;
   private final JButton button;
 
   private DetailsStatusButton(JButton button) {
     this.button = button;
   }
 
+  public static DetailsStatusButton buildDetailButton(FormStatus form) {
+    // Use custom fonts instead of png for easier scaling
+    DetailsStatusButton button = DetailsStatusButton.create();
+    button.onClick(() -> {
+      if (!form.getStatusHistory().isEmpty())
+        showDialog(getFrameForComponent(button.getJButton()), form.getFormDefinition(), form.getStatusHistory());
+    });
+    return button;
+  }
+
   @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
-  public static DetailsStatusButton create() {
+  private static DetailsStatusButton create() {
     JButton button = new JButton();
     button.setText("\uE900");
     button.setFont(IC_RECEIPT);
@@ -48,8 +60,7 @@ public class DetailsStatusButton implements ButtonProcessing, Comparable<ButtonP
   }
 
   public void setStatus(boolean value) {
-    status = value;
-    button.setForeground(status ? DARK_GRAY : LIGHT_GRAY);
+    button.setForeground(value ? DARK_GRAY : LIGHT_GRAY);
   }
 
   public int compareTo(ButtonProcessing b) {

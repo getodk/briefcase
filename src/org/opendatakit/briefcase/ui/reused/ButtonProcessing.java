@@ -16,18 +16,22 @@
 package org.opendatakit.briefcase.ui.reused;
 
 import javax.swing.JButton;
+import javax.swing.JTable;
 
 /**
  * Defines common behavior used in buttons
  */
 public interface ButtonProcessing {
 
+  static JButton cellWithButton(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+    JButton button = ((ButtonProcessing) value).getJButton();
+    button.setOpaque(true);
+    button.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+    return button;
+  }
+
   void onClick(Runnable callback);
 
-  void setEnabled(boolean enabled);
-
   JButton getJButton();
-
-  void setStatus(boolean status);
 
 }

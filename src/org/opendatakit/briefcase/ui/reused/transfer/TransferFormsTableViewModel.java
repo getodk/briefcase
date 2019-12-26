@@ -27,7 +27,6 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.export.components.ExportFormsTableView;
 import org.opendatakit.briefcase.ui.reused.DetailsStatusButton;
-import org.opendatakit.briefcase.ui.reused.UI;
 
 public class TransferFormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
@@ -79,7 +78,7 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
       case TransferFormsTableView.STATUS_COL:
         return form.getStatusString();
       case TransferFormsTableView.DETAIL_BUTTON_COL:
-        return detailButtons.computeIfAbsent(form, UI::buildDetailButton);
+        return detailButtons.computeIfAbsent(form, DetailsStatusButton::buildDetailButton);
       default:
         throw new IllegalStateException("unexpected column choice");
     }

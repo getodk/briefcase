@@ -34,7 +34,6 @@ import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.ui.reused.DetailsStatusButton;
 import org.opendatakit.briefcase.ui.reused.ExportConfigurationButton;
-import org.opendatakit.briefcase.ui.reused.UI;
 
 public class ExportFormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
@@ -109,7 +108,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
   }
 
   private void updateConfButton(FormStatus form, ExportConfigurationButton button) {
-    button.setStatus(forms.hasConfiguration(form));
+    button.setConfigured(forms.hasConfiguration(form));
   }
 
   @Override
@@ -139,7 +138,7 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
             .map(dateTime -> dateTime.format(ofLocalizedDateTime(SHORT, SHORT)))
             .orElse("Not exported yet");
       case ExportFormsTableView.DETAIL_BUTTON_COL:
-        return detailButtons.computeIfAbsent(form, UI::buildDetailButton);
+        return detailButtons.computeIfAbsent(form, DetailsStatusButton::buildDetailButton);
       default:
         throw new IllegalStateException("unexpected column choice");
     }
