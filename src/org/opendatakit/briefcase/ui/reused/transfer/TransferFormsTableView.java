@@ -101,7 +101,7 @@ public class TransferFormsTableView extends JTable {
 
   private static <T extends TableModel> TableRowSorter<T> sortBy(T model, int col, SortOrder order) {
     TableRowSorter<T> sorter = new TableRowSorter<>(model);
-    sorter.setSortsOnUpdates(true);
+    sorter.setSortsOnUpdates(false);
     sorter.setSortKeys(Collections.singletonList(new RowSorter.SortKey(col, order)));
     return sorter;
   }
