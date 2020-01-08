@@ -31,11 +31,12 @@ import javax.swing.SortOrder;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import org.opendatakit.briefcase.ui.reused.DetailsStatusButton;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.UI;
 
 public class TransferFormsTableView extends JTable {
-  static final Class[] TYPES = new Class[]{Boolean.class, String.class, String.class, JButton.class};
+  static final Class[] TYPES = new Class[]{Boolean.class, String.class, String.class, DetailsStatusButton.class};
   static final boolean[] EDITABLE_COLS = new boolean[]{true, false, false, false};
 
   static final int SELECTED_CHECKBOX_COL = 0;
@@ -74,7 +75,6 @@ public class TransferFormsTableView extends JTable {
 
     TableRowSorter<TransferFormsTableViewModel> sorter = sortBy(getModel(), FORM_NAME_COL, ASCENDING);
     sorter.setComparator(SELECTED_CHECKBOX_COL, (Comparator<Boolean>) UI::compareSelectionButton);
-    sorter.setComparator(DETAIL_BUTTON_COL, (Comparator<JButton>) UI::compareDetailsButton);
     setRowSorter(sorter);
     sorter.sort();
   }

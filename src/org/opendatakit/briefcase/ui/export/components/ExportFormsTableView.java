@@ -23,6 +23,7 @@ import static org.opendatakit.briefcase.ui.reused.TableCustomizer.getHeaderDimen
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
+import java.util.Comparator;
 import javax.swing.JButton;
 import javax.swing.JTable;
 import javax.swing.RowSorter;
@@ -30,13 +31,14 @@ import javax.swing.SortOrder;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import org.opendatakit.briefcase.ui.reused.DetailsStatusButton;
 import org.opendatakit.briefcase.ui.reused.ExportConfigurationButton;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.UI;
 
 public class ExportFormsTableView extends JTable {
   static final String[] HEADERS = new String[]{"", "", "Form Name", "Export Status", "Last Export", ""};
-  static final Class[] TYPES = new Class[]{Boolean.class, ExportConfigurationButton.class, String.class, String.class, String.class, JButton.class};
+  static final Class[] TYPES = new Class[]{Boolean.class, ExportConfigurationButton.class, String.class, String.class, String.class, DetailsStatusButton.class};
   static final boolean[] EDITABLE_COLS = new boolean[]{true, false, false, false, false, false};
 
   public static final int SELECTED_CHECKBOX_COL = 0;
@@ -81,6 +83,7 @@ public class ExportFormsTableView extends JTable {
     setFillsViewportHeight(true);
 
     TableRowSorter<ExportFormsTableViewModel> sorter = sortBy(getModel(), FORM_NAME_COL, ASCENDING);
+    sorter.setComparator(SELECTED_CHECKBOX_COL, (Comparator<Boolean>) UI::compareSelectionButton);
     setRowSorter(sorter);
     sorter.sort();
   }

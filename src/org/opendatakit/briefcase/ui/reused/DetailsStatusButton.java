@@ -16,44 +16,41 @@
 package org.opendatakit.briefcase.ui.reused;
 
 import static java.awt.Color.DARK_GRAY;
+import static java.awt.Color.LIGHT_GRAY;
 
-import java.awt.Color;
 import java.awt.Font;
 import java.awt.Insets;
 import javax.swing.JButton;
 
-/**
- * Contains application logic pertaining to the Export Configuration Button
- */
-public class ExportConfigurationButton extends JButton implements Comparable<ExportConfigurationButton> {
-  private static final Color NO_CONF_OVERRIDE_COLOR = new Color(0, 128, 0);
-  private static final Font IC_SETTINGS = FontUtils.getCustomFont("ic_settings.ttf", 16f);
+public class DetailsStatusButton extends JButton implements Comparable<DetailsStatusButton> {
+  private static final Font IC_RECEIPT = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
 
-  private boolean configured = false;
+  private boolean status = false;
 
   @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
-  public ExportConfigurationButton() {
+  public DetailsStatusButton() {
     super();
     // Use custom fonts instead of png for easier scaling
     setText("\uE900");
-    setFont(IC_SETTINGS);
-    setToolTipText("Override the export configuration for this form");
+    setFont(IC_RECEIPT);// custom font that overrides  with a receipt icon
+    setToolTipText("View this form's status history");
     setMargin(new Insets(0, 0, 0, 0));
+    setForeground(LIGHT_GRAY);
   }
 
-  public void setConfigured(boolean value) {
-    configured = value;
-    setForeground(configured ? NO_CONF_OVERRIDE_COLOR : DARK_GRAY);
+  public void setStatus(boolean value) {
+    status = value;
+    setForeground(status ? DARK_GRAY : LIGHT_GRAY);
   }
 
-  private boolean getConfigured() {
-    return configured;
+  private boolean getStatus() {
+    return status;
   }
 
-  public int compareTo(ExportConfigurationButton button) {
-    if (this.getConfigured() == button.getConfigured())
+  public int compareTo(DetailsStatusButton button) {
+    if (this.getStatus() == button.getStatus())
       return 0;
-    if (this.getConfigured() && !button.getConfigured())
+    if (this.getStatus() && !button.getStatus())
       return -1;
     return 1;
   }

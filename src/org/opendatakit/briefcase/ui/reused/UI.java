@@ -16,9 +16,7 @@
 
 package org.opendatakit.briefcase.ui.reused;
 
-import static java.awt.Color.DARK_GRAY;
 import static java.awt.Color.GRAY;
-import static java.awt.Color.LIGHT_GRAY;
 import static java.awt.Cursor.HAND_CURSOR;
 import static java.awt.Cursor.getPredefinedCursor;
 import static java.awt.Desktop.getDesktop;
@@ -34,7 +32,6 @@ import static org.opendatakit.briefcase.ui.ScrollingStatusListDialog.showDialog;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Insets;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
@@ -62,15 +59,9 @@ import org.opendatakit.briefcase.reused.http.Credentials;
 public class UI {
   private static final Font ic_receipt = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
 
-  @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
-  public static JButton buildDetailButton(FormStatus form) {
+  public static DetailsStatusButton buildDetailButton(FormStatus form) {
     // Use custom fonts instead of png for easier scaling
-    JButton button = new JButton("\uE900");
-    button.setFont(ic_receipt); // custom font that overrides  with a receipt icon
-    button.setToolTipText("View this form's status history");
-    button.setMargin(new Insets(0, 0, 0, 0));
-
-    button.setForeground(form.getStatusHistory().isEmpty() ? LIGHT_GRAY : DARK_GRAY);
+    DetailsStatusButton button = new DetailsStatusButton();
     button.addActionListener(__ -> {
       if (!form.getStatusHistory().isEmpty())
         showDialog(getFrameForComponent(button), form.getFormDefinition(), form.getStatusHistory());
@@ -213,6 +204,19 @@ public class UI {
     ).map(Credentials::new);
   }
 
-
+  /**
+   * Sort Comparator for columns providing booleans
+   *
+   * @param o1 The first object to be compared
+   * @param o2 The second object to be compared
+   * @return int for sorting of two elements (0(equals) , -1(less than), 1(greater than)
+   */
+  public static int compareSelectionButton(Boolean o1, Boolean o2) {
+    if (o1.equals(o2))
+      return 0;
+    if (o1.equals(Boolean.TRUE) && o2.equals(Boolean.FALSE))
+      return -1;
+    return 1;
+  }
 
 }

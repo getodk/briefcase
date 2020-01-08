@@ -15,8 +15,6 @@
  */
 package org.opendatakit.briefcase.ui.export.components;
 
-import static java.awt.Color.DARK_GRAY;
-import static java.awt.Color.LIGHT_GRAY;
 import static java.time.format.DateTimeFormatter.ofLocalizedDateTime;
 import static java.time.format.FormatStyle.SHORT;
 import static org.opendatakit.briefcase.export.ExportConfiguration.Builder.empty;
@@ -28,19 +26,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
 import org.opendatakit.briefcase.export.ExportConfiguration;
 import org.opendatakit.briefcase.export.ExportForms;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer;
+import org.opendatakit.briefcase.ui.reused.DetailsStatusButton;
 import org.opendatakit.briefcase.ui.reused.ExportConfigurationButton;
 import org.opendatakit.briefcase.ui.reused.UI;
 
 public class ExportFormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
-  private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
+  private final Map<FormStatus, DetailsStatusButton> detailButtons = new HashMap<>();
   private final Map<FormStatus, ExportConfigurationButton> confButtons = new HashMap<>();
   private final ExportForms forms;
   private final BriefcasePreferences appPreferences;
@@ -106,8 +104,8 @@ public class ExportFormsTableViewModel extends AbstractTableModel {
     triggerChange();
   }
 
-  private void updateDetailButton(FormStatus form, JButton button) {
-    button.setForeground(form.getStatusHistory().isEmpty() ? LIGHT_GRAY : DARK_GRAY);
+  private void updateDetailButton(FormStatus form, DetailsStatusButton button) {
+    button.setStatus(!(form.getStatusHistory().isEmpty()));
   }
 
   private void updateConfButton(FormStatus form, ExportConfigurationButton button) {
