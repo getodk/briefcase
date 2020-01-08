@@ -15,8 +15,6 @@
  */
 package org.opendatakit.briefcase.ui.reused.transfer;
 
-import static java.awt.Color.DARK_GRAY;
-import static java.awt.Color.LIGHT_GRAY;
 import static org.opendatakit.briefcase.ui.reused.transfer.TransferFormsTableView.EDITABLE_COLS;
 import static org.opendatakit.briefcase.ui.reused.transfer.TransferFormsTableView.TYPES;
 
@@ -24,16 +22,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.export.components.ExportFormsTableView;
-import org.opendatakit.briefcase.ui.reused.UI;
+import org.opendatakit.briefcase.ui.reused.DetailsStatusButton;
 
 public class TransferFormsTableViewModel extends AbstractTableModel {
   private final List<Runnable> onChangeCallbacks = new ArrayList<>();
-  private final Map<FormStatus, JButton> detailButtons = new HashMap<>();
+  private final Map<FormStatus, DetailsStatusButton> detailButtons = new HashMap<>();
   private final TransferForms forms;
   private final String[] headers;
 
@@ -56,8 +53,8 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
     onChangeCallbacks.forEach(Runnable::run);
   }
 
-  private void updateDetailButton(FormStatus form, JButton button) {
-    button.setForeground(form.getStatusHistory().isEmpty() ? LIGHT_GRAY : DARK_GRAY);
+  private void updateDetailButton(FormStatus form, DetailsStatusButton button) {
+    button.setStatus(!(form.getStatusHistory().isEmpty()));
   }
 
   @Override
@@ -81,7 +78,7 @@ public class TransferFormsTableViewModel extends AbstractTableModel {
       case TransferFormsTableView.STATUS_COL:
         return form.getStatusString();
       case TransferFormsTableView.DETAIL_BUTTON_COL:
-        return detailButtons.computeIfAbsent(form, UI::buildDetailButton);
+        return detailButtons.computeIfAbsent(form, DetailsStatusButton::buildDetailButton);
       default:
         throw new IllegalStateException("unexpected column choice");
     }

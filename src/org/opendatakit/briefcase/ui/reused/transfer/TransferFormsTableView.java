@@ -24,18 +24,19 @@ import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.Comparator;
-import javax.swing.JButton;
 import javax.swing.JTable;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import org.opendatakit.briefcase.ui.reused.ButtonProcessing;
+import org.opendatakit.briefcase.ui.reused.DetailsStatusButton;
 import org.opendatakit.briefcase.ui.reused.MouseAdapterBuilder;
 import org.opendatakit.briefcase.ui.reused.UI;
 
 public class TransferFormsTableView extends JTable {
-  static final Class[] TYPES = new Class[]{Boolean.class, String.class, String.class, JButton.class};
+  static final Class[] TYPES = new Class[]{Boolean.class, String.class, String.class, DetailsStatusButton.class};
   static final boolean[] EDITABLE_COLS = new boolean[]{true, false, false, false};
 
   static final int SELECTED_CHECKBOX_COL = 0;
@@ -65,7 +66,7 @@ public class TransferFormsTableView extends JTable {
     columns.getColumn(FORM_NAME_COL).setPreferredWidth(formNameDims.width + 25);
     columns.getColumn(STATUS_COL).setMinWidth(statusDims.width + 25);
     columns.getColumn(STATUS_COL).setPreferredWidth(statusDims.width + 25);
-    columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(UI::cellWithButton);
+    columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(ButtonProcessing::cellWithButton);
     columns.getColumn(DETAIL_BUTTON_COL).setMinWidth(40);
     columns.getColumn(DETAIL_BUTTON_COL).setMaxWidth(40);
     columns.getColumn(DETAIL_BUTTON_COL).setPreferredWidth(40);
@@ -74,7 +75,6 @@ public class TransferFormsTableView extends JTable {
 
     TableRowSorter<TransferFormsTableViewModel> sorter = sortBy(getModel(), FORM_NAME_COL, ASCENDING);
     sorter.setComparator(SELECTED_CHECKBOX_COL, (Comparator<Boolean>) UI::compareSelectionButton);
-    sorter.setComparator(DETAIL_BUTTON_COL, (Comparator<JButton>) UI::compareDetailsButton);
     setRowSorter(sorter);
     sorter.sort();
   }
@@ -89,8 +89,8 @@ public class TransferFormsTableView extends JTable {
 
     if (row < getRowCount() && row >= 0 && column < getColumnCount() && column >= 0) {
       Object value = getValueAt(row, column);
-      if (value instanceof JButton)
-        ((JButton) value).doClick();
+      if (value instanceof ButtonProcessing)
+        ((ButtonProcessing) value).getJButton().doClick();
     }
   }
 
@@ -101,7 +101,7 @@ public class TransferFormsTableView extends JTable {
 
   private static <T extends TableModel> TableRowSorter<T> sortBy(T model, int col, SortOrder order) {
     TableRowSorter<T> sorter = new TableRowSorter<>(model);
-    sorter.setSortsOnUpdates(true);
+    sorter.setSortsOnUpdates(false);
     sorter.setSortKeys(Collections.singletonList(new RowSorter.SortKey(col, order)));
     return sorter;
   }
