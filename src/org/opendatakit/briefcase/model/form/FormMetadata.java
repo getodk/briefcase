@@ -1,6 +1,7 @@
 package org.opendatakit.briefcase.model.form;
 
 import static org.opendatakit.briefcase.model.form.AsJson.getJson;
+import static org.opendatakit.briefcase.util.Host.isWindows;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -110,9 +111,12 @@ public class FormMetadata implements AsJson {
 
   @Override
   public ObjectNode asJson(ObjectMapper mapper) {
+    String portableFormDir = isWindows()
+        ? formDir.toString().replace("\\", "/")
+        : formDir.toString();
     ObjectNode root = mapper.createObjectNode();
     root.putObject("key").setAll(key.asJson(mapper));
-    root.put("formDir", formDir.toString());
+    root.put("formDir", portableFormDir);
     root.put("hasBeenPulled", hasBeenPulled);
     root.putObject("cursor").setAll(cursor.asJson(mapper));
     lastExportedSubmission.ifPresent(o -> root.putObject("lastExportedSubmission").setAll(o.asJson(mapper)));
