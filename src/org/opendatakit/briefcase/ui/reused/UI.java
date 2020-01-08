@@ -61,16 +61,23 @@ public class UI {
 
   public static DetailsStatusButton buildDetailButton(FormStatus form) {
     // Use custom fonts instead of png for easier scaling
-    DetailsStatusButton button = new DetailsStatusButton();
-    button.addActionListener(__ -> {
+    DetailsStatusButton button = DetailsStatusButton.create();
+    button.onClick(() -> {
       if (!form.getStatusHistory().isEmpty())
-        showDialog(getFrameForComponent(button), form.getFormDefinition(), form.getStatusHistory());
+        showDialog(getFrameForComponent(button.getJButton()), form.getFormDefinition(), form.getStatusHistory());
     });
     return button;
   }
 
   public static JButton cellWithButton(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
     JButton button = (JButton) value;
+    button.setOpaque(true);
+    button.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+    return button;
+  }
+
+  public static JButton cellWithDetailButton(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+    JButton button = ((DetailsStatusButton) value).getJButton();
     button.setOpaque(true);
     button.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
     return button;

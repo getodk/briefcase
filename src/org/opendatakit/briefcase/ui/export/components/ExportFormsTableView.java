@@ -75,7 +75,7 @@ public class ExportFormsTableView extends JTable {
     columns.getColumn(EXPORT_STATUS_COL).setPreferredWidth(exportStatusDims.width + 25);
     columns.getColumn(LAST_EXPORT_COL).setMinWidth(lastExportDims.width + 25);
     columns.getColumn(LAST_EXPORT_COL).setPreferredWidth(lastExportDims.width + 25);
-    columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(UI::cellWithButton);
+    columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(UI::cellWithDetailButton);
     columns.getColumn(DETAIL_BUTTON_COL).setMinWidth(40);
     columns.getColumn(DETAIL_BUTTON_COL).setMaxWidth(40);
     columns.getColumn(DETAIL_BUTTON_COL).setPreferredWidth(40);

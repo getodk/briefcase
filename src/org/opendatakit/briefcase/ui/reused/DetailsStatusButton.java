@@ -22,37 +22,54 @@ import java.awt.Font;
 import java.awt.Insets;
 import javax.swing.JButton;
 
-public class DetailsStatusButton extends JButton implements Comparable<DetailsStatusButton> {
+public class DetailsStatusButton {
   private static final Font IC_RECEIPT = FontUtils.getCustomFont("ic_receipt.ttf", 16f);
 
   private boolean status = false;
+  private final JButton button;
+
+  private DetailsStatusButton(JButton button) {
+    this.button = button;
+  }
 
   @SuppressWarnings("checkstyle:AvoidEscapedUnicodeCharacters")
-  public DetailsStatusButton() {
-    super();
-    // Use custom fonts instead of png for easier scaling
-    setText("\uE900");
-    setFont(IC_RECEIPT);// custom font that overrides  with a receipt icon
-    setToolTipText("View this form's status history");
-    setMargin(new Insets(0, 0, 0, 0));
-    setForeground(LIGHT_GRAY);
+  public static DetailsStatusButton create() {
+    JButton button = new JButton();
+    button.setText("\uE900");
+    button.setFont(IC_RECEIPT);
+    button.setToolTipText("View this form's status history");
+    button.setMargin(new Insets(0, 0, 0, 0));
+    return new DetailsStatusButton(button);
+  }
+
+  public JButton getJButton() {
+    return button;
   }
 
   public void setStatus(boolean value) {
     status = value;
-    setForeground(status ? DARK_GRAY : LIGHT_GRAY);
+    button.setForeground(status ? DARK_GRAY : LIGHT_GRAY);
   }
 
   private boolean getStatus() {
     return status;
   }
 
-  public int compareTo(DetailsStatusButton button) {
-    if (this.getStatus() == button.getStatus())
+  public static int compare(ExportConfigurationButton a, ExportConfigurationButton b) {
+    boolean aConfigured = a.getJButton().getForeground().equals(LIGHT_GRAY);
+    boolean bConfigured = b.getJButton().getForeground().equals(LIGHT_GRAY);
+    if (aConfigured == bConfigured)
       return 0;
-    if (this.getStatus() && !button.getStatus())
+    if (aConfigured)
       return -1;
     return 1;
   }
 
+  public void onClick(Runnable callback) {
+    button.addActionListener(__ -> callback.run());
+  }
+
+  public void setEnabled(boolean enabled) {
+    button.setEnabled(enabled);
+  }
 }

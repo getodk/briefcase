@@ -66,7 +66,7 @@ public class TransferFormsTableView extends JTable {
     columns.getColumn(FORM_NAME_COL).setPreferredWidth(formNameDims.width + 25);
     columns.getColumn(STATUS_COL).setMinWidth(statusDims.width + 25);
     columns.getColumn(STATUS_COL).setPreferredWidth(statusDims.width + 25);
-    columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(UI::cellWithButton);
+    columns.getColumn(DETAIL_BUTTON_COL).setCellRenderer(UI::cellWithDetailButton);
     columns.getColumn(DETAIL_BUTTON_COL).setMinWidth(40);
     columns.getColumn(DETAIL_BUTTON_COL).setMaxWidth(40);
     columns.getColumn(DETAIL_BUTTON_COL).setPreferredWidth(40);
