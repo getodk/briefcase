@@ -23,6 +23,7 @@ import static org.opendatakit.briefcase.ui.reused.TableCustomizer.getHeaderDimen
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
+import java.util.Comparator;
 import javax.swing.JButton;
 import javax.swing.JTable;
 import javax.swing.RowSorter;
@@ -80,6 +81,9 @@ public class ExportFormsTableView extends JTable {
     setFillsViewportHeight(true);
 
     TableRowSorter<ExportFormsTableViewModel> sorter = sortBy(getModel(), FORM_NAME_COL, ASCENDING);
+    sorter.setComparator(OVERRIDE_CONF_COL, (Comparator<JButton>) UI::compareConfButton);
+    sorter.setComparator(SELECTED_CHECKBOX_COL, (Comparator<Boolean>) UI::compareSelectionButton);
+    sorter.setComparator(DETAIL_BUTTON_COL, (Comparator<JButton>) UI::compareDetailsButton);
     setRowSorter(sorter);
     sorter.sort();
   }
