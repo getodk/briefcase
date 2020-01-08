@@ -23,11 +23,14 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FileSystemFormMetadataAdapter;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
+import org.opendatakit.briefcase.pull.PullEvent;
+import org.opendatakit.briefcase.pull.PullFromCollect;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.util.FileSystemUtils;
 import org.opendatakit.briefcase.util.FormCache;
-import org.opendatakit.briefcase.util.TransferFromODK;
 import org.opendatakit.common.cli.Operation;
 import org.opendatakit.common.cli.Param;
 import org.slf4j.Logger;
@@ -54,16 +57,26 @@ public class ImportFromODK {
     Path briefcaseDir = Common.getOrCreateBriefcaseDir(storageDir);
     FormCache formCache = FormCache.from(briefcaseDir);
     formCache.update();
+    FormMetadataPort formMetadataPort = FileSystemFormMetadataAdapter.at(briefcaseDir);
 
-    TransferForms from = TransferForms.from(FileSystemUtils.getODKFormList(odkDir.toFile()).stream()
+    TransferForms forms = TransferForms.from(FileSystemUtils.getODKFormList(odkDir.toFile()).stream()
         .map(FormStatus::new)
         .filter(form -> formId.map(id -> form.getFormDefinition().getFormId().equals(id)).orElse(true))
         .collect(toList()));
-    from.selectAll();
+    forms.selectAll();
 
-    if (formId.isPresent() && from.isEmpty())
+    if (formId.isPresent() && forms.isEmpty())
       throw new BriefcaseException("Form " + formId.get() + " not found");
 
-    TransferFromODK.pull(briefcaseDir, odkDir, from);
+    PullFromCollect.pullForms(formMetadataPort, forms, briefcaseDir, odkDir, ImportFromODK::onEvent).waitForCompletion();
   }
+
+  private static void onEvent(PullEvent pullEvent) {
+    if (pullEvent instanceof PullEvent.Success) {
+      System.out.println("Success pulling form " + ((PullEvent.Success) pullEvent).form.getFormName());
+    } else if (pullEvent instanceof PullEvent.PullComplete) {
+      System.out.println("End of pull operation");
+    }
+  }
+
 }

@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.source;
 
 import static java.awt.Cursor.getPredefinedCursor;
+import static org.opendatakit.briefcase.model.form.FormMetadataCommands.updateAsPulled;
 import static org.opendatakit.briefcase.pull.FormInstaller.install;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
@@ -36,6 +37,7 @@ import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.OdkCollectFormDefinition;
+import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -100,9 +102,11 @@ public class FormInComputer implements PullSource<FormStatus> {
 
   @Override
   public JobsRunner pull(TransferForms forms, BriefcasePreferences appPreferences, FormMetadataPort formMetadataPort) {
-    return JobsRunner.launchAsync(run(jobStatus ->
-        install(appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new), form)
-    )).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
+    Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
+    return JobsRunner.launchAsync(run(jobStatus -> {
+      install(briefcaseDir, form);
+      formMetadataPort.execute(updateAsPulled(FormKey.from(form), briefcaseDir, form.getFormDir(briefcaseDir)));
+    })).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 
   @Override

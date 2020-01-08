@@ -48,7 +48,7 @@ public class TransferFromODK implements ITransferFromSourceAction {
   private final TerminationFuture terminationFuture;
   private final TransferForms formsToTransfer;
 
-  TransferFromODK(Path briefcaseDir, File odkOriginDir, TerminationFuture terminationFuture, TransferForms formsToTransfer) {
+  public TransferFromODK(Path briefcaseDir, File odkOriginDir, TerminationFuture terminationFuture, TransferForms formsToTransfer) {
     this.briefcaseDir = briefcaseDir;
     this.odkOriginDir = odkOriginDir;
     this.terminationFuture = terminationFuture;
