@@ -25,7 +25,7 @@ import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 public class PullEvent {
 
   public static class Success extends PullEvent {
-    private final FormStatus form;
+    public final FormStatus form;
     private final Optional<RemoteServer> remoteServer;
     private final Optional<Cursor> lastCursor;
 
@@ -70,7 +70,7 @@ public class PullEvent {
     public Cancel(String cause) {
       this.cause = cause;
     }
-    
+
     public String getCause() {
       return this.cause;
     }
