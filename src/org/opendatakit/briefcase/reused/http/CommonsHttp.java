@@ -123,8 +123,8 @@ public class CommonsHttp implements Http {
         MultipartEntityBuilder bodyBuilder = MultipartEntityBuilder.create();
         for (MultipartMessage part : request.multipartMessages)
           bodyBuilder = bodyBuilder.addPart(
-              part.name,
-              new InputStreamBody(part.body, ContentType.create(part.contentType), part.attachmentName)
+              part.getName(),
+              new InputStreamBody(part.getBody(), ContentType.create(part.getContentType()), part.getAttachmentName())
           );
         body = bodyBuilder.build();
       } else {

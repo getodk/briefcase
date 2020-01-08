@@ -43,7 +43,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
   private final File formFolder;
   private final File revisedFormFile;
   private boolean needsMediaUpdate;
-  public JavaRosaParserWrapper formDefn;
+  private JavaRosaParserWrapper formDefn;
 
   private static String readFile(File formDefinitionFile) throws BadFormDefinition {
     StringBuilder xmlBuilder = new StringBuilder();
@@ -302,6 +302,10 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
 
   public File getFormDirectory() {
     return formFolder;
+  }
+  
+  public JavaRosaParserWrapper getFormDefn() {
+    return formDefn;
   }
 
   @Override

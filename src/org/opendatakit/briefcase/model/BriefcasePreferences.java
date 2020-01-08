@@ -259,7 +259,7 @@ public class BriefcasePreferences {
       }
     };
 
-    public abstract Preferences preferenceFactory(Class<?> node);
+    protected abstract Preferences preferenceFactory(Class<?> node);
   }
 
   /**

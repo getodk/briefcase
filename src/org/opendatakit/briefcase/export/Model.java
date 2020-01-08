@@ -50,7 +50,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
  * It can hold the root level model or any of its fields.
  */
 class Model {
-  final TreeElement model;
+  private final TreeElement model;
   private Map<String, QuestionDef> controls;
 
   /**
@@ -339,7 +339,7 @@ class Model {
      * @param intControlType the int value of the requested DataType
      * @return the related {@link ControlType} instance
      */
-    public static ControlType from(int intControlType) {
+    static ControlType from(int intControlType) {
       for (ControlType ct : values()) {
         if (ct.value == intControlType)
           return ct;

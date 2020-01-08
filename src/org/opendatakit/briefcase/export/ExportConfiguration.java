@@ -80,7 +80,7 @@ public class ExportConfiguration {
   private final OverridableBoolean removeGroupNames;
   private final OverridableBoolean smartAppend;
 
-  public ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, DateRange dateRange, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, OverridableBoolean splitSelectMultiples, OverridableBoolean includeGeoJsonExport, OverridableBoolean removeGroupNames, OverridableBoolean smartAppend) {
+  private ExportConfiguration(Optional<String> exportFileName, Optional<Path> exportDir, Optional<Path> pemFile, DateRange dateRange, OverridableBoolean pullBefore, OverridableBoolean overwriteFiles, OverridableBoolean exportMedia, OverridableBoolean splitSelectMultiples, OverridableBoolean includeGeoJsonExport, OverridableBoolean removeGroupNames, OverridableBoolean smartAppend) {
     this.exportFileName = exportFileName;
     this.exportDir = exportDir;
     this.pemFile = pemFile;
@@ -338,7 +338,7 @@ public class ExportConfiguration {
   }
 
   public static class Builder {
-    public static final Consumer<String> NO_OP = __ -> { };
+    private static final Consumer<String> NO_OP = __ -> { };
     private String exportFilename;
     private Path exportDir;
     private Path pemFile;
@@ -405,7 +405,7 @@ public class ExportConfiguration {
     public Builder setExportFilename(String fileName) {
       return setExportFilename(Optional.ofNullable(fileName));
     }
-
+    
     public Builder setExportFilename(Optional<String> fileName) {
       exportFilename = fileName.orElse(null);
       return this;

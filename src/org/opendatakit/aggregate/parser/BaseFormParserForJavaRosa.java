@@ -189,7 +189,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
     private Document xmldoc;
     private BaseFormParserForJavaRosa parser;
 
-    public XFormParserWithBindEnhancements(BaseFormParserForJavaRosa parser, Document form) {
+    private XFormParserWithBindEnhancements(BaseFormParserForJavaRosa parser, Document form) {
       super(form);
       this.xmldoc = form;
       this.parser = parser;
@@ -215,17 +215,17 @@ public class BaseFormParserForJavaRosa implements Serializable {
    * The ODK Id that uniquely identifies the form
    */
   public transient final FormDef rootJavaRosaFormDef;
-  protected final XFormParameters rootElementDefn;
+  private final XFormParameters rootElementDefn;
   protected transient final TreeElement trueSubmissionElement;
-  protected transient final TreeElement submissionElement;
+  private transient final TreeElement submissionElement;
   protected final XFormParameters submissionElementDefn;
-  protected final String base64RsaPublicKey;
+  private final String base64RsaPublicKey;
   protected final boolean isFileEncryptedForm;
-  protected final boolean isNotUploadableForm;
-  protected final boolean isInvalidFormXmlns; // legacy 0.9.8 form
+  private final boolean isNotUploadableForm;
+  private final boolean isInvalidFormXmlns; // legacy 0.9.8 form
   protected final String title;
   protected final boolean isFieldEncryptedForm;
-  protected final String base64EncryptedFieldRsaPublicKey;
+  private final String base64EncryptedFieldRsaPublicKey;
 
   /**
    * The XForm definition in XML
@@ -526,7 +526,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
         + " repeatable: " + treeElement.isRepeatable());
   }
 
-  public String getTreeElementPath(AbstractTreeElement<?> e) {
+  private String getTreeElementPath(AbstractTreeElement<?> e) {
     if (e == null)
       return null;
     String s = getTreeElementPath(e.getParent());
@@ -553,10 +553,6 @@ public class BaseFormParserForJavaRosa implements Serializable {
     }
 
     return (l);
-  }
-
-  public String getFormId() {
-    return rootElementDefn.formId;
   }
 
   /**
