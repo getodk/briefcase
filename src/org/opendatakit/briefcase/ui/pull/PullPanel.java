@@ -22,7 +22,8 @@ import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
 import java.util.Optional;
-import javax.swing.JPanel;
+import javax.swing.*;
+
 import org.bushe.swing.event.EventBus;
 import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
@@ -69,6 +70,7 @@ public class PullPanel {
 
     // Register callbacks to view events
     view.onSelect(source -> {
+      view.setWorking();
       this.source = Optional.of(source);
       source.storeSourcePrefs(tabPreferences, getStorePasswordsConsentProperty());
       onSource(view, forms, source);
@@ -125,10 +127,12 @@ public class PullPanel {
     JobsRunner.launchAsync(
         run(__ -> {
           forms.load(source.getFormList());
+          SwingUtilities.invokeLater(view::unsetWorking);
           view.refresh();
           updateActionButtons();
         }),
         cause -> {
+          SwingUtilities.invokeLater(view::unsetWorking);
           log.warn("Unable to load form list from {}", source.getDescription(), cause);
           errorMessage("Error Loading Forms", "Briefcase wasn't able to load forms using the configured source. Try Reload or Reset.");
         }
