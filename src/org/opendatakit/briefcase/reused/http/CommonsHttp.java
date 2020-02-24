@@ -113,7 +113,9 @@ public class CommonsHttp implements Http {
 
     // Add the declared headers
     // TODO v2.0 remove this header, since this is not a concern of this class
-    commonsRequest.addHeader("X-OpenRosa-Version", "1.0");
+    if(!request.headers.containsKey("X-OpenRosa-Version")){
+      commonsRequest.addHeader("X-OpenRosa-Version", "1.0");
+    }
     request.headers.forEach(commonsRequest::addHeader);
 
     // Set the request's body if it's a POST request
