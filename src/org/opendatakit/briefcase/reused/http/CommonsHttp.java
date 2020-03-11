@@ -21,6 +21,7 @@ import static org.apache.http.client.config.RequestConfig.custom;
 import static org.opendatakit.briefcase.reused.http.RequestMethod.POST;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
@@ -30,6 +31,7 @@ import org.apache.http.client.fluent.Executor;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.InputStreamBody;
@@ -126,10 +128,9 @@ public class CommonsHttp implements Http {
               part.getName(),
               new InputStreamBody(part.getBody(), ContentType.create(part.getContentType()), part.getAttachmentName())
           );
-        body = bodyBuilder.build();
+        body = makeRepeatable(bodyBuilder.build());
       } else {
-        body = new BasicHttpEntity();
-        ((BasicHttpEntity) body).setContent(request.getBody());
+        body = makeRepeatable(buildBasicEntity(request.getBody()));
       }
       commonsRequest.body(body);
     }
@@ -142,6 +143,20 @@ public class CommonsHttp implements Http {
       throw new HttpException("Connection refused", e);
     } catch (SocketTimeoutException | ConnectTimeoutException e) {
       throw new HttpException("The connection has timed out", e);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  private BasicHttpEntity buildBasicEntity(InputStream contents) {
+    BasicHttpEntity entity = new BasicHttpEntity();
+    entity.setContent(contents);
+    return entity;
+  }
+
+  private BufferedHttpEntity makeRepeatable(HttpEntity entity) {
+    try {
+      return new BufferedHttpEntity(entity);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
