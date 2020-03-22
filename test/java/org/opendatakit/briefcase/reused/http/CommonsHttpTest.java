@@ -33,6 +33,7 @@ import static com.github.dreamhead.moco.Moco.uri;
 import static com.github.dreamhead.moco.Runner.running;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.matchers.ExceptionMatchers.throwsException;
 import static org.opendatakit.briefcase.reused.http.Http.MAX_HTTP_CONNECTIONS;
@@ -156,4 +157,12 @@ public class CommonsHttpTest {
       assertThat(response.isSuccess(), is(false));
     });
   }
+
+  @Test
+  public void the_factories_accept_max_http_connections_with_Proxy(){
+    assertEquals(CommonsHttp.class, CommonsHttp.of(MAX_HTTP_CONNECTIONS, null).getClass());
+  }
+
+
+
 }
