@@ -79,8 +79,6 @@ dependencies {
 jacocoTestReport {
   reports {
         xml.enabled = true
-        csv.enabled = true
-        csv.destination file("${buildDir}/jacocoCSV")
   }
 }
 
