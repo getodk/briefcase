@@ -57,4 +57,18 @@ public class BriefcaseVersionManagerTest {
 
     assertThat(versionManager.isUpToDate(), is(false));
   }
+
+  @Test
+  public void version_contains_hyphen(){
+    FakeHttp http = new FakeHttp();
+
+    http.stub(
+            get(url("https://api.github.com/repos/opendatakit/briefcase/releases/latest")).build(),
+            ResponseHelpers.ok("{\"tag_name\":\"v2.0.0\"}")
+    );
+
+    BriefcaseVersionManager versionManager = new BriefcaseVersionManager(http, "v2.0.0-test");
+
+    assertThat(versionManager.isUpToDate(), is(true));
+  }
 }
