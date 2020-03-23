@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +29,8 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.opendatakit.briefcase.reused.Pair;
 
 public class RequestBuilderTest {
+
+  private static final String TEST_BODY = "{\"query\": \"some-text\" }";
 
   @Test
   public void can_compose_multiple_path_parts() {
@@ -85,5 +88,12 @@ public class RequestBuilderTest {
         RequestBuilder.get("http://foo.com").withPath("/bar/baz").build().getUrl(),
         is(url("http://foo.com/bar/baz"))
     );
+  }
+
+  @Test
+  public void can_resolve_body(){
+    Request<InputStream> request = RequestBuilder.get("http://foo.com").withBody(TEST_BODY).build();
+    String body = RequestSpy.read(request.getBody());
+    assertThat(body, is(TEST_BODY));
   }
 }
