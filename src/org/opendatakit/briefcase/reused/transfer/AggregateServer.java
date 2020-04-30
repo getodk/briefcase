@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -54,10 +55,12 @@ import org.opendatakit.briefcase.reused.http.RequestBuilder;
 public class AggregateServer implements RemoteServer {
   private final URL baseUrl;
   private final Optional<Credentials> credentials;
+  private List<InputStream> fileStreams;
 
   public AggregateServer(URL baseUrl, Optional<Credentials> credentials) {
     this.baseUrl = baseUrl;
     this.credentials = credentials;
+    this.fileStreams = new ArrayList<>();
   }
 
   public static AggregateServer authenticated(URL baseUrl, Credentials credentials) {
@@ -175,6 +178,7 @@ public class AggregateServer implements RemoteServer {
   }
 
   public Request<XmlElement> getPushSubmissionRequest(Path submissionFile, List<Path> attachments) {
+    InputStream submissionFileStream = newInputStream(submissionFile);
     RequestBuilder<XmlElement> builder = RequestBuilder.post(baseUrl)
         .asXmlElement()
         .withPath("/submission")
@@ -182,14 +186,17 @@ public class AggregateServer implements RemoteServer {
             "xml_submission_file",
             "application/xml",
             submissionFile.getFileName().toString(),
-            newInputStream(submissionFile)
+            submissionFileStream
         );
+    fileStreams.add(submissionFileStream);
     for (Path attachment : attachments) {
+      InputStream attachmentStream = newInputStream(attachment);
+      fileStreams.add(attachmentStream);
       builder = builder.withMultipartMessage(
           attachment.getFileName().toString(),
           getContentType(attachment),
           attachment.getFileName().toString(),
-          newInputStream(attachment)
+          attachmentStream
       );
     }
     return builder
@@ -198,6 +205,8 @@ public class AggregateServer implements RemoteServer {
         .withCredentials(credentials)
         .build();
   }
+
+  public List<InputStream> getFileStreams() { return fileStreams; }
 
   private String getContentType(Path file) {
     return getFileExtension(file.getFileName().toString())
