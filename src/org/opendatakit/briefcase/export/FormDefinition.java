@@ -136,6 +136,8 @@ public class FormDefinition {
             // instance that is not external
             if (secondaryInstance != null && !(secondaryInstance instanceof ExternalDataInstance))
               try {
+                // Never randomize the choice order to ensure stable column order when using split select multiples
+                itemsetBinding.randomize = false;
                 formDef.populateDynamicChoices(itemsetBinding, (TreeReference) control.getBind().getReference());
               } catch (NullPointerException e) {
                 // Ignore (see https://github.com/opendatakit/briefcase/issues/789)
