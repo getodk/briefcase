@@ -1,0 +1,49 @@
+<h:html xmlns:h="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/2002/xforms">
+  <h:head>
+    <h:title>Randomize choice list</h:title>
+    <model>
+      <instance>
+        <data id="choice-lists-randomize">
+          <select_multiple/>
+          <meta>
+            <instanceID/>
+          </meta>
+        </data>
+      </instance>
+      <instance id="choices">
+        <root>
+          <item>
+            <name>a</name>
+            <label>A</label>
+          </item>
+          <item>
+            <name>b</name>
+            <label>B</label>
+          </item>
+          <item>
+            <name>c</name>
+            <label>C</label>
+          </item>
+          <item>
+            <name>d</name>
+            <label>D</label>
+          </item>
+          <item>
+            <name>e</name>
+            <label>E</label>
+          </item>
+        </root>
+      </instance>
+      <bind nodeset="/data/select_multiple" type="string"/>
+      <bind calculate="concat('uuid:', uuid())" nodeset="/data/meta/instanceID" readonly="true()" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <select ref="/data/select_multiple">
+      <itemset nodeset="randomize(instance('choices')/root/item)">
+        <value ref="name"/>
+        <label ref="label"/>
+      </itemset>
+    </select>
+  </h:body>
+</h:html>
