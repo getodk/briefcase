@@ -154,20 +154,24 @@ public class AggregateServer implements RemoteServer {
   }
 
   public Request<InputStream> getPushFormRequest(Path formFile, List<Path> attachments) {
+    InputStream formFileStream = newInputStream(formFile);
     RequestBuilder<InputStream> builder = RequestBuilder.post(baseUrl)
         .withPath("/formUpload")
         .withMultipartMessage(
             "form_def_file",
             "application/xml",
             formFile.getFileName().toString(),
-            newInputStream(formFile)
+            formFileStream
         );
+    fileStreams.add(formFileStream);
     for (Path attachment : attachments) {
+      InputStream attachmentStream = newInputStream(attachment);
+      fileStreams.add(attachmentStream);
       builder = builder.withMultipartMessage(
           attachment.getFileName().toString(),
           getContentType(attachment),
           attachment.getFileName().toString(),
-          newInputStream(attachment)
+          attachmentStream
       );
     }
     return builder
