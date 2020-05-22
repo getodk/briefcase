@@ -40,7 +40,7 @@ public class DownloadedSubmission {
   /**
    * Returns a new DownloadedSubmission instance by extracting the primary
    * instance and a list of attachments from a submission download document,
-   * as described in the <a href="https://docs.opendatakit.org/briefcase-api/#response-document">Briefcase Aggregate API docs</a>.
+   * as described in the <a href="https://docs.getodk.org/briefcase-api/#response-document">Briefcase Aggregate API docs</a>.
    * <p>
    * The instance is then serialized to produce the XML document that
    * ultimately will be saved to the local filesystem.

@@ -140,7 +140,7 @@ public class FormDefinition {
                 itemsetBinding.randomize = false;
                 formDef.populateDynamicChoices(itemsetBinding, (TreeReference) control.getBind().getReference());
               } catch (NullPointerException e) {
-                // Ignore (see https://github.com/opendatakit/briefcase/issues/789)
+                // Ignore (see https://github.com/getodk/briefcase/issues/789)
               }
           }
         })

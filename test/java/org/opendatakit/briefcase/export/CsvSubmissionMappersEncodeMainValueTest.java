@@ -46,7 +46,7 @@ public class CsvSubmissionMappersEncodeMainValueTest {
   public static Collection<Object[]> data() {
     // For some reason, empty values are managed differently depending on their related data types
     // This is inconsistent across main or repeat rows, meta fields and missing values, as discussed
-    // in https://github.com/opendatakit/briefcase/blob/master/docs/export-format.md#empty-value-codification
+    // in https://github.com/getodk/briefcase/blob/master/docs/export-format.md#empty-value-codification
     return Arrays.asList(new Object[][]{
         {"GEOPOINT allows empty cols", createField(DataType.GEOPOINT), EMPTY_STRING_VALUE},
         {"DATE allows empty cols", createField(DataType.DATE), EMPTY_STRING_VALUE},

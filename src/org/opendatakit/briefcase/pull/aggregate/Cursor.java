@@ -30,7 +30,7 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
 
 /**
  * This class stores information about a cursor to a list of remote submission
- * instance IDs, or "resumptionCursor" as described in the <a href="https://docs.opendatakit.org/briefcase-api/#returned-document">Briefcase Aggregate API docs</a>
+ * instance IDs, or "resumptionCursor" as described in the <a href="https://docs.getodk.org/briefcase-api/#returned-document">Briefcase Aggregate API docs</a>
  * <p>
  * OpenRosa specifies that cursors should be opaque, but to support the "start from last"
  * and "start from date" features, we need to try to parse it and even create artificial

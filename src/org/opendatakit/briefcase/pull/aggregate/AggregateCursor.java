@@ -31,7 +31,7 @@ import org.opendatakit.briefcase.reused.Iso8601Helpers;
 
 /**
  * This class stores information about a cursor to a list of remote submission
- * instance IDs, or "resumptionCursor" as described in the <a href="https://docs.opendatakit.org/briefcase-api/#returned-document">Briefcase Aggregate API docs</a>
+ * instance IDs, or "resumptionCursor" as described in the <a href="https://docs.getodk.org/briefcase-api/#returned-document">Briefcase Aggregate API docs</a>
  * <p>
  * The contents of a Cursor are basically a date ({@link #lastUpdate} field) and
  * a submission instanceID ({@link #lastReturnedValue} field), which are used by
