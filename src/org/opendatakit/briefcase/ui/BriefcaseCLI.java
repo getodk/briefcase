@@ -333,7 +333,7 @@ public class BriefcaseCLI {
       log.error("Error", e);
       System.exit(1);
     } catch (Throwable t) {
-      System.err.println("Unexpected error in Briefcase. Please review briefcase.log for more information. For help, post to https://forum.opendatakit.org/c/support");
+      System.err.println("Unexpected error in Briefcase. Please review briefcase.log for more information. For help, post to https://forum.getodk.org/c/support");
       log.error("Error", t);
       System.exit(1);
     }

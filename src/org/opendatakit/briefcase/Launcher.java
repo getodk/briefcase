@@ -82,7 +82,7 @@ public class Launcher {
         .onError(throwable -> {
           System.err.println(throwable instanceof BriefcaseException
               ? "Error: " + throwable.getMessage()
-              : "Unexpected error in Briefcase. Please review briefcase.log for more information. For help, post to https://forum.opendatakit.org/c/support");
+              : "Unexpected error in Briefcase. Please review briefcase.log for more information. For help, post to https://forum.getodk.org/c/support");
           log.error("Error", throwable);
           sentry.ifPresent(client -> client.sendException(throwable));
           System.exit(1);

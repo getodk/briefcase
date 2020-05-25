@@ -27,7 +27,7 @@ import org.opendatakit.briefcase.reused.Pair;
  * <p>
  * The {@link CsvFieldMapper#apply(String, String, Path, Model, Optional, ExportConfiguration)} returns
  * a list of column name and value pairs because we need to support a weird empty/null
- * value encoding scheme described <a href="https://github.com/opendatakit/briefcase/blob/master/docs/export-format.md#non-empty-value-codification">in the docs</a>.
+ * value encoding scheme described <a href="https://github.com/getodk/briefcase/blob/master/docs/export-format.md#non-empty-value-codification">in the docs</a>.
  * <p>
  * Normally, the {@link CsvFieldMapper#apply(String, String, Path, Model, Optional, ExportConfiguration)} should return just a
  * {@link Stream} of {@link String} values.
