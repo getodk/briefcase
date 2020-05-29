@@ -1,6 +1,5 @@
 package org.opendatakit.briefcase.util;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.opendatakit.briefcase.util.XmlManipulationUtils.*;
 
@@ -42,7 +41,7 @@ public class XmlManipulationUtilsTest {
   @Test
   public void find_meta_tag_successful() {
     FormInstanceMetadata metadata = getFormInstanceMetadata(tree);
-    assertNotNull(metadata);
+    assertTrue(metadata != null);
   }
 
 }
