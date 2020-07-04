@@ -184,10 +184,21 @@ public class CentralServer implements RemoteServer {
     return RequestBuilder.post(baseUrl)
         .asJsonMap()
         .withIgnoreCookies()
-        .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/attachments/" + attachment.getFileName().toString())
+        .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/draft/attachments/" + attachment.getFileName().toString())
         .withHeader("Authorization", "Bearer " + token)
         .withHeader("Content-Type", "*/*")
         .withBody(newInputStream(attachment))
+        .build();
+  }
+
+  public Request<Map<String, Object>> getPublishDraftRequest(String formId, String token) {
+    return RequestBuilder.post(baseUrl)
+        .asJsonMap()
+        .withIgnoreCookies()
+        .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/draft/publish")
+        .withHeader("Authorization", "Bearer " + token)
+        .withHeader("Content-Type", "*/*")
+        .withBody("")
         .build();
   }
 
