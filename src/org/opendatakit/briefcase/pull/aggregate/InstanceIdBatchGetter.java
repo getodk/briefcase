@@ -29,7 +29,7 @@ import org.opendatakit.briefcase.reused.transfer.AggregateServer;
 
 /**
  * This class will request batches of submission instanceIDs to Aggregate until
- * all have been retrieved using the <a href="https://docs.opendatakit.org/briefcase-api/#">Briefcase Aggregate API</a>.
+ * all have been retrieved using the <a href="https://docs.getodk.org/briefcase-api/#">Briefcase Aggregate API</a>.
  */
 public class InstanceIdBatchGetter implements Iterator<InstanceIdBatch> {
   private final AggregateServer server;

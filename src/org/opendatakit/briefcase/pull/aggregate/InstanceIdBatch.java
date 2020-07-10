@@ -20,7 +20,7 @@ import java.util.List;
 
 /**
  * Stores a batch of submission instanceIds returned by Aggregate as
- * described in the <a href="https://docs.opendatakit.org/briefcase-api/#returned-document">Briefcase Aggregate API docs</a>.
+ * described in the <a href="https://docs.getodk.org/briefcase-api/#returned-document">Briefcase Aggregate API docs</a>.
  */
 public class InstanceIdBatch {
   private final List<String> instanceIds;

@@ -26,7 +26,7 @@ public class MessageStrings {
       "    to the core developers to help prioritize features and fixes. If you do not\n" +
       "    want to contribute your usage data or crash logs, please uncheck that setting.\n\n" +
       "3. ODK is a community-powered project and the community lives at\n" +
-      "    https://forum.opendatakit.org. Stop by for a visit and introduce yourself!\n" +
+      "    https://forum.getodk.org. Stop by for a visit and introduce yourself!\n" +
       "\n";
   static final String TRACKING_WARNING = "" +
       "We now send usage data (e.g., operating system, version number) and crash logs\n" +

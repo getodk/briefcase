@@ -20,7 +20,7 @@ public class BriefcaseVersionManager {
   }
 
   public String getLatest() {
-    return http.execute(RequestBuilder.get("https://api.github.com/repos/opendatakit/briefcase/releases/latest")
+    return http.execute(RequestBuilder.get("https://api.github.com/repos/getodk/briefcase/releases/latest")
         .asJsonMap()
         .withResponseMapper(node -> (String) node.get("tag_name"))
         .build())
@@ -32,6 +32,6 @@ public class BriefcaseVersionManager {
   }
 
   public static URL getLatestUrl() {
-    return url("https://github.com/opendatakit/briefcase/releases/latest");
+    return url("https://github.com/getodk/briefcase/releases/latest");
   }
 }

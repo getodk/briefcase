@@ -5,7 +5,7 @@ This is a living document. If you see something that could be improved, edit thi
 ## Submitting a pull request
 To contribute code to ODK Briefcase, you will need to open a [pull request](https://help.github.com/articles/about-pull-requests/) which will be reviewed by the community and then merged into the core project.
 
-1. [Set up your development environment](https://github.com/opendatakit/briefcase#setting-up-your-development-environment). 
+1. [Set up your development environment](https://github.com/getodk/briefcase#setting-up-your-development-environment).
 
 1. To make sure you have the latest version of the code, set up this repository as [a remote for your fork](https://help.github.com/articles/configuring-a-remote-for-a-fork/) and then [sync your fork](https://help.github.com/articles/syncing-a-fork/).
 
@@ -13,7 +13,7 @@ To contribute code to ODK Briefcase, you will need to open a [pull request](http
 
         git checkout -b NAME_OF_YOUR_BRANCH
 
-1. If there is an [issue](https://github.com/opendatakit/briefcase/issues) corresponding to what you will work on, put `@opendatakit-bot claim` as a comment on issue to say you are claiming it. If this is your first time contributing to the repo, the bot will send you an invite. Once you accept this invite, the bot will assign you to the issue. If there is no issue yet, create one to provide background on the problem you are solving.
+1. If there is an [issue](https://github.com/getodk/briefcase/issues) corresponding to what you will work on, put `@getodk-bot claim` as a comment on issue to say you are claiming it. If this is your first time contributing to the repo, the bot will send you an invite. Once you accept this invite, the bot will assign you to the issue. If there is no issue yet, create one to provide background on the problem you are solving.
 
 1. Once you've made incremental progress towards you goal, commit your changes with a meaningful commit message. Use [keywords for closing issues](https://help.github.com/articles/closing-issues-via-commit-messages/) to refer to issues and have them automatically close when your changes are merged.
 
@@ -23,9 +23,9 @@ To contribute code to ODK Briefcase, you will need to open a [pull request](http
 
         git push
 
-1. When your changes are ready to be added to the core ODK Briefcase project, [open a pull request](https://help.github.com/articles/creating-a-pull-request/). Make sure to set the base fork to `opendatakit/briefcase`. Describe your changes in the comment, refer to any relevant issues using [keywords for closing issues](https://help.github.com/articles/closing-issues-via-commit-messages/) and tag any person you think might need to know about the changes.
+1. When your changes are ready to be added to the core ODK Briefcase project, [open a pull request](https://help.github.com/articles/creating-a-pull-request/). Make sure to set the base fork to `getodk/briefcase`. Describe your changes in the comment, refer to any relevant issues using [keywords for closing issues](https://help.github.com/articles/closing-issues-via-commit-messages/) and tag any person you think might need to know about the changes.
 
-1. Pull requests will be reviewed when committers have time. If you haven't received a review in 10 days, you may notify committers by putting `@opendatakit/briefcase` in a comment.
+1. Pull requests will be reviewed when committers have time. If you haven't received a review in 10 days, you may notify committers by putting `@getodk/briefcase` in a comment.
 
 ## Making sure your pull request is accepted
 1. Confirm that your code compiles.
@@ -42,7 +42,7 @@ To contribute code to ODK Briefcase, you will need to open a [pull request](http
 
 1. Document your reasoning. Your commit messages should make it clear why each change has been made.
 
-1. If your pull request makes user-facing changes, we likely need to update documentation. [File an issue on the docs repo](https://github.com/opendatakit/docs/issues/new) describing the changes.
+1. If your pull request makes user-facing changes, we likely need to update documentation. [File an issue on the docs repo](https://github.com/getodk/docs/issues/new) describing the changes.
 
 1. Follow the guidelines below.
 
@@ -59,7 +59,7 @@ We try to have at least two people review every pull request and we encourage ev
 - Is the code easy to understand and to maintain?
 - Is there sufficient detail to inform any changes to documentation?
 
-When a pull request is first created, @opendatakit-bot tags it as `needs review` to indicate that code review is needed. Community members review the code and leave their comments, verifying that the changes included are relevant and properly address the issue. A maintainer does a thorough code review and when satisfied with the code, tags the pull request as `needs testing` to indicate the need for a manual [black-box testing](https://en.wikipedia.org/wiki/Black-box_testing) pass. A pull request may go back and forth between `needs testing` and `needs review` until the behavior is thoroughly verified. Once the behavior has been thoroughly verified, the pull request is tagged as `behavior verified`. A maintainer then merges the changes. Pull requests that need more complete reviews including review of approach and/or appropriateness are tagged with `reviews wanted`. Any community member is encouraged to participate in the review process!
+When a pull request is first created, @getodk-bot tags it as `needs review` to indicate that code review is needed. Community members review the code and leave their comments, verifying that the changes included are relevant and properly address the issue. A maintainer does a thorough code review and when satisfied with the code, tags the pull request as `needs testing` to indicate the need for a manual [black-box testing](https://en.wikipedia.org/wiki/Black-box_testing) pass. A pull request may go back and forth between `needs testing` and `needs review` until the behavior is thoroughly verified. Once the behavior has been thoroughly verified, the pull request is tagged as `behavior verified`. A maintainer then merges the changes. Pull requests that need more complete reviews including review of approach and/or appropriateness are tagged with `reviews wanted`. Any community member is encouraged to participate in the review process!
 
 Small fixes that target very particular bugs may occasionally be merged without a second review.
 
@@ -69,4 +69,4 @@ For now, match the style of the code in the file you are editing.
 ## Code from external sources
 ODK Briefcase is released under the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0). Please make sure that any code you include is an OSI-approved [permissive license](https://opensource.org/faq#permissive). **Please note that if no license is specified for a piece of code or if it has an incompatible license such as GPL, using it puts the project at legal risk**.
 
-Sites with compatible licenses (including [StackOverflow](http://stackoverflow.com/)) will sometimes provide exactly the code snippet needed to solve a problem. You are encouraged to use such snippets in ODK Briefcase as long as you attribute them by including a direct link to the source. In addition to complying with the content license, this provides useful context for anyone reading the code. 
+Sites with compatible licenses (including [StackOverflow](http://stackoverflow.com/)) will sometimes provide exactly the code snippet needed to solve a problem. You are encouraged to use such snippets in ODK Briefcase as long as you attribute them by including a direct link to the source. In addition to complying with the content license, this provides useful context for anyone reading the code.
