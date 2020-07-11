@@ -55,12 +55,11 @@ import org.opendatakit.briefcase.reused.http.RequestBuilder;
 public class AggregateServer implements RemoteServer {
   private final URL baseUrl;
   private final Optional<Credentials> credentials;
-  private List<InputStream> fileStreams;
+  private final List<InputStream> fileStreams = new ArrayList<>();
 
   public AggregateServer(URL baseUrl, Optional<Credentials> credentials) {
     this.baseUrl = baseUrl;
     this.credentials = credentials;
-    this.fileStreams = new ArrayList<>();
   }
 
   public static AggregateServer authenticated(URL baseUrl, Credentials credentials) {
