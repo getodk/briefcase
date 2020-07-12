@@ -155,7 +155,7 @@ public class CommonsHttp implements Http {
       try {
         UncheckedFiles.closeInputStream(request.getBody());
       } catch (final BriefcaseException exception) {
-        LOG.error("Error: Attempted to close Requesy.body InputStream, but failed", exception);
+        LOG.error("Error: Attempted to close Request.body InputStream, but failed", exception);
       }
       if (request.multipartMessages != null)
         request.multipartMessages.stream()
