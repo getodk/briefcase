@@ -167,9 +167,6 @@ public class PushToAggregate {
     tracker.trackStartSendingFormAndAttachments(part, parts);
     Response<InputStream> response = http.execute(server.getPushFormRequest(form.getFormFile(briefcaseDir), attachments));
 
-    server.getFileStreams().forEach(UncheckedFiles::closeInputStream);
-    server.getFileStreams().clear();
-
     if (response.isSuccess())
       tracker.trackEndSendingFormAndAttachments(part, parts);
     else
@@ -191,9 +188,6 @@ public class PushToAggregate {
         submissionFile,
         attachments
     ));
-
-    server.getFileStreams().forEach(UncheckedFiles::closeInputStream);
-    server.getFileStreams().clear();
 
     if (response.isSuccess())
       tracker.trackEndSendingSubmissionAndAttachments(submissionNumber, totalSubmissions, part, parts);

@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -55,7 +54,6 @@ import org.opendatakit.briefcase.reused.http.RequestBuilder;
 public class AggregateServer implements RemoteServer {
   private final URL baseUrl;
   private final Optional<Credentials> credentials;
-  private final List<InputStream> fileStreams = new ArrayList<>();
 
   public AggregateServer(URL baseUrl, Optional<Credentials> credentials) {
     this.baseUrl = baseUrl;
@@ -153,24 +151,20 @@ public class AggregateServer implements RemoteServer {
   }
 
   public Request<InputStream> getPushFormRequest(Path formFile, List<Path> attachments) {
-    InputStream formFileStream = newInputStream(formFile);
     RequestBuilder<InputStream> builder = RequestBuilder.post(baseUrl)
         .withPath("/formUpload")
         .withMultipartMessage(
             "form_def_file",
             "application/xml",
             formFile.getFileName().toString(),
-            formFileStream
+            newInputStream(formFile)
         );
-    fileStreams.add(formFileStream);
     for (Path attachment : attachments) {
-      InputStream attachmentStream = newInputStream(attachment);
-      fileStreams.add(attachmentStream);
       builder = builder.withMultipartMessage(
           attachment.getFileName().toString(),
           getContentType(attachment),
           attachment.getFileName().toString(),
-          attachmentStream
+          newInputStream(attachment)
       );
     }
     return builder
@@ -181,7 +175,6 @@ public class AggregateServer implements RemoteServer {
   }
 
   public Request<XmlElement> getPushSubmissionRequest(Path submissionFile, List<Path> attachments) {
-    InputStream submissionFileStream = newInputStream(submissionFile);
     RequestBuilder<XmlElement> builder = RequestBuilder.post(baseUrl)
         .asXmlElement()
         .withPath("/submission")
@@ -189,17 +182,14 @@ public class AggregateServer implements RemoteServer {
             "xml_submission_file",
             "application/xml",
             submissionFile.getFileName().toString(),
-            submissionFileStream
+            newInputStream(submissionFile)
         );
-    fileStreams.add(submissionFileStream);
     for (Path attachment : attachments) {
-      InputStream attachmentStream = newInputStream(attachment);
-      fileStreams.add(attachmentStream);
       builder = builder.withMultipartMessage(
           attachment.getFileName().toString(),
           getContentType(attachment),
           attachment.getFileName().toString(),
-          attachmentStream
+          newInputStream(attachment)
       );
     }
     return builder
@@ -208,8 +198,6 @@ public class AggregateServer implements RemoteServer {
         .withCredentials(credentials)
         .build();
   }
-
-  public List<InputStream> getFileStreams() { return fileStreams; }
 
   private String getContentType(Path file) {
     return getFileExtension(file.getFileName().toString())

@@ -39,12 +39,16 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.opendatakit.briefcase.reused.BriefcaseException;
+import org.opendatakit.briefcase.reused.UncheckedFiles;
 import org.opendatakit.briefcase.reused.http.response.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CommonsHttp implements Http {
   private Executor executor;
   private final int maxConnections;
   private final BasicCookieStore cookieStore;
+  private static final Logger LOG = LoggerFactory.getLogger(CommonsHttp.class);
 
   private CommonsHttp(Executor executor, int maxConnections, BasicCookieStore cookieStore) {
     this.executor = executor;
@@ -147,6 +151,16 @@ public class CommonsHttp implements Http {
       throw new HttpException("The connection has timed out", e);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
+    } finally {
+      try {
+        UncheckedFiles.closeInputStream(request.getBody());
+      } catch (final BriefcaseException exception) {
+        LOG.error("Error: Attempted to close Requesy.body InputStream, but failed", exception);
+      }
+      if (request.multipartMessages != null)
+        request.multipartMessages.stream()
+          .map(MultipartMessage::getBody)
+          .forEach(UncheckedFiles::closeInputStream);
     }
   }
 
