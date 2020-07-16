@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,7 +34,7 @@ public class FormMetadataCommandsTest {
   @Before
   public void setUp() {
     key = FormKey.of("Some form", "some-form");
-    FormMetadata formMetadata = new FormMetadata(key, storageRoot, formDir, false, Cursor.empty(), Optional.empty());
+    FormMetadata formMetadata = new FormMetadata(key, storageRoot, formDir, false, Cursor.empty(), Optional.empty(), Collections.emptySet());
     formMetadataPort = new InMemoryFormMetadataAdapter();
     formMetadataPort.persist(formMetadata);
   }
@@ -88,6 +89,6 @@ public class FormMetadataCommandsTest {
   private FormMetadata buildFormMetadata(int number) {
     Paths.get("/some/path/forms/" + stripIllegalChars("Form #" + number));
     FormKey key = FormKey.of("Form #" + number, "form-" + number);
-    return new FormMetadata(key, storageRoot, formDir, true, Cursor.from("some cursor data"), Optional.empty());
+    return new FormMetadata(key, storageRoot, formDir, true, Cursor.from("some cursor data"), Optional.empty(), Collections.emptySet());
   }
 }
