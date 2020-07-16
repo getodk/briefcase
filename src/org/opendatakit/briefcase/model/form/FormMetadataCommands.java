@@ -4,18 +4,19 @@ import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 
 public class FormMetadataCommands {
-  public static Consumer<FormMetadataPort> updateAsPulled(FormKey key, Cursor cursor, Path storageRoot, Path formDir) {
+  public static Consumer<FormMetadataPort> updateAsPulled(FormKey key, Cursor cursor, Path storageRoot, Path formDir, Set<String> submissionVersions) {
     return port -> {
       Optional<FormMetadata> fetch = port
           .fetch(key);
       FormMetadata formMetadata = fetch
           .orElseGet(() -> FormMetadata.of(key, storageRoot, formDir));
       FormMetadata formMetadata1 = formMetadata
-          .withHasBeenPulled(true, new HashSet<>())
+          .withHasBeenPulled(true, submissionVersions)
           .withCursor(cursor);
       port.persist(formMetadata1);
     };

@@ -1,6 +1,7 @@
 package org.opendatakit.briefcase.model.form;
 
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.model.form.FormMetadataCommands.cleanAllCursors;
@@ -15,8 +16,11 @@ import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.Before;
@@ -48,10 +52,18 @@ public class FormMetadataCommandsTest {
   @Test
   public void updates_a_form_as_having_been_pulled_adding_the_last_cursor_used_to_pull_it() {
     Cursor cursor = Cursor.from("some cursor data");
-    formMetadataPort.execute(updateAsPulled(key, cursor, storageRoot, formDir));
+    formMetadataPort.execute(updateAsPulled(key, cursor, storageRoot, formDir, new HashSet<>()));
     FormMetadata formMetadata = formMetadataPort.fetch(key).get();
     assertThat(formMetadata.hasBeenPulled(), is(true));
     assertThat(formMetadata.getCursor(), is(cursor));
+  }
+
+  @Test
+  public void updates_a_forms_submission_versions() {
+    Set<String> formVersions = new HashSet<>(Arrays.asList("2020031801", "2020031901"));
+    formMetadataPort.execute(updateAsPulled(key, Cursor.from("fake"), storageRoot, formDir, formVersions));
+    FormMetadata formMetadata = formMetadataPort.fetch(key).get();
+    assertThat(formMetadata.getSubmissionVersions(), containsInAnyOrder("2020031801", "2020031901"));
   }
 
   @Test

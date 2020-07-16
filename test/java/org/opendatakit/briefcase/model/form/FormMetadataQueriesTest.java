@@ -7,6 +7,7 @@ import static org.opendatakit.briefcase.model.form.FormMetadataQueries.lastCurso
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
 import org.junit.Test;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
@@ -24,7 +25,7 @@ public class FormMetadataQueriesTest {
     assertThat(formMetadataPort.query(lastCursorOf(key)), isPresentAndIs(Cursor.empty()));
 
     Cursor cursor = Cursor.from("some cursor");
-    formMetadataPort.execute(FormMetadataCommands.updateAsPulled(key, cursor, storageRoot, formDir));
+    formMetadataPort.execute(FormMetadataCommands.updateAsPulled(key, cursor, storageRoot, formDir, new HashSet<>()));
 
     assertThat(formMetadataPort.query(lastCursorOf(key)), isPresentAndIs(cursor));
   }

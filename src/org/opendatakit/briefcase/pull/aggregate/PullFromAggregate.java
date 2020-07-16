@@ -32,8 +32,10 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
@@ -118,6 +120,7 @@ public class PullFromAggregate {
               .collect(toList());
           int totalSubmissions = ids.size();
           AtomicInteger submissionNumber = new AtomicInteger(1);
+          Set<String> submissionVersions = new HashSet<>();
 
           if (ids.isEmpty())
             tracker.trackNoSubmissions();
@@ -139,6 +142,7 @@ public class PullFromAggregate {
                 .forEach(pair -> {
                   int currentSubmissionNumber = pair.getLeft();
                   DownloadedSubmission submission = pair.getRight();
+                  submissionVersions.add(submission.getFormVersion().orElse(""));
                   List<AggregateAttachment> submissionAttachments = submission.getAttachments();
                   AtomicInteger submissionAttachmentNumber = new AtomicInteger(1);
                   int totalSubmissionAttachments = submissionAttachments.size();
@@ -152,7 +156,7 @@ public class PullFromAggregate {
           tracker.trackEnd();
           Cursor newCursor = getLastCursor(instanceIdBatches).orElse(Cursor.empty());
 
-          formMetadataPort.execute(updateAsPulled(key, newCursor, briefcaseDir, form.getFormDir(briefcaseDir)));
+          formMetadataPort.execute(updateAsPulled(key, newCursor, briefcaseDir, form.getFormDir(briefcaseDir), submissionVersions));
 
           EventBus.publish(PullEvent.Success.of(form, server));
         });

@@ -109,6 +109,10 @@ public class FormMetadata implements AsJson {
     return lastExportedSubmission;
   }
 
+  public Set<String> getSubmissionVersions() {
+    return submissionVersions;
+  }
+
   FormMetadata withCursor(Cursor cursor) {
     return new FormMetadata(key, storageRoot, formDir, hasBeenPulled, cursor, lastExportedSubmission, submissionVersions);
   }
