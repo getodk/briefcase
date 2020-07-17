@@ -311,8 +311,8 @@ public class AggregateServerTest {
   @Test
   public void knows_how_to_clean_copied_and_pasted_Aggregate_URLs_from_a_browser() {
     assertThat(
-        cleanUrl("https://sandbox.aggregate.opendatakit.org/Aggregate.html#submissions/filter///"),
-        is("https://sandbox.aggregate.opendatakit.org")
+        cleanUrl("https://sandbox.aggregate.getodk.org/Aggregate.html#submissions/filter///"),
+        is("https://sandbox.aggregate.getodk.org")
     );
     assertThat(
         cleanUrl("https://someserver.com/nonRootWebapp/Aggregate.html#submissions/filter///"),
