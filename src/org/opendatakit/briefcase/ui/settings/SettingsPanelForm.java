@@ -41,6 +41,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.border.TitledBorder;
 import org.apache.http.HttpHost;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.OptionalProduct;
@@ -348,7 +349,7 @@ public class SettingsPanelForm {
     gbc.gridwidth = 5;
     gbc.fill = GridBagConstraints.BOTH;
     container.add(panel1, gbc);
-    panel1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Troubleshooting"));
+    panel1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Troubleshooting", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
     reloadCacheButton = new JButton();
     reloadCacheButton.setEnabled(false);
     reloadCacheButton.setText("Reload forms from storage location");
@@ -607,9 +608,15 @@ public class SettingsPanelForm {
   private Font $$$getFont$$$(String fontName, int style, int size, Font currentFont) {
     if (currentFont == null) return null;
     String resultName;
-    if (fontName == null) {resultName = currentFont.getName();} else {
+    if (fontName == null) {
+      resultName = currentFont.getName();
+    } else {
       Font testFont = new Font(fontName, Font.PLAIN, 10);
-      if (testFont.canDisplay('a') && testFont.canDisplay('1')) {resultName = fontName;} else {resultName = currentFont.getName();}
+      if (testFont.canDisplay('a') && testFont.canDisplay('1')) {
+        resultName = fontName;
+      } else {
+        resultName = currentFont.getName();
+      }
     }
     return new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
   }
@@ -617,6 +624,8 @@ public class SettingsPanelForm {
   /**
    * @noinspection ALL
    */
-  public JComponent $$$getRootComponent$$$() { return container; }
+  public JComponent $$$getRootComponent$$$() {
+    return container;
+  }
 
 }

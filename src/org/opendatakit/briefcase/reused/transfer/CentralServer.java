@@ -19,6 +19,7 @@ package org.opendatakit.briefcase.reused.transfer;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.newInputStream;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
@@ -29,6 +30,7 @@ import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.RemoteFormDefinition;
 import org.opendatakit.briefcase.reused.OptionalProduct;
+import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.http.Credentials;
 import org.opendatakit.briefcase.reused.http.Request;
 import org.opendatakit.briefcase.reused.http.RequestBuilder;
@@ -163,9 +165,13 @@ public class CentralServer implements RemoteServer {
         .build();
   }
 
-  public Request<Boolean> getFormExistsRequest(String formId, String token) {
-    return getFormsListRequest(token).builder()
-        .withResponseMapper(forms -> forms.stream().anyMatch(form -> form.getFormId().equals(formId)))
+  public Request<InputStream> getFormVersionExists(String formId, String version, String token) {
+    version = version.equals("") ? "___" : version;
+
+    return RequestBuilder.get(baseUrl)
+        .withIgnoreCookies()
+        .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/versions/" + version)
+        .withHeader("Authorization", "Bearer " + token)
         .build();
   }
 
@@ -174,6 +180,17 @@ public class CentralServer implements RemoteServer {
         .asJsonMap()
         .withIgnoreCookies()
         .withPath("/v1/projects/" + projectId + "/forms")
+        .withHeader("Authorization", "Bearer " + token)
+        .withHeader("Content-Type", "application/xml")
+        .withBody(newInputStream(formFile))
+        .build();
+  }
+
+  public Request<Map<String, Object>> getPushFormDraftRequest(String formId, Path formFile, String token) {
+    return RequestBuilder.post(baseUrl)
+        .asJsonMap()
+        .withIgnoreCookies()
+        .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/draft/")
         .withHeader("Authorization", "Bearer " + token)
         .withHeader("Content-Type", "application/xml")
         .withBody(newInputStream(formFile))
@@ -191,11 +208,12 @@ public class CentralServer implements RemoteServer {
         .build();
   }
 
-  public Request<Map<String, Object>> getPublishDraftRequest(String formId, String token) {
+  public Request<Map<String, Object>> getPublishDraftRequest(String formId, String token, String version) {
     return RequestBuilder.post(baseUrl)
         .asJsonMap()
         .withIgnoreCookies()
         .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/draft/publish")
+        .withQuery(Pair.of("version", version))
         .withHeader("Authorization", "Bearer " + token)
         .withHeader("Content-Type", "*/*")
         .withBody("")

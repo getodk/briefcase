@@ -18,14 +18,18 @@ package org.opendatakit.briefcase.push.central;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.model.form.FormMetadataQueries.submissionVersionsOf;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.readAllBytes;
 
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
@@ -34,6 +38,9 @@ import org.opendatakit.briefcase.export.SubmissionMetaData;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
+import org.opendatakit.briefcase.model.form.FileSystemFormMetadataAdapter;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.reused.Triple;
 import org.opendatakit.briefcase.reused.UncheckedFiles;
@@ -87,11 +94,27 @@ public class PushToCentral {
       });
     }
 
+    FormMetadataPort formMetadataPort = FileSystemFormMetadataAdapter.at(briefcaseDir);
+
     return startTrackingJob
-        .thenSupply(rs -> checkFormExists(form.getFormId(), rs, tracker))
-        .thenAccept(((rs, formExists) -> {
-          if (!formExists) {
-            boolean formSent = pushForm(formFile, rs, tracker);
+        .thenSupply(rs -> getMissingFormVersions(form, rs, tracker, formMetadataPort))
+        .thenAccept(((rs, missingFormVersions) -> {
+          String localFormVersion = form.getVersion().orElse("");
+          boolean sendLocal = missingFormVersions.remove(localFormVersion);
+
+          // First send a request to create the form. It doesn't matter what version is sent because it will be replaced
+          // below. Will fail if a published form already exists with this id but then missing versions can still be added.
+          createForm(form.getFormFile(briefcaseDir), rs, tracker);
+
+          // Send all of the obsolete versions first so that we can send corresponding submissions. Skip attachments
+          // because those versions won't be used by clients.
+          missingFormVersions.forEach(version -> {
+            pushFormDraft(form.getFormFile(briefcaseDir), form.getFormId(), version, rs, tracker);
+            publishDraft(form.getFormId(), rs, tracker, version);
+          });
+
+          if (sendLocal) {
+            boolean formSent = pushFormDraft(formFile, form.getFormId(), localFormVersion, rs, tracker);
             if (formSent) {
               List<Path> formAttachments = getFormAttachments(form);
               AtomicInteger attachmentSeq = new AtomicInteger(1);
@@ -99,7 +122,7 @@ public class PushToCentral {
               formAttachments.forEach(attachment ->
                   pushFormAttachment(form.getFormId(), attachment, rs, tracker, attachmentSeq.getAndIncrement(), totalAttachments)
               );
-              publishDraft(form.getFormId(), rs, tracker);
+              publishDraft(form.getFormId(), rs, tracker, form.getVersion().orElse(""));
             }
           }
         }))
@@ -113,7 +136,6 @@ public class PushToCentral {
               .map(submission -> {
                 XmlElement root = XmlElement.from(new String(readAllBytes(submission)));
                 SubmissionMetaData metaData = new SubmissionMetaData(root);
-                metaData.getInstanceId();
                 return Triple.of(submission, submissionNumber.getAndIncrement(), metaData.getInstanceId());
               })
               .peek(triple -> {
@@ -147,40 +169,69 @@ public class PushToCentral {
         .collect(toList());
   }
 
-  boolean checkFormExists(String formId, RunnerStatus runnerStatus, PushToCentralTracker tracker) {
+  Set<String> getMissingFormVersions(FormStatus form, RunnerStatus runnerStatus, PushToCentralTracker tracker, FormMetadataPort formMetadataPort) {
     if (runnerStatus.isCancelled()) {
-      tracker.trackCancellation("Check if form exists in Central");
-      return false;
+      tracker.trackCancellation("Check if all form versions exist in Central");
+      return new HashSet<>();
     }
 
-    Response<Boolean> response = http.execute(server.getFormExistsRequest(formId, token));
-    if (!response.isSuccess()) {
-      tracker.trackErrorCheckingForm(response);
-      return false;
-    }
+    Set<String> knownVersions = formMetadataPort.query(submissionVersionsOf(FormKey.from(form)));
+    form.getVersion().ifPresent(knownVersions::add);
 
-    boolean exists = response.get();
-    if (exists)
-      tracker.trackFormAlreadyExists();
-    return exists;
+    Set<String> missingFormVersions = new HashSet<>();
+
+    knownVersions.forEach(v -> {
+      Response<InputStream> response = http.execute(server.getFormVersionExists(form.getFormId(), v, token));
+      if (response.isNotFound()) {
+        missingFormVersions.add(v);
+      } else if (!response.isSuccess()) {
+        tracker.trackErrorCheckingForm(response);
+      } else {
+        tracker.trackFormVersionAlreadyExists(v);
+      }
+    });
+
+    return missingFormVersions;
   }
 
-  boolean pushForm(Path formFile, RunnerStatus runnerStatus, PushToCentralTracker tracker) {
+  void createForm(Path formFile, RunnerStatus runnerStatus, PushToCentralTracker tracker) {
+    if (runnerStatus.isCancelled()) {
+      tracker.trackCancellation("Create form");
+      return;
+    }
+
+    tracker.trackCreatingForm();
+    Response response = http.execute(server.getPushFormRequest(formFile, token));
+
+    if (response.isSuccess()) {
+      tracker.trackEndCreatingForm();
+      return;
+    }
+
+    if (response.getStatusCode() == 409) {
+      tracker.trackFormAlreadyExists();
+      return;
+    }
+
+    tracker.trackErrorSendingForm(response);
+  }
+
+  boolean pushFormDraft(Path formFile, String formId, String version, RunnerStatus runnerStatus, PushToCentralTracker tracker) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Push form");
       return false;
     }
 
     tracker.trackStartSendingForm();
-    Response response = http.execute(server.getPushFormRequest(formFile, token));
+    Response response = http.execute(server.getPushFormDraftRequest(formId, formFile, token));
 
     if (response.isSuccess()) {
-      tracker.trackEndSendingForm();
+      tracker.trackEndSendingForm(version);
       return true;
     }
 
     if (response.getStatusCode() == 409) {
-      tracker.trackFormAlreadyExists();
+      tracker.trackFormVersionAlreadyExists(version);
       return true;
     }
 
@@ -204,13 +255,13 @@ public class PushToCentral {
       tracker.trackErrorSendingFormAttachment(attachmentNumber, totalAttachments, response);
   }
 
-  void publishDraft(String formId, RunnerStatus runnerStatus, PushToCentralTracker tracker) {
+  void publishDraft(String formId, RunnerStatus runnerStatus, PushToCentralTracker tracker, String version) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Publish form");
       return;
     }
 
-    Response response = http.execute(server.getPublishDraftRequest(formId, token));
+    Response response = http.execute(server.getPublishDraftRequest(formId, token, version));
     if (response.isSuccess())
       tracker.trackSuccessfulPublish();
     else

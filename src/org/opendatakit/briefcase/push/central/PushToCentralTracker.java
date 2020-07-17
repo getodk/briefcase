@@ -108,6 +108,27 @@ class PushToCentralTracker {
     notifyTrackingEvent();
   }
 
+  void trackCreatingForm() {
+    String message = "Creating form (" + form.getFormId() + ")";
+    form.setStatusString(message);
+    log.info("Create {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackEndCreatingForm() {
+    String message = "Form created (" + form.getFormId() + ")";
+    form.setStatusString(message);
+    log.info("Create {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackFormAlreadyExists() {
+    String message = "Form already on server (" + form.getFormId() + ")";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
   void trackStartSendingForm() {
     String message = "Sending form";
     form.setStatusString(message);
@@ -115,15 +136,15 @@ class PushToCentralTracker {
     notifyTrackingEvent();
   }
 
-  void trackEndSendingForm() {
-    String message = "Form sent";
+  void trackEndSendingForm(String version) {
+    String message = "Form sent (" + form.getFormId() + ", " + version + ")";
     form.setStatusString(message);
     log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
 
-  void trackFormAlreadyExists() {
-    String message = "Skipping form: already exists";
+  void trackFormVersionAlreadyExists(String v) {
+    String message = "Skipping form version \"" + v + "\": already on server";
     form.setStatusString(message);
     log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
@@ -153,7 +174,7 @@ class PushToCentralTracker {
   }
 
   void trackFormAttachmentAlreadyExists(int attachmentNumber, int totalAttachments) {
-    String message = "Skipping form attachment " + attachmentNumber + " of " + totalAttachments + ": already exists";
+    String message = "Skipping form attachment " + attachmentNumber + " of " + totalAttachments + ": already on server";
     form.setStatusString(message);
     log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
@@ -179,7 +200,7 @@ class PushToCentralTracker {
 
   void trackErrorPublishing(Response response) {
     String message = "Error publishing form";
-    form.setStatusString(message + ": " + response.getStatusPhrase());
+    form.setStatusString(message + ": " + parseErrorResponse(response.getServerErrorResponse()));
     log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }

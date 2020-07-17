@@ -88,6 +88,10 @@ public class FormKey implements AsJson {
     return name;
   }
 
+  public Optional<String> getVersion() {
+    return version;
+  }
+
   @Override
   public ObjectNode asJson(ObjectMapper mapper) {
     ObjectNode root = mapper.createObjectNode();

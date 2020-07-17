@@ -47,7 +47,7 @@ public class FormMetadata implements AsJson {
         key,
         storageRoot,
         formDir,
-        false, Cursor.empty(), Optional.empty(), Collections.emptySet());
+        false, Cursor.empty(), Optional.empty(), new HashSet<>());
   }
 
   public static FormMetadata from(Path storageRoot, Path formFile) {
@@ -63,7 +63,7 @@ public class FormMetadata implements AsJson {
     String id = mainInstance.childrenOf().get(0).getAttributeValue("id").orElseThrow(BriefcaseException::new);
     Optional<String> version = mainInstance.childrenOf().get(0).getAttributeValue("version");
     FormKey key = FormKey.of(name, id, version);
-    return new FormMetadata(key, storageRoot, formFile.getParent(), true, Cursor.empty(), Optional.empty(), Collections.emptySet());
+    return new FormMetadata(key, storageRoot, formFile.getParent(), true, Cursor.empty(), Optional.empty(), new HashSet<>());
   }
 
   public static FormMetadata from(Path storageRoot, JsonNode root) {
