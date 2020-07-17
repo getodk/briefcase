@@ -129,15 +129,15 @@ class PushToCentralTracker {
     notifyTrackingEvent();
   }
 
-  void trackStartSendingForm() {
-    String message = "Sending form";
+  void trackStartSendingDraft(String version) {
+    String message = "Creating draft (" + form.getFormId() + ", " + version + ")";
     form.setStatusString(message);
     log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
 
-  void trackEndSendingForm(String version) {
-    String message = "Form sent (" + form.getFormId() + ", " + version + ")";
+  void trackEndSendingDraft(String version) {
+    String message = "Draft created (" + form.getFormId() + ", " + version + ")";
     form.setStatusString(message);
     log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
@@ -150,10 +150,10 @@ class PushToCentralTracker {
     notifyTrackingEvent();
   }
 
-  void trackErrorSendingForm(Response response) {
+  void trackErrorSendingForm(Response response, String version) {
     errored = true;
     String centralErrorMessage = parseErrorResponse(response.getServerErrorResponse());
-    String message = "Error sending form";
+    String message = "Error sending form (" + form.getFormId() + ", " + version + ")";
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Push {} - {} HTTP {} {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase(), centralErrorMessage);
     notifyTrackingEvent();
@@ -191,15 +191,15 @@ class PushToCentralTracker {
     notifyTrackingEvent();
   }
 
-  void trackSuccessfulPublish() {
-    String message = "Form published";
+  void trackSuccessfulPublish(String version) {
+    String message = "Form version \"" + version + "\" published";
     form.setStatusString(message);
     log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
 
-  void trackErrorPublishing(Response response) {
-    String message = "Error publishing form";
+  void trackErrorPublishing(Response response, String version) {
+    String message = "Error publishing form version \"" + version + "\"";
     form.setStatusString(message + ": " + parseErrorResponse(response.getServerErrorResponse()));
     log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();

@@ -110,7 +110,7 @@ public class PushToCentral {
           // because those versions won't be used by clients.
           missingFormVersions.forEach(version -> {
             pushFormDraft(form.getFormFile(briefcaseDir), form.getFormId(), version, rs, tracker);
-            publishDraft(form.getFormId(), rs, tracker, version);
+            publishDraft(form.getFormId(), version, rs, tracker);
           });
 
           if (sendLocal) {
@@ -122,7 +122,7 @@ public class PushToCentral {
               formAttachments.forEach(attachment ->
                   pushFormAttachment(form.getFormId(), attachment, rs, tracker, attachmentSeq.getAndIncrement(), totalAttachments)
               );
-              publishDraft(form.getFormId(), rs, tracker, form.getVersion().orElse(""));
+              publishDraft(form.getFormId(), localFormVersion, rs, tracker);
             }
           }
         }))
@@ -213,20 +213,20 @@ public class PushToCentral {
       return;
     }
 
-    tracker.trackErrorSendingForm(response);
+    tracker.trackErrorSendingForm(response, "published version");
   }
 
   boolean pushFormDraft(Path formFile, String formId, String version, RunnerStatus runnerStatus, PushToCentralTracker tracker) {
     if (runnerStatus.isCancelled()) {
-      tracker.trackCancellation("Push form");
+      tracker.trackCancellation("Push form version \"" + version + "\"");
       return false;
     }
 
-    tracker.trackStartSendingForm();
+    tracker.trackStartSendingDraft(version);
     Response response = http.execute(server.getPushFormDraftRequest(formId, formFile, token));
 
     if (response.isSuccess()) {
-      tracker.trackEndSendingForm(version);
+      tracker.trackEndSendingDraft(version);
       return true;
     }
 
@@ -235,7 +235,7 @@ public class PushToCentral {
       return true;
     }
 
-    tracker.trackErrorSendingForm(response);
+    tracker.trackErrorSendingForm(response, version);
     return false;
   }
 
@@ -255,17 +255,17 @@ public class PushToCentral {
       tracker.trackErrorSendingFormAttachment(attachmentNumber, totalAttachments, response);
   }
 
-  void publishDraft(String formId, RunnerStatus runnerStatus, PushToCentralTracker tracker, String version) {
+  void publishDraft(String formId, String version, RunnerStatus runnerStatus, PushToCentralTracker tracker) {
     if (runnerStatus.isCancelled()) {
-      tracker.trackCancellation("Publish form");
+      tracker.trackCancellation("Publish form version \"" + version + "\"");
       return;
     }
 
     Response response = http.execute(server.getPublishDraftRequest(formId, token, version));
     if (response.isSuccess())
-      tracker.trackSuccessfulPublish();
+      tracker.trackSuccessfulPublish(version);
     else
-      tracker.trackErrorPublishing(response);
+      tracker.trackErrorPublishing(response, version);
   }
 
   boolean pushSubmission(String formId, Path submissionFile, RunnerStatus runnerStatus, PushToCentralTracker tracker, int submissionNumber, int totalSubmissions) {

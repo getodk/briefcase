@@ -186,11 +186,10 @@ public class CentralServer implements RemoteServer {
         .build();
   }
 
-  public Request<Map<String, Object>> getPushFormDraftRequest(String formId, Path formFile, String token) {
+  public Request<InputStream> getPushFormDraftRequest(String formId, Path formFile, String token) {
     return RequestBuilder.post(baseUrl)
-        .asJsonMap()
         .withIgnoreCookies()
-        .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/draft/")
+        .withPath("/v1/projects/" + projectId + "/forms/" + formId + "/draft")
         .withHeader("Authorization", "Bearer " + token)
         .withHeader("Content-Type", "application/xml")
         .withBody(newInputStream(formFile))
