@@ -163,13 +163,14 @@ public class PushToCentralTest {
 
 
   @Test
-  public void knows_how_to_push_completely_a_form_when_the_form_doesn_exist_in_Central() {
+  public void knows_how_to_push_completely_a_form_when_the_form_doesnt_exist_in_Central() {
     // High-level test that drives the public push operation
     http.stub(server.getFormExistsRequest(formStatus.getFormId(), token), ok(listOfFormsResponseFromCentral()));
     http.stub(server.getPushFormRequest(form, token), ok("{}"));
     http.stub(server.getPushFormAttachmentRequest(formStatus.getFormId(), formAttachment, token), ok("{}"));
     http.stub(server.getPushSubmissionRequest(token, formStatus.getFormId(), submission), ok("{}"));
     http.stub(server.getPushSubmissionAttachmentRequest(token, formStatus.getFormId(), instanceId, submissionAttachment), ok("{}"));
+    http.stub(server.getPublishDraftRequest(formStatus.getFormId(), token), ok("{}"));
 
     launchSync(pushOp.push(formStatus));
 
@@ -182,6 +183,7 @@ public class PushToCentralTest {
         hasItem("Submission 1 of 1 sent"),
         hasItem("Sending attachment 1 of 1 of submission 1 of 1"),
         hasItem("Attachment 1 of 1 of submission 1 of 1 sent"),
+        hasItem("Form published"),
         hasItem("Success")
     ));
   }

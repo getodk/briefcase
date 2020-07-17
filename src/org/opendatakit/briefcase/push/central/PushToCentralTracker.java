@@ -163,8 +163,24 @@ class PushToCentralTracker {
     errored = true;
     String centralErrorMessage = parseErrorResponse(response.getServerErrorResponse());
     String message = "Error sending form attachment " + attachmentNumber + " of " + totalAttachments;
-    form.setStatusString(message + ": " + response.getStatusPhrase());
+    String helpFor404 = " This version of Briefcase supports Central v0.8 and up. " +
+        "If your Central server doesn't have form drafts, please either upgrade Central to v0.8 or higher or downgrade Briefcase to v1.17.4 or lower.";
+    form.setStatusString(message + ": " + response.getStatusPhrase() + (response.getStatusCode() == 404 ? helpFor404 : ""));
     log.error("Push {} - {} HTTP {} {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase(), centralErrorMessage);
+    notifyTrackingEvent();
+  }
+
+  void trackSuccessfulPublish() {
+    String message = "Form published";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackErrorPublishing(Response response) {
+    String message = "Error publishing form";
+    form.setStatusString(message + ": " + response.getStatusPhrase());
+    log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
 
