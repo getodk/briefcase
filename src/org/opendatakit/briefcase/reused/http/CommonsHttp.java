@@ -48,7 +48,7 @@ public class CommonsHttp implements Http {
   private Executor executor;
   private final int maxConnections;
   private final BasicCookieStore cookieStore;
-  private static final Logger LOG = LoggerFactory.getLogger(CommonsHttp.class);
+  private static final Logger log = LoggerFactory.getLogger(CommonsHttp.class);
 
   private CommonsHttp(Executor executor, int maxConnections, BasicCookieStore cookieStore) {
     this.executor = executor;
@@ -155,7 +155,7 @@ public class CommonsHttp implements Http {
       try {
         UncheckedFiles.closeInputStream(request.getBody());
       } catch (final BriefcaseException exception) {
-        LOG.error("Error: Attempted to close Request.body InputStream, but failed", exception);
+        log.error("Error: Attempted to close Request.body InputStream, but failed", exception);
       }
       if (request.multipartMessages != null)
         request.multipartMessages.stream()

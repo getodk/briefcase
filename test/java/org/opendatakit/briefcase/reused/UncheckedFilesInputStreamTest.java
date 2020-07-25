@@ -1,7 +1,5 @@
 package org.opendatakit.briefcase.reused;
 
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createFile;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createTempDirectory;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.deleteRecursive;
@@ -10,34 +8,27 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 
-public class UncheckedFilesTest {
-  private static Path tempDir;
+public class UncheckedFilesInputStreamTest {
+  private Path tempDir;
   private Path temp;
 
 
   @Before
   public void setUp() {
     tempDir = createTempDirectory("briefcase");
-    temp = Paths.get(tempDir.toString() + "/test.txt");
+    temp = tempDir.resolve("test.txt");
     createFile(temp);
   }
 
   @After
   public void tearDown() {
     deleteRecursive(tempDir);
-  }
-
-  @Test(expected = UncheckedIOException.class)
-  public void newInputStream_should_throw_exception() {
-    UncheckedFiles.delete(temp);
-    UncheckedFiles.newInputStream(Paths.get(tempDir.toString() + "/test.txt"));
   }
 
   @Test
@@ -47,8 +38,8 @@ public class UncheckedFilesTest {
 
   @Test(expected = IOException.class)
   public void closeInputStream_should_close() throws IOException {
-    InputStream inputStream = UncheckedFiles.newInputStream(Paths.get(tempDir.toString() + "/test.txt"));
-    // close inputStream
+    InputStream inputStream = UncheckedFiles.newInputStream(temp);
+
     UncheckedFiles.closeInputStream(inputStream);
 
     // after close, .available() should throw exception
@@ -57,9 +48,16 @@ public class UncheckedFilesTest {
 
   @Test(expected = UncheckedIOException.class)
   public void closeInputStream_should_throw_exception() throws IOException {
-    InputStream inputStream = mock(InputStream.class);
-    doThrow(new IOException()).when(inputStream).close();
-
-    UncheckedFiles.closeInputStream(inputStream);
+    InputStream is = new InputStream() {
+      @Override
+      public int read() throws IOException {
+        return 0;
+      }
+      @Override
+      public void close() throws IOException {
+        throw new IOException("chuchu");
+      }
+    };
+    UncheckedFiles.closeInputStream(is);
   }
 }
