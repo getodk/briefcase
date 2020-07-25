@@ -99,6 +99,7 @@ public class PushToCentral {
               formAttachments.forEach(attachment ->
                   pushFormAttachment(form.getFormId(), attachment, rs, tracker, attachmentSeq.getAndIncrement(), totalAttachments)
               );
+              publishDraft(form.getFormId(), rs, tracker);
             }
           }
         }))
@@ -201,6 +202,19 @@ public class PushToCentral {
       tracker.trackFormAttachmentAlreadyExists(attachmentNumber, totalAttachments);
     else
       tracker.trackErrorSendingFormAttachment(attachmentNumber, totalAttachments, response);
+  }
+
+  void publishDraft(String formId, RunnerStatus runnerStatus, PushToCentralTracker tracker) {
+    if (runnerStatus.isCancelled()) {
+      tracker.trackCancellation("Publish form");
+      return;
+    }
+
+    Response response = http.execute(server.getPublishDraftRequest(formId, token));
+    if (response.isSuccess())
+      tracker.trackSuccessfulPublish();
+    else
+      tracker.trackErrorPublishing(response);
   }
 
   boolean pushSubmission(String formId, Path submissionFile, RunnerStatus runnerStatus, PushToCentralTracker tracker, int submissionNumber, int totalSubmissions) {
