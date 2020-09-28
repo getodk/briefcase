@@ -142,7 +142,7 @@ public class PullFromAggregate {
                 .forEach(pair -> {
                   int currentSubmissionNumber = pair.getLeft();
                   DownloadedSubmission submission = pair.getRight();
-                  submissionVersions.add(submission.getFormVersion().orElse(""));
+                  submission.getFormVersion().ifPresent(submissionVersions::add);
                   List<AggregateAttachment> submissionAttachments = submission.getAttachments();
                   AtomicInteger submissionAttachmentNumber = new AtomicInteger(1);
                   int totalSubmissionAttachments = submissionAttachments.size();
