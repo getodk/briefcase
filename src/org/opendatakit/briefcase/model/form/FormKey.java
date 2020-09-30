@@ -16,7 +16,7 @@ import org.opendatakit.briefcase.reused.Pair;
 public class FormKey implements AsJson {
   private final String name;
   private final String id;
-  private final Optional<String> version;
+  private final Optional<String> version; // not used in comparison
 
   private FormKey(String name, String id, Optional<String> version) {
     this.name = name;
@@ -107,13 +107,12 @@ public class FormKey implements AsJson {
     if (o == null || getClass() != o.getClass()) return false;
     FormKey formKey = (FormKey) o;
     return Objects.equals(name, formKey.name) &&
-        Objects.equals(id, formKey.id) &&
-        Objects.equals(version, formKey.version);
+        Objects.equals(id, formKey.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, id, version);
+    return Objects.hash(name, id);
   }
 
   @Override
@@ -121,7 +120,7 @@ public class FormKey implements AsJson {
     return "FormKey{" +
         "name='" + name + '\'' +
         ", id='" + id + '\'' +
-        ", version=" + version +
-        '}';
+        ", (version=" + version +
+        ")}";
   }
 }

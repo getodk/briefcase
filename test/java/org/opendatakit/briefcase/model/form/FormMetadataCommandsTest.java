@@ -83,6 +83,22 @@ public class FormMetadataCommandsTest {
   }
 
   @Test
+  public void gets_last_exported_submission_metadata_when_version_has_changed() {
+    OffsetDateTime expectedSubmissionDate = OffsetDateTime.parse("2019-01-01T00:00:00.000Z");
+    String expectedInstanceId = "some uuid";
+    OffsetDateTime expectedExportDate = OffsetDateTime.parse("2019-02-01T00:00:00.000Z");
+    formMetadataPort.execute(updateLastExportedSubmission(key, expectedInstanceId, expectedSubmissionDate, expectedExportDate, storageRoot, formDir));
+
+    FormKey newVersionKey = FormKey.of("Some form", "some-form", "2020092801");
+    assertThat(formMetadataPort.fetch(newVersionKey), isPresent());
+
+    ObjectNode jsonNode = formMetadataPort.fetch(newVersionKey).get().getLastExportedSubmission().get().asJson(new ObjectMapper());
+    assertThat(jsonNode.get("instanceId").asText(), is(expectedInstanceId));
+    assertThat(jsonNode.get("submissionDate").asText(), is(expectedSubmissionDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+    assertThat(jsonNode.get("exportDateTime").asText(), is(expectedExportDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+  }
+
+  @Test
   public void updates_all_metadata_removing_cursors() {
     List<FormMetadata> existingFormMetadata = IntStream.range(0, 10).mapToObj(this::buildFormMetadata).collect(Collectors.toList());
     existingFormMetadata.forEach(formMetadataPort::persist);
