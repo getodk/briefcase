@@ -20,6 +20,7 @@ import static java.awt.Color.GRAY;
 import static java.awt.Cursor.HAND_CURSOR;
 import static java.awt.Cursor.getPredefinedCursor;
 import static java.awt.Desktop.getDesktop;
+import static javax.swing.JOptionPane.DEFAULT_OPTION;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.YES_NO_OPTION;
@@ -28,6 +29,7 @@ import static javax.swing.SwingUtilities.invokeLater;
 import static org.opendatakit.briefcase.ui.MainBriefcaseWindow.APP_NAME;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -88,6 +90,12 @@ public class UI {
    */
   public static boolean confirm(String title, String message) {
     return JOptionPane.showConfirmDialog(buildDialogParent(), message, title, YES_NO_OPTION, PLAIN_MESSAGE) == YES_OPTION;
+  }
+
+  public static boolean actOrCancel(String title, String message, String action, Component parent) {
+    String formattedMessage = "<html><body><p style='width: 300px;'>" + message + "</p></body></html>";
+    Object[] options = {action, "Cancel"};
+    return JOptionPane.showOptionDialog(parent, formattedMessage, title, DEFAULT_OPTION, PLAIN_MESSAGE, null, options, options[0]) == 0;
   }
 
   /**

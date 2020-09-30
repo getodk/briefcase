@@ -16,16 +16,23 @@
 
 package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.target;
 
+import static org.opendatakit.briefcase.model.form.FormMetadataQueries.submissionVersionsOf;
 import static org.opendatakit.briefcase.ui.reused.UI.makeClickable;
 import static org.opendatakit.briefcase.ui.reused.UI.uncheckedBrowse;
 
 import java.awt.Container;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.model.FormStatus;
+import org.opendatakit.briefcase.model.form.FileSystemFormMetadataAdapter;
+import org.opendatakit.briefcase.model.form.FormKey;
+import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.push.PushEvent;
 import org.opendatakit.briefcase.push.central.PushToCentral;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -72,6 +79,31 @@ public class Central implements PushTarget<CentralServer> {
   @Override
   public String getDescription() {
     return server.getBaseUrl().toString();
+  }
+
+  @Override
+  public Optional<String> getPushWarning(Path briefcaseDir, TransferForms selectedForms) {
+    FormMetadataPort formMetadataPort = FileSystemFormMetadataAdapter.at(briefcaseDir);
+
+    Set<String> namesOfMultiVersionForms = new HashSet<>();
+
+    selectedForms.forEach(form -> {
+      Set<String> knownVersions = formMetadataPort.query(submissionVersionsOf(FormKey.from(form)));
+      form.getVersion().ifPresent(knownVersions::add);
+      if (knownVersions.size() > 1) {
+        namesOfMultiVersionForms.add(form.getFormName());
+      }
+    });
+
+    if (namesOfMultiVersionForms.size() > 0) {
+      String formNames = String.join(", ", namesOfMultiVersionForms);
+      return Optional.of("Some forms (" + formNames + ") have submissions for multiple versions. However, Briefcase only " +
+          "has the latest form definition for each.<br/<br/>If you proceed, Briefcase will push the same form definition " +
+          "for all versions not already on Central. Alternately, you can cancel and manually upload form definitions to Central. " +
+          "The active form definition version must be uploaded last.<br/><br/>It is generally safe to proceed. See " +
+          "https://docs.getodk.org/central-briefcase to understand the implications.</a>");
+    }
+    return Optional.empty();
   }
 
   @Override

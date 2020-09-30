@@ -23,6 +23,7 @@ import static org.opendatakit.briefcase.model.BriefcasePreferences.USERNAME;
 import static org.opendatakit.briefcase.model.BriefcasePreferences.getStorePasswordsConsentProperty;
 import static org.opendatakit.briefcase.ui.reused.UI.errorMessage;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.JPanel;
@@ -43,6 +44,7 @@ import org.opendatakit.briefcase.reused.job.JobsRunner;
 import org.opendatakit.briefcase.reused.transfer.RemoteServer;
 import org.opendatakit.briefcase.transfer.TransferForms;
 import org.opendatakit.briefcase.ui.reused.Analytics;
+import org.opendatakit.briefcase.ui.reused.UI;
 import org.opendatakit.briefcase.ui.reused.transfer.TransferPanelForm;
 import org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.target.PushTarget;
 import org.opendatakit.briefcase.util.FormCache;
@@ -91,14 +93,23 @@ public class PushPanel {
 
     view.onAction(() -> {
       view.setWorking();
-      forms.forEach(FormStatus::clearStatusHistory);
-      new Thread(() -> target.ifPresent(s -> {
-        pushJobRunner = s.push(
-            forms.getSelectedForms(),
-            appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new)
-        );
-        pushJobRunner.waitForCompletion();
-      })).start();
+      Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
+
+      target.ifPresent(target -> {
+        Optional<String> pushWarning = target.getPushWarning(briefcaseDir, forms.getSelectedForms());
+        boolean proceed = true;
+        if (pushWarning.isPresent()) {
+          proceed = UI.actOrCancel("Push Confirmation", pushWarning.get(), "Push", getContainer());
+        }
+
+        if (proceed) {
+          forms.forEach(FormStatus::clearStatusHistory);
+          new Thread(() -> {
+            pushJobRunner = target.push(forms.getSelectedForms(), briefcaseDir);
+            pushJobRunner.waitForCompletion();
+          }).start();
+        }
+      });
     });
 
     view.onCancel(() -> {

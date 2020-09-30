@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.ui.reused.transfer.sourcetarget.target;
 
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.BriefcasePreferences;
 import org.opendatakit.briefcase.reused.http.Http;
@@ -53,6 +54,8 @@ public interface PushTarget<T> extends SourceOrTarget<T> {
   JobsRunner push(TransferForms forms, Path briefcaseDir);
 
   String getDescription();
+
+  public Optional<String> getPushWarning(Path briefcaseDir, TransferForms selectedForms);
 
 }
 

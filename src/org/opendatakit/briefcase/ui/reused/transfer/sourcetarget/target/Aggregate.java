@@ -21,6 +21,7 @@ import static org.opendatakit.briefcase.ui.reused.UI.uncheckedBrowse;
 
 import java.awt.Container;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
 import org.bushe.swing.event.EventBus;
@@ -86,6 +87,10 @@ public class Aggregate implements PushTarget<AggregateServer> {
   @Override
   public String getDescription() {
     return server.getBaseUrl().toString();
+  }
+
+  public Optional<String> getPushWarning(Path briefcaseDir, TransferForms selectedForms) {
+    return Optional.empty();
   }
 
   @Override
