@@ -5,6 +5,7 @@ import static org.opendatakit.briefcase.reused.job.Job.run;
 
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
@@ -16,12 +17,13 @@ import org.opendatakit.briefcase.util.TransferFromODK;
 public class PullFromCollect {
   public static JobsRunner pullForms(FormMetadataPort formMetadataPort, TransferForms forms, Path briefcaseDir, Path collectDir, Consumer<PullEvent> onEvent) {
     return JobsRunner.launchAsync(forms.map(form -> run(jobStatus -> {
-      TransferFromODK action = new TransferFromODK(briefcaseDir, collectDir.toFile(), jobStatus, TransferForms.of(form));
+      Set<String> submissionVersions = new HashSet<>();
+      TransferFromODK action = new TransferFromODK(briefcaseDir, collectDir.toFile(), jobStatus, TransferForms.of(form), submissionVersions);
       try {
         boolean success = action.doAction();
         if (success) {
           onEvent.accept(PullEvent.Success.of(form));
-          formMetadataPort.execute(updateAsPulled(FormKey.from(form), briefcaseDir, form.getFormDir(briefcaseDir), new HashSet<>()));
+          formMetadataPort.execute(updateAsPulled(FormKey.from(form), briefcaseDir, form.getFormDir(briefcaseDir), submissionVersions));
         } // TODO Originally there was no explicit side effect on non successful individual pulls. We might want to give some feedback
       } catch (Exception e) {
         // This will lift any checked exception thrown by the underlying code
