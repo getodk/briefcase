@@ -45,14 +45,14 @@ public class FormMetadataCommandsTest {
 
   @Test
   public void updates_a_form_as_having_been_pulled() {
-    formMetadataPort.execute(updateAsPulled(key, storageRoot, formDir));
+    formMetadataPort.execute(updateAsPulled(key, storageRoot, formDir, Collections.emptySet()));
     assertThat(formMetadataPort.fetch(key).get().hasBeenPulled(), is(true));
   }
 
   @Test
   public void updates_a_form_as_having_been_pulled_adding_the_last_cursor_used_to_pull_it() {
     Cursor cursor = Cursor.from("some cursor data");
-    formMetadataPort.execute(updateAsPulled(key, cursor, storageRoot, formDir, new HashSet<>()));
+    formMetadataPort.execute(updateAsPulled(key, cursor, storageRoot, formDir, Collections.emptySet()));
     FormMetadata formMetadata = formMetadataPort.fetch(key).get();
     assertThat(formMetadata.hasBeenPulled(), is(true));
     assertThat(formMetadata.getCursor(), is(cursor));

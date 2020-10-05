@@ -2,7 +2,6 @@ package org.opendatakit.briefcase.model.form;
 
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -22,11 +21,11 @@ public class FormMetadataCommands {
     };
   }
 
-  public static Consumer<FormMetadataPort> updateAsPulled(FormKey key, Path storageRoot, Path formDir) {
+  public static Consumer<FormMetadataPort> updateAsPulled(FormKey key, Path storageRoot, Path formDir, Set<String> submissionVersions) {
     return port -> port.persist(port
         .fetch(key)
         .orElseGet(() -> FormMetadata.of(key, storageRoot, formDir))
-        .withHasBeenPulled(true, new HashSet<>()));
+        .withHasBeenPulled(true, submissionVersions));
   }
 
   public static Consumer<FormMetadataPort> updateLastExportedSubmission(FormKey key, String instanceId, OffsetDateTime submissionDate, OffsetDateTime exportDateTime, Path storageRoot, Path formDir) {
