@@ -223,7 +223,9 @@ class PushToCentralTracker {
     errored = true;
     String centralErrorMessage = parseErrorResponse(response.getServerErrorResponse());
     String message = "Error sending submission " + submissionNumber + " of " + totalSubmissions;
-    form.setStatusString(message + ": " + response.getStatusPhrase());
+    String helpFor404 = " This submission was created for a form version that is not on the server. You can manually " +
+        "upload older form versions or let this push attempt complete and then try again. Learn more at https://docs.getodk.org/central-briefcase";
+    form.setStatusString(message + ": " + (response.getStatusCode() == 404 ? helpFor404 : response.getStatusPhrase()));
     log.error("Push {} - {} HTTP {} {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase(), centralErrorMessage);
     notifyTrackingEvent();
   }
