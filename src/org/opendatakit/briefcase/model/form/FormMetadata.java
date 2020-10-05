@@ -120,6 +120,13 @@ public class FormMetadata implements AsJson {
     return new FormMetadata(key, storageRoot, formDir, hasBeenPulled, Cursor.empty(), lastExportedSubmission, submissionVersions);
   }
 
+  FormMetadata withSubmissionVersions(Set<String> submissionVersions) {
+    Set<String> updatedSubmissionVersions = new HashSet<>(submissionVersions);
+    updatedSubmissionVersions.addAll(this.submissionVersions);
+
+    return new FormMetadata(key, storageRoot, formDir, hasBeenPulled, cursor, lastExportedSubmission, updatedSubmissionVersions);
+  }
+
   FormMetadata withHasBeenPulled(boolean hasBeenPulled, Set<String> submissionVersions) {
     Set<String> updatedSubmissionVersions = new HashSet<>(submissionVersions);
     updatedSubmissionVersions.addAll(this.submissionVersions);

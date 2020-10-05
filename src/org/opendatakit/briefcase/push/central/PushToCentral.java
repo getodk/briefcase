@@ -18,6 +18,7 @@ package org.opendatakit.briefcase.push.central;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static org.opendatakit.briefcase.model.form.FormMetadataCommands.updateSubmissionVersions;
 import static org.opendatakit.briefcase.model.form.FormMetadataQueries.submissionVersionsOf;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.exists;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
@@ -132,10 +133,16 @@ public class PushToCentral {
           int totalSubmissions = submissions.size();
           if (submissions.isEmpty())
             tracker.trackNoSubmissions();
+
+          // We might not have had access to submission versions because e.g. submissions were manually added to the
+          // Briefcase folder or were imported in <=v1.17 when submission versions weren't saved.
+          Set<String> seenVersions = new HashSet<>();
+
           submissions.parallelStream()
               .map(submission -> {
                 XmlElement root = XmlElement.from(new String(readAllBytes(submission)));
                 SubmissionMetaData metaData = new SubmissionMetaData(root);
+                metaData.getVersion().ifPresent(seenVersions::add);
                 return Triple.of(submission, submissionNumber.getAndIncrement(), metaData.getInstanceId());
               })
               .peek(triple -> {
@@ -157,6 +164,7 @@ public class PushToCentral {
                   );
                 }
               });
+          formMetadataPort.execute(updateSubmissionVersions(FormKey.from(form), briefcaseDir, form.getFormDir(briefcaseDir), seenVersions));
           tracker.trackEnd();
         })
         .thenRun(rs -> EventBus.publish(new PushEvent.Success(form)));

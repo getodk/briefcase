@@ -28,6 +28,13 @@ public class FormMetadataCommands {
         .withHasBeenPulled(true, submissionVersions));
   }
 
+  public static Consumer<FormMetadataPort> updateSubmissionVersions(FormKey key, Path storageRoot, Path formDir, Set<String> submissionVersions) {
+    return port -> port.persist(port
+        .fetch(key)
+        .orElseGet(() -> FormMetadata.of(key, storageRoot, formDir))
+        .withSubmissionVersions(submissionVersions));
+  }
+
   public static Consumer<FormMetadataPort> updateLastExportedSubmission(FormKey key, String instanceId, OffsetDateTime submissionDate, OffsetDateTime exportDateTime, Path storageRoot, Path formDir) {
     return port -> port.persist(port
         .fetch(key)
