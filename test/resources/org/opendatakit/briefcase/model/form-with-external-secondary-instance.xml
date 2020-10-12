@@ -1,0 +1,22 @@
+<h:html xmlns="http://www.w3.org/2002/xforms"
+        xmlns:h="http://www.w3.org/1999/xhtml">
+
+  <h:head>
+    <h:title>Form with external secondary instance</h:title>
+    <model>
+      <instance>
+        <data id="external-instance">
+          <first_item_label/>
+        </data>
+      </instance>
+
+      <instance id="external-xml" src="jr://file/external-xml.xml"/>
+
+      <bind nodeset="/data/first_item_label" calculate="instance('external-xml')/item[name = 'a']/label"/>
+    </model>
+  </h:head>
+
+  <h:body>
+  </h:body>
+
+</h:html>

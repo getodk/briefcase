@@ -1,5 +1,7 @@
 package org.opendatakit.briefcase.util;
 
+import static org.opendatakit.briefcase.util.FileSystemUtils.getMediaDirectory;
+
 import java.io.File;
 import org.javarosa.core.model.instance.TreeElement;
 import org.opendatakit.aggregate.exception.ODKIncompleteSubmissionData;
@@ -10,7 +12,7 @@ public class JavaRosaParserWrapper extends BaseFormParserForJavaRosa {
   private final File formDefinitionFile;
 
   public JavaRosaParserWrapper(File formDefinitionFile, String inputXml) throws ODKIncompleteSubmissionData {
-    super(inputXml, null, true);
+    super(inputXml, null, getMediaDirectory(formDefinitionFile.getParentFile()), true);
     this.formDefinitionFile = formDefinitionFile;
   }
 

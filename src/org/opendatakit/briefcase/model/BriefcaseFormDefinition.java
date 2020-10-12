@@ -17,6 +17,7 @@
 package org.opendatakit.briefcase.model;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.opendatakit.briefcase.util.FileSystemUtils.getMediaDirectory;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -160,7 +161,8 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
           // newDefn is considered identical to what we have locally...
           result = DifferenceResult.XFORMS_IDENTICAL;
         } else {
-          result = JavaRosaParserWrapper.compareXml(newDefn, existingXml, existingTitle, true);
+          result = JavaRosaParserWrapper.compareXml(newDefn, existingXml, existingTitle,
+              getMediaDirectory(briefcaseFormDirectory), true);
         }
 
         if (result == DifferenceResult.XFORMS_DIFFERENT) {
@@ -169,6 +171,7 @@ public class BriefcaseFormDefinition implements IFormDefinition, Serializable {
                 newDefn,
                 revisedXml,
                 Objects.requireNonNull(revisedDefn).getFormName(),
+                getMediaDirectory(briefcaseFormDirectory),
                 true
             );
             if (result == DifferenceResult.XFORMS_DIFFERENT) {
