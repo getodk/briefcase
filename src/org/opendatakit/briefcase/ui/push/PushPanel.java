@@ -92,7 +92,6 @@ public class PushPanel {
     view.onChange(this::updateActionButtons);
 
     view.onAction(() -> {
-      view.setWorking();
       Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
 
       target.ifPresent(target -> {
@@ -103,6 +102,7 @@ public class PushPanel {
         }
 
         if (proceed) {
+          view.setWorking();
           forms.forEach(FormStatus::clearStatusHistory);
           new Thread(() -> {
             pushJobRunner = target.push(forms.getSelectedForms(), briefcaseDir);

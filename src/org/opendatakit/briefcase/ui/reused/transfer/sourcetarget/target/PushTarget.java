@@ -55,7 +55,7 @@ public interface PushTarget<T> extends SourceOrTarget<T> {
 
   String getDescription();
 
-  public Optional<String> getPushWarning(Path briefcaseDir, TransferForms selectedForms);
+  Optional<String> getPushWarning(Path briefcaseDir, TransferForms selectedForms);
 
 }
 
