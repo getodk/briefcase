@@ -109,7 +109,7 @@ public class PushToCentral {
 
           // Send all of the obsolete versions first so that we can send corresponding submissions. Skip attachments
           // because those versions won't be used by clients.
-          missingFormVersions.forEach(version -> {
+          missingFormVersions.stream().sorted().forEach(version -> {
             pushFormDraft(form.getFormFile(briefcaseDir), form.getFormId(), version, rs, tracker);
             publishDraft(form.getFormId(), version, rs, tracker);
           });
