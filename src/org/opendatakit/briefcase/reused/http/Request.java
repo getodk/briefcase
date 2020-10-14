@@ -83,7 +83,7 @@ public class Request<T> {
   // TODO v2.0 Move this to RequestBuilder, with uri() and isUri()
   URI asUri() {
     try {
-      return url.toURI();
+      return new URI(url.toString().replaceAll(" ", "%20"));
     } catch (URISyntaxException e) {
       throw new BriefcaseException(e);
     }
