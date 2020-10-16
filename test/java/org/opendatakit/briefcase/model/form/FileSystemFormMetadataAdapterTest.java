@@ -70,7 +70,6 @@ public class FileSystemFormMetadataAdapterTest {
     JsonNode root = MAPPER.readTree(metadataFile.toFile());
     assertThat(root.path("key").path("name").asText(), is("Some form"));
     assertThat(root.path("key").path("id").asText(), is("some-form"));
-    assertThat(root.path("key").path("version").isNull(), is(true));
     assertThat(root.path("formDir").asText(), is("forms/Some form"));
     assertThat(root.path("hasBeenPulled").asBoolean(), is(true));
     assertThat(root.path("cursor").path("type").asText(), is("empty"));
@@ -185,8 +184,7 @@ public class FileSystemFormMetadataAdapterTest {
         .childrenOf().get(0);
     FormKey key = FormKey.of(
         root.findElements("head", "title").get(0).getValue(),
-        mainInstance.getAttributeValue("id").orElseThrow(RuntimeException::new),
-        mainInstance.getAttributeValue("version")
+        mainInstance.getAttributeValue("id").orElseThrow(RuntimeException::new)
     );
     return new FormMetadata(key, storageRoot, formFile.getParent(), cursor.isEmpty(), cursor, Optional.empty(), Collections.emptySet());
   }

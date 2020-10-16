@@ -89,7 +89,7 @@ public class FormMetadataCommandsTest {
     OffsetDateTime expectedExportDate = OffsetDateTime.parse("2019-02-01T00:00:00.000Z");
     formMetadataPort.execute(updateLastExportedSubmission(key, expectedInstanceId, expectedSubmissionDate, expectedExportDate, storageRoot, formDir));
 
-    FormKey newVersionKey = FormKey.of("Some form", "some-form", "2020092801");
+    FormKey newVersionKey = FormKey.of("Some form", "some-form");
     assertThat(formMetadataPort.fetch(newVersionKey), isPresent());
 
     ObjectNode jsonNode = formMetadataPort.fetch(newVersionKey).get().getLastExportedSubmission().get().asJson(new ObjectMapper());
