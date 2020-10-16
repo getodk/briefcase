@@ -47,7 +47,7 @@ public class FileSystemFormMetadataAdapter implements FormMetadataPort {
   }
 
   public FormMetadataPort syncWithFilesAt(Path storageRoot) {
-    Stream<Path> allFiles = walk(storageRoot.resolve("forms"));
+    Stream<Path> allFiles = walk(storageRoot.resolve("forms"), 2);
 
     // select XML files that are not submissions
     Stream<Path> candidateFormFiles = allFiles.filter(path ->
