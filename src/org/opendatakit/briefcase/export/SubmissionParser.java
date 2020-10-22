@@ -86,11 +86,12 @@ public class SubmissionParser {
         .forEach(instanceDir -> {
           Path submissionFile = instanceDir.resolve("submission.xml");
           try {
-            Optional<OffsetDateTime> submissionDate = readSubmissionDate(submissionFile, onParsingError);
+            Optional<OffsetDateTime> submissionDate = readSubmissionDate(submissionFile);
             paths.add(Pair.of(submissionFile, submissionDate.orElse(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC))));
           } catch (Throwable t) {
-            log.error("Can't read submission date", t);
+            log.error("Parse error attempting to read instance date", t);
             EventBus.publish(ExportEvent.failureSubmission(formDef, instanceDir.getFileName().toString(), t));
+            onParsingError.accept(submissionFile, "Parse error attempting to read instance date");
           }
         });
     return paths.parallelStream()
@@ -152,31 +153,25 @@ public class SubmissionParser {
     });
   }
 
-  private static Optional<OffsetDateTime> readSubmissionDate(Path path, SubmissionExportErrorCallback onParsingError) {
+  private static Optional<OffsetDateTime> readSubmissionDate(Path path) throws XMLStreamException {
     try (InputStream is = Files.newInputStream(path);
          InputStreamReader isr = new InputStreamReader(is, UTF_8)) {
-      return parseAttribute(path, isr, "submissionDate", onParsingError)
+      return parseAttribute(isr, "submissionDate")
           .map(Iso8601Helpers::parseDateTime);
     } catch (IOException e) {
       throw new CryptoException("Can't decrypt file", e);
     }
   }
 
-  private static Optional<String> parseAttribute(Path submission, Reader ioReader, String attributeName, SubmissionExportErrorCallback onParsingError) {
-    try {
-      XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(ioReader);
-      while (reader.hasNext())
-        if (reader.next() == START_ELEMENT)
-          for (int i = 0, c = reader.getAttributeCount(); i < c; ++i)
-            if (reader.getAttributeLocalName(i).equals(attributeName))
-              return Optional.of(reader.getAttributeValue(i));
-    } catch (XMLStreamException e) {
-      log.error("Can't parse submission", e);
-      onParsingError.accept(submission, "parsing error");
-    }
+  private static Optional<String> parseAttribute(Reader ioReader, String attributeName) throws XMLStreamException {
+    XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(ioReader);
+    while (reader.hasNext())
+      if (reader.next() == START_ELEMENT)
+        for (int i = 0, c = reader.getAttributeCount(); i < c; ++i)
+          if (reader.getAttributeLocalName(i).equals(attributeName))
+            return Optional.of(reader.getAttributeValue(i));
     return Optional.empty();
   }
-
 
   private static Optional<Submission> decrypt(Submission submission, SubmissionExportErrorCallback onError) {
     List<Path> mediaPaths = submission.getMediaPaths();
