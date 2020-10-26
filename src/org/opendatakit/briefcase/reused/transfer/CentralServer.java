@@ -231,6 +231,7 @@ public class CentralServer implements RemoteServer {
         .withPath("/v1/projects/" + projectId + "/forms")
         .withHeader("Authorization", "Bearer " + token)
         .withResponseMapper(list -> list.stream()
+            .filter(json -> json.get("publishedAt") != null)
             .map(json -> new RemoteFormDefinition(
                 (String) json.get("name"),
                 (String) json.get("xmlFormId"),
