@@ -224,8 +224,8 @@ public class PullFromCentralTest {
       assertThat(expectedAttachments, hasItem(attachment));
 
     assertThat(events, contains(
-        "Start getting attachments of submission 1 of 1",
-        "Got all the attachments of submission 1 of 1"
+        "  Start getting attachment list of submission 1 of 1",
+        "  Got attachment list of submission 1 of 1"
     ));
   }
 
@@ -242,12 +242,12 @@ public class PullFromCentralTest {
     expectedAttachments.forEach(attachment -> assertThat(form.getSubmissionMediaFile(briefcaseDir, instanceId, attachment.getName()), exists()));
 
     assertThat(events, contains(
-        "Start downloading attachment 1 of 3 of submission 1 of 1",
-        "Attachment 1 of 3 of submission 1 of 1 downloaded",
-        "Start downloading attachment 2 of 3 of submission 1 of 1",
-        "Attachment 2 of 3 of submission 1 of 1 downloaded",
-        "Start downloading attachment 3 of 3 of submission 1 of 1",
-        "Attachment 3 of 3 of submission 1 of 1 downloaded"
+        "  Start downloading attachment 1 of 3 of submission 1 of 1",
+        "  Attachment 1 of 3 of submission 1 of 1 downloaded",
+        "  Start downloading attachment 2 of 3 of submission 1 of 1",
+        "  Attachment 2 of 3 of submission 1 of 1 downloaded",
+        "  Start downloading attachment 3 of 3 of submission 1 of 1",
+        "  Attachment 3 of 3 of submission 1 of 1 downloaded"
     ));
   }
 }
