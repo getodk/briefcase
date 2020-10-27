@@ -27,6 +27,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -247,11 +250,13 @@ public class TransferTestHelpers {
                     "\t{\n" +
                     "\t  \"xmlFormId\": \"%s\",\n" +
                     "\t  \"name\": \"%s\",\n" +
-                    "\t  \"version\": %s\n" +
+                    "\t  \"version\": %s\n," +
+                    "\t  \"publishedAt\": \"%s\"\n" +
                     "\t}",
                 form.getFormId(),
                 form.getFormName(),
-                form.getFormDefinition().getVersionString() == null ? "null" : "\"" + form.getFormDefinition().getVersionString() + "\""
+                form.getFormDefinition().getVersionString() == null ? "null" : "\"" + form.getFormDefinition().getVersionString() + "\"",
+                ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT )
             ))
             .collect(joining(",\n"))
         + "\n]";
