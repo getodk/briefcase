@@ -149,7 +149,9 @@ public class PullFromAggregate {
                   submissionAttachments.parallelStream().forEach(attachment ->
                       downloadSubmissionAttachment(form, submission, attachment, rs, tracker, currentSubmissionNumber, totalSubmissions, submissionAttachmentNumber.getAndIncrement(), totalSubmissionAttachments)
                   );
-                  db.putRecordedInstanceDirectory(submission.getInstanceId(), form.getSubmissionDir(briefcaseDir, submission.getInstanceId()).toFile());
+                  if (!rs.isCancelled()) {
+                    db.putRecordedInstanceDirectory(submission.getInstanceId(), form.getSubmissionDir(briefcaseDir, submission.getInstanceId()).toFile());
+                  }
                 });
           });
 
