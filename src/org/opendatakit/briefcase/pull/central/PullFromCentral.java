@@ -40,7 +40,7 @@ import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.form.FormKey;
 import org.opendatakit.briefcase.model.form.FormMetadataPort;
 import org.opendatakit.briefcase.pull.PullEvent;
-import org.opendatakit.briefcase.reused.Triple;
+import org.opendatakit.briefcase.reused.Pair;
 import org.opendatakit.briefcase.reused.http.Http;
 import org.opendatakit.briefcase.reused.http.response.Response;
 import org.opendatakit.briefcase.reused.job.Job;
@@ -98,28 +98,31 @@ public class PullFromCentral {
             tracker.trackNoSubmissions();
 
           submissions.stream()
-              .map(instanceId -> Triple.of(submissionNumber.getAndIncrement(), instanceId, db.hasRecordedInstance(instanceId) == null))
-              .peek(triple -> {
-                if (!triple.get3())
-                  tracker.trackSubmissionAlreadyDownloaded(triple.get1(), totalSubmissions);
-              })
-              .filter(Triple::get3)
-              .forEach(triple -> {
-                int currentSubmissionNumber = triple.get1();
-                String instanceId = triple.get2();
-                downloadSubmission(form, instanceId, token, runnerStatus, tracker, currentSubmissionNumber, totalSubmissions);
+              .map(instanceId -> Pair.of(submissionNumber.getAndIncrement(), instanceId))
+              .forEach(submissionNumberId -> {
+                int currentSubmissionNumber = submissionNumberId.getLeft();
+                String instanceId = submissionNumberId.getRight();
+
+                boolean inDb = db.hasRecordedInstance(instanceId) != null;
                 Path downloadedSubmissionPath = form.getSubmissionFile(briefcaseDir, instanceId);
-                if (downloadedSubmissionPath.toFile().exists()) {
-                  XmlElement root = XmlElement.from(new String(readAllBytes(downloadedSubmissionPath)));
-                  SubmissionMetaData metaData = new SubmissionMetaData(root);
-                  metaData.getVersion().ifPresent(submissionVersions::add);
+                if (!inDb || !downloadedSubmissionPath.toFile().exists()) {
+                  downloadSubmission(form, instanceId, token, runnerStatus, tracker, currentSubmissionNumber, totalSubmissions);
+                  if (downloadedSubmissionPath.toFile().exists()) {
+                    XmlElement root = XmlElement.from(new String(readAllBytes(downloadedSubmissionPath)));
+                    SubmissionMetaData metaData = new SubmissionMetaData(root);
+                    metaData.getVersion().ifPresent(submissionVersions::add);
+                  }
+                } else {
+                  tracker.trackSubmissionAlreadyDownloaded(currentSubmissionNumber, totalSubmissions);
                 }
 
-                List<CentralAttachment> attachments = getSubmissionAttachments(form, instanceId, token, runnerStatus, tracker, currentSubmissionNumber, totalSubmissions);
+                List<CentralAttachment> attachments = getSubmissionAttachmentList(form, instanceId, token, runnerStatus, tracker, currentSubmissionNumber, totalSubmissions);
                 int totalAttachments = attachments.size();
                 AtomicInteger attachmentNumber = new AtomicInteger(1);
-                attachments.forEach(attachment ->
-                    downloadSubmissionAttachment(form, instanceId, attachment, token, runnerStatus, tracker, currentSubmissionNumber, totalSubmissions, attachmentNumber.getAndIncrement(), totalAttachments)
+                attachments.stream()
+                    .filter(attachment -> !inDb || !form.getSubmissionMediaFile(briefcaseDir, instanceId, attachment.getName()).toFile().exists())
+                    .forEach(attachment ->
+                        downloadSubmissionAttachment(form, instanceId, attachment, token, runnerStatus, tracker, currentSubmissionNumber, totalSubmissions, attachmentNumber.getAndIncrement(), totalAttachments)
                 );
                 db.putRecordedInstanceDirectory(instanceId, form.getSubmissionDir(briefcaseDir, instanceId).toFile());
               });
@@ -218,21 +221,21 @@ public class PullFromCentral {
       tracker.trackErrorDownloadingSubmission(submissionNumber, totalSubmissions, response);
   }
 
-  List<CentralAttachment> getSubmissionAttachments(FormStatus form, String instanceId, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker, int submissionNumber, int totalSubmissions) {
+  List<CentralAttachment> getSubmissionAttachmentList(FormStatus form, String instanceId, String token, RunnerStatus runnerStatus, PullFromCentralTracker tracker, int submissionNumber, int totalSubmissions) {
     if (runnerStatus.isCancelled()) {
       tracker.trackCancellation("Get submission attachments of " + instanceId);
       return emptyList();
     }
 
-    tracker.trackStartGettingSubmissionAttachments(submissionNumber, totalSubmissions);
+    tracker.trackStartGettingSubmissionAttachmentList(submissionNumber, totalSubmissions);
     Response<List<CentralAttachment>> response = http.execute(server.getSubmissionAttachmentListRequest(form.getFormId(), instanceId, token));
     if (!response.isSuccess()) {
-      tracker.trackErrorGettingSubmissionAttachments(submissionNumber, totalSubmissions, response);
+      tracker.trackErrorGettingSubmissionAttachmentList(instanceId, response);
       return emptyList();
     }
 
     List<CentralAttachment> attachments = response.get();
-    tracker.trackEndGettingSubmissionAttachments(submissionNumber, totalSubmissions);
+    tracker.trackEndGettingSubmissionAttachmentList(submissionNumber, totalSubmissions);
     return attachments;
   }
 
@@ -250,6 +253,6 @@ public class PullFromCentral {
     if (response.isSuccess())
       tracker.trackEndDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments);
     else
-      tracker.trackErrorDownloadingSubmissionAttachment(submissionNumber, totalSubmissions, attachmentNumber, totalAttachments, response);
+      tracker.trackErrorDownloadingSubmissionAttachment(instanceId, attachment.getName(), response);
   }
 }

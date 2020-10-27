@@ -218,7 +218,7 @@ public class PullFromCentralTest {
         ok(jsonOfAttachments(expectedAttachments))
     );
 
-    List<CentralAttachment> actualAttachments = pullOp.getSubmissionAttachments(form, instanceId, token, runnerStatus, tracker, 1, 1);
+    List<CentralAttachment> actualAttachments = pullOp.getSubmissionAttachmentList(form, instanceId, token, runnerStatus, tracker, 1, 1);
     assertThat(actualAttachments, hasSize(expectedAttachments.size()));
     for (CentralAttachment attachment : actualAttachments)
       assertThat(expectedAttachments, hasItem(attachment));
