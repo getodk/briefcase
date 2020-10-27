@@ -164,14 +164,9 @@ public class FileSystemUtils {
     return new File(formDirectory, formDirectory.getName() + ".xml");
   }
 
-  static File getMediaDirectory(File formDirectory)
-      throws FileSystemException {
-    File mediaDir = new File(formDirectory, formDirectory.getName() + "-media");
-    if (!mediaDir.exists() && !mediaDir.mkdirs()) {
-      throw new FileSystemException("unable to create directory: " + mediaDir.getAbsolutePath());
-    }
-
-    return mediaDir;
+  // May or may not actually exist on disk depending on whether the form definition has attached media.
+  public static File getMediaDirectory(File formDirectory) throws FileSystemException {
+    return new File(formDirectory, formDirectory.getName() + "-media");
   }
 
   static File getFormInstancesDirectory(File formDirectory) throws FileSystemException {

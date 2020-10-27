@@ -17,6 +17,7 @@
 
 package org.opendatakit.aggregate.parser;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringReader;
@@ -32,6 +33,7 @@ import org.javarosa.core.model.instance.AbstractTreeElement;
 import org.javarosa.core.model.instance.FormInstance;
 import org.javarosa.core.model.instance.TreeElement;
 import org.javarosa.core.model.instance.TreeReference;
+import org.javarosa.core.reference.ReferenceManager;
 import org.javarosa.core.services.PrototypeManager;
 import org.javarosa.model.xform.XFormsModule;
 import org.javarosa.xform.parse.XFormParser;
@@ -342,7 +344,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
    *
    * @throws ODKIncompleteSubmissionData
    */
-  protected BaseFormParserForJavaRosa(String existingXml, String existingTitle, boolean allowLegacy)
+  protected BaseFormParserForJavaRosa(String existingXml, String existingTitle, File mediaDirectory, boolean allowLegacy)
       throws ODKIncompleteSubmissionData {
     if (existingXml == null) {
       throw new ODKIncompleteSubmissionData(Reason.MISSING_XML);
@@ -351,6 +353,8 @@ public class BaseFormParserForJavaRosa implements Serializable {
     xml = existingXml;
 
     initializeJavaRosa();
+    ReferenceManager.instance().reset();
+    ReferenceManager.instance().addReferenceFactory(new MediaFileReferenceFactory(mediaDirectory));
 
     XFormParserWithBindEnhancements xfp = parseFormDefinition(xml, this);
     try {
@@ -568,8 +572,8 @@ public class BaseFormParserForJavaRosa implements Serializable {
    *     encryption.
    * @throws ODKIncompleteSubmissionData
    */
-  public static DifferenceResult compareXml(BaseFormParserForJavaRosa incomingParser,
-                                            String existingXml, String existingTitle, boolean isWithinUpdateWindow)
+  public static DifferenceResult compareXml(BaseFormParserForJavaRosa incomingParser, String existingXml,
+                                            String existingTitle, File mediaDirectory, boolean isWithinUpdateWindow)
       throws ODKIncompleteSubmissionData {
     if (incomingParser == null || existingXml == null) {
       throw new ODKIncompleteSubmissionData(Reason.MISSING_XML);
@@ -584,7 +588,7 @@ public class BaseFormParserForJavaRosa implements Serializable {
     FormDef formDef1;
     FormDef formDef2;
     BaseFormParserForJavaRosa existingParser = new BaseFormParserForJavaRosa(existingXml,
-        existingTitle, true);
+        existingTitle, mediaDirectory, true);
     formDef1 = incomingParser.rootJavaRosaFormDef;
     formDef2 = existingParser.rootJavaRosaFormDef;
     if (formDef1 == null || formDef2 == null) {
