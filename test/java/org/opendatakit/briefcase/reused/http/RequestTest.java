@@ -17,8 +17,10 @@
 package org.opendatakit.briefcase.reused.http;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 import java.io.ByteArrayInputStream;
@@ -28,6 +30,7 @@ import org.junit.Test;
 public class RequestTest {
 
   private static final String BASE_URL = "http://foo.com";
+  private static final String URL_WITH_SPACE = "http://foo.com/some spaces are here";
 
   @Test
   public void can_map_a_response_body() {
@@ -39,5 +42,11 @@ public class RequestTest {
   @Test
   public void can_return_its_uri() {
     assertThat(RequestBuilder.get(BASE_URL).build().asUri(), instanceOf(URI.class));
+  }
+
+  @Test
+  public void can_return_its_uri_with_encoded_spaces() {
+    assertThat(RequestBuilder.get(URL_WITH_SPACE).build().asUri(), instanceOf(URI.class));
+    assertThat(RequestBuilder.get(URL_WITH_SPACE).build().asUri().toString(), not(containsString(" ")));
   }
 }
