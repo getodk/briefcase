@@ -135,7 +135,7 @@ public class TransferTestHelpers {
     return new FormStatus(new RemoteFormDefinition(
         formName,
         formName,
-        null,
+        "2020031801",
         manifestUrl,
         null
     ));

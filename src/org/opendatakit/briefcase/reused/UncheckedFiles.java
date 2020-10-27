@@ -119,12 +119,16 @@ public class UncheckedFiles {
     }
   }
 
-  public static Stream<Path> walk(Path path, FileVisitOption... options) {
+  public static Stream<Path> walk(Path path, int maxDepth, FileVisitOption... options) {
     try {
-      return Files.walk(path, options);
+      return Files.walk(path, maxDepth, options);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+  }
+
+  public static Stream<Path> walk(Path path, FileVisitOption... options) {
+    return walk(path, Integer.MAX_VALUE, options);
   }
 
   public static Path createTempDirectory(String prefix, FileAttribute<?>... attrs) {

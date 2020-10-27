@@ -19,6 +19,7 @@ package org.opendatakit.briefcase.pull.aggregate;
 import static org.opendatakit.briefcase.pull.aggregate.PullFromAggregate.asMediaFileList;
 
 import java.util.List;
+import java.util.Optional;
 import org.opendatakit.briefcase.export.SubmissionMetaData;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -28,11 +29,13 @@ import org.opendatakit.briefcase.reused.BriefcaseException;
  */
 public class DownloadedSubmission {
   private final String xml;
+  private final Optional<String> formVersion;
   private final String instanceId;
   private final List<AggregateAttachment> attachments;
 
-  DownloadedSubmission(String xml, String instanceId, List<AggregateAttachment> attachments) {
+  DownloadedSubmission(String xml, Optional<String> formVersion, String instanceId, List<AggregateAttachment> attachments) {
     this.xml = xml;
+    this.formVersion = formVersion;
     this.instanceId = instanceId;
     this.attachments = attachments;
   }
@@ -49,9 +52,14 @@ public class DownloadedSubmission {
     XmlElement instance = submission.findElement("data").orElseThrow(BriefcaseException::new).childrenOf().get(0);
     return new DownloadedSubmission(
         instance.serialize(),
+        new SubmissionMetaData(instance).getVersion(),
         new SubmissionMetaData(instance).getInstanceId().orElseThrow(BriefcaseException::new),
         asMediaFileList(submission.findElements("mediaFile"))
     );
+  }
+
+  public Optional<String> getFormVersion() {
+    return formVersion;
   }
 
   public String getInstanceId() {

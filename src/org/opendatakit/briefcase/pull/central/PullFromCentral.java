@@ -20,16 +20,21 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.model.form.FormMetadataCommands.updateAsPulled;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.createDirectories;
+import static org.opendatakit.briefcase.reused.UncheckedFiles.readAllBytes;
 import static org.opendatakit.briefcase.reused.job.Job.allOf;
 import static org.opendatakit.briefcase.reused.job.Job.run;
 import static org.opendatakit.briefcase.reused.job.Job.supply;
 import static org.opendatakit.briefcase.util.DatabaseUtils.withDb;
 
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.bushe.swing.event.EventBus;
+import org.opendatakit.briefcase.export.SubmissionMetaData;
+import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.FormStatusEvent;
 import org.opendatakit.briefcase.model.form.FormKey;
@@ -87,6 +92,7 @@ public class PullFromCentral {
           List<String> submissions = pair.getLeft();
           int totalSubmissions = submissions.size();
           AtomicInteger submissionNumber = new AtomicInteger(1);
+          Set<String> submissionVersions = new HashSet<>();
 
           if (submissions.isEmpty())
             tracker.trackNoSubmissions();
@@ -102,6 +108,13 @@ public class PullFromCentral {
                 int currentSubmissionNumber = triple.get1();
                 String instanceId = triple.get2();
                 downloadSubmission(form, instanceId, token, runnerStatus, tracker, currentSubmissionNumber, totalSubmissions);
+                Path downloadedSubmissionPath = form.getSubmissionFile(briefcaseDir, instanceId);
+                if (downloadedSubmissionPath.toFile().exists()) {
+                  XmlElement root = XmlElement.from(new String(readAllBytes(downloadedSubmissionPath)));
+                  SubmissionMetaData metaData = new SubmissionMetaData(root);
+                  metaData.getVersion().ifPresent(submissionVersions::add);
+                }
+
                 List<CentralAttachment> attachments = getSubmissionAttachments(form, instanceId, token, runnerStatus, tracker, currentSubmissionNumber, totalSubmissions);
                 int totalAttachments = attachments.size();
                 AtomicInteger attachmentNumber = new AtomicInteger(1);
@@ -112,7 +125,7 @@ public class PullFromCentral {
               });
           tracker.trackEnd();
 
-          formMetadataPort.execute(updateAsPulled(key, briefcaseDir, form.getFormDir(briefcaseDir)));
+          formMetadataPort.execute(updateAsPulled(key, briefcaseDir, form.getFormDir(briefcaseDir), submissionVersions));
           EventBus.publish(PullEvent.Success.of(form, server));
         }));
   }

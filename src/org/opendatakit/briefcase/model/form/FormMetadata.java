@@ -5,12 +5,15 @@ import static org.opendatakit.briefcase.util.Host.isWindows;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.pull.aggregate.Cursor;
 import org.opendatakit.briefcase.reused.BriefcaseException;
@@ -22,14 +25,20 @@ public class FormMetadata implements AsJson {
   private final boolean hasBeenPulled;
   private final Cursor cursor;
   private final Optional<SubmissionExportMetadata> lastExportedSubmission;
+  /**
+   * The form versions of the submissions associated with this form version. Briefcase only keeps track of the currently-published form version. However,
+   * there could be form submissions that point to previous form versions.
+   */
+  private final Set<String> submissionVersions;
 
-  public FormMetadata(FormKey key, Path storageRoot, Path formDir, boolean hasBeenPulled, Cursor cursor, Optional<SubmissionExportMetadata> lastExportedSubmission) {
+  public FormMetadata(FormKey key, Path storageRoot, Path formDir, boolean hasBeenPulled, Cursor cursor, Optional<SubmissionExportMetadata> lastExportedSubmission, Set<String> submissionVersions) {
     this.key = key;
     this.storageRoot = storageRoot;
     this.formDir = formDir.isAbsolute() ? storageRoot.relativize(formDir) : formDir;
     this.hasBeenPulled = hasBeenPulled;
     this.cursor = cursor;
     this.lastExportedSubmission = lastExportedSubmission;
+    this.submissionVersions = submissionVersions;
   }
 
   public static FormMetadata of(FormKey key, Path storageRoot, Path formDir) {
@@ -37,7 +46,7 @@ public class FormMetadata implements AsJson {
         key,
         storageRoot,
         formDir,
-        false, Cursor.empty(), Optional.empty());
+        false, Cursor.empty(), Optional.empty(), new HashSet<>());
   }
 
   public static FormMetadata from(Path storageRoot, Path formFile) {
@@ -51,19 +60,24 @@ public class FormMetadata implements AsJson {
         .findFirst()
         .orElseThrow(BriefcaseException::new);
     String id = mainInstance.childrenOf().get(0).getAttributeValue("id").orElseThrow(BriefcaseException::new);
-    Optional<String> version = mainInstance.childrenOf().get(0).getAttributeValue("version");
-    FormKey key = FormKey.of(name, id, version);
-    return new FormMetadata(key, storageRoot, formFile.getParent(), true, Cursor.empty(), Optional.empty());
+    FormKey key = FormKey.of(name, id);
+    return new FormMetadata(key, storageRoot, formFile.getParent(), true, Cursor.empty(), Optional.empty(), new HashSet<>());
   }
 
   public static FormMetadata from(Path storageRoot, JsonNode root) {
+    Set<String> submissionVersions = new HashSet<>();
+    if (root.has("submissionVersions")) {
+      root.withArray("submissionVersions").elements().forEachRemaining(e -> submissionVersions.add(e.asText()));
+    }
+
     return new FormMetadata(
         FormKey.from(root.get("key")),
         storageRoot,
         getJson(root, "formDir").map(JsonNode::asText).map(Paths::get).orElseThrow(BriefcaseException::new),
         getJson(root, "hasBeenPulled").map(JsonNode::asBoolean).orElseThrow(BriefcaseException::new),
         Cursor.from(root.get("cursor")),
-        getJson(root, "lastExportedSubmission").map(SubmissionExportMetadata::from)
+        getJson(root, "lastExportedSubmission").map(SubmissionExportMetadata::from),
+        submissionVersions
     );
   }
 
@@ -93,20 +107,34 @@ public class FormMetadata implements AsJson {
     return lastExportedSubmission;
   }
 
+  public Set<String> getSubmissionVersions() {
+    return submissionVersions;
+  }
+
   FormMetadata withCursor(Cursor cursor) {
-    return new FormMetadata(key, storageRoot, formDir, hasBeenPulled, cursor, lastExportedSubmission);
+    return new FormMetadata(key, storageRoot, formDir, hasBeenPulled, cursor, lastExportedSubmission, submissionVersions);
   }
 
   public FormMetadata withoutCursor() {
-    return new FormMetadata(key, storageRoot, formDir, hasBeenPulled, Cursor.empty(), lastExportedSubmission);
+    return new FormMetadata(key, storageRoot, formDir, hasBeenPulled, Cursor.empty(), lastExportedSubmission, submissionVersions);
   }
 
-  FormMetadata withHasBeenPulled(boolean hasBeenPulled) {
-    return new FormMetadata(key, storageRoot, formDir, hasBeenPulled, cursor, lastExportedSubmission);
+  FormMetadata withSubmissionVersions(Set<String> submissionVersions) {
+    Set<String> updatedSubmissionVersions = new HashSet<>(submissionVersions);
+    updatedSubmissionVersions.addAll(this.submissionVersions);
+
+    return new FormMetadata(key, storageRoot, formDir, hasBeenPulled, cursor, lastExportedSubmission, updatedSubmissionVersions);
+  }
+
+  FormMetadata withHasBeenPulled(boolean hasBeenPulled, Set<String> submissionVersions) {
+    Set<String> updatedSubmissionVersions = new HashSet<>(submissionVersions);
+    updatedSubmissionVersions.addAll(this.submissionVersions);
+
+    return new FormMetadata(key, storageRoot, formDir, hasBeenPulled, cursor, lastExportedSubmission, updatedSubmissionVersions);
   }
 
   FormMetadata withLastExportedSubmission(String instanceId, OffsetDateTime submissionDate, OffsetDateTime exportDateTime) {
-    return new FormMetadata(key, storageRoot, formDir, hasBeenPulled, cursor, Optional.of(new SubmissionExportMetadata(instanceId, submissionDate, exportDateTime)));
+    return new FormMetadata(key, storageRoot, formDir, hasBeenPulled, cursor, Optional.of(new SubmissionExportMetadata(instanceId, submissionDate, exportDateTime)), submissionVersions);
   }
 
   @Override
@@ -120,6 +148,8 @@ public class FormMetadata implements AsJson {
     root.put("hasBeenPulled", hasBeenPulled);
     root.putObject("cursor").setAll(cursor.asJson(mapper));
     lastExportedSubmission.ifPresent(o -> root.putObject("lastExportedSubmission").setAll(o.asJson(mapper)));
+    root.putArray("submissionVersions").addAll((ArrayNode) mapper.valueToTree(submissionVersions));
+
     return root;
   }
 

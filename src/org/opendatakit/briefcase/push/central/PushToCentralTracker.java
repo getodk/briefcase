@@ -108,31 +108,52 @@ class PushToCentralTracker {
     notifyTrackingEvent();
   }
 
-  void trackStartSendingForm() {
-    String message = "Sending form";
+  void trackCreatingForm() {
+    String message = "Creating form (" + form.getFormId() + ")";
     form.setStatusString(message);
-    log.info("Push {} - {}", form.getFormName(), message);
+    log.info("Create {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
 
-  void trackEndSendingForm() {
-    String message = "Form sent";
+  void trackEndCreatingForm() {
+    String message = "Form created (" + form.getFormId() + ")";
     form.setStatusString(message);
-    log.info("Push {} - {}", form.getFormName(), message);
+    log.info("Create {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
 
   void trackFormAlreadyExists() {
-    String message = "Skipping form: already exists";
+    String message = "Form already on server (" + form.getFormId() + ")";
     form.setStatusString(message);
     log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
 
-  void trackErrorSendingForm(Response response) {
+  void trackStartSendingDraft(String version) {
+    String message = "Creating draft (" + form.getFormId() + ", " + version + ")";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackEndSendingDraft(String version) {
+    String message = "Draft created (" + form.getFormId() + ", " + version + ")";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackFormVersionAlreadyExists(String v) {
+    String message = "Skipping form version \"" + v + "\": already on server";
+    form.setStatusString(message);
+    log.info("Push {} - {}", form.getFormName(), message);
+    notifyTrackingEvent();
+  }
+
+  void trackErrorSendingForm(Response response, String version) {
     errored = true;
     String centralErrorMessage = parseErrorResponse(response.getServerErrorResponse());
-    String message = "Error sending form";
+    String message = "Error sending form (" + form.getFormId() + ", " + version + ")";
     form.setStatusString(message + ": " + response.getStatusPhrase());
     log.error("Push {} - {} HTTP {} {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase(), centralErrorMessage);
     notifyTrackingEvent();
@@ -153,7 +174,7 @@ class PushToCentralTracker {
   }
 
   void trackFormAttachmentAlreadyExists(int attachmentNumber, int totalAttachments) {
-    String message = "Skipping form attachment " + attachmentNumber + " of " + totalAttachments + ": already exists";
+    String message = "Skipping form attachment " + attachmentNumber + " of " + totalAttachments + ": already on server";
     form.setStatusString(message);
     log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
@@ -170,16 +191,16 @@ class PushToCentralTracker {
     notifyTrackingEvent();
   }
 
-  void trackSuccessfulPublish() {
-    String message = "Form published";
+  void trackSuccessfulPublish(String version) {
+    String message = "Form version \"" + version + "\" published";
     form.setStatusString(message);
     log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
 
-  void trackErrorPublishing(Response response) {
-    String message = "Error publishing form";
-    form.setStatusString(message + ": " + response.getStatusPhrase());
+  void trackErrorPublishing(Response response, String version) {
+    String message = "Error publishing form version \"" + version + "\"";
+    form.setStatusString(message + ": " + parseErrorResponse(response.getServerErrorResponse()));
     log.info("Push {} - {}", form.getFormName(), message);
     notifyTrackingEvent();
   }
@@ -202,7 +223,9 @@ class PushToCentralTracker {
     errored = true;
     String centralErrorMessage = parseErrorResponse(response.getServerErrorResponse());
     String message = "Error sending submission " + submissionNumber + " of " + totalSubmissions;
-    form.setStatusString(message + ": " + response.getStatusPhrase());
+    String helpFor404 = " This submission was created for a form version that is not on the server. You can manually " +
+        "upload older form versions or let this push attempt complete and then try again. Learn more at https://docs.getodk.org/central-briefcase";
+    form.setStatusString(message + ": " + (response.getStatusCode() == 404 ? helpFor404 : response.getStatusPhrase()));
     log.error("Push {} - {} HTTP {} {} {}", form.getFormName(), message, response.getStatusCode(), response.getStatusPhrase(), centralErrorMessage);
     notifyTrackingEvent();
   }

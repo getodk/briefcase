@@ -105,7 +105,7 @@ public class FormInComputer implements PullSource<FormStatus> {
     Path briefcaseDir = appPreferences.getBriefcaseDir().orElseThrow(BriefcaseException::new);
     return JobsRunner.launchAsync(run(jobStatus -> {
       install(briefcaseDir, form);
-      formMetadataPort.execute(updateAsPulled(FormKey.from(form), briefcaseDir, form.getFormDir(briefcaseDir)));
+      formMetadataPort.execute(updateAsPulled(FormKey.from(form), briefcaseDir, form.getFormDir(briefcaseDir), Collections.emptySet()));
     })).onComplete(() -> EventBus.publish(new PullEvent.PullComplete()));
   }
 

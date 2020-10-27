@@ -1,6 +1,7 @@
 package org.opendatakit.briefcase.model.form;
 
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.opendatakit.briefcase.model.form.FormMetadataCommands.cleanAllCursors;
@@ -14,8 +15,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.Before;
@@ -33,24 +38,32 @@ public class FormMetadataCommandsTest {
   @Before
   public void setUp() {
     key = FormKey.of("Some form", "some-form");
-    FormMetadata formMetadata = new FormMetadata(key, storageRoot, formDir, false, Cursor.empty(), Optional.empty());
+    FormMetadata formMetadata = new FormMetadata(key, storageRoot, formDir, false, Cursor.empty(), Optional.empty(), Collections.emptySet());
     formMetadataPort = new InMemoryFormMetadataAdapter();
     formMetadataPort.persist(formMetadata);
   }
 
   @Test
   public void updates_a_form_as_having_been_pulled() {
-    formMetadataPort.execute(updateAsPulled(key, storageRoot, formDir));
+    formMetadataPort.execute(updateAsPulled(key, storageRoot, formDir, Collections.emptySet()));
     assertThat(formMetadataPort.fetch(key).get().hasBeenPulled(), is(true));
   }
 
   @Test
   public void updates_a_form_as_having_been_pulled_adding_the_last_cursor_used_to_pull_it() {
     Cursor cursor = Cursor.from("some cursor data");
-    formMetadataPort.execute(updateAsPulled(key, cursor, storageRoot, formDir));
+    formMetadataPort.execute(updateAsPulled(key, cursor, storageRoot, formDir, Collections.emptySet()));
     FormMetadata formMetadata = formMetadataPort.fetch(key).get();
     assertThat(formMetadata.hasBeenPulled(), is(true));
     assertThat(formMetadata.getCursor(), is(cursor));
+  }
+
+  @Test
+  public void updates_a_forms_submission_versions() {
+    Set<String> formVersions = new HashSet<>(Arrays.asList("2020031801", "2020031901"));
+    formMetadataPort.execute(updateAsPulled(key, Cursor.from("fake"), storageRoot, formDir, formVersions));
+    FormMetadata formMetadata = formMetadataPort.fetch(key).get();
+    assertThat(formMetadata.getSubmissionVersions(), containsInAnyOrder("2020031801", "2020031901"));
   }
 
   @Test
@@ -64,6 +77,22 @@ public class FormMetadataCommandsTest {
     // Indirectly assert that the submission metadata is OK by serializing into
     // a JSON. This is to avoid adding getters that will be used only by tests
     ObjectNode jsonNode = formMetadata.getLastExportedSubmission().get().asJson(new ObjectMapper());
+    assertThat(jsonNode.get("instanceId").asText(), is(expectedInstanceId));
+    assertThat(jsonNode.get("submissionDate").asText(), is(expectedSubmissionDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+    assertThat(jsonNode.get("exportDateTime").asText(), is(expectedExportDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+  }
+
+  @Test
+  public void gets_last_exported_submission_metadata_when_version_has_changed() {
+    OffsetDateTime expectedSubmissionDate = OffsetDateTime.parse("2019-01-01T00:00:00.000Z");
+    String expectedInstanceId = "some uuid";
+    OffsetDateTime expectedExportDate = OffsetDateTime.parse("2019-02-01T00:00:00.000Z");
+    formMetadataPort.execute(updateLastExportedSubmission(key, expectedInstanceId, expectedSubmissionDate, expectedExportDate, storageRoot, formDir));
+
+    FormKey newVersionKey = FormKey.of("Some form", "some-form");
+    assertThat(formMetadataPort.fetch(newVersionKey), isPresent());
+
+    ObjectNode jsonNode = formMetadataPort.fetch(newVersionKey).get().getLastExportedSubmission().get().asJson(new ObjectMapper());
     assertThat(jsonNode.get("instanceId").asText(), is(expectedInstanceId));
     assertThat(jsonNode.get("submissionDate").asText(), is(expectedSubmissionDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
     assertThat(jsonNode.get("exportDateTime").asText(), is(expectedExportDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
@@ -88,6 +117,6 @@ public class FormMetadataCommandsTest {
   private FormMetadata buildFormMetadata(int number) {
     Paths.get("/some/path/forms/" + stripIllegalChars("Form #" + number));
     FormKey key = FormKey.of("Form #" + number, "form-" + number);
-    return new FormMetadata(key, storageRoot, formDir, true, Cursor.from("some cursor data"), Optional.empty());
+    return new FormMetadata(key, storageRoot, formDir, true, Cursor.from("some cursor data"), Optional.empty(), Collections.emptySet());
   }
 }

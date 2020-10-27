@@ -40,6 +40,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -173,7 +174,8 @@ class ExportToCsvScenario {
         formDef.getFormDir().resolve(stripIllegalChars(formDef.getFormName()) + ".xml"),
         true,
         Cursor.empty(),
-        Optional.empty()
+        Optional.empty(),
+        Collections.emptySet()
     );
     ExportToCsv.export(new InMemoryFormMetadataAdapter(), formMetadata, formStatus, formDef, briefcaseDir, configuration);
   }

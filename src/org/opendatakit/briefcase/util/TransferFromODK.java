@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.Optional;
+import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
@@ -47,12 +48,14 @@ public class TransferFromODK implements ITransferFromSourceAction {
   private final File odkOriginDir;
   private final TerminationFuture terminationFuture;
   private final TransferForms formsToTransfer;
+  private final Set<String> submissionVersions;
 
-  public TransferFromODK(Path briefcaseDir, File odkOriginDir, TerminationFuture terminationFuture, TransferForms formsToTransfer) {
+  public TransferFromODK(Path briefcaseDir, File odkOriginDir, TerminationFuture terminationFuture, TransferForms formsToTransfer, Set<String> submissionVersions) {
     this.briefcaseDir = briefcaseDir;
     this.odkOriginDir = odkOriginDir;
     this.terminationFuture = terminationFuture;
     this.formsToTransfer = formsToTransfer;
+    this.submissionVersions = submissionVersions;
   }
 
   /**
@@ -108,8 +111,8 @@ public class TransferFromODK implements ITransferFromSourceAction {
     return briefcaseLfd;
   }
 
-  public static void pull(Path briefcaseDir, Path odk, TransferForms forms) {
-    TransferFromODK action = new TransferFromODK(briefcaseDir, odk.toFile(), new TerminationFuture(), forms);
+  public static void pull(Path briefcaseDir, Path odk, TransferForms forms, Set<String> submissionVersions) {
+    TransferFromODK action = new TransferFromODK(briefcaseDir, odk.toFile(), new TerminationFuture(), forms, submissionVersions);
     if (!action.doAction()) {
       throw new PullFromODKException(forms);
     }
@@ -231,6 +234,8 @@ public class TransferFromODK implements ITransferFromSourceAction {
                       XmlManipulationUtils.getFormInstanceMetadata(XmlManipulationUtils.parseXml(xml)
                           .getRootElement());
                   instanceId = formInstanceMetadata.instanceId;
+                  String version = formInstanceMetadata.xparam.modelVersion;
+                  submissionVersions.add(version == null ? "" : version);
                 } catch (ParsingException e) {
                   log.error("failed to get instance id from submission", e);
                 }

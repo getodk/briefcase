@@ -42,6 +42,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.After;
 import org.junit.Before;
@@ -183,7 +184,7 @@ public class PullFromAggregateTest {
   public void knows_how_to_download_a_submission_attachment() {
     String instanceId = "some instance id";
     List<AggregateAttachment> attachments = buildMediaFiles(server.getBaseUrl().toString(), 3);
-    DownloadedSubmission submission = new DownloadedSubmission("some xml", instanceId, attachments);
+    DownloadedSubmission submission = new DownloadedSubmission("some xml", Optional.empty(), instanceId, attachments);
 
     attachments.forEach(attachment -> http.stub(get(attachment.getDownloadUrl()).build(), ok("some body")));
 

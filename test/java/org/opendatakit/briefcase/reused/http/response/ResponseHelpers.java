@@ -37,4 +37,8 @@ public class ResponseHelpers {
   public static Response<Boolean> notFound() {
     return new ClientError<>(404, "Not Found", "");
   }
+
+  public static Response<InputStream> notFoundInputStream() {
+    return new ClientError<>(404, "Not Found", "");
+  }
 }

@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Objects;
-import java.util.Optional;
 import org.opendatakit.briefcase.export.XmlElement;
 import org.opendatakit.briefcase.model.BriefcaseFormDefinition;
 import org.opendatakit.briefcase.model.FormStatus;
@@ -16,41 +15,29 @@ import org.opendatakit.briefcase.reused.Pair;
 public class FormKey implements AsJson {
   private final String name;
   private final String id;
-  private final Optional<String> version;
 
-  private FormKey(String name, String id, Optional<String> version) {
+  private FormKey(String name, String id) {
     this.name = name;
     this.id = id;
-    this.version = version;
   }
 
   public static FormKey from(FormStatus formStatus) {
     Pair<String, String> formNameAndId = getFormNameAndId(formStatus);
     return new FormKey(
         formNameAndId.getLeft(),
-        formNameAndId.getRight(),
-        formStatus.getVersion()
+        formNameAndId.getRight()
     );
   }
 
   public static FormKey from(JsonNode root) {
     return new FormKey(
         getJson(root, "name").map(JsonNode::asText).orElseThrow(BriefcaseException::new),
-        getJson(root, "id").map(JsonNode::asText).orElseThrow(BriefcaseException::new),
-        getJson(root, "version").map(JsonNode::asText)
+        getJson(root, "id").map(JsonNode::asText).orElseThrow(BriefcaseException::new)
     );
   }
 
   public static FormKey of(String name, String id) {
-    return new FormKey(name, id, Optional.empty());
-  }
-
-  public static FormKey of(String name, String id, String version) {
-    return new FormKey(name, id, Optional.of(version));
-  }
-
-  public static FormKey of(String name, String id, Optional<String> version) {
-    return new FormKey(name, id, version);
+    return new FormKey(name, id);
   }
 
   private static Pair<String, String> getFormNameAndId(FormStatus formStatus) {
@@ -93,7 +80,6 @@ public class FormKey implements AsJson {
     ObjectNode root = mapper.createObjectNode();
     root.put("name", name);
     root.put("id", id);
-    root.put("version", version.orElse(null));
     return root;
   }
 
@@ -103,13 +89,12 @@ public class FormKey implements AsJson {
     if (o == null || getClass() != o.getClass()) return false;
     FormKey formKey = (FormKey) o;
     return Objects.equals(name, formKey.name) &&
-        Objects.equals(id, formKey.id) &&
-        Objects.equals(version, formKey.version);
+        Objects.equals(id, formKey.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, id, version);
+    return Objects.hash(name, id);
   }
 
   @Override
@@ -117,7 +102,6 @@ public class FormKey implements AsJson {
     return "FormKey{" +
         "name='" + name + '\'' +
         ", id='" + id + '\'' +
-        ", version=" + version +
-        '}';
+        "}";
   }
 }
