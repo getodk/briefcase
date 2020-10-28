@@ -37,7 +37,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.bushe.swing.event.EventBus;
 import org.opendatakit.briefcase.model.FormStatus;
 import org.opendatakit.briefcase.model.form.FormMetadata;
@@ -143,14 +142,13 @@ public class ExportToCsv {
   }
 
   private static SubmissionExportErrorCallback buildParsingErrorCallback(Path errorsDir) {
-    AtomicInteger errorSeq = new AtomicInteger(1);
     // Remove errors from a previous export attempt
     if (exists(errorsDir))
       deleteRecursive(errorsDir);
     return (path, message) -> {
       if (!exists(errorsDir))
         createDirectories(errorsDir);
-      copy(path, errorsDir.resolve("failed_submission_" + errorSeq.getAndIncrement() + ".xml"));
+      copy(path, errorsDir.resolve("failed_submission_" + path.getParent().getFileName() + ".xml"));
       log.warn("A submission has been excluded from the export output due to some problem ({}). If you didn't expect this, please ask for support at https://forum.getodk.org/c/support", message);
     };
   }
