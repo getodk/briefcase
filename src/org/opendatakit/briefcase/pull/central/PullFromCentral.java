@@ -124,7 +124,7 @@ public class PullFromCentral {
                     .forEach(attachment ->
                         downloadSubmissionAttachment(form, instanceId, attachment, token, runnerStatus, tracker, currentSubmissionNumber, totalSubmissions, attachmentNumber.getAndIncrement(), totalAttachments)
                   );
-                if (!runnerStatus.isCancelled()) {
+                if (!runnerStatus.isCancelled() && !inDb) {
                   db.putRecordedInstanceDirectory(instanceId, form.getSubmissionDir(briefcaseDir, instanceId).toFile());
                 }
               });

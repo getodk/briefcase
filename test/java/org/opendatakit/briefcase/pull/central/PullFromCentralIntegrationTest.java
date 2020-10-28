@@ -23,7 +23,9 @@ import static com.github.dreamhead.moco.Runner.running;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
 import static java.util.stream.Collectors.joining;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.opendatakit.briefcase.matchers.PathMatchers.exists;
 import static org.opendatakit.briefcase.pull.central.PullFromCentralTest.buildAttachments;
 import static org.opendatakit.briefcase.pull.central.PullFromCentralTest.jsonOfAttachments;
 import static org.opendatakit.briefcase.pull.central.PullFromCentralTest.jsonOfSubmissions;
@@ -35,13 +37,16 @@ import static org.opendatakit.briefcase.reused.http.RequestBuilder.url;
 import static org.opendatakit.briefcase.reused.job.JobsRunner.launchSync;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildFormStatus;
 import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildMediaFileXml;
+import static org.opendatakit.briefcase.reused.transfer.TransferTestHelpers.buildSubmissionXml;
 
 import com.github.dreamhead.moco.HttpServer;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -174,5 +179,83 @@ public class PullFromCentralIntegrationTest {
 
     // Assert that saves form metadata
     assertThat(formMetadataPort.fetch(FormKey.from(form)), isPresent());
+  }
+
+  @Test
+  public void downloads_submission_xml_if_not_on_disk() throws Exception {
+    String instanceId = "some instance id";
+    String expectedSubmissionXml = buildSubmissionXml(instanceId);
+
+    stubServerForSingleSubmission(instanceId, expectedSubmissionXml);
+
+    // Stub a submission without attachments
+    server
+        .request(by(uri("/v1/projects/1/forms/some-form/submissions/" + instanceId + ".xml")))
+        .response(expectedSubmissionXml);
+
+    // Confirm the submission was downloaded
+    Path submissionFile = form.getSubmissionFile(briefcaseDir, instanceId);
+    running(server, () -> launchSync(pullOp.pull(form)));
+    assertThat(submissionFile, exists());
+
+    Files.delete(submissionFile);
+
+    // Confirm the submission was re-downloaded
+    running(server, () -> launchSync(pullOp.pull(form)));
+    assertThat(submissionFile, exists());
+    String actualSubmissionXml = new String(readAllBytes(submissionFile));
+    assertThat(actualSubmissionXml, is(expectedSubmissionXml));
+  }
+
+  @Test
+  public void skips_submission_file_if_already_on_disk() throws Exception {
+    String instanceId = "some instance id";
+    String expectedSubmissionXml = buildSubmissionXml(instanceId);
+
+    stubServerForSingleSubmission(instanceId, expectedSubmissionXml);
+
+    // Stub a submission without attachments
+    server
+        .request(by(uri("/v1/projects/1/forms/some-form/submissions/" + instanceId + ".xml")))
+        .response(expectedSubmissionXml);
+
+    // Confirm the submission was downloaded
+    Path submissionFile = form.getSubmissionFile(briefcaseDir, instanceId);
+    running(server, () -> launchSync(pullOp.pull(form)));
+    assertThat(submissionFile, exists());
+
+    // Stub a bad submission to make sure it doesn't get downloaded
+    server = httpServer(serverPort);
+    stubServerForSingleSubmission(instanceId, expectedSubmissionXml);
+    server
+        .request(by(uri("/v1/projects/1/forms/some-form/submissions/" + instanceId + ".xml")))
+        .response("other");
+
+    // Confirm the submission was not re-downloaded
+    running(server, () -> launchSync(pullOp.pull(form)));
+    String actualSubmissionXml = new String(readAllBytes(submissionFile));
+    assertThat(actualSubmissionXml, is(expectedSubmissionXml));
+  }
+
+  public void stubServerForSingleSubmission(String instanceId, String expectedSubmissionXml) {
+    // Stub the token request
+    server
+        .request(by(uri("/v1/sessions")))
+        .response("{\n" +
+            "  \"createdAt\": \"2018-04-18T03:04:51.695Z\",\n" +
+            "  \"expiresAt\": \"2018-04-19T03:04:51.695Z\",\n" +
+            "  \"token\": \"" + token + "\"\n" +
+            "}");
+
+    // Stub the form XML request
+    server
+        .request(by(uri("/v1/projects/1/forms/some-form.xml")))
+        .response(new String(readAllBytes(getPath("simple-form.xml"))));
+
+    // Stub the submissions request
+    List<String> expectedInstanceIds = Collections.singletonList(instanceId);
+    server
+        .request(by(uri("/v1/projects/1/forms/some-form/submissions")))
+        .response(jsonOfSubmissions(expectedInstanceIds));
   }
 }

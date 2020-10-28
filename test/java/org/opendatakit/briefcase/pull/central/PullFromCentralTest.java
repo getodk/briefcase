@@ -127,26 +127,6 @@ public class PullFromCentralTest {
   }
 
   @Test
-  public void knows_how_to_download_a_submission() {
-    String instanceId = "uuid:515a13cf-d7a5-4606-a18f-84940b0944b2";
-    String expectedSubmissionXml = buildSubmissionXml(instanceId);
-    Path submissionFile = form.getSubmissionFile(briefcaseDir, instanceId);
-    http.stub(server.getDownloadSubmissionRequest(form.getFormId(), instanceId, submissionFile, token), ok(expectedSubmissionXml));
-
-    pullOp.downloadSubmission(form, instanceId, token, runnerStatus, tracker, 1, 1);
-
-    String actualSubmissionXml = new String(readAllBytes(submissionFile));
-    assertThat(submissionFile, exists());
-    assertThat(actualSubmissionXml, is(expectedSubmissionXml));
-    // There's actually another event from the call to tracker.trackTotalSubmissions(1) in this test.
-    // Since we don't really care about it, we use Matchers.hasItem() instead of Matchers.contains()
-    assertThat(events, contains(
-        "Start downloading submission 1 of 1",
-        "Submission 1 of 1 downloaded"
-    ));
-  }
-
-  @Test
   public void knows_how_to_get_form_attachments() {
     List<CentralAttachment> expectedAttachments = buildAttachments(3);
 
@@ -190,7 +170,7 @@ public class PullFromCentralTest {
   }
 
   @Test
-  public void knows_how_to_get_submission() {
+  public void knows_how_to_get_submission_list() {
     List<String> expectedInstanceIds = IntStream.range(0, 250)
         .mapToObj(i -> "submission instanceID " + i)
         .collect(Collectors.toList());
@@ -206,6 +186,26 @@ public class PullFromCentralTest {
     assertThat(events, contains(
         "Start getting submission IDs",
         "Got all the submission IDs"
+    ));
+  }
+
+  @Test
+  public void knows_how_to_download_a_submission() {
+    String instanceId = "uuid:515a13cf-d7a5-4606-a18f-84940b0944b2";
+    String expectedSubmissionXml = buildSubmissionXml(instanceId);
+    Path submissionFile = form.getSubmissionFile(briefcaseDir, instanceId);
+    http.stub(server.getDownloadSubmissionRequest(form.getFormId(), instanceId, submissionFile, token), ok(expectedSubmissionXml));
+
+    pullOp.downloadSubmission(form, instanceId, token, runnerStatus, tracker, 1, 1);
+
+    String actualSubmissionXml = new String(readAllBytes(submissionFile));
+    assertThat(submissionFile, exists());
+    assertThat(actualSubmissionXml, is(expectedSubmissionXml));
+    // There's actually another event from the call to tracker.trackTotalSubmissions(1) in this test.
+    // Since we don't really care about it, we use Matchers.hasItem() instead of Matchers.contains()
+    assertThat(events, contains(
+        "Start downloading submission 1 of 1",
+        "Submission 1 of 1 downloaded"
     ));
   }
 

@@ -48,7 +48,7 @@ import org.opendatakit.briefcase.reused.Pair;
 public class TransferTestHelpers {
   public static String buildSubmissionXml(String instanceId) {
     return "" +
-        "<some-form id=\"some-form\" instanceID=\"" + instanceId + "\" submissionDate=\"2018-07-19T10:36:50.779Z\" isComplete=\"true\" markedAsCompleteDate=\"2018-07-19T10:36:50.779Z\">\n" +
+        "<some-form xmlns:orx=\"http://openrosa.org/xforms\" id=\"some-form\" instanceID=\"" + instanceId + "\" submissionDate=\"2018-07-19T10:36:50.779Z\" isComplete=\"true\" markedAsCompleteDate=\"2018-07-19T10:36:50.779Z\">\n" +
         "  <orx:meta>\n" +
         "    <orx:instanceID>" + instanceId + "</orx:instanceID>\n" +
         "  </orx:meta>\n" +
