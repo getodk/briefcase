@@ -208,6 +208,40 @@ public class PullFromCentralIntegrationTest {
   }
 
   @Test
+  public void downloads_submission_attachment_if_not_on_disk() throws Exception {
+    String instanceId = "some instance id";
+    String expectedSubmissionXml = buildSubmissionXml(instanceId);
+
+    stubServerForSingleSubmission(instanceId, expectedSubmissionXml);
+
+    // Stub a submission with one attachment
+    server
+        .request(by(uri("/v1/projects/1/forms/some-form/submissions/" + instanceId + ".xml")))
+        .response(expectedSubmissionXml);
+
+    List<CentralAttachment> attachments = buildAttachments(1);
+    server
+        .request(by(uri("/v1/projects/1/forms/some-form/submissions/" + instanceId + "/attachments")))
+        .response(jsonOfAttachments(attachments));
+    server
+        .request(by(uri("/v1/projects/1/forms/some-form/submissions/" + instanceId + "/attachments/" + attachments.get(0).getName())))
+        .response("some attachment content");
+
+    // Confirm the attachment was downloaded
+    Path attachmentFile = form.getSubmissionMediaFile(briefcaseDir, instanceId, attachments.get(0).getName());
+    running(server, () -> launchSync(pullOp.pull(form)));
+    assertThat(attachmentFile, exists());
+
+    Files.delete(attachmentFile);
+
+    // Confirm the attachment was re-downloaded
+    running(server, () -> launchSync(pullOp.pull(form)));
+    assertThat(attachmentFile, exists());
+    String actualSubmissionXml = new String(readAllBytes(attachmentFile));
+    assertThat(actualSubmissionXml, is("some attachment content"));
+  }
+
+  @Test
   public void skips_submission_file_if_already_on_disk() throws Exception {
     String instanceId = "some instance id";
     String expectedSubmissionXml = buildSubmissionXml(instanceId);
@@ -235,6 +269,53 @@ public class PullFromCentralIntegrationTest {
     running(server, () -> launchSync(pullOp.pull(form)));
     String actualSubmissionXml = new String(readAllBytes(submissionFile));
     assertThat(actualSubmissionXml, is(expectedSubmissionXml));
+  }
+
+  @Test
+  public void skips_submission_attachment_if_already_on_disk() throws Exception {
+    String instanceId = "some instance id";
+    String expectedSubmissionXml = buildSubmissionXml(instanceId);
+
+    stubServerForSingleSubmission(instanceId, expectedSubmissionXml);
+
+    // Stub a submission with one attachment
+    server
+        .request(by(uri("/v1/projects/1/forms/some-form/submissions/" + instanceId + ".xml")))
+        .response(expectedSubmissionXml);
+
+    List<CentralAttachment> attachments = buildAttachments(1);
+    server
+        .request(by(uri("/v1/projects/1/forms/some-form/submissions/" + instanceId + "/attachments")))
+        .response(jsonOfAttachments(attachments));
+    server
+        .request(by(uri("/v1/projects/1/forms/some-form/submissions/" + instanceId + "/attachments/" + attachments.get(0).getName())))
+        .response("some attachment content");
+
+    // Confirm the attachment was downloaded
+    Path attachmentFile = form.getSubmissionMediaFile(briefcaseDir, instanceId, attachments.get(0).getName());
+    running(server, () -> launchSync(pullOp.pull(form)));
+    assertThat(attachmentFile, exists());
+
+    // Stub a bad attachment to make sure it doesn't get downloaded
+    server = httpServer(serverPort);
+    stubServerForSingleSubmission(instanceId, expectedSubmissionXml);
+    // Stub a submission with one attachment
+    server
+        .request(by(uri("/v1/projects/1/forms/some-form/submissions/" + instanceId + ".xml")))
+        .response(expectedSubmissionXml);
+
+    attachments = buildAttachments(1);
+    server
+        .request(by(uri("/v1/projects/1/forms/some-form/submissions/" + instanceId + "/attachments")))
+        .response(jsonOfAttachments(attachments));
+    server
+        .request(by(uri("/v1/projects/1/forms/some-form/submissions/" + instanceId + "/attachments/" + attachments.get(0).getName())))
+        .response("some bad attachment content");
+
+    // Confirm the attachment was not re-downloaded
+    running(server, () -> launchSync(pullOp.pull(form)));
+    String actualSubmissionXml = new String(readAllBytes(attachmentFile));
+    assertThat(actualSubmissionXml, is("some attachment content"));
   }
 
   public void stubServerForSingleSubmission(String instanceId, String expectedSubmissionXml) {
