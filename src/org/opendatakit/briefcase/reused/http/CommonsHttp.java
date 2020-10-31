@@ -152,7 +152,7 @@ public class CommonsHttp implements Http {
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     } finally {
-      UncheckedFiles.closeInputStream(request.getBody());
+      request.ifBody(UncheckedFiles::closeInputStream);
       if (request.multipartMessages != null)
         request.multipartMessages.stream()
           .map(MultipartMessage::getBody)
