@@ -152,11 +152,7 @@ public class CommonsHttp implements Http {
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     } finally {
-      try {
-        UncheckedFiles.closeInputStream(request.getBody());
-      } catch (final BriefcaseException exception) {
-        log.error("Error: Attempted to close Request.body InputStream, but failed", exception);
-      }
+      UncheckedFiles.closeInputStream(request.getBody());
       if (request.multipartMessages != null)
         request.multipartMessages.stream()
           .map(MultipartMessage::getBody)

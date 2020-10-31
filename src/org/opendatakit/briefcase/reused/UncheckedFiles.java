@@ -302,8 +302,6 @@ public class UncheckedFiles {
   }
 
   public static void closeInputStream(InputStream inputStream) {
-    if (inputStream == null)
-      return;
     try {
       inputStream.close();
     } catch (IOException e) {

@@ -31,11 +31,6 @@ public class UncheckedFilesInputStreamTest {
     deleteRecursive(tempDir);
   }
 
-  @Test
-  public void closeInputStream_should_handle_null() {
-    UncheckedFiles.closeInputStream(null);
-  }
-
   @Test(expected = IOException.class)
   public void closeInputStream_should_close() throws IOException {
     InputStream inputStream = UncheckedFiles.newInputStream(temp);

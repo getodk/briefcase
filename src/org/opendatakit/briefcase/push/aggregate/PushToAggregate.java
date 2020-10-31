@@ -21,7 +21,6 @@ import static java.util.stream.Collectors.toList;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.list;
 import static org.opendatakit.briefcase.reused.UncheckedFiles.size;
 
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -165,8 +164,7 @@ public class PushToAggregate {
     }
 
     tracker.trackStartSendingFormAndAttachments(part, parts);
-    Response<InputStream> response = http.execute(server.getPushFormRequest(form.getFormFile(briefcaseDir), attachments));
-
+    Response response = http.execute(server.getPushFormRequest(form.getFormFile(briefcaseDir), attachments));
     if (response.isSuccess())
       tracker.trackEndSendingFormAndAttachments(part, parts);
     else
@@ -188,7 +186,6 @@ public class PushToAggregate {
         submissionFile,
         attachments
     ));
-
     if (response.isSuccess())
       tracker.trackEndSendingSubmissionAndAttachments(submissionNumber, totalSubmissions, part, parts);
     else
