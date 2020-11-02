@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import org.opendatakit.briefcase.reused.BriefcaseException;
 import org.slf4j.Logger;
@@ -122,6 +123,10 @@ public class Request<T> {
 
   public InputStream getBody() {
     return body.orElseThrow(BriefcaseException::new);
+  }
+
+  public void ifBody(Consumer<InputStream> consumer) {
+    body.ifPresent(consumer);
   }
 
   public boolean ignoreCookies() {

@@ -305,6 +305,14 @@ public class UncheckedFiles {
     }
   }
 
+  public static void closeInputStream(InputStream inputStream) {
+    try {
+      inputStream.close();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
   public static long size(Path path) {
     try {
       return Files.size(path);
