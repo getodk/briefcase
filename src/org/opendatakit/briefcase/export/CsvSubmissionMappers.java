@@ -131,7 +131,7 @@ final class CsvSubmissionMappers {
     if (string == null || string.isEmpty())
       return allowNulls ? "" : "\"\"";
     if (string.contains("\n") || string.contains("\"") || string.contains(","))
-      return String.format("\"%s\"", string.replaceAll("\"", "\"\""));
+      return String.format("\"%s\"", string.replaceAll("\"|\\n", " "));
     return string;
   }
 
