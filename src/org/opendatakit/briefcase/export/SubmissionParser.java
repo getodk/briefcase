@@ -84,7 +84,14 @@ class SubmissionParser {
           Path submissionFile = instanceDir.resolve("submission.xml");
           try {
             Optional<OffsetDateTime> submissionDate = readSubmissionDate(submissionFile);
-            paths.add(Pair.of(submissionFile, submissionDate.orElse(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC))));
+            if (formDef.isFileEncryptedForm() && !Files.exists(instanceDir.resolve("submission.xml.enc")))
+            {
+              log.info(String.format("Can't find encrypted form file (submission.xml.enc) in %s", instanceDir.getFileName()));
+            }
+            else
+            {
+              paths.add(Pair.of(submissionFile, submissionDate.orElse(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC))));
+            }
           } catch (Throwable t) {
             log.error("Can't read submission date", t);
             EventBus.publish(ExportEvent.failureSubmission(formDef, instanceDir.getFileName().toString(), t));
