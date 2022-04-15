@@ -1,4 +1,4 @@
-## ⚠️ ODK Briefcase is no longer being updated. Please use [ODK Central](https://github.com/getodk/central) instead. ⚠️
+## ⚠️ ODK Briefcase is no longer being updated. If you're using Briefcase for CSV exports, data decryption, or automation, please use [ODK Central](https://github.com/getodk/central) instead. ⚠️
 
 # ODK Briefcase
 ![Platform](https://img.shields.io/badge/platform-Java-blue.svg)
