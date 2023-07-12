@@ -5,6 +5,8 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.nio.file.Path;
+import java.util.Optional;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class FormStatusTest {
@@ -43,4 +45,14 @@ public class FormStatusTest {
     );
   }
 
+  @Test
+  public void gets_manifest_url_from_remoteform() {
+    FormStatus form = new FormStatus(null);
+    String supposedManifestUrl = "manifest/test/url";
+    RemoteFormDefinition remoteForm = new RemoteFormDefinition("name", "1","v1",
+            "manifest/test/url", "/download/test/url");
+    Assert.assertEquals(supposedManifestUrl, remoteForm.getManifestUrl());
+    Assert.assertEquals(Optional.empty(), form.getManifestUrl());
+  }
+  
 }
